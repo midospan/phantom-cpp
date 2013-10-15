@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "runtime", "runtime.vcxproj", "{CDCC4020-60EC-43D7-A521-F22C2C7A05D1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "runtime_test", "runtime_test.vcxproj", "{DE427C63-2F6B-48A4-9AD6-6E2224DFA736}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CDCC4020-60EC-43D7-A521-F22C2C7A05D1} = {CDCC4020-60EC-43D7-A521-F22C2C7A05D1}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		DoxygenSrcPreprocessing|Win32 = DoxygenSrcPreprocessing|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CDCC4020-60EC-43D7-A521-F22C2C7A05D1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CDCC4020-60EC-43D7-A521-F22C2C7A05D1}.Debug|Win32.Build.0 = Debug|Win32
+		{CDCC4020-60EC-43D7-A521-F22C2C7A05D1}.DoxygenSrcPreprocessing|Win32.ActiveCfg = DoxygenSrcPreprocessing|Win32
+		{CDCC4020-60EC-43D7-A521-F22C2C7A05D1}.DoxygenSrcPreprocessing|Win32.Build.0 = DoxygenSrcPreprocessing|Win32
+		{CDCC4020-60EC-43D7-A521-F22C2C7A05D1}.Release|Win32.ActiveCfg = Release|Win32
+		{CDCC4020-60EC-43D7-A521-F22C2C7A05D1}.Release|Win32.Build.0 = Release|Win32
+		{DE427C63-2F6B-48A4-9AD6-6E2224DFA736}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DE427C63-2F6B-48A4-9AD6-6E2224DFA736}.Debug|Win32.Build.0 = Debug|Win32
+		{DE427C63-2F6B-48A4-9AD6-6E2224DFA736}.DoxygenSrcPreprocessing|Win32.ActiveCfg = DoxygenSrcPreprocessing|Win32
+		{DE427C63-2F6B-48A4-9AD6-6E2224DFA736}.DoxygenSrcPreprocessing|Win32.Build.0 = DoxygenSrcPreprocessing|Win32
+		{DE427C63-2F6B-48A4-9AD6-6E2224DFA736}.Release|Win32.ActiveCfg = Release|Win32
+		{DE427C63-2F6B-48A4-9AD6-6E2224DFA736}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

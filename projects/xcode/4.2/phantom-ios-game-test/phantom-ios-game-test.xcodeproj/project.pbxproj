@@ -1,0 +1,331 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CEA42DC114FEB9C500628440 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA42DC014FEB9C500628440 /* UIKit.framework */; };
+		CEA42DC314FEB9C500628440 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA42DC214FEB9C500628440 /* Foundation.framework */; };
+		CEA42DC514FEB9C500628440 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA42DC414FEB9C500628440 /* CoreGraphics.framework */; };
+		CEA42DC714FEB9C500628440 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA42DC614FEB9C500628440 /* GLKit.framework */; };
+		CEA42DC914FEB9C500628440 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA42DC814FEB9C500628440 /* OpenGLES.framework */; };
+		CEA42DCF14FEB9C600628440 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = CEA42DCD14FEB9C600628440 /* InfoPlist.strings */; };
+		CEA42DD114FEB9C600628440 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CEA42DD014FEB9C600628440 /* main.m */; };
+		CEA42DD514FEB9C600628440 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CEA42DD414FEB9C600628440 /* AppDelegate.m */; };
+		CEA42DD814FEB9C600628440 /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CEA42DD614FEB9C600628440 /* MainStoryboard.storyboard */; };
+		CEA42DDA14FEB9C600628440 /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = CEA42DD914FEB9C600628440 /* Shader.fsh */; };
+		CEA42DDC14FEB9C600628440 /* Shader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = CEA42DDB14FEB9C600628440 /* Shader.vsh */; };
+		CEA42DDF14FEB9C600628440 /* ViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = CEA42DDE14FEB9C600628440 /* ViewController.mm */; };
+		CEA42DE714FEBA3300628440 /* TestClass.mm in Sources */ = {isa = PBXBuildFile; fileRef = CEA42DE614FEBA3300628440 /* TestClass.mm */; };
+		CEA42DE914FEBF9D00628440 /* libphantom-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA42DE814FEBF9D00628440 /* libphantom-ios.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		CEA42DBC14FEB9C500628440 /* phantom-ios-game-test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "phantom-ios-game-test.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEA42DC014FEB9C500628440 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		CEA42DC214FEB9C500628440 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		CEA42DC414FEB9C500628440 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		CEA42DC614FEB9C500628440 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		CEA42DC814FEB9C500628440 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		CEA42DCC14FEB9C500628440 /* phantom-ios-game-test-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "phantom-ios-game-test-Info.plist"; sourceTree = "<group>"; };
+		CEA42DCE14FEB9C600628440 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		CEA42DD014FEB9C600628440 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		CEA42DD214FEB9C600628440 /* phantom-ios-game-test-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "phantom-ios-game-test-Prefix.pch"; sourceTree = "<group>"; };
+		CEA42DD314FEB9C600628440 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		CEA42DD414FEB9C600628440 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		CEA42DD714FEB9C600628440 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard.storyboard; sourceTree = "<group>"; };
+		CEA42DD914FEB9C600628440 /* Shader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.fsh; path = Shaders/Shader.fsh; sourceTree = "<group>"; };
+		CEA42DDB14FEB9C600628440 /* Shader.vsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.vsh; path = Shaders/Shader.vsh; sourceTree = "<group>"; };
+		CEA42DDD14FEB9C600628440 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		CEA42DDE14FEB9C600628440 /* ViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ViewController.mm; sourceTree = "<group>"; };
+		CEA42DE514FEBA3300628440 /* TestClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestClass.h; sourceTree = "<group>"; };
+		CEA42DE614FEBA3300628440 /* TestClass.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TestClass.mm; sourceTree = "<group>"; };
+		CEA42DE814FEBF9D00628440 /* libphantom-ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libphantom-ios.a"; path = "../../../../../../../Library/Developer/Xcode/DerivedData/phantom-crrjcreafxjsgtdifzdghutssuqn/Build/Products/Debug-iphoneos/libphantom-ios.a"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CEA42DB914FEB9C500628440 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEA42DE914FEBF9D00628440 /* libphantom-ios.a in Frameworks */,
+				CEA42DC114FEB9C500628440 /* UIKit.framework in Frameworks */,
+				CEA42DC314FEB9C500628440 /* Foundation.framework in Frameworks */,
+				CEA42DC514FEB9C500628440 /* CoreGraphics.framework in Frameworks */,
+				CEA42DC714FEB9C500628440 /* GLKit.framework in Frameworks */,
+				CEA42DC914FEB9C500628440 /* OpenGLES.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CEA42DB114FEB9C500628440 = {
+			isa = PBXGroup;
+			children = (
+				CEA42DE814FEBF9D00628440 /* libphantom-ios.a */,
+				CEA42DCA14FEB9C500628440 /* phantom-ios-game-test */,
+				CEA42DBF14FEB9C500628440 /* Frameworks */,
+				CEA42DBD14FEB9C500628440 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CEA42DBD14FEB9C500628440 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CEA42DBC14FEB9C500628440 /* phantom-ios-game-test.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CEA42DBF14FEB9C500628440 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CEA42DC014FEB9C500628440 /* UIKit.framework */,
+				CEA42DC214FEB9C500628440 /* Foundation.framework */,
+				CEA42DC414FEB9C500628440 /* CoreGraphics.framework */,
+				CEA42DC614FEB9C500628440 /* GLKit.framework */,
+				CEA42DC814FEB9C500628440 /* OpenGLES.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		CEA42DCA14FEB9C500628440 /* phantom-ios-game-test */ = {
+			isa = PBXGroup;
+			children = (
+				CEA42DD314FEB9C600628440 /* AppDelegate.h */,
+				CEA42DD414FEB9C600628440 /* AppDelegate.m */,
+				CEA42DD614FEB9C600628440 /* MainStoryboard.storyboard */,
+				CEA42DD914FEB9C600628440 /* Shader.fsh */,
+				CEA42DDB14FEB9C600628440 /* Shader.vsh */,
+				CEA42DDD14FEB9C600628440 /* ViewController.h */,
+				CEA42DDE14FEB9C600628440 /* ViewController.mm */,
+				CEA42DCB14FEB9C500628440 /* Supporting Files */,
+				CEA42DE514FEBA3300628440 /* TestClass.h */,
+				CEA42DE614FEBA3300628440 /* TestClass.mm */,
+			);
+			path = "phantom-ios-game-test";
+			sourceTree = "<group>";
+		};
+		CEA42DCB14FEB9C500628440 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				CEA42DCC14FEB9C500628440 /* phantom-ios-game-test-Info.plist */,
+				CEA42DCD14FEB9C600628440 /* InfoPlist.strings */,
+				CEA42DD014FEB9C600628440 /* main.m */,
+				CEA42DD214FEB9C600628440 /* phantom-ios-game-test-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CEA42DBB14FEB9C500628440 /* phantom-ios-game-test */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CEA42DE214FEB9C600628440 /* Build configuration list for PBXNativeTarget "phantom-ios-game-test" */;
+			buildPhases = (
+				CEA42DB814FEB9C500628440 /* Sources */,
+				CEA42DB914FEB9C500628440 /* Frameworks */,
+				CEA42DBA14FEB9C500628440 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "phantom-ios-game-test";
+			productName = "phantom-ios-game-test";
+			productReference = CEA42DBC14FEB9C500628440 /* phantom-ios-game-test.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CEA42DB314FEB9C500628440 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+			};
+			buildConfigurationList = CEA42DB614FEB9C500628440 /* Build configuration list for PBXProject "phantom-ios-game-test" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = CEA42DB114FEB9C500628440;
+			productRefGroup = CEA42DBD14FEB9C500628440 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CEA42DBB14FEB9C500628440 /* phantom-ios-game-test */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CEA42DBA14FEB9C500628440 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEA42DCF14FEB9C600628440 /* InfoPlist.strings in Resources */,
+				CEA42DD814FEB9C600628440 /* MainStoryboard.storyboard in Resources */,
+				CEA42DDA14FEB9C600628440 /* Shader.fsh in Resources */,
+				CEA42DDC14FEB9C600628440 /* Shader.vsh in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CEA42DB814FEB9C500628440 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEA42DD114FEB9C600628440 /* main.m in Sources */,
+				CEA42DD514FEB9C600628440 /* AppDelegate.m in Sources */,
+				CEA42DDF14FEB9C600628440 /* ViewController.mm in Sources */,
+				CEA42DE714FEBA3300628440 /* TestClass.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		CEA42DCD14FEB9C600628440 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CEA42DCE14FEB9C600628440 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		CEA42DD614FEB9C600628440 /* MainStoryboard.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CEA42DD714FEB9C600628440 /* en */,
+			);
+			name = MainStoryboard.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		CEA42DE014FEB9C600628440 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		CEA42DE114FEB9C600628440 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CEA42DE314FEB9C600628440 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "phantom-ios-game-test/phantom-ios-game-test-Prefix.pch";
+				"GCC_THUMB_SUPPORT[arch=armv6]" = "";
+				HEADER_SEARCH_PATHS = (
+					../../../..,
+					"\"/Users/User/Desktop/boost_1_48_0\"",
+				);
+				INFOPLIST_FILE = "phantom-ios-game-test/phantom-ios-game-test-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../../../../../../Library/Developer/Xcode/DerivedData/phantom-crrjcreafxjsgtdifzdghutssuqn/Build/Products/Debug-iphoneos\"",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		CEA42DE414FEB9C600628440 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "phantom-ios-game-test/phantom-ios-game-test-Prefix.pch";
+				"GCC_THUMB_SUPPORT[arch=armv6]" = "";
+				HEADER_SEARCH_PATHS = (
+					../../../..,
+					"\"/Users/User/Desktop/boost_1_48_0\"",
+				);
+				INFOPLIST_FILE = "phantom-ios-game-test/phantom-ios-game-test-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../../../../../../Library/Developer/Xcode/DerivedData/phantom-crrjcreafxjsgtdifzdghutssuqn/Build/Products/Debug-iphoneos\"",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CEA42DB614FEB9C500628440 /* Build configuration list for PBXProject "phantom-ios-game-test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEA42DE014FEB9C600628440 /* Debug */,
+				CEA42DE114FEB9C600628440 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CEA42DE214FEB9C600628440 /* Build configuration list for PBXNativeTarget "phantom-ios-game-test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEA42DE314FEB9C600628440 /* Debug */,
+				CEA42DE414FEB9C600628440 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CEA42DB314FEB9C500628440 /* Project object */;
+}

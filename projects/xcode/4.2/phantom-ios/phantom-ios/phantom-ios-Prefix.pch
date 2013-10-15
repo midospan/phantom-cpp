@@ -1,0 +1,9 @@
+//
+// Prefix header for all source files of the 'phantom-ios' target in the 'phantom-ios' project
+//
+
+#ifdef __OBJC__
+    #import <Foundation/Foundation.h>
+#endif
+
+#include "phantom/phantom.h"

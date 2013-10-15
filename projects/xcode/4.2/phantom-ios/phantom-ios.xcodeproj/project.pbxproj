@@ -1,0 +1,1754 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CEA42D7F14FE693300628440 /* def_alias.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6214FE693300628440 /* def_alias.h */; };
+		CEA42D8014FE693300628440 /* def_cfunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6314FE693300628440 /* def_cfunctions.h */; };
+		CEA42D8114FE693300628440 /* def_config.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6414FE693300628440 /* def_config.h */; };
+		CEA42D8214FE693300628440 /* def_connection.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6514FE693300628440 /* def_connection.h */; };
+		CEA42D8314FE693300628440 /* def_console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEA42D6614FE693300628440 /* def_console.cpp */; };
+		CEA42D8414FE693300628440 /* def_console.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6714FE693300628440 /* def_console.h */; };
+		CEA42D8514FE693300628440 /* def_container.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6814FE693300628440 /* def_container.h */; };
+		CEA42D8614FE693300628440 /* def_custom.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6914FE693300628440 /* def_custom.h */; };
+		CEA42D8714FE693300628440 /* def_exceptions.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6A14FE693300628440 /* def_exceptions.h */; };
+		CEA42D8814FE693300628440 /* def_export.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6B14FE693300628440 /* def_export.h */; };
+		CEA42D8914FE693300628440 /* def_extension.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6C14FE693300628440 /* def_extension.h */; };
+		CEA42D8A14FE693300628440 /* def_fwd.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6D14FE693300628440 /* def_fwd.h */; };
+		CEA42D8B14FE693300628440 /* def_macros.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6E14FE693300628440 /* def_macros.h */; };
+		CEA42D8C14FE693300628440 /* def_math.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D6F14FE693300628440 /* def_math.h */; };
+		CEA42D8D14FE693300628440 /* def_memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEA42D7014FE693300628440 /* def_memory.cpp */; };
+		CEA42D8E14FE693300628440 /* def_memory.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D7114FE693300628440 /* def_memory.h */; };
+		CEA42D8F14FE693300628440 /* def_modules.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D7514FE693300628440 /* def_modules.h */; };
+		CEA42D9014FE693300628440 /* def_reflection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEA42D7614FE693300628440 /* def_reflection.cpp */; };
+		CEA42D9114FE693300628440 /* def_reflection.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D7714FE693300628440 /* def_reflection.h */; };
+		CEA42D9214FE693300628440 /* def_runtime.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D7814FE693300628440 /* def_runtime.h */; };
+		CEA42D9314FE693300628440 /* def_serialization.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D7914FE693300628440 /* def_serialization.h */; };
+		CEA42D9414FE693300628440 /* def_statechart.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D7A14FE693300628440 /* def_statechart.h */; };
+		CEA42D9514FE693300628440 /* def_t_content_type_of.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D7B14FE693300628440 /* def_t_content_type_of.h */; };
+		CEA42D9614FE693300628440 /* def_traits.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D7C14FE693300628440 /* def_traits.h */; };
+		CEA42D9714FE693300628440 /* def_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D7D14FE693300628440 /* def_types.h */; };
+		CEA42D9814FE693300628440 /* def_util.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA42D7E14FE693300628440 /* def_util.h */; };
+		CEEEBCB714F10BF8009C1413 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEEEBCB614F10BF8009C1413 /* Foundation.framework */; };
+		CEEEBE6B14F10CEA009C1413 /* _begin.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBCC414F10CEA009C1413 /* _begin.classdef.h */; };
+		CEEEBE6C14F10CEA009C1413 /* _end.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBCC514F10CEA009C1413 /* _end.classdef.h */; };
+		CEEEBE6D14F10CEA009C1413 /* _global.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBCC614F10CEA009C1413 /* _global.classdef.h */; };
+		CEEEBE6E14F10CEA009C1413 /* _kernel.noclassdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBCC714F10CEA009C1413 /* _kernel.noclassdef.h */; };
+		CEEEBE6F14F10CEA009C1413 /* _user_begin.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBCC814F10CEA009C1413 /* _user_begin.classdef.h */; };
+		CEEEBE7014F10CEA009C1413 /* _user_end.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBCC914F10CEA009C1413 /* _user_end.classdef.h */; };
+		CEEEBE7C14F10CEA009C1413 /* default_mutex.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBCD714F10CEA009C1413 /* default_mutex.classdef.h */; };
+		CEEEBE7D14F10CEA009C1413 /* default_mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBCD814F10CEA009C1413 /* default_mutex.cpp */; };
+		CEEEBE7E14F10CEA009C1413 /* default_mutex.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBCD914F10CEA009C1413 /* default_mutex.h */; };
+		CEEEBE7F14F10CEA009C1413 /* malloc_free_allocator.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBCDA14F10CEA009C1413 /* malloc_free_allocator.classdef.h */; };
+		CEEEBE8014F10CEA009C1413 /* malloc_free_allocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBCDB14F10CEA009C1413 /* malloc_free_allocator.cpp */; };
+		CEEEBE8114F10CEA009C1413 /* malloc_free_allocator.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBCDC14F10CEA009C1413 /* malloc_free_allocator.h */; };
+		CEEEBE8214F10CEA009C1413 /* pool_allocator.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBCDD14F10CEA009C1413 /* pool_allocator.classdef.h */; };
+		CEEEBE8314F10CEA009C1413 /* pool_allocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBCDE14F10CEA009C1413 /* pool_allocator.cpp */; };
+		CEEEBE8414F10CEA009C1413 /* pool_allocator.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBCDF14F10CEA009C1413 /* pool_allocator.h */; };
+		CEEEBEAC14F10CEA009C1413 /* Message.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD0914F10CEA009C1413 /* Message.classdef.h */; };
+		CEEEBEAD14F10CEA009C1413 /* Message.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD0A14F10CEA009C1413 /* Message.cpp */; };
+		CEEEBEAE14F10CEA009C1413 /* Message.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD0B14F10CEA009C1413 /* Message.h */; };
+		CEEEBEAF14F10CEA009C1413 /* MessageStream.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD0C14F10CEA009C1413 /* MessageStream.classdef.h */; };
+		CEEEBEB014F10CEA009C1413 /* MessageStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD0D14F10CEA009C1413 /* MessageStream.cpp */; };
+		CEEEBEB114F10CEA009C1413 /* MessageStream.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD0E14F10CEA009C1413 /* MessageStream.h */; };
+		CEEEBEB214F10CEA009C1413 /* MessageStreamNode.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD0F14F10CEA009C1413 /* MessageStreamNode.classdef.h */; };
+		CEEEBEB314F10CEA009C1413 /* MessageStreamNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD1014F10CEA009C1413 /* MessageStreamNode.cpp */; };
+		CEEEBEB414F10CEA009C1413 /* MessageStreamNode.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD1114F10CEA009C1413 /* MessageStreamNode.h */; };
+		CEEEBEB614F10CEA009C1413 /* maths.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD1314F10CEA009C1413 /* maths.h */; };
+		CEEEBEB714F10CEA009C1413 /* Allocator.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD1514F10CEA009C1413 /* Allocator.h */; };
+		CEEEBEB814F10CEA009C1413 /* malloc.c.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD1614F10CEA009C1413 /* malloc.c.h */; };
+		CEEEBEB914F10CEA009C1413 /* nedmalloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD1714F10CEA009C1413 /* nedmalloc.cpp */; };
+		CEEEBEBA14F10CEA009C1413 /* nedmalloc.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD1814F10CEA009C1413 /* nedmalloc.h */; };
+		CEEEBEBE14F10CEA009C1413 /* Object.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD1D14F10CEA009C1413 /* Object.classdef.h */; };
+		CEEEBEBF14F10CEA009C1413 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD1E14F10CEA009C1413 /* Object.cpp */; };
+		CEEEBEC014F10CEA009C1413 /* Object.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD1F14F10CEA009C1413 /* Object.h */; };
+		CEEEBEC114F10CEA009C1413 /* phantom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD2014F10CEA009C1413 /* phantom.cpp */; };
+		CEEEBEC214F10CEA009C1413 /* phantom.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD2114F10CEA009C1413 /* phantom.h */; };
+		CEEEBEC314F10CEA009C1413 /* AbstractMethod.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD2314F10CEA009C1413 /* AbstractMethod.classdef.h */; };
+		CEEEBEC414F10CEA009C1413 /* AbstractMethod.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD2414F10CEA009C1413 /* AbstractMethod.cpp */; };
+		CEEEBEC514F10CEA009C1413 /* AbstractMethod.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD2514F10CEA009C1413 /* AbstractMethod.h */; };
+		CEEEBEC614F10CEA009C1413 /* Accessor.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD2614F10CEA009C1413 /* Accessor.classdef.h */; };
+		CEEEBEC714F10CEA009C1413 /* Accessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD2714F10CEA009C1413 /* Accessor.cpp */; };
+		CEEEBEC814F10CEA009C1413 /* Accessor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD2814F10CEA009C1413 /* Accessor.h */; };
+		CEEEBEC914F10CEA009C1413 /* ArgumentList.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD2914F10CEA009C1413 /* ArgumentList.classdef.h */; };
+		CEEEBECA14F10CEA009C1413 /* ArgumentList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD2A14F10CEA009C1413 /* ArgumentList.cpp */; };
+		CEEEBECB14F10CEA009C1413 /* ArgumentList.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD2B14F10CEA009C1413 /* ArgumentList.h */; };
+		CEEEBECC14F10CEA009C1413 /* ArraySlotAccess.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD2C14F10CEA009C1413 /* ArraySlotAccess.classdef.h */; };
+		CEEEBECD14F10CEA009C1413 /* ArraySlotAccess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD2D14F10CEA009C1413 /* ArraySlotAccess.cpp */; };
+		CEEEBECE14F10CEA009C1413 /* ArraySlotAccess.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD2E14F10CEA009C1413 /* ArraySlotAccess.h */; };
+		CEEEBECF14F10CEA009C1413 /* ArrayType.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD2F14F10CEA009C1413 /* ArrayType.classdef.h */; };
+		CEEEBED014F10CEA009C1413 /* ArrayType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD3014F10CEA009C1413 /* ArrayType.cpp */; };
+		CEEEBED114F10CEA009C1413 /* ArrayType.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD3114F10CEA009C1413 /* ArrayType.h */; };
+		CEEEBED214F10CEA009C1413 /* Attribute.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD3214F10CEA009C1413 /* Attribute.classdef.h */; };
+		CEEEBED314F10CEA009C1413 /* Attribute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD3314F10CEA009C1413 /* Attribute.cpp */; };
+		CEEEBED414F10CEA009C1413 /* Attribute.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD3414F10CEA009C1413 /* Attribute.h */; };
+		CEEEBED514F10CEA009C1413 /* Class.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD3514F10CEA009C1413 /* Class.classdef.h */; };
+		CEEEBED614F10CEA009C1413 /* Class.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD3614F10CEA009C1413 /* Class.cpp */; };
+		CEEEBED714F10CEA009C1413 /* Class.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD3714F10CEA009C1413 /* Class.h */; };
+		CEEEBED814F10CEA009C1413 /* ClassExtension.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD3814F10CEA009C1413 /* ClassExtension.classdef.h */; };
+		CEEEBED914F10CEA009C1413 /* ClassExtension.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD3914F10CEA009C1413 /* ClassExtension.cpp */; };
+		CEEEBEDA14F10CEA009C1413 /* ClassExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD3A14F10CEA009C1413 /* ClassExtension.h */; };
+		CEEEBEDB14F10CEA009C1413 /* ClassType.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD3B14F10CEA009C1413 /* ClassType.classdef.h */; };
+		CEEEBEDC14F10CEA009C1413 /* ClassType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD3C14F10CEA009C1413 /* ClassType.cpp */; };
+		CEEEBEDD14F10CEA009C1413 /* ClassType.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD3D14F10CEA009C1413 /* ClassType.h */; };
+		CEEEBEDE14F10CEA009C1413 /* Constant.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD3E14F10CEA009C1413 /* Constant.classdef.h */; };
+		CEEEBEDF14F10CEA009C1413 /* Constant.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD3F14F10CEA009C1413 /* Constant.cpp */; };
+		CEEEBEE014F10CEA009C1413 /* Constant.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD4014F10CEA009C1413 /* Constant.h */; };
+		CEEEBEE114F10CEA009C1413 /* ConstArrayType.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD4114F10CEA009C1413 /* ConstArrayType.classdef.h */; };
+		CEEEBEE214F10CEA009C1413 /* ConstArrayType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD4214F10CEA009C1413 /* ConstArrayType.cpp */; };
+		CEEEBEE314F10CEA009C1413 /* ConstArrayType.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD4314F10CEA009C1413 /* ConstArrayType.h */; };
+		CEEEBEE414F10CEA009C1413 /* ConstDataPointerType.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD4414F10CEA009C1413 /* ConstDataPointerType.classdef.h */; };
+		CEEEBEE514F10CEA009C1413 /* ConstDataPointerType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD4514F10CEA009C1413 /* ConstDataPointerType.cpp */; };
+		CEEEBEE614F10CEA009C1413 /* ConstDataPointerType.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD4614F10CEA009C1413 /* ConstDataPointerType.h */; };
+		CEEEBEE714F10CEA009C1413 /* ConstReferenceType.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD4714F10CEA009C1413 /* ConstReferenceType.classdef.h */; };
+		CEEEBEE814F10CEA009C1413 /* ConstReferenceType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD4814F10CEA009C1413 /* ConstReferenceType.cpp */; };
+		CEEEBEE914F10CEA009C1413 /* ConstReferenceType.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD4914F10CEA009C1413 /* ConstReferenceType.h */; };
+		CEEEBEEA14F10CEA009C1413 /* Constructor.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD4A14F10CEA009C1413 /* Constructor.classdef.h */; };
+		CEEEBEEB14F10CEA009C1413 /* Constructor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD4B14F10CEA009C1413 /* Constructor.cpp */; };
+		CEEEBEEC14F10CEA009C1413 /* Constructor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD4C14F10CEA009C1413 /* Constructor.h */; };
+		CEEEBEED14F10CEA009C1413 /* DataPointerType.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD4D14F10CEA009C1413 /* DataPointerType.classdef.h */; };
+		CEEEBEEE14F10CEA009C1413 /* DataPointerType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD4E14F10CEA009C1413 /* DataPointerType.cpp */; };
+		CEEEBEEF14F10CEA009C1413 /* DataPointerType.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD4F14F10CEA009C1413 /* DataPointerType.h */; };
+		CEEEBEF214F10CEA009C1413 /* element_finder_spirit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD5314F10CEA009C1413 /* element_finder_spirit.cpp */; };
+		CEEEBEF314F10CEA009C1413 /* element_finder_spirit.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD5414F10CEA009C1413 /* element_finder_spirit.h */; };
+		CEEEBF0114F10CEA009C1413 /* Enum.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD6414F10CEA009C1413 /* Enum.classdef.h */; };
+		CEEEBF0214F10CEA009C1413 /* Enum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD6514F10CEA009C1413 /* Enum.cpp */; };
+		CEEEBF0314F10CEA009C1413 /* Enum.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD6614F10CEA009C1413 /* Enum.h */; };
+		CEEEBF0414F10CEA009C1413 /* FedMethod.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD6714F10CEA009C1413 /* FedMethod.classdef.h */; };
+		CEEEBF0514F10CEA009C1413 /* FedMethod.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD6814F10CEA009C1413 /* FedMethod.cpp */; };
+		CEEEBF0614F10CEA009C1413 /* FedMethod.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD6914F10CEA009C1413 /* FedMethod.h */; };
+		CEEEBF0714F10CEA009C1413 /* ForwardedProperty.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD6A14F10CEA009C1413 /* ForwardedProperty.classdef.h */; };
+		CEEEBF0814F10CEA009C1413 /* ForwardedProperty.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD6B14F10CEA009C1413 /* ForwardedProperty.cpp */; };
+		CEEEBF0914F10CEA009C1413 /* ForwardedProperty.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD6C14F10CEA009C1413 /* ForwardedProperty.h */; };
+		CEEEBF0A14F10CEA009C1413 /* Function.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD6D14F10CEA009C1413 /* Function.classdef.h */; };
+		CEEEBF0B14F10CEA009C1413 /* Function.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD6E14F10CEA009C1413 /* Function.cpp */; };
+		CEEEBF0C14F10CEA009C1413 /* Function.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD6F14F10CEA009C1413 /* Function.h */; };
+		CEEEBF0D14F10CEA009C1413 /* InstanceAttribute.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD7014F10CEA009C1413 /* InstanceAttribute.classdef.h */; };
+		CEEEBF0E14F10CEA009C1413 /* InstanceAttribute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD7114F10CEA009C1413 /* InstanceAttribute.cpp */; };
+		CEEEBF0F14F10CEA009C1413 /* InstanceAttribute.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD7214F10CEA009C1413 /* InstanceAttribute.h */; };
+		CEEEBF1014F10CEA009C1413 /* InstanceMethod.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD7314F10CEA009C1413 /* InstanceMethod.classdef.h */; };
+		CEEEBF1114F10CEA009C1413 /* InstanceMethod.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD7414F10CEA009C1413 /* InstanceMethod.cpp */; };
+		CEEEBF1214F10CEA009C1413 /* InstanceMethod.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD7514F10CEA009C1413 /* InstanceMethod.h */; };
+		CEEEBF1314F10CEA009C1413 /* LanguageElement.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD7614F10CEA009C1413 /* LanguageElement.classdef.h */; };
+		CEEEBF1414F10CEA009C1413 /* LanguageElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD7714F10CEA009C1413 /* LanguageElement.cpp */; };
+		CEEEBF1514F10CEA009C1413 /* LanguageElement.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD7814F10CEA009C1413 /* LanguageElement.h */; };
+		CEEEBF1614F10CEA009C1413 /* Member.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD7914F10CEA009C1413 /* Member.classdef.h */; };
+		CEEEBF1714F10CEA009C1413 /* Member.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD7A14F10CEA009C1413 /* Member.cpp */; };
+		CEEEBF1814F10CEA009C1413 /* Member.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD7B14F10CEA009C1413 /* Member.h */; };
+		CEEEBF1914F10CEA009C1413 /* Method.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD7C14F10CEA009C1413 /* Method.classdef.h */; };
+		CEEEBF1A14F10CEA009C1413 /* Method.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD7D14F10CEA009C1413 /* Method.cpp */; };
+		CEEEBF1B14F10CEA009C1413 /* Method.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD7E14F10CEA009C1413 /* Method.h */; };
+		CEEEBF1C14F10CEA009C1413 /* Namespace.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD7F14F10CEA009C1413 /* Namespace.classdef.h */; };
+		CEEEBF1D14F10CEA009C1413 /* Namespace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD8014F10CEA009C1413 /* Namespace.cpp */; };
+		CEEEBF1E14F10CEA009C1413 /* Namespace.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8114F10CEA009C1413 /* Namespace.h */; };
+		CEEEBF1F14F10CEA009C1413 /* NativeVTableIndexInspector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD8314F10CEA009C1413 /* NativeVTableIndexInspector.cpp */; };
+		CEEEBF2014F10CEA009C1413 /* NativeVTableIndexInspector.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8414F10CEA009C1413 /* NativeVTableIndexInspector.h */; };
+		CEEEBF2114F10CEA009C1413 /* TConstant.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8514F10CEA009C1413 /* TConstant.h */; };
+		CEEEBF2214F10CEA009C1413 /* TNativeAttributeProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8614F10CEA009C1413 /* TNativeAttributeProvider.h */; };
+		CEEEBF2314F10CEA009C1413 /* TNativeClassBase.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8714F10CEA009C1413 /* TNativeClassBase.h */; };
+		CEEEBF2414F10CEA009C1413 /* TNativeConstructor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8814F10CEA009C1413 /* TNativeConstructor.h */; };
+		CEEEBF2514F10CEA009C1413 /* TNativeInstanceAttribute.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8914F10CEA009C1413 /* TNativeInstanceAttribute.h */; };
+		CEEEBF2614F10CEA009C1413 /* TNativeInstanceMethod.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8A14F10CEA009C1413 /* TNativeInstanceMethod.h */; };
+		CEEEBF2714F10CEA009C1413 /* TNativeInstanceMethodBase.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8B14F10CEA009C1413 /* TNativeInstanceMethodBase.h */; };
+		CEEEBF2814F10CEA009C1413 /* TNativeInstanceMethodConst.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8C14F10CEA009C1413 /* TNativeInstanceMethodConst.h */; };
+		CEEEBF2914F10CEA009C1413 /* TNativeInterfaceMethod.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8D14F10CEA009C1413 /* TNativeInterfaceMethod.h */; };
+		CEEEBF2A14F10CEA009C1413 /* TNativeInterfaceMethodConst.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8E14F10CEA009C1413 /* TNativeInterfaceMethodConst.h */; };
+		CEEEBF2B14F10CEA009C1413 /* TNativeMethodProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD8F14F10CEA009C1413 /* TNativeMethodProvider.h */; };
+		CEEEBF2C14F10CEA009C1413 /* TNativeSignal.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9014F10CEA009C1413 /* TNativeSignal.h */; };
+		CEEEBF2D14F10CEA009C1413 /* TNativeSignalBase.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9114F10CEA009C1413 /* TNativeSignalBase.h */; };
+		CEEEBF2E14F10CEA009C1413 /* TNativeStaticAttribute.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9214F10CEA009C1413 /* TNativeStaticAttribute.h */; };
+		CEEEBF2F14F10CEA009C1413 /* TNativeStaticMemberFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9314F10CEA009C1413 /* TNativeStaticMemberFunction.h */; };
+		CEEEBF3014F10CEA009C1413 /* TNativeStaticMethod.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9414F10CEA009C1413 /* TNativeStaticMethod.h */; };
+		CEEEBF3114F10CEA009C1413 /* TNativeStaticMethodBase.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9514F10CEA009C1413 /* TNativeStaticMethodBase.h */; };
+		CEEEBF3214F10CEA009C1413 /* TNativeVirtualMethodCounter.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9614F10CEA009C1413 /* TNativeVirtualMethodCounter.h */; };
+		CEEEBF3314F10CEA009C1413 /* TType.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9714F10CEA009C1413 /* TType.h */; };
+		CEEEBF3414F10CEA009C1413 /* PODStruct.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9814F10CEA009C1413 /* PODStruct.classdef.h */; };
+		CEEEBF3514F10CEA009C1413 /* PODStruct.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD9914F10CEA009C1413 /* PODStruct.cpp */; };
+		CEEEBF3614F10CEA009C1413 /* PODStruct.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9A14F10CEA009C1413 /* PODStruct.h */; };
+		CEEEBF3714F10CEA009C1413 /* PODUnion.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9B14F10CEA009C1413 /* PODUnion.classdef.h */; };
+		CEEEBF3814F10CEA009C1413 /* PODUnion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD9C14F10CEA009C1413 /* PODUnion.cpp */; };
+		CEEEBF3914F10CEA009C1413 /* PODUnion.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9D14F10CEA009C1413 /* PODUnion.h */; };
+		CEEEBF3A14F10CEA009C1413 /* PointerType.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBD9E14F10CEA009C1413 /* PointerType.classdef.h */; };
+		CEEEBF3B14F10CEA009C1413 /* PointerType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBD9F14F10CEA009C1413 /* PointerType.cpp */; };
+		CEEEBF3C14F10CEA009C1413 /* PointerType.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDA014F10CEA009C1413 /* PointerType.h */; };
+		CEEEBF3D14F10CEA009C1413 /* PolymorphicArrayClass.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDA114F10CEA009C1413 /* PolymorphicArrayClass.classdef.h */; };
+		CEEEBF3E14F10CEA009C1413 /* PolymorphicArrayClass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDA214F10CEA009C1413 /* PolymorphicArrayClass.cpp */; };
+		CEEEBF3F14F10CEA009C1413 /* PolymorphicArrayClass.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDA314F10CEA009C1413 /* PolymorphicArrayClass.h */; };
+		CEEEBF4314F10CEA009C1413 /* PrimitiveType.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDA714F10CEA009C1413 /* PrimitiveType.classdef.h */; };
+		CEEEBF4414F10CEA009C1413 /* PrimitiveType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDA814F10CEA009C1413 /* PrimitiveType.cpp */; };
+		CEEEBF4514F10CEA009C1413 /* PrimitiveType.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDA914F10CEA009C1413 /* PrimitiveType.h */; };
+		CEEEBF4614F10CEA009C1413 /* Property.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDAA14F10CEA009C1413 /* Property.classdef.h */; };
+		CEEEBF4714F10CEB009C1413 /* Property.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDAB14F10CEA009C1413 /* Property.cpp */; };
+		CEEEBF4814F10CEB009C1413 /* Property.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDAC14F10CEA009C1413 /* Property.h */; };
+		CEEEBF4914F10CEB009C1413 /* ReferenceType.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDAD14F10CEA009C1413 /* ReferenceType.classdef.h */; };
+		CEEEBF4A14F10CEB009C1413 /* ReferenceType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDAE14F10CEA009C1413 /* ReferenceType.cpp */; };
+		CEEEBF4B14F10CEB009C1413 /* ReferenceType.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDAF14F10CEA009C1413 /* ReferenceType.h */; };
+		CEEEBF4E14F10CEB009C1413 /* RuntimeClass.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDB314F10CEA009C1413 /* RuntimeClass.classdef.h */; };
+		CEEEBF4F14F10CEB009C1413 /* RuntimeClass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDB414F10CEA009C1413 /* RuntimeClass.cpp */; };
+		CEEEBF5014F10CEB009C1413 /* RuntimeClass.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDB514F10CEA009C1413 /* RuntimeClass.h */; };
+		CEEEBF5114F10CEB009C1413 /* RuntimeInstanceAttribute.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDB614F10CEA009C1413 /* RuntimeInstanceAttribute.classdef.h */; };
+		CEEEBF5214F10CEB009C1413 /* RuntimeInstanceAttribute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDB714F10CEA009C1413 /* RuntimeInstanceAttribute.cpp */; };
+		CEEEBF5314F10CEB009C1413 /* RuntimeInstanceAttribute.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDB814F10CEA009C1413 /* RuntimeInstanceAttribute.h */; };
+		CEEEBF5414F10CEB009C1413 /* RuntimeStaticAttribute.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDB914F10CEA009C1413 /* RuntimeStaticAttribute.classdef.h */; };
+		CEEEBF5514F10CEB009C1413 /* RuntimeStaticAttribute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDBA14F10CEA009C1413 /* RuntimeStaticAttribute.cpp */; };
+		CEEEBF5614F10CEB009C1413 /* RuntimeStaticAttribute.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDBB14F10CEA009C1413 /* RuntimeStaticAttribute.h */; };
+		CEEEBF5714F10CEB009C1413 /* ScriptClass.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDBC14F10CEA009C1413 /* ScriptClass.classdef.h */; };
+		CEEEBF5814F10CEB009C1413 /* ScriptClass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDBD14F10CEA009C1413 /* ScriptClass.cpp */; };
+		CEEEBF5914F10CEB009C1413 /* ScriptClass.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDBE14F10CEA009C1413 /* ScriptClass.h */; };
+		CEEEBF5A14F10CEB009C1413 /* Signal.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDBF14F10CEA009C1413 /* Signal.classdef.h */; };
+		CEEEBF5B14F10CEB009C1413 /* Signal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDC014F10CEA009C1413 /* Signal.cpp */; };
+		CEEEBF5C14F10CEB009C1413 /* Signal.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDC114F10CEA009C1413 /* Signal.h */; };
+		CEEEBF5D14F10CEB009C1413 /* Signature.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDC214F10CEA009C1413 /* Signature.classdef.h */; };
+		CEEEBF5E14F10CEB009C1413 /* Signature.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDC314F10CEA009C1413 /* Signature.cpp */; };
+		CEEEBF5F14F10CEB009C1413 /* Signature.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDC414F10CEA009C1413 /* Signature.h */; };
+		CEEEBF6014F10CEB009C1413 /* StaticAttribute.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDC514F10CEA009C1413 /* StaticAttribute.classdef.h */; };
+		CEEEBF6114F10CEB009C1413 /* StaticAttribute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDC614F10CEA009C1413 /* StaticAttribute.cpp */; };
+		CEEEBF6214F10CEB009C1413 /* StaticAttribute.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDC714F10CEA009C1413 /* StaticAttribute.h */; };
+		CEEEBF6314F10CEB009C1413 /* StaticMethod.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDC814F10CEA009C1413 /* StaticMethod.classdef.h */; };
+		CEEEBF6414F10CEB009C1413 /* StaticMethod.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDC914F10CEA009C1413 /* StaticMethod.cpp */; };
+		CEEEBF6514F10CEB009C1413 /* StaticMethod.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDCA14F10CEA009C1413 /* StaticMethod.h */; };
+		CEEEBF6614F10CEB009C1413 /* StaticVariable.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDCB14F10CEA009C1413 /* StaticVariable.classdef.h */; };
+		CEEEBF6714F10CEB009C1413 /* StaticVariable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDCC14F10CEA009C1413 /* StaticVariable.cpp */; };
+		CEEEBF6814F10CEB009C1413 /* StaticVariable.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDCD14F10CEA009C1413 /* StaticVariable.h */; };
+		CEEEBF6914F10CEB009C1413 /* SubProperty.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDCE14F10CEA009C1413 /* SubProperty.classdef.h */; };
+		CEEEBF6A14F10CEB009C1413 /* SubProperty.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDCF14F10CEA009C1413 /* SubProperty.cpp */; };
+		CEEEBF6B14F10CEB009C1413 /* SubProperty.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDD014F10CEA009C1413 /* SubProperty.h */; };
+		CEEEBF6C14F10CEB009C1413 /* Subroutine.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDD114F10CEA009C1413 /* Subroutine.classdef.h */; };
+		CEEEBF6D14F10CEB009C1413 /* Subroutine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDD214F10CEA009C1413 /* Subroutine.cpp */; };
+		CEEEBF6E14F10CEB009C1413 /* Subroutine.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDD314F10CEA009C1413 /* Subroutine.h */; };
+		CEEEBF6F14F10CEB009C1413 /* TemplateElement.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDD414F10CEA009C1413 /* TemplateElement.classdef.h */; };
+		CEEEBF7014F10CEB009C1413 /* TemplateElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDD514F10CEA009C1413 /* TemplateElement.cpp */; };
+		CEEEBF7114F10CEB009C1413 /* TemplateElement.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDD614F10CEA009C1413 /* TemplateElement.h */; };
+		CEEEBF7214F10CEB009C1413 /* TemplateSpecialization.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDD714F10CEA009C1413 /* TemplateSpecialization.classdef.h */; };
+		CEEEBF7314F10CEB009C1413 /* TemplateSpecialization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDD814F10CEA009C1413 /* TemplateSpecialization.cpp */; };
+		CEEEBF7414F10CEB009C1413 /* TemplateSpecialization.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDD914F10CEA009C1413 /* TemplateSpecialization.h */; };
+		CEEEBF7514F10CEB009C1413 /* Type.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDDA14F10CEA009C1413 /* Type.classdef.h */; };
+		CEEEBF7614F10CEB009C1413 /* Type.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDDB14F10CEA009C1413 /* Type.cpp */; };
+		CEEEBF7714F10CEB009C1413 /* Type.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDDC14F10CEA009C1413 /* Type.h */; };
+		CEEEBF7814F10CEB009C1413 /* Union.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDDD14F10CEA009C1413 /* Union.classdef.h */; };
+		CEEEBF7914F10CEB009C1413 /* Union.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDDE14F10CEA009C1413 /* Union.cpp */; };
+		CEEEBF7A14F10CEB009C1413 /* Union.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDDF14F10CEA009C1413 /* Union.h */; };
+		CEEEBF7B14F10CEB009C1413 /* VirtualMethodTable.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDE014F10CEA009C1413 /* VirtualMethodTable.classdef.h */; };
+		CEEEBF7C14F10CEB009C1413 /* VirtualMethodTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDE114F10CEA009C1413 /* VirtualMethodTable.cpp */; };
+		CEEEBF7D14F10CEB009C1413 /* VirtualMethodTable.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDE214F10CEA009C1413 /* VirtualMethodTable.h */; };
+		CEEEBF8114F10CEB009C1413 /* Bundle.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDE714F10CEA009C1413 /* Bundle.classdef.h */; };
+		CEEEBF8214F10CEB009C1413 /* Bundle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDE814F10CEA009C1413 /* Bundle.cpp */; };
+		CEEEBF8314F10CEB009C1413 /* Bundle.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDE914F10CEA009C1413 /* Bundle.h */; };
+		CEEEBF8414F10CEB009C1413 /* BundleDataBase.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDEA14F10CEA009C1413 /* BundleDataBase.classdef.h */; };
+		CEEEBF8514F10CEB009C1413 /* BundleDataBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDEB14F10CEA009C1413 /* BundleDataBase.cpp */; };
+		CEEEBF8614F10CEB009C1413 /* BundleDataBase.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDEC14F10CEA009C1413 /* BundleDataBase.h */; };
+		CEEEBF8714F10CEB009C1413 /* BundleNode.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDED14F10CEA009C1413 /* BundleNode.classdef.h */; };
+		CEEEBF8814F10CEB009C1413 /* BundleNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDEE14F10CEA009C1413 /* BundleNode.cpp */; };
+		CEEEBF8914F10CEB009C1413 /* BundleNode.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDEF14F10CEA009C1413 /* BundleNode.h */; };
+		CEEEBF8A14F10CEB009C1413 /* DataBase.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDF014F10CEA009C1413 /* DataBase.classdef.h */; };
+		CEEEBF8B14F10CEB009C1413 /* DataBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDF114F10CEA009C1413 /* DataBase.cpp */; };
+		CEEEBF8C14F10CEB009C1413 /* DataBase.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDF214F10CEA009C1413 /* DataBase.h */; };
+		CEEEBF8D14F10CEB009C1413 /* DefaultNode.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDF314F10CEA009C1413 /* DefaultNode.classdef.h */; };
+		CEEEBF8E14F10CEB009C1413 /* DefaultNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDF414F10CEA009C1413 /* DefaultNode.cpp */; };
+		CEEEBF8F14F10CEB009C1413 /* DefaultNode.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDF514F10CEA009C1413 /* DefaultNode.h */; };
+		CEEEBF9014F10CEB009C1413 /* FileTreeDataBase.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDF614F10CEA009C1413 /* FileTreeDataBase.classdef.h */; };
+		CEEEBF9114F10CEB009C1413 /* FileTreeDataBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDF714F10CEA009C1413 /* FileTreeDataBase.cpp */; };
+		CEEEBF9214F10CEB009C1413 /* FileTreeDataBase.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDF814F10CEA009C1413 /* FileTreeDataBase.h */; };
+		CEEEBF9314F10CEB009C1413 /* FileTreeNode.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDF914F10CEA009C1413 /* FileTreeNode.classdef.h */; };
+		CEEEBF9414F10CEB009C1413 /* FileTreeNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDFA14F10CEA009C1413 /* FileTreeNode.cpp */; };
+		CEEEBF9514F10CEB009C1413 /* FileTreeNode.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDFB14F10CEA009C1413 /* FileTreeNode.h */; };
+		CEEEBF9614F10CEB009C1413 /* TBundle.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDFD14F10CEA009C1413 /* TBundle.h */; };
+		CEEEBF9714F10CEB009C1413 /* Node.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBDFE14F10CEA009C1413 /* Node.classdef.h */; };
+		CEEEBF9814F10CEB009C1413 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBDFF14F10CEA009C1413 /* Node.cpp */; };
+		CEEEBF9914F10CEB009C1413 /* Node.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE0014F10CEA009C1413 /* Node.h */; };
+		CEEEBF9B14F10CEB009C1413 /* XmlFileTreeDataBase.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE0214F10CEA009C1413 /* XmlFileTreeDataBase.classdef.h */; };
+		CEEEBF9C14F10CEB009C1413 /* XmlFileTreeDataBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE0314F10CEA009C1413 /* XmlFileTreeDataBase.cpp */; };
+		CEEEBF9D14F10CEB009C1413 /* XmlFileTreeDataBase.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE0414F10CEA009C1413 /* XmlFileTreeDataBase.h */; };
+		CEEEBF9E14F10CEB009C1413 /* XmlFileTreeNode.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE0514F10CEA009C1413 /* XmlFileTreeNode.classdef.h */; };
+		CEEEBF9F14F10CEB009C1413 /* XmlFileTreeNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE0614F10CEA009C1413 /* XmlFileTreeNode.cpp */; };
+		CEEEBFA014F10CEB009C1413 /* XmlFileTreeNode.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE0714F10CEA009C1413 /* XmlFileTreeNode.h */; };
+		CEEEBFA214F10CEB009C1413 /* Event.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE0A14F10CEA009C1413 /* Event.classdef.h */; };
+		CEEEBFA314F10CEB009C1413 /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE0B14F10CEA009C1413 /* Event.cpp */; };
+		CEEEBFA414F10CEB009C1413 /* Event.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE0C14F10CEA009C1413 /* Event.h */; };
+		CEEEBFA514F10CEB009C1413 /* TNativeDerivedEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE0E14F10CEA009C1413 /* TNativeDerivedEvent.h */; };
+		CEEEBFA614F10CEB009C1413 /* TNativeDerivedState.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE0F14F10CEA009C1413 /* TNativeDerivedState.h */; };
+		CEEEBFA714F10CEB009C1413 /* TNativeDerivedTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1014F10CEA009C1413 /* TNativeDerivedTrack.h */; };
+		CEEEBFA814F10CEB009C1413 /* TNativeEvent.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1114F10CEA009C1413 /* TNativeEvent.classdef.h */; };
+		CEEEBFA914F10CEB009C1413 /* TNativeEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1214F10CEA009C1413 /* TNativeEvent.h */; };
+		CEEEBFAA14F10CEB009C1413 /* TNativeReaction.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1314F10CEA009C1413 /* TNativeReaction.classdef.h */; };
+		CEEEBFAB14F10CEB009C1413 /* TNativeReaction.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1414F10CEA009C1413 /* TNativeReaction.h */; };
+		CEEEBFAC14F10CEB009C1413 /* TNativeState.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1514F10CEA009C1413 /* TNativeState.classdef.h */; };
+		CEEEBFAD14F10CEB009C1413 /* TNativeState.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1614F10CEA009C1413 /* TNativeState.h */; };
+		CEEEBFAE14F10CEB009C1413 /* TNativeStateMachine.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1714F10CEA009C1413 /* TNativeStateMachine.classdef.h */; };
+		CEEEBFAF14F10CEB009C1413 /* TNativeStateMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1814F10CEA009C1413 /* TNativeStateMachine.h */; };
+		CEEEBFB014F10CEB009C1413 /* TNativeTrack.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1914F10CEA009C1413 /* TNativeTrack.classdef.h */; };
+		CEEEBFB114F10CEB009C1413 /* TNativeTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1A14F10CEA009C1413 /* TNativeTrack.h */; };
+		CEEEBFB214F10CEB009C1413 /* TNativeTransition.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1B14F10CEA009C1413 /* TNativeTransition.classdef.h */; };
+		CEEEBFB314F10CEB009C1413 /* TNativeTransition.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1C14F10CEA009C1413 /* TNativeTransition.h */; };
+		CEEEBFB414F10CEB009C1413 /* Reaction.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1D14F10CEA009C1413 /* Reaction.classdef.h */; };
+		CEEEBFB514F10CEB009C1413 /* Reaction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE1E14F10CEA009C1413 /* Reaction.cpp */; };
+		CEEEBFB614F10CEB009C1413 /* Reaction.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE1F14F10CEA009C1413 /* Reaction.h */; };
+		CEEEBFB714F10CEB009C1413 /* RuntimeState.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE2114F10CEA009C1413 /* RuntimeState.classdef.h */; };
+		CEEEBFB814F10CEB009C1413 /* RuntimeState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE2214F10CEA009C1413 /* RuntimeState.cpp */; };
+		CEEEBFB914F10CEB009C1413 /* RuntimeState.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE2314F10CEA009C1413 /* RuntimeState.h */; };
+		CEEEBFBA14F10CEB009C1413 /* RuntimeStateMachine.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE2414F10CEA009C1413 /* RuntimeStateMachine.classdef.h */; };
+		CEEEBFBB14F10CEB009C1413 /* RuntimeStateMachine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE2514F10CEA009C1413 /* RuntimeStateMachine.cpp */; };
+		CEEEBFBC14F10CEB009C1413 /* RuntimeStateMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE2614F10CEA009C1413 /* RuntimeStateMachine.h */; };
+		CEEEBFBD14F10CEB009C1413 /* RuntimeTrack.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE2714F10CEA009C1413 /* RuntimeTrack.classdef.h */; };
+		CEEEBFBE14F10CEB009C1413 /* RuntimeTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE2814F10CEA009C1413 /* RuntimeTrack.cpp */; };
+		CEEEBFBF14F10CEB009C1413 /* RuntimeTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE2914F10CEA009C1413 /* RuntimeTrack.h */; };
+		CEEEBFC014F10CEB009C1413 /* RuntimeTransition.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE2A14F10CEA009C1413 /* RuntimeTransition.classdef.h */; };
+		CEEEBFC114F10CEB009C1413 /* RuntimeTransition.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE2B14F10CEA009C1413 /* RuntimeTransition.cpp */; };
+		CEEEBFC214F10CEB009C1413 /* RuntimeTransition.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE2C14F10CEA009C1413 /* RuntimeTransition.h */; };
+		CEEEBFC314F10CEB009C1413 /* State.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE2D14F10CEA009C1413 /* State.classdef.h */; };
+		CEEEBFC414F10CEB009C1413 /* State.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE2E14F10CEA009C1413 /* State.cpp */; };
+		CEEEBFC514F10CEB009C1413 /* State.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE2F14F10CEA009C1413 /* State.h */; };
+		CEEEBFC614F10CEB009C1413 /* StateMachine.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE3014F10CEA009C1413 /* StateMachine.classdef.h */; };
+		CEEEBFC714F10CEB009C1413 /* StateMachine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE3114F10CEA009C1413 /* StateMachine.cpp */; };
+		CEEEBFC814F10CEB009C1413 /* StateMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE3214F10CEA009C1413 /* StateMachine.h */; };
+		CEEEBFC914F10CEB009C1413 /* StateMachineElement.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE3314F10CEA009C1413 /* StateMachineElement.classdef.h */; };
+		CEEEBFCA14F10CEB009C1413 /* StateMachineElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE3414F10CEA009C1413 /* StateMachineElement.cpp */; };
+		CEEEBFCB14F10CEB009C1413 /* StateMachineElement.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE3514F10CEA009C1413 /* StateMachineElement.h */; };
+		CEEEBFCC14F10CEB009C1413 /* StateOrderingComparator.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE3614F10CEA009C1413 /* StateOrderingComparator.classdef.h */; };
+		CEEEBFCD14F10CEB009C1413 /* StateOrderingComparator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE3714F10CEA009C1413 /* StateOrderingComparator.cpp */; };
+		CEEEBFCE14F10CEB009C1413 /* StateOrderingComparator.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE3814F10CEA009C1413 /* StateOrderingComparator.h */; };
+		CEEEBFCF14F10CEB009C1413 /* Track.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE3914F10CEA009C1413 /* Track.classdef.h */; };
+		CEEEBFD014F10CEB009C1413 /* Track.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE3A14F10CEA009C1413 /* Track.cpp */; };
+		CEEEBFD114F10CEB009C1413 /* Track.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE3B14F10CEA009C1413 /* Track.h */; };
+		CEEEBFD614F10CEB009C1413 /* AbstractInterpolator.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE4114F10CEA009C1413 /* AbstractInterpolator.classdef.h */; };
+		CEEEBFD714F10CEB009C1413 /* AbstractInterpolator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE4214F10CEA009C1413 /* AbstractInterpolator.cpp */; };
+		CEEEBFD814F10CEB009C1413 /* AbstractInterpolator.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE4314F10CEA009C1413 /* AbstractInterpolator.h */; };
+		CEEEBFD914F10CEB009C1413 /* Array.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE4414F10CEA009C1413 /* Array.classdef.h */; };
+		CEEEBFDA14F10CEB009C1413 /* Array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE4514F10CEA009C1413 /* Array.cpp */; };
+		CEEEBFDB14F10CEB009C1413 /* Array.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE4614F10CEA009C1413 /* Array.h */; };
+		CEEEBFDC14F10CEB009C1413 /* AutoSingleton.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE4714F10CEA009C1413 /* AutoSingleton.h */; };
+		CEEEBFDD14F10CEB009C1413 /* bitfield.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE4814F10CEA009C1413 /* bitfield.h */; };
+		CEEEBFDE14F10CEB009C1413 /* Comparator.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE4914F10CEA009C1413 /* Comparator.classdef.h */; };
+		CEEEBFDF14F10CEB009C1413 /* Comparator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE4A14F10CEA009C1413 /* Comparator.cpp */; };
+		CEEEBFE014F10CEB009C1413 /* Comparator.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE4B14F10CEA009C1413 /* Comparator.h */; };
+		CEEEBFE114F10CEB009C1413 /* flags.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE4C14F10CEA009C1413 /* flags.h */; };
+		CEEEBFE214F10CEB009C1413 /* Interpolator.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE4D14F10CEA009C1413 /* Interpolator.classdef.h */; };
+		CEEEBFE314F10CEB009C1413 /* Interpolator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE4E14F10CEA009C1413 /* Interpolator.cpp */; };
+		CEEEBFE414F10CEB009C1413 /* Interpolator.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE4F14F10CEA009C1413 /* Interpolator.h */; };
+		CEEEBFE514F10CEB009C1413 /* Iterator.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE5014F10CEA009C1413 /* Iterator.classdef.h */; };
+		CEEEBFE614F10CEB009C1413 /* Iterator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE5114F10CEA009C1413 /* Iterator.cpp */; };
+		CEEEBFE714F10CEB009C1413 /* Iterator.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE5214F10CEA009C1413 /* Iterator.h */; };
+		CEEEBFE814F10CEB009C1413 /* PolymorphicArray.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE5314F10CEA009C1413 /* PolymorphicArray.classdef.h */; };
+		CEEEBFE914F10CEB009C1413 /* PolymorphicArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE5414F10CEA009C1413 /* PolymorphicArray.cpp */; };
+		CEEEBFEA14F10CEB009C1413 /* PolymorphicArray.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE5514F10CEA009C1413 /* PolymorphicArray.h */; };
+		CEEEBFEB14F10CEB009C1413 /* Removable.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE5614F10CEA009C1413 /* Removable.classdef.h */; };
+		CEEEBFEC14F10CEB009C1413 /* Removable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE5714F10CEA009C1413 /* Removable.cpp */; };
+		CEEEBFED14F10CEB009C1413 /* Removable.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE5814F10CEA009C1413 /* Removable.h */; };
+		CEEEBFF414F10CEB009C1413 /* TArray.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE5F14F10CEA009C1413 /* TArray.classdef.h */; };
+		CEEEBFF514F10CEB009C1413 /* TArray.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE6014F10CEA009C1413 /* TArray.h */; };
+		CEEEBFF614F10CEB009C1413 /* Text.classdef.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE6114F10CEA009C1413 /* Text.classdef.h */; };
+		CEEEBFF714F10CEB009C1413 /* Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEEEBE6214F10CEA009C1413 /* Text.cpp */; };
+		CEEEBFF814F10CEB009C1413 /* Text.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE6314F10CEA009C1413 /* Text.h */; };
+		CEEEBFF914F10CEB009C1413 /* TExtendableParameterizedStateMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE6414F10CEA009C1413 /* TExtendableParameterizedStateMachine.h */; };
+		CEEEBFFA14F10CEB009C1413 /* TInterpolator.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE6514F10CEA009C1413 /* TInterpolator.h */; };
+		CEEEBFFD14F10CEB009C1413 /* TParameterizedStateMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE6814F10CEA009C1413 /* TParameterizedStateMachine.h */; };
+		CEEEBFFE14F10CEB009C1413 /* TStateMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEBE6914F10CEA009C1413 /* TStateMachine.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		CEA42D6214FE693300628440 /* def_alias.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_alias.h; path = ../../../../phantom/def_alias.h; sourceTree = "<group>"; };
+		CEA42D6314FE693300628440 /* def_cfunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_cfunctions.h; path = ../../../../phantom/def_cfunctions.h; sourceTree = "<group>"; };
+		CEA42D6414FE693300628440 /* def_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_config.h; path = ../../../../phantom/def_config.h; sourceTree = "<group>"; };
+		CEA42D6514FE693300628440 /* def_connection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_connection.h; path = ../../../../phantom/def_connection.h; sourceTree = "<group>"; };
+		CEA42D6614FE693300628440 /* def_console.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = def_console.cpp; path = ../../../../phantom/def_console.cpp; sourceTree = "<group>"; };
+		CEA42D6714FE693300628440 /* def_console.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_console.h; path = ../../../../phantom/def_console.h; sourceTree = "<group>"; };
+		CEA42D6814FE693300628440 /* def_container.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_container.h; path = ../../../../phantom/def_container.h; sourceTree = "<group>"; };
+		CEA42D6914FE693300628440 /* def_custom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_custom.h; path = ../../../../phantom/def_custom.h; sourceTree = "<group>"; };
+		CEA42D6A14FE693300628440 /* def_exceptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_exceptions.h; path = ../../../../phantom/def_exceptions.h; sourceTree = "<group>"; };
+		CEA42D6B14FE693300628440 /* def_export.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_export.h; path = ../../../../phantom/def_export.h; sourceTree = "<group>"; };
+		CEA42D6C14FE693300628440 /* def_extension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_extension.h; path = ../../../../phantom/def_extension.h; sourceTree = "<group>"; };
+		CEA42D6D14FE693300628440 /* def_fwd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_fwd.h; path = ../../../../phantom/def_fwd.h; sourceTree = "<group>"; };
+		CEA42D6E14FE693300628440 /* def_macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_macros.h; path = ../../../../phantom/def_macros.h; sourceTree = "<group>"; };
+		CEA42D6F14FE693300628440 /* def_math.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_math.h; path = ../../../../phantom/def_math.h; sourceTree = "<group>"; };
+		CEA42D7014FE693300628440 /* def_memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = def_memory.cpp; path = ../../../../phantom/def_memory.cpp; sourceTree = "<group>"; };
+		CEA42D7114FE693300628440 /* def_memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_memory.h; path = ../../../../phantom/def_memory.h; sourceTree = "<group>"; };
+		CEA42D7214FE693300628440 /* def_memory.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = def_memory.inl; path = ../../../../phantom/def_memory.inl; sourceTree = "<group>"; };
+		CEA42D7314FE693300628440 /* def_modules_phantom_reflection_Class_dependency.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = def_modules_phantom_reflection_Class_dependency.inl; path = ../../../../phantom/def_modules_phantom_reflection_Class_dependency.inl; sourceTree = "<group>"; };
+		CEA42D7414FE693300628440 /* def_modules_phantom_state_StateMachine_dependency.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = def_modules_phantom_state_StateMachine_dependency.inl; path = ../../../../phantom/def_modules_phantom_state_StateMachine_dependency.inl; sourceTree = "<group>"; };
+		CEA42D7514FE693300628440 /* def_modules.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_modules.h; path = ../../../../phantom/def_modules.h; sourceTree = "<group>"; };
+		CEA42D7614FE693300628440 /* def_reflection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = def_reflection.cpp; path = ../../../../phantom/def_reflection.cpp; sourceTree = "<group>"; };
+		CEA42D7714FE693300628440 /* def_reflection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_reflection.h; path = ../../../../phantom/def_reflection.h; sourceTree = "<group>"; };
+		CEA42D7814FE693300628440 /* def_runtime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_runtime.h; path = ../../../../phantom/def_runtime.h; sourceTree = "<group>"; };
+		CEA42D7914FE693300628440 /* def_serialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_serialization.h; path = ../../../../phantom/def_serialization.h; sourceTree = "<group>"; };
+		CEA42D7A14FE693300628440 /* def_statechart.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_statechart.h; path = ../../../../phantom/def_statechart.h; sourceTree = "<group>"; };
+		CEA42D7B14FE693300628440 /* def_t_content_type_of.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_t_content_type_of.h; path = ../../../../phantom/def_t_content_type_of.h; sourceTree = "<group>"; };
+		CEA42D7C14FE693300628440 /* def_traits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_traits.h; path = ../../../../phantom/def_traits.h; sourceTree = "<group>"; };
+		CEA42D7D14FE693300628440 /* def_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_types.h; path = ../../../../phantom/def_types.h; sourceTree = "<group>"; };
+		CEA42D7E14FE693300628440 /* def_util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = def_util.h; path = ../../../../phantom/def_util.h; sourceTree = "<group>"; };
+		CEEEBCB314F10BF8009C1413 /* libphantom-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libphantom-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEEEBCB614F10BF8009C1413 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		CEEEBCBA14F10BF8009C1413 /* phantom-ios-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "phantom-ios-Prefix.pch"; sourceTree = "<group>"; };
+		CEEEBCC414F10CEA009C1413 /* _begin.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = _begin.classdef.h; path = ../../../../phantom/_begin.classdef.h; sourceTree = "<group>"; };
+		CEEEBCC514F10CEA009C1413 /* _end.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = _end.classdef.h; path = ../../../../phantom/_end.classdef.h; sourceTree = "<group>"; };
+		CEEEBCC614F10CEA009C1413 /* _global.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = _global.classdef.h; path = ../../../../phantom/_global.classdef.h; sourceTree = "<group>"; };
+		CEEEBCC714F10CEA009C1413 /* _kernel.noclassdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = _kernel.noclassdef.h; path = ../../../../phantom/_kernel.noclassdef.h; sourceTree = "<group>"; };
+		CEEEBCC814F10CEA009C1413 /* _user_begin.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = _user_begin.classdef.h; path = ../../../../phantom/_user_begin.classdef.h; sourceTree = "<group>"; };
+		CEEEBCC914F10CEA009C1413 /* _user_end.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = _user_end.classdef.h; path = ../../../../phantom/_user_end.classdef.h; sourceTree = "<group>"; };
+		CEEEBCD714F10CEA009C1413 /* default_mutex.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = default_mutex.classdef.h; sourceTree = "<group>"; };
+		CEEEBCD814F10CEA009C1413 /* default_mutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = default_mutex.cpp; sourceTree = "<group>"; };
+		CEEEBCD914F10CEA009C1413 /* default_mutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = default_mutex.h; sourceTree = "<group>"; };
+		CEEEBCDA14F10CEA009C1413 /* malloc_free_allocator.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = malloc_free_allocator.classdef.h; sourceTree = "<group>"; };
+		CEEEBCDB14F10CEA009C1413 /* malloc_free_allocator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = malloc_free_allocator.cpp; sourceTree = "<group>"; };
+		CEEEBCDC14F10CEA009C1413 /* malloc_free_allocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = malloc_free_allocator.h; sourceTree = "<group>"; };
+		CEEEBCDD14F10CEA009C1413 /* pool_allocator.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pool_allocator.classdef.h; sourceTree = "<group>"; };
+		CEEEBCDE14F10CEA009C1413 /* pool_allocator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pool_allocator.cpp; sourceTree = "<group>"; };
+		CEEEBCDF14F10CEA009C1413 /* pool_allocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pool_allocator.h; sourceTree = "<group>"; };
+		CEEEBD0914F10CEA009C1413 /* Message.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Message.classdef.h; sourceTree = "<group>"; };
+		CEEEBD0A14F10CEA009C1413 /* Message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Message.cpp; sourceTree = "<group>"; };
+		CEEEBD0B14F10CEA009C1413 /* Message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Message.h; sourceTree = "<group>"; };
+		CEEEBD0C14F10CEA009C1413 /* MessageStream.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageStream.classdef.h; sourceTree = "<group>"; };
+		CEEEBD0D14F10CEA009C1413 /* MessageStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MessageStream.cpp; sourceTree = "<group>"; };
+		CEEEBD0E14F10CEA009C1413 /* MessageStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageStream.h; sourceTree = "<group>"; };
+		CEEEBD0F14F10CEA009C1413 /* MessageStreamNode.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageStreamNode.classdef.h; sourceTree = "<group>"; };
+		CEEEBD1014F10CEA009C1413 /* MessageStreamNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MessageStreamNode.cpp; sourceTree = "<group>"; };
+		CEEEBD1114F10CEA009C1413 /* MessageStreamNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageStreamNode.h; sourceTree = "<group>"; };
+		CEEEBD1314F10CEA009C1413 /* maths.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = maths.h; path = ../../../../phantom/maths.h; sourceTree = "<group>"; };
+		CEEEBD1514F10CEA009C1413 /* Allocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Allocator.h; sourceTree = "<group>"; };
+		CEEEBD1614F10CEA009C1413 /* malloc.c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = malloc.c.h; sourceTree = "<group>"; };
+		CEEEBD1714F10CEA009C1413 /* nedmalloc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nedmalloc.cpp; sourceTree = "<group>"; };
+		CEEEBD1814F10CEA009C1413 /* nedmalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nedmalloc.h; sourceTree = "<group>"; };
+		CEEEBD1D14F10CEA009C1413 /* Object.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Object.classdef.h; path = ../../../../phantom/Object.classdef.h; sourceTree = "<group>"; };
+		CEEEBD1E14F10CEA009C1413 /* Object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Object.cpp; path = ../../../../phantom/Object.cpp; sourceTree = "<group>"; };
+		CEEEBD1F14F10CEA009C1413 /* Object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Object.h; path = ../../../../phantom/Object.h; sourceTree = "<group>"; };
+		CEEEBD2014F10CEA009C1413 /* phantom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = phantom.cpp; path = ../../../../phantom/phantom.cpp; sourceTree = "<group>"; };
+		CEEEBD2114F10CEA009C1413 /* phantom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = phantom.h; path = ../../../../phantom/phantom.h; sourceTree = "<group>"; };
+		CEEEBD2314F10CEA009C1413 /* AbstractMethod.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AbstractMethod.classdef.h; sourceTree = "<group>"; };
+		CEEEBD2414F10CEA009C1413 /* AbstractMethod.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AbstractMethod.cpp; sourceTree = "<group>"; };
+		CEEEBD2514F10CEA009C1413 /* AbstractMethod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AbstractMethod.h; sourceTree = "<group>"; };
+		CEEEBD2614F10CEA009C1413 /* Accessor.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Accessor.classdef.h; sourceTree = "<group>"; };
+		CEEEBD2714F10CEA009C1413 /* Accessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Accessor.cpp; sourceTree = "<group>"; };
+		CEEEBD2814F10CEA009C1413 /* Accessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Accessor.h; sourceTree = "<group>"; };
+		CEEEBD2914F10CEA009C1413 /* ArgumentList.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArgumentList.classdef.h; sourceTree = "<group>"; };
+		CEEEBD2A14F10CEA009C1413 /* ArgumentList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ArgumentList.cpp; sourceTree = "<group>"; };
+		CEEEBD2B14F10CEA009C1413 /* ArgumentList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArgumentList.h; sourceTree = "<group>"; };
+		CEEEBD2C14F10CEA009C1413 /* ArraySlotAccess.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArraySlotAccess.classdef.h; sourceTree = "<group>"; };
+		CEEEBD2D14F10CEA009C1413 /* ArraySlotAccess.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ArraySlotAccess.cpp; sourceTree = "<group>"; };
+		CEEEBD2E14F10CEA009C1413 /* ArraySlotAccess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArraySlotAccess.h; sourceTree = "<group>"; };
+		CEEEBD2F14F10CEA009C1413 /* ArrayType.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArrayType.classdef.h; sourceTree = "<group>"; };
+		CEEEBD3014F10CEA009C1413 /* ArrayType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ArrayType.cpp; sourceTree = "<group>"; };
+		CEEEBD3114F10CEA009C1413 /* ArrayType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArrayType.h; sourceTree = "<group>"; };
+		CEEEBD3214F10CEA009C1413 /* Attribute.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Attribute.classdef.h; sourceTree = "<group>"; };
+		CEEEBD3314F10CEA009C1413 /* Attribute.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Attribute.cpp; sourceTree = "<group>"; };
+		CEEEBD3414F10CEA009C1413 /* Attribute.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Attribute.h; sourceTree = "<group>"; };
+		CEEEBD3514F10CEA009C1413 /* Class.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Class.classdef.h; sourceTree = "<group>"; };
+		CEEEBD3614F10CEA009C1413 /* Class.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Class.cpp; sourceTree = "<group>"; };
+		CEEEBD3714F10CEA009C1413 /* Class.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Class.h; sourceTree = "<group>"; };
+		CEEEBD3814F10CEA009C1413 /* ClassExtension.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClassExtension.classdef.h; sourceTree = "<group>"; };
+		CEEEBD3914F10CEA009C1413 /* ClassExtension.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClassExtension.cpp; sourceTree = "<group>"; };
+		CEEEBD3A14F10CEA009C1413 /* ClassExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClassExtension.h; sourceTree = "<group>"; };
+		CEEEBD3B14F10CEA009C1413 /* ClassType.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClassType.classdef.h; sourceTree = "<group>"; };
+		CEEEBD3C14F10CEA009C1413 /* ClassType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClassType.cpp; sourceTree = "<group>"; };
+		CEEEBD3D14F10CEA009C1413 /* ClassType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClassType.h; sourceTree = "<group>"; };
+		CEEEBD3E14F10CEA009C1413 /* Constant.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constant.classdef.h; sourceTree = "<group>"; };
+		CEEEBD3F14F10CEA009C1413 /* Constant.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Constant.cpp; sourceTree = "<group>"; };
+		CEEEBD4014F10CEA009C1413 /* Constant.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constant.h; sourceTree = "<group>"; };
+		CEEEBD4114F10CEA009C1413 /* ConstArrayType.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstArrayType.classdef.h; sourceTree = "<group>"; };
+		CEEEBD4214F10CEA009C1413 /* ConstArrayType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConstArrayType.cpp; sourceTree = "<group>"; };
+		CEEEBD4314F10CEA009C1413 /* ConstArrayType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstArrayType.h; sourceTree = "<group>"; };
+		CEEEBD4414F10CEA009C1413 /* ConstDataPointerType.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstDataPointerType.classdef.h; sourceTree = "<group>"; };
+		CEEEBD4514F10CEA009C1413 /* ConstDataPointerType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConstDataPointerType.cpp; sourceTree = "<group>"; };
+		CEEEBD4614F10CEA009C1413 /* ConstDataPointerType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstDataPointerType.h; sourceTree = "<group>"; };
+		CEEEBD4714F10CEA009C1413 /* ConstReferenceType.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstReferenceType.classdef.h; sourceTree = "<group>"; };
+		CEEEBD4814F10CEA009C1413 /* ConstReferenceType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConstReferenceType.cpp; sourceTree = "<group>"; };
+		CEEEBD4914F10CEA009C1413 /* ConstReferenceType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstReferenceType.h; sourceTree = "<group>"; };
+		CEEEBD4A14F10CEA009C1413 /* Constructor.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constructor.classdef.h; sourceTree = "<group>"; };
+		CEEEBD4B14F10CEA009C1413 /* Constructor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Constructor.cpp; sourceTree = "<group>"; };
+		CEEEBD4C14F10CEA009C1413 /* Constructor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constructor.h; sourceTree = "<group>"; };
+		CEEEBD4D14F10CEA009C1413 /* DataPointerType.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataPointerType.classdef.h; sourceTree = "<group>"; };
+		CEEEBD4E14F10CEA009C1413 /* DataPointerType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataPointerType.cpp; sourceTree = "<group>"; };
+		CEEEBD4F14F10CEA009C1413 /* DataPointerType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataPointerType.h; sourceTree = "<group>"; };
+		CEEEBD5314F10CEA009C1413 /* element_finder_spirit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = element_finder_spirit.cpp; sourceTree = "<group>"; };
+		CEEEBD5414F10CEA009C1413 /* element_finder_spirit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = element_finder_spirit.h; sourceTree = "<group>"; };
+		CEEEBD6414F10CEA009C1413 /* Enum.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Enum.classdef.h; sourceTree = "<group>"; };
+		CEEEBD6514F10CEA009C1413 /* Enum.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Enum.cpp; sourceTree = "<group>"; };
+		CEEEBD6614F10CEA009C1413 /* Enum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Enum.h; sourceTree = "<group>"; };
+		CEEEBD6714F10CEA009C1413 /* FedMethod.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FedMethod.classdef.h; sourceTree = "<group>"; };
+		CEEEBD6814F10CEA009C1413 /* FedMethod.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FedMethod.cpp; sourceTree = "<group>"; };
+		CEEEBD6914F10CEA009C1413 /* FedMethod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FedMethod.h; sourceTree = "<group>"; };
+		CEEEBD6A14F10CEA009C1413 /* ForwardedProperty.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ForwardedProperty.classdef.h; sourceTree = "<group>"; };
+		CEEEBD6B14F10CEA009C1413 /* ForwardedProperty.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ForwardedProperty.cpp; sourceTree = "<group>"; };
+		CEEEBD6C14F10CEA009C1413 /* ForwardedProperty.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ForwardedProperty.h; sourceTree = "<group>"; };
+		CEEEBD6D14F10CEA009C1413 /* Function.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Function.classdef.h; sourceTree = "<group>"; };
+		CEEEBD6E14F10CEA009C1413 /* Function.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Function.cpp; sourceTree = "<group>"; };
+		CEEEBD6F14F10CEA009C1413 /* Function.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Function.h; sourceTree = "<group>"; };
+		CEEEBD7014F10CEA009C1413 /* InstanceAttribute.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InstanceAttribute.classdef.h; sourceTree = "<group>"; };
+		CEEEBD7114F10CEA009C1413 /* InstanceAttribute.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InstanceAttribute.cpp; sourceTree = "<group>"; };
+		CEEEBD7214F10CEA009C1413 /* InstanceAttribute.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InstanceAttribute.h; sourceTree = "<group>"; };
+		CEEEBD7314F10CEA009C1413 /* InstanceMethod.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InstanceMethod.classdef.h; sourceTree = "<group>"; };
+		CEEEBD7414F10CEA009C1413 /* InstanceMethod.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InstanceMethod.cpp; sourceTree = "<group>"; };
+		CEEEBD7514F10CEA009C1413 /* InstanceMethod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InstanceMethod.h; sourceTree = "<group>"; };
+		CEEEBD7614F10CEA009C1413 /* LanguageElement.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LanguageElement.classdef.h; sourceTree = "<group>"; };
+		CEEEBD7714F10CEA009C1413 /* LanguageElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LanguageElement.cpp; sourceTree = "<group>"; };
+		CEEEBD7814F10CEA009C1413 /* LanguageElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LanguageElement.h; sourceTree = "<group>"; };
+		CEEEBD7914F10CEA009C1413 /* Member.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Member.classdef.h; sourceTree = "<group>"; };
+		CEEEBD7A14F10CEA009C1413 /* Member.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Member.cpp; sourceTree = "<group>"; };
+		CEEEBD7B14F10CEA009C1413 /* Member.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Member.h; sourceTree = "<group>"; };
+		CEEEBD7C14F10CEA009C1413 /* Method.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Method.classdef.h; sourceTree = "<group>"; };
+		CEEEBD7D14F10CEA009C1413 /* Method.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Method.cpp; sourceTree = "<group>"; };
+		CEEEBD7E14F10CEA009C1413 /* Method.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Method.h; sourceTree = "<group>"; };
+		CEEEBD7F14F10CEA009C1413 /* Namespace.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Namespace.classdef.h; sourceTree = "<group>"; };
+		CEEEBD8014F10CEA009C1413 /* Namespace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Namespace.cpp; sourceTree = "<group>"; };
+		CEEEBD8114F10CEA009C1413 /* Namespace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Namespace.h; sourceTree = "<group>"; };
+		CEEEBD8314F10CEA009C1413 /* NativeVTableIndexInspector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NativeVTableIndexInspector.cpp; sourceTree = "<group>"; };
+		CEEEBD8414F10CEA009C1413 /* NativeVTableIndexInspector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeVTableIndexInspector.h; sourceTree = "<group>"; };
+		CEEEBD8514F10CEA009C1413 /* TConstant.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TConstant.h; sourceTree = "<group>"; };
+		CEEEBD8614F10CEA009C1413 /* TNativeAttributeProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeAttributeProvider.h; sourceTree = "<group>"; };
+		CEEEBD8714F10CEA009C1413 /* TNativeClassBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeClassBase.h; sourceTree = "<group>"; };
+		CEEEBD8814F10CEA009C1413 /* TNativeConstructor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeConstructor.h; sourceTree = "<group>"; };
+		CEEEBD8914F10CEA009C1413 /* TNativeInstanceAttribute.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeInstanceAttribute.h; sourceTree = "<group>"; };
+		CEEEBD8A14F10CEA009C1413 /* TNativeInstanceMethod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeInstanceMethod.h; sourceTree = "<group>"; };
+		CEEEBD8B14F10CEA009C1413 /* TNativeInstanceMethodBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeInstanceMethodBase.h; sourceTree = "<group>"; };
+		CEEEBD8C14F10CEA009C1413 /* TNativeInstanceMethodConst.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeInstanceMethodConst.h; sourceTree = "<group>"; };
+		CEEEBD8D14F10CEA009C1413 /* TNativeInterfaceMethod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeInterfaceMethod.h; sourceTree = "<group>"; };
+		CEEEBD8E14F10CEA009C1413 /* TNativeInterfaceMethodConst.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeInterfaceMethodConst.h; sourceTree = "<group>"; };
+		CEEEBD8F14F10CEA009C1413 /* TNativeMethodProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeMethodProvider.h; sourceTree = "<group>"; };
+		CEEEBD9014F10CEA009C1413 /* TNativeSignal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeSignal.h; sourceTree = "<group>"; };
+		CEEEBD9114F10CEA009C1413 /* TNativeSignalBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeSignalBase.h; sourceTree = "<group>"; };
+		CEEEBD9214F10CEA009C1413 /* TNativeStaticAttribute.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeStaticAttribute.h; sourceTree = "<group>"; };
+		CEEEBD9314F10CEA009C1413 /* TNativeStaticMemberFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeStaticMemberFunction.h; sourceTree = "<group>"; };
+		CEEEBD9414F10CEA009C1413 /* TNativeStaticMethod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeStaticMethod.h; sourceTree = "<group>"; };
+		CEEEBD9514F10CEA009C1413 /* TNativeStaticMethodBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeStaticMethodBase.h; sourceTree = "<group>"; };
+		CEEEBD9614F10CEA009C1413 /* TNativeVirtualMethodCounter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeVirtualMethodCounter.h; sourceTree = "<group>"; };
+		CEEEBD9714F10CEA009C1413 /* TType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TType.h; sourceTree = "<group>"; };
+		CEEEBD9814F10CEA009C1413 /* PODStruct.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PODStruct.classdef.h; sourceTree = "<group>"; };
+		CEEEBD9914F10CEA009C1413 /* PODStruct.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PODStruct.cpp; sourceTree = "<group>"; };
+		CEEEBD9A14F10CEA009C1413 /* PODStruct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PODStruct.h; sourceTree = "<group>"; };
+		CEEEBD9B14F10CEA009C1413 /* PODUnion.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PODUnion.classdef.h; sourceTree = "<group>"; };
+		CEEEBD9C14F10CEA009C1413 /* PODUnion.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PODUnion.cpp; sourceTree = "<group>"; };
+		CEEEBD9D14F10CEA009C1413 /* PODUnion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PODUnion.h; sourceTree = "<group>"; };
+		CEEEBD9E14F10CEA009C1413 /* PointerType.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PointerType.classdef.h; sourceTree = "<group>"; };
+		CEEEBD9F14F10CEA009C1413 /* PointerType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PointerType.cpp; sourceTree = "<group>"; };
+		CEEEBDA014F10CEA009C1413 /* PointerType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PointerType.h; sourceTree = "<group>"; };
+		CEEEBDA114F10CEA009C1413 /* PolymorphicArrayClass.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PolymorphicArrayClass.classdef.h; sourceTree = "<group>"; };
+		CEEEBDA214F10CEA009C1413 /* PolymorphicArrayClass.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PolymorphicArrayClass.cpp; sourceTree = "<group>"; };
+		CEEEBDA314F10CEA009C1413 /* PolymorphicArrayClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PolymorphicArrayClass.h; sourceTree = "<group>"; };
+		CEEEBDA714F10CEA009C1413 /* PrimitiveType.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrimitiveType.classdef.h; sourceTree = "<group>"; };
+		CEEEBDA814F10CEA009C1413 /* PrimitiveType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PrimitiveType.cpp; sourceTree = "<group>"; };
+		CEEEBDA914F10CEA009C1413 /* PrimitiveType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrimitiveType.h; sourceTree = "<group>"; };
+		CEEEBDAA14F10CEA009C1413 /* Property.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Property.classdef.h; sourceTree = "<group>"; };
+		CEEEBDAB14F10CEA009C1413 /* Property.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Property.cpp; sourceTree = "<group>"; };
+		CEEEBDAC14F10CEA009C1413 /* Property.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Property.h; sourceTree = "<group>"; };
+		CEEEBDAD14F10CEA009C1413 /* ReferenceType.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReferenceType.classdef.h; sourceTree = "<group>"; };
+		CEEEBDAE14F10CEA009C1413 /* ReferenceType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReferenceType.cpp; sourceTree = "<group>"; };
+		CEEEBDAF14F10CEA009C1413 /* ReferenceType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReferenceType.h; sourceTree = "<group>"; };
+		CEEEBDB314F10CEA009C1413 /* RuntimeClass.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeClass.classdef.h; sourceTree = "<group>"; };
+		CEEEBDB414F10CEA009C1413 /* RuntimeClass.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RuntimeClass.cpp; sourceTree = "<group>"; };
+		CEEEBDB514F10CEA009C1413 /* RuntimeClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeClass.h; sourceTree = "<group>"; };
+		CEEEBDB614F10CEA009C1413 /* RuntimeInstanceAttribute.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeInstanceAttribute.classdef.h; sourceTree = "<group>"; };
+		CEEEBDB714F10CEA009C1413 /* RuntimeInstanceAttribute.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RuntimeInstanceAttribute.cpp; sourceTree = "<group>"; };
+		CEEEBDB814F10CEA009C1413 /* RuntimeInstanceAttribute.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeInstanceAttribute.h; sourceTree = "<group>"; };
+		CEEEBDB914F10CEA009C1413 /* RuntimeStaticAttribute.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeStaticAttribute.classdef.h; sourceTree = "<group>"; };
+		CEEEBDBA14F10CEA009C1413 /* RuntimeStaticAttribute.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RuntimeStaticAttribute.cpp; sourceTree = "<group>"; };
+		CEEEBDBB14F10CEA009C1413 /* RuntimeStaticAttribute.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeStaticAttribute.h; sourceTree = "<group>"; };
+		CEEEBDBC14F10CEA009C1413 /* ScriptClass.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScriptClass.classdef.h; sourceTree = "<group>"; };
+		CEEEBDBD14F10CEA009C1413 /* ScriptClass.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScriptClass.cpp; sourceTree = "<group>"; };
+		CEEEBDBE14F10CEA009C1413 /* ScriptClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScriptClass.h; sourceTree = "<group>"; };
+		CEEEBDBF14F10CEA009C1413 /* Signal.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Signal.classdef.h; sourceTree = "<group>"; };
+		CEEEBDC014F10CEA009C1413 /* Signal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Signal.cpp; sourceTree = "<group>"; };
+		CEEEBDC114F10CEA009C1413 /* Signal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Signal.h; sourceTree = "<group>"; };
+		CEEEBDC214F10CEA009C1413 /* Signature.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Signature.classdef.h; sourceTree = "<group>"; };
+		CEEEBDC314F10CEA009C1413 /* Signature.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Signature.cpp; sourceTree = "<group>"; };
+		CEEEBDC414F10CEA009C1413 /* Signature.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Signature.h; sourceTree = "<group>"; };
+		CEEEBDC514F10CEA009C1413 /* StaticAttribute.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StaticAttribute.classdef.h; sourceTree = "<group>"; };
+		CEEEBDC614F10CEA009C1413 /* StaticAttribute.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StaticAttribute.cpp; sourceTree = "<group>"; };
+		CEEEBDC714F10CEA009C1413 /* StaticAttribute.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StaticAttribute.h; sourceTree = "<group>"; };
+		CEEEBDC814F10CEA009C1413 /* StaticMethod.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StaticMethod.classdef.h; sourceTree = "<group>"; };
+		CEEEBDC914F10CEA009C1413 /* StaticMethod.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StaticMethod.cpp; sourceTree = "<group>"; };
+		CEEEBDCA14F10CEA009C1413 /* StaticMethod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StaticMethod.h; sourceTree = "<group>"; };
+		CEEEBDCB14F10CEA009C1413 /* StaticVariable.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StaticVariable.classdef.h; sourceTree = "<group>"; };
+		CEEEBDCC14F10CEA009C1413 /* StaticVariable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StaticVariable.cpp; sourceTree = "<group>"; };
+		CEEEBDCD14F10CEA009C1413 /* StaticVariable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StaticVariable.h; sourceTree = "<group>"; };
+		CEEEBDCE14F10CEA009C1413 /* SubProperty.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubProperty.classdef.h; sourceTree = "<group>"; };
+		CEEEBDCF14F10CEA009C1413 /* SubProperty.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubProperty.cpp; sourceTree = "<group>"; };
+		CEEEBDD014F10CEA009C1413 /* SubProperty.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubProperty.h; sourceTree = "<group>"; };
+		CEEEBDD114F10CEA009C1413 /* Subroutine.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Subroutine.classdef.h; sourceTree = "<group>"; };
+		CEEEBDD214F10CEA009C1413 /* Subroutine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Subroutine.cpp; sourceTree = "<group>"; };
+		CEEEBDD314F10CEA009C1413 /* Subroutine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Subroutine.h; sourceTree = "<group>"; };
+		CEEEBDD414F10CEA009C1413 /* TemplateElement.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TemplateElement.classdef.h; sourceTree = "<group>"; };
+		CEEEBDD514F10CEA009C1413 /* TemplateElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TemplateElement.cpp; sourceTree = "<group>"; };
+		CEEEBDD614F10CEA009C1413 /* TemplateElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TemplateElement.h; sourceTree = "<group>"; };
+		CEEEBDD714F10CEA009C1413 /* TemplateSpecialization.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TemplateSpecialization.classdef.h; sourceTree = "<group>"; };
+		CEEEBDD814F10CEA009C1413 /* TemplateSpecialization.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TemplateSpecialization.cpp; sourceTree = "<group>"; };
+		CEEEBDD914F10CEA009C1413 /* TemplateSpecialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TemplateSpecialization.h; sourceTree = "<group>"; };
+		CEEEBDDA14F10CEA009C1413 /* Type.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Type.classdef.h; sourceTree = "<group>"; };
+		CEEEBDDB14F10CEA009C1413 /* Type.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Type.cpp; sourceTree = "<group>"; };
+		CEEEBDDC14F10CEA009C1413 /* Type.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Type.h; sourceTree = "<group>"; };
+		CEEEBDDD14F10CEA009C1413 /* Union.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Union.classdef.h; sourceTree = "<group>"; };
+		CEEEBDDE14F10CEA009C1413 /* Union.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Union.cpp; sourceTree = "<group>"; };
+		CEEEBDDF14F10CEA009C1413 /* Union.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Union.h; sourceTree = "<group>"; };
+		CEEEBDE014F10CEA009C1413 /* VirtualMethodTable.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VirtualMethodTable.classdef.h; sourceTree = "<group>"; };
+		CEEEBDE114F10CEA009C1413 /* VirtualMethodTable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VirtualMethodTable.cpp; sourceTree = "<group>"; };
+		CEEEBDE214F10CEA009C1413 /* VirtualMethodTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VirtualMethodTable.h; sourceTree = "<group>"; };
+		CEEEBDE714F10CEA009C1413 /* Bundle.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bundle.classdef.h; sourceTree = "<group>"; };
+		CEEEBDE814F10CEA009C1413 /* Bundle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Bundle.cpp; sourceTree = "<group>"; };
+		CEEEBDE914F10CEA009C1413 /* Bundle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bundle.h; sourceTree = "<group>"; };
+		CEEEBDEA14F10CEA009C1413 /* BundleDataBase.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BundleDataBase.classdef.h; sourceTree = "<group>"; };
+		CEEEBDEB14F10CEA009C1413 /* BundleDataBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BundleDataBase.cpp; sourceTree = "<group>"; };
+		CEEEBDEC14F10CEA009C1413 /* BundleDataBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BundleDataBase.h; sourceTree = "<group>"; };
+		CEEEBDED14F10CEA009C1413 /* BundleNode.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BundleNode.classdef.h; sourceTree = "<group>"; };
+		CEEEBDEE14F10CEA009C1413 /* BundleNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BundleNode.cpp; sourceTree = "<group>"; };
+		CEEEBDEF14F10CEA009C1413 /* BundleNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BundleNode.h; sourceTree = "<group>"; };
+		CEEEBDF014F10CEA009C1413 /* DataBase.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataBase.classdef.h; sourceTree = "<group>"; };
+		CEEEBDF114F10CEA009C1413 /* DataBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataBase.cpp; sourceTree = "<group>"; };
+		CEEEBDF214F10CEA009C1413 /* DataBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataBase.h; sourceTree = "<group>"; };
+		CEEEBDF314F10CEA009C1413 /* DefaultNode.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DefaultNode.classdef.h; sourceTree = "<group>"; };
+		CEEEBDF414F10CEA009C1413 /* DefaultNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DefaultNode.cpp; sourceTree = "<group>"; };
+		CEEEBDF514F10CEA009C1413 /* DefaultNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DefaultNode.h; sourceTree = "<group>"; };
+		CEEEBDF614F10CEA009C1413 /* FileTreeDataBase.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileTreeDataBase.classdef.h; sourceTree = "<group>"; };
+		CEEEBDF714F10CEA009C1413 /* FileTreeDataBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileTreeDataBase.cpp; sourceTree = "<group>"; };
+		CEEEBDF814F10CEA009C1413 /* FileTreeDataBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileTreeDataBase.h; sourceTree = "<group>"; };
+		CEEEBDF914F10CEA009C1413 /* FileTreeNode.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileTreeNode.classdef.h; sourceTree = "<group>"; };
+		CEEEBDFA14F10CEA009C1413 /* FileTreeNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileTreeNode.cpp; sourceTree = "<group>"; };
+		CEEEBDFB14F10CEA009C1413 /* FileTreeNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileTreeNode.h; sourceTree = "<group>"; };
+		CEEEBDFD14F10CEA009C1413 /* TBundle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TBundle.h; sourceTree = "<group>"; };
+		CEEEBDFE14F10CEA009C1413 /* Node.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.classdef.h; sourceTree = "<group>"; };
+		CEEEBDFF14F10CEA009C1413 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Node.cpp; sourceTree = "<group>"; };
+		CEEEBE0014F10CEA009C1413 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
+		CEEEBE0214F10CEA009C1413 /* XmlFileTreeDataBase.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XmlFileTreeDataBase.classdef.h; sourceTree = "<group>"; };
+		CEEEBE0314F10CEA009C1413 /* XmlFileTreeDataBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XmlFileTreeDataBase.cpp; sourceTree = "<group>"; };
+		CEEEBE0414F10CEA009C1413 /* XmlFileTreeDataBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XmlFileTreeDataBase.h; sourceTree = "<group>"; };
+		CEEEBE0514F10CEA009C1413 /* XmlFileTreeNode.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XmlFileTreeNode.classdef.h; sourceTree = "<group>"; };
+		CEEEBE0614F10CEA009C1413 /* XmlFileTreeNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XmlFileTreeNode.cpp; sourceTree = "<group>"; };
+		CEEEBE0714F10CEA009C1413 /* XmlFileTreeNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XmlFileTreeNode.h; sourceTree = "<group>"; };
+		CEEEBE0A14F10CEA009C1413 /* Event.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Event.classdef.h; sourceTree = "<group>"; };
+		CEEEBE0B14F10CEA009C1413 /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Event.cpp; sourceTree = "<group>"; };
+		CEEEBE0C14F10CEA009C1413 /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Event.h; sourceTree = "<group>"; };
+		CEEEBE0E14F10CEA009C1413 /* TNativeDerivedEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeDerivedEvent.h; sourceTree = "<group>"; };
+		CEEEBE0F14F10CEA009C1413 /* TNativeDerivedState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeDerivedState.h; sourceTree = "<group>"; };
+		CEEEBE1014F10CEA009C1413 /* TNativeDerivedTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeDerivedTrack.h; sourceTree = "<group>"; };
+		CEEEBE1114F10CEA009C1413 /* TNativeEvent.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeEvent.classdef.h; sourceTree = "<group>"; };
+		CEEEBE1214F10CEA009C1413 /* TNativeEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeEvent.h; sourceTree = "<group>"; };
+		CEEEBE1314F10CEA009C1413 /* TNativeReaction.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeReaction.classdef.h; sourceTree = "<group>"; };
+		CEEEBE1414F10CEA009C1413 /* TNativeReaction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeReaction.h; sourceTree = "<group>"; };
+		CEEEBE1514F10CEA009C1413 /* TNativeState.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeState.classdef.h; sourceTree = "<group>"; };
+		CEEEBE1614F10CEA009C1413 /* TNativeState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeState.h; sourceTree = "<group>"; };
+		CEEEBE1714F10CEA009C1413 /* TNativeStateMachine.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeStateMachine.classdef.h; sourceTree = "<group>"; };
+		CEEEBE1814F10CEA009C1413 /* TNativeStateMachine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeStateMachine.h; sourceTree = "<group>"; };
+		CEEEBE1914F10CEA009C1413 /* TNativeTrack.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeTrack.classdef.h; sourceTree = "<group>"; };
+		CEEEBE1A14F10CEA009C1413 /* TNativeTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeTrack.h; sourceTree = "<group>"; };
+		CEEEBE1B14F10CEA009C1413 /* TNativeTransition.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeTransition.classdef.h; sourceTree = "<group>"; };
+		CEEEBE1C14F10CEA009C1413 /* TNativeTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNativeTransition.h; sourceTree = "<group>"; };
+		CEEEBE1D14F10CEA009C1413 /* Reaction.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reaction.classdef.h; sourceTree = "<group>"; };
+		CEEEBE1E14F10CEA009C1413 /* Reaction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Reaction.cpp; sourceTree = "<group>"; };
+		CEEEBE1F14F10CEA009C1413 /* Reaction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reaction.h; sourceTree = "<group>"; };
+		CEEEBE2114F10CEA009C1413 /* RuntimeState.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeState.classdef.h; sourceTree = "<group>"; };
+		CEEEBE2214F10CEA009C1413 /* RuntimeState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RuntimeState.cpp; sourceTree = "<group>"; };
+		CEEEBE2314F10CEA009C1413 /* RuntimeState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeState.h; sourceTree = "<group>"; };
+		CEEEBE2414F10CEA009C1413 /* RuntimeStateMachine.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeStateMachine.classdef.h; sourceTree = "<group>"; };
+		CEEEBE2514F10CEA009C1413 /* RuntimeStateMachine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RuntimeStateMachine.cpp; sourceTree = "<group>"; };
+		CEEEBE2614F10CEA009C1413 /* RuntimeStateMachine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeStateMachine.h; sourceTree = "<group>"; };
+		CEEEBE2714F10CEA009C1413 /* RuntimeTrack.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeTrack.classdef.h; sourceTree = "<group>"; };
+		CEEEBE2814F10CEA009C1413 /* RuntimeTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RuntimeTrack.cpp; sourceTree = "<group>"; };
+		CEEEBE2914F10CEA009C1413 /* RuntimeTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeTrack.h; sourceTree = "<group>"; };
+		CEEEBE2A14F10CEA009C1413 /* RuntimeTransition.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeTransition.classdef.h; sourceTree = "<group>"; };
+		CEEEBE2B14F10CEA009C1413 /* RuntimeTransition.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RuntimeTransition.cpp; sourceTree = "<group>"; };
+		CEEEBE2C14F10CEA009C1413 /* RuntimeTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeTransition.h; sourceTree = "<group>"; };
+		CEEEBE2D14F10CEA009C1413 /* State.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = State.classdef.h; sourceTree = "<group>"; };
+		CEEEBE2E14F10CEA009C1413 /* State.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = State.cpp; sourceTree = "<group>"; };
+		CEEEBE2F14F10CEA009C1413 /* State.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = State.h; sourceTree = "<group>"; };
+		CEEEBE3014F10CEA009C1413 /* StateMachine.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StateMachine.classdef.h; sourceTree = "<group>"; };
+		CEEEBE3114F10CEA009C1413 /* StateMachine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StateMachine.cpp; sourceTree = "<group>"; };
+		CEEEBE3214F10CEA009C1413 /* StateMachine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StateMachine.h; sourceTree = "<group>"; };
+		CEEEBE3314F10CEA009C1413 /* StateMachineElement.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StateMachineElement.classdef.h; sourceTree = "<group>"; };
+		CEEEBE3414F10CEA009C1413 /* StateMachineElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StateMachineElement.cpp; sourceTree = "<group>"; };
+		CEEEBE3514F10CEA009C1413 /* StateMachineElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StateMachineElement.h; sourceTree = "<group>"; };
+		CEEEBE3614F10CEA009C1413 /* StateOrderingComparator.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StateOrderingComparator.classdef.h; sourceTree = "<group>"; };
+		CEEEBE3714F10CEA009C1413 /* StateOrderingComparator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StateOrderingComparator.cpp; sourceTree = "<group>"; };
+		CEEEBE3814F10CEA009C1413 /* StateOrderingComparator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StateOrderingComparator.h; sourceTree = "<group>"; };
+		CEEEBE3914F10CEA009C1413 /* Track.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Track.classdef.h; sourceTree = "<group>"; };
+		CEEEBE3A14F10CEA009C1413 /* Track.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Track.cpp; sourceTree = "<group>"; };
+		CEEEBE3B14F10CEA009C1413 /* Track.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Track.h; sourceTree = "<group>"; };
+		CEEEBE4114F10CEA009C1413 /* AbstractInterpolator.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AbstractInterpolator.classdef.h; sourceTree = "<group>"; };
+		CEEEBE4214F10CEA009C1413 /* AbstractInterpolator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AbstractInterpolator.cpp; sourceTree = "<group>"; };
+		CEEEBE4314F10CEA009C1413 /* AbstractInterpolator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AbstractInterpolator.h; sourceTree = "<group>"; };
+		CEEEBE4414F10CEA009C1413 /* Array.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Array.classdef.h; sourceTree = "<group>"; };
+		CEEEBE4514F10CEA009C1413 /* Array.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Array.cpp; sourceTree = "<group>"; };
+		CEEEBE4614F10CEA009C1413 /* Array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Array.h; sourceTree = "<group>"; };
+		CEEEBE4714F10CEA009C1413 /* AutoSingleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AutoSingleton.h; sourceTree = "<group>"; };
+		CEEEBE4814F10CEA009C1413 /* bitfield.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bitfield.h; sourceTree = "<group>"; };
+		CEEEBE4914F10CEA009C1413 /* Comparator.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Comparator.classdef.h; sourceTree = "<group>"; };
+		CEEEBE4A14F10CEA009C1413 /* Comparator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Comparator.cpp; sourceTree = "<group>"; };
+		CEEEBE4B14F10CEA009C1413 /* Comparator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Comparator.h; sourceTree = "<group>"; };
+		CEEEBE4C14F10CEA009C1413 /* flags.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = flags.h; sourceTree = "<group>"; };
+		CEEEBE4D14F10CEA009C1413 /* Interpolator.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Interpolator.classdef.h; sourceTree = "<group>"; };
+		CEEEBE4E14F10CEA009C1413 /* Interpolator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Interpolator.cpp; sourceTree = "<group>"; };
+		CEEEBE4F14F10CEA009C1413 /* Interpolator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Interpolator.h; sourceTree = "<group>"; };
+		CEEEBE5014F10CEA009C1413 /* Iterator.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Iterator.classdef.h; sourceTree = "<group>"; };
+		CEEEBE5114F10CEA009C1413 /* Iterator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Iterator.cpp; sourceTree = "<group>"; };
+		CEEEBE5214F10CEA009C1413 /* Iterator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Iterator.h; sourceTree = "<group>"; };
+		CEEEBE5314F10CEA009C1413 /* PolymorphicArray.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PolymorphicArray.classdef.h; sourceTree = "<group>"; };
+		CEEEBE5414F10CEA009C1413 /* PolymorphicArray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PolymorphicArray.cpp; sourceTree = "<group>"; };
+		CEEEBE5514F10CEA009C1413 /* PolymorphicArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PolymorphicArray.h; sourceTree = "<group>"; };
+		CEEEBE5614F10CEA009C1413 /* Removable.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Removable.classdef.h; sourceTree = "<group>"; };
+		CEEEBE5714F10CEA009C1413 /* Removable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Removable.cpp; sourceTree = "<group>"; };
+		CEEEBE5814F10CEA009C1413 /* Removable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Removable.h; sourceTree = "<group>"; };
+		CEEEBE5F14F10CEA009C1413 /* TArray.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TArray.classdef.h; sourceTree = "<group>"; };
+		CEEEBE6014F10CEA009C1413 /* TArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TArray.h; sourceTree = "<group>"; };
+		CEEEBE6114F10CEA009C1413 /* Text.classdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Text.classdef.h; sourceTree = "<group>"; };
+		CEEEBE6214F10CEA009C1413 /* Text.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Text.cpp; sourceTree = "<group>"; };
+		CEEEBE6314F10CEA009C1413 /* Text.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Text.h; sourceTree = "<group>"; };
+		CEEEBE6414F10CEA009C1413 /* TExtendableParameterizedStateMachine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TExtendableParameterizedStateMachine.h; sourceTree = "<group>"; };
+		CEEEBE6514F10CEA009C1413 /* TInterpolator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TInterpolator.h; sourceTree = "<group>"; };
+		CEEEBE6814F10CEA009C1413 /* TParameterizedStateMachine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TParameterizedStateMachine.h; sourceTree = "<group>"; };
+		CEEEBE6914F10CEA009C1413 /* TStateMachine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TStateMachine.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CEEEBCB014F10BF8009C1413 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEEEBCB714F10BF8009C1413 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CEEEBCA814F10BF6009C1413 = {
+			isa = PBXGroup;
+			children = (
+				CEEEBCC314F10CBF009C1413 /* phantom */,
+				CEEEBCB814F10BF8009C1413 /* phantom-ios */,
+				CEEEBCB514F10BF8009C1413 /* Frameworks */,
+				CEEEBCB414F10BF8009C1413 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CEEEBCB414F10BF8009C1413 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBCB314F10BF8009C1413 /* libphantom-ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CEEEBCB514F10BF8009C1413 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBCB614F10BF8009C1413 /* Foundation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		CEEEBCB814F10BF8009C1413 /* phantom-ios */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBCB914F10BF8009C1413 /* Supporting Files */,
+			);
+			path = "phantom-ios";
+			sourceTree = "<group>";
+		};
+		CEEEBCB914F10BF8009C1413 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBCBA14F10BF8009C1413 /* phantom-ios-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		CEEEBCC314F10CBF009C1413 /* phantom */ = {
+			isa = PBXGroup;
+			children = (
+				CEA42D6214FE693300628440 /* def_alias.h */,
+				CEA42D6314FE693300628440 /* def_cfunctions.h */,
+				CEA42D6414FE693300628440 /* def_config.h */,
+				CEA42D6514FE693300628440 /* def_connection.h */,
+				CEA42D6614FE693300628440 /* def_console.cpp */,
+				CEA42D6714FE693300628440 /* def_console.h */,
+				CEA42D6814FE693300628440 /* def_container.h */,
+				CEA42D6914FE693300628440 /* def_custom.h */,
+				CEA42D6A14FE693300628440 /* def_exceptions.h */,
+				CEA42D6B14FE693300628440 /* def_export.h */,
+				CEA42D6C14FE693300628440 /* def_extension.h */,
+				CEA42D6D14FE693300628440 /* def_fwd.h */,
+				CEA42D6E14FE693300628440 /* def_macros.h */,
+				CEA42D6F14FE693300628440 /* def_math.h */,
+				CEA42D7014FE693300628440 /* def_memory.cpp */,
+				CEA42D7114FE693300628440 /* def_memory.h */,
+				CEA42D7214FE693300628440 /* def_memory.inl */,
+				CEA42D7314FE693300628440 /* def_modules_phantom_reflection_Class_dependency.inl */,
+				CEA42D7414FE693300628440 /* def_modules_phantom_state_StateMachine_dependency.inl */,
+				CEA42D7514FE693300628440 /* def_modules.h */,
+				CEA42D7614FE693300628440 /* def_reflection.cpp */,
+				CEA42D7714FE693300628440 /* def_reflection.h */,
+				CEA42D7814FE693300628440 /* def_runtime.h */,
+				CEA42D7914FE693300628440 /* def_serialization.h */,
+				CEA42D7A14FE693300628440 /* def_statechart.h */,
+				CEA42D7B14FE693300628440 /* def_t_content_type_of.h */,
+				CEA42D7C14FE693300628440 /* def_traits.h */,
+				CEA42D7D14FE693300628440 /* def_types.h */,
+				CEA42D7E14FE693300628440 /* def_util.h */,
+				CEEEBCC414F10CEA009C1413 /* _begin.classdef.h */,
+				CEEEBCC514F10CEA009C1413 /* _end.classdef.h */,
+				CEEEBCC614F10CEA009C1413 /* _global.classdef.h */,
+				CEEEBCC714F10CEA009C1413 /* _kernel.noclassdef.h */,
+				CEEEBCC814F10CEA009C1413 /* _user_begin.classdef.h */,
+				CEEEBCC914F10CEA009C1413 /* _user_end.classdef.h */,
+				CEEEBCD514F10CEA009C1413 /* externals */,
+				CEEEBD0814F10CEA009C1413 /* information */,
+				CEEEBD1314F10CEA009C1413 /* maths.h */,
+				CEEEBD1414F10CEA009C1413 /* memory */,
+				CEEEBD1D14F10CEA009C1413 /* Object.classdef.h */,
+				CEEEBD1E14F10CEA009C1413 /* Object.cpp */,
+				CEEEBD1F14F10CEA009C1413 /* Object.h */,
+				CEEEBD2014F10CEA009C1413 /* phantom.cpp */,
+				CEEEBD2114F10CEA009C1413 /* phantom.h */,
+				CEEEBD2214F10CEA009C1413 /* reflection */,
+				CEEEBDE614F10CEA009C1413 /* serialization */,
+				CEEEBE0914F10CEA009C1413 /* state */,
+				CEEEBE4014F10CEA009C1413 /* util */,
+			);
+			name = phantom;
+			sourceTree = "<group>";
+		};
+		CEEEBCD514F10CEA009C1413 /* externals */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBCD614F10CEA009C1413 /* boost */,
+			);
+			name = externals;
+			path = ../../../../phantom/externals;
+			sourceTree = "<group>";
+		};
+		CEEEBCD614F10CEA009C1413 /* boost */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBCD714F10CEA009C1413 /* default_mutex.classdef.h */,
+				CEEEBCD814F10CEA009C1413 /* default_mutex.cpp */,
+				CEEEBCD914F10CEA009C1413 /* default_mutex.h */,
+				CEEEBCDA14F10CEA009C1413 /* malloc_free_allocator.classdef.h */,
+				CEEEBCDB14F10CEA009C1413 /* malloc_free_allocator.cpp */,
+				CEEEBCDC14F10CEA009C1413 /* malloc_free_allocator.h */,
+				CEEEBCDD14F10CEA009C1413 /* pool_allocator.classdef.h */,
+				CEEEBCDE14F10CEA009C1413 /* pool_allocator.cpp */,
+				CEEEBCDF14F10CEA009C1413 /* pool_allocator.h */,
+			);
+			path = boost;
+			sourceTree = "<group>";
+		};
+		CEEEBD0814F10CEA009C1413 /* information */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBD0914F10CEA009C1413 /* Message.classdef.h */,
+				CEEEBD0A14F10CEA009C1413 /* Message.cpp */,
+				CEEEBD0B14F10CEA009C1413 /* Message.h */,
+				CEEEBD0C14F10CEA009C1413 /* MessageStream.classdef.h */,
+				CEEEBD0D14F10CEA009C1413 /* MessageStream.cpp */,
+				CEEEBD0E14F10CEA009C1413 /* MessageStream.h */,
+				CEEEBD0F14F10CEA009C1413 /* MessageStreamNode.classdef.h */,
+				CEEEBD1014F10CEA009C1413 /* MessageStreamNode.cpp */,
+				CEEEBD1114F10CEA009C1413 /* MessageStreamNode.h */,
+			);
+			name = information;
+			path = ../../../../phantom/information;
+			sourceTree = "<group>";
+		};
+		CEEEBD1414F10CEA009C1413 /* memory */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBD1514F10CEA009C1413 /* Allocator.h */,
+				CEEEBD1614F10CEA009C1413 /* malloc.c.h */,
+				CEEEBD1714F10CEA009C1413 /* nedmalloc.cpp */,
+				CEEEBD1814F10CEA009C1413 /* nedmalloc.h */,
+			);
+			name = memory;
+			path = ../../../../phantom/memory;
+			sourceTree = "<group>";
+		};
+		CEEEBD2214F10CEA009C1413 /* reflection */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBD2314F10CEA009C1413 /* AbstractMethod.classdef.h */,
+				CEEEBD2414F10CEA009C1413 /* AbstractMethod.cpp */,
+				CEEEBD2514F10CEA009C1413 /* AbstractMethod.h */,
+				CEEEBD2614F10CEA009C1413 /* Accessor.classdef.h */,
+				CEEEBD2714F10CEA009C1413 /* Accessor.cpp */,
+				CEEEBD2814F10CEA009C1413 /* Accessor.h */,
+				CEEEBD2914F10CEA009C1413 /* ArgumentList.classdef.h */,
+				CEEEBD2A14F10CEA009C1413 /* ArgumentList.cpp */,
+				CEEEBD2B14F10CEA009C1413 /* ArgumentList.h */,
+				CEEEBD2C14F10CEA009C1413 /* ArraySlotAccess.classdef.h */,
+				CEEEBD2D14F10CEA009C1413 /* ArraySlotAccess.cpp */,
+				CEEEBD2E14F10CEA009C1413 /* ArraySlotAccess.h */,
+				CEEEBD2F14F10CEA009C1413 /* ArrayType.classdef.h */,
+				CEEEBD3014F10CEA009C1413 /* ArrayType.cpp */,
+				CEEEBD3114F10CEA009C1413 /* ArrayType.h */,
+				CEEEBD3214F10CEA009C1413 /* Attribute.classdef.h */,
+				CEEEBD3314F10CEA009C1413 /* Attribute.cpp */,
+				CEEEBD3414F10CEA009C1413 /* Attribute.h */,
+				CEEEBD3514F10CEA009C1413 /* Class.classdef.h */,
+				CEEEBD3614F10CEA009C1413 /* Class.cpp */,
+				CEEEBD3714F10CEA009C1413 /* Class.h */,
+				CEEEBD3814F10CEA009C1413 /* ClassExtension.classdef.h */,
+				CEEEBD3914F10CEA009C1413 /* ClassExtension.cpp */,
+				CEEEBD3A14F10CEA009C1413 /* ClassExtension.h */,
+				CEEEBD3B14F10CEA009C1413 /* ClassType.classdef.h */,
+				CEEEBD3C14F10CEA009C1413 /* ClassType.cpp */,
+				CEEEBD3D14F10CEA009C1413 /* ClassType.h */,
+				CEEEBD3E14F10CEA009C1413 /* Constant.classdef.h */,
+				CEEEBD3F14F10CEA009C1413 /* Constant.cpp */,
+				CEEEBD4014F10CEA009C1413 /* Constant.h */,
+				CEEEBD4114F10CEA009C1413 /* ConstArrayType.classdef.h */,
+				CEEEBD4214F10CEA009C1413 /* ConstArrayType.cpp */,
+				CEEEBD4314F10CEA009C1413 /* ConstArrayType.h */,
+				CEEEBD4414F10CEA009C1413 /* ConstDataPointerType.classdef.h */,
+				CEEEBD4514F10CEA009C1413 /* ConstDataPointerType.cpp */,
+				CEEEBD4614F10CEA009C1413 /* ConstDataPointerType.h */,
+				CEEEBD4714F10CEA009C1413 /* ConstReferenceType.classdef.h */,
+				CEEEBD4814F10CEA009C1413 /* ConstReferenceType.cpp */,
+				CEEEBD4914F10CEA009C1413 /* ConstReferenceType.h */,
+				CEEEBD4A14F10CEA009C1413 /* Constructor.classdef.h */,
+				CEEEBD4B14F10CEA009C1413 /* Constructor.cpp */,
+				CEEEBD4C14F10CEA009C1413 /* Constructor.h */,
+				CEEEBD4D14F10CEA009C1413 /* DataPointerType.classdef.h */,
+				CEEEBD4E14F10CEA009C1413 /* DataPointerType.cpp */,
+				CEEEBD4F14F10CEA009C1413 /* DataPointerType.h */,
+				CEEEBD5014F10CEA009C1413 /* detail */,
+				CEEEBD6414F10CEA009C1413 /* Enum.classdef.h */,
+				CEEEBD6514F10CEA009C1413 /* Enum.cpp */,
+				CEEEBD6614F10CEA009C1413 /* Enum.h */,
+				CEEEBD6714F10CEA009C1413 /* FedMethod.classdef.h */,
+				CEEEBD6814F10CEA009C1413 /* FedMethod.cpp */,
+				CEEEBD6914F10CEA009C1413 /* FedMethod.h */,
+				CEEEBD6A14F10CEA009C1413 /* ForwardedProperty.classdef.h */,
+				CEEEBD6B14F10CEA009C1413 /* ForwardedProperty.cpp */,
+				CEEEBD6C14F10CEA009C1413 /* ForwardedProperty.h */,
+				CEEEBD6D14F10CEA009C1413 /* Function.classdef.h */,
+				CEEEBD6E14F10CEA009C1413 /* Function.cpp */,
+				CEEEBD6F14F10CEA009C1413 /* Function.h */,
+				CEEEBD7014F10CEA009C1413 /* InstanceAttribute.classdef.h */,
+				CEEEBD7114F10CEA009C1413 /* InstanceAttribute.cpp */,
+				CEEEBD7214F10CEA009C1413 /* InstanceAttribute.h */,
+				CEEEBD7314F10CEA009C1413 /* InstanceMethod.classdef.h */,
+				CEEEBD7414F10CEA009C1413 /* InstanceMethod.cpp */,
+				CEEEBD7514F10CEA009C1413 /* InstanceMethod.h */,
+				CEEEBD7614F10CEA009C1413 /* LanguageElement.classdef.h */,
+				CEEEBD7714F10CEA009C1413 /* LanguageElement.cpp */,
+				CEEEBD7814F10CEA009C1413 /* LanguageElement.h */,
+				CEEEBD7914F10CEA009C1413 /* Member.classdef.h */,
+				CEEEBD7A14F10CEA009C1413 /* Member.cpp */,
+				CEEEBD7B14F10CEA009C1413 /* Member.h */,
+				CEEEBD7C14F10CEA009C1413 /* Method.classdef.h */,
+				CEEEBD7D14F10CEA009C1413 /* Method.cpp */,
+				CEEEBD7E14F10CEA009C1413 /* Method.h */,
+				CEEEBD7F14F10CEA009C1413 /* Namespace.classdef.h */,
+				CEEEBD8014F10CEA009C1413 /* Namespace.cpp */,
+				CEEEBD8114F10CEA009C1413 /* Namespace.h */,
+				CEEEBD8214F10CEA009C1413 /* native */,
+				CEEEBD9814F10CEA009C1413 /* PODStruct.classdef.h */,
+				CEEEBD9914F10CEA009C1413 /* PODStruct.cpp */,
+				CEEEBD9A14F10CEA009C1413 /* PODStruct.h */,
+				CEEEBD9B14F10CEA009C1413 /* PODUnion.classdef.h */,
+				CEEEBD9C14F10CEA009C1413 /* PODUnion.cpp */,
+				CEEEBD9D14F10CEA009C1413 /* PODUnion.h */,
+				CEEEBD9E14F10CEA009C1413 /* PointerType.classdef.h */,
+				CEEEBD9F14F10CEA009C1413 /* PointerType.cpp */,
+				CEEEBDA014F10CEA009C1413 /* PointerType.h */,
+				CEEEBDA114F10CEA009C1413 /* PolymorphicArrayClass.classdef.h */,
+				CEEEBDA214F10CEA009C1413 /* PolymorphicArrayClass.cpp */,
+				CEEEBDA314F10CEA009C1413 /* PolymorphicArrayClass.h */,
+				CEEEBDA714F10CEA009C1413 /* PrimitiveType.classdef.h */,
+				CEEEBDA814F10CEA009C1413 /* PrimitiveType.cpp */,
+				CEEEBDA914F10CEA009C1413 /* PrimitiveType.h */,
+				CEEEBDAA14F10CEA009C1413 /* Property.classdef.h */,
+				CEEEBDAB14F10CEA009C1413 /* Property.cpp */,
+				CEEEBDAC14F10CEA009C1413 /* Property.h */,
+				CEEEBDAD14F10CEA009C1413 /* ReferenceType.classdef.h */,
+				CEEEBDAE14F10CEA009C1413 /* ReferenceType.cpp */,
+				CEEEBDAF14F10CEA009C1413 /* ReferenceType.h */,
+				CEEEBDB214F10CEA009C1413 /* runtime */,
+				CEEEBDBF14F10CEA009C1413 /* Signal.classdef.h */,
+				CEEEBDC014F10CEA009C1413 /* Signal.cpp */,
+				CEEEBDC114F10CEA009C1413 /* Signal.h */,
+				CEEEBDC214F10CEA009C1413 /* Signature.classdef.h */,
+				CEEEBDC314F10CEA009C1413 /* Signature.cpp */,
+				CEEEBDC414F10CEA009C1413 /* Signature.h */,
+				CEEEBDC514F10CEA009C1413 /* StaticAttribute.classdef.h */,
+				CEEEBDC614F10CEA009C1413 /* StaticAttribute.cpp */,
+				CEEEBDC714F10CEA009C1413 /* StaticAttribute.h */,
+				CEEEBDC814F10CEA009C1413 /* StaticMethod.classdef.h */,
+				CEEEBDC914F10CEA009C1413 /* StaticMethod.cpp */,
+				CEEEBDCA14F10CEA009C1413 /* StaticMethod.h */,
+				CEEEBDCB14F10CEA009C1413 /* StaticVariable.classdef.h */,
+				CEEEBDCC14F10CEA009C1413 /* StaticVariable.cpp */,
+				CEEEBDCD14F10CEA009C1413 /* StaticVariable.h */,
+				CEEEBDCE14F10CEA009C1413 /* SubProperty.classdef.h */,
+				CEEEBDCF14F10CEA009C1413 /* SubProperty.cpp */,
+				CEEEBDD014F10CEA009C1413 /* SubProperty.h */,
+				CEEEBDD114F10CEA009C1413 /* Subroutine.classdef.h */,
+				CEEEBDD214F10CEA009C1413 /* Subroutine.cpp */,
+				CEEEBDD314F10CEA009C1413 /* Subroutine.h */,
+				CEEEBDD414F10CEA009C1413 /* TemplateElement.classdef.h */,
+				CEEEBDD514F10CEA009C1413 /* TemplateElement.cpp */,
+				CEEEBDD614F10CEA009C1413 /* TemplateElement.h */,
+				CEEEBDD714F10CEA009C1413 /* TemplateSpecialization.classdef.h */,
+				CEEEBDD814F10CEA009C1413 /* TemplateSpecialization.cpp */,
+				CEEEBDD914F10CEA009C1413 /* TemplateSpecialization.h */,
+				CEEEBDDA14F10CEA009C1413 /* Type.classdef.h */,
+				CEEEBDDB14F10CEA009C1413 /* Type.cpp */,
+				CEEEBDDC14F10CEA009C1413 /* Type.h */,
+				CEEEBDDD14F10CEA009C1413 /* Union.classdef.h */,
+				CEEEBDDE14F10CEA009C1413 /* Union.cpp */,
+				CEEEBDDF14F10CEA009C1413 /* Union.h */,
+				CEEEBDE014F10CEA009C1413 /* VirtualMethodTable.classdef.h */,
+				CEEEBDE114F10CEA009C1413 /* VirtualMethodTable.cpp */,
+				CEEEBDE214F10CEA009C1413 /* VirtualMethodTable.h */,
+			);
+			name = reflection;
+			path = ../../../../phantom/reflection;
+			sourceTree = "<group>";
+		};
+		CEEEBD5014F10CEA009C1413 /* detail */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBD5314F10CEA009C1413 /* element_finder_spirit.cpp */,
+				CEEEBD5414F10CEA009C1413 /* element_finder_spirit.h */,
+			);
+			path = detail;
+			sourceTree = "<group>";
+		};
+		CEEEBD8214F10CEA009C1413 /* native */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBD8314F10CEA009C1413 /* NativeVTableIndexInspector.cpp */,
+				CEEEBD8414F10CEA009C1413 /* NativeVTableIndexInspector.h */,
+				CEEEBD8514F10CEA009C1413 /* TConstant.h */,
+				CEEEBD8614F10CEA009C1413 /* TNativeAttributeProvider.h */,
+				CEEEBD8714F10CEA009C1413 /* TNativeClassBase.h */,
+				CEEEBD8814F10CEA009C1413 /* TNativeConstructor.h */,
+				CEEEBD8914F10CEA009C1413 /* TNativeInstanceAttribute.h */,
+				CEEEBD8A14F10CEA009C1413 /* TNativeInstanceMethod.h */,
+				CEEEBD8B14F10CEA009C1413 /* TNativeInstanceMethodBase.h */,
+				CEEEBD8C14F10CEA009C1413 /* TNativeInstanceMethodConst.h */,
+				CEEEBD8D14F10CEA009C1413 /* TNativeInterfaceMethod.h */,
+				CEEEBD8E14F10CEA009C1413 /* TNativeInterfaceMethodConst.h */,
+				CEEEBD8F14F10CEA009C1413 /* TNativeMethodProvider.h */,
+				CEEEBD9014F10CEA009C1413 /* TNativeSignal.h */,
+				CEEEBD9114F10CEA009C1413 /* TNativeSignalBase.h */,
+				CEEEBD9214F10CEA009C1413 /* TNativeStaticAttribute.h */,
+				CEEEBD9314F10CEA009C1413 /* TNativeStaticMemberFunction.h */,
+				CEEEBD9414F10CEA009C1413 /* TNativeStaticMethod.h */,
+				CEEEBD9514F10CEA009C1413 /* TNativeStaticMethodBase.h */,
+				CEEEBD9614F10CEA009C1413 /* TNativeVirtualMethodCounter.h */,
+				CEEEBD9714F10CEA009C1413 /* TType.h */,
+			);
+			path = native;
+			sourceTree = "<group>";
+		};
+		CEEEBDB214F10CEA009C1413 /* runtime */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBDB314F10CEA009C1413 /* RuntimeClass.classdef.h */,
+				CEEEBDB414F10CEA009C1413 /* RuntimeClass.cpp */,
+				CEEEBDB514F10CEA009C1413 /* RuntimeClass.h */,
+				CEEEBDB614F10CEA009C1413 /* RuntimeInstanceAttribute.classdef.h */,
+				CEEEBDB714F10CEA009C1413 /* RuntimeInstanceAttribute.cpp */,
+				CEEEBDB814F10CEA009C1413 /* RuntimeInstanceAttribute.h */,
+				CEEEBDB914F10CEA009C1413 /* RuntimeStaticAttribute.classdef.h */,
+				CEEEBDBA14F10CEA009C1413 /* RuntimeStaticAttribute.cpp */,
+				CEEEBDBB14F10CEA009C1413 /* RuntimeStaticAttribute.h */,
+				CEEEBDBC14F10CEA009C1413 /* ScriptClass.classdef.h */,
+				CEEEBDBD14F10CEA009C1413 /* ScriptClass.cpp */,
+				CEEEBDBE14F10CEA009C1413 /* ScriptClass.h */,
+			);
+			path = runtime;
+			sourceTree = "<group>";
+		};
+		CEEEBDE614F10CEA009C1413 /* serialization */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBDE714F10CEA009C1413 /* Bundle.classdef.h */,
+				CEEEBDE814F10CEA009C1413 /* Bundle.cpp */,
+				CEEEBDE914F10CEA009C1413 /* Bundle.h */,
+				CEEEBDEA14F10CEA009C1413 /* BundleDataBase.classdef.h */,
+				CEEEBDEB14F10CEA009C1413 /* BundleDataBase.cpp */,
+				CEEEBDEC14F10CEA009C1413 /* BundleDataBase.h */,
+				CEEEBDED14F10CEA009C1413 /* BundleNode.classdef.h */,
+				CEEEBDEE14F10CEA009C1413 /* BundleNode.cpp */,
+				CEEEBDEF14F10CEA009C1413 /* BundleNode.h */,
+				CEEEBDF014F10CEA009C1413 /* DataBase.classdef.h */,
+				CEEEBDF114F10CEA009C1413 /* DataBase.cpp */,
+				CEEEBDF214F10CEA009C1413 /* DataBase.h */,
+				CEEEBDF314F10CEA009C1413 /* DefaultNode.classdef.h */,
+				CEEEBDF414F10CEA009C1413 /* DefaultNode.cpp */,
+				CEEEBDF514F10CEA009C1413 /* DefaultNode.h */,
+				CEEEBDF614F10CEA009C1413 /* FileTreeDataBase.classdef.h */,
+				CEEEBDF714F10CEA009C1413 /* FileTreeDataBase.cpp */,
+				CEEEBDF814F10CEA009C1413 /* FileTreeDataBase.h */,
+				CEEEBDF914F10CEA009C1413 /* FileTreeNode.classdef.h */,
+				CEEEBDFA14F10CEA009C1413 /* FileTreeNode.cpp */,
+				CEEEBDFB14F10CEA009C1413 /* FileTreeNode.h */,
+				CEEEBDFC14F10CEA009C1413 /* native */,
+				CEEEBDFE14F10CEA009C1413 /* Node.classdef.h */,
+				CEEEBDFF14F10CEA009C1413 /* Node.cpp */,
+				CEEEBE0014F10CEA009C1413 /* Node.h */,
+				CEEEBE0214F10CEA009C1413 /* XmlFileTreeDataBase.classdef.h */,
+				CEEEBE0314F10CEA009C1413 /* XmlFileTreeDataBase.cpp */,
+				CEEEBE0414F10CEA009C1413 /* XmlFileTreeDataBase.h */,
+				CEEEBE0514F10CEA009C1413 /* XmlFileTreeNode.classdef.h */,
+				CEEEBE0614F10CEA009C1413 /* XmlFileTreeNode.cpp */,
+				CEEEBE0714F10CEA009C1413 /* XmlFileTreeNode.h */,
+			);
+			name = serialization;
+			path = ../../../../phantom/serialization;
+			sourceTree = "<group>";
+		};
+		CEEEBDFC14F10CEA009C1413 /* native */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBDFD14F10CEA009C1413 /* TBundle.h */,
+			);
+			path = native;
+			sourceTree = "<group>";
+		};
+		CEEEBE0914F10CEA009C1413 /* state */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBE0A14F10CEA009C1413 /* Event.classdef.h */,
+				CEEEBE0B14F10CEA009C1413 /* Event.cpp */,
+				CEEEBE0C14F10CEA009C1413 /* Event.h */,
+				CEEEBE0D14F10CEA009C1413 /* native */,
+				CEEEBE1D14F10CEA009C1413 /* Reaction.classdef.h */,
+				CEEEBE1E14F10CEA009C1413 /* Reaction.cpp */,
+				CEEEBE1F14F10CEA009C1413 /* Reaction.h */,
+				CEEEBE2014F10CEA009C1413 /* runtime */,
+				CEEEBE2D14F10CEA009C1413 /* State.classdef.h */,
+				CEEEBE2E14F10CEA009C1413 /* State.cpp */,
+				CEEEBE2F14F10CEA009C1413 /* State.h */,
+				CEEEBE3014F10CEA009C1413 /* StateMachine.classdef.h */,
+				CEEEBE3114F10CEA009C1413 /* StateMachine.cpp */,
+				CEEEBE3214F10CEA009C1413 /* StateMachine.h */,
+				CEEEBE3314F10CEA009C1413 /* StateMachineElement.classdef.h */,
+				CEEEBE3414F10CEA009C1413 /* StateMachineElement.cpp */,
+				CEEEBE3514F10CEA009C1413 /* StateMachineElement.h */,
+				CEEEBE3614F10CEA009C1413 /* StateOrderingComparator.classdef.h */,
+				CEEEBE3714F10CEA009C1413 /* StateOrderingComparator.cpp */,
+				CEEEBE3814F10CEA009C1413 /* StateOrderingComparator.h */,
+				CEEEBE3914F10CEA009C1413 /* Track.classdef.h */,
+				CEEEBE3A14F10CEA009C1413 /* Track.cpp */,
+				CEEEBE3B14F10CEA009C1413 /* Track.h */,
+			);
+			name = state;
+			path = ../../../../phantom/state;
+			sourceTree = "<group>";
+		};
+		CEEEBE0D14F10CEA009C1413 /* native */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBE0E14F10CEA009C1413 /* TNativeDerivedEvent.h */,
+				CEEEBE0F14F10CEA009C1413 /* TNativeDerivedState.h */,
+				CEEEBE1014F10CEA009C1413 /* TNativeDerivedTrack.h */,
+				CEEEBE1114F10CEA009C1413 /* TNativeEvent.classdef.h */,
+				CEEEBE1214F10CEA009C1413 /* TNativeEvent.h */,
+				CEEEBE1314F10CEA009C1413 /* TNativeReaction.classdef.h */,
+				CEEEBE1414F10CEA009C1413 /* TNativeReaction.h */,
+				CEEEBE1514F10CEA009C1413 /* TNativeState.classdef.h */,
+				CEEEBE1614F10CEA009C1413 /* TNativeState.h */,
+				CEEEBE1714F10CEA009C1413 /* TNativeStateMachine.classdef.h */,
+				CEEEBE1814F10CEA009C1413 /* TNativeStateMachine.h */,
+				CEEEBE1914F10CEA009C1413 /* TNativeTrack.classdef.h */,
+				CEEEBE1A14F10CEA009C1413 /* TNativeTrack.h */,
+				CEEEBE1B14F10CEA009C1413 /* TNativeTransition.classdef.h */,
+				CEEEBE1C14F10CEA009C1413 /* TNativeTransition.h */,
+			);
+			path = native;
+			sourceTree = "<group>";
+		};
+		CEEEBE2014F10CEA009C1413 /* runtime */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBE2114F10CEA009C1413 /* RuntimeState.classdef.h */,
+				CEEEBE2214F10CEA009C1413 /* RuntimeState.cpp */,
+				CEEEBE2314F10CEA009C1413 /* RuntimeState.h */,
+				CEEEBE2414F10CEA009C1413 /* RuntimeStateMachine.classdef.h */,
+				CEEEBE2514F10CEA009C1413 /* RuntimeStateMachine.cpp */,
+				CEEEBE2614F10CEA009C1413 /* RuntimeStateMachine.h */,
+				CEEEBE2714F10CEA009C1413 /* RuntimeTrack.classdef.h */,
+				CEEEBE2814F10CEA009C1413 /* RuntimeTrack.cpp */,
+				CEEEBE2914F10CEA009C1413 /* RuntimeTrack.h */,
+				CEEEBE2A14F10CEA009C1413 /* RuntimeTransition.classdef.h */,
+				CEEEBE2B14F10CEA009C1413 /* RuntimeTransition.cpp */,
+				CEEEBE2C14F10CEA009C1413 /* RuntimeTransition.h */,
+			);
+			path = runtime;
+			sourceTree = "<group>";
+		};
+		CEEEBE4014F10CEA009C1413 /* util */ = {
+			isa = PBXGroup;
+			children = (
+				CEEEBE4114F10CEA009C1413 /* AbstractInterpolator.classdef.h */,
+				CEEEBE4214F10CEA009C1413 /* AbstractInterpolator.cpp */,
+				CEEEBE4314F10CEA009C1413 /* AbstractInterpolator.h */,
+				CEEEBE4414F10CEA009C1413 /* Array.classdef.h */,
+				CEEEBE4514F10CEA009C1413 /* Array.cpp */,
+				CEEEBE4614F10CEA009C1413 /* Array.h */,
+				CEEEBE4714F10CEA009C1413 /* AutoSingleton.h */,
+				CEEEBE4814F10CEA009C1413 /* bitfield.h */,
+				CEEEBE4914F10CEA009C1413 /* Comparator.classdef.h */,
+				CEEEBE4A14F10CEA009C1413 /* Comparator.cpp */,
+				CEEEBE4B14F10CEA009C1413 /* Comparator.h */,
+				CEEEBE4C14F10CEA009C1413 /* flags.h */,
+				CEEEBE4D14F10CEA009C1413 /* Interpolator.classdef.h */,
+				CEEEBE4E14F10CEA009C1413 /* Interpolator.cpp */,
+				CEEEBE4F14F10CEA009C1413 /* Interpolator.h */,
+				CEEEBE5014F10CEA009C1413 /* Iterator.classdef.h */,
+				CEEEBE5114F10CEA009C1413 /* Iterator.cpp */,
+				CEEEBE5214F10CEA009C1413 /* Iterator.h */,
+				CEEEBE5314F10CEA009C1413 /* PolymorphicArray.classdef.h */,
+				CEEEBE5414F10CEA009C1413 /* PolymorphicArray.cpp */,
+				CEEEBE5514F10CEA009C1413 /* PolymorphicArray.h */,
+				CEEEBE5614F10CEA009C1413 /* Removable.classdef.h */,
+				CEEEBE5714F10CEA009C1413 /* Removable.cpp */,
+				CEEEBE5814F10CEA009C1413 /* Removable.h */,
+				CEEEBE5F14F10CEA009C1413 /* TArray.classdef.h */,
+				CEEEBE6014F10CEA009C1413 /* TArray.h */,
+				CEEEBE6114F10CEA009C1413 /* Text.classdef.h */,
+				CEEEBE6214F10CEA009C1413 /* Text.cpp */,
+				CEEEBE6314F10CEA009C1413 /* Text.h */,
+				CEEEBE6414F10CEA009C1413 /* TExtendableParameterizedStateMachine.h */,
+				CEEEBE6514F10CEA009C1413 /* TInterpolator.h */,
+				CEEEBE6814F10CEA009C1413 /* TParameterizedStateMachine.h */,
+				CEEEBE6914F10CEA009C1413 /* TStateMachine.h */,
+			);
+			name = util;
+			path = ../../../../phantom/util;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		CEEEBCB114F10BF8009C1413 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEEEBE6B14F10CEA009C1413 /* _begin.classdef.h in Headers */,
+				CEEEBE6C14F10CEA009C1413 /* _end.classdef.h in Headers */,
+				CEEEBE6D14F10CEA009C1413 /* _global.classdef.h in Headers */,
+				CEEEBE6E14F10CEA009C1413 /* _kernel.noclassdef.h in Headers */,
+				CEEEBE6F14F10CEA009C1413 /* _user_begin.classdef.h in Headers */,
+				CEEEBE7014F10CEA009C1413 /* _user_end.classdef.h in Headers */,
+				CEEEBE7C14F10CEA009C1413 /* default_mutex.classdef.h in Headers */,
+				CEEEBE7E14F10CEA009C1413 /* default_mutex.h in Headers */,
+				CEEEBE7F14F10CEA009C1413 /* malloc_free_allocator.classdef.h in Headers */,
+				CEEEBE8114F10CEA009C1413 /* malloc_free_allocator.h in Headers */,
+				CEEEBE8214F10CEA009C1413 /* pool_allocator.classdef.h in Headers */,
+				CEEEBE8414F10CEA009C1413 /* pool_allocator.h in Headers */,
+				CEEEBEAC14F10CEA009C1413 /* Message.classdef.h in Headers */,
+				CEEEBEAE14F10CEA009C1413 /* Message.h in Headers */,
+				CEEEBEAF14F10CEA009C1413 /* MessageStream.classdef.h in Headers */,
+				CEEEBEB114F10CEA009C1413 /* MessageStream.h in Headers */,
+				CEEEBEB214F10CEA009C1413 /* MessageStreamNode.classdef.h in Headers */,
+				CEEEBEB414F10CEA009C1413 /* MessageStreamNode.h in Headers */,
+				CEEEBEB614F10CEA009C1413 /* maths.h in Headers */,
+				CEEEBEB714F10CEA009C1413 /* Allocator.h in Headers */,
+				CEEEBEB814F10CEA009C1413 /* malloc.c.h in Headers */,
+				CEEEBEBA14F10CEA009C1413 /* nedmalloc.h in Headers */,
+				CEEEBEBE14F10CEA009C1413 /* Object.classdef.h in Headers */,
+				CEEEBEC014F10CEA009C1413 /* Object.h in Headers */,
+				CEEEBEC214F10CEA009C1413 /* phantom.h in Headers */,
+				CEEEBEC314F10CEA009C1413 /* AbstractMethod.classdef.h in Headers */,
+				CEEEBEC514F10CEA009C1413 /* AbstractMethod.h in Headers */,
+				CEEEBEC614F10CEA009C1413 /* Accessor.classdef.h in Headers */,
+				CEEEBEC814F10CEA009C1413 /* Accessor.h in Headers */,
+				CEEEBEC914F10CEA009C1413 /* ArgumentList.classdef.h in Headers */,
+				CEEEBECB14F10CEA009C1413 /* ArgumentList.h in Headers */,
+				CEEEBECC14F10CEA009C1413 /* ArraySlotAccess.classdef.h in Headers */,
+				CEEEBECE14F10CEA009C1413 /* ArraySlotAccess.h in Headers */,
+				CEEEBECF14F10CEA009C1413 /* ArrayType.classdef.h in Headers */,
+				CEEEBED114F10CEA009C1413 /* ArrayType.h in Headers */,
+				CEEEBED214F10CEA009C1413 /* Attribute.classdef.h in Headers */,
+				CEEEBED414F10CEA009C1413 /* Attribute.h in Headers */,
+				CEEEBED514F10CEA009C1413 /* Class.classdef.h in Headers */,
+				CEEEBED714F10CEA009C1413 /* Class.h in Headers */,
+				CEEEBED814F10CEA009C1413 /* ClassExtension.classdef.h in Headers */,
+				CEEEBEDA14F10CEA009C1413 /* ClassExtension.h in Headers */,
+				CEEEBEDB14F10CEA009C1413 /* ClassType.classdef.h in Headers */,
+				CEEEBEDD14F10CEA009C1413 /* ClassType.h in Headers */,
+				CEEEBEDE14F10CEA009C1413 /* Constant.classdef.h in Headers */,
+				CEEEBEE014F10CEA009C1413 /* Constant.h in Headers */,
+				CEEEBEE114F10CEA009C1413 /* ConstArrayType.classdef.h in Headers */,
+				CEEEBEE314F10CEA009C1413 /* ConstArrayType.h in Headers */,
+				CEEEBEE414F10CEA009C1413 /* ConstDataPointerType.classdef.h in Headers */,
+				CEEEBEE614F10CEA009C1413 /* ConstDataPointerType.h in Headers */,
+				CEEEBEE714F10CEA009C1413 /* ConstReferenceType.classdef.h in Headers */,
+				CEEEBEE914F10CEA009C1413 /* ConstReferenceType.h in Headers */,
+				CEEEBEEA14F10CEA009C1413 /* Constructor.classdef.h in Headers */,
+				CEEEBEEC14F10CEA009C1413 /* Constructor.h in Headers */,
+				CEEEBEED14F10CEA009C1413 /* DataPointerType.classdef.h in Headers */,
+				CEEEBEEF14F10CEA009C1413 /* DataPointerType.h in Headers */,
+				CEEEBEF314F10CEA009C1413 /* element_finder_spirit.h in Headers */,
+				CEEEBF0114F10CEA009C1413 /* Enum.classdef.h in Headers */,
+				CEEEBF0314F10CEA009C1413 /* Enum.h in Headers */,
+				CEEEBF0414F10CEA009C1413 /* FedMethod.classdef.h in Headers */,
+				CEEEBF0614F10CEA009C1413 /* FedMethod.h in Headers */,
+				CEEEBF0714F10CEA009C1413 /* ForwardedProperty.classdef.h in Headers */,
+				CEEEBF0914F10CEA009C1413 /* ForwardedProperty.h in Headers */,
+				CEEEBF0A14F10CEA009C1413 /* Function.classdef.h in Headers */,
+				CEEEBF0C14F10CEA009C1413 /* Function.h in Headers */,
+				CEEEBF0D14F10CEA009C1413 /* InstanceAttribute.classdef.h in Headers */,
+				CEEEBF0F14F10CEA009C1413 /* InstanceAttribute.h in Headers */,
+				CEEEBF1014F10CEA009C1413 /* InstanceMethod.classdef.h in Headers */,
+				CEEEBF1214F10CEA009C1413 /* InstanceMethod.h in Headers */,
+				CEEEBF1314F10CEA009C1413 /* LanguageElement.classdef.h in Headers */,
+				CEEEBF1514F10CEA009C1413 /* LanguageElement.h in Headers */,
+				CEEEBF1614F10CEA009C1413 /* Member.classdef.h in Headers */,
+				CEEEBF1814F10CEA009C1413 /* Member.h in Headers */,
+				CEEEBF1914F10CEA009C1413 /* Method.classdef.h in Headers */,
+				CEEEBF1B14F10CEA009C1413 /* Method.h in Headers */,
+				CEEEBF1C14F10CEA009C1413 /* Namespace.classdef.h in Headers */,
+				CEEEBF1E14F10CEA009C1413 /* Namespace.h in Headers */,
+				CEEEBF2014F10CEA009C1413 /* NativeVTableIndexInspector.h in Headers */,
+				CEEEBF2114F10CEA009C1413 /* TConstant.h in Headers */,
+				CEEEBF2214F10CEA009C1413 /* TNativeAttributeProvider.h in Headers */,
+				CEEEBF2314F10CEA009C1413 /* TNativeClassBase.h in Headers */,
+				CEEEBF2414F10CEA009C1413 /* TNativeConstructor.h in Headers */,
+				CEEEBF2514F10CEA009C1413 /* TNativeInstanceAttribute.h in Headers */,
+				CEEEBF2614F10CEA009C1413 /* TNativeInstanceMethod.h in Headers */,
+				CEEEBF2714F10CEA009C1413 /* TNativeInstanceMethodBase.h in Headers */,
+				CEEEBF2814F10CEA009C1413 /* TNativeInstanceMethodConst.h in Headers */,
+				CEEEBF2914F10CEA009C1413 /* TNativeInterfaceMethod.h in Headers */,
+				CEEEBF2A14F10CEA009C1413 /* TNativeInterfaceMethodConst.h in Headers */,
+				CEEEBF2B14F10CEA009C1413 /* TNativeMethodProvider.h in Headers */,
+				CEEEBF2C14F10CEA009C1413 /* TNativeSignal.h in Headers */,
+				CEEEBF2D14F10CEA009C1413 /* TNativeSignalBase.h in Headers */,
+				CEEEBF2E14F10CEA009C1413 /* TNativeStaticAttribute.h in Headers */,
+				CEEEBF2F14F10CEA009C1413 /* TNativeStaticMemberFunction.h in Headers */,
+				CEEEBF3014F10CEA009C1413 /* TNativeStaticMethod.h in Headers */,
+				CEEEBF3114F10CEA009C1413 /* TNativeStaticMethodBase.h in Headers */,
+				CEEEBF3214F10CEA009C1413 /* TNativeVirtualMethodCounter.h in Headers */,
+				CEEEBF3314F10CEA009C1413 /* TType.h in Headers */,
+				CEEEBF3414F10CEA009C1413 /* PODStruct.classdef.h in Headers */,
+				CEEEBF3614F10CEA009C1413 /* PODStruct.h in Headers */,
+				CEEEBF3714F10CEA009C1413 /* PODUnion.classdef.h in Headers */,
+				CEEEBF3914F10CEA009C1413 /* PODUnion.h in Headers */,
+				CEEEBF3A14F10CEA009C1413 /* PointerType.classdef.h in Headers */,
+				CEEEBF3C14F10CEA009C1413 /* PointerType.h in Headers */,
+				CEEEBF3D14F10CEA009C1413 /* PolymorphicArrayClass.classdef.h in Headers */,
+				CEEEBF3F14F10CEA009C1413 /* PolymorphicArrayClass.h in Headers */,
+				CEEEBF4314F10CEA009C1413 /* PrimitiveType.classdef.h in Headers */,
+				CEEEBF4514F10CEA009C1413 /* PrimitiveType.h in Headers */,
+				CEEEBF4614F10CEA009C1413 /* Property.classdef.h in Headers */,
+				CEEEBF4814F10CEB009C1413 /* Property.h in Headers */,
+				CEEEBF4914F10CEB009C1413 /* ReferenceType.classdef.h in Headers */,
+				CEEEBF4B14F10CEB009C1413 /* ReferenceType.h in Headers */,
+				CEEEBF4E14F10CEB009C1413 /* RuntimeClass.classdef.h in Headers */,
+				CEEEBF5014F10CEB009C1413 /* RuntimeClass.h in Headers */,
+				CEEEBF5114F10CEB009C1413 /* RuntimeInstanceAttribute.classdef.h in Headers */,
+				CEEEBF5314F10CEB009C1413 /* RuntimeInstanceAttribute.h in Headers */,
+				CEEEBF5414F10CEB009C1413 /* RuntimeStaticAttribute.classdef.h in Headers */,
+				CEEEBF5614F10CEB009C1413 /* RuntimeStaticAttribute.h in Headers */,
+				CEEEBF5714F10CEB009C1413 /* ScriptClass.classdef.h in Headers */,
+				CEEEBF5914F10CEB009C1413 /* ScriptClass.h in Headers */,
+				CEEEBF5A14F10CEB009C1413 /* Signal.classdef.h in Headers */,
+				CEEEBF5C14F10CEB009C1413 /* Signal.h in Headers */,
+				CEEEBF5D14F10CEB009C1413 /* Signature.classdef.h in Headers */,
+				CEEEBF5F14F10CEB009C1413 /* Signature.h in Headers */,
+				CEEEBF6014F10CEB009C1413 /* StaticAttribute.classdef.h in Headers */,
+				CEEEBF6214F10CEB009C1413 /* StaticAttribute.h in Headers */,
+				CEEEBF6314F10CEB009C1413 /* StaticMethod.classdef.h in Headers */,
+				CEEEBF6514F10CEB009C1413 /* StaticMethod.h in Headers */,
+				CEEEBF6614F10CEB009C1413 /* StaticVariable.classdef.h in Headers */,
+				CEEEBF6814F10CEB009C1413 /* StaticVariable.h in Headers */,
+				CEEEBF6914F10CEB009C1413 /* SubProperty.classdef.h in Headers */,
+				CEEEBF6B14F10CEB009C1413 /* SubProperty.h in Headers */,
+				CEEEBF6C14F10CEB009C1413 /* Subroutine.classdef.h in Headers */,
+				CEEEBF6E14F10CEB009C1413 /* Subroutine.h in Headers */,
+				CEEEBF6F14F10CEB009C1413 /* TemplateElement.classdef.h in Headers */,
+				CEEEBF7114F10CEB009C1413 /* TemplateElement.h in Headers */,
+				CEEEBF7214F10CEB009C1413 /* TemplateSpecialization.classdef.h in Headers */,
+				CEEEBF7414F10CEB009C1413 /* TemplateSpecialization.h in Headers */,
+				CEEEBF7514F10CEB009C1413 /* Type.classdef.h in Headers */,
+				CEEEBF7714F10CEB009C1413 /* Type.h in Headers */,
+				CEEEBF7814F10CEB009C1413 /* Union.classdef.h in Headers */,
+				CEEEBF7A14F10CEB009C1413 /* Union.h in Headers */,
+				CEEEBF7B14F10CEB009C1413 /* VirtualMethodTable.classdef.h in Headers */,
+				CEEEBF7D14F10CEB009C1413 /* VirtualMethodTable.h in Headers */,
+				CEEEBF8114F10CEB009C1413 /* Bundle.classdef.h in Headers */,
+				CEEEBF8314F10CEB009C1413 /* Bundle.h in Headers */,
+				CEEEBF8414F10CEB009C1413 /* BundleDataBase.classdef.h in Headers */,
+				CEEEBF8614F10CEB009C1413 /* BundleDataBase.h in Headers */,
+				CEEEBF8714F10CEB009C1413 /* BundleNode.classdef.h in Headers */,
+				CEEEBF8914F10CEB009C1413 /* BundleNode.h in Headers */,
+				CEEEBF8A14F10CEB009C1413 /* DataBase.classdef.h in Headers */,
+				CEEEBF8C14F10CEB009C1413 /* DataBase.h in Headers */,
+				CEEEBF8D14F10CEB009C1413 /* DefaultNode.classdef.h in Headers */,
+				CEEEBF8F14F10CEB009C1413 /* DefaultNode.h in Headers */,
+				CEEEBF9014F10CEB009C1413 /* FileTreeDataBase.classdef.h in Headers */,
+				CEEEBF9214F10CEB009C1413 /* FileTreeDataBase.h in Headers */,
+				CEEEBF9314F10CEB009C1413 /* FileTreeNode.classdef.h in Headers */,
+				CEEEBF9514F10CEB009C1413 /* FileTreeNode.h in Headers */,
+				CEEEBF9614F10CEB009C1413 /* TBundle.h in Headers */,
+				CEEEBF9714F10CEB009C1413 /* Node.classdef.h in Headers */,
+				CEEEBF9914F10CEB009C1413 /* Node.h in Headers */,
+				CEEEBF9B14F10CEB009C1413 /* XmlFileTreeDataBase.classdef.h in Headers */,
+				CEEEBF9D14F10CEB009C1413 /* XmlFileTreeDataBase.h in Headers */,
+				CEEEBF9E14F10CEB009C1413 /* XmlFileTreeNode.classdef.h in Headers */,
+				CEEEBFA014F10CEB009C1413 /* XmlFileTreeNode.h in Headers */,
+				CEEEBFA214F10CEB009C1413 /* Event.classdef.h in Headers */,
+				CEEEBFA414F10CEB009C1413 /* Event.h in Headers */,
+				CEEEBFA514F10CEB009C1413 /* TNativeDerivedEvent.h in Headers */,
+				CEEEBFA614F10CEB009C1413 /* TNativeDerivedState.h in Headers */,
+				CEEEBFA714F10CEB009C1413 /* TNativeDerivedTrack.h in Headers */,
+				CEEEBFA814F10CEB009C1413 /* TNativeEvent.classdef.h in Headers */,
+				CEEEBFA914F10CEB009C1413 /* TNativeEvent.h in Headers */,
+				CEEEBFAA14F10CEB009C1413 /* TNativeReaction.classdef.h in Headers */,
+				CEEEBFAB14F10CEB009C1413 /* TNativeReaction.h in Headers */,
+				CEEEBFAC14F10CEB009C1413 /* TNativeState.classdef.h in Headers */,
+				CEEEBFAD14F10CEB009C1413 /* TNativeState.h in Headers */,
+				CEEEBFAE14F10CEB009C1413 /* TNativeStateMachine.classdef.h in Headers */,
+				CEEEBFAF14F10CEB009C1413 /* TNativeStateMachine.h in Headers */,
+				CEEEBFB014F10CEB009C1413 /* TNativeTrack.classdef.h in Headers */,
+				CEEEBFB114F10CEB009C1413 /* TNativeTrack.h in Headers */,
+				CEEEBFB214F10CEB009C1413 /* TNativeTransition.classdef.h in Headers */,
+				CEEEBFB314F10CEB009C1413 /* TNativeTransition.h in Headers */,
+				CEEEBFB414F10CEB009C1413 /* Reaction.classdef.h in Headers */,
+				CEEEBFB614F10CEB009C1413 /* Reaction.h in Headers */,
+				CEEEBFB714F10CEB009C1413 /* RuntimeState.classdef.h in Headers */,
+				CEEEBFB914F10CEB009C1413 /* RuntimeState.h in Headers */,
+				CEEEBFBA14F10CEB009C1413 /* RuntimeStateMachine.classdef.h in Headers */,
+				CEEEBFBC14F10CEB009C1413 /* RuntimeStateMachine.h in Headers */,
+				CEEEBFBD14F10CEB009C1413 /* RuntimeTrack.classdef.h in Headers */,
+				CEEEBFBF14F10CEB009C1413 /* RuntimeTrack.h in Headers */,
+				CEEEBFC014F10CEB009C1413 /* RuntimeTransition.classdef.h in Headers */,
+				CEEEBFC214F10CEB009C1413 /* RuntimeTransition.h in Headers */,
+				CEEEBFC314F10CEB009C1413 /* State.classdef.h in Headers */,
+				CEEEBFC514F10CEB009C1413 /* State.h in Headers */,
+				CEEEBFC614F10CEB009C1413 /* StateMachine.classdef.h in Headers */,
+				CEEEBFC814F10CEB009C1413 /* StateMachine.h in Headers */,
+				CEEEBFC914F10CEB009C1413 /* StateMachineElement.classdef.h in Headers */,
+				CEEEBFCB14F10CEB009C1413 /* StateMachineElement.h in Headers */,
+				CEEEBFCC14F10CEB009C1413 /* StateOrderingComparator.classdef.h in Headers */,
+				CEEEBFCE14F10CEB009C1413 /* StateOrderingComparator.h in Headers */,
+				CEEEBFCF14F10CEB009C1413 /* Track.classdef.h in Headers */,
+				CEEEBFD114F10CEB009C1413 /* Track.h in Headers */,
+				CEEEBFD614F10CEB009C1413 /* AbstractInterpolator.classdef.h in Headers */,
+				CEEEBFD814F10CEB009C1413 /* AbstractInterpolator.h in Headers */,
+				CEEEBFD914F10CEB009C1413 /* Array.classdef.h in Headers */,
+				CEEEBFDB14F10CEB009C1413 /* Array.h in Headers */,
+				CEEEBFDC14F10CEB009C1413 /* AutoSingleton.h in Headers */,
+				CEEEBFDD14F10CEB009C1413 /* bitfield.h in Headers */,
+				CEEEBFDE14F10CEB009C1413 /* Comparator.classdef.h in Headers */,
+				CEEEBFE014F10CEB009C1413 /* Comparator.h in Headers */,
+				CEEEBFE114F10CEB009C1413 /* flags.h in Headers */,
+				CEEEBFE214F10CEB009C1413 /* Interpolator.classdef.h in Headers */,
+				CEEEBFE414F10CEB009C1413 /* Interpolator.h in Headers */,
+				CEEEBFE514F10CEB009C1413 /* Iterator.classdef.h in Headers */,
+				CEEEBFE714F10CEB009C1413 /* Iterator.h in Headers */,
+				CEEEBFE814F10CEB009C1413 /* PolymorphicArray.classdef.h in Headers */,
+				CEEEBFEA14F10CEB009C1413 /* PolymorphicArray.h in Headers */,
+				CEEEBFEB14F10CEB009C1413 /* Removable.classdef.h in Headers */,
+				CEEEBFED14F10CEB009C1413 /* Removable.h in Headers */,
+				CEEEBFF414F10CEB009C1413 /* TArray.classdef.h in Headers */,
+				CEEEBFF514F10CEB009C1413 /* TArray.h in Headers */,
+				CEEEBFF614F10CEB009C1413 /* Text.classdef.h in Headers */,
+				CEEEBFF814F10CEB009C1413 /* Text.h in Headers */,
+				CEEEBFF914F10CEB009C1413 /* TExtendableParameterizedStateMachine.h in Headers */,
+				CEEEBFFA14F10CEB009C1413 /* TInterpolator.h in Headers */,
+				CEEEBFFD14F10CEB009C1413 /* TParameterizedStateMachine.h in Headers */,
+				CEEEBFFE14F10CEB009C1413 /* TStateMachine.h in Headers */,
+				CEA42D7F14FE693300628440 /* def_alias.h in Headers */,
+				CEA42D8014FE693300628440 /* def_cfunctions.h in Headers */,
+				CEA42D8114FE693300628440 /* def_config.h in Headers */,
+				CEA42D8214FE693300628440 /* def_connection.h in Headers */,
+				CEA42D8414FE693300628440 /* def_console.h in Headers */,
+				CEA42D8514FE693300628440 /* def_container.h in Headers */,
+				CEA42D8614FE693300628440 /* def_custom.h in Headers */,
+				CEA42D8714FE693300628440 /* def_exceptions.h in Headers */,
+				CEA42D8814FE693300628440 /* def_export.h in Headers */,
+				CEA42D8914FE693300628440 /* def_extension.h in Headers */,
+				CEA42D8A14FE693300628440 /* def_fwd.h in Headers */,
+				CEA42D8B14FE693300628440 /* def_macros.h in Headers */,
+				CEA42D8C14FE693300628440 /* def_math.h in Headers */,
+				CEA42D8E14FE693300628440 /* def_memory.h in Headers */,
+				CEA42D8F14FE693300628440 /* def_modules.h in Headers */,
+				CEA42D9114FE693300628440 /* def_reflection.h in Headers */,
+				CEA42D9214FE693300628440 /* def_runtime.h in Headers */,
+				CEA42D9314FE693300628440 /* def_serialization.h in Headers */,
+				CEA42D9414FE693300628440 /* def_statechart.h in Headers */,
+				CEA42D9514FE693300628440 /* def_t_content_type_of.h in Headers */,
+				CEA42D9614FE693300628440 /* def_traits.h in Headers */,
+				CEA42D9714FE693300628440 /* def_types.h in Headers */,
+				CEA42D9814FE693300628440 /* def_util.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		CEEEBCB214F10BF8009C1413 /* phantom-ios */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CEEEBCC014F10BF8009C1413 /* Build configuration list for PBXNativeTarget "phantom-ios" */;
+			buildPhases = (
+				CEEEBCAF14F10BF8009C1413 /* Sources */,
+				CEEEBCB014F10BF8009C1413 /* Frameworks */,
+				CEEEBCB114F10BF8009C1413 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "phantom-ios";
+			productName = "phantom-ios";
+			productReference = CEEEBCB314F10BF8009C1413 /* libphantom-ios.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CEEEBCAA14F10BF6009C1413 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+			};
+			buildConfigurationList = CEEEBCAD14F10BF6009C1413 /* Build configuration list for PBXProject "phantom-ios" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = CEEEBCA814F10BF6009C1413;
+			productRefGroup = CEEEBCB414F10BF8009C1413 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CEEEBCB214F10BF8009C1413 /* phantom-ios */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CEEEBCAF14F10BF8009C1413 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEEEBE7D14F10CEA009C1413 /* default_mutex.cpp in Sources */,
+				CEEEBE8014F10CEA009C1413 /* malloc_free_allocator.cpp in Sources */,
+				CEEEBE8314F10CEA009C1413 /* pool_allocator.cpp in Sources */,
+				CEEEBEAD14F10CEA009C1413 /* Message.cpp in Sources */,
+				CEEEBEB014F10CEA009C1413 /* MessageStream.cpp in Sources */,
+				CEEEBEB314F10CEA009C1413 /* MessageStreamNode.cpp in Sources */,
+				CEEEBEB914F10CEA009C1413 /* nedmalloc.cpp in Sources */,
+				CEEEBEBF14F10CEA009C1413 /* Object.cpp in Sources */,
+				CEEEBEC114F10CEA009C1413 /* phantom.cpp in Sources */,
+				CEEEBEC414F10CEA009C1413 /* AbstractMethod.cpp in Sources */,
+				CEEEBEC714F10CEA009C1413 /* Accessor.cpp in Sources */,
+				CEEEBECA14F10CEA009C1413 /* ArgumentList.cpp in Sources */,
+				CEEEBECD14F10CEA009C1413 /* ArraySlotAccess.cpp in Sources */,
+				CEEEBED014F10CEA009C1413 /* ArrayType.cpp in Sources */,
+				CEEEBED314F10CEA009C1413 /* Attribute.cpp in Sources */,
+				CEEEBED614F10CEA009C1413 /* Class.cpp in Sources */,
+				CEEEBED914F10CEA009C1413 /* ClassExtension.cpp in Sources */,
+				CEEEBEDC14F10CEA009C1413 /* ClassType.cpp in Sources */,
+				CEEEBEDF14F10CEA009C1413 /* Constant.cpp in Sources */,
+				CEEEBEE214F10CEA009C1413 /* ConstArrayType.cpp in Sources */,
+				CEEEBEE514F10CEA009C1413 /* ConstDataPointerType.cpp in Sources */,
+				CEEEBEE814F10CEA009C1413 /* ConstReferenceType.cpp in Sources */,
+				CEEEBEEB14F10CEA009C1413 /* Constructor.cpp in Sources */,
+				CEEEBEEE14F10CEA009C1413 /* DataPointerType.cpp in Sources */,
+				CEEEBEF214F10CEA009C1413 /* element_finder_spirit.cpp in Sources */,
+				CEEEBF0214F10CEA009C1413 /* Enum.cpp in Sources */,
+				CEEEBF0514F10CEA009C1413 /* FedMethod.cpp in Sources */,
+				CEEEBF0814F10CEA009C1413 /* ForwardedProperty.cpp in Sources */,
+				CEEEBF0B14F10CEA009C1413 /* Function.cpp in Sources */,
+				CEEEBF0E14F10CEA009C1413 /* InstanceAttribute.cpp in Sources */,
+				CEEEBF1114F10CEA009C1413 /* InstanceMethod.cpp in Sources */,
+				CEEEBF1414F10CEA009C1413 /* LanguageElement.cpp in Sources */,
+				CEEEBF1714F10CEA009C1413 /* Member.cpp in Sources */,
+				CEEEBF1A14F10CEA009C1413 /* Method.cpp in Sources */,
+				CEEEBF1D14F10CEA009C1413 /* Namespace.cpp in Sources */,
+				CEEEBF1F14F10CEA009C1413 /* NativeVTableIndexInspector.cpp in Sources */,
+				CEEEBF3514F10CEA009C1413 /* PODStruct.cpp in Sources */,
+				CEEEBF3814F10CEA009C1413 /* PODUnion.cpp in Sources */,
+				CEEEBF3B14F10CEA009C1413 /* PointerType.cpp in Sources */,
+				CEEEBF3E14F10CEA009C1413 /* PolymorphicArrayClass.cpp in Sources */,
+				CEEEBF4414F10CEA009C1413 /* PrimitiveType.cpp in Sources */,
+				CEEEBF4714F10CEB009C1413 /* Property.cpp in Sources */,
+				CEEEBF4A14F10CEB009C1413 /* ReferenceType.cpp in Sources */,
+				CEEEBF4F14F10CEB009C1413 /* RuntimeClass.cpp in Sources */,
+				CEEEBF5214F10CEB009C1413 /* RuntimeInstanceAttribute.cpp in Sources */,
+				CEEEBF5514F10CEB009C1413 /* RuntimeStaticAttribute.cpp in Sources */,
+				CEEEBF5814F10CEB009C1413 /* ScriptClass.cpp in Sources */,
+				CEEEBF5B14F10CEB009C1413 /* Signal.cpp in Sources */,
+				CEEEBF5E14F10CEB009C1413 /* Signature.cpp in Sources */,
+				CEEEBF6114F10CEB009C1413 /* StaticAttribute.cpp in Sources */,
+				CEEEBF6414F10CEB009C1413 /* StaticMethod.cpp in Sources */,
+				CEEEBF6714F10CEB009C1413 /* StaticVariable.cpp in Sources */,
+				CEEEBF6A14F10CEB009C1413 /* SubProperty.cpp in Sources */,
+				CEEEBF6D14F10CEB009C1413 /* Subroutine.cpp in Sources */,
+				CEEEBF7014F10CEB009C1413 /* TemplateElement.cpp in Sources */,
+				CEEEBF7314F10CEB009C1413 /* TemplateSpecialization.cpp in Sources */,
+				CEEEBF7614F10CEB009C1413 /* Type.cpp in Sources */,
+				CEEEBF7914F10CEB009C1413 /* Union.cpp in Sources */,
+				CEEEBF7C14F10CEB009C1413 /* VirtualMethodTable.cpp in Sources */,
+				CEEEBF8214F10CEB009C1413 /* Bundle.cpp in Sources */,
+				CEEEBF8514F10CEB009C1413 /* BundleDataBase.cpp in Sources */,
+				CEEEBF8814F10CEB009C1413 /* BundleNode.cpp in Sources */,
+				CEEEBF8B14F10CEB009C1413 /* DataBase.cpp in Sources */,
+				CEEEBF8E14F10CEB009C1413 /* DefaultNode.cpp in Sources */,
+				CEEEBF9114F10CEB009C1413 /* FileTreeDataBase.cpp in Sources */,
+				CEEEBF9414F10CEB009C1413 /* FileTreeNode.cpp in Sources */,
+				CEEEBF9814F10CEB009C1413 /* Node.cpp in Sources */,
+				CEEEBF9C14F10CEB009C1413 /* XmlFileTreeDataBase.cpp in Sources */,
+				CEEEBF9F14F10CEB009C1413 /* XmlFileTreeNode.cpp in Sources */,
+				CEEEBFA314F10CEB009C1413 /* Event.cpp in Sources */,
+				CEEEBFB514F10CEB009C1413 /* Reaction.cpp in Sources */,
+				CEEEBFB814F10CEB009C1413 /* RuntimeState.cpp in Sources */,
+				CEEEBFBB14F10CEB009C1413 /* RuntimeStateMachine.cpp in Sources */,
+				CEEEBFBE14F10CEB009C1413 /* RuntimeTrack.cpp in Sources */,
+				CEEEBFC114F10CEB009C1413 /* RuntimeTransition.cpp in Sources */,
+				CEEEBFC414F10CEB009C1413 /* State.cpp in Sources */,
+				CEEEBFC714F10CEB009C1413 /* StateMachine.cpp in Sources */,
+				CEEEBFCA14F10CEB009C1413 /* StateMachineElement.cpp in Sources */,
+				CEEEBFCD14F10CEB009C1413 /* StateOrderingComparator.cpp in Sources */,
+				CEEEBFD014F10CEB009C1413 /* Track.cpp in Sources */,
+				CEEEBFD714F10CEB009C1413 /* AbstractInterpolator.cpp in Sources */,
+				CEEEBFDA14F10CEB009C1413 /* Array.cpp in Sources */,
+				CEEEBFDF14F10CEB009C1413 /* Comparator.cpp in Sources */,
+				CEEEBFE314F10CEB009C1413 /* Interpolator.cpp in Sources */,
+				CEEEBFE614F10CEB009C1413 /* Iterator.cpp in Sources */,
+				CEEEBFE914F10CEB009C1413 /* PolymorphicArray.cpp in Sources */,
+				CEEEBFEC14F10CEB009C1413 /* Removable.cpp in Sources */,
+				CEEEBFF714F10CEB009C1413 /* Text.cpp in Sources */,
+				CEA42D8314FE693300628440 /* def_console.cpp in Sources */,
+				CEA42D8D14FE693300628440 /* def_memory.cpp in Sources */,
+				CEA42D9014FE693300628440 /* def_reflection.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		CEEEBCBE14F10BF8009C1413 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		CEEEBCBF14F10BF8009C1413 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CEEEBCC114F10BF8009C1413 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DSTROOT = /tmp/phantom_ios.dst;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_FAST_MATH = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "phantom-ios/phantom-ios-Prefix.pch";
+				GCC_STRICT_ALIASING = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_HIDDEN_VIRTUAL_FUNCTIONS = YES;
+				HEADER_SEARCH_PATHS = (
+					../../../..,
+					"\"/Users/User/Desktop/boost_1_48_0\"",
+				);
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CEEEBCC214F10BF8009C1413 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DSTROOT = /tmp/phantom_ios.dst;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_FAST_MATH = YES;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "phantom-ios/phantom-ios-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
+				GCC_STRICT_ALIASING = YES;
+				GCC_UNROLL_LOOPS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_HIDDEN_VIRTUAL_FUNCTIONS = YES;
+				HEADER_SEARCH_PATHS = (
+					../../../..,
+					"\"/Users/User/Desktop/boost_1_48_0\"",
+				);
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CEEEBCAD14F10BF6009C1413 /* Build configuration list for PBXProject "phantom-ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEEEBCBE14F10BF8009C1413 /* Debug */,
+				CEEEBCBF14F10BF8009C1413 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CEEEBCC014F10BF8009C1413 /* Build configuration list for PBXNativeTarget "phantom-ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEEEBCC114F10BF8009C1413 /* Debug */,
+				CEEEBCC214F10BF8009C1413 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CEEEBCAA14F10BF6009C1413 /* Project object */;
+}
