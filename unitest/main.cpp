@@ -55,7 +55,7 @@ namespace test_struct
     };
 }
 
-o_register_namespace_alias(phantom::math, caca, sc2)
+o_register_namespace_alias(unitest, alias_sc2, sc2)
 
 o_classN((test_struct), TestStruct)
 {
@@ -256,7 +256,7 @@ TEST_F(ConnectionTest, SignalTest) {
 
 TEST(PhantomTest, namespaceAlias) {
 
-    EXPECT_NE(phantom::namespaceByName("phantom::math::caca"), (void*)NULL); 
+    EXPECT_NE(phantom::namespaceByName("unitest::alias_sc2"), (void*)NULL); 
 }
  
 o_namespace_end(unitest)
