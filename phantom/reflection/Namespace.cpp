@@ -326,7 +326,8 @@ boolean Namespace::searchAndDestroyCascade( Namespace* a_pNamespace )
 void Namespace::addType( Type* a_pType )
 {
     o_assert(a_pType->m_pOwner == NULL, "Type has already been attached to a Namespace");
-    o_assert(getTypedef(a_pType->getName()) == NULL, "An Typedef has already been registered with this type's name");
+    o_assert(getTypedef(a_pType->getName()) == NULL, "A typedef has already been registered with this type's name");
+    o_assert(getNamespaceAlias(a_pType->getName()) == NULL, "A namespace alias has already been registered with this type's name");
     o_assert(std::find(m_Types.begin(), m_Types.end(), a_pType) == m_Types.end(), "Type already attached to this Namespace");
     m_Types.push_back(a_pType);
     addElement(a_pType);
@@ -495,10 +496,12 @@ LanguageElement* Namespace::getElement(
     , function_signature const* a_FunctionSignature
     , bitfield a_bfModifiers /*= bitfield()*/) const 
 {
-    if(a_TemplateSpecialization == NULL OR a_TemplateSpecialization->empty())
+    if(a_TemplateSpecialization == nullptr OR a_TemplateSpecialization->empty())
     {
         Type* pTypedef = getTypedef(a_strName);
-        if(pTypedef != NULL) return pTypedef;
+        if(pTypedef != nullptr) return pTypedef;
+        Namespace* pNamespaceAlias = getNamespaceAlias(a_strName);
+        if(pNamespaceAlias != nullptr) return pNamespaceAlias;
     }
     o_foreach(Type* pType, m_Types)
     {
@@ -512,26 +515,43 @@ LanguageElement* Namespace::getElement(
             if(pEnumConstant) return pEnumConstant;
         }
     }
-    if(a_TemplateSpecialization != NULL AND NOT(a_TemplateSpecialization->empty())) return NULL;
+    if(a_TemplateSpecialization != nullptr AND NOT(a_TemplateSpecialization->empty())) return nullptr;
     o_foreach(Namespace* pNamespace, m_Namespaces)
     {
         if(pNamespace->getName() == a_strName )
             return pNamespace;
     }
-    return NULL;
+    return nullptr;
 }
 
 void Namespace::addTypedef( const string& a_strTypedef, Type* a_pType )
 {
+    o_assert(getNamespaceAlias(a_pType->getName()) == NULL, "A namespace alias has already been registered with this typedef's name");
+    o_assert(getType(a_strTypedef) == NULL, "A type has already been registered with this typedef's name");
     o_assert(m_Typedefs.find(a_strTypedef) == m_Typedefs.end(), "Typedef already registered");
     m_Typedefs[a_strTypedef] = a_pType;
 }
 
 void Namespace::removeTypedef( const string& a_strTypedef, Type* a_pType )
 {
-    map<string, Type*>::iterator found = m_Typedefs.find(a_strTypedef);
+    auto found = m_Typedefs.find(a_strTypedef);
     o_assert( found != m_Typedefs.end(), "Typedef not found");
     m_Typedefs.erase(found);
+}
+
+void Namespace::addNamespaceAlias( const string& a_strAlias, Namespace* a_pNamespace )
+{
+    o_assert(getTypedef(a_strAlias) == NULL, "A typedef has already been registered with this namespace alias' name");
+    o_assert(getType(a_strAlias) == NULL, "A type has already been registered with this namespace alias' name");
+    o_assert(m_NamespaceAliases.find(a_strAlias) == m_NamespaceAliases.end(), "Namespace alias already registered");
+    m_NamespaceAliases[a_strAlias] = a_pNamespace;
+}
+
+void Namespace::removeNamespaceAlias( const string& a_strAlias, Namespace* a_pNamespace )
+{
+    auto found = m_NamespaceAliases.find(a_strAlias);
+    o_assert( found != m_NamespaceAliases.end(), "Namespace alias not found");
+    m_NamespaceAliases.erase(found);
 }
 
 DataPointerType* Namespace::getDataPointerType( Type* a_pPointedType ) const

@@ -382,7 +382,7 @@
     <ClInclude Include="..\..\..\phantom\util\BitField.h" />
     <ClInclude Include="..\..\..\phantom\util\Comparator.classdef.h" />
     <ClInclude Include="..\..\..\phantom\util\Comparator.h" />
-    <ClInclude Include="..\..\..\phantom\util\Flags.h" />
+    <ClInclude Include="..\..\..\phantom\util\flags.h" />
     <ClInclude Include="..\..\..\phantom\util\Iterator.classdef.h" />
     <ClInclude Include="..\..\..\phantom\util\Iterator.h" />
     <ClInclude Include="..\..\..\phantom\util\TComposition.h" />

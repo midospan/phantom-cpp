@@ -55,6 +55,8 @@ namespace test_struct
     };
 }
 
+o_register_namespace_alias(phantom::math, caca, sc2)
+
 o_classN((test_struct), TestStruct)
 {
     o_reflection 
@@ -250,6 +252,11 @@ TEST_F(ConnectionTest, SignalTest) {
     o_disconnect(m_pMyObject, signal(phantom::real), m_pMyObject2, mult(phantom::real));
      o_emit m_pMyObject->signal(2); // signal is not supposed to change m_fUsedBySlot because it's disconnected
     EXPECT_EQ(2., m_pMyObject2->m_fMultAcc);
+}
+
+TEST(PhantomTest, namespaceAlias) {
+
+    EXPECT_NE(phantom::namespaceByName("phantom::math::caca"), (void*)NULL); 
 }
  
 o_namespace_end(unitest)
@@ -466,7 +473,7 @@ int main(int argc, char **argv)
     phantom::matrix3x3f*   pMatrix3x3 = o_new(phantom::matrix3x3f)(1,0,0,0,1,0,0,0,1);
 
     phantom::string data_base_url = "../../../bin/unitest/xmlfiletreedatabase_"+phantom::lexical_cast<phantom::string>(clock());
-
+    
     // SAVE
     {
         phantom::serialization::XmlFileTreeDataBase* pDataBase = o_new(phantom::serialization::XmlFileTreeDataBase)(data_base_url, 0);

@@ -16,6 +16,20 @@ typedef_registrer::typedef_registrer( const char* a_strTypedef, Type* a_pType )
     phantom::rootNamespace()->addTypedef(a_strTypedef, a_pType);
 }
 
+namespace_alias_registrer::namespace_alias_registrer( const char* a_strNamespace, const char* a_strAlias, const char* a_strAliasedNamespace )
+{
+    Phantom::dynamic_initializer(); // ensure modules (and especially reflection here) are initialized and ready
+    Namespace* pNamespace = phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
+    Namespace* pAliasedNamespace = phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strAliasedNamespace);
+    pNamespace->addNamespaceAlias(a_strAlias, pAliasedNamespace);
+}
+
+namespace_alias_registrer::namespace_alias_registrer( const char* a_strAlias, const char* a_strAliasedNamespace )
+{
+    Phantom::dynamic_initializer(); // ensure modules (and especially reflection here) are initialized and ready
+    phantom::rootNamespace()->addNamespaceAlias(a_strAlias, phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strAliasedNamespace));
+}
+
 void initializeSystem()
 {
 #define x_reflection_register_fundamental_type(type) \

@@ -421,11 +421,12 @@ void detail::dynamic_initializer_handle::registerModule( module_installation_fun
 
 phantom::reflection::Namespace*            namespaceByName( const string& a_strNamespaceName )
 {
-    return rootNamespace()->findOrCreateNamespaceCascade(a_strNamespaceName);
+    return as<phantom::reflection::Namespace*>(elementByName(a_strNamespaceName, rootNamespace()));
 }
 
 phantom::reflection::Namespace*            namespaceByList( list<string>* a_pNamespaceNameAsStringList )
 {
+    o_warning(false, "deprecated function "__FUNCTION__" used");
     return rootNamespace()->findOrCreateNamespaceCascade(a_pNamespaceNameAsStringList);
 }
 

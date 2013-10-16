@@ -2128,6 +2128,7 @@ o_exposeN((phantom, reflection), CodeLocation);
 // Auto use of internal namespace symbol, and macro aliasing
 
 #define o_register_typedef o_reflection_register_typedef
+#define o_register_namespace_alias o_reflection_register_namespace_alias
 
 
 #endif // __prerequisites_h__

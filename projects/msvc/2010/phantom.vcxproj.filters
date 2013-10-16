@@ -201,9 +201,6 @@
     <ClInclude Include="..\..\..\phantom\util\Comparator.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\util\Flags.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\util\Iterator.classdef.h">
       <Filter>util</Filter>
     </ClInclude>
@@ -770,6 +767,9 @@
       <Filter>reflection</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\variant.h" />
+    <ClInclude Include="..\..\..\phantom\util\flags.h">
+      <Filter>util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\phantom\reflection\TemplateSpecialization.cpp">

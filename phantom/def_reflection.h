@@ -24,6 +24,21 @@
 #define o_reflection_register_type(_namespace_, _type_) \
     phantom::reflection::detail::type_reflection_registrer<_namespace_::_type_> o_PP_CAT(g_reflection_registration_##_type_,__COUNTER__) ;
 
+#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
+#define o_reflection_register_namespace_alias(...) o_PP_CAT(o_PP_CAT(o_reflection_register_namespace_alias_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#else
+#define o_reflection_register_namespace_alias(...) o_PP_CAT(o_reflection_register_namespace_alias_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
+#endif
+
+#define o_reflection_register_namespace_alias_2(_namespace_alias_, _namespace_aliased_) \
+    phantom::reflection::namespace_alias_registrer  o_PP_CAT(g_reflection_registration_##_namespace_alias_, __COUNTER__) (#_namespace_alias_, #_namespace_aliased_);
+
+#define o_reflection_register_namespace_alias_3( _namespace_, _namespace_alias_, _namespace_aliased_) \
+    phantom::reflection::namespace_alias_registrer  o_PP_CAT(g_reflection_registration_##_namespace_alias_, __COUNTER__) (#_namespace_, #_namespace_alias_, #_namespace_aliased_);
+
+
+#define o_reflection_register_type(_namespace_, _type_) \
+    phantom::reflection::detail::type_reflection_registrer<_namespace_::_type_> o_PP_CAT(g_reflection_registration_##_type_,__COUNTER__) ;
 
 o_namespace_begin(phantom, reflection)
 
@@ -53,6 +68,12 @@ struct o_export typedef_registrer
 {
     typedef_registrer(const char* a_strNamespace, const char* a_strTypedef, Type* a_pType);
     typedef_registrer(const char* a_strTypedef, Type* a_pType);
+};
+
+struct o_export namespace_alias_registrer
+{
+    namespace_alias_registrer(const char* a_strNamespace, const char* a_strAlias, const char* a_strAliasedNamespace);
+    namespace_alias_registrer(const char* a_strAlias, const char* a_strAliasedNamespace);
 };
 
 template<typename t_Ty>

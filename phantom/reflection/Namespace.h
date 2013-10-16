@@ -52,6 +52,7 @@ class o_export Namespace : public LanguageElement
 {
 public:
     typedef map<string, Type*>  typedef_map;
+    typedef map<string, Namespace*> namespace_alias_map;
     typedef vector<Namespace*>  namespace_container;
     typedef vector<Function*>   function_container;
     typedef vector<Type*>       type_container;
@@ -132,8 +133,13 @@ public:
 
     void                removeTypedef( const string& a_strTypedef, Type* a_pType );
 
-    inline
-    Type*               getTypedef(const string& a_strTypedef) const;
+    inline Type*        getTypedef(const string& a_strTypedef) const;
+
+    void                addNamespaceAlias( const string& a_strAlias, Namespace* a_pNamespace );
+
+    void                removeNamespaceAlias( const string& a_strAlias, Namespace* a_pNamespace );
+
+    inline Namespace*   getNamespaceAlias(const string& a_strAlias) const;
 
     DataPointerType*    getDataPointerType(Type* a_pPointedType) const;
     ReferenceType*      getReferenceType(Type* a_pPointedType) const;
@@ -191,6 +197,7 @@ protected:
     function_container  m_Functions;
     type_container      m_Types;
     typedef_map         m_Typedefs;
+    namespace_alias_map m_NamespaceAliases;
 
 private:
     friend phantom::reflection::DataPointerType*         phantom::pointerTypeOf(phantom::reflection::Type* a_pType);
@@ -202,9 +209,16 @@ private:
 
 inline Type* Namespace::getTypedef( const string& a_strTypedef ) const
 {
-    map<string, Type*>::const_iterator found = m_Typedefs.find(a_strTypedef);
+    auto found = m_Typedefs.find(a_strTypedef);
     if( found != m_Typedefs.end() ) return found->second;
-    return NULL;
+    return nullptr;
+}
+
+inline Namespace* Namespace::getNamespaceAlias( const string& a_strAlias ) const
+{
+    auto found = m_NamespaceAliases.find(a_strAlias);
+    if( found != m_NamespaceAliases.end() ) return found->second;
+    return nullptr;
 }
 
 o_h_end
