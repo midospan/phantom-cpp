@@ -16,7 +16,7 @@
 
 o_namespace_begin(phantom)
 
-typedef math::vector2<real>     vector2;
+/*typedef math::vector2<real>     vector2;
 typedef math::vector2<float>    vector2f;
 typedef math::vector2<double>   vector2d;
 typedef math::vector2<int>      vector2i;
@@ -49,7 +49,7 @@ typedef math::aabb2<double>     aabb2d;
 
 typedef math::rotation2D<real>       rotation2D;
 typedef math::rotation2D<float>      rotation2Df;
-typedef math::rotation2D<double>     rotation2Dd;
+typedef math::rotation2D<double>     rotation2Dd;*/
 
 o_namespace_end(phantom)
 

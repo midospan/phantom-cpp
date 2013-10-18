@@ -53,9 +53,9 @@ o_runtime_export jit_type_t jit_type_from_phantom_type( phantom::reflection::Typ
     if(a_pType->isDataPointerType()) return jit_type_void_ptr;
     if(a_pType->isReferenceType()) return jit_type_void_ptr;
     if(a_pType == phantom::typeOf<phantom::signal_t>()) return jit_type_phantom_signal_t;
-    if(a_pType == phantom::typeOf<phantom::vector2f>()) return jit_type_vector2f;
-    if(a_pType == phantom::typeOf<phantom::vector3f>()) return jit_type_vector3f;
-    if(a_pType == phantom::typeOf<phantom::vector4f>()) return jit_type_vector4f;
+    if(a_pType == phantom::typeOf<phantom::math::vector2<float>>()) return jit_type_vector2f;
+    if(a_pType == phantom::typeOf<phantom::math::vector3<float>>()) return jit_type_vector3f;
+    if(a_pType == phantom::typeOf<phantom::math::vector4<float>>()) return jit_type_vector4f;
     if(a_pType == phantom::typeOf<bool>()) return jit_type_ubyte;
 #if defined(__CHAR_UNSIGNED__)
     if(a_pType == phantom::typeOf<char>()) return jit_type_ubyte;
@@ -92,9 +92,9 @@ o_runtime_export jit_type_t jit_type_from_phantom_type( phantom::reflection::Typ
 
 o_runtime_export phantom::reflection::Type* jit_type_to_phantom_type( jit_type_t type )
 {
-    if(type == jit_type_vector2f) return phantom::typeOf<phantom::vector2f>();
-    if(type == jit_type_vector3f) return phantom::typeOf<phantom::vector3f>();
-    if(type == jit_type_vector4f) return phantom::typeOf<phantom::vector4f>();
+    if(type == jit_type_vector2f) return phantom::typeOf<phantom::math::vector2<float>>();
+    if(type == jit_type_vector3f) return phantom::typeOf<phantom::math::vector3<float>>();
+    if(type == jit_type_vector4f) return phantom::typeOf<phantom::math::vector4<float>>();
     int kind = jit_type_get_kind(jit_type_remove_tags(type));
     switch(kind)
     {
@@ -574,12 +574,12 @@ o_runtime_export jit_phantom_value_t jit_phantom_math_operation( jit_function_t 
 
 static phantom::reflection::Type* phantom_type_float32 = phantom::typeOf<float>();
 static phantom::reflection::Type* phantom_type_float64 = phantom::typeOf<double>();
-static phantom::reflection::Type* phantom_type_vector2f = phantom::typeOf<phantom::vector2f>();
-static phantom::reflection::Type* phantom_type_vector3f = phantom::typeOf<phantom::vector3f>();
-static phantom::reflection::Type* phantom_type_vector4f = phantom::typeOf<phantom::vector4f>();
-static phantom::reflection::Type* phantom_type_vector2f_cr = phantom::typeOf< const phantom::vector2f&>();
-static phantom::reflection::Type* phantom_type_vector3f_cr = phantom::typeOf<const phantom::vector3f&>();
-static phantom::reflection::Type* phantom_type_vector4f_cr = phantom::typeOf<const phantom::vector4f&>();
+static phantom::reflection::Type* phantom_type_vector2f = phantom::typeOf<phantom::math::vector2<float>>();
+static phantom::reflection::Type* phantom_type_vector3f = phantom::typeOf<phantom::math::vector3<float>>();
+static phantom::reflection::Type* phantom_type_vector4f = phantom::typeOf<phantom::math::vector4<float>>();
+static phantom::reflection::Type* phantom_type_vector2f_cr = phantom::typeOf< const phantom::math::vector2<float>&>();
+static phantom::reflection::Type* phantom_type_vector3f_cr = phantom::typeOf<const phantom::math::vector3<float>&>();
+static phantom::reflection::Type* phantom_type_vector4f_cr = phantom::typeOf<const phantom::math::vector4<float>&>();
 
 #define JIT_PHANTOM_CALL_UNARY_INTRINSIC(type, name)\
     if(strcmp(intrinsic, #name) == 0)\
@@ -695,52 +695,52 @@ static phantom::reflection::Type* phantom_type_vector4f_cr = phantom::typeOf<con
 }
 #define JIT_CALL_CONV __stdcall 
 
-void JIT_CALL_CONV jit_vector2f_normalize(const phantom::vector2f& vec, phantom::vector2f& out)
+void JIT_CALL_CONV jit_vector2f_normalize(const phantom::math::vector2<float>& vec, phantom::math::vector2<float>& out)
 {
     out = vec.normalized();
 }
 
-float JIT_CALL_CONV jit_vector2f_length(const phantom::vector2f& vec)
+float JIT_CALL_CONV jit_vector2f_length(const phantom::math::vector2<float>& vec)
 {
     return vec.length();
 }
 
-float JIT_CALL_CONV jit_vector2f_length2(const phantom::vector2f& vec)
+float JIT_CALL_CONV jit_vector2f_length2(const phantom::math::vector2<float>& vec)
 {
     return vec.lengthSquared();
 }
 
-float JIT_CALL_CONV jit_vector2f_distance(const phantom::vector2f& vec0, const phantom::vector2f& vec1)
+float JIT_CALL_CONV jit_vector2f_distance(const phantom::math::vector2<float>& vec0, const phantom::math::vector2<float>& vec1)
 {
     return vec0.distance(vec1);
 }
 
-float JIT_CALL_CONV jit_vector2f_distance2(const phantom::vector2f& vec0, const phantom::vector2f& vec1)
+float JIT_CALL_CONV jit_vector2f_distance2(const phantom::math::vector2<float>& vec0, const phantom::math::vector2<float>& vec1)
 {
     return (vec0-vec1).lengthSquared();
 }
 
-float JIT_CALL_CONV jit_vector2f_cross(const phantom::vector2f& vec0, const phantom::vector2f& vec1)
+float JIT_CALL_CONV jit_vector2f_cross(const phantom::math::vector2<float>& vec0, const phantom::math::vector2<float>& vec1)
 {
     return vec0.cross(vec1);
 }
 
-float JIT_CALL_CONV jit_vector2f_dot(const phantom::vector2f& vec0, const phantom::vector2f& vec1)
+float JIT_CALL_CONV jit_vector2f_dot(const phantom::math::vector2<float>& vec0, const phantom::math::vector2<float>& vec1)
 {
     return vec0.dot(vec1);
 }
 
-void JIT_CALL_CONV jit_vector2f_vector2f_reflect(const phantom::vector2f& i, const phantom::vector2f& n, phantom::vector2f& out)
+void JIT_CALL_CONV jit_vector2f_vector2f_reflect(const phantom::math::vector2<float>& i, const phantom::math::vector2<float>& n, phantom::math::vector2<float>& out)
 {
     out = i - 2*n.dot(i) * n;
 }
 
-void JIT_CALL_CONV jit_vector2f_vector2f_float32_refract(phantom::vector2f i, phantom::vector2f n, float eta, phantom::vector2f& out)
+void JIT_CALL_CONV jit_vector2f_vector2f_float32_refract(phantom::math::vector2<float> i, phantom::math::vector2<float> n, float eta, phantom::math::vector2<float>& out)
 {
     float ndi = n.dot(i);
     float k = 1.f - eta * eta * (1.f - ndi * ndi);
     if (k < 0.f)
-        out = phantom::vector2f(0,0);   
+        out = phantom::math::vector2<float>(0,0);   
     else
         out = eta * i - (eta * ndi + sqrt(k)) * n;
 }

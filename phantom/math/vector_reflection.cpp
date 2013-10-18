@@ -1,7 +1,7 @@
 #include "phantom/phantom.h"
 #include "phantom/math/math.h"
 
-o_register_typedef(phantom, vector2);
+/*o_register_typedef(phantom, vector2);
 o_register_typedef(phantom, vector2f);
 o_register_typedef(phantom, vector2d);
 
@@ -27,4 +27,4 @@ o_register_typedef(phantom, transform2d);
 
 o_register_typedef(phantom, aabb2);
 o_register_typedef(phantom, aabb2f);
-o_register_typedef(phantom, aabb2d);
+o_register_typedef(phantom, aabb2d);*/
