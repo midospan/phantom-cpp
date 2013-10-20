@@ -41,8 +41,8 @@
 #include <phantom/_kernel.noclassdef.h>
 
 
-#define NativeVTableInspector_hackmethod(_index_) \
-    int NativeVTableInspector_hackmethod_##_index_() { return _index_; }
+#define NativeVTableInspector_hack_member_function(_index_) \
+    int NativeVTableInspector_hack_member_function_##_index_() { return _index_; }
 
 
 o_namespace_begin(phantom, reflection, native)
@@ -50,114 +50,114 @@ o_namespace_begin(phantom, reflection, native)
 class o_export NativeVTableInspector
 {
 public:
-    typedef int (NativeVTableInspector::*method_pointer)();
+    typedef int (NativeVTableInspector::*member_function_pointer)();
 
 public:
-    NativeVTableInspector_hackmethod(0)
-    NativeVTableInspector_hackmethod(1)
-    NativeVTableInspector_hackmethod(2)
-    NativeVTableInspector_hackmethod(3)
-    NativeVTableInspector_hackmethod(4)
-    NativeVTableInspector_hackmethod(5)
-    NativeVTableInspector_hackmethod(6)
-    NativeVTableInspector_hackmethod(7)
-    NativeVTableInspector_hackmethod(8)
-    NativeVTableInspector_hackmethod(9)
-    NativeVTableInspector_hackmethod(10)
-    NativeVTableInspector_hackmethod(11)
-    NativeVTableInspector_hackmethod(12)
-    NativeVTableInspector_hackmethod(13)
-    NativeVTableInspector_hackmethod(14)
-    NativeVTableInspector_hackmethod(15)
-    NativeVTableInspector_hackmethod(16)
-    NativeVTableInspector_hackmethod(17)
-    NativeVTableInspector_hackmethod(18)
-    NativeVTableInspector_hackmethod(19)
-    NativeVTableInspector_hackmethod(20)
-    NativeVTableInspector_hackmethod(21)
-    NativeVTableInspector_hackmethod(22)
-    NativeVTableInspector_hackmethod(23)
-    NativeVTableInspector_hackmethod(24)
-    NativeVTableInspector_hackmethod(25)
-    NativeVTableInspector_hackmethod(26)
-    NativeVTableInspector_hackmethod(27)
-    NativeVTableInspector_hackmethod(28)
-    NativeVTableInspector_hackmethod(29)
-    NativeVTableInspector_hackmethod(30)
-    NativeVTableInspector_hackmethod(31)
-    NativeVTableInspector_hackmethod(32)
-    NativeVTableInspector_hackmethod(33)
-    NativeVTableInspector_hackmethod(34)
-    NativeVTableInspector_hackmethod(35)
-    NativeVTableInspector_hackmethod(36)
-    NativeVTableInspector_hackmethod(37)
-    NativeVTableInspector_hackmethod(38)
-    NativeVTableInspector_hackmethod(39)
-    NativeVTableInspector_hackmethod(40)
-    NativeVTableInspector_hackmethod(41)
-    NativeVTableInspector_hackmethod(42)
-    NativeVTableInspector_hackmethod(43)
-    NativeVTableInspector_hackmethod(44)
-    NativeVTableInspector_hackmethod(45)
-    NativeVTableInspector_hackmethod(46)
-    NativeVTableInspector_hackmethod(47)
-    NativeVTableInspector_hackmethod(48)
-    NativeVTableInspector_hackmethod(49)
-    NativeVTableInspector_hackmethod(50)
-    NativeVTableInspector_hackmethod(51)
-    NativeVTableInspector_hackmethod(52)
-    NativeVTableInspector_hackmethod(53)
-    NativeVTableInspector_hackmethod(54)
-    NativeVTableInspector_hackmethod(55)
-    NativeVTableInspector_hackmethod(56)
-    NativeVTableInspector_hackmethod(57)
-    NativeVTableInspector_hackmethod(58)
-    NativeVTableInspector_hackmethod(59)
-    NativeVTableInspector_hackmethod(60)
-    NativeVTableInspector_hackmethod(61)
-    NativeVTableInspector_hackmethod(62)
-    NativeVTableInspector_hackmethod(63)
-    NativeVTableInspector_hackmethod(64)
-    NativeVTableInspector_hackmethod(65)
-    NativeVTableInspector_hackmethod(66)
-    NativeVTableInspector_hackmethod(67)
-    NativeVTableInspector_hackmethod(68)
-    NativeVTableInspector_hackmethod(69)
-    NativeVTableInspector_hackmethod(70)
-    NativeVTableInspector_hackmethod(71)
-    NativeVTableInspector_hackmethod(72)
-    NativeVTableInspector_hackmethod(73)
-    NativeVTableInspector_hackmethod(74)
-    NativeVTableInspector_hackmethod(75)
-    NativeVTableInspector_hackmethod(76)
-    NativeVTableInspector_hackmethod(77)
-    NativeVTableInspector_hackmethod(78)
-    NativeVTableInspector_hackmethod(79)
-    NativeVTableInspector_hackmethod(80)
-    NativeVTableInspector_hackmethod(81)
-    NativeVTableInspector_hackmethod(82)
-    NativeVTableInspector_hackmethod(83)
-    NativeVTableInspector_hackmethod(84)
-    NativeVTableInspector_hackmethod(85)
-    NativeVTableInspector_hackmethod(86)
-    NativeVTableInspector_hackmethod(87)
-    NativeVTableInspector_hackmethod(88)
-    NativeVTableInspector_hackmethod(89)
-    NativeVTableInspector_hackmethod(90)
-    NativeVTableInspector_hackmethod(91)
-    NativeVTableInspector_hackmethod(92)
-    NativeVTableInspector_hackmethod(93)
-    NativeVTableInspector_hackmethod(94)
-    NativeVTableInspector_hackmethod(95)
-    NativeVTableInspector_hackmethod(96)
-    NativeVTableInspector_hackmethod(97)
-    NativeVTableInspector_hackmethod(98)
-    NativeVTableInspector_hackmethod(99)
+    NativeVTableInspector_hack_member_function(0)
+    NativeVTableInspector_hack_member_function(1)
+    NativeVTableInspector_hack_member_function(2)
+    NativeVTableInspector_hack_member_function(3)
+    NativeVTableInspector_hack_member_function(4)
+    NativeVTableInspector_hack_member_function(5)
+    NativeVTableInspector_hack_member_function(6)
+    NativeVTableInspector_hack_member_function(7)
+    NativeVTableInspector_hack_member_function(8)
+    NativeVTableInspector_hack_member_function(9)
+    NativeVTableInspector_hack_member_function(10)
+    NativeVTableInspector_hack_member_function(11)
+    NativeVTableInspector_hack_member_function(12)
+    NativeVTableInspector_hack_member_function(13)
+    NativeVTableInspector_hack_member_function(14)
+    NativeVTableInspector_hack_member_function(15)
+    NativeVTableInspector_hack_member_function(16)
+    NativeVTableInspector_hack_member_function(17)
+    NativeVTableInspector_hack_member_function(18)
+    NativeVTableInspector_hack_member_function(19)
+    NativeVTableInspector_hack_member_function(20)
+    NativeVTableInspector_hack_member_function(21)
+    NativeVTableInspector_hack_member_function(22)
+    NativeVTableInspector_hack_member_function(23)
+    NativeVTableInspector_hack_member_function(24)
+    NativeVTableInspector_hack_member_function(25)
+    NativeVTableInspector_hack_member_function(26)
+    NativeVTableInspector_hack_member_function(27)
+    NativeVTableInspector_hack_member_function(28)
+    NativeVTableInspector_hack_member_function(29)
+    NativeVTableInspector_hack_member_function(30)
+    NativeVTableInspector_hack_member_function(31)
+    NativeVTableInspector_hack_member_function(32)
+    NativeVTableInspector_hack_member_function(33)
+    NativeVTableInspector_hack_member_function(34)
+    NativeVTableInspector_hack_member_function(35)
+    NativeVTableInspector_hack_member_function(36)
+    NativeVTableInspector_hack_member_function(37)
+    NativeVTableInspector_hack_member_function(38)
+    NativeVTableInspector_hack_member_function(39)
+    NativeVTableInspector_hack_member_function(40)
+    NativeVTableInspector_hack_member_function(41)
+    NativeVTableInspector_hack_member_function(42)
+    NativeVTableInspector_hack_member_function(43)
+    NativeVTableInspector_hack_member_function(44)
+    NativeVTableInspector_hack_member_function(45)
+    NativeVTableInspector_hack_member_function(46)
+    NativeVTableInspector_hack_member_function(47)
+    NativeVTableInspector_hack_member_function(48)
+    NativeVTableInspector_hack_member_function(49)
+    NativeVTableInspector_hack_member_function(50)
+    NativeVTableInspector_hack_member_function(51)
+    NativeVTableInspector_hack_member_function(52)
+    NativeVTableInspector_hack_member_function(53)
+    NativeVTableInspector_hack_member_function(54)
+    NativeVTableInspector_hack_member_function(55)
+    NativeVTableInspector_hack_member_function(56)
+    NativeVTableInspector_hack_member_function(57)
+    NativeVTableInspector_hack_member_function(58)
+    NativeVTableInspector_hack_member_function(59)
+    NativeVTableInspector_hack_member_function(60)
+    NativeVTableInspector_hack_member_function(61)
+    NativeVTableInspector_hack_member_function(62)
+    NativeVTableInspector_hack_member_function(63)
+    NativeVTableInspector_hack_member_function(64)
+    NativeVTableInspector_hack_member_function(65)
+    NativeVTableInspector_hack_member_function(66)
+    NativeVTableInspector_hack_member_function(67)
+    NativeVTableInspector_hack_member_function(68)
+    NativeVTableInspector_hack_member_function(69)
+    NativeVTableInspector_hack_member_function(70)
+    NativeVTableInspector_hack_member_function(71)
+    NativeVTableInspector_hack_member_function(72)
+    NativeVTableInspector_hack_member_function(73)
+    NativeVTableInspector_hack_member_function(74)
+    NativeVTableInspector_hack_member_function(75)
+    NativeVTableInspector_hack_member_function(76)
+    NativeVTableInspector_hack_member_function(77)
+    NativeVTableInspector_hack_member_function(78)
+    NativeVTableInspector_hack_member_function(79)
+    NativeVTableInspector_hack_member_function(80)
+    NativeVTableInspector_hack_member_function(81)
+    NativeVTableInspector_hack_member_function(82)
+    NativeVTableInspector_hack_member_function(83)
+    NativeVTableInspector_hack_member_function(84)
+    NativeVTableInspector_hack_member_function(85)
+    NativeVTableInspector_hack_member_function(86)
+    NativeVTableInspector_hack_member_function(87)
+    NativeVTableInspector_hack_member_function(88)
+    NativeVTableInspector_hack_member_function(89)
+    NativeVTableInspector_hack_member_function(90)
+    NativeVTableInspector_hack_member_function(91)
+    NativeVTableInspector_hack_member_function(92)
+    NativeVTableInspector_hack_member_function(93)
+    NativeVTableInspector_hack_member_function(94)
+    NativeVTableInspector_hack_member_function(95)
+    NativeVTableInspector_hack_member_function(96)
+    NativeVTableInspector_hack_member_function(97)
+    NativeVTableInspector_hack_member_function(98)
+    NativeVTableInspector_hack_member_function(99)
 
 protected:
 
 
-    typedef method_pointer            vptr_imspostor_t [100]; 
+    typedef member_function_pointer            vptr_imspostor_t [100]; 
 
     static vptr_imspostor_t            sm_vtable_impostor;
     static int                        sm_inspection_result;
@@ -184,32 +184,32 @@ public:
         std::cout<<u.wrap_fp.delta<<std::endl;
         return (u.wrap_fp.vtable_index-1)/sizeof(u.wrap_fp.fn);
 #else
-        NativeVTableInspector::method_pointer mp = *reinterpret_cast<NativeVTableInspector::method_pointer*>(&ptr);
+        NativeVTableInspector::member_function_pointer mp = *reinterpret_cast<NativeVTableInspector::member_function_pointer*>(&ptr);
         return (reinterpret_cast<NativeVTableInspector*>(&sm_vptr_impostor)->*mp)();
 #endif
     }
 
 private:
     template<typename t_ClassPtr>
-    class VirtualMethodCountHacker : public t_ClassPtr
+    class VirtualMemberFunctionCountHacker : public t_ClassPtr
     {
     public:
-        virtual void PHANTOM_RESERVED_VirtualMethodCounter() { }
+        virtual void PHANTOM_RESERVED_VirtualMemberFunctionCounter() { }
 
     };
 
 public:
     template<typename t_ClassPtr>
-    static int                        getVirtualMethodCount()
+    static int                        getVirtualMemberFunctionCount()
     {
-        return getIndexOf(&VirtualMethodCountHacker<t_ClassPtr>::PHANTOM_RESERVED_VirtualMethodCounter);
+        return getIndexOf(&VirtualMemberFunctionCountHacker<t_ClassPtr>::PHANTOM_RESERVED_VirtualMemberFunctionCounter);
     }
 };
 
 
 o_namespace_end(phantom, reflection, native)
 
-#undef NativeVTableInspector_hackmethod
+#undef NativeVTableInspector_hack_member_function
 
 // Create easy access traits
 namespace phantom
@@ -258,15 +258,15 @@ namespace phantom
         };
 
         template<typename t_Ty, int vtable_id, bool is_class>
-        struct virtual_method_count_of_helper
+        struct virtual_member_function_count_of_helper
         {
             static size_t value()
             {
-                return (size_t)phantom::reflection::native::NativeVTableInspector::getVirtualMethodCount<t_Ty>();
+                return (size_t)phantom::reflection::native::NativeVTableInspector::getVirtualMemberFunctionCount<t_Ty>();
             }
         };
         template<typename t_Ty, int vtable_id>
-        struct virtual_method_count_of_helper<t_Ty, vtable_id, false>
+        struct virtual_member_function_count_of_helper<t_Ty, vtable_id, false>
         {
             static size_t value()
             {
@@ -274,7 +274,7 @@ namespace phantom
             }
         };
         template<typename t_Ty, int vtable_id = 0>
-        struct virtual_method_count_of : public virtual_method_count_of_helper<t_Ty, vtable_id, boost::is_class<t_Ty>::value>
+        struct virtual_member_function_count_of : public virtual_member_function_count_of_helper<t_Ty, vtable_id, boost::is_class<t_Ty>::value>
         {
         };
         
@@ -430,11 +430,11 @@ namespace phantom
             typedef typename vtable_top_class_of<t_Ty, t_vtable_count-1>::type top_class;
             static void apply(const void* a_pInstance, vector<vtable_info>& vtables) 
             {
-                size_t instanceVirtualMethodCount = virtualMethodCountOf<top_class>();
+                size_t instanceVirtualMemberFunctionCount = virtualMemberFunctionCountOf<top_class>();
                 vtable_info vtable;
-                vtable.count = instanceVirtualMethodCount;
+                vtable.count = instanceVirtualMemberFunctionCount;
                 vtable.offset = vtable_offset;
-                vtable.methods = *((void***)((byte*)a_pInstance + vtable_offset));
+                vtable.member_functions = *((void***)((byte*)a_pInstance + vtable_offset));
                 vtable_info_extractor_cascade<t_Ty, t_vtable_count-1>::apply(a_pInstance, vtables);
                 vtables.push_back(vtable);
             }            
@@ -491,18 +491,18 @@ namespace phantom
     };
 
     template<typename t_Ty>
-    size_t     virtualMethodCountOf()
+    size_t     virtualMemberFunctionCountOf()
     {
-        return detail::virtual_method_count_of<t_Ty>::value();
+        return detail::virtual_member_function_count_of<t_Ty>::value();
     }
 
-    /// returns the vtable index of the given method or -1 if it's not a virtual method
+    /// returns the vtable index of the given member_function or -1 if it's not a virtual member_function
     /// throw static assert if the tested argument is not a member function pointer 
     template<typename t_Ty>
-    int         virtualMethodIndexOf(t_Ty method)
+    int         virtualMemberFunctionIndexOf(t_Ty member_function)
     {
         o_static_assert_msg(boost::is_member_function_pointer<t_Ty>::value, "Given argument is not a member function pointer");
-        return phantom::reflection::native::NativeVTableInspector::getIndexOf(method);
+        return phantom::reflection::native::NativeVTableInspector::getIndexOf(member_function);
     }
 }
 

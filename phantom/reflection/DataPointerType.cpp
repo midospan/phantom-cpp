@@ -165,7 +165,7 @@ void        DataPointerType::serialize(void const* a_pInstance, byte*& a_pOutBuf
             // we "inline" it if it's a class instance and we know the said class
             reflection::Class*  pClass = rttiData.object_class;
             o_assert(pClass, "The object is not stored in the data base and its type is unknown"
-                ", we cannot save it, ensure the pointer property you are trying to serialize is transient or "
+                ", we cannot save it, ensure the pointer valueMember you are trying to serialize is transient or "
                 "that the internal types are either serializable class instances installed with phantom (o_classN.. + o_new)"
                 " either data stored in database ");
 
@@ -207,7 +207,7 @@ void        DataPointerType::deserialize(void* a_pInstance, byte const*& a_pInBu
             pClass->deserialize(newInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase); // Save the instance
 
             // we restore all the pass here, because we can't do it later, 
-            // we won't have any pointer to this object after this method
+            // we won't have any pointer to this object after this member_function
             uint pass = 0;
             restore_state restored = restore_incomplete;
             while(restored == restore_incomplete)
@@ -276,7 +276,7 @@ void DataPointerType::deserialize( void* a_pInstance, const property_tree& a_InB
             pClass->deserialize(newInstance, data_tree, a_uiSerializationMask, a_pDataBase);
 
             // we restore all the pass here, because we can't do it later, 
-            // we won't have any pointer to this object after this method
+            // we won't have any pointer to this object after this member_function
             uint pass = 0;
             restore_state restored = restore_incomplete;
             while(restored == restore_incomplete)
@@ -337,7 +337,7 @@ void        DataPointerType::serialize(void const* a_pChunk, size_t a_uiCount, s
                 // we "inline" it if it's a class instance and we know the said class
                 reflection::Class*  pClass = rttiData.object_class;
                 o_assert(pClass, "The object is not stored in the data base and its type is unknown"
-                    ", we cannot save it, ensure the pointer property you are trying to serialize is transient or "
+                    ", we cannot save it, ensure the pointer valueMember you are trying to serialize is transient or "
                     "that the internal types are either serializable class instances installed with phantom (o_classN.. + o_new)"
                     " either data stored in database ");
 
@@ -385,7 +385,7 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
                 pClass->deserialize(newInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase); // Save the instance
 
                 // we restore all the pass here, because we can't do it later, 
-                // we won't have any pointer to this object after this method
+                // we won't have any pointer to this object after this member_function
                 uint pass = 0;
                 restore_state restored = restore_incomplete;
                 while(restored == restore_incomplete)
@@ -474,7 +474,7 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
                     const property_tree& data_tree = index_tree.get_child("data"); 
                     pClass->deserialize(newInstance, data_tree, a_uiSerializationMask, a_pDataBase);
                     // we restore all the pass here, because we can't do it later, 
-                    // we won't have any pointer to this object after this method
+                    // we won't have any pointer to this object after this member_function
                     uint pass = 0;
                     restore_state restored = restore_incomplete;
                     while(restored == restore_incomplete)

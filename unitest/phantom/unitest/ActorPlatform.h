@@ -171,8 +171,8 @@ o_classNS((sc2), ActorPlatform, (GameEntity))
 };
 o_exposeN((sc2), ActorPlatform);
 
-o_static_assert(!phantom::has_initializer_method_initialize_declared<sc2::ActorPlatform>::value);
-o_static_assert(phantom::has_initializer_method_initialize<sc2::ActorPlatform>::value);
+o_static_assert(!phantom::has_initializer_member_function_initialize_declared<sc2::ActorPlatform>::value);
+o_static_assert(phantom::has_initializer_member_function_initialize<sc2::ActorPlatform>::value);
 o_static_assert(phantom::track_count_of<sc2::ActorPlatform>::value == 3);
 o_static_assert(phantom::track_count_cascade_of<sc2::ActorPlatform>::value == 4);
 

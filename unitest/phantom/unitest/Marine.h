@@ -92,7 +92,7 @@ o_classNS((sc2), Marine, (Unit))
 };
 o_exposeN((sc2), Marine);
 
-o_static_assert(phantom::has_initializer_method_initialize<sc2::Marine>::value);
-o_static_assert(!phantom::has_initializer_method_initialize_declared<sc2::Marine>::value);
+o_static_assert(phantom::has_initializer_member_function_initialize<sc2::Marine>::value);
+o_static_assert(!phantom::has_initializer_member_function_initialize_declared<sc2::Marine>::value);
 
 #endif

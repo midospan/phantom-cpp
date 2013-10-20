@@ -162,7 +162,7 @@ void Node::addData( const data& a_Data )
     o_assert(a_Data.type()->isSerializable());
     storeData(a_Data);
     uint guid = m_pOwnerDataBase->generateGuid();
-    o_assert(guid != 0, "0 is reserved to the root node, fix your generateGuid() overloaded method so that is returns a guid > 0");
+    o_assert(guid != 0, "0 is reserved to the root node, fix your generateGuid() overloaded member_function so that is returns a guid > 0");
     m_pOwnerDataBase->createDataEntry(a_Data, guid, this);
     m_pOwnerDataBase->registerData(a_Data, guid, this);
     o_emit m_pOwnerDataBase->dataAdded(a_Data, this);
@@ -193,7 +193,7 @@ void Node::addData( const data& a_Data, size_t a_uiCount, size_t a_uiChunkSectio
     while(a_uiCount--)
     {
         uint guid = m_pOwnerDataBase->generateGuid();
-        o_assert(guid != 0, "0 is reserved to the root node, fix your generateGuid() overloaded method so that is returns a guid > 0");
+        o_assert(guid != 0, "0 is reserved to the root node, fix your generateGuid() overloaded member_function so that is returns a guid > 0");
         data d(pChunk, pType);
         m_pOwnerDataBase->createDataEntry(d, guid, this);
         m_pOwnerDataBase->registerData(d, guid, this);
@@ -439,7 +439,7 @@ phantom::signal_t Node::loaded(void) const
     while(pSlot)
     {
         phantom::connection::pair::push(this, pSlot);
-        pSlot->subroutine()->invoke(pSlot->receiver(), o_no_arg );
+        pSlot->subroutine()->call(pSlot->receiver(), o_no_arg );
         pSlot = pSlot->next();
         phantom::connection::pair::pop();
     }
@@ -484,7 +484,7 @@ void Node::replaceDataReferenceCascade( const vector<void*>& a_OldLayout, const 
     bool complete = replaceDataReference(a_OldLayout, a_New, false);
     if(NOT(complete)) // incompatible types found
     {
-        // so try to clear "cleanly" (with public accessors or attributes) old reference
+        // so try to clear "cleanly" (with public propertys or attributes) old reference
         clearDataReference(a_OldLayout);
 
         // and then make a second replacement pass with forcing incompatible new data to null
@@ -542,7 +542,7 @@ void Node::fetchContainerComponents(reflection::ContainerClass* a_pContainerClas
             {
                 if(m_pOwnerDataBase->containsData(d) AND m_pOwnerDataBase->getSubDataOwner(d).isNull()) 
                 {
-                    // component property contains a non-component data => clear it
+                    // component valueMember contains a non-component data => clear it
                     ptr = nullptr;
                     a_pContainerClass->erase(a_pContainer, pIterator);
                     needAnotherPass = true;
@@ -578,42 +578,42 @@ void Node::fetchDataComponents(const phantom::data& a_Data, vector<phantom::data
 {
     reflection::Class* pClass = a_Data.type()->asClass();
     if(pClass == nullptr) return;
-    vector<reflection::Property*> properties;
-    pClass->getAllPropertyCascade(properties);
+    vector<reflection::ValueMember*> valueMembers;
+    pClass->getAllValueMemberCascade(valueMembers);
 
-    struct AccessorThenAttributeSorter
+    struct PropertyThenAttributeSorter
     {
-        bool operator()(const reflection::Property* first, const reflection::Property* second) const 
+        bool operator()(const reflection::ValueMember* first, const reflection::ValueMember* second) const 
         {
-            if(first->isAccessor() AND NOT(second->isAccessor())) return true;
-            if(second->isAccessor() AND NOT(first->isAccessor())) return false;
+            if(first->isProperty() AND NOT(second->isProperty())) return true;
+            if(second->isProperty() AND NOT(first->isProperty())) return false;
             return first < second;
         }
     };
 
-    std::sort(properties.begin(), properties.end(), AccessorThenAttributeSorter());
+    std::sort(valueMembers.begin(), valueMembers.end(), PropertyThenAttributeSorter());
 
-    auto it = properties.begin();
-    auto end = properties.end();
+    auto it = valueMembers.begin();
+    auto end = valueMembers.end();
     for(;it!=end;++it)
     {
-        reflection::Property* pProperty = *it;
-        if(pProperty->isComponent())
+        reflection::ValueMember* pValueMember = *it;
+        if(pValueMember->isComponent())
         {
-            reflection::Type* pType = pProperty->getValueType();
+            reflection::Type* pType = pValueMember->getValueType();
             if(pType->isDataPointerType())
             {
                 void* ptr = nullptr;
-                pProperty->getValue(a_Data.cast(pProperty->getOwnerClass()).address(), &ptr);
+                pValueMember->getValue(a_Data.cast(pValueMember->getOwnerClass()).address(), &ptr);
                 phantom::data d(ptr);
-                o_warning(ptr == nullptr OR NOT(d.isNull()), "Non rtti registered data contained in a o_component property => cannot be saved properly");
+                o_warning(ptr == nullptr OR NOT(d.isNull()), "Non rtti registered data contained in a o_component valueMember => cannot be saved properly");
                 if(NOT(d.isNull()))
                 {
                     if(m_pOwnerDataBase->containsData(d) && m_pOwnerDataBase->getSubDataOwner(d).isNull()) 
                     {
-                        // component property contains a non-component data => clear it
+                        // component valueMember contains a non-component data => clear it
                         ptr = nullptr;
-                        pProperty->setValue(a_Data.cast(pProperty->getOwnerClass()).address(), &ptr);
+                        pValueMember->setValue(a_Data.cast(pValueMember->getOwnerClass()).address(), &ptr);
                     }
                     else out.push_back(d);
                 }
@@ -623,7 +623,7 @@ void Node::fetchDataComponents(const phantom::data& a_Data, vector<phantom::data
                 reflection::ContainerClass* pContainerClass = pType->asContainerClass();
                 o_assert(pContainerClass);
                 void* pContainer = pContainerClass->newInstance();
-                pProperty->getValue(a_Data.cast(pProperty->getOwnerClass()).address(), pContainer);
+                pValueMember->getValue(a_Data.cast(pValueMember->getOwnerClass()).address(), pContainer);
                 fetchContainerComponents(pContainerClass, pContainer, out);
                 pContainerClass->deleteInstance(pContainer);
             }

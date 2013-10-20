@@ -71,66 +71,66 @@ Class::~Class()
 
 
 
-Attribute* Class::getAttributeCascade( const string& a_strName) const
+DataMember* Class::getDataMemberCascade( const string& a_strName) const
 {
-    Attribute* pAttribute = getAttribute(a_strName);
-    if(pAttribute != NULL) return pAttribute;
+    DataMember* pDataMember = getDataMember(a_strName);
+    if(pDataMember != NULL) return pDataMember;
     o_foreach(Class* pClass, m_SuperClasses)
     {
-        Attribute* pSuperAttribute = pClass->getAttributeCascade(a_strName);
-        if(pSuperAttribute != NULL)
+        DataMember* pSuperDataMember = pClass->getDataMemberCascade(a_strName);
+        if(pSuperDataMember != NULL)
         {
-            if(pAttribute != NULL) 
+            if(pDataMember != NULL) 
             {
                 // ambiguous access, so we return nothing
                 return NULL;
             }
-            pAttribute = pSuperAttribute;
+            pDataMember = pSuperDataMember;
         }
     }
-    return pAttribute;
+    return pDataMember;
 }
 
 
 
-InstanceAttribute* Class::getInstanceAttributeCascade( const string& a_strName ) const
+InstanceDataMember* Class::getInstanceDataMemberCascade( const string& a_strName ) const
 {
-    InstanceAttribute* pAttribute = getInstanceAttribute(a_strName);
-    if(pAttribute != NULL) return pAttribute;
+    InstanceDataMember* pDataMember = getInstanceDataMember(a_strName);
+    if(pDataMember != NULL) return pDataMember;
     o_foreach(Class* pClass, m_SuperClasses)
     {
-        InstanceAttribute* pSuperAttribute = pClass->getInstanceAttributeCascade(a_strName);
-        if(pSuperAttribute != NULL)
+        InstanceDataMember* pSuperDataMember = pClass->getInstanceDataMemberCascade(a_strName);
+        if(pSuperDataMember != NULL)
         {
-            if(pAttribute != NULL) 
+            if(pDataMember != NULL) 
             {
                 // ambiguous access, so we return nothing
                 return NULL;
             }
-            pAttribute = pSuperAttribute;
+            pDataMember = pSuperDataMember;
         }
     }
-    return pAttribute;
+    return pDataMember;
 }
 
-StaticAttribute* Class::getStaticAttributeCascade( const string& a_strName ) const
+StaticDataMember* Class::getStaticDataMemberCascade( const string& a_strName ) const
 {
-    StaticAttribute* pAttribute = getStaticAttribute(a_strName);
-    if(pAttribute != NULL) return pAttribute;
+    StaticDataMember* pDataMember = getStaticDataMember(a_strName);
+    if(pDataMember != NULL) return pDataMember;
     o_foreach(Class* pClass, m_SuperClasses)
     {
-        StaticAttribute* pSuperAttribute = pClass->getStaticAttributeCascade(a_strName);
-        if(pSuperAttribute != NULL)
+        StaticDataMember* pSuperDataMember = pClass->getStaticDataMemberCascade(a_strName);
+        if(pSuperDataMember != NULL)
         {
-            if(pAttribute != NULL) 
+            if(pDataMember != NULL) 
             {
                 // ambiguous access, so we return nothing
                 return NULL;
             }
-            pAttribute = pSuperAttribute;
+            pDataMember = pSuperDataMember;
         }
     }
-    return pAttribute;
+    return pDataMember;
 }
 
 void Class::addExtension( ClassExtension* a_pExtension )
@@ -157,8 +157,8 @@ void Class::addSignal( Signal* a_pSignal )
 
 Signal* Class::getSignal( const string& a_strIdentifierString ) const
 {
-    InstanceMethod* pMethod = getInstanceMethod(a_strIdentifierString);
-    if(pMethod != NULL AND pMethod->isSignal()) return static_cast<Signal*>(pMethod);
+    InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strIdentifierString);
+    if(pMemberFunction != NULL AND pMemberFunction->isSignal()) return static_cast<Signal*>(pMemberFunction);
     return NULL;
 }
 
@@ -182,20 +182,20 @@ Signal* Class::getSignalCascade( const string& a_strIdentifierString ) const
     return pSignal;
 }
 
-InstanceMethod* Class::getSlot( const string& a_strIdentifierString ) const
+InstanceMemberFunction* Class::getSlot( const string& a_strIdentifierString ) const
 {
-    InstanceMethod* pMethod = getInstanceMethod(a_strIdentifierString);
-    if(pMethod != NULL AND pMethod->isSlot()) return pMethod;
+    InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strIdentifierString);
+    if(pMemberFunction != NULL AND pMemberFunction->isSlot()) return pMemberFunction;
     return NULL;
 }
 
-InstanceMethod* Class::getSlotCascade( const string& a_strIdentifierString ) const
+InstanceMemberFunction* Class::getSlotCascade( const string& a_strIdentifierString ) const
 {
-    InstanceMethod* pSlot = getSlot(a_strIdentifierString);
+    InstanceMemberFunction* pSlot = getSlot(a_strIdentifierString);
     if(pSlot != NULL) return pSlot;
     o_foreach(Class* pClass, m_SuperClasses)
     {
-        InstanceMethod* pSuperSlot = pClass->getSlotCascade(a_strIdentifierString);
+        InstanceMemberFunction* pSuperSlot = pClass->getSlotCascade(a_strIdentifierString);
         if(pSuperSlot != NULL)
         {
             if(pSlot != NULL) 
@@ -220,17 +220,17 @@ boolean Class::doesInstanceDependOn( void* a_pInstance, void* a_pOther ) const
         if(pClass->doesInstanceDependOn(a_pInstance, a_pOther)) return true;
     }
 
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<Property>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<Property>());
+    member_collection::const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
+    member_collection::const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
     for(; it != end; ++it)
     {
-        if(it->second->isInstanceAttribute())
+        if(it->second->isInstanceDataMember())
         {
-            InstanceAttribute* pInstanceAttribute = static_cast<InstanceAttribute*>(it->second);
-            Type*    pAttributeType = pInstanceAttribute->getValueType();
-            if(pAttributeType->isClass())
+            InstanceDataMember* pInstanceDataMember = static_cast<InstanceDataMember*>(it->second);
+            Type*    pDataMemberType = pInstanceDataMember->getValueType();
+            if(pDataMemberType->isClass())
             {
-                if(*static_cast<void**>(pInstanceAttribute->getAddress(a_pInstance)) == a_pOther) 
+                if(*static_cast<void**>(pInstanceDataMember->getAddress(a_pInstance)) == a_pOther) 
                     return true;
             }
         }
@@ -238,14 +238,14 @@ boolean Class::doesInstanceDependOn( void* a_pInstance, void* a_pOther ) const
     return false;
 }
 
-InstanceMethod** Class::getVfTable() const
+InstanceMemberFunction** Class::getVfTable() const
 {
-    for(uint i=0; i<getVirtualMethodTableCount(); ++i)
+    for(uint i=0; i<getVirtualMemberFunctionTableCount(); ++i)
     {
-        VirtualMethodTable* pVTable = getVirtualMethodTable(i);
+        VirtualMemberFunctionTable* pVTable = getVirtualMemberFunctionTable(i);
         if(pVTable->getBaseClass() == this)
         {
-            return pVTable->getMethods();
+            return pVTable->getMemberFunctions();
         }
     }
     return NULL;
@@ -311,23 +311,23 @@ boolean Class::hasDerivedClass( Class* a_pClass ) const
     return false;
 }
 
-void Class::setupVirtualMethodTables() const
+void Class::setupVirtualMemberFunctionTables() const
 {
-    if(NOT(m_VirtualMethodTables.empty()))
+    if(NOT(m_VirtualMemberFunctionTables.empty()))
         return;
 
     if(m_SuperClasses.empty())
     {
-        instance_method_list methods;
-        member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMethod>());
-        member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMethod>());
+        instance_member_function_list member_functions;
+        member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
+        member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
         for(;it != end; ++it)
         {
-            InstanceMethod* pMethod = static_cast<InstanceMethod*>(it->second);
-            if(pMethod->isVirtual())
-                methods.push_back(pMethod);
+            InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+            if(pMemberFunction->isVirtual())
+                member_functions.push_back(pMemberFunction);
         }
-        m_VirtualMethodTables.push_back(o_new(VirtualMethodTable)(const_cast<Class*>(this), &methods));
+        m_VirtualMemberFunctionTables.push_back(o_new(VirtualMemberFunctionTable)(const_cast<Class*>(this), &member_functions));
         return;
     }
 
@@ -336,44 +336,44 @@ void Class::setupVirtualMethodTables() const
     for(;it != end; ++it)
     {
         Class* pSuperType = it->m_pClass;
-        pSuperType->setupVirtualMethodTables();
+        pSuperType->setupVirtualMemberFunctionTables();
 
         uint i = 0;
-        for(;i<pSuperType->getVirtualMethodTableCount(); ++i)
+        for(;i<pSuperType->getVirtualMemberFunctionTableCount(); ++i)
         {
-            instance_method_list methods;
-            instance_method_list rootMethods;
-            sortSuperAndRootMethods(pSuperType->getVirtualMethodTable(i), &methods, &rootMethods);
+            instance_member_function_list member_functions;
+            instance_member_function_list rootMemberFunctions;
+            sortSuperAndRootMemberFunctions(pSuperType->getVirtualMemberFunctionTable(i), &member_functions, &rootMemberFunctions);
             if(it == m_SuperClasses.begin() AND i == 0) // Common branch
             {
-                methods.insert(methods.end(), rootMethods.begin(), rootMethods.end());
-                m_VirtualMethodTables.push_back(o_new(VirtualMethodTable)(const_cast<Class*>(this), &methods));
+                member_functions.insert(member_functions.end(), rootMemberFunctions.begin(), rootMemberFunctions.end());
+                m_VirtualMemberFunctionTables.push_back(o_new(VirtualMemberFunctionTable)(const_cast<Class*>(this), &member_functions));
             }
             else
             {
-                m_VirtualMethodTables.push_back(o_new(VirtualMethodTable)(pSuperType->getVirtualMethodTable(i)->getBaseClass(), &methods));
+                m_VirtualMemberFunctionTables.push_back(o_new(VirtualMemberFunctionTable)(pSuperType->getVirtualMemberFunctionTable(i)->getBaseClass(), &member_functions));
             }
         }
     }
 }
 
-void Class::homonymousMethodSearch( method_search_data* a_pMethodRequest )
+void Class::homonymousMemberFunctionSearch( member_function_search_data* a_pMemberFunctionRequest )
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMethod>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMethod>());
+    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
+    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
 
     for(;it != end; ++it)
     {
-        InstanceMethod*    pMethod = static_cast<InstanceMethod*>(it->second);
-        if(pMethod->getName() == a_pMethodRequest->getMethodName())
+        InstanceMemberFunction*    pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+        if(pMemberFunction->getName() == a_pMemberFunctionRequest->getMemberFunctionName())
         {
-            if(pMethod->getSignature()->getParameterCount() == a_pMethodRequest->getMethodSignature()->getParameterCount())
+            if(pMemberFunction->getSignature()->getParameterCount() == a_pMemberFunctionRequest->getMemberFunctionSignature()->getParameterCount())
             {
                 uint i = 0;
                 boolean bIncompatibleParameterFound = false;
-                for(;i<pMethod->getSignature()->getParameterCount();++i)
+                for(;i<pMemberFunction->getSignature()->getParameterCount();++i)
                 {
-                    if(pMethod->getSignature()->getParameterType(i) != a_pMethodRequest->getMethodSignature()->getParameterType(i))
+                    if(pMemberFunction->getSignature()->getParameterType(i) != a_pMemberFunctionRequest->getMemberFunctionSignature()->getParameterType(i))
                     {
                         bIncompatibleParameterFound = true;
                         break;
@@ -381,66 +381,66 @@ void Class::homonymousMethodSearch( method_search_data* a_pMethodRequest )
                 }
                 if(bIncompatibleParameterFound)
                 {
-                    a_pMethodRequest->populateWithResult(method_search_data::eResultType_IncompatibleParameterType, pMethod);
+                    a_pMemberFunctionRequest->populateWithResult(member_function_search_data::eResultType_IncompatibleParameterType, pMemberFunction);
                     continue;
                 }
-                Type* pCurrentReturnType = pMethod->getSignature()->getReturnType();
-                Type* pRequestReturnType = a_pMethodRequest->getMethodSignature()->getReturnType();
+                Type* pCurrentReturnType = pMemberFunction->getSignature()->getReturnType();
+                Type* pRequestReturnType = a_pMemberFunctionRequest->getMemberFunctionSignature()->getReturnType();
                 if(pCurrentReturnType == pRequestReturnType)
                 {
-                    a_pMethodRequest->populateWithResult(method_search_data::eResultType_PerfectMatch, pMethod);
+                    a_pMemberFunctionRequest->populateWithResult(member_function_search_data::eResultType_PerfectMatch, pMemberFunction);
                 }
                 else if(pCurrentReturnType->isClass())
                 {
                     if(NOT(pRequestReturnType->isClass()))
                     {
-                        a_pMethodRequest->populateWithResult(method_search_data::eResultType_IncompatibleReturnType, pMethod);
+                        a_pMemberFunctionRequest->populateWithResult(member_function_search_data::eResultType_IncompatibleReturnType, pMemberFunction);
                     }
                     else if( ((Class*)pCurrentReturnType)->isKindOf((Class*)pRequestReturnType) )
                     {
-                        a_pMethodRequest->populateWithResult(method_search_data::eResultType_CovariantMatch, pMethod);
+                        a_pMemberFunctionRequest->populateWithResult(member_function_search_data::eResultType_CovariantMatch, pMemberFunction);
                     }
                     else if( ((Class*)pRequestReturnType)->isKindOf((Class*)pCurrentReturnType) )
                     {
-                        a_pMethodRequest->populateWithResult(method_search_data::eResultType_ContravariantMatch, pMethod);
+                        a_pMemberFunctionRequest->populateWithResult(member_function_search_data::eResultType_ContravariantMatch, pMemberFunction);
                     }
                 }
                 else
                 {
-                    a_pMethodRequest->populateWithResult(method_search_data::eResultType_IncompatibleReturnType, pMethod);
+                    a_pMemberFunctionRequest->populateWithResult(member_function_search_data::eResultType_IncompatibleReturnType, pMemberFunction);
                 }
             }
             else
             {
-                a_pMethodRequest->populateWithResult(method_search_data::eResultType_IncompatibleParameterCount, pMethod);
+                a_pMemberFunctionRequest->populateWithResult(member_function_search_data::eResultType_IncompatibleParameterCount, pMemberFunction);
             }
         }
     }
 }
 
-void Class::sortSuperAndRootMethods( VirtualMethodTable* a_pSuperVMT, instance_method_list* a_OutSuperMethods, instance_method_list* a_OutRootMethods ) const
+void Class::sortSuperAndRootMemberFunctions( VirtualMemberFunctionTable* a_pSuperVMT, instance_member_function_list* a_OutSuperMemberFunctions, instance_member_function_list* a_OutRootMemberFunctions ) const
 {
     uint i = 0;
     for(; i<a_pSuperVMT->getSize(); ++i)
     {
-        InstanceMethod* pSuperMethod = a_pSuperVMT->getMethod(i);
-        member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMethod>());
-        member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMethod>());
+        InstanceMemberFunction* pSuperMemberFunction = a_pSuperVMT->getMemberFunction(i);
+        member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
+        member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
         for(;it != end; ++it)
         {
-            InstanceMethod* pMethod = static_cast<InstanceMethod*>(it->second);
-            if(pMethod->isVirtual())
+            InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+            if(pMemberFunction->isVirtual())
             {
-                InstanceMethod::EOverloadRelation eIR = (static_cast<InstanceMethod*>(pMethod))->getOverloadRelationWith(pSuperMethod);
-                o_assert(        eIR != InstanceMethod::e_OverloadRelation_Contravariant
-                                    AND eIR != InstanceMethod::e_OverloadRelation_Forbidden);
-                if(eIR == InstanceMethod::e_OverloadRelation_None)
+                InstanceMemberFunction::EOverloadRelation eIR = (static_cast<InstanceMemberFunction*>(pMemberFunction))->getOverloadRelationWith(pSuperMemberFunction);
+                o_assert(        eIR != InstanceMemberFunction::e_OverloadRelation_Contravariant
+                                    AND eIR != InstanceMemberFunction::e_OverloadRelation_Forbidden);
+                if(eIR == InstanceMemberFunction::e_OverloadRelation_None)
                 {
-                    a_OutRootMethods->push_back(pMethod);
+                    a_OutRootMemberFunctions->push_back(pMemberFunction);
                 }
                 else
                 {
-                    a_OutSuperMethods->push_back(pMethod);
+                    a_OutSuperMemberFunctions->push_back(pMemberFunction);
                 }
             }
         }
@@ -461,17 +461,17 @@ Class::ERelation Class::getRelationWith( Type* a_pType ) const
     return eRelation_None;
 }
 
-void     Class::getInvokableMethodsCascade(const string& a_strName, const vector<Type*>& a_ArgumentTypeList, Method** a_pOutPerfectMatchMethod, method_vector* a_pResultMethods)
+void     Class::getInvokableMemberFunctionsCascade(const string& a_strName, const vector<Type*>& a_ArgumentTypeList, MemberFunction** a_pOutPerfectMatchMemberFunction, member_function_vector* a_pResultMemberFunctions)
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMethod>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMethod>());
+    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
+    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
     for(;it != end; ++it)
     {
-        InstanceMethod*    pMethod = static_cast<InstanceMethod*>(it->second);
-        Signature*    pSignature    = pMethod->getSignature();
+        InstanceMemberFunction*    pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+        Signature*    pSignature    = pMemberFunction->getSignature();
 
-        // Method name incompatibility => we skip
-        if(pMethod->getName() != a_strName)
+        // MemberFunction name incompatibility => we skip
+        if(pMemberFunction->getName() != a_strName)
             continue;
 
         // Parameter count incompatibility => we skip
@@ -487,7 +487,7 @@ void     Class::getInvokableMethodsCascade(const string& a_strName, const vector
             Type* pParameterType = pSignature->getParameterType(i);
             Type::ERelation eTypeRelation = pArgumentType->getRelationWith(pParameterType);
 
-            // If one parameter type doesn't match perfectly, method doesn't perfectly match
+            // If one parameter type doesn't match perfectly, member_function doesn't perfectly match
             if(eTypeRelation != Type::eRelation_Equal)
                 bPerfectMatch = false;
 
@@ -506,25 +506,25 @@ void     Class::getInvokableMethodsCascade(const string& a_strName, const vector
 
         // If we found a perfect match, we store it in corresponding out-parameter
         if(    bPerfectMatch
-        AND *a_pOutPerfectMatchMethod == NULL)
+        AND *a_pOutPerfectMatchMemberFunction == NULL)
         {
-            *a_pOutPerfectMatchMethod = pMethod;
+            *a_pOutPerfectMatchMemberFunction = pMemberFunction;
         }
         if(NOT(bMatch)) continue;
 
-        // We check if the method hasn't already been added in result methods ; if not, we add it
+        // We check if the member_function hasn't already been added in result member_functions ; if not, we add it
         boolean bAlreadyAdded = false;
-        method_vector::iterator it_alreadyAdded =  a_pResultMethods->begin();
-        for(; it_alreadyAdded != a_pResultMethods->end(); ++it_alreadyAdded)
+        member_function_vector::iterator it_alreadyAdded =  a_pResultMemberFunctions->begin();
+        for(; it_alreadyAdded != a_pResultMemberFunctions->end(); ++it_alreadyAdded)
         {
-            if((*it_alreadyAdded) == pMethod)
+            if((*it_alreadyAdded) == pMemberFunction)
             {
                 bAlreadyAdded = true;
                 break;
             }
         }
         if(NOT(bAlreadyAdded))
-            a_pResultMethods->push_back(static_cast<InstanceMethod*>(it->second));
+            a_pResultMemberFunctions->push_back(static_cast<InstanceMemberFunction*>(it->second));
     }
 
     // We browse the super types and treat recursively
@@ -532,30 +532,30 @@ void     Class::getInvokableMethodsCascade(const string& a_strName, const vector
     super_class_table::iterator it_super_end = m_SuperClasses.end();
     for(;it_super != it_super_end; ++it_super)
     {
-        it_super->m_pClass->getInvokableMethodsCascade(a_strName, a_ArgumentTypeList, a_pOutPerfectMatchMethod, a_pResultMethods);
+        it_super->m_pClass->getInvokableMemberFunctionsCascade(a_strName, a_ArgumentTypeList, a_pOutPerfectMatchMemberFunction, a_pResultMemberFunctions);
     }
 }
 
-void Class::findOverloadedMethods( InstanceMethod* a_pOverloadCandidate, vector<InstanceMethod*>& a_Result )
+void Class::findOverloadedMemberFunctions( InstanceMemberFunction* a_pOverloadCandidate, vector<InstanceMemberFunction*>& a_Result )
 {
-    member_collection::const_iterator it_method = m_Members.lower_bound(classOf<InstanceMethod>());
-    member_collection::const_iterator it_method_end = m_Members.upper_bound(classOf<InstanceMethod>());
-    for(;it_method!=it_method_end;++it_method)
+    member_collection::const_iterator it_member_function = m_Members.lower_bound(classOf<InstanceMemberFunction>());
+    member_collection::const_iterator it_member_function_end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
+    for(;it_member_function!=it_member_function_end;++it_member_function)
     {
-        if(it_method->second == a_pOverloadCandidate) continue;
-        if(a_pOverloadCandidate->canOverload(static_cast<InstanceMethod*>(it_method->second)))
+        if(it_member_function->second == a_pOverloadCandidate) continue;
+        if(a_pOverloadCandidate->canOverload(static_cast<InstanceMemberFunction*>(it_member_function->second)))
         {
             bool bOverloadedAlreadyAddedForCurrentVTable = false;
-            vector<InstanceMethod*>::const_iterator it_result = a_Result.begin();
-            vector<InstanceMethod*>::const_iterator end_result = a_Result.end();
+            vector<InstanceMemberFunction*>::const_iterator it_result = a_Result.begin();
+            vector<InstanceMemberFunction*>::const_iterator end_result = a_Result.end();
             for(;it_result!=end_result;++it_result)
             {
-                InstanceMethod* pResult = (*it_result);
+                InstanceMemberFunction* pResult = (*it_result);
                 o_assert(pResult->getOwnerClass());
                 if( pResult->getOwnerClass()->getSuperClassOffsetCascade((Class*)this) == 0 // in the same vtable
-                    AND pResult->canOverload(static_cast<InstanceMethod*>(it_method->second)))  // a result method can overload the current tested method, 
+                    AND pResult->canOverload(static_cast<InstanceMemberFunction*>(it_member_function->second)))  // a result member_function can overload the current tested member_function, 
                                                                                                 // which means that for the current VTable, 
-                                                                                                // we already have found an overloaded method
+                                                                                                // we already have found an overloaded member_function
                 {
                     bOverloadedAlreadyAddedForCurrentVTable = true;
                     break;
@@ -563,7 +563,7 @@ void Class::findOverloadedMethods( InstanceMethod* a_pOverloadCandidate, vector<
             }
             if(NOT(bOverloadedAlreadyAddedForCurrentVTable))
             {
-                a_Result.push_back(static_cast<InstanceMethod*>(it_method->second));
+                a_Result.push_back(static_cast<InstanceMemberFunction*>(it_member_function->second));
             }
         }
     }
@@ -571,23 +571,23 @@ void Class::findOverloadedMethods( InstanceMethod* a_pOverloadCandidate, vector<
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        it->m_pClass->findOverloadedMethods(a_pOverloadCandidate, a_Result);
+        it->m_pClass->findOverloadedMemberFunctions(a_pOverloadCandidate, a_Result);
     }
 }
 
-boolean Class::acceptMethod( const string& a_strName, Signature* a_pSignature, method_vector* a_pOutConflictingMethods ) const
+boolean Class::acceptMemberFunction( const string& a_strName, Signature* a_pSignature, member_function_vector* a_pOutConflictingMemberFunctions ) const
 {
     boolean bResult = true;
     {
-        member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMethod>());
-        member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMethod>());
+        member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
+        member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
         for(; it != end; ++it)
         {
-            InstanceMethod* pInstanceMethod = static_cast<InstanceMethod*>(it->second);
-            InstanceMethod::EOverloadRelation eOR = pInstanceMethod->getOverloadRelationWith(a_strName, a_pSignature);
-            if(eOR != InstanceMethod::e_OverloadRelation_None)
+            InstanceMemberFunction* pInstanceMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+            InstanceMemberFunction::EOverloadRelation eOR = pInstanceMemberFunction->getOverloadRelationWith(a_strName, a_pSignature);
+            if(eOR != InstanceMemberFunction::e_OverloadRelation_None)
             {
-                if(a_pOutConflictingMethods) a_pOutConflictingMethods->push_back(pInstanceMethod);
+                if(a_pOutConflictingMemberFunctions) a_pOutConflictingMemberFunctions->push_back(pInstanceMemberFunction);
                 bResult = false;
             }
         }
@@ -601,7 +601,7 @@ boolean Class::acceptMethod( const string& a_strName, Signature* a_pSignature, m
         super_class_table::const_iterator end = m_SuperClasses.end();
         for(;it != end; ++it)
         {
-            if(NOT(it->m_pClass->acceptsOverloadedMethod(a_strName,a_pSignature, a_pOutConflictingMethods)))
+            if(NOT(it->m_pClass->acceptsOverloadedMemberFunction(a_strName,a_pSignature, a_pOutConflictingMemberFunctions)))
             {
                 return false;
             }
@@ -610,16 +610,16 @@ boolean Class::acceptMethod( const string& a_strName, Signature* a_pSignature, m
     return true;
 }
 
-boolean Class::acceptsOverloadedMethod( const string& a_strName, Signature* a_pSignature, method_vector* a_pOutConflictingMethods ) const
+boolean Class::acceptsOverloadedMemberFunction( const string& a_strName, Signature* a_pSignature, member_function_vector* a_pOutConflictingMemberFunctions ) const
 {
-    method_vector prevMethods;
+    member_function_vector prevMemberFunctions;
     boolean bResult = true;
     {
         super_class_table::const_iterator it = m_SuperClasses.begin();
         super_class_table::const_iterator end = m_SuperClasses.end();
         for(;it != end; ++it)
         {
-            if(NOT(it->m_pClass->acceptsOverloadedMethod(a_strName, a_pSignature, &prevMethods)))
+            if(NOT(it->m_pClass->acceptsOverloadedMemberFunction(a_strName, a_pSignature, &prevMemberFunctions)))
             {
                 bResult = false;
             }
@@ -627,79 +627,79 @@ boolean Class::acceptsOverloadedMethod( const string& a_strName, Signature* a_pS
     }
 
     {
-        member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMethod>());
-        member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMethod>());
+        member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
+        member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
         for(; it != end; ++it)
         {
-            InstanceMethod* pInstanceMethod = static_cast<InstanceMethod*>(it->second);
-            InstanceMethod::EOverloadRelation eOR = pInstanceMethod->getOverloadRelationWith(a_strName, a_pSignature);
-            if(eOR == InstanceMethod::e_OverloadRelation_Forbidden
-                OR eOR == InstanceMethod::e_OverloadRelation_Covariant)
+            InstanceMemberFunction* pInstanceMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+            InstanceMemberFunction::EOverloadRelation eOR = pInstanceMemberFunction->getOverloadRelationWith(a_strName, a_pSignature);
+            if(eOR == InstanceMemberFunction::e_OverloadRelation_Forbidden
+                OR eOR == InstanceMemberFunction::e_OverloadRelation_Covariant)
             {
-                a_pOutConflictingMethods->push_back(pInstanceMethod);
+                a_pOutConflictingMemberFunctions->push_back(pInstanceMemberFunction);
                 return false;
             }
         }
     }
     {
-        method_vector::iterator it = prevMethods.begin();
-        for(;it != prevMethods.end(); ++it)
+        member_function_vector::iterator it = prevMemberFunctions.begin();
+        for(;it != prevMemberFunctions.end(); ++it)
         {
-            a_pOutConflictingMethods->push_back(*it);
+            a_pOutConflictingMemberFunctions->push_back(*it);
         }
     }
 
     return bResult;
 }
 
-void Class::filtersNonOverloadedAbstractMethodsCascade( instance_method_vector& a_Result ) const
+void Class::filtersNonOverloadedPureVirtualMemberFunctionsCascade( instance_member_function_vector& a_Result ) const
 {
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(; it != end; ++it)
     {
-        it->m_pClass->filtersNonOverloadedAbstractMethodsCascade(a_Result);
+        it->m_pClass->filtersNonOverloadedPureVirtualMemberFunctionsCascade(a_Result);
     }
-    phantom::list<instance_method_vector::iterator> toRemove;
-    instance_method_vector::iterator it_abs = a_Result.begin();
+    phantom::list<instance_member_function_vector::iterator> toRemove;
+    instance_member_function_vector::iterator it_abs = a_Result.begin();
     for(;it_abs != a_Result.end(); ++it_abs)
     {
-        InstanceMethod* pAbstractMethod = *it_abs;
-        member_collection::const_iterator it_met = m_Members.lower_bound(classOf<InstanceMethod>());
-        member_collection::const_iterator it_met_end = m_Members.upper_bound(classOf<InstanceMethod>());
+        InstanceMemberFunction* pPureVirtualMemberFunction = *it_abs;
+        member_collection::const_iterator it_met = m_Members.lower_bound(classOf<InstanceMemberFunction>());
+        member_collection::const_iterator it_met_end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
         for(; it_met != it_met_end; ++it_met)
         {
-            InstanceMethod* pMethod = static_cast<InstanceMethod*>(it_met->second);
-            if(pMethod->isAbstract()) continue;
-            InstanceMethod::EOverloadRelation eOR = pMethod->getOverloadRelationWith(pAbstractMethod);
-            o_assert(eOR != InstanceMethod::e_OverloadRelation_Forbidden);
-            if(eOR != InstanceMethod::e_OverloadRelation_None)
+            InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it_met->second);
+            if(pMemberFunction->isAbstract()) continue;
+            InstanceMemberFunction::EOverloadRelation eOR = pMemberFunction->getOverloadRelationWith(pPureVirtualMemberFunction);
+            o_assert(eOR != InstanceMemberFunction::e_OverloadRelation_Forbidden);
+            if(eOR != InstanceMemberFunction::e_OverloadRelation_None)
             {
                 toRemove.push_back(it_abs);
                 break;
             }
         }
     }
-    phantom::list<instance_method_vector::iterator>::iterator it_rem = toRemove.begin();
-    phantom::list<instance_method_vector::iterator>::iterator it_rem_end = toRemove.end();
+    phantom::list<instance_member_function_vector::iterator>::iterator it_rem = toRemove.begin();
+    phantom::list<instance_member_function_vector::iterator>::iterator it_rem_end = toRemove.end();
     for(; it_rem != it_rem_end; ++it_rem)
     {
         a_Result.erase(*it_rem);
     }
 
-    findAbstractMethods(a_Result);
+    findPureVirtualMemberFunctions(a_Result);
 }
 
-void Class::findAbstractMethods( instance_method_vector& a_Result ) const
+void Class::findPureVirtualMemberFunctions( instance_member_function_vector& a_Result ) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMethod>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMethod>());
+    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
+    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
     for(; it != m_Members.end(); ++it)
     {
-        InstanceMethod* pMethod = static_cast<InstanceMethod*>(it->second);
-        if(pMethod->isAbstract())
+        InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+        if(pMemberFunction->isAbstract())
         {
-            a_Result.push_back(pMethod);
+            a_Result.push_back(pMemberFunction);
         }
     }
 }
@@ -717,62 +717,62 @@ void Class::removeDerivedClass( Class* a_pType )
     }
 }
 
-StaticMethod*    Class::getStaticMethodCascade( const string& a_strIdentifierString ) const
+StaticMemberFunction*    Class::getStaticMemberFunctionCascade( const string& a_strIdentifierString ) const
 {
-    StaticMethod* pMethod = getStaticMethod(a_strIdentifierString);
-    if(pMethod != NULL) return pMethod;
+    StaticMemberFunction* pMemberFunction = getStaticMemberFunction(a_strIdentifierString);
+    if(pMemberFunction != NULL) return pMemberFunction;
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        pMethod = it->m_pClass->getStaticMethodCascade(a_strIdentifierString);
-        if(pMethod != NULL)
-            return pMethod;
+        pMemberFunction = it->m_pClass->getStaticMemberFunctionCascade(a_strIdentifierString);
+        if(pMemberFunction != NULL)
+            return pMemberFunction;
     }
     return NULL;
 }
 
-InstanceMethod*    Class::getInstanceMethodCascade( const string& a_strIdentifierString ) const
+InstanceMemberFunction*    Class::getInstanceMemberFunctionCascade( const string& a_strIdentifierString ) const
 {
-    InstanceMethod* pMethod = getInstanceMethod(a_strIdentifierString);
-    if(pMethod != NULL) return pMethod;
+    InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strIdentifierString);
+    if(pMemberFunction != NULL) return pMemberFunction;
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        pMethod = it->m_pClass->getInstanceMethodCascade(a_strIdentifierString);
-        if(pMethod != NULL)
-            return pMethod;
+        pMemberFunction = it->m_pClass->getInstanceMemberFunctionCascade(a_strIdentifierString);
+        if(pMemberFunction != NULL)
+            return pMemberFunction;
     }
     return NULL;
 }
 
-Method* Class::getMethodCascade( const string& a_strIdentifierString ) const
+MemberFunction* Class::getMemberFunctionCascade( const string& a_strIdentifierString ) const
 {
-    Method* pMethod = getMethod(a_strIdentifierString);
-    if(pMethod != NULL) return pMethod;
+    MemberFunction* pMemberFunction = getMemberFunction(a_strIdentifierString);
+    if(pMemberFunction != NULL) return pMemberFunction;
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        pMethod = it->m_pClass->getMethodCascade(a_strIdentifierString);
-        if(pMethod != NULL)
-            return pMethod;
+        pMemberFunction = it->m_pClass->getMemberFunctionCascade(a_strIdentifierString);
+        if(pMemberFunction != NULL)
+            return pMemberFunction;
     }
     return NULL;
 }
 
-Method* Class::getMethodCascade(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/) const
+MemberFunction* Class::getMemberFunctionCascade(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/) const
 {
-    Method* pMethod = getMethod(a_strName, a_FunctionSignature, a_bfModifiers);
-    if(pMethod != NULL) return pMethod;
+    MemberFunction* pMemberFunction = getMemberFunction(a_strName, a_FunctionSignature, a_bfModifiers);
+    if(pMemberFunction != NULL) return pMemberFunction;
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        pMethod = it->m_pClass->getMethodCascade(a_strName, a_FunctionSignature, a_bfModifiers);
-        if(pMethod != NULL)
-            return pMethod;
+        pMemberFunction = it->m_pClass->getMemberFunctionCascade(a_strName, a_FunctionSignature, a_bfModifiers);
+        if(pMemberFunction != NULL)
+            return pMemberFunction;
     }
     return NULL;
 }
@@ -820,18 +820,18 @@ void                Class::fireKindDestroyed(void* a_pObject) const
 #endif
 
 
-Property* Class::getPropertyCascade(const string& a_strIdentifierString) const
+ValueMember* Class::getValueMemberCascade(const string& a_strIdentifierString) const
 {
-    Property* pFound = getProperty(a_strIdentifierString);
+    ValueMember* pFound = getValueMember(a_strIdentifierString);
     if(pFound != NULL) return pFound;
 
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        Property* pProperty = it->m_pClass->getPropertyCascade(a_strIdentifierString);
-        if(pProperty != nullptr)
-            return pProperty;
+        ValueMember* pValueMember = it->m_pClass->getValueMemberCascade(a_strIdentifierString);
+        if(pValueMember != nullptr)
+            return pValueMember;
     }
     return nullptr;
 }
@@ -853,14 +853,14 @@ Collection* Class::getCollectionCascade(const string& a_strCollectionName) const
 }
 
 
-void Class::getAllPropertyCascade(vector<Property*>& out) const
+void Class::getAllValueMemberCascade(vector<ValueMember*>& out) const
 {
-    getAllProperty(out);
+    getAllValueMember(out);
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        it->m_pClass->getAllPropertyCascade(out);
+        it->m_pClass->getAllValueMemberCascade(out);
     }
 }
 
@@ -876,18 +876,18 @@ void Class::getAllCollectionCascade(vector<Collection*>& out) const
 }
 
 
-InstanceMethod* Class::getInstanceMethodCascade( const string& a_strName, type_vector* a_pParameterTypes ) const
+InstanceMemberFunction* Class::getInstanceMemberFunctionCascade( const string& a_strName, type_vector* a_pParameterTypes ) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMethod>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMethod>());
+    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
+    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
     for(;it != end; ++it)
     {
-        InstanceMethod* pMethod = static_cast<InstanceMethod*>(it->second);
+        InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
 
-        Signature* pSignature = pMethod->getSignature();
+        Signature* pSignature = pMemberFunction->getSignature();
 
-        // Method name incompatibility => we skip
-        if(pMethod->getName() != a_strName)
+        // MemberFunction name incompatibility => we skip
+        if(pMemberFunction->getName() != a_strName)
             continue;
 
         // Parameter count incompatibility => we skip
@@ -907,16 +907,16 @@ InstanceMethod* Class::getInstanceMethodCascade( const string& a_strName, type_v
         if(NOT(bMatch))
             continue;
 
-        return pMethod;
+        return pMemberFunction;
     }
     {
         super_class_table::const_iterator it = m_SuperClasses.begin();
         super_class_table::const_iterator end = m_SuperClasses.end();
         for(;it != end; ++it)
         {
-            InstanceMethod* pResultMethod = it->m_pClass->getInstanceMethodCascade(a_strName, a_pParameterTypes);
-            if(pResultMethod != NULL)
-                return pResultMethod;
+            InstanceMemberFunction* pResultMemberFunction = it->m_pClass->getInstanceMemberFunctionCascade(a_strName, a_pParameterTypes);
+            if(pResultMemberFunction != NULL)
+                return pResultMemberFunction;
         }
     }
     return NULL;
@@ -956,12 +956,12 @@ void* Class::cast( Class* a_pSuperClass, void* a_pBaseAddress ) const
 
 void Class::valueToString( string& s, void* src ) const
 {
-    o_exception(exception::unsupported_method_exception, "TODO (not supported yet)");
+    o_exception(exception::unsupported_member_function_exception, "TODO (not supported yet)");
 }
 
 void Class::valueFromString( const string& cs, void* dest ) const
 {
-    o_exception(exception::unsupported_method_exception, "TODO (not supported yet)");
+    o_exception(exception::unsupported_member_function_exception, "TODO (not supported yet)");
 }
 
 void* Class::newInstance() const
@@ -1004,16 +1004,16 @@ void Class::safeDeleteInstance( void* a_pObject ) const
     deleteInstance(phantom::rttiDataOf(a_pObject).cast(const_cast<Class*>(this)));
 }
 
-InstanceMethod*        Class::getInstanceMethodCascade(const char* a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/) const
+InstanceMemberFunction*        Class::getInstanceMemberFunctionCascade(const char* a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/) const
 {
-  InstanceMethod* pMethod = getInstanceMethod(a_strName, a_FunctionSignature, a_bfModifiers);
-  if(pMethod != NULL) return pMethod;
+  InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strName, a_FunctionSignature, a_bfModifiers);
+  if(pMemberFunction != NULL) return pMemberFunction;
   super_class_table::const_iterator it = m_SuperClasses.begin();
   super_class_table::const_iterator end = m_SuperClasses.end();
   for(;it != end; ++it)
   {
-    pMethod = it->m_pClass->getInstanceMethodCascade(a_strName, a_FunctionSignature, a_bfModifiers);
-    if(pMethod != NULL) return pMethod;
+    pMemberFunction = it->m_pClass->getInstanceMemberFunctionCascade(a_strName, a_FunctionSignature, a_bfModifiers);
+    if(pMemberFunction != NULL) return pMemberFunction;
   }
   return NULL;
 }
@@ -1043,8 +1043,8 @@ void Class::destroyContent()
     if(Phantom::getState() != Phantom::eState_Uninstalling)
     {
         {
-            vmt_vector::iterator it = m_VirtualMethodTables.begin();
-            for(;it!=m_VirtualMethodTables.end();it++)
+            vmt_vector::iterator it = m_VirtualMemberFunctionTables.begin();
+            for(;it!=m_VirtualMemberFunctionTables.end();it++)
             {
                 o_dynamic_delete_clean(*it);
             }
@@ -1093,31 +1093,31 @@ void Class::smartCopy(void* a_pInstance, void const* a_pSource, reflection::Type
 {
     Class* pSourceClass = a_pSourceType->asClass();
     o_assert(pSourceClass);
-    vector<Property*> properties;
-    pSourceClass->getAllPropertyCascade(properties);
-    auto it = properties.begin();
-    auto end = properties.end();
+    vector<ValueMember*> valueMembers;
+    pSourceClass->getAllValueMemberCascade(valueMembers);
+    auto it = valueMembers.begin();
+    auto end = valueMembers.end();
     for(; it!=end; ++it)
     {
-        Property* pOldProperty = (*it);
-        Property* pNewProperty = getPropertyCascade(pOldProperty->getName());
-        Type* pOldPropertyType = pOldProperty->getValueType()->removeReference()->removeConst();
-        Type* pNewPropertyType = nullptr;
-        if(pNewProperty != nullptr 
-            AND pOldPropertyType->isImplicitlyConvertibleTo((pNewPropertyType = pNewProperty->getValueType()->removeReference()->removeConst())))
+        ValueMember* pOldValueMember = (*it);
+        ValueMember* pNewValueMember = getValueMemberCascade(pOldValueMember->getName());
+        Type* pOldValueMemberType = pOldValueMember->getValueType()->removeReference()->removeConst();
+        Type* pNewValueMemberType = nullptr;
+        if(pNewValueMember != nullptr 
+            AND pOldValueMemberType->isImplicitlyConvertibleTo((pNewValueMemberType = pNewValueMember->getValueType()->removeReference()->removeConst())))
         {
             // Create temp buffers
-            void* sourceBuffer = pOldPropertyType->newInstance();
-            void* newBuffer = pNewPropertyType->newInstance();
+            void* sourceBuffer = pOldValueMemberType->newInstance();
+            void* newBuffer = pNewValueMemberType->newInstance();
             
             // Apply conversion
-            pOldProperty->getValue(pSourceClass->cast(pOldProperty->getOwnerClass(), (void*)a_pSource), sourceBuffer);
-            pOldPropertyType->convertValueTo(pNewPropertyType, newBuffer, sourceBuffer);
-            pNewProperty->setValue(cast(pNewProperty->getOwnerClass(), a_pInstance), newBuffer);
+            pOldValueMember->getValue(pSourceClass->cast(pOldValueMember->getOwnerClass(), (void*)a_pSource), sourceBuffer);
+            pOldValueMemberType->convertValueTo(pNewValueMemberType, newBuffer, sourceBuffer);
+            pNewValueMember->setValue(cast(pNewValueMember->getOwnerClass(), a_pInstance), newBuffer);
 
             // Destroy temp buffers
-            pOldPropertyType->deleteInstance(sourceBuffer);
-            pNewPropertyType->deleteInstance(newBuffer);
+            pOldValueMemberType->deleteInstance(sourceBuffer);
+            pNewValueMemberType->deleteInstance(newBuffer);
         }
     }
 }

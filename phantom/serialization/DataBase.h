@@ -373,9 +373,9 @@ public:
         o_emit dataAttributeValueChanged(a_Data, attributeIndex, value);
     }
 
-    void            setDataAttributeValue(const phantom::data& a_Data, const string& attributeName, const string& value)
+    void            setDataAttributeValue(const phantom::data& a_Data, const string& fieldName, const string& value)
     {
-        setDataAttributeValue(a_Data, getAttributeIndex(attributeName), value);
+        setDataAttributeValue(a_Data, getAttributeIndex(fieldName), value);
     }
 
     void            setNodeAttributeValue(Node* a_pNode, size_t attributeIndex, const string& value)
@@ -385,9 +385,9 @@ public:
         o_emit nodeAttributeValueChanged(a_pNode, attributeIndex, value);
     }
 
-    void            setNodeAttributeValue(Node* a_pNode, const string& attributeName, const string& value)
+    void            setNodeAttributeValue(Node* a_pNode, const string& fieldName, const string& value)
     {
-        setNodeAttributeValue(a_pNode, getAttributeIndex(attributeName), value);
+        setNodeAttributeValue(a_pNode, getAttributeIndex(fieldName), value);
     }
 
     size_t          getAttributeCount() const { return m_AttributeNames.size(); }
@@ -395,7 +395,7 @@ public:
 
     size_t          addAttribute(const string& a_name)
     {
-        o_assert(m_GuidBase.isEmpty(), "Cannot add attribute after data");
+        o_assert(m_GuidBase.isEmpty(), "Cannot add dataMember after data");
         m_AttributeNames.push_back(a_name);
         return m_AttributeNames.size()-1;
     }

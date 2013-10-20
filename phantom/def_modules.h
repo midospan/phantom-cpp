@@ -475,7 +475,7 @@ class :: o_PP_CREATE_SCOPE _namespaces_::phantom_proxy_____##_name_<o_PP_CREATE_
     };
 
 
-// Phantom methods
+// Phantom member_functions
 #define o_initialize()                  void PHANTOM_CODEGEN_initialize()
 #define o_terminate()                   void PHANTOM_CODEGEN_terminate()
 #define o_restore(filter,pass)          phantom::restore_state PHANTOM_CODEGEN_restore(phantom::uint filter, phantom::uint pass)

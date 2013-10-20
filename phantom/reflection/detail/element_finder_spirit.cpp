@@ -325,7 +325,7 @@ LanguageElement* solve_element(LanguageElement* a_pScope, element & e)
 
     // we take the last element and try to solve it
     return pScope->getElement(e.m_qualified_name.back().m_identifier.c_str()
-        , NULL // template method not supported ... yet ?
+        , NULL // template member_function not supported ... yet ?
         , &fs
         , (*pFuncProto).m_modifiers.value);
 }

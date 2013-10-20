@@ -37,76 +37,40 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/reflection/LanguageElement.h>
+
 /* *********************************************** */
 /* The *.classdef.h file must be the last #include */
 #include "Property.classdef.h"
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, SubProperty)
+
 /* *********************************************** */
 
 o_h_begin
 
-class o_export Property : public LanguageElement
+class o_export Property : public ValueMember
 {
+public:
     Reflection_____________________________________________________________________________________
     _____________________________________________________________________________________Reflection
 
 public:
-    Property(const string& a_strName, uint a_uiSerializationMask, bitfield a_bfModifiers = bitfield());
+    Property(const string& a_strName, Type* a_pValueType, Signal* a_pChangeNotificationSignal
+    , uint a_uiSerializationMask
+    , bitfield a_bfModifiers = bitfield());
+
     o_destructor ~Property(void) {}
 
-    virtual void            getValue(void const* a_pObject, void* dest) const = 0;
-    virtual void            setValue(void* a_pObject, void const* src) const = 0;
-
-    virtual void            rememberValue(void const* a_pInstance, byte*& a_pOutBuffer) const;
-    virtual void            rememberValue(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) const;
-    virtual void            resetValue(void* a_pInstance, byte const*& a_pInBuffer) const;
-    virtual void            resetValue(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) const;
-
-    virtual void            serializeValue(void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
-    virtual void            serializeValue(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
-    virtual void            serializeValue(void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
-    virtual void            serializeValue(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
-    virtual void            deserializeValue(void* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
-    virtual void            deserializeValue(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
-    virtual void            deserializeValue(void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
-    virtual void            deserializeValue(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
-
-    virtual    Type*        getValueType() const = 0;
-
-    inline SubProperty*     getSubProperty(uint i) const { return m_SubProperties[i]; }
-    SubProperty*            getSubProperty(const string& a_strName) const;
-    inline size_t           getSubPropertyCount() const { return m_SubProperties.size(); }
-
-    inline uint             getSerializationMask() const { return m_uiSerializationMask; }
-
-    
-    virtual boolean            isProperty() const { return true; }
-
-    virtual        void        copyValue(void* dest, void const* src) const 
-    {
-        void* sourceBuffer = getValueType()->newInstance();
-        getValue(src, sourceBuffer);
-        setValue(dest, sourceBuffer);
-        getValueType()->deleteInstance(sourceBuffer);
-    }
-
-    virtual Class*           getSortingCategoryClass() const;
-
-    inline ClassType*        getOwnerClassType() const { return m_pOwner->asClassType(); } 
-    inline Class*           getOwnerClass() const { return m_pOwner->asClass(); }                  
-
-    o_forceinline boolean    isSaved(uint a_uiSerializationFlag) const { return NOT(m_bfModifiers.matchesMask(o_transient)) AND ((m_uiSerializationMask & a_uiSerializationFlag) == a_uiSerializationFlag); }
-    o_forceinline boolean    isReset() const { return m_bfModifiers.matchesMask(o_reset); }
-    o_forceinline boolean    isTransient() const { return m_bfModifiers.matchesMask(o_transient); }
-
-    virtual void*           getAddress(void const* a_pInstance) const { return NULL; }
+    virtual void getValue(void const* a_pObject, void* dest) const = 0;
+    virtual void setValue(void* a_pObject, void const* src) const = 0;
+    virtual        Type*        getValueType() const { return m_pValueType; }
+    virtual boolean        isProperty() const { return true; }
+    virtual Property*      asProperty() const { return (Property*)this; }
+        
+    Signal* getChangeNotificationSignal() const { return m_pChangeNotificationSignal; }
 
 protected:
-    phantom::vector<SubProperty*>       m_SubProperties;
-    uint                                m_uiSerializationMask;
-    
+    Type*   m_pValueType;
+    Signal* m_pChangeNotificationSignal;
 };
 
 o_h_end

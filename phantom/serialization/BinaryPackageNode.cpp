@@ -149,15 +149,15 @@ void BinaryPackageNode::saveDataAttributesHelper(const phantom::data& a_Data)
     BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
 	PackageDataBase::PackageDataBaseBuffer* pBuffer = pDB->getBuffer();
 
-	const string* pAttributeValues = pDB->getDataAttributeValues(a_Data);
-    if(pAttributeValues != NULL) 
+	const string* pDataMemberValues = pDB->getDataAttributeValues(a_Data);
+    if(pDataMemberValues != NULL) 
     {
         size_t i = 0;
-        size_t attributeCount = pDB->getAttributeCount();
-        for(;i<attributeCount;++i)
+        size_t fieldCount = pDB->getAttributeCount();
+        for(;i<fieldCount;++i)
         {
 			//pBuffer->m_pCurrent
-            //a_Tree.put<string>(pDB->getAttributeName(i), pAttributeValues[i]);
+            //a_Tree.put<string>(pDB->getDataMemberName(i), pDataMemberValues[i]);
         }
     }
 }
@@ -171,7 +171,7 @@ void BinaryPackageNode::loadDataAttributesHelper(const phantom::data& a_Data)
     for(;it != end; ++it)
     {
         const property_tree& attribute_tag = it->second;
-        size_t attributeIndex = m_pOwnerDataBase->getAttributeIndex(it->first);
+        size_t attributeIndex = m_pOwnerDataBase->getDataMemberIndex(it->first);
         if(attributeIndex != DataBase::e_Constant_InvalidAttributeIndex)
         {
             m_pOwnerDataBase->setDataAttributeValue(a_Data, attributeIndex, attribute_tag.data());
@@ -183,15 +183,15 @@ void BinaryPackageNode::saveAttributes()
 {
     BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
 
-    const string* pAttributeValues = pDB->getNodeAttributeValues(this);
-    if(pAttributeValues != NULL) 
+    const string* pDataMemberValues = pDB->getNodeAttributeValues(this);
+    if(pDataMemberValues != NULL) 
     {
         size_t i = 0;
-        size_t attributeCount = pDB->getAttributeCount();
-        for(;i<attributeCount;++i)
+        size_t fieldCount = pDB->getAttributeCount();
+        for(;i<fieldCount;++i)
         {
 			//buffer
-            //node_attribute_tree.put<string>(pDB->getAttributeName(i), pAttributeValues[i]);
+            //node_attribute_tree.put<string>(pDB->getDataMemberName(i), pDataMemberValues[i]);
         }
     }
 
@@ -218,7 +218,7 @@ void BinaryPackageNode::loadAttributes()
         for(;it != end; ++it)
         {
             const property_tree& attribute_tag = it->second;
-            size_t attributeIndex = m_pOwnerDataBase->getAttributeIndex(it->first);
+            size_t attributeIndex = m_pOwnerDataBase->getDataMemberIndex(it->first);
             if(attributeIndex != DataBase::e_Constant_InvalidAttributeIndex)
             {
                 m_pOwnerDataBase->setNodeAttributeValue(this, attributeIndex, attribute_tag.data());
@@ -396,10 +396,10 @@ void BinaryPackageNode::deserialize(uint a_uiSerializationFlag)
         uint guid = pDB->getGuid(pAddress);
         const string& path = pDB->dataPath(*it, guid, pDB->getNode(pAddress));
         boost::property_tree_custom::read_xml(path.c_str(), p_tree);
-        boost::optional<property_tree&> properties_tree_opt = p_tree.get_child_optional("data.properties");
-        if(properties_tree_opt.is_initialized())
+        boost::optional<property_tree&> valueMembers_tree_opt = p_tree.get_child_optional("data.valueMembers");
+        if(valueMembers_tree_opt.is_initialized())
         {
-            pType->deserialize(pAddress, *properties_tree_opt, a_uiSerializationFlag, pDB);
+            pType->deserialize(pAddress, *valueMembers_tree_opt, a_uiSerializationFlag, pDB);
         }
     }*/
 }

@@ -168,8 +168,8 @@ public:
 
     virtual void  call( void** a_pArgs ) const = 0;
     virtual void  call( void** a_pArgs, void* a_pReturnAddress ) const = 0;
-    virtual void  invoke( void* a_pCallerAddress, void** a_pArgs ) const = 0;
-    virtual void  invoke( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const = 0;
+    virtual void  call( void* a_pCallerAddress, void** a_pArgs ) const = 0;
+    virtual void  call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const = 0;
 
     void setMemoryLocation(const MemoryLocation& a_MemoryLocation ) { m_MemoryLocation = a_MemoryLocation; }
     const MemoryLocation& getMemoryLocation() const { return m_MemoryLocation; }

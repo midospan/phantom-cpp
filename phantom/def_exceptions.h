@@ -113,11 +113,11 @@ public:
 };
 
 
-class unsupported_method_exception : public base_exception
+class unsupported_member_function_exception : public base_exception
 {
 public:
-    unsupported_method_exception(void) {}
-    unsupported_method_exception(const char * const & _What)
+    unsupported_member_function_exception(void) {}
+    unsupported_member_function_exception(const char * const & _What)
         : base_exception(_What)
     {
 

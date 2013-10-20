@@ -51,12 +51,12 @@ class o_export ClassType : public Type
 public:
     typedef phantom::reflection::Class*                    member_key;
     typedef std::pair<member_key, LanguageElement*>        member_pair;
-    typedef phantom::map<string, Method*>                method_map;
+    typedef phantom::map<string, MemberFunction*>                member_function_map;
     typedef phantom::multimap<Class*, LanguageElement*>    member_collection;
-    typedef phantom::vector<InstanceMethod*>                instance_method_list;
+    typedef phantom::vector<InstanceMemberFunction*>                instance_member_function_list;
     typedef phantom::vector<Type*>                        type_vector;
-    typedef phantom::vector<Method*>                    method_vector;
-    typedef phantom::vector<InstanceMethod*>            instance_method_vector;
+    typedef phantom::vector<MemberFunction*>                    member_function_vector;
+    typedef phantom::vector<InstanceMemberFunction*>            instance_member_function_vector;
     typedef member_collection::const_iterator            member_const_iterator;
 
     Reflection_____________________________________________________________________________________
@@ -90,47 +90,47 @@ public:
     string                  getQualifiedDecoratedName() const;
 
     void                    getAllMember(vector<LanguageElement*>& a_out) const;
-    void                    getAllProperty(vector<Property*>& out) const;
+    void                    getAllValueMember(vector<ValueMember*>& out) const;
     void                    getAllCollection(vector<Collection*>& out) const;
 
 
     virtual void            addConstructor( Constructor* a_pConstructor );
-    virtual void            addProperty( Property* a_pProperty );
-    virtual void            addAttribute( Attribute* a_pAttribute );
-    virtual void            addStaticAttribute( StaticAttribute* a_pAttribute );
-    virtual void            addInstanceAttribute( InstanceAttribute* a_pAttribute );
+    virtual void            addValueMember( ValueMember* a_pValueMember );
+    virtual void            addDataMember( DataMember* a_pDataMember );
+    virtual void            addStaticDataMember( StaticDataMember* a_pDataMember );
+    virtual void            addInstanceDataMember( InstanceDataMember* a_pDataMember );
     virtual void            addCollection( Collection* a_pCollection );
-    virtual void            addAccessor( Accessor* a_pAccessor );
-    virtual void            addMethod(Method* a_MetaMethod);
-    virtual void            addInstanceMethod(InstanceMethod* a_MetaMethod);
-    virtual void            addStaticMethod(StaticMethod* a_MetaMethod);
+    virtual void            addProperty( Property* a_pProperty );
+    virtual void            addMemberFunction(MemberFunction* a_MetaMemberFunction);
+    virtual void            addInstanceMemberFunction(InstanceMemberFunction* a_MetaMemberFunction);
+    virtual void            addStaticMemberFunction(StaticMemberFunction* a_MetaMemberFunction);
 
     Constructor*            getConstructor( const string& a_strIdentifierString ) const;
-    Property*               getProperty(const string& a_strName) const;
-    size_t                  getPropertyCount() const;
-    Collection*               getCollection(const string& a_strName) const;
+    ValueMember*               getValueMember(const string& a_strName) const;
+    size_t                  getValueMemberCount() const;
+    Collection*             getCollection(const string& a_strName) const;
     size_t                  getCollectionCount() const;
-    Attribute*              getAttribute(const string& a_strName) const;
-    InstanceAttribute*      getInstanceAttribute(const string& a_strName) const;
-    StaticAttribute*        getStaticAttribute(const string& a_strName) const;
-    Method*                 getMethod(const string& a_strIdentifierString) const;
-    Method*                 getMethod(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers = bitfield()) const;
-    InstanceMethod*         getInstanceMethod(const string& a_strIdentifierString) const;
-    InstanceMethod*         getInstanceMethod(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers = bitfield()) const;
-    size_t                  getInstanceMethodCount() const;
-    StaticMethod*           getStaticMethod( const string& a_strIdentifierString ) const;
-    StaticMethod*           getStaticMethod( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/ ) const;
-    size_t                  getStaticMethodCount() const;
+    DataMember*             getDataMember(const string& a_strName) const;
+    InstanceDataMember*     getInstanceDataMember(const string& a_strName) const;
+    StaticDataMember*       getStaticDataMember(const string& a_strName) const;
+    MemberFunction*         getMemberFunction(const string& a_strIdentifierString) const;
+    MemberFunction*         getMemberFunction(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers = bitfield()) const;
+    InstanceMemberFunction* getInstanceMemberFunction(const string& a_strIdentifierString) const;
+    InstanceMemberFunction* getInstanceMemberFunction(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers = bitfield()) const;
+    size_t                  getInstanceMemberFunctionCount() const;
+    StaticMemberFunction*   getStaticMemberFunction( const string& a_strIdentifierString ) const;
+    StaticMemberFunction*   getStaticMemberFunction( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/ ) const;
+    size_t                  getStaticMemberFunctionCount() const;
 
-    InstanceMethod*         getUniqueInstanceMethodWithName(const string& a_strName) const;
+    InstanceMemberFunction* getUniqueInstanceMemberFunctionWithName(const string& a_strName) const;
 
-    void                    findPublicPropertiesPointingValueType(Type* a_pType, vector<Property*>& out) const;
+    void                    findPublicPropertiesPointingValueType(Type* a_pType, vector<ValueMember*>& out) const;
 
     void                    setTemplateSpecialization(TemplateSpecialization* a_pTemplateSpecialization);
     TemplateSpecialization* getTemplateSpecialization() const { return m_pTemplateSpecialization; }
 
-    member_const_iterator   propertiesBegin() const;
-    member_const_iterator   propertiesEnd() const;
+    member_const_iterator   valueMembersBegin() const;
+    member_const_iterator   valueMembersEnd() const;
 
     virtual void*           newInstance() const;
 

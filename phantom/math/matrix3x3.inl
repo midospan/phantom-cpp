@@ -825,7 +825,7 @@ t_Ty matrix3x3<t_Ty>::maxCubicRoot (t_Ty afCoeff[3])
             fX = fTmp;
     }
 
-    // Newton's method to find root
+    // Newton's member_function to find root
     t_Ty fTwoC2 = 2.0f*afCoeff[2];
     for (int i = 0; i < 16; i++)
     {

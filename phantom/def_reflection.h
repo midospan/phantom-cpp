@@ -1276,13 +1276,13 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name
     class type_name_of_helper_<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)>     \
     {                                                                            \
         public:                                                                     \
-        o_reflection_specialize_type_name_static_methodsN(_namespaces_, _name_)\
+        o_reflection_specialize_type_name_static_member_functionsN(_namespaces_, _name_)\
     };                                                                                                                         \
      o_namespace_end(phantom, reflection, detail)
 
 
 
-#define o_reflection_specialize_type_name_static_methodsN(_namespaces_, _name_)\
+#define o_reflection_specialize_type_name_static_member_functionsN(_namespaces_, _name_)\
      static const char* name() { return o_PP_QUOTE(_name_); }                             \
     static const char* decoratedName() { return o_PP_QUOTE(_name_); }                   \
     static const char* qualifiedName()                                                             \
@@ -1302,7 +1302,7 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name
     return "";                                          \
     }
 
-#define o_reflection_specialize_type_name_static_methodsC(_classes_, _name_)\
+#define o_reflection_specialize_type_name_static_member_functionsC(_classes_, _name_)\
     static const char* name() { return o_PP_QUOTE(_name_); }                             \
     static const char* decoratedName() { return o_PP_QUOTE(_name_); }                   \
     static const char* qualifiedName()                                                             \
@@ -1322,7 +1322,7 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name
     return o_PP_QUOTE_SCOPE(_classes_) ;                                          \
     }
 
-#define o_reflection_specialize_type_name_static_methodsNC(_namespaces_, _classes_, _name_)\
+#define o_reflection_specialize_type_name_static_member_functionsNC(_namespaces_, _classes_, _name_)\
     static const char* name() { return o_PP_QUOTE(_name_); }                             \
     static const char* decoratedName() { return o_PP_QUOTE(_name_); }                   \
     static const char* qualifiedName()                                                             \
@@ -1342,7 +1342,7 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name
     return o_PP_QUOTE_SCOPE(_classes_) ;                                          \
     }
 
-#define o_reflection_specialize_type_name_static_methods(_name_)        \
+#define o_reflection_specialize_type_name_static_member_functions(_name_)        \
     static const char* name() { return o_PP_QUOTE(_name_); }                             \
     static const char* decoratedName() { return o_PP_QUOTE(_name_); }                   \
     static const char* qualifiedName()                                                             \
@@ -1359,7 +1359,7 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name
     }\
     static const char*  classScopeName()         {             return "";        }
 
-#define o_reflection_specialize_type_name_static_methodsNTT(_namespaces_, _template_types_, _template_params_, _name_) \
+#define o_reflection_specialize_type_name_static_member_functionsNTT(_namespaces_, _template_types_, _template_params_, _name_) \
     static const char* name() { return o_PP_QUOTE(_name_); } \
     static const phantom::string&    decoratedName() \
         { \
@@ -1393,7 +1393,7 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name
         } \
         static const char*  classScopeName()         {             return "";        }
 
-#define o_reflection_specialize_type_name_static_methodsTT(_template_types_, _template_params_, _name_) \
+#define o_reflection_specialize_type_name_static_member_functionsTT(_template_types_, _template_params_, _name_) \
     static const char* name() { return o_PP_QUOTE(_name_); } \
     static const phantom::string&    decoratedName() \
         { \
@@ -1430,7 +1430,7 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name
         return "";\
         }
 
-#define o_reflection_specialize_type_name_static_methodsNCTT(_namespaces_, _classes_, _template_types_, _template_params_, _name_) \
+#define o_reflection_specialize_type_name_static_member_functionsNCTT(_namespaces_, _classes_, _template_types_, _template_params_, _name_) \
     static const char* name() { return o_PP_QUOTE(_name_); } \
     static const phantom::string&    decoratedName() \
         { \
@@ -1467,7 +1467,7 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name
             return o_PP_QUOTE_SCOPE(_classes_);        \
         }
 
-#define o_reflection_specialize_type_name_static_methodsCTT(_classes_, _template_types_, _template_params_, _name_) \
+#define o_reflection_specialize_type_name_static_member_functionsCTT(_classes_, _template_types_, _template_params_, _name_) \
     static const char* name() { return o_PP_QUOTE(_name_); } \
     static const phantom::string&    decoratedName() \
         { \
@@ -1510,7 +1510,7 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name
     class type_name_of_helper_< ::_name_>     \
     {                                                        \
     public:   \
-    o_reflection_specialize_type_name_static_methods(_name_)\
+    o_reflection_specialize_type_name_static_member_functions(_name_)\
     };                                                         \
     o_namespace_end(phantom, reflection, detail)
 
@@ -1520,7 +1520,7 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name
 class type_name_of_helper_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)>     \
     {                                                        \
     public:   \
-    o_reflection_specialize_type_name_static_methodsC(_classes_,_name_)\
+    o_reflection_specialize_type_name_static_member_functionsC(_classes_,_name_)\
     };                                                         \
     o_namespace_end(phantom, reflection, detail)
 
@@ -1530,7 +1530,7 @@ class type_name_of_helper_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)>     \
 class type_name_of_helper_<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_)>     \
     {                                                        \
     public:   \
-    o_reflection_specialize_type_name_static_methodsNC(_namespaces_,_classes_,_name_)\
+    o_reflection_specialize_type_name_static_member_functionsNC(_namespaces_,_classes_,_name_)\
     };                                                         \
     o_namespace_end(phantom, reflection, detail)
 
@@ -1540,7 +1540,7 @@ class type_name_of_helper_<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_
 class type_name_of_helper_<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_)< o_PP_IDENTITY _template_params_ > >     \
     {                                                        \
     public:   \
-    o_reflection_specialize_type_name_static_methodsNCTT(_namespaces_,_classes_,_template_types_,_template_names_,_name_)\
+    o_reflection_specialize_type_name_static_member_functionsNCTT(_namespaces_,_classes_,_template_types_,_template_names_,_name_)\
     };                                                         \
     o_namespace_end(phantom, reflection, detail)
 
@@ -1550,7 +1550,7 @@ class type_name_of_helper_<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_
 class type_name_of_helper_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)< o_PP_IDENTITY _template_params_ > >     \
     {                                                        \
     public:   \
-    o_reflection_specialize_type_name_static_methodsCTT(_classes_,_template_types_,_template_names_,_name_)\
+    o_reflection_specialize_type_name_static_member_functionsCTT(_classes_,_template_types_,_template_names_,_name_)\
     };                                                         \
     o_namespace_end(phantom, reflection, detail)
 
@@ -1560,7 +1560,7 @@ class type_name_of_helper_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)< o_PP_ID
 class type_name_of_helper_<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)< o_PP_IDENTITY _template_params_ > > \
     { \
     public: \
-    o_reflection_specialize_type_name_static_methodsNTT(_namespaces_, _template_types_, _template_params_, _name_) \
+    o_reflection_specialize_type_name_static_member_functionsNTT(_namespaces_, _template_types_, _template_params_, _name_) \
     };\
     o_namespace_end(phantom, reflection, detail)
 
@@ -1570,7 +1570,7 @@ class type_name_of_helper_<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)< o_PP
 class type_name_of_helper_< ::_name_< o_PP_IDENTITY _template_params_ > > \
     { \
     public: \
-    o_reflection_specialize_type_name_static_methodsTT(_template_types_, _template_params_, _name_) \
+    o_reflection_specialize_type_name_static_member_functionsTT(_template_types_, _template_params_, _name_) \
     };\
     o_namespace_end(phantom, reflection, detail)
 
@@ -1580,7 +1580,7 @@ class type_name_of_helper_< ::_name_< o_PP_IDENTITY _template_params_ > > \
 class type_name_of_forward_helper_< ::_name_,__COUNTER__>     \
     {                                                        \
     public:   \
-    o_reflection_specialize_type_name_static_methods(_name_)\
+    o_reflection_specialize_type_name_static_member_functions(_name_)\
     };                                                         \
     o_namespace_end(phantom, reflection, detail)
 
@@ -1590,7 +1590,7 @@ class type_name_of_forward_helper_< ::_name_,__COUNTER__>     \
 class type_name_of_forward_helper_<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_),__COUNTER__>     \
     {                                                                            \
     public:                                                          \
-    o_reflection_specialize_type_name_static_methodsN(_namespaces_, _name_)\
+    o_reflection_specialize_type_name_static_member_functionsN(_namespaces_, _name_)\
     };                                                                         \
     o_namespace_end(phantom, reflection, detail)
 
@@ -1600,7 +1600,7 @@ class type_name_of_forward_helper_<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name
 class type_name_of_forward_helper_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_),__COUNTER__>     \
     {                                                                            \
     public:                                                          \
-    o_reflection_specialize_type_name_static_methodsC(_classes_, _name_)\
+    o_reflection_specialize_type_name_static_member_functionsC(_classes_, _name_)\
     };                                                                         \
     o_namespace_end(phantom, reflection, detail)
 
@@ -1610,7 +1610,7 @@ class type_name_of_forward_helper_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_),
 class type_name_of_forward_helper_<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_, _name_),__COUNTER__>     \
     {                                                                            \
     public:                                                          \
-    o_reflection_specialize_type_name_static_methodsNC(_namespaces_, _classes_, _name_)\
+    o_reflection_specialize_type_name_static_member_functionsNC(_namespaces_, _classes_, _name_)\
     };                                                                         \
     o_namespace_end(phantom, reflection, detail)
 
@@ -1620,7 +1620,7 @@ class type_name_of_forward_helper_<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_cl
 class type_name_of_forward_helper_<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)< o_PP_IDENTITY _template_params_ >, __COUNTER__> \
     { \
     public: \
-    o_reflection_specialize_type_name_static_methodsNTT(_namespaces_, _template_types_, _template_params_, _name_) \
+    o_reflection_specialize_type_name_static_member_functionsNTT(_namespaces_, _template_types_, _template_params_, _name_) \
     };\
     o_namespace_end(phantom, reflection, detail)
 
@@ -1630,7 +1630,7 @@ class type_name_of_forward_helper_<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name
 class type_name_of_forward_helper_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)< o_PP_IDENTITY _template_params_ >, __COUNTER__> \
     { \
     public: \
-    o_reflection_specialize_type_name_static_methodsCTT(_classes_, _template_types_, _template_params_, _name_) \
+    o_reflection_specialize_type_name_static_member_functionsCTT(_classes_, _template_types_, _template_params_, _name_) \
     };\
     o_namespace_end(phantom, reflection, detail)
 
@@ -1640,7 +1640,7 @@ class type_name_of_forward_helper_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)<
     class type_name_of_forward_helper_<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_, _name_)< o_PP_IDENTITY _template_params_ >, __COUNTER__> \
     { \
     public: \
-    o_reflection_specialize_type_name_static_methodsNCTT(_namespaces_, _classes_, _template_types_, _template_params_, _name_) \
+    o_reflection_specialize_type_name_static_member_functionsNCTT(_namespaces_, _classes_, _template_types_, _template_params_, _name_) \
     };\
     o_namespace_end(phantom, reflection, detail)
 
@@ -1651,7 +1651,7 @@ class type_name_of_forward_helper_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)<
     class type_name_of_forward_helper_< ::_name_< o_PP_IDENTITY _template_params_ >,__COUNTER__> \
     { \
     public: \
-    o_reflection_specialize_type_name_static_methodsTT(_template_types_, _template_params_, _name_) \
+    o_reflection_specialize_type_name_static_member_functionsTT(_template_types_, _template_params_, _name_) \
     };\
     o_namespace_end(phantom, reflection, detail)
 
@@ -1729,13 +1729,18 @@ struct type_of_counter_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)< o_PP_IDENT
     o_declare o_PP_LEFT_PAREN class, o_PP_IDENTITY _namespaces_, _name_ o_PP_RIGHT_PAREN
 
 
-#define o_accessor_4(_type_, _name_, _set_method_, _get_method_)\
-    o_accessor_6(_type_, _name_, _set_method_, _get_method_, 0, 0xffffffff)
+#define o_property_4(_type_, _name_, _set_member_function_, _get_member_function_)\
+    o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, o_no_signal, 0, 0xffffffff)
 
-#define o_accessor_5(_type_, _name_, _set_method_, _get_method_, _modifiers_)\
-    o_accessor_6(_type_, _name_, _set_method_, _get_method_, _modifiers_, 0xffffffff)
+#define o_property_5(_type_, _name_, _set_member_function_, _get_member_function_, _signal_)\
+    o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, 0, 0xffffffff)
 
-#define o_accessor_6(_type_, _name_, _set_method_, _get_method_, _modifiers_, _serialization_mask_)\
+#define o_property_6(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _modifiers_)\
+    o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _modifiers_, 0xffffffff)
+
+#define o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _modifiers_, _serialization_mask_)\
+    o_slot(void, _set_member_function_, (_type_), ((_modifiers_&o_public)==o_public)?o_public:o_protected);\
+    o_member_function(_type_, _get_member_function_, (), ((_modifiers_&o_public)==o_public)?o_public:o_protected);\
 class o_PP_CAT(_name_,__LINE__) \
     {\
     friend class enclosed_reflection;\
@@ -1743,28 +1748,35 @@ class o_PP_CAT(_name_,__LINE__) \
     o_PP_CAT(_name_,__LINE__)()\
         {\
         phantom::reflection::Type* pType = phantom::reflection::detail::type_of_counter_<_type_,PHANTOM_CODEGEN_reflection_counter_value>::object();\
-        phantom::reflection::Property* pProperty = o_new(\
-        phantom::reflection::native::TNativeAccessor<\
+        phantom::reflection::Signal* pSignal = phantom::reflection::native::TNativePropertySignalProvider<PHANTOM_CODEGEN_reflection_counter_value, phantom_proxy_generator_reflection_self_type, _type_>::CreateSignal(\
+                                                    o_PP_QUOTE(_signal_)\
+                                                    , o_PP_QUOTE(_type_)\
+                                                    , &phantom_proxy_generator_reflection_proxy_type::_signal_\
+                                                    , &phantom_proxy_generator_reflection_proxy_type::PHANTOM_CODEGEN_m_slot_list_of_##_signal_\
+                                               );\
+        phantom::reflection::ValueMember* pValueMember = o_new(\
+        phantom::reflection::native::TNativeProperty<\
         phantom_proxy_generator_reflection_self_type, _type_>) \
         ( o_PP_QUOTE(_name_)\
         , pType\
-        , &phantom_proxy_generator_reflection_proxy_type::_set_method_\
-        , &phantom_proxy_generator_reflection_proxy_type::_get_method_\
+        , pSignal\
+        , &phantom_proxy_generator_reflection_proxy_type::_set_member_function_\
+        , &phantom_proxy_generator_reflection_proxy_type::_get_member_function_\
         , _serialization_mask_\
         , _modifiers_\
         );\
-        pProperty->addCodeLocation(phantom::sourceFile(__FILE__));\
-        phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addProperty(pProperty);\
+        pValueMember->addCodeLocation(phantom::sourceFile(__FILE__));\
+        phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addValueMember(pValueMember);\
         }\
     } o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
 
 
 /// COLLECTIONS
 
-#define o_collection_8(_type_, _name_, _add_method_, _remove_method_, _move_method_, _set_method_, _get_method_, _size_method_)\
-    o_collection_9(_type_, _name_, _add_method_, _remove_method_, _move_method_, _set_method_, _get_method_, _size_method_, 0)
+#define o_collection_8(_type_, _name_, _add_member_function_, _remove_member_function_, _move_member_function_, _set_member_function_, _get_member_function_, _size_member_function_)\
+    o_collection_9(_type_, _name_, _add_member_function_, _remove_member_function_, _move_member_function_, _set_member_function_, _get_member_function_, _size_member_function_, 0)
 
-#define o_collection_9(_type_, _name_, _add_method_, _remove_method_, _move_method_, _set_method_, _get_method_, _size_method_, _modifiers_)\
+#define o_collection_9(_type_, _name_, _add_member_function_, _remove_member_function_, _move_member_function_, _set_member_function_, _get_member_function_, _size_member_function_, _modifiers_)\
     class o_PP_CAT(_name_,__LINE__) \
     {\
     friend class enclosed_reflection;\
@@ -1777,22 +1789,18 @@ class o_PP_CAT(_name_,__LINE__) \
     phantom_proxy_generator_reflection_self_type, _type_>) \
     ( o_PP_QUOTE(_name_)\
     , pType\
-    , &phantom_proxy_generator_reflection_proxy_type::_add_method_\
-    , &phantom_proxy_generator_reflection_proxy_type::_remove_method_\
-    , &phantom_proxy_generator_reflection_proxy_type::_move_method_\
-    , &phantom_proxy_generator_reflection_proxy_type::_set_method_\
-    , &phantom_proxy_generator_reflection_proxy_type::_get_method_\
-    , &phantom_proxy_generator_reflection_proxy_type::_size_method_\
+    , &phantom_proxy_generator_reflection_proxy_type::_add_member_function_\
+    , &phantom_proxy_generator_reflection_proxy_type::_remove_member_function_\
+    , &phantom_proxy_generator_reflection_proxy_type::_move_member_function_\
+    , &phantom_proxy_generator_reflection_proxy_type::_set_member_function_\
+    , &phantom_proxy_generator_reflection_proxy_type::_get_member_function_\
+    , &phantom_proxy_generator_reflection_proxy_type::_size_member_function_\
     , _modifiers_\
     );\
     pCollection->addCodeLocation(phantom::sourceFile(__FILE__));\
     phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addCollection(pCollection);\
     }\
 } o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
-
-
-#define o_accessor_5(_type_, _name_, _set_method_, _get_method_, _modifiers_)\
-    o_accessor_6(_type_, _name_, _set_method_, _get_method_, _modifiers_, 0xffffffff)
 
 
 #define o_extension(_extension_class_, ...) \
@@ -1832,64 +1840,64 @@ class o_PP_CAT(_name_,__LINE__) \
         } o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
 
 
-#    define o_attribute_2(_type_, _name_) \
-    o_attribute_4(_type_, _name_, 0, 0xffffffff)
+#    define o_data_member_2(_type_, _name_) \
+    o_data_member_4(_type_, _name_, 0, 0xffffffff)
 
-#    define o_attribute_3(_type_, _name_, _modifiers_) \
-    o_attribute_4(_type_, _name_, _modifiers_, 0xffffffff)
+#    define o_data_member_3(_type_, _name_, _modifiers_) \
+    o_data_member_4(_type_, _name_, _modifiers_, 0xffffffff)
 
-#    define o_attribute_4(_type_, _name_, _modifiers_, _serialization_mask_) \
+#    define o_data_member_4(_type_, _name_, _modifiers_, _serialization_mask_) \
     class o_PP_CAT(_name_,__LINE__)\
         {\
         friend class enclosed_reflection;\
         o_PP_CAT(_name_,__LINE__)()\
             {\
-            phantom::reflection::Type* pAttributeType = phantom::reflection::detail::type_of_counter_<_type_,PHANTOM_CODEGEN_reflection_counter_value>::object();\
-            if(pAttributeType == NULL) { \
+            phantom::reflection::Type* pDataMemberType = phantom::reflection::detail::type_of_counter_<_type_,PHANTOM_CODEGEN_reflection_counter_value>::object();\
+            if(pDataMemberType == NULL) { \
             o_exception(phantom::exception::t_unknown_reflection_type_exception<_type_> \
-            , "attribute type "#_type_" (or its pointed type if it's a pointer type) must be declared previously with the macro o_declare provided by phantom so that it can be considered as a phantom type"); \
+            , "dataMember type "#_type_" (or its pointed type if it's a pointer type) must be declared previously with the macro o_declare provided by phantom so that it can be considered as a phantom type"); \
             }\
-            pAttributeType->addReferenceCodeLocation(phantom::sourceFile(__FILE__));\
-            auto pAttribute = phantom::reflection::native::TNativeAttributeProvider< phantom_proxy_generator_reflection_self_type, _modifiers_, _type_ >::CreateAttribute(o_PP_QUOTE(_name_), pAttributeType, &phantom_proxy_generator_reflection_proxy_type::_name_, _serialization_mask_, _modifiers_);\
-            pAttribute->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addAttribute(pAttribute);\
+            pDataMemberType->addReferenceCodeLocation(phantom::sourceFile(__FILE__));\
+            auto pDataMember = phantom::reflection::native::TNativeDataMemberProvider< phantom_proxy_generator_reflection_self_type, _modifiers_, _type_ >::CreateDataMember(o_PP_QUOTE(_name_), pDataMemberType, &phantom_proxy_generator_reflection_proxy_type::_name_, _serialization_mask_, _modifiers_);\
+            pDataMember->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
+            phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addDataMember(pDataMember);\
             }\
         } o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
 
 
-#    define o_method(_returntype_, _name_, _parameterslist_, ...) \
-    enum { o_PP_CAT(o_PP_CAT(method,__LINE__),_index) = __COUNTER__ - PHANTOM_CODEGEN_reflection_counter_value - 1 };\
-class o_PP_CAT(method,__LINE__) \
+#    define o_member_function(_returntype_, _name_, _parameterslist_, ...) \
+    enum { o_PP_CAT(o_PP_CAT(member_function,__LINE__),_index) = __COUNTER__ - PHANTOM_CODEGEN_reflection_counter_value - 1 };\
+class o_PP_CAT(member_function,__LINE__) \
         {\
         friend class enclosed_reflection;\
-        o_PP_CAT(method,__LINE__)() \
+        o_PP_CAT(member_function,__LINE__)() \
             {\
-            auto pMethod = phantom::reflection::native::TNativeMethodProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value,_returntype_ _parameterslist_>::CreateMethod( \
+            auto pMemberFunction = phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value,_returntype_ _parameterslist_>::CreateMemberFunction( \
             o_PP_QUOTE(_name_) \
             , phantom::reflection::native::TNativeSignatureProvider<PHANTOM_CODEGEN_reflection_counter_value, _returntype_ _parameterslist_>::CreateSignature(o_PP_QUOTE(_returntype_)o_CS("")o_PP_QUOTE(_parameterslist_), phantom::templateSpecializationOf<phantom_proxy_generator_reflection_self_type>(), phantom::typeOf<phantom_proxy_generator_reflection_self_type>()) \
             , &phantom_proxy_generator_reflection_proxy_type::_name_ \
             ,phantom::detail::int_embedder<__VA_ARGS__>::value);\
-            pMethod->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addMethod(pMethod);\
+            pMemberFunction->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
+            phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addMemberFunction(pMemberFunction);\
             }\
-        } o_PP_CAT(method,__LINE__);
+        } o_PP_CAT(member_function,__LINE__);
 
 #    define o_slot(_returntype_, _name_, _parameterslist_, ...) \
-    enum { o_PP_CAT(o_PP_CAT(method,__LINE__),_index) = __COUNTER__ - PHANTOM_CODEGEN_reflection_counter_value - 1 };\
-class o_PP_CAT(method,__LINE__) \
+    enum { o_PP_CAT(o_PP_CAT(slot,__LINE__),_index) = __COUNTER__ - PHANTOM_CODEGEN_reflection_counter_value - 1 };\
+class o_PP_CAT(slot,__LINE__) \
         {\
         friend class enclosed_reflection;\
-        o_PP_CAT(method,__LINE__)() \
+        o_PP_CAT(slot,__LINE__)() \
             {\
-            auto pMethod = phantom::reflection::native::TNativeMethodProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value|o_slot_method,_returntype_ _parameterslist_>::CreateMethod( \
+            auto pMemberFunction = phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value|o_slot_member_function,_returntype_ _parameterslist_>::CreateMemberFunction( \
             o_PP_QUOTE(_name_) \
             , phantom::reflection::native::TNativeSignatureProvider<PHANTOM_CODEGEN_reflection_counter_value, _returntype_ _parameterslist_>::CreateSignature(o_PP_QUOTE(_returntype_)o_CS("")o_PP_QUOTE(_parameterslist_), phantom::templateSpecializationOf<phantom_proxy_generator_reflection_self_type>(), phantom::typeOf<phantom_proxy_generator_reflection_self_type>()) \
             , &phantom_proxy_generator_reflection_proxy_type::_name_ \
-            ,phantom::detail::int_embedder<__VA_ARGS__>::value|o_slot_method);\
-            pMethod->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addMethod(pMethod);\
+            ,phantom::detail::int_embedder<__VA_ARGS__>::value|o_slot_member_function);\
+            pMemberFunction->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
+            phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addMemberFunction(pMemberFunction);\
             }\
-        } o_PP_CAT(method,__LINE__);
+        } o_PP_CAT(slot,__LINE__);
 
 #    define o_constructor(_parameterslist_, ...) \
 class o_PP_CAT(o_global_value_Type,__LINE__) \
@@ -1905,80 +1913,80 @@ class o_PP_CAT(o_global_value_Type,__LINE__) \
 
 
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
-#   define o_accessor(...) o_PP_CAT(o_PP_CAT(o_accessor_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
-#   define o_attribute(...) o_PP_CAT(o_PP_CAT(o_attribute_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#   define o_property(...) o_PP_CAT(o_PP_CAT(o_property_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#   define o_data_member(...) o_PP_CAT(o_PP_CAT(o_data_member_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #   define o_collection(...) o_PP_CAT(o_PP_CAT(o_collection_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #else
-#   define o_attribute(...) o_PP_CAT(o_attribute_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
-#   define o_accessor(...) o_PP_CAT(o_accessor_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
+#   define o_data_member(...) o_PP_CAT(o_data_member_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
+#   define o_property(...) o_PP_CAT(o_property_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #   define o_collection(...) o_PP_CAT(o_collection_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #endif
 
 
-#define o_traits_specialize_all_super_traitNTTS_TNativeMethodXXX(_native_method_) \
+#define o_traits_specialize_all_super_traitNTTS_TNativeMemberFunctionXXX(_native_member_function_) \
     o_namespace_begin(phantom, reflection, native)                                                                                                                                        \
     \
     template<typename t_Ty, typename t_Signature>                                                                                                                                             \
-struct _native_method_##FunctionStyleSuperClassSolver;                                                                                                                                    \
+struct _native_member_function_##FunctionStyleSuperClassSolver;                                                                                                                                    \
     \
     template<typename t_Ty>                                                                                                                                                                   \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, signal_t()>                                                                                                                   \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, signal_t()>                                                                                                                   \
 {                                                                                                                                                                                         \
-    typedef _native_method_##0<t_Ty> type;                                                                                                                                                \
+    typedef _native_member_function_##0<t_Ty> type;                                                                                                                                                \
 };                                                                                                                                                                                        \
     \
     template<typename t_Ty, typename t_Param0>                                                                                                                                                \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0)>                                                                                                           \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0)>                                                                                                           \
 {                                                                                                                                                                                         \
-    typedef _native_method_##1<t_Ty, t_Param0> type;                                                                                                                                      \
+    typedef _native_member_function_##1<t_Ty, t_Param0> type;                                                                                                                                      \
 };                                                                                                                                                                                        \
     \
     \
     template<typename t_Ty, typename t_Param0, typename t_Param1>                                                                                                                             \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1)>                                                                                                 \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1)>                                                                                                 \
 {                                                                                                                                                                                         \
-    typedef _native_method_##2<t_Ty, t_Param0, t_Param1> type;                                                                                                                            \
+    typedef _native_member_function_##2<t_Ty, t_Param0, t_Param1> type;                                                                                                                            \
 };                                                                                                                                                                                        \
     \
     \
     template<typename t_Ty, typename t_Param0, typename t_Param1, typename t_Param2>                                                                                                          \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1, t_Param2)>                                                                                       \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1, t_Param2)>                                                                                       \
 {                                                                                                                                                                                         \
-    typedef _native_method_##3<t_Ty, t_Param0, t_Param1, t_Param2> type;                                                                                                                  \
+    typedef _native_member_function_##3<t_Ty, t_Param0, t_Param1, t_Param2> type;                                                                                                                  \
 };                                                                                                                                                                                        \
     \
     template<typename t_Ty, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3>                                                                                       \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1, t_Param2, t_Param3)>                                                                             \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1, t_Param2, t_Param3)>                                                                             \
 {                                                                                                                                                                                         \
-    typedef _native_method_##4<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3> type;                                                                                                        \
+    typedef _native_member_function_##4<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3> type;                                                                                                        \
 };                                                                                                                                                                                        \
     \
     \
     template<typename t_Ty, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4>                                                                    \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>                                                                   \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>                                                                   \
 {                                                                                                                                                                                         \
-    typedef _native_method_##5<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4> type;                                                                                              \
+    typedef _native_member_function_##5<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4> type;                                                                                              \
 };                                                                                                                                                                                        \
     \
     \
     template<typename t_Ty, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5>                                                 \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>                                                         \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>                                                         \
 {                                                                                                                                                                                         \
-    typedef _native_method_##6<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5> type;                                                                                    \
+    typedef _native_member_function_##6<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5> type;                                                                                    \
 };                                                                                                                                                                                        \
     \
     template<typename t_Ty, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6>                              \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>                                               \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>                                               \
 {                                                                                                                                                                                         \
-    typedef _native_method_##7<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6> type;                                                                          \
+    typedef _native_member_function_##7<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6> type;                                                                          \
 };                                                                                                                                                                                        \
     \
     \
     \
     template<typename t_Ty, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7>           \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>                                     \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>                                     \
 {                                                                                                                                                                                         \
-    typedef _native_method_##8<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7> type;                                                                \
+    typedef _native_member_function_##8<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7> type;                                                                \
 };                                                                                                                                                                                        \
     o_namespace_end(phantom, reflection, native)                                                                                                                                              \
     \
@@ -1986,139 +1994,139 @@ struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, signal_t(t_Param0, t
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename)                                                                                                                                                                          \
     , (t_Ty)                                                                                                                                                                              \
-    , _native_method_##0                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##0                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename)                                                                                                                                                                 \
     , (t_Ty, t_Param0)                                                                                                                                                                    \
-    , _native_method_##1                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##1                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename)                                                                                                                                                        \
     , (t_Ty, t_Param0,t_Param1)                                                                                                                                                           \
-    , _native_method_##2                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##2                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename)                                                                                                                                               \
     , (t_Ty, t_Param0,t_Param1,t_Param2)                                                                                                                                                  \
-    , _native_method_##3                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##3                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename,typename)                                                                                                                                      \
     , (t_Ty, t_Param0, t_Param1, t_Param2, t_Param3)                                                                                                                                      \
-    , _native_method_##4                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##4                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename,typename,typename)                                                                                                                             \
     , (t_Ty, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)                                                                                                                            \
-    , _native_method_##5                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##5                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename,typename,typename,typename)                                                                                                                    \
     , (t_Ty, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)                                                                                                                  \
-    , _native_method_##6                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##6                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename,typename,typename,typename,typename)                                                                                                           \
     , (t_Ty, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)                                                                                                        \
-    , _native_method_##7                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##7                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename,typename,typename,typename,typename,typename)                                                                                                  \
     , (t_Ty, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)                                                                                              \
-    , _native_method_##8                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##8                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename, typename)                                                                                                                                                                \
     , (t_Ty, t_Signature)                                                                                                                                                                 \
-    , _native_method_                                                                                                                                                                     \
-    , (o_NESTED_TYPE _native_method_##FunctionStyleSuperClassSolver<t_Ty,t_Signature>::type)                                                                                              \
+    , _native_member_function_                                                                                                                                                                     \
+    , (o_NESTED_TYPE _native_member_function_##FunctionStyleSuperClassSolver<t_Ty,t_Signature>::type)                                                                                              \
     )
 
 
 
-#define o_traits_specialize_all_super_traitNTTS_TNativeMethodRTXXX(_native_method_) \
+#define o_traits_specialize_all_super_traitNTTS_TNativeMemberFunctionRTXXX(_native_member_function_) \
     o_namespace_begin(phantom, reflection, native)                                                                                                                                        \
     \
     template<typename t_Ty, typename t_Signature>                                                                                                                                             \
-struct _native_method_##FunctionStyleSuperClassSolver;                                                                                                                                    \
+struct _native_member_function_##FunctionStyleSuperClassSolver;                                                                                                                                    \
     \
     template<typename t_Ty, typename t_ReturnType>                                                                                                                                                                   \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType()>                                                                                                                   \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType()>                                                                                                                   \
 {                                                                                                                                                                                         \
-    typedef _native_method_##0<t_Ty, t_ReturnType> type;                                                                                                                                                \
+    typedef _native_member_function_##0<t_Ty, t_ReturnType> type;                                                                                                                                                \
 };                                                                                                                                                                                        \
     \
     template<typename t_Ty, typename t_ReturnType, typename t_Param0>                                                                                                                                                \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0)>                                                                                                           \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0)>                                                                                                           \
 {                                                                                                                                                                                         \
-    typedef _native_method_##1<t_Ty, t_ReturnType, t_Param0> type;                                                                                                                                      \
+    typedef _native_member_function_##1<t_Ty, t_ReturnType, t_Param0> type;                                                                                                                                      \
 };                                                                                                                                                                                        \
     \
     \
     template<typename t_Ty, typename t_ReturnType, typename t_Param0, typename t_Param1>                                                                                                                             \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1)>                                                                                                 \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1)>                                                                                                 \
 {                                                                                                                                                                                         \
-    typedef _native_method_##2<t_Ty, t_ReturnType, t_Param0, t_Param1> type;                                                                                                                            \
+    typedef _native_member_function_##2<t_Ty, t_ReturnType, t_Param0, t_Param1> type;                                                                                                                            \
 };                                                                                                                                                                                        \
     \
     \
     template<typename t_Ty, typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2>                                                                                                          \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2)>                                                                                       \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2)>                                                                                       \
 {                                                                                                                                                                                         \
-    typedef _native_method_##3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2> type;                                                                                                                  \
+    typedef _native_member_function_##3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2> type;                                                                                                                  \
 };                                                                                                                                                                                        \
     \
     template<typename t_Ty, typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3>                                                                                       \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>                                                                             \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>                                                                             \
 {                                                                                                                                                                                         \
-    typedef _native_method_##4<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3> type;                                                                                                        \
+    typedef _native_member_function_##4<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3> type;                                                                                                        \
 };                                                                                                                                                                                        \
     \
     \
     template<typename t_Ty, typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4>                                                                    \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>                                                                   \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>                                                                   \
 {                                                                                                                                                                                         \
-    typedef _native_method_##5<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4> type;                                                                                              \
+    typedef _native_member_function_##5<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4> type;                                                                                              \
 };                                                                                                                                                                                        \
     \
     \
     template<typename t_Ty, typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5>                                                 \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>                                                         \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>                                                         \
 {                                                                                                                                                                                         \
-    typedef _native_method_##6<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5> type;                                                                                    \
+    typedef _native_member_function_##6<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5> type;                                                                                    \
 };                                                                                                                                                                                        \
     \
     template<typename t_Ty, typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6>                              \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>                                               \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>                                               \
 {                                                                                                                                                                                         \
-    typedef _native_method_##7<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6> type;                                                                          \
+    typedef _native_member_function_##7<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6> type;                                                                          \
 };                                                                                                                                                                                        \
     \
     \
     \
     template<typename t_Ty, typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7>           \
-struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>                                     \
+struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>                                     \
 {                                                                                                                                                                                         \
-    typedef _native_method_##8<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7> type;                                                                \
+    typedef _native_member_function_##8<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7> type;                                                                \
 };                                                                                                                                                                                        \
     o_namespace_end(phantom, reflection, native)                                                                                                                                              \
     \
@@ -2126,71 +2134,71 @@ struct _native_method_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnType(t_Param
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename)                                                                                                                                                                          \
     , (t_Ty, t_ReturnType)                                                                                                                                                                              \
-    , _native_method_##0                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##0                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename)                                                                                                                                                                 \
     , (t_Ty, t_ReturnType, t_Param0)                                                                                                                                                                    \
-    , _native_method_##1                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##1                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename)                                                                                                                                                        \
     , (t_Ty, t_ReturnType, t_Param0,t_Param1)                                                                                                                                                           \
-    , _native_method_##2                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##2                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename,typename)                                                                                                                                               \
     , (t_Ty, t_ReturnType, t_Param0,t_Param1,t_Param2)                                                                                                                                                  \
-    , _native_method_##3                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##3                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename,typename,typename)                                                                                                                                      \
     , (t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3)                                                                                                                                      \
-    , _native_method_##4                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##4                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename,typename,typename,typename)                                                                                                                             \
     , (t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)                                                                                                                            \
-    , _native_method_##5                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##5                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename,typename,typename,typename,typename)                                                                                                                    \
     , (t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)                                                                                                                  \
-    , _native_method_##6                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##6                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename,typename,typename,typename,typename,typename)                                                                                                           \
     , (t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)                                                                                                        \
-    , _native_method_##7                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##7                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename)                                                                                                  \
     , (t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)                                                                                              \
-    , _native_method_##8                                                                                                                                                                  \
-    , (_native_method_##Base<t_Ty>)                                                                                                                                                       \
+    , _native_member_function_##8                                                                                                                                                                  \
+    , (_native_member_function_##Base<t_Ty>)                                                                                                                                                       \
     )                                                                                                                                                                                     \
     o_traits_specialize_all_super_traitNTTS(                                                                                                                                              \
     (phantom,reflection,native)                                                                                                                                                           \
     , (typename, typename)                                                                                                                                                                \
     , (t_Ty, t_Signature)                                                                                                                                                                 \
-    , _native_method_                                                                                                                                                                     \
-    , (o_NESTED_TYPE _native_method_##FunctionStyleSuperClassSolver<t_Ty,t_Signature>::type)                                                                                              \
+    , _native_member_function_                                                                                                                                                                     \
+    , (o_NESTED_TYPE _native_member_function_##FunctionStyleSuperClassSolver<t_Ty,t_Signature>::type)                                                                                              \
     )
 
 #define o_enum_1(_values_)\

@@ -41,7 +41,7 @@ o_cpp_begin
 
 
 ReflectionCPP__________________________________________________________________________________
-    o_method(void, destroy, ());
+    o_member_function(void, destroy, ());
     o_signal(destroyed, ());
 __________________________________________________________________________________ReflectionCPP
 
@@ -71,7 +71,7 @@ phantom::signal_t Object::destroyed( void ) const
     while(pSlot)
     {
         connection::pair::push(const_cast<Object*>(this), pSlot);
-        pSlot->subroutine()->invoke(pSlot->receiver(), o_no_arg );
+        pSlot->subroutine()->call(pSlot->receiver(), o_no_arg );
         pSlot = pSlot->next();
         connection::pair::pop();
     }

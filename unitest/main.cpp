@@ -61,8 +61,8 @@ o_classN((test_struct), TestStruct)
 {
     o_reflection 
     {
-        o_attribute(int, a, o_public);
-        o_method(void, test_met, (int));
+        o_data_member(int, a, o_public);
+        o_member_function(void, test_met, (int));
     };
 };
 o_exposeN((test_struct), TestStruct);
@@ -86,7 +86,7 @@ protected:
     }
 
     // If the constructor and destructor are not enough for setting up
-    // and cleaning up each test, you can define the following methods:
+    // and cleaning up each test, you can define the following member_functions:
 
     virtual void SetUp() {
         // Code here will be called immediately after the constructor (right
@@ -120,7 +120,7 @@ protected:
   }
 
   // If the constructor and destructor are not enough for setting up
-  // and cleaning up each test, you can define the following methods:
+  // and cleaning up each test, you can define the following member_functions:
 
   virtual void SetUp() {
     // Code here will be called immediately after the constructor (right
@@ -167,23 +167,23 @@ TEST(PhantomTest, typeOf) {
   EXPECT_EQ(phantom::string("bool"),        phantom::typeOf<bool>()->getName());
 }
 
-TEST_F(ReflectionTest, InstanceAttribute_getValue) {
-    phantom::uint uiInstanceAttribute;
-    phantom::classOf(m_pMyObject)->getInstanceAttributeCascade(o_CS("m_uiInstanceAttribute"))->getValue(m_pMyObject, &uiInstanceAttribute);
-    EXPECT_EQ(m_pMyObject->m_uiInstanceAttribute, uiInstanceAttribute);
+TEST_F(ReflectionTest, InstanceDataMember_getValue) {
+    phantom::uint uiInstanceDataMember;
+    phantom::classOf(m_pMyObject)->getInstanceDataMemberCascade(o_CS("m_uiInstanceDataMember"))->getValue(m_pMyObject, &uiInstanceDataMember);
+    EXPECT_EQ(m_pMyObject->m_uiInstanceDataMember, uiInstanceDataMember);
 }
 
-TEST_F(ReflectionTest, StaticAttribute_getValue) {
-  RootClass* pStaticAttribute;
-  phantom::classOf(m_pMyObject)->getStaticAttributeCascade(o_CS("m_pStaticAttribute"))->getValue(m_pMyObject, &pStaticAttribute);
-  EXPECT_EQ(m_pMyObject->m_pStaticAttribute, pStaticAttribute);
+TEST_F(ReflectionTest, StaticDataMember_getValue) {
+  RootClass* pStaticDataMember;
+  phantom::classOf(m_pMyObject)->getStaticDataMemberCascade(o_CS("m_pStaticDataMember"))->getValue(m_pMyObject, &pStaticDataMember);
+  EXPECT_EQ(m_pMyObject->m_pStaticDataMember, pStaticDataMember);
 }
 
-TEST_F(ReflectionTest, InstanceMethod_call) {
+TEST_F(ReflectionTest, InstanceMemberFunction_call) {
     int iArg = 123;
     int iReturn;
     void* argList[] = { &iArg };
-    phantom::classOf(m_pMyObject)->getInstanceMethodCascade(o_CS("instance_method(int)"))->invoke(m_pMyObject, argList, &iReturn);
+    phantom::classOf(m_pMyObject)->getInstanceMemberFunctionCascade(o_CS("instance_member_function(int)"))->call(m_pMyObject, argList, &iReturn);
     EXPECT_EQ(123, iReturn);
 }
 
@@ -221,7 +221,7 @@ TEST_F(ReflectionTest, phantom_reflection_type_conversion)
 TEST_F(ReflectionTest, phantom_reflection_operator)
 {
     using namespace phantom;
-    EXPECT_NE(NULL, (int)typeOf<vector2>()->getInstanceMethod("operator==(const vector2&) const"));
+    EXPECT_NE(NULL, (int)typeOf<math::vector2<float>>()->getInstanceMemberFunction("operator==(const math::vector2<float>&) const"));
 
 }
 
@@ -277,7 +277,7 @@ o_namespace_end(unitest)
                 }
             }
         }
-        void method() {}
+        void member_function() {}
 
 
     protected:
@@ -288,8 +288,8 @@ o_namespace_end(unitest)
     {
         o_reflection
         {
-            o_method(void, method, ());
-            o_attribute(float[4][4], m, o_public);
+            o_member_function(void, member_function, ());
+            o_data_member(float[4][4], m, o_public);
         };
     };
 
@@ -392,7 +392,7 @@ int main(int argc, char **argv)
     <<std::endl<<std::endl;
 
     AutoReflectedClass* pAutoReflectedClass = o_new(AutoReflectedClass);
-    phantom::classOf(pAutoReflectedClass)->getInstanceMethod("method()");
+    phantom::classOf(pAutoReflectedClass)->getInstanceMemberFunction("member_function()");
 
     phantom::reflection::Type* pType_vector2_float = phantom::typeOf<phantom::math::vector2<float>>();
     phantom::reflection::Type* pType_vector3_double = phantom::typeByName("phantom::math::vector3d");
@@ -432,7 +432,7 @@ int main(int argc, char **argv)
 
     phantom::reflection::Class* pObjectClass = phantom::classOf<phantom::Object>();
 
-    o_static_assert(phantom::has_initializer_methods_cascade<Marine>::value);
+    o_static_assert(phantom::has_initializer_member_functions_cascade<Marine>::value);
   
 //     phantom::reflection::LanguageElement* pTypeAddedSignal 
 //         = phantom::reflection::detail::element_finder_spirit::find("phantom::reflection::Namespace::typeAdded(phantom::reflection::Type*)");
@@ -443,8 +443,8 @@ int main(int argc, char **argv)
     //phantom::reflection::Type* pType = phantom::typeOf<phantom::string>();
     phantom::reflection::Type* pTypeByName = phantom::typeByName("phantom::string");
 
-    phantom::reflection::InstanceMethod* pBeginMethod = static_cast<phantom::reflection::Class*>(pTypeByName)->getInstanceMethod("rbegin()");
-    phantom::reflection::InstanceMethod* pEndMethod = static_cast<phantom::reflection::Class*>(pTypeByName)->getInstanceMethod("rend()");
+    phantom::reflection::InstanceMemberFunction* pBeginMemberFunction = static_cast<phantom::reflection::Class*>(pTypeByName)->getInstanceMemberFunction("rbegin()");
+    phantom::reflection::InstanceMemberFunction* pEndMemberFunction = static_cast<phantom::reflection::Class*>(pTypeByName)->getInstanceMemberFunction("rend()");
 
     phantom::string* pString = phantom::as<phantom::string*>(pTypeByName->newInstance());
     pString->append("this string is reversed");
@@ -452,8 +452,8 @@ int main(int argc, char **argv)
     phantom::string::reverse_iterator it;
     phantom::string::reverse_iterator end;
 
-    pBeginMethod->invoke(pString, (void**)NULL, &it);
-    pEndMethod->invoke(pString, (void**)NULL, &end);
+    pBeginMemberFunction->call(pString, (void**)NULL, &it);
+    pEndMemberFunction->call(pString, (void**)NULL, &end);
   
     void* pVectorIntUnk = phantom::typeByName("std::vector<int, std::allocator<int>>")->newInstance();
     std::vector<int>* pVectorInt = static_cast<std::vector<int>*>(pVectorIntUnk);
@@ -461,7 +461,7 @@ int main(int argc, char **argv)
     pVectorInt->push_back(9);
     pVectorInt->push_back(1984);
        
-    phantom::vector2i coords;
+    phantom::math::vector2<int> coords;
     
     /* SERIALIZATION */
 
@@ -470,7 +470,7 @@ int main(int argc, char **argv)
     Marine* pDBMarine2 = o_new(Marine);
     Marine* pDBMarine3 = o_new(Marine);
 
-    phantom::matrix3x3f*   pMatrix3x3 = o_new(phantom::matrix3x3f)(1,0,0,0,1,0,0,0,1);
+    phantom::math::matrix3x3<float>*   pMatrix3x3 = o_new(phantom::math::matrix3x3<float>)(1,0,0,0,1,0,0,0,1);
 
     phantom::string data_base_url = "../../../bin/unitest/xmlfiletreedatabase_"+phantom::lexical_cast<phantom::string>(clock());
     
@@ -522,7 +522,7 @@ int main(int argc, char **argv)
         pDataBase->rootNode()->load(1);
         pDataBase->rootNode()->getChildNode(0)->load(1);
 
-        std::cout<<"test reading attribute : "<<pDataBase->getNodeAttributeValue(pDataBase->rootNode(), descriptionIndex)<<std::endl;
+        std::cout<<"test reading dataMember : "<<pDataBase->getNodeAttributeValue(pDataBase->rootNode(), descriptionIndex)<<std::endl;
 
         pDataBase->rootNode()->destroyAllDataCascade();
         o_delete(phantom::serialization::XmlFileTreeDataBase) pDataBase;

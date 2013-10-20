@@ -224,7 +224,7 @@ public:
     virtual void            valueFromString(const string& a_str, void* dest) const = 0;
     virtual void            valueToString( string& s, void* src) const = 0;
     virtual void            interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode = 0) const = 0;
-    virtual void            copy(void* a_pDest, void const* a_pSrc) const { o_exception(unsupported_method_exception, "not implemented yet"); }
+    virtual void            copy(void* a_pDest, void const* a_pSrc) const { o_exception(unsupported_member_function_exception, "not implemented yet"); }
     virtual void            smartCopy(void* a_pDest, void const* a_pSource, reflection::Type* a_pSourceType) const 
     {
         if(a_pSourceType == this)

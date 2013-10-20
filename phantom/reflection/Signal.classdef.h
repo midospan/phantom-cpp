@@ -2,7 +2,7 @@
 
 #define o_Namespace phantom, reflection
 #define o_Name      Signal
-#define o_Super     InstanceMethod
+#define o_Super     InstanceMemberFunction
 #define o_Export    _PHANTOM_KERNEL
 #define o_Guid    
 #define o_Flags     o_abstract

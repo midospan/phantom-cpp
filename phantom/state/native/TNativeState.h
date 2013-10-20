@@ -54,31 +54,31 @@ public:
         string enter_func_name = name+o_CS("_enter()");
         string update_func_name = name+o_CS("_update()");
         string leave_func_name = name+o_CS("_leave()");
-        phantom::reflection::InstanceMethod*    pEnterMethod = classOf<t_ObjectClass>()->getInstanceMethodCascade(enter_func_name);
-        if(pEnterMethod == NULL)
+        phantom::reflection::InstanceMemberFunction*    pEnterMemberFunction = classOf<t_ObjectClass>()->getInstanceMemberFunctionCascade(enter_func_name);
+        if(pEnterMemberFunction == NULL)
         {
-            classOf<t_ObjectClass>()->addMethod(phantom::reflection::native::TNativeMethodProvider<t_ObjectClass, 0, void()>::CreateMethod(
+            classOf<t_ObjectClass>()->addMemberFunction(phantom::reflection::native::TNativeMemberFunctionProvider<t_ObjectClass, 0, void()>::CreateMemberFunction(
                 enter_func_name
-                , StateMachine::StateMethodSignature()
+                , StateMachine::StateMemberFunctionSignature()
                 , pState->getEnterFunctionPointer())
                 );
         }
-        phantom::reflection::InstanceMethod*    pUpdateMethod = classOf<t_ObjectClass>()->getInstanceMethodCascade(update_func_name);
-        if(pUpdateMethod == NULL)
+        phantom::reflection::InstanceMemberFunction*    pUpdateMemberFunction = classOf<t_ObjectClass>()->getInstanceMemberFunctionCascade(update_func_name);
+        if(pUpdateMemberFunction == NULL)
         {
-            classOf<t_ObjectClass>()->addMethod(phantom::reflection::native::TNativeMethodProvider<t_ObjectClass, 0, void()>::CreateMethod(
+            classOf<t_ObjectClass>()->addMemberFunction(phantom::reflection::native::TNativeMemberFunctionProvider<t_ObjectClass, 0, void()>::CreateMemberFunction(
                 update_func_name
-                , StateMachine::StateMethodSignature()
+                , StateMachine::StateMemberFunctionSignature()
                 , pState->getUpdateFunctionPointer())
                 );
         }
 
-        phantom::reflection::InstanceMethod*    pLeaveMethod = classOf<t_ObjectClass>()->getInstanceMethodCascade(leave_func_name);
-        if(pLeaveMethod == NULL)
+        phantom::reflection::InstanceMemberFunction*    pLeaveMemberFunction = classOf<t_ObjectClass>()->getInstanceMemberFunctionCascade(leave_func_name);
+        if(pLeaveMemberFunction == NULL)
         {
-            classOf<t_ObjectClass>()->addMethod(phantom::reflection::native::TNativeMethodProvider<t_ObjectClass, 0, void()>::CreateMethod(
+            classOf<t_ObjectClass>()->addMemberFunction(phantom::reflection::native::TNativeMemberFunctionProvider<t_ObjectClass, 0, void()>::CreateMemberFunction(
                 leave_func_name
-                , StateMachine::StateMethodSignature()
+                , StateMachine::StateMemberFunctionSignature()
                 , pState->getLeaveFunctionPointer())
                 );
         }
@@ -104,7 +104,7 @@ public:
     typedef TNativeTrack<t_ObjectClass> track_class;
     typedef TNativeStateMachine<t_ObjectClass> statemachine_class;
     typedef t_ObjectClass object_class;
-    typedef reflection::native::TNativeInstanceMethod<t_ObjectClass, void()>    NativeInstanceMethodClass;
+    typedef reflection::native::TNativeInstanceMemberFunction<t_ObjectClass, void()>    NativeInstanceMemberFunctionClass;
     typedef native::state_machine_data<object_class>    instance_data;
     typedef o_NESTED_TYPE first_super_statechart_class_of<t_ObjectClass>::type        root_object_class;
 

@@ -151,16 +151,16 @@ boolean DataBase::defaultDependencyCheckerInContainer( reflection::ContainerClas
 
 boolean DataBase::defaultDependencyCheckerClassType( void* a_SrcAddress, phantom::reflection::ClassType* a_pClassType, const phantom::data& a_Dep )
 {
-    reflection::Class::member_const_iterator it = a_pClassType->propertiesBegin();
-    reflection::Class::member_const_iterator end = a_pClassType->propertiesEnd();
+    reflection::Class::member_const_iterator it = a_pClassType->valueMembersBegin();
+    reflection::Class::member_const_iterator end = a_pClassType->valueMembersEnd();
     for(; it != end; ++it)
     {
-        reflection::Property* pProperty = static_cast<reflection::Property*>(it->second);
-        reflection::Type* pType = pProperty->getValueType();
+        reflection::ValueMember* pValueMember = static_cast<reflection::ValueMember*>(it->second);
+        reflection::Type* pType = pValueMember->getValueType();
         if(pType->isDataPointerType())
         {
             void* ptr = nullptr;
-            pProperty->getValue(a_pClassType->cast(pProperty->getOwnerClassType(), a_SrcAddress), &ptr);
+            pValueMember->getValue(a_pClassType->cast(pValueMember->getOwnerClassType(), a_SrcAddress), &ptr);
             phantom::data d(ptr);
             if(NOT(d.isNull()) && d.address() == a_Dep.address())
             {
@@ -173,7 +173,7 @@ boolean DataBase::defaultDependencyCheckerClassType( void* a_SrcAddress, phantom
             if(pContainerClass)
             {
                 void* pContainer = pContainerClass->newInstance();
-                pProperty->getValue(a_pClassType->cast(pProperty->getOwnerClassType(), a_SrcAddress), pContainer);
+                pValueMember->getValue(a_pClassType->cast(pValueMember->getOwnerClassType(), a_SrcAddress), pContainer);
                 boolean result = defaultDependencyCheckerInContainer(pContainerClass, pContainer, a_Dep);
                 pContainerClass->deleteInstance(pContainer);
                 if(result) return true;
@@ -197,18 +197,18 @@ boolean DataBase::defaultDependencyCheckerClassType( void* a_SrcAddress, phantom
 
 void DataBase::defaultDependencyGetterClassType( void* a_SrcAddress, phantom::reflection::ClassType* a_pClassType, vector<phantom::data>& a_Dependencies )
 {
-    reflection::Class::member_const_iterator it = a_pClassType->propertiesBegin();
-    reflection::Class::member_const_iterator end = a_pClassType->propertiesEnd();
+    reflection::Class::member_const_iterator it = a_pClassType->valueMembersBegin();
+    reflection::Class::member_const_iterator end = a_pClassType->valueMembersEnd();
     for(; it != end; ++it)
     {
-        reflection::Property* pProperty = static_cast<reflection::Property*>(it->second);
-        if(NOT(pProperty->isTransient()) AND pProperty->getValueType()->isDataPointerType())
+        reflection::ValueMember* pValueMember = static_cast<reflection::ValueMember*>(it->second);
+        if(NOT(pValueMember->isTransient()) AND pValueMember->getValueType()->isDataPointerType())
         {
             void* value = NULL;
-            pProperty->getValue(a_SrcAddress, &value);
+            pValueMember->getValue(a_SrcAddress, &value);
             if(value != NULL) 
             {
-                reflection::Type* pPointedType = static_cast<reflection::DataPointerType*>(pProperty->getValueType())->getPointedType();
+                reflection::Type* pPointedType = static_cast<reflection::DataPointerType*>(pValueMember->getValueType())->getPointedType();
                 const phantom::rtti_data& rtti = phantom::rttiDataOf(value);
                 a_Dependencies.push_back(rtti.isNull()
                     ? phantom::data(value, pPointedType)
@@ -242,12 +242,12 @@ void DataBase::registerData( const phantom::data& a_Data, uint a_Guid, Node* a_p
     m_uiLoadedDataResetSize += a_Data.type()->getResetSize();
     m_uiLoadedDataSerializedSize += a_Data.type()->getSerializedSize();
     m_GuidBase.add(a_Guid, a_Data);
-    size_t attributeCount = getAttributeCount();
-    if(attributeCount)
+    size_t fieldCount = getAttributeCount();
+    if(fieldCount)
     {
-        string* values = o_allocate_n(attributeCount, string);
+        string* values = o_allocate_n(fieldCount, string);
         size_t i = 0;
-        for(;i<attributeCount;++i)
+        for(;i<fieldCount;++i)
         {
             new (&values[i]) string();
         }
@@ -265,17 +265,17 @@ void DataBase::unregisterData( const phantom::data& a_Data )
     m_uiLoadedDataResetSize -= a_Data.type()->getResetSize();
     m_uiLoadedDataSerializedSize -= a_Data.type()->getSerializedSize();
     m_GuidBase.remove(a_Data.address());
-    size_t attributeCount = getAttributeCount();
-    if(attributeCount)
+    size_t fieldCount = getAttributeCount();
+    if(fieldCount)
     {
         attribute_map::iterator found = m_AttributeValues.find(a_Data.address());
         string* values = found->second;
         size_t i = 0;
-        for(;i<attributeCount;++i)
+        for(;i<fieldCount;++i)
         {
             values[i].~string();
         }
-        o_deallocate_n(values, attributeCount, string);
+        o_deallocate_n(values, fieldCount, string);
         m_AttributeValues.erase(found);
     }
     data_node_map::iterator found = m_DataNodeMap.find(a_Data.address());
@@ -289,12 +289,12 @@ void DataBase::registerNode( Node* a_pNode )
     o_assert(NOT(isNodeRegistered(a_pNode)), "Node already registered");
     o_assert(a_pNode->getGuid() != e_Constant_InvalidGuidValue);
     m_GuidBase.add(a_pNode->getGuid(), phantom::data(a_pNode, classOf(a_pNode)));
-    size_t attributeCount = getAttributeCount();
-    if(attributeCount)
+    size_t fieldCount = getAttributeCount();
+    if(fieldCount)
     {
-        string* values = o_allocate_n(attributeCount, string);
+        string* values = o_allocate_n(fieldCount, string);
         size_t i = 0;
-        for(;i<attributeCount;++i)
+        for(;i<fieldCount;++i)
         {
             new (&values[i]) string();
         }
@@ -308,17 +308,17 @@ void DataBase::unregisterNode( Node* a_pNode )
     o_assert(a_pNode != rootNode(), "Root node cannot be unregistered");
     o_assert(isNodeRegistered(a_pNode), "Node not registered in database");
     m_GuidBase.remove(a_pNode);
-    size_t attributeCount = getAttributeCount();
-    if(attributeCount)
+    size_t fieldCount = getAttributeCount();
+    if(fieldCount)
     {
         attribute_map::iterator found = m_AttributeValues.find(a_pNode);
         string* values = found->second;
         size_t i = 0;
-        for(;i<attributeCount;++i)
+        for(;i<fieldCount;++i)
         {
             values[i].~string();
         }
-        o_deallocate_n(values, attributeCount, string);
+        o_deallocate_n(values, fieldCount, string);
         m_AttributeValues.erase(found);
     }
     o_assert(a_pNode->getParentNode(), "Node should have a parent");

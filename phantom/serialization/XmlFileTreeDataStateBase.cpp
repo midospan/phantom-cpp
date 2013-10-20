@@ -100,38 +100,38 @@ void XmlFileTreeDataStateBase::loadDataState(const phantom::data& a_Data, uint g
 	{
 		boost::property_tree_custom::read_xml(path, state_tree);
 	}
-	auto properties_tag = state_tree.get_child_optional("properties");
-	if (properties_tag.is_initialized())
+	auto valueMembers_tag = state_tree.get_child_optional("valueMembers");
+	if (valueMembers_tag.is_initialized())
 	{
-		a_Data.type()->deserialize(a_Data.address(), *properties_tag, m_uiSerializationFlag, pDB);
+		a_Data.type()->deserialize(a_Data.address(), *valueMembers_tag, m_uiSerializationFlag, pDB);
 	}
 }
 
 void XmlFileTreeDataStateBase::saveDataState(const phantom::data& a_Data, uint guid, Node* a_pNode, uint a_uiStateId)
 {
-	bool bHasStateProperty = false;
-	vector<reflection::Property*> properties;
-	a_Data.type()->asClass()->getAllPropertyCascade(properties);
-	vector<reflection::Property*>::iterator it = properties.begin();
-	vector<reflection::Property*>::iterator end = properties.end();
+	bool bHasStateValueMember = false;
+	vector<reflection::ValueMember*> valueMembers;
+	a_Data.type()->asClass()->getAllValueMemberCascade(valueMembers);
+	vector<reflection::ValueMember*>::iterator it = valueMembers.begin();
+	vector<reflection::ValueMember*>::iterator end = valueMembers.end();
 	for (; it != end; it++)
 	{
 		if ((*it)->isSaved(m_uiSerializationFlag))
 		{
-			bHasStateProperty = true;
+			bHasStateValueMember = true;
 			break;
 		}
 	}
 
-	if (bHasStateProperty)
+	if (bHasStateValueMember)
 	{
 		XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(a_pNode->getOwnerDataBase());
 		property_tree state_tree;
-		property_tree properties_tag;
-		a_Data.type()->serialize(a_Data.address(), properties_tag, m_uiSerializationFlag, pDB);
-		if (NOT(properties_tag.empty()))
+		property_tree valueMembers_tag;
+		a_Data.type()->serialize(a_Data.address(), valueMembers_tag, m_uiSerializationFlag, pDB);
+		if (NOT(valueMembers_tag.empty()))
 		{
-			state_tree.add_child("properties", properties_tag);
+			state_tree.add_child("valueMembers", valueMembers_tag);
 			boost::property_tree_custom::write_xml(dataPath(a_Data, guid, a_pNode, a_uiStateId), state_tree);
 		}
 	}

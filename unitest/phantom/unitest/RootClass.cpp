@@ -40,7 +40,7 @@ o_registerN((unitest), RootClass);
 
 o_namespace_begin(unitest)
 
-RootClass*    RootClass::m_pStaticAttribute = NULL;
+RootClass*    RootClass::m_pStaticDataMember = NULL;
 
 RootClass::RootClass( void )
 : m_fMultAcc(1.f)

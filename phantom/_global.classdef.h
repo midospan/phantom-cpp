@@ -68,7 +68,7 @@
 //     { \
 //         o_forceinline static void* apply(reflection::Class* a_pClass, o_global_value_QualifiedType* a_pBase) \
 //         { \
-//             return o_global_value_QualifiedEmbeddingType::PHANTOM_CODEGEN_static_method_DynamicCast(a_pClass, a_pBase); \
+//             return o_global_value_QualifiedEmbeddingType::PHANTOM_CODEGEN_static_member_function_DynamicCast(a_pClass, a_pBase); \
 //         } \
 //     }; \
 //     o_namespace_end(phantom, detail)
@@ -437,7 +437,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
   while(pSlot)\
 {\
   phantom::connection::pair::push(this, pSlot);\
-  pSlot->subroutine()->invoke(pSlot->receiver(), o_no_arg );\
+  pSlot->subroutine()->call(pSlot->receiver(), o_no_arg );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -453,7 +453,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -469,7 +469,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -485,7 +485,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -501,7 +501,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -517,7 +517,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -533,7 +533,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4), (void*)(&a_5) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -549,7 +549,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4), (void*)(&a_5), (void*)(&a_6) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -565,7 +565,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4), (void*)(&a_5), (void*)(&a_6), (void*)(&a_7) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -647,7 +647,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
   while(pSlot)\
 {\
   phantom::connection::pair::push(this, pSlot);\
-  pSlot->subroutine()->invoke(pSlot->receiver(), o_no_arg );\
+  pSlot->subroutine()->call(pSlot->receiver(), o_no_arg );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -662,7 +662,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -677,7 +677,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -692,7 +692,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -707,7 +707,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -722,7 +722,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -737,7 +737,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4), (void*)(&a_5) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -752,7 +752,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4), (void*)(&a_5), (void*)(&a_6) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
@@ -766,7 +766,7 @@ class type_name_of_forward_helper_< o_root_namespace::_type_ < o_PP_CAT o_PP_LEF
 {\
   phantom::connection::pair::push(this, pSlot);\
   void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4), (void*)(&a_5), (void*)(&a_6), (void*)(&a_7) };\
-  pSlot->subroutine()->invoke( pSlot->receiver(), args );\
+  pSlot->subroutine()->call( pSlot->receiver(), args );\
   pSlot = pSlot->next();\
   phantom::connection::pair::pop();\
 }\
