@@ -42,8 +42,6 @@ o_registerN((phantom, serialization), XmlFileTreeNode);
 
 o_namespace_begin(phantom, serialization)
 
-using namespace reflection;
-
 XmlFileTreeNode::XmlFileTreeNode(XmlFileTreeDataBase* a_pOwnerDataBase, uint guid, XmlFileTreeNode* a_pParentNode)
     : FileTreeNode(a_pOwnerDataBase, guid, a_pParentNode) 
 {

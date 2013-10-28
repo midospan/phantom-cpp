@@ -74,8 +74,9 @@ public:
     virtual        Type*        getValueType() const { return m_pContentType; }
 
     virtual LanguageElement*    asLanguageElement() const  { return const_cast<StaticDataMember*>(this); }
-    virtual InstanceDataMember*  asInstanceDataMember() const { return nullptr; }
-    virtual StaticDataMember*    asStaticDataMember() const  { return const_cast<StaticDataMember*>(this); }
+    virtual InstanceDataMember* asInstanceDataMember() const { return nullptr; }
+    virtual StaticDataMember*   asStaticDataMember() const  { return const_cast<StaticDataMember*>(this); }
+    virtual DataMember*         asDataMember() const { return const_cast<StaticDataMember*>(this); }
 
     virtual Class*              getSortingCategoryClass() const;
 

@@ -1,6 +1,18 @@
 #include "phantom/phantom.h"
 #include "phantom/math/math.h"
 
+o_register_template_instance(phantom::math::matrix2x2<float>);
+o_register_template_instance(phantom::math::matrix3x3<float>);
+o_register_typedefNC(phantom::math, matrix2x2<float>, vector2_type);
+o_register_typedefNC(phantom::math, matrix3x3<float>, vector3_type);
+
+o_register_template_instance(phantom::math::matrix2x2<double>);
+o_register_template_instance(phantom::math::matrix3x3<double>);
+o_register_typedefNC(phantom::math, matrix2x2<double>, vector2_type);
+o_register_typedefNC(phantom::math, matrix3x3<double>, vector3_type);
+
+//o_register_typedefNC(phantom::math, matrix4x4<float>, vector4_type);
+
 /*o_register_typedef(phantom, vector2);
 o_register_typedef(phantom, vector2f);
 o_register_typedef(phantom, vector2d);

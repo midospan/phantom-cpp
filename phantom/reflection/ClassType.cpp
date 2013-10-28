@@ -179,13 +179,14 @@ LanguageElement*            ClassType::getElement(
     , function_signature const* a_FunctionSignature
     , bitfield a_bfModifiers /*= bitfield()*/) const 
 {
-    LanguageElement* pElement = Type::getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_bfModifiers);
-    if(pElement) return pElement;
+    LanguageElement* pElement = nullptr;
     if(m_pTemplateSpecialization)
     {
         pElement = m_pTemplateSpecialization->getType(a_strName);
         if(pElement) return pElement;
     }
+    pElement = Type::getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_bfModifiers);
+    if(pElement) return pElement;
     if(a_FunctionSignature == NULL)
     {
         StaticDataMember* pStaticDataMember = getStaticDataMember(a_strName);

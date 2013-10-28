@@ -185,6 +185,10 @@ namespace reflection
         template<typename> struct root_pointed_type_of_;
         template<typename> struct pointed_type_of_;
     }
+
+    static phantom::reflection::Class*                 g_PHANTOM_RESERVED_class = 0;
+    static phantom::reflection::Namespace*             g_PHANTOM_RESERVED_namespace = 0;
+    static phantom::reflection::TemplateSpecialization*g_PHANTOM_RESERVED_template_specialization = 0;
 }
 
 template <typename t_Ty>
@@ -571,8 +575,8 @@ protected:
     typedef t_Proxy phantom_proxy_generator_reflection_proxy_type;
     typedef t_Proxy phantom_proxy_statechart_proxy_type;
 
-    int m_PHANTOM_REVERVED_no_signal;
-    int PHANTOM_CODEGEN_m_slot_list_of_m_PHANTOM_REVERVED_no_signal;
+    int                                         m_PHANTOM_RESERVED_no_signal;
+    int                                         PHANTOM_CODEGEN_m_slot_list_of_m_PHANTOM_RESERVED_no_signal;
 };
 
 namespace phantom {
@@ -2125,11 +2129,5 @@ o_exposeN((phantom, reflection), CodeLocation);
 
 // PARTIAL STL INTEGRATION (specific for each compiler)
 #include "phantom/externals/std/std.h"
-
-// Auto use of internal namespace symbol, and macro aliasing
-
-#define o_register_typedef o_reflection_register_typedef
-#define o_register_namespace_alias o_reflection_register_namespace_alias
-
 
 #endif // __prerequisites_h__

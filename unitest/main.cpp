@@ -371,6 +371,23 @@ void test_lexical_cast()
     value = value;
 };
 
+template<typename t_Ty>
+class TClass
+{
+public:
+    t_Ty m_DataMember;
+};
+
+o_classT((typename), (t_Ty), TClass)
+{
+    o_reflection 
+    {
+        o_data_member(t_Ty, m_DataMember, o_public); 
+    };
+};
+o_exposeT((typename), (t_Ty), TClass);
+
+o_register_template_instance(TClass<int>);
 
 int main(int argc, char **argv) 
 {

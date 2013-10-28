@@ -9,37 +9,31 @@ o_registerN((phantom, reflection, jit), JitProperty);
 
 o_namespace_begin(phantom, reflection, jit)
 
-JitProperty::JitProperty( const string& a_strName, JitSignal* a_pChangeNotificationSignal, JitInstanceMemberFunction* a_pSetter, JitInstanceMemberFunction* a_pGetter, uint a_uiSerializationMask, bitfield a_Modifiers ) 
-    : Property(a_strName, a_pGetter->getReturnType(), a_pChangeNotificationSignal, a_uiSerializationMask, a_Modifiers) 
-    , m_pSetter(a_pSetter)
-    , m_pGetter(a_pGetter)
+JitProperty::JitProperty( const string& a_strName, Type* a_pValueType, JitInstanceMemberFunction* a_pSetter, JitInstanceMemberFunction* a_pGetter, JitSignal* a_pChangeNotificationSignal, uint a_uiSerializationMask, bitfield a_Modifiers ) 
+    : Property(a_strName, a_pGetter->getReturnType(), a_pSetter, a_pGetter, a_pChangeNotificationSignal, a_uiSerializationMask, a_Modifiers) 
     , m_set_jit_function(0)
     , m_get_jit_function(0)
 {
-    m_set_jit_function = m_pSetter->getJitGenericCallFunction();
-    m_get_jit_function = m_pGetter->getJitGenericCallFunction();
+    m_set_jit_function = a_pSetter->getJitGenericCallFunction();
+    m_get_jit_function = a_pGetter->getJitGenericCallFunction();
+}
+
+JitProperty::JitProperty( const string& a_strName, Type* a_pValueType,JitInstanceMemberFunction* a_pSetter, JitInstanceMemberFunction* a_pGetter, uint a_uiSerializationMask, bitfield a_Modifiers )
+    : Property(a_strName, a_pGetter->getReturnType(), a_pSetter, a_pGetter, nullptr, a_uiSerializationMask, a_Modifiers) 
+    , m_set_jit_function(0)
+    , m_get_jit_function(0)
+{
+    m_set_jit_function = a_pSetter->getJitGenericCallFunction();
+    m_get_jit_function = a_pGetter->getJitGenericCallFunction();
+}
+
+JitProperty::~JitProperty( void )
+{
 }
 
 void JitProperty::setChangeNotificationSignal( JitSignal* a_pSignal )
 {
     m_pChangeNotificationSignal = a_pSignal;
-}
-
-
-JitProperty::JitProperty( const string& a_strName, JitInstanceMemberFunction* a_pSetter, JitInstanceMemberFunction* a_pGetter, uint a_uiSerializationMask, bitfield a_Modifiers )
-    : Property(a_strName, a_pGetter->getReturnType(), nullptr, a_uiSerializationMask, a_Modifiers) 
-    , m_pSetter(a_pSetter)
-    , m_pGetter(a_pGetter)
-    , m_set_jit_function(0)
-    , m_get_jit_function(0)
-{
-    m_set_jit_function = m_pSetter->getJitGenericCallFunction();
-    m_get_jit_function = m_pGetter->getJitGenericCallFunction();
-}
-
-
-JitProperty::~JitProperty( void )
-{
 }
 
 void JitProperty::getValue( void const* a_pObject, void* dest ) const
@@ -69,11 +63,6 @@ void JitProperty::setValue( void* a_pObject, const void* src ) const
         void* args[2] = { &a_pObject, (void*)src };
         jit_function_apply(m_set_jit_function, args, nullptr);
     }
-}
-
-Type* JitProperty::getValueType() const
-{
-    return m_pGetter->getReturnType();
 }
 
 

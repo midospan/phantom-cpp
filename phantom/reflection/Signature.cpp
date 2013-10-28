@@ -46,7 +46,6 @@ ________________________________________________________________________________
 
 void Signature::parse( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization, LanguageElement* a_pScope /*= NULL*/)
 {
-    beginConstruction();
     size_t i = 0;
     size_t length = a_strSignature.length();
     string returnType;
@@ -75,7 +74,6 @@ void Signature::parse( const string& a_strSignature, TemplateSpecialization* a_p
             {
                 o_exception(exception::invalid_parsing_exception, "Signature parameter list parsing failure");
             }
-            endConstruction();
             return;
         }
         else
@@ -85,58 +83,35 @@ void Signature::parse( const string& a_strSignature, TemplateSpecialization* a_p
     }
 }
 
-void Signature::beginConstruction()
-{
-    o_assert(m_eState == eState_Virgin);
-    m_eState = eState_UnderConstruction;
-}
-
-void Signature::endConstruction()
-{
-    o_assert(m_eState == eState_UnderConstruction);
-    m_eState = eState_Final;
-    
-}
-
-
 Signature::~Signature( void )
 {
-    if(m_eState == eState_UnderConstruction)
-    {
-        endConstruction();
-    }
 }
 
 void Signature::addParameterType( Type* a_pParameterType )
 {
-    o_assert(m_eState == eState_UnderConstruction);
     m_ParametersTypes.push_back(a_pParameterType);
     updateName();
 }
 
 void Signature::setReturnType( Type* a_pType )
 {
-    o_assert(m_eState == eState_UnderConstruction);
     m_pReturnType = a_pType;
     updateName();
 }
 
 uint Signature::getParameterCount() const
 {
-    o_assert(m_eState == eState_Final);
     return m_ParametersTypes.size();
 }
 
 Type* Signature::getParameterType( uint a_uiParamIndex ) const
 {
-    o_assert(m_eState == eState_Final);
     o_assert(a_uiParamIndex < getParameterCount(), "Index too big");
     return m_ParametersTypes[a_uiParamIndex];
 }
 
 Type* Signature::getReturnType() const
 {
-    o_assert(m_eState == eState_Final);
     return m_pReturnType;
 }
 

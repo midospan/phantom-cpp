@@ -565,7 +565,7 @@
 #define o_custom_modifier_start     0x04000000
 
 #define o_none 0
-#define o_no_signal m_PHANTOM_REVERVED_no_signal
+#define o_no_signal m_PHANTOM_RESERVED_no_signal
 
 #define o_proxy_class \
     o_local_code_TemplateSignature \

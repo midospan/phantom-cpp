@@ -764,6 +764,12 @@
     <ClInclude Include="..\..\..\phantom\reflection\StaticDataMember.classdef.h">
       <Filter>reflection</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\phantom\def_reflection_static.h">
+      <Filter>defs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\def_reflection_dynamic.h">
+      <Filter>defs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\phantom\reflection\TemplateSpecialization.cpp">

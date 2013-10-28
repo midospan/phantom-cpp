@@ -144,7 +144,7 @@
 
 #define o_classT(_template_types_,_template_params_,_name_,...) \
     o_reflection_specialize_type_name_of_forward_helperTT(_template_types_,_template_params_,_name_)\
-    o_type_specialize_traitsTT(_namespaces_,_template_types_,_template_params_,_name_) \
+    o_type_specialize_traitsTT(_template_types_,_template_params_,_name_) \
     o_traits_specializeTT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _template_types_,_template_params_, _name_)\
     o_class_moduleTT(_template_types_,_template_params_,_name_)
 
@@ -178,17 +178,35 @@
     o_traits_specializeN(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _name_)\
     o_class_moduleN(_namespaces_,_name_)
 
+#define o_register_associated_templates(type)\
+    o_register_associated_template_list o_PP_LEFT_PAREN o__list__registered_associated_templates(type) o_PP_RIGHT_PAREN
+
+#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
+#   define o_register_associated_template_list(...) o_PP_CAT(o_PP_CAT(o_register_associated_template_list_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#else
+#   define o_register_associated_template_list(...) o_PP_CAT(o_register_associated_template_list_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
+#endif
+
+#define o_register_associated_template_list_1(t0) o_register_template_instance(t0)
+#define o_register_associated_template_list_2(t0, t1) o_register_associated_template_list_1(t0) o_register_template_instance(t1)
+#define o_register_associated_template_list_3(t0, t1, t2) o_register_associated_template_list_2(t0, t1) o_register_template_instance(t2)
+#define o_register_associated_template_list_4(t0, t1, t2, t3) o_register_associated_template_list_3(t0, t1, t2) o_register_template_instance(t3)
+#define o_register_associated_template_list_5(t0, t1, t2, t3, t4) o_register_associated_template_list_4(t0, t1, t2, t3) o_register_template_instance(t4)
+
 #define o_register(_name_)\
     phantom::detail::dynamic_initializer_module_installer_registrer< ::_name_ > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
 
 #define o_registerN(_namespaces_,_name_)\
     phantom::detail::dynamic_initializer_module_installer_registrer< o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
+    //o_register_associated_templates(o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_));
 
 #define o_registerC(_classes_,_name_)\
     phantom::detail::dynamic_initializer_module_installer_registrer< o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_) > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
+    //o_register_associated_templates(o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_));
 
 #define o_registerNC(_namespaces_,_classes_,_name_)\
     phantom::detail::dynamic_initializer_module_installer_registrer< o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_) > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
+    //o_register_associated_templates(o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_));
 
 #define o_reflection_custom_begin(_type_)    \
     protected:\
@@ -299,6 +317,8 @@ class :: o_PP_CREATE_SCOPE _namespaces_::phantom_proxy_____##_name_<o_PP_CREATE_
     public phantom_proxy_generator_base_____<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_), :: o_PP_CREATE_SCOPE _namespaces_::phantom_proxy_____##_name_< o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_) >>
 
 #define o_class_moduleTT(_template_types_,_template_params_,_name_)\
+    template<typename t_Ty>\
+    class phantom_proxy_____##_name_;\
     namespace phantom {\
     template<o_PP_MIX(_template_types_,_template_params_)>\
     struct proxy_of< ::_name_< o_PP_IDENTITY _template_params_ > >\

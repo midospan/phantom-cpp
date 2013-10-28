@@ -51,9 +51,7 @@ int main(int argc, char **argv)
 #endif
 
     phantom::reflection::Signature* pSignature = o_new(phantom::reflection::Signature);
-    pSignature->beginConstruction();
     pSignature->setReturnType(phantom::typeOf<void>());
-    pSignature->endConstruction();
 
     phantom::reflection::jit::JitClass* pJitClass = o_new(phantom::reflection::jit::JitClass)("TestJitClass",0);
 

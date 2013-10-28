@@ -41,8 +41,6 @@ o_registerN((phantom, serialization), BinaryPackageNode);
 
 o_namespace_begin(phantom, serialization)
 
-using namespace reflection;
-
 BinaryPackageNode::BinaryPackageNode(BinaryPackageDataBase* a_pOwnerDataBase, uint a_uiGuid, BinaryPackageNode* a_pParentNode)
 : PackageNode(a_pOwnerDataBase, a_uiGuid, a_pParentNode) 
 {

@@ -57,6 +57,7 @@ class o_export Type : public TemplateElement
 
 public:
     typedef vector<Type*> type_container;
+    typedef map<string, Type*> nested_typedef_map;
     enum ERelation
     {
         eRelation_None = 0,
@@ -236,19 +237,23 @@ public:
 
     virtual boolean         matches(const char* a_strName, template_specialization const* a_TemplateSpecialization = NULL, bitfield a_bfModifiers = bitfield()) const;
 
-    size_t                  getSubTypeCount() const
+    size_t                  getNestedTypeCount() const
     {
-        return m_pSubTypes == NULL ? 0 : m_pSubTypes->size();
+        return m_pNestedTypes == NULL ? 0 : m_pNestedTypes->size();
     }
 
-    Type*                   getSubType(size_t index) const
+    Type*                   getNestedType(size_t index) const
     {
-        o_assert(index < getSubTypeCount());
-        return (*m_pSubTypes)[index];
+        o_assert(index < getNestedTypeCount());
+        return (*m_pNestedTypes)[index];
     }
 
-    void                    addSubType(Type* a_pType);
-    void                    removeSubType(Type* a_pType);
+    void                    addNestedType(Type* a_pType);
+    void                    removeNestedType(Type* a_pType);
+
+    void                    addNestedTypedef( const string& a_strTypedef, Type* a_pType );
+    void                    removeNestedTypedef( const string& a_strTypedef, Type* a_pType );
+    inline Type*            getNestedTypedef(const string& a_strTypedef) const;
 
     virtual LanguageElement*            getElement(
         const char* a_strName
@@ -266,10 +271,10 @@ protected:
     
     virtual void            teardownMetaDataCascade(size_t count)
     {
-        if(m_pSubTypes)
+        if(m_pNestedTypes)
         {
-            type_container::const_iterator it = m_pSubTypes->begin();
-            type_container::const_iterator end = m_pSubTypes->end();
+            type_container::const_iterator it = m_pNestedTypes->begin();
+            type_container::const_iterator end = m_pNestedTypes->end();
             for(;it != end; ++it)
             {
                 (*it)->teardownMetaDataCascade(count);
@@ -300,7 +305,8 @@ protected:
 
     //@}
 protected:
-    type_container* m_pSubTypes;
+    type_container* m_pNestedTypes;
+    nested_typedef_map* m_pNestedTypedefs;
     size_t          m_uiBuildOrder;
     ushort          m_uiSize;
     ushort          m_uiAlignment;

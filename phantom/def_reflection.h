@@ -5,29 +5,44 @@
 #define o_reflection_register_class_type(_namespace_, ...) \
     phantom::reflection::class_type_registrer< _namespace_::__VA_ARGS__ > o_PP_CAT(g_reflection_registration_, __COUNTER__);
 
-#define o_reflection_register_template_specialization(...) \
+#define o_register_template_instance(...) \
     phantom::reflection::template_specialization_registrer< __VA_ARGS__ > o_PP_CAT(g_reflection_template_registration_, __COUNTER__);
 
-#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
-#define o_reflection_register_typedef(...) o_PP_CAT(o_PP_CAT(o_reflection_register_typedef_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
-#else
-#define o_reflection_register_typedef(...) o_PP_CAT(o_reflection_register_typedef_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
-#endif
-
-#define o_reflection_register_typedef_1(_typedef_) \
+#define o_register_typedef(_typedef_) \
     phantom::reflection::typedef_registrer  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_typedef_, phantom::typeOf<_typedef_>());
 
-#define o_reflection_register_typedef_2(_namespace_, _typedef_) \
+#define o_register_typedefN(_namespace_, _typedef_) \
     phantom::reflection::typedef_registrer  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_namespace_, #_typedef_, phantom::typeOf<_namespace_::_typedef_>());
 
+#define o_register_typedefNC(_namespace_, _class_, _typedef_) \
+    o_register_typedefNC_helper(_namespace_, _class_, o_PP_CAT(g_reflection_registration_friend_##_typedef_, o_PP_IDENTITY o_PP_LEFT_PAREN __COUNTER__ o_PP_RIGHT_PAREN ), _typedef_)
+
+#define o_register_typedefNC_helper(_namespace_, _class_, _friend_class_, _typedef_) \
+    class _friend_class_ : public _namespace_::_class_\
+    {\
+    public:\
+        typedef _typedef_ wrapped_typedef;\
+    };\
+    phantom::reflection::typedef_registrer  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_namespace_"::"#_class_, #_typedef_, phantom::typeOf<_friend_class_::wrapped_typedef>());
+
+#define o_register_typedefC(_class_, _typedef_) \
+    o_register_typedefC_helper(_class_, o_PP_CAT(g_reflection_registration_friend_##_typedef_, o_PP_IDENTITY o_PP_LEFT_PAREN __COUNTER__ o_PP_RIGHT_PAREN ), _typedef_)
+
+#define o_register_typedefC_helper(_class_, _friend_class_, _typedef_) \
+    class _friend_class_ : public _class_\
+    {\
+    public:\
+        typedef _typedef_ wrapped_typedef;\
+    };\
+    phantom::reflection::typedef_registrer  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_class_, #_typedef_, phantom::typeOf<_friend_class_::wrapped_typedef>());
 
 #define o_reflection_register_type(_namespace_, _type_) \
     phantom::reflection::detail::type_reflection_registrer<_namespace_::_type_> o_PP_CAT(g_reflection_registration_##_type_,__COUNTER__) ;
 
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
-#define o_reflection_register_namespace_alias(...) o_PP_CAT(o_PP_CAT(o_reflection_register_namespace_alias_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#define o_register_namespace_alias(...) o_PP_CAT(o_PP_CAT(o_reflection_register_namespace_alias_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #else
-#define o_reflection_register_namespace_alias(...) o_PP_CAT(o_reflection_register_namespace_alias_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
+#define o_register_namespace_alias(...) o_PP_CAT(o_reflection_register_namespace_alias_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
 #endif
 
 #define o_reflection_register_namespace_alias_2(_namespace_alias_, _namespace_aliased_) \
@@ -66,7 +81,7 @@ struct template_specialization_registrer
 
 struct o_export typedef_registrer
 {
-    typedef_registrer(const char* a_strNamespace, const char* a_strTypedef, Type* a_pType);
+    typedef_registrer(const char* a_strScope, const char* a_strTypedef, Type* a_pType);
     typedef_registrer(const char* a_strTypedef, Type* a_pType);
 };
 
@@ -621,10 +636,7 @@ namespace detail {
                 sub_proxy()
                 {
                     phantom::reflection::Signature* pSignature = o_new(Signature);
-                    pSignature->beginConstruction();
                     pSignature->setReturnType(typeOf<phantom::signal_t>());
-                    pSignature->endConstruction();
-
                     phantom::reflection::Signal* pSignal = o_new(native::TNativeSignal<t_Ty, phantom::signal_t()>) 
                         ( "destroyed"
                         , pSignature
@@ -651,10 +663,15 @@ namespace detail {
         }
     };
 
-
     template<typename t_Ty>
     class phantom_base_enclosed_reflection : public phantom_base_enclosed_reflection_helper<t_Ty, has_destroyed_signal<t_Ty>::value>
     {
+    public:
+        phantom_base_enclosed_reflection()
+        {
+            g_PHANTOM_RESERVED_class = phantom::typeOf<t_Ty>()->asClass();
+            g_PHANTOM_RESERVED_template_specialization = g_PHANTOM_RESERVED_class ? g_PHANTOM_RESERVED_class->getTemplateSpecialization() : nullptr;
+        }
     };
 
 } // detail
@@ -1046,11 +1063,11 @@ o_namespace_end(phantom, reflection, detail)
     template<o_PP_MIX(_template_types_,_template_params_)> \
     struct template_specialization_adder_< ::_name_ < o_PP_IDENTITY _template_params_ > >\
     {\
-        static phantom::reflection::TemplateSpecialization* apply()\
+        static void apply(phantom::reflection::ClassType* a_pClassType)\
         {\
             phantom::reflection::TemplateSpecialization* pTemplateSpecialization = o_new(phantom::reflection::TemplateSpecialization);\
             o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
-            return pTemplateSpecialization;\
+            a_pClassType->setTemplateSpecialization(pTemplateSpecialization);\
         }\
     };\
     o_namespace_end(phantom, reflection, detail)
@@ -1074,11 +1091,11 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,
     template<o_PP_MIX(_template_types_,_template_params_)> \
 struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_) < o_PP_IDENTITY _template_params_ > >\
 {\
-    static phantom::reflection::TemplateSpecialization* apply()\
+    static void apply(phantom::reflection::ClassType* a_pClassType)\
 {\
     phantom::reflection::TemplateSpecialization* pTemplateSpecialization = o_new(phantom::reflection::TemplateSpecialization);\
     o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
-    return pTemplateSpecialization;\
+    a_pClassType->setTemplateSpecialization(pTemplateSpecialization);\
 }\
 };\
     o_namespace_end(phantom, reflection, detail)
@@ -1728,193 +1745,15 @@ struct type_of_counter_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)< o_PP_IDENT
 #define o_class_declareN(_namespaces_, _name_) \
     o_declare o_PP_LEFT_PAREN class, o_PP_IDENTITY _namespaces_, _name_ o_PP_RIGHT_PAREN
 
-
-#define o_property_4(_type_, _name_, _set_member_function_, _get_member_function_)\
-    o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, o_no_signal, 0, 0xffffffff)
-
-#define o_property_5(_type_, _name_, _set_member_function_, _get_member_function_, _signal_)\
-    o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, 0, 0xffffffff)
-
-#define o_property_6(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _modifiers_)\
-    o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _modifiers_, 0xffffffff)
-
-#define o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _modifiers_, _serialization_mask_)\
-    o_slot(void, _set_member_function_, (_type_), ((_modifiers_&o_public)==o_public)?o_public:o_protected);\
-    o_member_function(_type_, _get_member_function_, (), ((_modifiers_&o_public)==o_public)?o_public:o_protected);\
-class o_PP_CAT(_name_,__LINE__) \
-    {\
-    friend class enclosed_reflection;\
-    enum {_name_};\
-    o_PP_CAT(_name_,__LINE__)()\
-        {\
-        phantom::reflection::Type* pType = phantom::reflection::detail::type_of_counter_<_type_,PHANTOM_CODEGEN_reflection_counter_value>::object();\
-        phantom::reflection::Signal* pSignal = phantom::reflection::native::TNativePropertySignalProvider<PHANTOM_CODEGEN_reflection_counter_value, phantom_proxy_generator_reflection_self_type, _type_>::CreateSignal(\
-                                                    o_PP_QUOTE(_signal_)\
-                                                    , o_PP_QUOTE(_type_)\
-                                                    , &phantom_proxy_generator_reflection_proxy_type::_signal_\
-                                                    , &phantom_proxy_generator_reflection_proxy_type::PHANTOM_CODEGEN_m_slot_list_of_##_signal_\
-                                               );\
-        phantom::reflection::ValueMember* pValueMember = o_new(\
-        phantom::reflection::native::TNativeProperty<\
-        phantom_proxy_generator_reflection_self_type, _type_>) \
-        ( o_PP_QUOTE(_name_)\
-        , pType\
-        , pSignal\
-        , &phantom_proxy_generator_reflection_proxy_type::_set_member_function_\
-        , &phantom_proxy_generator_reflection_proxy_type::_get_member_function_\
-        , _serialization_mask_\
-        , _modifiers_\
-        );\
-        pValueMember->addCodeLocation(phantom::sourceFile(__FILE__));\
-        phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addValueMember(pValueMember);\
-        }\
-    } o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
-
-
-/// COLLECTIONS
-
-#define o_collection_8(_type_, _name_, _add_member_function_, _remove_member_function_, _move_member_function_, _set_member_function_, _get_member_function_, _size_member_function_)\
-    o_collection_9(_type_, _name_, _add_member_function_, _remove_member_function_, _move_member_function_, _set_member_function_, _get_member_function_, _size_member_function_, 0)
-
-#define o_collection_9(_type_, _name_, _add_member_function_, _remove_member_function_, _move_member_function_, _set_member_function_, _get_member_function_, _size_member_function_, _modifiers_)\
-    class o_PP_CAT(_name_,__LINE__) \
-    {\
-    friend class enclosed_reflection;\
-    enum {_name_};\
-    o_PP_CAT(_name_,__LINE__)()\
-    {\
-    phantom::reflection::Type* pType = phantom::reflection::detail::type_of_counter_<_type_,PHANTOM_CODEGEN_reflection_counter_value>::object();\
-    phantom::reflection::Collection* pCollection = o_new(\
-    phantom::reflection::native::TNativeCollection<\
-    phantom_proxy_generator_reflection_self_type, _type_>) \
-    ( o_PP_QUOTE(_name_)\
-    , pType\
-    , &phantom_proxy_generator_reflection_proxy_type::_add_member_function_\
-    , &phantom_proxy_generator_reflection_proxy_type::_remove_member_function_\
-    , &phantom_proxy_generator_reflection_proxy_type::_move_member_function_\
-    , &phantom_proxy_generator_reflection_proxy_type::_set_member_function_\
-    , &phantom_proxy_generator_reflection_proxy_type::_get_member_function_\
-    , &phantom_proxy_generator_reflection_proxy_type::_size_member_function_\
-    , _modifiers_\
-    );\
-    pCollection->addCodeLocation(phantom::sourceFile(__FILE__));\
-    phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addCollection(pCollection);\
-    }\
-} o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
-
-
-#define o_extension(_extension_class_, ...) \
-class o_PP_CAT(_name_,__LINE__) \
-    {\
-    friend class enclosed_reflection;\
-    o_PP_CAT(_name_,__LINE__)()\
-        {\
-        phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addExtension(o_new(_extension_class_)(phantom::detail::int_embedder<__VA_ARGS__>::value));\
-        }\
-    } o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
-
-
-#    define o_signal(_name_, _parameterslist_, ...) \
-class o_PP_CAT(_name_,__LINE__) \
-        {\
-        friend class enclosed_reflection;\
-        o_PP_CAT(_name_,__LINE__)() \
-            {\
-            phantom::reflection::Signal* pSignal = o_new(\
-            phantom::reflection::native::TNativeSignal<\
-            phantom_proxy_generator_reflection_self_type\
-            , phantom::signal_t _parameterslist_>) \
-            ( o_PP_QUOTE(_name_)\
-            , phantom::reflection::native::TNativeSignatureProvider<PHANTOM_CODEGEN_reflection_counter_value, phantom::signal_t _parameterslist_ >::CreateSignature(\
-            "phantom::signal_t" o_PP_QUOTE(_parameterslist_)\
-            , phantom::templateSpecializationOf<phantom_proxy_generator_reflection_self_type>()\
-            , phantom::typeOf<phantom_proxy_generator_reflection_self_type>()\
-            )\
-            , &phantom_proxy_generator_reflection_proxy_type::_name_\
-            , &phantom_proxy_generator_reflection_proxy_type::PHANTOM_CODEGEN_m_slot_list_of_##_name_\
-            , phantom::detail::int_embedder< __VA_ARGS__ >::value\
-            );\
-            pSignal->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addSignal(pSignal);\
-            }\
-        } o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
-
-
-#    define o_data_member_2(_type_, _name_) \
-    o_data_member_4(_type_, _name_, 0, 0xffffffff)
-
-#    define o_data_member_3(_type_, _name_, _modifiers_) \
-    o_data_member_4(_type_, _name_, _modifiers_, 0xffffffff)
-
-#    define o_data_member_4(_type_, _name_, _modifiers_, _serialization_mask_) \
-    class o_PP_CAT(_name_,__LINE__)\
-        {\
-        friend class enclosed_reflection;\
-        o_PP_CAT(_name_,__LINE__)()\
-            {\
-            phantom::reflection::Type* pDataMemberType = phantom::reflection::detail::type_of_counter_<_type_,PHANTOM_CODEGEN_reflection_counter_value>::object();\
-            if(pDataMemberType == NULL) { \
-            o_exception(phantom::exception::t_unknown_reflection_type_exception<_type_> \
-            , "dataMember type "#_type_" (or its pointed type if it's a pointer type) must be declared previously with the macro o_declare provided by phantom so that it can be considered as a phantom type"); \
-            }\
-            pDataMemberType->addReferenceCodeLocation(phantom::sourceFile(__FILE__));\
-            auto pDataMember = phantom::reflection::native::TNativeDataMemberProvider< phantom_proxy_generator_reflection_self_type, _modifiers_, _type_ >::CreateDataMember(o_PP_QUOTE(_name_), pDataMemberType, &phantom_proxy_generator_reflection_proxy_type::_name_, _serialization_mask_, _modifiers_);\
-            pDataMember->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addDataMember(pDataMember);\
-            }\
-        } o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
-
-
-#    define o_member_function(_returntype_, _name_, _parameterslist_, ...) \
-    enum { o_PP_CAT(o_PP_CAT(member_function,__LINE__),_index) = __COUNTER__ - PHANTOM_CODEGEN_reflection_counter_value - 1 };\
-class o_PP_CAT(member_function,__LINE__) \
-        {\
-        friend class enclosed_reflection;\
-        o_PP_CAT(member_function,__LINE__)() \
-            {\
-            auto pMemberFunction = phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value,_returntype_ _parameterslist_>::CreateMemberFunction( \
-            o_PP_QUOTE(_name_) \
-            , phantom::reflection::native::TNativeSignatureProvider<PHANTOM_CODEGEN_reflection_counter_value, _returntype_ _parameterslist_>::CreateSignature(o_PP_QUOTE(_returntype_)o_CS("")o_PP_QUOTE(_parameterslist_), phantom::templateSpecializationOf<phantom_proxy_generator_reflection_self_type>(), phantom::typeOf<phantom_proxy_generator_reflection_self_type>()) \
-            , &phantom_proxy_generator_reflection_proxy_type::_name_ \
-            ,phantom::detail::int_embedder<__VA_ARGS__>::value);\
-            pMemberFunction->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addMemberFunction(pMemberFunction);\
-            }\
-        } o_PP_CAT(member_function,__LINE__);
-
-#    define o_slot(_returntype_, _name_, _parameterslist_, ...) \
-    enum { o_PP_CAT(o_PP_CAT(slot,__LINE__),_index) = __COUNTER__ - PHANTOM_CODEGEN_reflection_counter_value - 1 };\
-class o_PP_CAT(slot,__LINE__) \
-        {\
-        friend class enclosed_reflection;\
-        o_PP_CAT(slot,__LINE__)() \
-            {\
-            auto pMemberFunction = phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value|o_slot_member_function,_returntype_ _parameterslist_>::CreateMemberFunction( \
-            o_PP_QUOTE(_name_) \
-            , phantom::reflection::native::TNativeSignatureProvider<PHANTOM_CODEGEN_reflection_counter_value, _returntype_ _parameterslist_>::CreateSignature(o_PP_QUOTE(_returntype_)o_CS("")o_PP_QUOTE(_parameterslist_), phantom::templateSpecializationOf<phantom_proxy_generator_reflection_self_type>(), phantom::typeOf<phantom_proxy_generator_reflection_self_type>()) \
-            , &phantom_proxy_generator_reflection_proxy_type::_name_ \
-            ,phantom::detail::int_embedder<__VA_ARGS__>::value|o_slot_member_function);\
-            pMemberFunction->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addMemberFunction(pMemberFunction);\
-            }\
-        } o_PP_CAT(slot,__LINE__);
-
-#    define o_constructor(_parameterslist_, ...) \
-class o_PP_CAT(o_global_value_Type,__LINE__) \
-        {\
-        friend class enclosed_reflection;\
-        o_PP_CAT(o_global_value_Type,__LINE__)() \
-            {\
-            auto pConstructor = o_new(phantom::reflection::native::TNativeConstructor<phantom_proxy_generator_reflection_self_type _parameterslist_>)(o_PP_QUOTE(o_local_value_ShortType), o_new(phantom::reflection::Signature)(o_CS("_")o_PP_QUOTE(_parameterslist_), phantom::templateSpecializationOf<phantom_proxy_generator_reflection_self_type>()),phantom::detail::int_embedder<__VA_ARGS__>::value);\
-            pConstructor->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::typeOf<phantom_proxy_generator_reflection_self_type>()->addConstructor(pConstructor);\
-            }\
-        } o_PP_CAT(o_PP_CAT(o_global_value_Type,__LINE__),_instance);
-
+#if o__bool__enable_dynamic_reflection_declaration
+#   include "def_reflection_dynamic.h"
+#else
+#   include "def_reflection_static.h"
+#endif
 
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
-#   define o_property(...) o_PP_CAT(o_PP_CAT(o_property_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #   define o_data_member(...) o_PP_CAT(o_PP_CAT(o_data_member_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#   define o_property(...) o_PP_CAT(o_PP_CAT(o_property_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #   define o_collection(...) o_PP_CAT(o_PP_CAT(o_collection_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #else
 #   define o_data_member(...) o_PP_CAT(o_data_member_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
@@ -1922,6 +1761,23 @@ class o_PP_CAT(o_global_value_Type,__LINE__) \
 #   define o_collection(...) o_PP_CAT(o_collection_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #endif
 
+#    define o_data_member_2(_type_, _name_) \
+    o_data_member_4(_type_, _name_, 0, 0xffffffff)
+
+#    define o_data_member_3(_type_, _name_, _modifiers_) \
+    o_data_member_4(_type_, _name_, _modifiers_, 0xffffffff)
+
+#define o_property_4(_type_, _name_, _set_member_function_, _get_member_function_)\
+    o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, m_PHANTOM_RESERVED_no_signal, 0, 0xffffffff)
+
+#define o_property_5(_type_, _name_, _set_member_function_, _get_member_function_, _signal_)\
+    o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, 0, 0xffffffff)
+
+#define o_property_6(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _modifiers_)\
+    o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _modifiers_, 0xffffffff)
+
+#define o_collection_8(_type_, _name_, _add_member_function_, _remove_member_function_, _move_member_function_, _set_member_function_, _get_member_function_, _size_member_function_)\
+    o_collection_9(_type_, _name_, _add_member_function_, _remove_member_function_, _move_member_function_, _set_member_function_, _get_member_function_, _size_member_function_, 0)
 
 #define o_traits_specialize_all_super_traitNTTS_TNativeMemberFunctionXXX(_native_member_function_) \
     o_namespace_begin(phantom, reflection, native)                                                                                                                                        \

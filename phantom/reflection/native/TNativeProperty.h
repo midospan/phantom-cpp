@@ -108,8 +108,8 @@ public:
 
     
 public:
-    TNativeProperty(const string& a_strName, Type* a_pValueType, Signal* a_pChangeNotificationSignal, setter a_setter, getter a_getter, uint a_uiSerializationMask, bitfield a_uiModifiers = bitfield())
-     : Property(a_strName, a_pValueType, a_pChangeNotificationSignal, a_uiSerializationMask, a_uiModifiers)
+    TNativeProperty(const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pChangeNotificationSignal, setter a_setter, getter a_getter, uint a_uiSerializationMask, bitfield a_uiModifiers = bitfield())
+     : Property(a_strName, a_pValueType, a_pSetMemberFunction, a_pGetMemberFunction, a_pChangeNotificationSignal, a_uiSerializationMask, a_uiModifiers)
      , m_setter(a_setter)
      , m_getter(a_getter)
     {
@@ -182,7 +182,7 @@ public:
     {
         t_ContentType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
         property_tree value_tree;
-        m_pContentType->removeReference()->removeConst()->serialize(
+        m_pValueType->removeReference()->removeConst()->serialize(
             (t_ContentTypeNoConstNoRef*)&contentType
             , value_tree
             , a_uiSerializationMask, a_pDataBase);
@@ -197,7 +197,7 @@ public:
             // TODO : correct this
             t_ContentType contentType = (reinterpret_cast<t_Ty const*>(pChunk)->*m_getter)();
             property_tree value_tree;
-            m_pContentType->removeReference()->removeConst()->serialize(
+            m_pValueType->removeReference()->removeConst()->serialize(
                 (t_ContentTypeNoConstNoRef*)&contentType
                 , value_tree
                 , a_uiSerializationMask, a_pDataBase);
@@ -212,7 +212,7 @@ public:
         boost::optional<const property_tree&> value_tree_opt = a_InBranch.get_child_optional(m_strName);
         if(value_tree_opt.is_initialized())
         {
-            m_pContentType->removeReference()->removeConst()->deserialize(
+            m_pValueType->removeReference()->removeConst()->deserialize(
                 &contentType
                 , *value_tree_opt
                 , a_uiSerializationMask, a_pDataBase);
@@ -230,7 +230,7 @@ public:
             boost::optional<const property_tree&> value_tree_opt = a_InBranch.get_child_optional(m_strName);
             if(value_tree_opt.is_initialized())
             {
-                m_pContentType->removeReference()->removeConst()->deserialize(
+                m_pValueType->removeReference()->removeConst()->deserialize(
                     &contentType
                     , *value_tree_opt
                     , a_uiSerializationMask, a_pDataBase);
@@ -290,11 +290,10 @@ public:
         o_delete(self_type) this;
     }
 
-    reflection::Type*   getValueType() const { return m_pContentType; }
+    reflection::Type*   getValueType() const { return m_pValueType; }
 
     getter              m_getter;
     setter              m_setter;
-    reflection::Type*   m_pContentType;
 };
 
 template<typename t_Ty, typename t_ContentType>

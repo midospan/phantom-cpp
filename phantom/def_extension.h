@@ -1325,7 +1325,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
 
                 reflection::Class* pClass = static_cast<reflection::Class*>(pType);
                 void* newInstance = pClass->allocate();
-                pClass->setup(newInstance);
+                pClass->build(newInstance);
                 pClass->deserialize(newInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase); // Save the instance
 
                 // we restore all the pass here, because we can't do it later, 
@@ -1394,7 +1394,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
                     "ensure all the class are registered correctly before deserializing data");
                 reflection::Class* pClass = static_cast<reflection::Class*>(pType);
                 void* newInstance = pClass->allocate();
-                pClass->setup(newInstance);
+                pClass->build(newInstance);
                 const property_tree& data_tree = a_InBranch.get_child("data");
                 pClass->deserialize(newInstance, data_tree, a_uiSerializationMask, a_pDataBase);
                     
@@ -1496,7 +1496,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
 
                     reflection::Class* pClass = static_cast<reflection::Class*>(pType);
                     void* newInstance = pClass->allocate();
-                    pClass->setup(newInstance);
+                    pClass->build(newInstance);
                     pClass->deserialize(newInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase); // Save the instance
 
                     // we restore all the pass here, because we can't do it later, 
@@ -1589,7 +1589,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
                             "ensure all the class are registered correctly before deserializing data");
                         reflection::Class* pClass = static_cast<reflection::Class*>(pType);
                         void* newInstance = pClass->allocate();
-                        pClass->setup(newInstance);
+                        pClass->build(newInstance);
                         const property_tree& data_tree = index_tree.get_child("data"); 
                         pClass->deserialize(newInstance, data_tree, a_uiSerializationMask, a_pDataBase);
                         // we restore all the pass here, because we can't do it later, 

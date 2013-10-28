@@ -34,28 +34,10 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 /* ** The Class Header must be the last #include * */
-#include "Property.h"
+#include "Bench.h"
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((sc2), Bench);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
-
-Property::Property( const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pChangeNotificationSignal, uint a_uiSerializationMask, bitfield a_bfModifiers /*= bitfield()*/ ) 
-    : ValueMember(a_strName, a_uiSerializationMask, a_bfModifiers) 
-    , m_pValueType(a_pValueType)
-    , m_pSetMemberFunction(a_pSetMemberFunction)
-    , m_pGetMemberFunction(a_pGetMemberFunction)
-    , m_pChangeNotificationSignal(a_pChangeNotificationSignal)
-{
-    o_assert(m_pGetMemberFunction->getSignature()->getReturnType() == m_pValueType);
-    o_assert(m_pSetMemberFunction->getSignature()->getParameterCount() == 1 && m_pSetMemberFunction->getSignature()->getParameterType(0) == m_pValueType);
-    o_assert(m_pChangeNotificationSignal == nullptr 
-        || m_pChangeNotificationSignal->getSignature()->getParameterCount() == 0 
-        || (m_pChangeNotificationSignal->getSignature()->getParameterCount() == 1 && m_pChangeNotificationSignal->getSignature()->getParameterType(0) == m_pValueType));
-    // TODO : fix this, put it in o_property ...
-    if(m_pChangeNotificationSignal && m_pChangeNotificationSignal->getOwner() == nullptr)
-        a_pSetMemberFunction->getOwnerClass()->addSignal(m_pChangeNotificationSignal);
-}
-
-o_cpp_end
+o_namespace_begin(sc2)
+     
+o_namespace_end(sc2)

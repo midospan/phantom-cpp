@@ -64,7 +64,6 @@ JitClass::JitClass( const string& a_strName, bitfield a_bfModifiers /*= bitfield
 
 o_destructor JitClass::~JitClass( void )
 {
-    jit_context_destroy(m_Context);
     auto it = m_VTableInfos.begin();
     auto end = m_VTableInfos.end();
     for(;it!=end;++it)

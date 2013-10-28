@@ -380,7 +380,7 @@ void detail::dynamic_initializer_handle::registerType( const string& a_strNamesp
     {
         phantom::reflection::Type* pType = phantom::typeByName(a_strClassScope, pNamespace);
         o_assert(pType != NULL);
-        pType->addSubType(a_pType);
+        pType->addNestedType(a_pType);
     }
 }
 

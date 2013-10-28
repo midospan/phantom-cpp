@@ -778,9 +778,7 @@ public:
             pSignature->parse(a_strSignature, a_pTemplateSpecialization, a_pScope);
             return pSignature;
         }
-        pSignature->beginConstruction();
         pSignature->setReturnType(pReturnType);
-        pSignature->endConstruction();
         return pSignature;
     }
 };
@@ -808,10 +806,8 @@ public:
             pSignature->parse(a_strSignature, a_pTemplateSpecialization, a_pScope);
             return pSignature;
         }
-        pSignature->beginConstruction();
         pSignature->setReturnType(pReturnType);
         pSignature->addParameterType(pParam0);
-        pSignature->endConstruction();
         return pSignature;
     }
 };
@@ -846,11 +842,9 @@ public:
             pSignature->parse(a_strSignature, a_pTemplateSpecialization, a_pScope);
             return pSignature;
         }
-        pSignature->beginConstruction();
         pSignature->setReturnType(pReturnType);
         pSignature->addParameterType(pParam0);
         pSignature->addParameterType(pParam1);
-        pSignature->endConstruction();
         return pSignature;
     }
 };
@@ -891,12 +885,10 @@ public:
             pSignature->parse(a_strSignature, a_pTemplateSpecialization, a_pScope);
             return pSignature;
         }
-        pSignature->beginConstruction();
         pSignature->setReturnType(pReturnType);
         pSignature->addParameterType(pParam0);
         pSignature->addParameterType(pParam1);
         pSignature->addParameterType(pParam2);
-        pSignature->endConstruction();
         return pSignature;
     }
 };
@@ -944,13 +936,11 @@ public:
             pSignature->parse(a_strSignature, a_pTemplateSpecialization, a_pScope);
             return pSignature;
         }
-        pSignature->beginConstruction();
         pSignature->setReturnType(pReturnType);
         pSignature->addParameterType(pParam0);
         pSignature->addParameterType(pParam1);
         pSignature->addParameterType(pParam2);
         pSignature->addParameterType(pParam3);
-        pSignature->endConstruction();
         return pSignature;
     }
 };
@@ -1005,14 +995,12 @@ public:
             pSignature->parse(a_strSignature, a_pTemplateSpecialization, a_pScope);
             return pSignature;
         }
-        pSignature->beginConstruction();
         pSignature->setReturnType(pReturnType);
         pSignature->addParameterType(pParam0);
         pSignature->addParameterType(pParam1);
         pSignature->addParameterType(pParam2);
         pSignature->addParameterType(pParam3);
         pSignature->addParameterType(pParam4);
-        pSignature->endConstruction();
         return pSignature;
     }
 };
@@ -1112,7 +1100,7 @@ public:
     static Signal* CreateSignal(const char* a_strName, const char* a_strPropertyValueTypeName, signal_t (t_Ty::*signal_pointer)(t_PropertyValueType) const, connection::slot::list (t_Ty::*signal_slot_list_pointer))
     {
         return o_new(TNativeSignal<t_Ty, signal_t(t_PropertyValueType)>)( a_strName
-            , TNativeSignatureProvider<t_counter, phantom::signal_t() >::CreateSignature(
+            , TNativeSignatureProvider<t_counter, phantom::signal_t(t_PropertyValueType) >::CreateSignature(
                 (string("phantom::signal_t(") + a_strPropertyValueTypeName + ")").c_str()
                 , phantom::templateSpecializationOf<t_Ty>()
                 , phantom::typeOf<t_Ty>()

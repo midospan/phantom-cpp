@@ -54,7 +54,7 @@ public:
     _____________________________________________________________________________________Reflection
 
 public:
-    Property(const string& a_strName, Type* a_pValueType, Signal* a_pChangeNotificationSignal
+    Property(const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pChangeNotificationSignal
     , uint a_uiSerializationMask
     , bitfield a_bfModifiers = bitfield());
 
@@ -62,15 +62,19 @@ public:
 
     virtual void getValue(void const* a_pObject, void* dest) const = 0;
     virtual void setValue(void* a_pObject, void const* src) const = 0;
-    virtual        Type*        getValueType() const { return m_pValueType; }
+    Type*        getValueType() const { return m_pValueType; }
     virtual boolean        isProperty() const { return true; }
     virtual Property*      asProperty() const { return (Property*)this; }
         
+    InstanceMemberFunction* getSetMemberFunction() const { return m_pSetMemberFunction; }
+    InstanceMemberFunction* getGetMemberFunction() const { return m_pGetMemberFunction; }
     Signal* getChangeNotificationSignal() const { return m_pChangeNotificationSignal; }
 
 protected:
     Type*   m_pValueType;
     Signal* m_pChangeNotificationSignal;
+    InstanceMemberFunction* m_pSetMemberFunction;
+    InstanceMemberFunction* m_pGetMemberFunction;
 };
 
 o_h_end

@@ -123,7 +123,10 @@ public:
     virtual boolean                     isEnum() const { return false; }
     virtual boolean                     isPOD() const { return false; }
 
-    virtual MemberFunction*                     asMemberFunction() const { return nullptr; }
+
+    virtual Property*                   asProperty() const { return nullptr; }
+    virtual DataMember*                 asDataMember() const { return nullptr; }
+    virtual MemberFunction*             asMemberFunction() const { return nullptr; }
     virtual Enum*                       asEnum() const { return nullptr; }
     virtual Type*                       asType() const { return nullptr; }
     virtual ClassType*                  asClassType() const { return nullptr; }
@@ -133,12 +136,12 @@ public:
     virtual PrimitiveType*              asPrimitiveType() const { return nullptr; }
     virtual DataPointerType*            asDataPointerType() const { return nullptr; }
     virtual Subroutine*                 asSubroutine() const { return nullptr; }
-    virtual InstanceMemberFunction*             asInstanceMemberFunction() const { return nullptr; }
-    virtual StaticMemberFunction*               asStaticMemberFunction() const { return nullptr; }
-    virtual InstanceDataMember*          asInstanceDataMember() const { return nullptr; }
-    virtual StaticDataMember*            asStaticDataMember() const  { return nullptr; }
+    virtual InstanceMemberFunction*     asInstanceMemberFunction() const { return nullptr; }
+    virtual StaticMemberFunction*       asStaticMemberFunction() const { return nullptr; }
+    virtual InstanceDataMember*         asInstanceDataMember() const { return nullptr; }
+    virtual StaticDataMember*           asStaticDataMember() const  { return nullptr; }
     virtual Signal*                     asSignal() const  { return nullptr; }
-    virtual InstanceMemberFunction*             asSlot() const  { return nullptr; }
+    virtual InstanceMemberFunction*     asSlot() const  { return nullptr; }
     virtual Namespace*                  asNamespace() const { return nullptr; }
 
     o_forceinline boolean               isStatic() const  { return m_bfModifiers.matchesMask(o_static); }

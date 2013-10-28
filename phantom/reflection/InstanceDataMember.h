@@ -72,8 +72,9 @@ public:
     virtual    void         setValue(void* a_pObject, void const* src) const = 0;
 
     virtual LanguageElement*    asLanguageElement() const  { return const_cast<InstanceDataMember*>(this); }
-    virtual InstanceDataMember*  asInstanceDataMember() const { return const_cast<InstanceDataMember*>(this); }
-    virtual StaticDataMember*    asStaticDataMember() const  { return NULL; }
+    virtual InstanceDataMember* asInstanceDataMember() const { return const_cast<InstanceDataMember*>(this); }
+    virtual StaticDataMember*   asStaticDataMember() const  { return nullptr; }
+    virtual DataMember*         asDataMember() const { return const_cast<InstanceDataMember*>(this); }
 
 protected:
     Type*    m_pContentType;

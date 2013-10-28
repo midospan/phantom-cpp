@@ -162,6 +162,8 @@
     <ClInclude Include="..\..\..\phantom\def_memory.h" />
     <ClInclude Include="..\..\..\phantom\def_modules.h" />
     <ClInclude Include="..\..\..\phantom\def_reflection.h" />
+    <ClInclude Include="..\..\..\phantom\def_reflection_static.h" />
+    <ClInclude Include="..\..\..\phantom\def_reflection_dynamic.h" />
     <ClInclude Include="..\..\..\phantom\def_serialization.h" />
     <ClInclude Include="..\..\..\phantom\def_statechart.h" />
     <ClInclude Include="..\..\..\phantom\def_traits.h" />
