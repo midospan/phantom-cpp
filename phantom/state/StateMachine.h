@@ -61,10 +61,10 @@ public:
         eMaxDispatchingEventPass = 1,
         eEventQueueSize = 16,
     };
-    static reflection::Signature*        StateMethodSignature();
+    static reflection::Signature*        StateMemberFunctionSignature();
     static reflection::Signature*        StateSignalSignature()
     {
-        return StateMethodSignature();
+        return StateMemberFunctionSignature();
     }
 
     Reflection_____________________________________________________________________________________

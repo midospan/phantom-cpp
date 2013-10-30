@@ -537,6 +537,7 @@
 
 #define o_virtual                   0x00000001
 #define o_abstract                  0x00000002
+#define o_pure_virtual              o_abstract|o_virtual
 #define o_reset                     0x00000004
 #define o_static                    0x00000008
 #define o_no_default_constructor    0x00000010
@@ -557,12 +558,14 @@
 #define o_noconst                   0x00080000
 #define o_proxy                     0x00100000
 #define o_inherits_allocator        0x00200000
-#define o_slot_method               0x00400000
+#define o_slot_member_function               0x00400000
 #define o_component                 0x00800000
 #define o_owner                     0x01000000
 #define o_fixed_size                0x02000000
 #define o_custom_modifier_start     0x04000000
 
+#define o_none 0
+#define o_no_signal m_PHANTOM_RESERVED_no_signal
 
 #define o_proxy_class \
     o_local_code_TemplateSignature \
@@ -727,7 +730,7 @@
 #define o_assert_not(exp)                   o_assert(NOT(exp))
 #define o_assert_default_case()             o_assert(false, "Forgotten Default Case")
 #define o_assert_no_implementation()        o_assert(false, "Not Implemented")
-#define o_assert_forbidden_call()           o_assert(false, "Call to this method forbidden")
+#define o_assert_forbidden_call()           o_assert(false, "Call to this member_function forbidden")
 
 
 #define o_check_phantom_installed()    o_assert(phantom::Phantom::getState() == Phantom::eState_Installed \
@@ -839,17 +842,24 @@ application's life time");
 // Reflection system
 
 // Typedef
-#define o_Method o_method
-#define o_METHOD o_method
+#define o_MemberFunction o_member_function
+#define o_MEMBER_FUNCTION o_member_function
+#define o_Method o_member_function
+#define o_METHOD o_member_function
+#define o_method o_member_function
 
-#define o_Attribute o_attribute
-#define o_ATTRIBUTE o_attribute
+#define o_DataMember o_data_member
+#define o_DATA_MEMBER o_data_member
+
+#define o_Field o_data_member
+#define o_FIELD o_data_member
+#define o_field o_data_member
 
 #define o_Signal o_signal
 #define o_SIGNAL o_signal
 
-#define o_Accessor o_accessor
-#define o_ACCESSOR o_accessor
+#define o_Property o_property
+#define o_PROPERTY o_property
 
 #define o_Constructor o_constructor
 #define o_CONSTRUCTOR o_constructor

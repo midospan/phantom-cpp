@@ -37,7 +37,7 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/reflection/InstanceMethod.h>
+#include <phantom/reflection/InstanceMemberFunction.h>
 /* *********************************************** */
 /* The *.classdef.h file must be the last #include */
 #include "Signal.classdef.h"
@@ -45,12 +45,12 @@
 /* *********************************************** */
 o_h_begin
 
-class o_export Signal : public InstanceMethod
+class o_export Signal : public InstanceMemberFunction
 {
     o_friend(class, phantom, reflection, Class)
     o_friend(class, phantom, Phantom)
-    friend o_export void internalConnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMethod* a_pMethod );
-    friend o_export void internalDisconnect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMethod* a_pMethod );
+    friend o_export void internalConnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction );
+    friend o_export void internalDisconnect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
     
     Reflection_____________________________________________________________________________________
     _____________________________________________________________________________________Reflection
@@ -66,10 +66,10 @@ public:
 
     virtual connection::slot::list*    getSlotList( void* a_pCaller ) const = 0;
 
-    virtual void    invoke( void* a_pCallerAddress, argument::list* a_pArgs, void* a_pReturnAddress ) const;
-    virtual void    invoke( void* a_pCallerAddress, argument::list* a_pArgs ) const = 0;
-    virtual void    invoke( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const;
-    virtual void    invoke( void* a_pCallerAddress, void** a_pArgs ) const = 0;
+    virtual void    call( void* a_pCallerAddress, argument::list* a_pArgs, void* a_pReturnAddress ) const;
+    virtual void    call( void* a_pCallerAddress, argument::list* a_pArgs ) const = 0;
+    virtual void    call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const;
+    virtual void    call( void* a_pCallerAddress, void** a_pArgs ) const = 0;
 
     virtual void    initializeLocalStorage(void* a_pLocalStorageAddress);
 

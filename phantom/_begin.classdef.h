@@ -80,7 +80,7 @@
 #undef    o_local_code_ForwardDeclaration
 #undef    o_local_code_EmbeddingClassForwardDeclaration
 #undef    o_local_code_concat_namespace_sequence
-#undef    o_local_code_Attribute_RESERVED_smdataptr
+#undef    o_local_code_DataMember_RESERVED_smdataptr
 #undef    o_local_code_TemplateArgumentList
 #undef    o_local_code_TemplateSpecializationSignaturePlusCounter
 #undef    o_local_code_TemplateSignature
@@ -92,7 +92,7 @@
 #undef    o_local_code_Specialize__proxy_of
 #undef    o_local_code_TemplateSpecializationSignature
 #undef    o_local_code_FriendifyDestroyedSignalEmitter
-#undef    o_local_code_AttributeTypeFinding
+#undef    o_local_code_DataMemberTypeFinding
 #undef    o_local_code_AutoReflectionRegistration
 #undef    o_local_code_Selector_typedef_typename
 #undef    o_local_code_inline_specifier

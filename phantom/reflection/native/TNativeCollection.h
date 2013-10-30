@@ -128,15 +128,15 @@ class TNativeCollection<t_Ty, t_ContentType const>
 {
 public:
     typedef TNativeCollection<t_Ty, t_ContentType const> self_type;
-    typedef t_ContentType const (t_Ty::*member_attribute_pointer);
+    typedef t_ContentType const (t_Ty::*member_field_pointer);
 
 public:
     TNativeCollection(const string& a_strName, Type* a_pContentType
-        , member_attribute_pointer a_member_attribute_pointer, bitfield a_uiModifiers = bitfield())
+        , member_field_pointer a_member_field_pointer, bitfield a_uiModifiers = bitfield())
         : TNativeCollection<t_Ty,t_ContentType>(a_strName, a_pContentType
 
         // We manage const-type attributes like no-const-type attributes : we break the const qualifier to be able to force write with "setValue"
-        , const_cast<typename TNativeCollection<t_Ty,t_ContentType>::member_attribute_pointer>(a_member_attribute_pointer)
+        , const_cast<typename TNativeCollection<t_Ty,t_ContentType>::member_field_pointer>(a_member_field_pointer)
         , a_uiModifiers)
     {}
 

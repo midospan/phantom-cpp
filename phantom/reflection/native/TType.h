@@ -222,7 +222,7 @@ public:
 
     virtual void setValue(void const* src) const 
     {
-        o_exception(exception::unsupported_method_exception, "Set iterators are readonly because modifying a value should modify also the key");
+        o_exception(exception::unsupported_member_function_exception, "Set iterators are readonly because modifying a value should modify also the key");
     }
 
     virtual void advance(size_t offset) { std::advance(m_Iterator, offset); } 
@@ -811,7 +811,7 @@ enum meta_type_id
 
     meta_member_pointer_type, // abstract// 4
     meta_attribute_pointer_type,// 5
-    meta_method_pointer_type,// 6
+    meta_member_function_pointer_type,// 6
 
     meta_reference_type,// 7
 
@@ -879,7 +879,7 @@ x_specialize____meta_type_super_class_solver(meta_data_pointer_type,phantom::ref
 x_specialize____meta_type_super_class_solver(meta_function_pointer_type,phantom::reflection::Type)
 x_specialize____meta_type_super_class_solver(meta_member_pointer_type,phantom::reflection::Type)
 x_specialize____meta_type_super_class_solver(meta_attribute_pointer_type,phantom::reflection::Type)
-x_specialize____meta_type_super_class_solver(meta_method_pointer_type,phantom::reflection::Type)
+x_specialize____meta_type_super_class_solver(meta_member_function_pointer_type,phantom::reflection::Type)
 x_specialize____meta_type_super_class_solver(meta_reference_type,phantom::reflection::ReferenceType)
 x_specialize____meta_type_super_class_solver(meta_fundamental_type,phantom::reflection::PrimitiveType)
 x_specialize____meta_type_super_class_solver(meta_arithmetic_type,phantom::reflection::PrimitiveType)
@@ -914,7 +914,7 @@ struct ____meta_type_id_solver
         : ::boost::is_integral<t_Ty>::value
         ? meta_integral_type
         : ::boost::is_member_function_pointer<t_Ty>::value
-        ? meta_method_pointer_type
+        ? meta_member_function_pointer_type
         : ::boost::is_member_object_pointer<t_Ty>::value
         ? meta_attribute_pointer_type
         : is_container<t_Ty>::value
@@ -1213,15 +1213,15 @@ public:
             , mode
         );
     }
-    virtual void        extractVirtualMethodTableInfos(const void* a_pInstance, vector<vtable_info>& vtables) 
+    virtual void        extractVirtualMemberFunctionTableInfos(const void* a_pInstance, vector<vtable_info>& vtables) 
     {
         phantom::vtable_info_extractor<t_Ty>::apply(a_pInstance, vtables);
     }
     virtual boolean     isPolymorphic() const { return boost::is_polymorphic<t_Ty>::value; }
     virtual boolean     isDefaultConstructible() const { return std::is_default_constructible<t_Ty>::value; }
-    virtual uint        getVirtualMethodCount(uint a_uiIndex) const
+    virtual uint        getVirtualMemberFunctionCount(uint a_uiIndex) const
     {
-        return phantom::virtualMethodCountOf<t_Ty>();
+        return phantom::virtualMemberFunctionCountOf<t_Ty>();
     }
     virtual boolean         isSerializable() const 
     { 

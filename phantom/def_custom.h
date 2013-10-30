@@ -37,6 +37,7 @@
 // FEATURES activation / deactivation
 #define o__bool__nedalloc                                 1     /// Uses nedmalloc
 #define o__bool__enable_reflection_feature                1     /// Enable type reflection generation
+#define o__bool__enable_dynamic_reflection_declaration    0     /// All symbol resolution will be made via parsing instead of meta programming where possible (quicker compilation / slower runtime). Switch from Dynamic to Static is straightforward, opposite requires more reflection declaration such as template instances and typedefs in .cpp. 
 #define o__bool__enable_signal_connection_feature         1     /// Enable connection between objects via signals
 #define o__bool__enable_nested_state_machine_feature      1     /// Enable statemachine system
 #define o__bool__enable_allocation_statistics             1     /// Enable statitistics (file, line, count ...) on phantom class allocations (for stl class it wont generate any file/line information, but it's not a probleme since stl is safe)
@@ -52,6 +53,8 @@
 #define o__bool__enable_state_machine_trace               1
 #define o__uint__state_machine_event_queue_size           16     /// maximum event count that can be queued on a busy statemachine 
 #define o__uint__max_class_size                           0xfffffff  /// set the maximum size of all phantom managed class
+#define o__list__registered_associated_templates(type)    phantom::vector<type*> /// each time a class is registered, the template in the list are too
+
 
 // ALLOCATION / CONSTRUCTION / INSTALLATION customization
 #if defined(o_USE_POOL_ALLOCATORS)
@@ -88,5 +91,11 @@
 
 // EXPERTS ONLY
 #define o__t1_class__native_class_tag(_modifiers_)            phantom::reflection::native::native_class_default_tag_filter<_modifiers_>::tag /// Allow full native class content redefinition by partial specialization of TNativeType<t_Class, o__t1_class__native_class_tag(_modifiers_)>
+
+#if o__bool__enable_dynamic_reflection_declaration
+#pragma message("DYNAMIC REFLECTION RESOLUTION")
+#else 
+#pragma message("STATIC REFLECTION RESOLUTION")
+#endif
 
 #endif // o_phantom_custom_h__

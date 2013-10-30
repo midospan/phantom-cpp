@@ -91,7 +91,7 @@ public:
 
 	o_forceinline size_t				getGuid() const { return m_uiGuid; }
 
-    // Util methods to get the type of element
+    // Util member_functions to get the type of element
     boolean                             isClass() const { return asClass() != nullptr; }
     boolean                             isClassType() const { return asClassType() != nullptr; }
     virtual boolean                     isArithmeticType() const { return false; }
@@ -100,22 +100,22 @@ public:
     virtual boolean                     isFunctionPointerType() const { return false; }
             boolean                     isPrimitiveType() const { return asPrimitiveType() != nullptr; }
     virtual boolean                     isReferenceType() const { return false; }
-    virtual boolean                     isAttributePointerType() const { return false; }
-    virtual boolean                     isMethodPointerType() const { return false; }
+    virtual boolean                     isDataMemberPointerType() const { return false; }
+    virtual boolean                     isMemberFunctionPointerType() const { return false; }
     virtual boolean                     isDataPointerType() const { return false; }
     virtual boolean                     isPointerType() const { return false; }
     virtual boolean                     isFunction() const { return false; }
     virtual boolean                     isMember() const { return false; }
     virtual boolean                     isNamespace() const { return false; }
-    virtual boolean                     isMethod() const { return false; }
-    virtual boolean                     isInstanceMethod() const { return false; }
-    virtual boolean                     isStaticMethod() const { return false; }
+    virtual boolean                     isMemberFunction() const { return false; }
+    virtual boolean                     isInstanceMemberFunction() const { return false; }
+    virtual boolean                     isStaticMemberFunction() const { return false; }
     virtual boolean                     isSignal() const { return false; }
     virtual boolean                     isSlot() const { return false; }
-    virtual boolean                     isAttribute() const { return false; }
-    virtual boolean                     isInstanceAttribute() const { return false; }
+    virtual boolean                     isDataMember() const { return false; }
+    virtual boolean                     isInstanceDataMember() const { return false; }
+    virtual boolean                     isValueMember() const { return false; }
     virtual boolean                     isProperty() const { return false; }
-    virtual boolean                     isAccessor() const { return false; }
     virtual boolean                     isConstructor() const { return false; }
     virtual boolean                     isExtension() const { return false; }
     virtual boolean                     isConstType() const { return false; }
@@ -123,7 +123,10 @@ public:
     virtual boolean                     isEnum() const { return false; }
     virtual boolean                     isPOD() const { return false; }
 
-    virtual Method*                     asMethod() const { return nullptr; }
+
+    virtual Property*                   asProperty() const { return nullptr; }
+    virtual DataMember*                 asDataMember() const { return nullptr; }
+    virtual MemberFunction*             asMemberFunction() const { return nullptr; }
     virtual Enum*                       asEnum() const { return nullptr; }
     virtual Type*                       asType() const { return nullptr; }
     virtual ClassType*                  asClassType() const { return nullptr; }
@@ -133,12 +136,12 @@ public:
     virtual PrimitiveType*              asPrimitiveType() const { return nullptr; }
     virtual DataPointerType*            asDataPointerType() const { return nullptr; }
     virtual Subroutine*                 asSubroutine() const { return nullptr; }
-    virtual InstanceMethod*             asInstanceMethod() const { return nullptr; }
-    virtual StaticMethod*               asStaticMethod() const { return nullptr; }
-    virtual InstanceAttribute*          asInstanceAttribute() const { return nullptr; }
-    virtual StaticAttribute*            asStaticAttribute() const  { return nullptr; }
+    virtual InstanceMemberFunction*     asInstanceMemberFunction() const { return nullptr; }
+    virtual StaticMemberFunction*       asStaticMemberFunction() const { return nullptr; }
+    virtual InstanceDataMember*         asInstanceDataMember() const { return nullptr; }
+    virtual StaticDataMember*           asStaticDataMember() const  { return nullptr; }
     virtual Signal*                     asSignal() const  { return nullptr; }
-    virtual InstanceMethod*             asSlot() const  { return nullptr; }
+    virtual InstanceMemberFunction*     asSlot() const  { return nullptr; }
     virtual Namespace*                  asNamespace() const { return nullptr; }
 
     o_forceinline boolean               isStatic() const  { return m_bfModifiers.matchesMask(o_static); }

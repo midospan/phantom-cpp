@@ -2,7 +2,7 @@
 #include "phantom/phantom.h"
 
 #define NativeVTableInspector_vtableentry(_index_) \
-    &NativeVTableInspector::NativeVTableInspector_hackmethod_##_index_
+    &NativeVTableInspector::NativeVTableInspector_hack_member_function_##_index_
 
 o_namespace_begin(phantom, reflection, native)
 

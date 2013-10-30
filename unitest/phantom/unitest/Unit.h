@@ -178,10 +178,10 @@ o_classNS((sc2), Unit, (GameEntity))
 {
     o_reflection 
     {
-        o_attribute(bool, m_bPatrolWay, o_protected);
-        o_attribute(int, m_iLifePoints, o_protected);
-        o_attribute(phantom::vector<Ability*>, m_Abilities, o_protected);
-        o_attribute(int, m_iInitialLifePoints, o_protected);
+        o_data_member(bool, m_bPatrolWay, o_protected);
+        o_data_member(int, m_iLifePoints, o_protected);
+        o_data_member(phantom::vector<Ability*>, m_Abilities, o_protected);
+        o_data_member(int, m_iInitialLifePoints, o_protected);
         o_signal(abilityAdded, (Ability*));
         o_signal(abilityRemoved, (Ability*));
         o_collection(Ability*, abilities, addAbility, removeAbility, moveAbility, setAbility, getAbility, getAbilityCount);
@@ -214,8 +214,8 @@ o_classNS((sc2), Unit, (GameEntity))
 };
 o_exposeN((sc2), Unit);
 
-o_static_assert(!phantom::has_initializer_method_initialize_declared<sc2::Unit>::value);
-o_static_assert(phantom::has_initializer_method_initialize<sc2::Unit>::value);
+o_static_assert(!phantom::has_initializer_member_function_initialize_declared<sc2::Unit>::value);
+o_static_assert(phantom::has_initializer_member_function_initialize<sc2::Unit>::value);
 o_static_assert(phantom::track_count_of<sc2::Unit>::value == 5);
 o_static_assert(phantom::track_count_cascade_of<sc2::Unit>::value == 6);
 

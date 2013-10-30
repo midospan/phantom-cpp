@@ -12,7 +12,7 @@
 o_namespace_begin(phantom, reflection)
 
 class LocalVariable;
-class Method;
+class MemberFunction;
 
 class o_export Block : public LanguageElement
 {

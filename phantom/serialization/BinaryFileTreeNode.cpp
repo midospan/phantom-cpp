@@ -43,9 +43,7 @@
 o_registerN((phantom, serialization), BinaryFileTreeNode);
 
 o_namespace_begin(phantom, serialization)
-
-using namespace reflection;
-
+    
 BinaryFileTreeNode::BinaryFileTreeNode(BinaryFileTreeDataBase* a_pOwnerDataBase, uint guid, BinaryFileTreeNode* a_pParentNode)
     : FileTreeNode(a_pOwnerDataBase, guid, a_pParentNode) 
 {

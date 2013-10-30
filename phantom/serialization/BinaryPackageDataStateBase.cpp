@@ -104,18 +104,18 @@ void BinaryPackageDataStateBase::loadDataState(const phantom::data& a_Data, uint
     BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(a_pNode->getOwnerDataBase());
     property_tree state_tree;
     /*boost::property_tree_custom::read_xml(dataPath(a_Data, a_uiGuid, a_pNode, a_uiStateId), state_tree);
-    property_tree properties_tag;
-    properties_tag = state_tree.get_child("properties");
-    a_Data.type()->deserialize(a_Data.address(), properties_tag, m_uiSerializationFlag, pDB);*/
+    property_tree valueMembers_tag;
+    valueMembers_tag = state_tree.get_child("valueMembers");
+    a_Data.type()->deserialize(a_Data.address(), valueMembers_tag, m_uiSerializationFlag, pDB);*/
 }
 
 void BinaryPackageDataStateBase::saveDataState(const phantom::data& a_Data, uint a_uiGuid, Node* a_pNode, uint a_uiStateId)
 {
     BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(a_pNode->getOwnerDataBase());
     property_tree state_tree;
-    property_tree properties_tag;
-    /*a_Data.type()->serialize(a_Data.address(), properties_tag, m_uiSerializationFlag, pDB);
-    state_tree.add_child("properties", properties_tag);
+    property_tree valueMembers_tag;
+    /*a_Data.type()->serialize(a_Data.address(), valueMembers_tag, m_uiSerializationFlag, pDB);
+    state_tree.add_child("valueMembers", valueMembers_tag);
     boost::property_tree_custom::write_xml(dataPath(a_Data, a_uiGuid, a_pNode, a_uiStateId), state_tree);*/
 }
 

@@ -42,8 +42,6 @@ o_registerN((phantom, serialization), XmlFileTreeNode);
 
 o_namespace_begin(phantom, serialization)
 
-using namespace reflection;
-
 XmlFileTreeNode::XmlFileTreeNode(XmlFileTreeDataBase* a_pOwnerDataBase, uint guid, XmlFileTreeNode* a_pParentNode)
     : FileTreeNode(a_pOwnerDataBase, guid, a_pParentNode) 
 {
@@ -88,12 +86,12 @@ void XmlFileTreeNode::saveDataAttributes(const phantom::data& a_Data, uint guid)
 void XmlFileTreeNode::saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) 
 {
     property_tree p_tree;
-    property_tree properties_tree;
+    property_tree valueMembers_tree;
     const string& path = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase)->dataPath(a_Data, guid, this);
-    a_Data.type()->serialize(a_Data.address(), properties_tree, a_uiSerializationFlag, m_pOwnerDataBase);
+    a_Data.type()->serialize(a_Data.address(), valueMembers_tree, a_uiSerializationFlag, m_pOwnerDataBase);
     property_tree attribute_tree;
     saveDataAttributesHelper(attribute_tree, a_Data);
-    p_tree.add_child("data.properties", properties_tree);
+    p_tree.add_child("data.valueMembers", valueMembers_tree);
     p_tree.add_child("data.attributes", attribute_tree);
     boost::property_tree_custom::write_xml(path.c_str(), p_tree);
 }
@@ -103,8 +101,8 @@ void XmlFileTreeNode::loadData(uint a_uiSerializationFlag, const phantom::data& 
     property_tree p_tree;
     const string& path = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase)->dataPath(a_Data, guid, this);
     boost::property_tree_custom::read_xml(path.c_str(), p_tree);
-    property_tree properties_tree = p_tree.get_child("data.properties");
-    a_Data.type()->deserialize(a_Data.address(), properties_tree, a_uiSerializationFlag, m_pOwnerDataBase);
+    property_tree valueMembers_tree = p_tree.get_child("data.valueMembers");
+    a_Data.type()->deserialize(a_Data.address(), valueMembers_tree, a_uiSerializationFlag, m_pOwnerDataBase);
     property_tree attribute_tree;
     attribute_tree = p_tree.get_child("data.attributes");
     loadDataAttributesHelper(attribute_tree, a_Data);
@@ -161,15 +159,15 @@ void XmlFileTreeNode::saveAttributes()
 
     XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
 
-    const string* pAttributeValues = pDB->getNodeAttributeValues(this);
-    if(pAttributeValues != NULL) 
+    const string* pDataMemberValues = pDB->getNodeAttributeValues(this);
+    if(pDataMemberValues != NULL) 
     {
         property_tree node_attribute_tree;
         size_t i = 0;
         size_t attributeCount = pDB->getAttributeCount();
         for(;i<attributeCount;++i)
         {
-            node_attribute_tree.put<string>(pDB->getAttributeName(i), pAttributeValues[i]);
+            node_attribute_tree.put<string>(pDB->getAttributeName(i), pDataMemberValues[i]);
         }
         attribute_tree.add_child("attributes", node_attribute_tree);
     }
@@ -182,14 +180,14 @@ void XmlFileTreeNode::saveDataAttributesHelper( property_tree& tree, const phant
 {
     XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
 
-    const string* pAttributeValues = pDB->getDataAttributeValues(a_Data);
-    if(pAttributeValues != NULL) 
+    const string* pDataMemberValues = pDB->getDataAttributeValues(a_Data);
+    if(pDataMemberValues != NULL) 
     {
         size_t i = 0;
         size_t attributeCount = pDB->getAttributeCount();
         for(;i<attributeCount;++i)
         {
-            tree.put<string>(pDB->getAttributeName(i), pAttributeValues[i]);
+            tree.put<string>(pDB->getAttributeName(i), pDataMemberValues[i]);
         }
     }
 }
@@ -405,10 +403,10 @@ void XmlFileTreeNode::deserialize(uint a_uiSerializationFlag)
         uint guid = pDB->getGuid(pAddress);
         const string& path = pDB->dataPath(*it, guid, pDB->getNode(pAddress));
         boost::property_tree_custom::read_xml(path.c_str(), p_tree);
-        boost::optional<property_tree&> properties_tree_opt = p_tree.get_child_optional("data.properties");
-        if(properties_tree_opt.is_initialized())
+        boost::optional<property_tree&> valueMembers_tree_opt = p_tree.get_child_optional("data.valueMembers");
+        if(valueMembers_tree_opt.is_initialized())
         {
-            pType->deserialize(pAddress, *properties_tree_opt, a_uiSerializationFlag, pDB);
+            pType->deserialize(pAddress, *valueMembers_tree_opt, a_uiSerializationFlag, pDB);
         }
     }
 }
@@ -622,10 +620,10 @@ void XmlFileTreeNode::deserializeOne(const phantom::data& a_Data, uint a_uiSeria
 	uint guid = pDB->getGuid(pAddress);
 	const string& path = pDB->dataPath(a_Data, guid, pDB->getNode(pAddress));
 	boost::property_tree_custom::read_xml(path.c_str(), p_tree);
-	boost::optional<property_tree&> properties_tree_opt = p_tree.get_child_optional("data.properties");
-	if(properties_tree_opt.is_initialized())
+	boost::optional<property_tree&> valueMembers_tree_opt = p_tree.get_child_optional("data.valueMembers");
+	if(valueMembers_tree_opt.is_initialized())
 	{
-		pType->deserialize(pAddress, *properties_tree_opt, a_uiSerializationFlag, pDB);
+		pType->deserialize(pAddress, *valueMembers_tree_opt, a_uiSerializationFlag, pDB);
 	}
 }
 

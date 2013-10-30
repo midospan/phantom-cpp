@@ -128,13 +128,13 @@ template <typename t_Ty>
 void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
     reflection::ClassType* pClass = classOf<t_Ty>();
-    reflection::ClassType::member_const_iterator it = pClass->propertiesBegin();
-    reflection::ClassType::member_const_iterator end = pClass->propertiesEnd();
+    reflection::ClassType::member_const_iterator it = pClass->valueMembersBegin();
+    reflection::ClassType::member_const_iterator end = pClass->valueMembersEnd();
     for(;it != end; ++it)
     {
-        reflection::Property*const pProperty = static_cast<reflection::Property*const>(it->second);
-        if(pProperty->isSaved(a_uiSerializationMask)) 
-        pProperty->serializeValue(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        reflection::ValueMember*const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
+        if(pValueMember->isSaved(a_uiSerializationMask)) 
+        pValueMember->serializeValue(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
 }
 
@@ -142,13 +142,13 @@ template <typename t_Ty>
 void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
     reflection::ClassType* pClass = classOf<t_Ty>();
-    reflection::ClassType::member_const_iterator it = pClass->propertiesBegin();
-    reflection::ClassType::member_const_iterator end = pClass->propertiesEnd();
+    reflection::ClassType::member_const_iterator it = pClass->valueMembersBegin();
+    reflection::ClassType::member_const_iterator end = pClass->valueMembersEnd();
     for(;it != end; ++it)
     {
-        reflection::Property* const pProperty = static_cast<reflection::Property*const>(it->second);
-        if(pProperty->isSaved(a_uiSerializationMask)) 
-        pProperty->deserializeValue(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        reflection::ValueMember* const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
+        if(pValueMember->isSaved(a_uiSerializationMask)) 
+        pValueMember->deserializeValue(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
 }
 
@@ -156,13 +156,13 @@ template <typename t_Ty>
 void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
     reflection::ClassType* pClass = classOf<t_Ty>();
-    reflection::ClassType::member_const_iterator it = pClass->propertiesBegin();
-    reflection::ClassType::member_const_iterator end = pClass->propertiesEnd();
+    reflection::ClassType::member_const_iterator it = pClass->valueMembersBegin();
+    reflection::ClassType::member_const_iterator end = pClass->valueMembersEnd();
     for(;it != end; ++it)
     {
-        reflection::Property*const pProperty = static_cast<reflection::Property*const>(it->second);
-        if(pProperty->isSaved(a_uiSerializationMask)) 
-        pProperty->serializeValue(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        reflection::ValueMember*const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
+        if(pValueMember->isSaved(a_uiSerializationMask)) 
+        pValueMember->serializeValue(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
 }
 
@@ -170,13 +170,13 @@ template <typename t_Ty>
 void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
     reflection::ClassType* pClass = classOf<t_Ty>();
-    reflection::ClassType::member_const_iterator it = pClass->propertiesBegin();
-    reflection::ClassType::member_const_iterator end = pClass->propertiesEnd();
+    reflection::ClassType::member_const_iterator it = pClass->valueMembersBegin();
+    reflection::ClassType::member_const_iterator end = pClass->valueMembersEnd();
     for(;it != end; ++it)
     {
-        reflection::Property* const pProperty = static_cast<reflection::Property*const>(it->second);
-        if(pProperty->isSaved(a_uiSerializationMask)) 
-        pProperty->deserializeValue(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        reflection::ValueMember* const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
+        if(pValueMember->isSaved(a_uiSerializationMask)) 
+        pValueMember->deserializeValue(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
 }
 
@@ -184,13 +184,13 @@ template <typename t_Ty>
 void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
     reflection::ClassType* pClass = classOf<t_Ty>();
-    reflection::ClassType::member_const_iterator it = pClass->propertiesBegin();
-    reflection::ClassType::member_const_iterator end = pClass->propertiesEnd();
+    reflection::ClassType::member_const_iterator it = pClass->valueMembersBegin();
+    reflection::ClassType::member_const_iterator end = pClass->valueMembersEnd();
     for(;it != end; ++it)
     {
-        reflection::Property*const pProperty = static_cast<reflection::Property*const>(it->second);
-        if(pProperty->isSaved(a_uiSerializationMask))
-        pProperty->serializeValue(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        reflection::ValueMember*const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
+        if(pValueMember->isSaved(a_uiSerializationMask))
+        pValueMember->serializeValue(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
 }
 
@@ -198,13 +198,13 @@ template <typename t_Ty>
 void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
     reflection::ClassType* pClass = classOf<t_Ty>();
-    reflection::ClassType::member_const_iterator it = pClass->propertiesBegin();
-    reflection::ClassType::member_const_iterator end = pClass->propertiesEnd();
+    reflection::ClassType::member_const_iterator it = pClass->valueMembersBegin();
+    reflection::ClassType::member_const_iterator end = pClass->valueMembersEnd();
     for(;it != end; ++it)
     {
-        reflection::Property* const pProperty = static_cast<reflection::Property*const>(it->second);
-        if(pProperty->isSaved(a_uiSerializationMask)) 
-            pProperty->deserializeValue(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        reflection::ValueMember* const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
+        if(pValueMember->isSaved(a_uiSerializationMask)) 
+            pValueMember->deserializeValue(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 }
 
@@ -217,13 +217,13 @@ void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLay
     // itself a reflection declared
     // v
     reflection::ClassType* pClass = classOf<t_Ty>();
-    reflection::ClassType::member_const_iterator it = pClass->propertiesBegin();
-    reflection::ClassType::member_const_iterator end = pClass->propertiesEnd();
+    reflection::ClassType::member_const_iterator it = pClass->valueMembersBegin();
+    reflection::ClassType::member_const_iterator end = pClass->valueMembersEnd();
     for(;it != end; ++it)
     {
-        reflection::Property*const pProperty = static_cast<reflection::Property*const>(it->second);
-        if(pProperty->isSaved(a_uiSerializationMask)) 
-        pProperty->serializeValue(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        reflection::ValueMember*const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
+        if(pValueMember->isSaved(a_uiSerializationMask)) 
+        pValueMember->serializeValue(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
 }
 
@@ -231,13 +231,13 @@ template <typename t_Ty>
 void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
     reflection::ClassType* pClass = classOf<t_Ty>();
-    reflection::ClassType::member_const_iterator it = pClass->propertiesBegin();
-    reflection::ClassType::member_const_iterator end = pClass->propertiesEnd();
+    reflection::ClassType::member_const_iterator it = pClass->valueMembersBegin();
+    reflection::ClassType::member_const_iterator end = pClass->valueMembersEnd();
     for(;it != end; ++it)
     {
-        reflection::Property* const pProperty = static_cast<reflection::Property*const>(it->second);
-        if(pProperty->isSaved(a_uiSerializationMask)) 
-            pProperty->deserializeValue(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        reflection::ValueMember* const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
+        if(pValueMember->isSaved(a_uiSerializationMask)) 
+            pValueMember->deserializeValue(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 }
 
@@ -246,13 +246,13 @@ void default_resetter_helper<t_Ty, default_resetter_classtype>::remember(t_Ty co
 {
     super_class_resetter<t_Ty>::remember(a_pInstance, a_pOutBuffer);
     reflection::ClassType* pClass = classOf<t_Ty>();
-    reflection::ClassType::member_const_iterator it = pClass->propertiesBegin();
-    reflection::ClassType::member_const_iterator end = pClass->propertiesEnd();
+    reflection::ClassType::member_const_iterator it = pClass->valueMembersBegin();
+    reflection::ClassType::member_const_iterator end = pClass->valueMembersEnd();
     for(;it != end; ++it)
     {
-        reflection::Property*const pProperty = static_cast<reflection::Property*const>(it->second);
-        if(pProperty->isReset()) 
-        pProperty->rememberValue(a_pInstance, a_pOutBuffer);
+        reflection::ValueMember*const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
+        if(pValueMember->isReset()) 
+        pValueMember->rememberValue(a_pInstance, a_pOutBuffer);
     }
 }
 
@@ -261,13 +261,13 @@ void default_resetter_helper<t_Ty, default_resetter_classtype>::reset(t_Ty* a_pI
 {
     super_class_resetter<t_Ty>::reset(a_pInstance, a_pInBuffer);
     reflection::ClassType* pClass = classOf<t_Ty>();
-    reflection::ClassType::member_const_iterator it = pClass->propertiesBegin();
-    reflection::ClassType::member_const_iterator end = pClass->propertiesEnd();
+    reflection::ClassType::member_const_iterator it = pClass->valueMembersBegin();
+    reflection::ClassType::member_const_iterator end = pClass->valueMembersEnd();
     for(;it != end; ++it)
     {
-        reflection::Property* const pProperty = static_cast<reflection::Property*const>(it->second);
-        if(pProperty->isReset()) 
-        pProperty->resetValue(a_pInstance, a_pInBuffer);
+        reflection::ValueMember* const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
+        if(pValueMember->isReset()) 
+        pValueMember->resetValue(a_pInstance, a_pInBuffer);
     }
 }
 
@@ -276,13 +276,13 @@ void default_resetter_helper<t_Ty, default_resetter_classtype>::remember(t_Ty co
 {
     super_class_resetter<t_Ty>::remember(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
     reflection::ClassType* pClass = classOf<t_Ty>();
-    reflection::ClassType::member_const_iterator it = pClass->propertiesBegin();
-    reflection::ClassType::member_const_iterator end = pClass->propertiesEnd();
+    reflection::ClassType::member_const_iterator it = pClass->valueMembersBegin();
+    reflection::ClassType::member_const_iterator end = pClass->valueMembersEnd();
     for(;it != end; ++it)
     {
-        reflection::Property*const pProperty = static_cast<reflection::Property*const>(it->second);
-        if(pProperty->isReset())
-        pProperty->rememberValue(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
+        reflection::ValueMember*const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
+        if(pValueMember->isReset())
+        pValueMember->rememberValue(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
     }
 }
 
@@ -291,13 +291,13 @@ void default_resetter_helper<t_Ty, default_resetter_classtype>::reset(t_Ty* a_pC
 {
     super_class_resetter<t_Ty>::reset(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
     reflection::ClassType* pClass = classOf<t_Ty>();
-    reflection::ClassType::member_const_iterator it = pClass->propertiesBegin();
-    reflection::ClassType::member_const_iterator end = pClass->propertiesEnd();
+    reflection::ClassType::member_const_iterator it = pClass->valueMembersBegin();
+    reflection::ClassType::member_const_iterator end = pClass->valueMembersEnd();
     for(;it != end; ++it)
     {
-        reflection::Property* const pProperty = static_cast<reflection::Property*const>(it->second);
-        if(pProperty->isReset())
-        pProperty->resetValue(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
+        reflection::ValueMember* const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
+        if(pValueMember->isReset())
+        pValueMember->resetValue(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
     }
 }
 

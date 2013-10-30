@@ -289,12 +289,12 @@ struct is_std_deque<std::deque<T,Alloc>>
 };
 
 template<typename t_Ty>
-struct has_reserve_method;
+struct has_reserve_member_function;
 
 namespace detail {
 
 template<typename t_Ty>
-struct has_reserve_method_
+struct has_reserve_member_function_
 {
     const static bool value = false;
 };
@@ -320,7 +320,7 @@ struct reserver_helper<t_Ty, true>
 template<typename t_Ty>
 struct reserver_ :public reserver_helper<t_Ty,
     phantom::is_container<t_Ty>::value
-    AND has_reserve_method<t_Ty>::value>
+    AND has_reserve_member_function<t_Ty>::value>
 {
     o_forceinline static void apply(t_Ty* a_pContainer, o_NESTED_TYPE t_Ty::size_type a_uiSize)
     {
@@ -330,25 +330,25 @@ struct reserver_ :public reserver_helper<t_Ty,
 
 
 template<typename t_Ty, typename t_Alloc>
-struct has_reserve_method_<std::vector<t_Ty, t_Alloc> >
+struct has_reserve_member_function_<std::vector<t_Ty, t_Alloc> >
 {
     static const bool value = true;
 };
 
 template<typename t_Ty>
-struct has_reserve_method_<phantom::vector<t_Ty> >
+struct has_reserve_member_function_<phantom::vector<t_Ty> >
 {
     static const bool value = true;
 };
 
-enum container_add_method
+enum container_add_member_function
 {
     e_add_by_push_back,
     e_add_by_push,
     e_add_by_insert,
 };
 
-template<typename t_Ty, container_add_method t_add_method>
+template<typename t_Ty, container_add_member_function t_add_member_function>
 struct adder_helper_;
 
 template<typename t_Ty>
@@ -402,7 +402,7 @@ template<typename t_Ty>
 struct adder : public detail::adder_<t_Ty> {};
 
 template<typename t_Ty>
-struct has_reserve_method : public detail::has_reserve_method_<t_Ty> {};
+struct has_reserve_member_function : public detail::has_reserve_member_function_<t_Ty> {};
 
 template<typename T>
 struct str_len

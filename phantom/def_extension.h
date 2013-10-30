@@ -191,10 +191,10 @@ template<typename t_Ty>
 struct default_constructor_helper<t_Ty, default_constructor_all_default_forbidden>
 {
 public:
-    o_forceinline static void construct(t_Ty* a_pInstance) { o_unused(a_pInstance); o_exception(exception::unsupported_method_exception, "type is abstract and cannot be constructed/destroyed"); }
-    o_forceinline static void destroy(t_Ty* a_pInstance) { o_unused(a_pInstance); o_exception( exception::unsupported_method_exception, "type is abstract and cannot be constructed/destroyed"); }
-    o_forceinline static void construct(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize) { o_unused(a_pInstance); o_unused(a_uiCount); o_unused(a_uiChunkSectionSize); o_exception( exception::unsupported_method_exception, "type is abstract and cannot be constructed/destroyed"); }
-    o_forceinline static void destroy(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize) { o_unused(a_pInstance); o_unused(a_uiCount); o_unused(a_uiChunkSectionSize); o_exception( exception::unsupported_method_exception, "type is abstract and cannot be constructed/destroyed"); }
+    o_forceinline static void construct(t_Ty* a_pInstance) { o_unused(a_pInstance); o_exception(exception::unsupported_member_function_exception, "type is abstract and cannot be constructed/destroyed"); }
+    o_forceinline static void destroy(t_Ty* a_pInstance) { o_unused(a_pInstance); o_exception( exception::unsupported_member_function_exception, "type is abstract and cannot be constructed/destroyed"); }
+    o_forceinline static void construct(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize) { o_unused(a_pInstance); o_unused(a_uiCount); o_unused(a_uiChunkSectionSize); o_exception( exception::unsupported_member_function_exception, "type is abstract and cannot be constructed/destroyed"); }
+    o_forceinline static void destroy(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize) { o_unused(a_pInstance); o_unused(a_uiCount); o_unused(a_uiChunkSectionSize); o_exception( exception::unsupported_member_function_exception, "type is abstract and cannot be constructed/destroyed"); }
 };
 
 template<typename t_Ty>
@@ -211,9 +211,9 @@ template<typename t_Ty>
 struct default_constructor_helper<t_Ty, default_constructor_default_construction_forbidden>
 {
 public:
-    o_forceinline static void construct(t_Ty* a_pInstance) { o_unused(a_pInstance); o_exception(exception::unsupported_method_exception, "type hasn't default constructor and cannot be constructed"); }
+    o_forceinline static void construct(t_Ty* a_pInstance) { o_unused(a_pInstance); o_exception(exception::unsupported_member_function_exception, "type hasn't default constructor and cannot be constructed"); }
     o_forceinline static void destroy(t_Ty* a_pInstance) { a_pInstance->~t_Ty(); }
-    o_forceinline static void construct(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize) { o_unused(a_pChunk); o_unused(a_uiCount); o_unused(a_uiChunkSectionSize); o_exception(exception::unsupported_method_exception, "type hasn't default constructor and cannot be constructed"); }
+    o_forceinline static void construct(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize) { o_unused(a_pChunk); o_unused(a_uiCount); o_unused(a_uiChunkSectionSize); o_exception(exception::unsupported_member_function_exception, "type hasn't default constructor and cannot be constructed"); }
     o_forceinline static void destroy(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
@@ -485,11 +485,11 @@ struct default_initializer_helper<t_Ty, default_initializer_none>
 // INITIALIZER METHODS (RECURSIVE) CALLERS
 
 template<typename t_Ty>
-struct initialize_method_caller;
+struct initialize_member_function_caller;
 template<typename t_Ty>
-struct terminate_method_caller;
+struct terminate_member_function_caller;
 template<typename t_Ty>
-struct restore_method_caller;
+struct restore_member_function_caller;
 template<typename t_Ty>
 struct destroyed_signal_emitter;
 
@@ -497,158 +497,158 @@ struct destroyed_signal_emitter;
 // INITIALIZE CALLER
 
 template<typename t_Ty, int t_super_class_count_of, bool t_declared>
-struct initialize_method_caller_super_
+struct initialize_member_function_caller_super_
 {
     static void apply(t_Ty* a_pInstance)
     {
         // Call super first
-        initialize_method_caller<typename super_class_of<t_Ty,t_super_class_count_of-1>::type>::apply(a_pInstance);
+        initialize_member_function_caller<typename super_class_of<t_Ty,t_super_class_count_of-1>::type>::apply(a_pInstance);
 
         // Then the current class
-        initialize_method_caller_super_<t_Ty, t_super_class_count_of-1, t_declared>::apply(a_pInstance);
+        initialize_member_function_caller_super_<t_Ty, t_super_class_count_of-1, t_declared>::apply(a_pInstance);
     }
 };
 
 template<typename t_Ty>
-struct initialize_method_caller_super_<t_Ty, 0, false>
+struct initialize_member_function_caller_super_<t_Ty, 0, false>
 {
     inline static void apply(t_Ty* a_pInstance) {}
 };
 
 template<typename t_Ty>
-struct initialize_method_caller_super_<t_Ty, 0, true>
+struct initialize_member_function_caller_super_<t_Ty, 0, true>
 {
-    inline static void apply(t_Ty* a_pInstance) { static_cast<initialize_method_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_initialize(); }
+    inline static void apply(t_Ty* a_pInstance) { static_cast<initialize_member_function_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_initialize(); }
 };
 
 template<typename t_Ty>
-struct initialize_method_caller_friend_breaker : public t_Ty
+struct initialize_member_function_caller_friend_breaker : public t_Ty
 {
-    template<typename t_Ty2, int t_super_class_count_of, bool t_has_initialize_method, bool t_declared>
-    friend struct initialize_method_caller_helper_;
+    template<typename t_Ty2, int t_super_class_count_of, bool t_has_initialize_member_function, bool t_declared>
+    friend struct initialize_member_function_caller_helper_;
 };
 
-template<typename t_Ty, int t_super_class_count_of, bool t_has_initialize_method, bool t_declared>
-struct initialize_method_caller_helper_ 
-    : public initialize_method_caller_super_<t_Ty, t_super_class_count_of, t_declared> {};
+template<typename t_Ty, int t_super_class_count_of, bool t_has_initialize_member_function, bool t_declared>
+struct initialize_member_function_caller_helper_ 
+    : public initialize_member_function_caller_super_<t_Ty, t_super_class_count_of, t_declared> {};
 
 template<typename t_Ty, int t_super_class_count_of, bool t_declared>
-struct initialize_method_caller_helper_<t_Ty, t_super_class_count_of, false, t_declared>
+struct initialize_member_function_caller_helper_<t_Ty, t_super_class_count_of, false, t_declared>
 {
     inline static void apply(t_Ty* a_pInstance) {}
 };
 
 template<typename t_Ty>
-struct initialize_method_caller
-    : public initialize_method_caller_helper_<t_Ty
+struct initialize_member_function_caller
+    : public initialize_member_function_caller_helper_<t_Ty
     , super_class_count_of<t_Ty>::value
-    , has_initializer_method_initialize<t_Ty>::value
-    , has_initializer_method_initialize_declared<t_Ty>::value>
+    , has_initializer_member_function_initialize<t_Ty>::value
+    , has_initializer_member_function_initialize_declared<t_Ty>::value>
 {
 };
 
 // RESTORE CALLER
 
 template<typename t_Ty, int t_super_class_count_of, bool t_declared>
-struct restore_method_caller_super_
+struct restore_member_function_caller_super_
 {
     static restore_state apply(t_Ty* a_pInstance, uint filter, uint pass)
     {
         // Call super first
-        restore_state restored = restore_method_caller<typename super_class_of<t_Ty,t_super_class_count_of-1>::type>::apply(a_pInstance, filter, pass);
+        restore_state restored = restore_member_function_caller<typename super_class_of<t_Ty,t_super_class_count_of-1>::type>::apply(a_pInstance, filter, pass);
 
         // Then the current class
-        return combine_restore_states(restore_method_caller_super_<t_Ty, t_super_class_count_of-1, t_declared>::apply(a_pInstance, filter, pass) 
+        return combine_restore_states(restore_member_function_caller_super_<t_Ty, t_super_class_count_of-1, t_declared>::apply(a_pInstance, filter, pass) 
             , restored);
     }
 };
 
 template<typename t_Ty>
-struct restore_method_caller_super_<t_Ty, 0, true>
+struct restore_member_function_caller_super_<t_Ty, 0, true>
 {
     inline static restore_state apply(t_Ty* a_pInstance, uint filter, uint pass) 
     {
-        return static_cast<restore_method_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_restore(filter, pass); 
+        return static_cast<restore_member_function_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_restore(filter, pass); 
     }
 };
 
 template<typename t_Ty>
-struct restore_method_caller_super_<t_Ty, 0, false>
+struct restore_member_function_caller_super_<t_Ty, 0, false>
 {
     inline static restore_state apply(t_Ty* a_pInstance, uint filter, uint pass) { return restore_complete; }
 };
 
 template<typename t_Ty>
-struct restore_method_caller_friend_breaker : public t_Ty
+struct restore_member_function_caller_friend_breaker : public t_Ty
 {
-    template<typename t_Ty2, int t_super_class_count_of, bool t_has_restore_method, bool t_declared>
-    friend struct restore_method_caller_helper_;
+    template<typename t_Ty2, int t_super_class_count_of, bool t_has_restore_member_function, bool t_declared>
+    friend struct restore_member_function_caller_helper_;
 };
 
-template<typename t_Ty, int t_super_class_count_of, bool t_has_restore_method, bool t_declared>
-struct restore_method_caller_helper_ : public restore_method_caller_super_<t_Ty, t_super_class_count_of, t_declared> {};
+template<typename t_Ty, int t_super_class_count_of, bool t_has_restore_member_function, bool t_declared>
+struct restore_member_function_caller_helper_ : public restore_member_function_caller_super_<t_Ty, t_super_class_count_of, t_declared> {};
 
 template<typename t_Ty, int t_super_class_count_of, bool t_declared>
-struct restore_method_caller_helper_<t_Ty, t_super_class_count_of, false, t_declared>
+struct restore_member_function_caller_helper_<t_Ty, t_super_class_count_of, false, t_declared>
 {
     inline static restore_state apply(t_Ty* a_pInstance, uint filter, uint pass) { return restore_complete; }
 };
 
 template<typename t_Ty>
-struct restore_method_caller
-    : public restore_method_caller_helper_<t_Ty
+struct restore_member_function_caller
+    : public restore_member_function_caller_helper_<t_Ty
         , super_class_count_of<t_Ty>::value
-        , has_initializer_method_restore<t_Ty>::value
-        , has_initializer_method_restore_declared<t_Ty>::value>
+        , has_initializer_member_function_restore<t_Ty>::value
+        , has_initializer_member_function_restore_declared<t_Ty>::value>
 {
 };
 
 // TERMINATE CALLER
 
 template<typename t_Ty, int t_super_class_count_of, bool t_declared>
-struct terminate_method_caller_super_
+struct terminate_member_function_caller_super_
 {
     static void apply(t_Ty* a_pInstance)
     {
-        terminate_method_caller_super_<t_Ty, t_super_class_count_of-1, t_declared>::apply(a_pInstance);
-        terminate_method_caller<typename super_class_of<t_Ty,t_super_class_count_of-1>::type>::apply(a_pInstance);
+        terminate_member_function_caller_super_<t_Ty, t_super_class_count_of-1, t_declared>::apply(a_pInstance);
+        terminate_member_function_caller<typename super_class_of<t_Ty,t_super_class_count_of-1>::type>::apply(a_pInstance);
     }
 };
 
 template<typename t_Ty>
-struct terminate_method_caller_super_<t_Ty, 0, true>
+struct terminate_member_function_caller_super_<t_Ty, 0, true>
 {
-    inline static void apply(t_Ty* a_pInstance) { static_cast<terminate_method_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_terminate(); }
+    inline static void apply(t_Ty* a_pInstance) { static_cast<terminate_member_function_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_terminate(); }
 };
 
 template<typename t_Ty>
-struct terminate_method_caller_super_<t_Ty, 0, false>
+struct terminate_member_function_caller_super_<t_Ty, 0, false>
 {
     inline static void apply(t_Ty* a_pInstance) {}
 };
 
 template<typename t_Ty>
-struct terminate_method_caller_friend_breaker : public t_Ty
+struct terminate_member_function_caller_friend_breaker : public t_Ty
 {
-    template<typename t_Ty2, int t_super_class_count_of, bool t_has_terminate_method, bool t_declared>
-    friend struct terminate_method_caller_helper_;
+    template<typename t_Ty2, int t_super_class_count_of, bool t_has_terminate_member_function, bool t_declared>
+    friend struct terminate_member_function_caller_helper_;
 };
 
-template<typename t_Ty, int t_super_class_count_of, bool t_has_terminate_method, bool t_declared>
-struct terminate_method_caller_helper_ : public terminate_method_caller_super_<t_Ty, t_super_class_count_of, t_declared> {};
+template<typename t_Ty, int t_super_class_count_of, bool t_has_terminate_member_function, bool t_declared>
+struct terminate_member_function_caller_helper_ : public terminate_member_function_caller_super_<t_Ty, t_super_class_count_of, t_declared> {};
 
 template<typename t_Ty, int t_super_class_count_of, bool t_declared>
-struct terminate_method_caller_helper_<t_Ty, t_super_class_count_of, false, t_declared>
+struct terminate_member_function_caller_helper_<t_Ty, t_super_class_count_of, false, t_declared>
 {
     inline static void apply(t_Ty* a_pInstance) {}
 };
 
 template<typename t_Ty>
-struct terminate_method_caller
-    : public terminate_method_caller_helper_<t_Ty
+struct terminate_member_function_caller
+    : public terminate_member_function_caller_helper_<t_Ty
     , super_class_count_of<t_Ty>::value
-    , has_initializer_method_terminate<t_Ty>::value
-    , has_initializer_method_terminate_declared<t_Ty>::value>
+    , has_initializer_member_function_terminate<t_Ty>::value
+    , has_initializer_member_function_terminate_declared<t_Ty>::value>
 {
 };
 
@@ -682,11 +682,11 @@ struct destroyed_signal_emitter_super_<t_Ty, 0, false>
 template<typename t_Ty>
 struct destroyed_signal_emitter_friend_breaker : public t_Ty
 {
-    template<typename t_Ty2, int t_super_class_count_of, bool t_has_initialize_method, bool t_declared>
+    template<typename t_Ty2, int t_super_class_count_of, bool t_has_initialize_member_function, bool t_declared>
     friend struct destroyed_signal_emitter_helper_;
 };
 
-template<typename t_Ty, int t_super_class_count_of, bool t_has_initialize_method, bool t_declared>
+template<typename t_Ty, int t_super_class_count_of, bool t_has_initialize_member_function, bool t_declared>
 struct destroyed_signal_emitter_helper_ 
     : public destroyed_signal_emitter_super_<t_Ty, t_super_class_count_of, t_declared> {};
 
@@ -712,14 +712,14 @@ struct default_initializer_helper<t_Ty, default_initializer_member_function_and_
 {
     inline static void      initialize( t_Ty* a_pInstance )
     {
-        initialize_method_caller<t_Ty>::apply(a_pInstance);
+        initialize_member_function_caller<t_Ty>::apply(a_pInstance);
 #if o__bool__use_kind_creation_signal
         typeOf<t_Ty>()->fireKindCreated(a_pInstance);
 #endif
     }
     inline static restore_state   restore( t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass )
     {
-        restore_state result = restore_method_caller<t_Ty>::apply(a_pInstance, a_uiSerializationFlag, a_uiPass); 
+        restore_state result = restore_member_function_caller<t_Ty>::apply(a_pInstance, a_uiSerializationFlag, a_uiPass); 
 #if o__bool__use_kind_creation_signal
         typeOf<t_Ty>()->fireKindCreated(a_pInstance);
 #endif
@@ -733,14 +733,14 @@ struct default_initializer_helper<t_Ty, default_initializer_member_function_and_
 #if o__bool__use_destroyed_signal
         destroyed_signal_emitter<t_Ty>::apply(a_pInstance);
 #endif
-        terminate_method_caller<t_Ty>::apply(a_pInstance);
+        terminate_member_function_caller<t_Ty>::apply(a_pInstance);
     }
     inline static void        initialize( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            initialize_method_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
+            initialize_member_function_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
 #if o__bool__use_kind_creation_signal
             typeOf<t_Ty>()->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
 #endif
@@ -757,7 +757,7 @@ struct default_initializer_helper<t_Ty, default_initializer_member_function_and_
 #if o__bool__use_destroyed_signal
             destroyed_signal_emitter<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
 #endif
-            terminate_method_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
+            terminate_member_function_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
         }
     }
     inline static restore_state   restore( t_Ty* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize  )
@@ -766,7 +766,7 @@ struct default_initializer_helper<t_Ty, default_initializer_member_function_and_
         restore_state result = restore_complete;
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            result = combine_restore_states(result, restore_method_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk), a_uiSerializationFlag, a_uiPass)); 
+            result = combine_restore_states(result, restore_member_function_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk), a_uiSerializationFlag, a_uiPass)); 
 #if o__bool__use_kind_creation_signal
             typeOf<t_Ty>()->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
 #endif
@@ -781,25 +781,25 @@ struct default_initializer_helper<t_Ty, default_initializer_member_function_only
 {
     inline static void        initialize( t_Ty* a_pInstance )
     {
-        initialize_method_caller<t_Ty>::apply(a_pInstance);
+        initialize_member_function_caller<t_Ty>::apply(a_pInstance);
     }
     inline static void        terminate( t_Ty* a_pInstance )
     {
 #if o__bool__use_destroyed_signal
         destroyed_signal_emitter<t_Ty>::apply(a_pInstance);
 #endif
-        terminate_method_caller<t_Ty>::apply(a_pInstance);
+        terminate_member_function_caller<t_Ty>::apply(a_pInstance);
     }
     inline static restore_state   restore( t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass )
     {
-        return restore_method_caller<t_Ty>::apply(a_pInstance, a_uiSerializationFlag, a_uiPass); 
+        return restore_member_function_caller<t_Ty>::apply(a_pInstance, a_uiSerializationFlag, a_uiPass); 
     }
     inline static void        initialize( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            initialize_method_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
+            initialize_member_function_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
         }
     }
     inline static void        terminate( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
@@ -810,7 +810,7 @@ struct default_initializer_helper<t_Ty, default_initializer_member_function_only
 #if o__bool__use_destroyed_signal
             destroyed_signal_emitter<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
 #endif
-            terminate_method_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
+            terminate_member_function_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
         }
     }
     inline static restore_state   restore( t_Ty* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize  )
@@ -819,7 +819,7 @@ struct default_initializer_helper<t_Ty, default_initializer_member_function_only
         restore_state result = true;
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            result = combine_restore_states(result, restore_method_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk), a_uiSerializationFlag, a_uiPass)); 
+            result = combine_restore_states(result, restore_member_function_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk), a_uiSerializationFlag, a_uiPass)); 
         }
         return result;
     }
@@ -909,7 +909,7 @@ struct default_resetter_helper;
 template<typename t_Ty>
 struct default_serializer_helper<t_Ty, default_serializer_not_serializable>
 {
-    static void throw_exception() { o_exception(exception::unsupported_method_exception, "This type is not serializable"); }
+    static void throw_exception() { o_exception(exception::unsupported_member_function_exception, "This type is not serializable"); }
     o_forceinline static void serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
@@ -979,7 +979,7 @@ struct default_serializer_helper<t_Ty, default_serializer_not_serializable>
 template<typename t_Ty>
 struct default_resetter_helper<t_Ty, default_resetter_not_resettable>
 {
-    static void throw_exception() { o_exception(exception::unsupported_method_exception, "This type is not resettable"); }
+    static void throw_exception() { o_exception(exception::unsupported_member_function_exception, "This type is not resettable"); }
     o_forceinline static void remember(t_Ty const* a_pInstance, byte*& a_pOutBuffer)
     {
         throw_exception();
@@ -1287,7 +1287,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
                 // we "inline" it if it's a class instance and we know the said class
                 reflection::Class*  pClass = rttiData.object_class;
                 o_assert(pClass, "The object is not stored in the data base and its type is unknown"
-                    ", we cannot save it, ensure the pointer property you are trying to serialize is transient or "
+                    ", we cannot save it, ensure the pointer valueMember you are trying to serialize is transient or "
                     "that the internal types are either serializable class instances installed with phantom (o_classN.. + o_new)"
                     " either data stored in database ");
 
@@ -1325,11 +1325,11 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
 
                 reflection::Class* pClass = static_cast<reflection::Class*>(pType);
                 void* newInstance = pClass->allocate();
-                pClass->setup(newInstance);
+                pClass->build(newInstance);
                 pClass->deserialize(newInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase); // Save the instance
 
                 // we restore all the pass here, because we can't do it later, 
-                // we won't have any pointer to this object after this method
+                // we won't have any pointer to this object after this member_function
                 uint pass = 0;
                 restore_state restored = restore_incomplete;
                 while(restored == restore_incomplete)
@@ -1394,12 +1394,12 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
                     "ensure all the class are registered correctly before deserializing data");
                 reflection::Class* pClass = static_cast<reflection::Class*>(pType);
                 void* newInstance = pClass->allocate();
-                pClass->setup(newInstance);
+                pClass->build(newInstance);
                 const property_tree& data_tree = a_InBranch.get_child("data");
                 pClass->deserialize(newInstance, data_tree, a_uiSerializationMask, a_pDataBase);
                     
                 // we restore all the pass here, because we can't do it later, 
-                // we won't have any pointer to this object after this method
+                // we won't have any pointer to this object after this member_function
                 uint pass = 0;
                 restore_state restored = restore_incomplete;
                 while(restored == restore_incomplete)
@@ -1452,7 +1452,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
                     // we "inline" it if it's a class instance and we know the said class
                     reflection::Class*  pClass = rttiData.object_class;
                     o_assert(pClass, "The object is not stored in the data base and its type is unknown"
-                        ", we cannot save it, ensure the pointer property you are trying to serialize is transient or "
+                        ", we cannot save it, ensure the pointer valueMember you are trying to serialize is transient or "
                         "that the internal types are either serializable class instances installed with phantom (o_classN.. + o_new)"
                         " either data stored in database ");
 
@@ -1496,11 +1496,11 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
 
                     reflection::Class* pClass = static_cast<reflection::Class*>(pType);
                     void* newInstance = pClass->allocate();
-                    pClass->setup(newInstance);
+                    pClass->build(newInstance);
                     pClass->deserialize(newInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase); // Save the instance
 
                     // we restore all the pass here, because we can't do it later, 
-                    // we won't have any pointer to this object after this method
+                    // we won't have any pointer to this object after this member_function
                     uint pass = 0;
                     restore_state restored = restore_incomplete;
                     while(restored == restore_incomplete)
@@ -1589,11 +1589,11 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
                             "ensure all the class are registered correctly before deserializing data");
                         reflection::Class* pClass = static_cast<reflection::Class*>(pType);
                         void* newInstance = pClass->allocate();
-                        pClass->setup(newInstance);
+                        pClass->build(newInstance);
                         const property_tree& data_tree = index_tree.get_child("data"); 
                         pClass->deserialize(newInstance, data_tree, a_uiSerializationMask, a_pDataBase);
                         // we restore all the pass here, because we can't do it later, 
-                        // we won't have any pointer to this object after this method
+                        // we won't have any pointer to this object after this member_function
                         uint pass = 0;
                         restore_state restored = restore_incomplete;
                         while(restored == restore_incomplete)
@@ -2594,10 +2594,10 @@ struct allocator_ : public allocator_inheritance_helper<
 template<>
 struct allocator_<void>
 {
-    o_forceinline static void* allocate() { o_exception(unsupported_method_exception); return NULL;  }
-    o_forceinline static void deallocate(void* a_pInstance) { o_exception(unsupported_method_exception); }
-    o_forceinline static void* allocate(size_t a_uiCount) { o_exception(unsupported_method_exception); return NULL; }
-    o_forceinline static void deallocate(void* a_pInstance, size_t a_uiCount) { o_exception(unsupported_method_exception); }
+    o_forceinline static void* allocate() { o_exception(unsupported_member_function_exception); return NULL;  }
+    o_forceinline static void deallocate(void* a_pInstance) { o_exception(unsupported_member_function_exception); }
+    o_forceinline static void* allocate(size_t a_uiCount) { o_exception(unsupported_member_function_exception); return NULL; }
+    o_forceinline static void deallocate(void* a_pInstance, size_t a_uiCount) { o_exception(unsupported_member_function_exception); }
 };
 template<typename t_Ty>
 struct constructor_ : public default_constructor<t_Ty>
@@ -2625,69 +2625,69 @@ class serializer_<phantom::signal_t>
 public:
     static void serialize(phantom::signal_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void deserialize(phantom::signal_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void serialize(phantom::signal_t const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void deserialize(phantom::signal_t* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void serialize(phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void deserialize(phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void serialize(phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void deserialize(phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
 
 
     static void serializeLayout(phantom::signal_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void deserializeLayout(phantom::signal_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void serializeLayout(phantom::signal_t const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void deserializeLayout(phantom::signal_t* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void serializeLayout(phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void deserializeLayout(phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void serializeLayout(phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void deserializeLayout(phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be serialized");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
 
 };
@@ -2700,19 +2700,19 @@ class resetter_<phantom::signal_t>
 public:
     o_forceinline static void remember(phantom::signal_t const* a_pInstance, byte*& a_pOutBuffer)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be reset");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be reset");
     }
     o_forceinline static void reset(phantom::signal_t* a_pInstance, byte const*& a_pInBuffer)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be reset");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be reset");
     }
     o_forceinline static void remember(phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be reset");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be reset");
     }
     o_forceinline static void reset(phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
     {
-        o_exception(exception::unsupported_method_exception, "signal_t is not supposed to be reset");
+        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be reset");
     }
 };
 
@@ -2851,7 +2851,7 @@ struct default_interpolator_helper <t_Ty, default_interpolator_not_available>
 {
     static void interpolate(t_Ty* a_src_start, t_Ty* a_src_end, real a_fPercent, t_Ty* a_dest, uint mode)
     {
-        o_exception(unsupported_method_exception, __FUNCTION__);
+        o_exception(unsupported_member_function_exception, __FUNCTION__);
     }
 };
 
@@ -2916,7 +2916,7 @@ struct default_copier_helper <t_Ty, default_copier_forbidden>
 {
     static void copy(t_Ty* a_pDest, t_Ty const* a_pSrc)
     {
-        o_exception(exception::unsupported_method_exception, "copy forbidden for the given type, remove an eventual 'o_disable_copy' meta specifier to enable this method for your class");
+        o_exception(exception::unsupported_member_function_exception, "copy forbidden for the given type, remove an eventual 'o_disable_copy' meta specifier to enable this member_function for your class");
     }
 };
 
@@ -3319,7 +3319,7 @@ struct safe_constructor : public detail::safe_constructor_<t_Ty>
 ///
 /// \brief This helper registers/unregisters RTTI info of any class instance to the phantom system.
 /// 	   You shouldn't use this unless you decide to customize installation from scratch.
-/// 	   Remark : It's recommanded to make your installer inherits/call the default_installer methods
+/// 	   Remark : It's recommanded to make your installer inherits/call the default_installer member_functions
 /// 	   instead of making a new one from scratch
 ///
 ////////////////////////////////////////////////////////////////////////////////////////////////////

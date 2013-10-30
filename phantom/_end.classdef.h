@@ -263,7 +263,7 @@
 
 #ifdef o_Super
 
-#    define o_local_code_Attribute_RESERVED_smdataptr
+#    define o_local_code_DataMember_RESERVED_smdataptr
 
 #else
 
@@ -275,10 +275,10 @@
 #    endif
 #    define o_local_value_TrackCountBase  1
 #    if ((o_local_value_MetaSpecifiers & o_proxy) != o_proxy) && ((o_local_value_MetaSpecifiers & o_pod) != o_pod)
-#        define o_local_code_Attribute_RESERVED_smdataptr \
+#        define o_local_code_DataMember_RESERVED_smdataptr \
             phantom::state::base_state_machine_data*        PHANTOM_CODEGEN_m_smdataptr;
 #    else
-#        define o_local_code_Attribute_RESERVED_smdataptr
+#        define o_local_code_DataMember_RESERVED_smdataptr
 #    endif
 
 #endif
@@ -305,7 +305,7 @@
 
 #    define o_local_code_TemplateSpecializationSignaturePlusCounter    o_global_code_TemplateSignaturePlusCounter
 
-#    define o_local_code_AttributeTypeFinding(type) phantom::typeOf<type>()
+#    define o_local_code_DataMemberTypeFinding(type) phantom::typeOf<type>()
 
 #    define o_local_code_RegisterModules_CPP
 
@@ -323,7 +323,7 @@
 #    define o_local_code_NestedTemplate
 #    define o_local_code_TemplateNestedTypedef
 
-#    define o_local_code_AttributeTypeFinding(type) phantom::typeByName(o_PP_QUOTE(type))
+#    define o_local_code_DataMemberTypeFinding(type) phantom::typeByName(o_PP_QUOTE(type))
 #    define o_local_code_Selector_typedef_typename    typedef
 #    define o_local_code_AutoReflectionRegistration
 #    define o_local_code_RegisterModules_CPP \
@@ -356,7 +356,7 @@
             template<typename> friend class phantom::reflection::native::TType_;\
             template<typename,int> friend class phantom::reflection::native::TTypeHelper;\
             template<typename> friend class phantom::reflection::native::TConstType;\
-            o_local_code_Attribute_RESERVED_smdataptr \
+            o_local_code_DataMember_RESERVED_smdataptr \
         protected: \
         private:
 

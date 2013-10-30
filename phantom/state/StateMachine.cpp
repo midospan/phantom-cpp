@@ -103,7 +103,7 @@ uint StateMachine::getEventId( const string& a_strName ) const
     return 0xffffffff;
 }
 
-reflection::Signature* StateMachine::StateMethodSignature()
+reflection::Signature* StateMachine::StateMemberFunctionSignature()
 {
     static reflection::Signature*    s_Value = NULL;
     if(s_Value == NULL)

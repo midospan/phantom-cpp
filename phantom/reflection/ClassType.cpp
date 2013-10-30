@@ -65,11 +65,11 @@ void ClassType::destroyContent()
     }
 }
 
-Attribute* ClassType::getAttribute( const string& a_strName) const
+DataMember* ClassType::getDataMember( const string& a_strName) const
 {
-    Attribute* pAttribute = getInstanceAttribute(a_strName);
-    if(pAttribute != NULL) return pAttribute;
-    return getStaticAttribute(a_strName);
+    DataMember* pDataMember = getInstanceDataMember(a_strName);
+    if(pDataMember != NULL) return pDataMember;
+    return getStaticDataMember(a_strName);
 }
 
 void    ClassType::addMember( LanguageElement* a_pMember )
@@ -93,16 +93,16 @@ void    ClassType::removeMember( LanguageElement* a_pMember )
     o_assert(false);
 }
 
-InstanceAttribute* ClassType::getInstanceAttribute( const string& a_strName) const
+InstanceDataMember* ClassType::getInstanceDataMember( const string& a_strName) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<Property>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<Property>());
+    member_collection::const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
+    member_collection::const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
     for(; it != end; ++it)
     {
-        if(NOT(it->second->isInstanceAttribute())) continue;
-        InstanceAttribute* pAttribute = static_cast<InstanceAttribute*>(it->second);
-        if(pAttribute->getName() == a_strName)
-            return pAttribute;
+        if(NOT(it->second->isInstanceDataMember())) continue;
+        InstanceDataMember* pDataMember = static_cast<InstanceDataMember*>(it->second);
+        if(pDataMember->getName() == a_strName)
+            return pDataMember;
     }
     return NULL;
 }
@@ -125,8 +125,8 @@ Constructor* ClassType::getConstructor( const string& a_strIdentifierString ) co
 
 void ClassType::valueToString( string& s, void* src ) const
 {
-    member_const_iterator it = m_Members.lower_bound(classOf<Property>());
-    member_const_iterator end = m_Members.upper_bound(classOf<Property>());
+    member_const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
+    member_const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
     byte scratch[phantom::max_type_size];
     s += '{';
     int c = 0;
@@ -136,11 +136,11 @@ void ClassType::valueToString( string& s, void* src ) const
         {
             s += ';';
         }
-        Property* pProperty = static_cast<Property*>(it->second);
-        s += pProperty->getName();
+        ValueMember* pValueMember = static_cast<ValueMember*>(it->second);
+        s += pValueMember->getName();
         s += '=';
-        pProperty->getValue(src, scratch);
-        pProperty->getValueType()->valueToString(s, scratch);
+        pValueMember->getValue(src, scratch);
+        pValueMember->getValueType()->valueToString(s, scratch);
         ++c;
     }
     s += '}';
@@ -148,12 +148,12 @@ void ClassType::valueToString( string& s, void* src ) const
 
 void ClassType::valueFromString( const string& cs, void* dest ) const
 {
-    o_exception(exception::unsupported_method_exception, "TODO (not supported yet)");
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceAttribute>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceAttribute>());
+    o_exception(exception::unsupported_member_function_exception, "TODO (not supported yet)");
+    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceDataMember>());
+    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceDataMember>());
     for(; it != end; ++it)
     {
-        InstanceAttribute* pAttribute = static_cast<InstanceAttribute*>(it->second);
+        InstanceDataMember* pDataMember = static_cast<InstanceDataMember*>(it->second);
         // TODO : implement
     }
 }
@@ -165,11 +165,11 @@ void ClassType::setTemplateSpecialization( TemplateSpecialization* a_pTemplateSp
     //m_strName += m_pTemplateSpecialization->getName();
 }
 
-InstanceMethod* ClassType::getInstanceMethod( const string& a_strIdentifierString ) const
+InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_strIdentifierString ) const
 {
     LanguageElement* pElement = phantom::elementByName(a_strIdentifierString, const_cast<ClassType*>(this));
-    return (pElement AND pElement->isInstanceMethod()) 
-                ? static_cast<InstanceMethod*>(pElement)
+    return (pElement AND pElement->isInstanceMemberFunction()) 
+                ? static_cast<InstanceMemberFunction*>(pElement)
                 : NULL;
 }
 
@@ -179,72 +179,73 @@ LanguageElement*            ClassType::getElement(
     , function_signature const* a_FunctionSignature
     , bitfield a_bfModifiers /*= bitfield()*/) const 
 {
-    LanguageElement* pElement = Type::getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_bfModifiers);
-    if(pElement) return pElement;
+    LanguageElement* pElement = nullptr;
     if(m_pTemplateSpecialization)
     {
         pElement = m_pTemplateSpecialization->getType(a_strName);
         if(pElement) return pElement;
     }
+    pElement = Type::getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_bfModifiers);
+    if(pElement) return pElement;
     if(a_FunctionSignature == NULL)
     {
-        StaticAttribute* pStaticAttribute = getStaticAttribute(a_strName);
-        if(pStaticAttribute)
+        StaticDataMember* pStaticDataMember = getStaticDataMember(a_strName);
+        if(pStaticDataMember)
         {
-            return pStaticAttribute->asLanguageElement();
+            return pStaticDataMember->asLanguageElement();
         }
-        return getProperty(a_strName);
+        return getValueMember(a_strName);
     }
-    Method* pMethod = getMethod(a_strName, a_FunctionSignature, a_bfModifiers);
-    return pMethod ? pMethod->asLanguageElement() : NULL;
+    MemberFunction* pMemberFunction = getMemberFunction(a_strName, a_FunctionSignature, a_bfModifiers);
+    return pMemberFunction ? pMemberFunction->asLanguageElement() : NULL;
 }
 
-InstanceMethod* ClassType::getInstanceMethod( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/ ) const
+InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/ ) const
 {
-  member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMethod>());
-  member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMethod>());
+  member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
+  member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
   for(; it != end; ++it)
   {
-    InstanceMethod* pMethod = static_cast<InstanceMethod*>(it->second);
-    if(pMethod->matches(a_strName, a_FunctionSignature, a_bfModifiers))
-          return pMethod;
+    InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+    if(pMemberFunction->matches(a_strName, a_FunctionSignature, a_bfModifiers))
+          return pMemberFunction;
   }
   return NULL;
 }
 
-StaticMethod* ClassType::getStaticMethod( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/ ) const
+StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/ ) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<StaticMethod>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<StaticMethod>());
+    member_collection::const_iterator it = m_Members.lower_bound(classOf<StaticMemberFunction>());
+    member_collection::const_iterator end = m_Members.upper_bound(classOf<StaticMemberFunction>());
     for(; it != end; ++it)
     {
-        StaticMethod* pMethod = static_cast<StaticMethod*>(it->second);
-        if(pMethod->matches(a_strName, a_FunctionSignature, a_bfModifiers))
-            return pMethod;
+        StaticMemberFunction* pMemberFunction = static_cast<StaticMemberFunction*>(it->second);
+        if(pMemberFunction->matches(a_strName, a_FunctionSignature, a_bfModifiers))
+            return pMemberFunction;
     }
     return NULL;
 }
 
-StaticMethod* ClassType::getStaticMethod( const string& a_strIdentifierString ) const
+StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strIdentifierString ) const
 {
     LanguageElement* pElement = phantom::elementByName(a_strIdentifierString, const_cast<ClassType*>(this));
-    return pElement AND pElement->isStaticMethod() 
-        ? static_cast<StaticMethod*>(pElement)
+    return pElement AND pElement->isStaticMemberFunction() 
+        ? static_cast<StaticMemberFunction*>(pElement)
         : NULL;
 }
 
-Method* ClassType::getMethod(const string& a_strIdentifierString) const
+MemberFunction* ClassType::getMemberFunction(const string& a_strIdentifierString) const
 {
-    Method* pMethod = getInstanceMethod(a_strIdentifierString);
-    if(pMethod != NULL) return pMethod;
-    return getStaticMethod(a_strIdentifierString);
+    MemberFunction* pMemberFunction = getInstanceMemberFunction(a_strIdentifierString);
+    if(pMemberFunction != NULL) return pMemberFunction;
+    return getStaticMemberFunction(a_strIdentifierString);
 }
 
-Method* ClassType::getMethod(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/) const
+MemberFunction* ClassType::getMemberFunction(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/) const
 {
-    Method* pMethod = getInstanceMethod(a_strName, a_FunctionSignature, a_bfModifiers);
-    if(pMethod != NULL) return pMethod;
-    return getStaticMethod(a_strName, a_FunctionSignature, a_bfModifiers);
+    MemberFunction* pMemberFunction = getInstanceMemberFunction(a_strName, a_FunctionSignature, a_bfModifiers);
+    if(pMemberFunction != NULL) return pMemberFunction;
+    return getStaticMemberFunction(a_strName, a_FunctionSignature, a_bfModifiers);
 }
 /*
 
@@ -262,32 +263,32 @@ phantom::string ClassType::getQualifiedName() const
 }*/
 
 
-StaticAttribute* ClassType::getStaticAttribute( const string& a_strName) const
+StaticDataMember* ClassType::getStaticDataMember( const string& a_strName) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<StaticAttribute>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<StaticAttribute>());
+    member_collection::const_iterator it = m_Members.lower_bound(classOf<StaticDataMember>());
+    member_collection::const_iterator end = m_Members.upper_bound(classOf<StaticDataMember>());
     for(; it != end; ++it)
     {
-        StaticAttribute* pAttribute = static_cast<StaticAttribute*>(it->second);
-        if(pAttribute->getName() == a_strName)
-            return pAttribute;
+        StaticDataMember* pDataMember = static_cast<StaticDataMember*>(it->second);
+        if(pDataMember->getName() == a_strName)
+            return pDataMember;
     }
     return NULL;
 }
 
-void ClassType::addInstanceMethod( InstanceMethod* a_pMethod )
+void ClassType::addInstanceMemberFunction( InstanceMemberFunction* a_pMemberFunction )
 {
-    addMember(a_pMethod);
+    addMember(a_pMemberFunction);
 }
 
-void ClassType::addStaticMethod( StaticMethod* a_pMethod )
+void ClassType::addStaticMemberFunction( StaticMemberFunction* a_pMemberFunction )
 {
-    addMember(a_pMethod);
+    addMember(a_pMemberFunction);
 }
 
-void ClassType::addMethod( Method* a_pMethod )
+void ClassType::addMemberFunction( MemberFunction* a_pMemberFunction )
 {
-    addMember(a_pMethod->asLanguageElement());
+    addMember(a_pMemberFunction->asLanguageElement());
 }
 
 void ClassType::getAllMember( vector<LanguageElement*>& out ) const
@@ -299,15 +300,15 @@ void ClassType::getAllMember( vector<LanguageElement*>& out ) const
     }
 }
 
-Property* ClassType::getProperty( const string& a_strName ) const
+ValueMember* ClassType::getValueMember( const string& a_strName ) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<Property>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<Property>());
+    member_collection::const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
+    member_collection::const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
     for(; it != end; ++it)
     {
-        Property* pProperty = static_cast<Property*>(it->second);
-        if(pProperty->getName() == a_strName)
-            return pProperty;
+        ValueMember* pValueMember = static_cast<ValueMember*>(it->second);
+        if(pValueMember->getName() == a_strName)
+            return pValueMember;
     }
     return nullptr;
 }
@@ -342,14 +343,14 @@ boolean ClassType::matches( template_specialization const* a_pElements ) const
 }
 
 
-ClassType::member_const_iterator ClassType::propertiesBegin() const
+ClassType::member_const_iterator ClassType::valueMembersBegin() const
 {
-    return m_Members.lower_bound(classOf<Property>());
+    return m_Members.lower_bound(classOf<ValueMember>());
 }
 
-ClassType::member_const_iterator ClassType::propertiesEnd() const
+ClassType::member_const_iterator ClassType::valueMembersEnd() const
 {
-    return m_Members.upper_bound(classOf<Property>());
+    return m_Members.upper_bound(classOf<ValueMember>());
 }
 
 void                    ClassType::addConstructor( Constructor* a_pConstructor )
@@ -358,50 +359,50 @@ void                    ClassType::addConstructor( Constructor* a_pConstructor )
     addMember(a_pConstructor);
 }
 
-void                ClassType::addProperty(Property* a_pProperty)
+void                ClassType::addValueMember(ValueMember* a_pValueMember)
 {
-    o_assert(getProperty(a_pProperty->getName()) == NULL);
-    if(a_pProperty->isReset())
+    o_assert(getValueMember(a_pValueMember->getName()) == NULL);
+    if(a_pValueMember->isReset())
     {
-        m_uiResetSize += a_pProperty->getValueType()->getResetSize(); 
+        m_uiResetSize += a_pValueMember->getValueType()->getResetSize(); 
     }
-    addMember(a_pProperty);
+    addMember(a_pValueMember);
 }
-void                ClassType::addAccessor( Accessor* a_pAccessor )
+void                ClassType::addProperty( Property* a_pProperty )
 {
-    addMember(a_pAccessor);
+    addMember(a_pProperty);
 }
 void                ClassType::addCollection( Collection* a_pCollection)
 {
     addMember(a_pCollection);
 }
-void                ClassType::addAttribute(Attribute* a_pAttribute)
+void                ClassType::addDataMember(DataMember* a_pDataMember)
 {
-    addMember(a_pAttribute->asLanguageElement());
+    addMember(a_pDataMember->asLanguageElement());
 }
-void                ClassType::addInstanceAttribute(InstanceAttribute* a_pAttribute)
+void                ClassType::addInstanceDataMember(InstanceDataMember* a_pDataMember)
 {
-    addMember(a_pAttribute);
+    addMember(a_pDataMember);
 }
-void                ClassType::addStaticAttribute(StaticAttribute* a_pAttribute)
+void                ClassType::addStaticDataMember(StaticDataMember* a_pDataMember)
 {
-    addMember(a_pAttribute);
+    addMember(a_pDataMember);
 }
 
 void ClassType::interpolate( void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode /*= 0*/ ) const
 {
-    member_const_iterator it = m_Members.lower_bound(classOf<Property>());
-    member_const_iterator end = m_Members.upper_bound(classOf<Property>());
+    member_const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
+    member_const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
     byte scratch_start[phantom::max_type_size];
     byte scratch_end[phantom::max_type_size];
     byte scratch_result[phantom::max_type_size];
     for(; it != end; ++it)
     {
-        Property* pProperty = static_cast<Property*>(it->second);
-        pProperty->getValue(a_src_start, scratch_start);
-        pProperty->getValue(a_src_end, scratch_end);
-        pProperty->getValueType()->interpolate(scratch_start, scratch_end, a_fPercent, scratch_result);
-        pProperty->setValue(a_pDest, scratch_result);
+        ValueMember* pValueMember = static_cast<ValueMember*>(it->second);
+        pValueMember->getValue(a_src_start, scratch_start);
+        pValueMember->getValue(a_src_end, scratch_end);
+        pValueMember->getValueType()->interpolate(scratch_start, scratch_end, a_fPercent, scratch_result);
+        pValueMember->setValue(a_pDest, scratch_result);
     }
 }
 
@@ -440,9 +441,9 @@ boolean ClassType::matches( const char* a_strName, template_specialization const
   return false;
 }
 
-size_t ClassType::getPropertyCount() const
+size_t ClassType::getValueMemberCount() const
 {
-    return m_Members.count(classOf<Property>());
+    return m_Members.count(classOf<ValueMember>());
 }
 
 size_t ClassType::getCollectionCount() const
@@ -450,38 +451,38 @@ size_t ClassType::getCollectionCount() const
     return m_Members.count(classOf<Collection>());
 }
 
-size_t ClassType::getInstanceMethodCount() const
+size_t ClassType::getInstanceMemberFunctionCount() const
 {
-    return m_Members.count(classOf<InstanceMethod>());
+    return m_Members.count(classOf<InstanceMemberFunction>());
 }
 
-size_t ClassType::getStaticMethodCount() const
+size_t ClassType::getStaticMemberFunctionCount() const
 {
-    return m_Members.count(classOf<StaticMethod>());
+    return m_Members.count(classOf<StaticMemberFunction>());
 }
 
-void ClassType::findPublicPropertiesPointingValueType( Type* a_pType, vector<Property*>& out ) const
+void ClassType::findPublicPropertiesPointingValueType( Type* a_pType, vector<ValueMember*>& out ) const
 {
-    member_const_iterator it = m_Members.lower_bound(classOf<Property>());
-    member_const_iterator end = m_Members.upper_bound(classOf<Property>());
+    member_const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
+    member_const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
     for(; it != end; ++it)
     {
-        Property* pProperty = static_cast<Property*>(it->second);
-        DataPointerType* pPointerType = pProperty->getValueType()->asDataPointerType();
-        if(pPointerType AND pProperty->isPublic() AND a_pType->isKindOf(pPointerType->getPointedType()))
+        ValueMember* pValueMember = static_cast<ValueMember*>(it->second);
+        DataPointerType* pPointerType = pValueMember->getValueType()->asDataPointerType();
+        if(pPointerType AND pValueMember->isPublic() AND a_pType->isKindOf(pPointerType->getPointedType()))
         {
-            out.push_back(pProperty);
+            out.push_back(pValueMember);
         }
     }
 }
 
-void ClassType::getAllProperty(vector<Property*>& out) const
+void ClassType::getAllValueMember(vector<ValueMember*>& out) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<Property>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<Property>());
+    member_collection::const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
+    member_collection::const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
     for(;it != end; ++it)
     {
-        out.push_back(static_cast<Property*>(it->second));
+        out.push_back(static_cast<ValueMember*>(it->second));
     }
 }
 
@@ -499,42 +500,42 @@ void        ClassType::smartCopy(void* a_pInstance, void const* a_pSource, refle
 {
     ClassType* pSourceClassType = a_pSourceType->asClassType();
     o_assert(pSourceClassType);
-    auto it = pSourceClassType->propertiesBegin();
-    auto end = pSourceClassType->propertiesEnd();
+    auto it = pSourceClassType->valueMembersBegin();
+    auto end = pSourceClassType->valueMembersEnd();
     for(; it!=end; ++it)
     {
-        reflection::Property* pOldProperty = (Property*)it->second;
-        reflection::Property* pNewProperty = getProperty(pOldProperty->getName());
-        reflection::Type* pOldPropertyType = pOldProperty->getValueType();
-        reflection::Type* pNewPropertyType = nullptr;
-        if(pNewProperty != nullptr 
-            AND pOldPropertyType->isImplicitlyConvertibleTo((pNewPropertyType = pNewProperty->getValueType())))
+        reflection::ValueMember* pOldValueMember = (ValueMember*)it->second;
+        reflection::ValueMember* pNewValueMember = getValueMember(pOldValueMember->getName());
+        reflection::Type* pOldValueMemberType = pOldValueMember->getValueType();
+        reflection::Type* pNewValueMemberType = nullptr;
+        if(pNewValueMember != nullptr 
+            AND pOldValueMemberType->isImplicitlyConvertibleTo((pNewValueMemberType = pNewValueMember->getValueType())))
         {
-            void* sourceBuffer = pOldPropertyType->newInstance();
-            pOldProperty->getValue(a_pSource, sourceBuffer);
-            void* newBuffer = pNewPropertyType->newInstance();
-            pOldPropertyType->convertValueTo(pNewPropertyType, newBuffer, sourceBuffer);
-            pNewProperty->setValue(a_pInstance, newBuffer);
-            pOldPropertyType->deleteInstance(pOldProperty);
-            pNewPropertyType->deleteInstance(newBuffer);
+            void* sourceBuffer = pOldValueMemberType->newInstance();
+            pOldValueMember->getValue(a_pSource, sourceBuffer);
+            void* newBuffer = pNewValueMemberType->newInstance();
+            pOldValueMemberType->convertValueTo(pNewValueMemberType, newBuffer, sourceBuffer);
+            pNewValueMember->setValue(a_pInstance, newBuffer);
+            pOldValueMemberType->deleteInstance(pOldValueMember);
+            pNewValueMemberType->deleteInstance(newBuffer);
         }
     }
 }
 
-InstanceMethod* ClassType::getUniqueInstanceMethodWithName( const string& a_strName ) const
+InstanceMemberFunction* ClassType::getUniqueInstanceMemberFunctionWithName( const string& a_strName ) const
 {
-    InstanceMethod* pInstanceMethod = nullptr;
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMethod>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMethod>());
+    InstanceMemberFunction* pInstanceMemberFunction = nullptr;
+    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
+    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
     for(;it != end; ++it)
     {
-        if(static_cast<InstanceMethod*>(it->second)->getName() == a_strName)
+        if(static_cast<InstanceMemberFunction*>(it->second)->getName() == a_strName)
         {
-            if(pInstanceMethod) return nullptr;
-            pInstanceMethod = static_cast<InstanceMethod*>(it->second);
+            if(pInstanceMemberFunction) return nullptr;
+            pInstanceMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
         }
     }
-    return pInstanceMethod;
+    return pInstanceMemberFunction;
 }
 
 void ClassType::getElements( vector<LanguageElement*>& out, Class* a_pClass ) const

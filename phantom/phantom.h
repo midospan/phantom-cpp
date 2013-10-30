@@ -185,6 +185,10 @@ namespace reflection
         template<typename> struct root_pointed_type_of_;
         template<typename> struct pointed_type_of_;
     }
+
+    static phantom::reflection::Class*                 g_PHANTOM_RESERVED_class = 0;
+    static phantom::reflection::Namespace*             g_PHANTOM_RESERVED_namespace = 0;
+    static phantom::reflection::TemplateSpecialization*g_PHANTOM_RESERVED_template_specialization = 0;
 }
 
 template <typename t_Ty>
@@ -541,13 +545,13 @@ o_forceinline void                              registerTypedef(const char* a_st
     phantom::reflection::typedef_registrer(a_strTypedef, phantom::typeOf<t_Ty>());
 }
 
-o_export boolean           canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMethod* a_pMethod );
-o_export connection::slot const* connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
-o_export connection::slot const* disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
-o_export connection::slot const* connect(void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMethod* a_pMethod);
-o_export connection::slot const* disconnect(void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMethod* a_pMethod);
-o_export connection::slot const* tryConnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
-o_export connection::slot const* tryDisconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
+o_export boolean           canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
+o_export connection::slot const* connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
+o_export connection::slot const* disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
+o_export connection::slot const* connect(void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction);
+o_export connection::slot const* disconnect(void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction);
+o_export connection::slot const* tryConnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
+o_export connection::slot const* tryDisconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
 
 o_export void       assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const character* e, const character* m , const char* f , uint l);
 o_export void       warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
@@ -570,6 +574,9 @@ protected:
     typedef t_Ty phantom_proxy_generator_statechart_self_type;
     typedef t_Proxy phantom_proxy_generator_reflection_proxy_type;
     typedef t_Proxy phantom_proxy_statechart_proxy_type;
+
+    int                                         m_PHANTOM_RESERVED_no_signal;
+    int                                         PHANTOM_CODEGEN_m_slot_list_of_m_PHANTOM_RESERVED_no_signal;
 };
 
 namespace phantom {
@@ -650,18 +657,18 @@ o_declare(class, phantom, Phantom)
     o_declare(class, phantom, reflection, IteratorVariable)
     o_declare(class, phantom, reflection, StaticVariable)
     o_declare(class, phantom, reflection, Member)
-    o_declare(class, phantom, reflection, Method)
-    o_declare(class, phantom, reflection, StaticMethod)
+    o_declare(class, phantom, reflection, MemberFunction)
+    o_declare(class, phantom, reflection, StaticMemberFunction)
     o_declare(class, phantom, reflection, Constructor)
-    o_declare(class, phantom, reflection, InstanceMethod)
+    o_declare(class, phantom, reflection, InstanceMemberFunction)
     o_declare(class, phantom, reflection, Signal)
-    o_declare(class, phantom, reflection, Attribute)
-    o_declare(class, phantom, reflection, InstanceAttribute)
-    o_declare(class, phantom, reflection, StaticAttribute)
-    o_declare(class, phantom, reflection, Accessor)
-    o_declare(class, phantom, reflection, Collection)
+    o_declare(class, phantom, reflection, DataMember)
+    o_declare(class, phantom, reflection, InstanceDataMember)
+    o_declare(class, phantom, reflection, StaticDataMember)
     o_declare(class, phantom, reflection, Property)
-    o_declare(class, phantom, reflection, PropertyBinding)
+    o_declare(class, phantom, reflection, Collection)
+    o_declare(class, phantom, reflection, ValueMember)
+    o_declare(class, phantom, reflection, ValueMemberBinding)
     o_declare(class, phantom, reflection, Type)
     o_declare(class, phantom, reflection, PrimitiveType)
     o_declare(class, phantom, reflection, PointerType)
@@ -678,7 +685,7 @@ o_declare(class, phantom, Phantom)
     o_declare(class, phantom, reflection, LanguageElement)
     o_declare(class, phantom, reflection, TemplateElement)
     o_declare(class, phantom, reflection, Constant)
-    o_declare(class, phantom, reflection, VirtualMethodTable)
+    o_declare(class, phantom, reflection, VirtualMemberFunctionTable)
     o_declare(class, phantom, reflection, Namespace)
     o_declare(class, phantom, reflection, TemplateSpecialization)
 
@@ -707,67 +714,67 @@ o_declare(class, phantom, Phantom)
 #include "phantom/def_exceptions.h"
 #include "phantom/def_math.h"
 
-    o_declareT(class, phantom, reflection, native, (typename,typename), TNativeInstanceMethod0 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename), TNativeInstanceMethod1 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInstanceMethod2 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInstanceMethod3 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInstanceMethod4 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMethod5 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMethod6 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMethod7 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMethod8 )
+    o_declareT(class, phantom, reflection, native, (typename,typename), TNativeInstanceMemberFunction0 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename), TNativeInstanceMemberFunction1 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInstanceMemberFunction2 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInstanceMemberFunction3 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunction4 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunction5 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunction6 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunction7 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunction8 )
 
-    o_declareT(class, phantom, reflection, native, (typename,typename), TNativeInstanceMethodConst0 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename), TNativeInstanceMethodConst1 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInstanceMethodConst2 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInstanceMethodConst3 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInstanceMethodConst4 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMethodConst5 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMethodConst6 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMethodConst7 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMethodConst8 )
+    o_declareT(class, phantom, reflection, native, (typename,typename), TNativeInstanceMemberFunctionConst0 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename), TNativeInstanceMemberFunctionConst1 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInstanceMemberFunctionConst2 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst3 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst4 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst5 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst6 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst7 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst8 )
 
-    o_declareT(class, phantom, reflection, native, (typename,typename), TNativeInterfaceMethod0 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename), TNativeInterfaceMethod1 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInterfaceMethod2 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInterfaceMethod3 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInterfaceMethod4 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMethod5 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMethod6 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMethod7 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMethod8 )
+    o_declareT(class, phantom, reflection, native, (typename,typename), TNativeInterfaceMemberFunction0 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename), TNativeInterfaceMemberFunction1 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInterfaceMemberFunction2 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction3 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction4 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction5 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction6 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction7 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction8 )
 
-    o_declareT(class, phantom, reflection, native, (typename,typename), TNativeInterfaceMethodConst0 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename), TNativeInterfaceMethodConst1 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInterfaceMethodConst2 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInterfaceMethodConst3 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInterfaceMethodConst4 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMethodConst5 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMethodConst6 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMethodConst7 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMethodConst8 )
+    o_declareT(class, phantom, reflection, native, (typename,typename), TNativeInterfaceMemberFunctionConst0 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename), TNativeInterfaceMemberFunctionConst1 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst2 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst3 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst4 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst5 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst6 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst7 )
+    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst8 )
 
     o_declareT(class, phantom, reflection, native, (typename), TConstant)
 
     o_declareT(class, phantom, reflection, native, (typename), TType)
     o_declareT(class, phantom, reflection, native, (typename, typename), TNativeSignal)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInstanceMethod)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInstanceMethodConst)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInterfaceMethod)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInterfaceMethodConst)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeStaticMethod)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInstanceAttribute)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeStaticAttribute)
+    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInstanceMemberFunction)
+    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInstanceMemberFunctionConst)
+    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInterfaceMemberFunction)
+    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInterfaceMemberFunctionConst)
+    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeStaticMemberFunction)
+    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInstanceDataMember)
+    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeStaticDataMember)
 
-    o_declareT(class, phantom, reflection, native, (typename, uint, typename), TNativeAttributeProvider)
+    o_declareT(class, phantom, reflection, native, (typename, uint, typename), TNativeDataMemberProvider)
 
 #ifdef o_NO_FUNCTION_STYLE_TEMPLATE_SIGNATURE
-    o_declareT(class, phantom, reflection, native, (typename, uint, typename, typename, typename), TNativeMethodProvider)
-    o_declareT(class, phantom, reflection, native, (typename, uint, typename, typename, typename), TNativeInterfaceMethodProvider)
+    o_declareT(class, phantom, reflection, native, (typename, uint, typename, typename, typename), TNativeMemberFunctionProvider)
+    o_declareT(class, phantom, reflection, native, (typename, uint, typename, typename, typename), TNativeInterfaceMemberFunctionProvider)
     o_declareT(class, phantom, reflection, native, (typename, typename, typename), TNativeSignatureProvider)
 #else
-    o_declareT(class, phantom, reflection, native, (typename, uint, typename), TNativeMethodProvider)
-    o_declareT(class, phantom, reflection, native, (typename, uint, typename), TNativeInterfaceMethodProvider)
+    o_declareT(class, phantom, reflection, native, (typename, uint, typename), TNativeMemberFunctionProvider)
+    o_declareT(class, phantom, reflection, native, (typename, uint, typename), TNativeInterfaceMemberFunctionProvider)
     o_declareT(class, phantom, reflection, native, (int, typename), TNativeSignatureProvider)
 #endif
 
@@ -925,12 +932,12 @@ public:
     friend o_export void        dynamicPoolDeallocate(size_t s, void* a_pAddress o_memory_stat_append_parameters);
     friend o_export void*       dynamicPoolAllocate(size_t s, size_t count o_memory_stat_append_parameters);
     friend o_export void        dynamicPoolDeallocate(size_t s, void* a_pAddress, size_t count o_memory_stat_append_parameters);
-    friend o_export connection::slot const* connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
-    friend o_export connection::slot const* connect(void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMethod* a_pMethod);
-    friend o_export connection::slot const* disconnect(void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMethod* a_pMethod);
-    friend o_export connection::slot const* disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
-    friend o_export connection::slot const* tryConnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
-    friend o_export connection::slot const* tryDisconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
+    friend o_export connection::slot const* connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
+    friend o_export connection::slot const* connect(void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction);
+    friend o_export connection::slot const* disconnect(void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction);
+    friend o_export connection::slot const* disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
+    friend o_export connection::slot const* tryConnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
+    friend o_export connection::slot const* tryDisconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
     friend o_export void assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const character* e, const character* m , const char* f , uint l);
     friend o_export void warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
     friend o_export void error BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
@@ -1004,8 +1011,8 @@ public:
 
 private:
     static void    setState(EState s) ;
-    static connection::slot const*    internalConnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMethod* a_pMethod );
-    static connection::slot const*    internalDisconnect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMethod* a_pMethod );
+    static connection::slot const*    internalConnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction );
+    static connection::slot const*    internalDisconnect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
 
     struct type_sorter_by_build_order
     {
@@ -1032,7 +1039,7 @@ private:
 
 public:
     template<typename _Type, typename _MetaType>
-    o_forceinline static void o_accessor_func(_MetaType* a_pMetaType, const character* a_pName, const character* a_pSetter, const character* a_pGetter, const char* a_strFile, size_t a_uiLine, bitfield a_Modifiers = bitfield());
+    o_forceinline static void o_property_func(_MetaType* a_pMetaType, const character* a_pName, const character* a_pSetter, const character* a_pGetter, const char* a_strFile, size_t a_uiLine, bitfield a_Modifiers = bitfield());
 
     friend o_export phantom::reflection::Namespace*     namespaceByName(  const string& a_strNamespaceName);
     friend o_export phantom::reflection::Namespace*     namespaceByList( list<string>* a_pNamespaceNameAsStringList );
@@ -1205,7 +1212,7 @@ namespace detail
 
 }
 
-// Some methods implementations which depends on phantom::Phantom
+// Some member_functions implementations which depends on phantom::Phantom
 
 o_export inline phantom::reflection::Namespace*     rootNamespace() { return phantom::Phantom::m_pRootNamespace; }
 o_export inline phantom::reflection::SourceFile*    sourceFile(const string& absoluteName) { return phantom::Phantom::sourceFile(absoluteName); }
@@ -1478,11 +1485,11 @@ o_end_phantom_namespace()
 #include "phantom/reflection/LanguageElement.h"
 #include "phantom/reflection/TemplateElement.h"
 #include "phantom/reflection/Signature.h"
-#include "phantom/reflection/VirtualMethodTable.h"
+#include "phantom/reflection/VirtualMemberFunctionTable.h"
 #include "phantom/reflection/Type.h"
 
 
-// Inlining as soon as possible the method which use Type class
+// Inlining as soon as possible the member_function which use Type class
 template<typename t_Ty>
 t_Ty* phantom::data::as() const
 {
@@ -1515,20 +1522,20 @@ inline void        phantom::data::destroy()
 #include "phantom/reflection/ConstReferenceType.h"
 #include "phantom/reflection/ArrayType.h"
 #include "phantom/reflection/ConstArrayType.h"
-#include "phantom/reflection/Property.h"
+#include "phantom/reflection/ValueMember.h"
 #include "phantom/reflection/Constant.h"
 #include "phantom/reflection/Variable.h"
 #include "phantom/util/Iterator.h"
 #include "phantom/reflection/IteratorConstant.h"
 #include "phantom/reflection/IteratorVariable.h"
-#include "phantom/reflection/PropertyBinding.h"
+#include "phantom/reflection/ValueMemberBinding.h"
 #include "phantom/reflection/Subroutine.h"
 #include "phantom/reflection/Constructor.h"
 #include "phantom/reflection/Function.h"
 #include "phantom/reflection/StaticVariable.h"
 #include "phantom/reflection/ClassType.h"
 
-// Inlining as soon as possible the method which use ClassType class
+// Inlining as soon as possible the member_function which use ClassType class
 template<typename t_Ty>
 t_Ty* phantom::object::as  ()
 {
@@ -1540,7 +1547,7 @@ t_Ty* phantom::object::as  ()
 
 #include "phantom/reflection/Class.h"
 
-// Inlining as soon as possible the method which use Class class
+// Inlining as soon as possible the member_function which use Class class
 
 #include "phantom/def_modules_phantom_reflection_Class_dependency.inl"
 
@@ -1579,7 +1586,7 @@ o_forceinline void*   phantom::rtti_data::cast(phantom::reflection::Class* a_pTa
 
 #include "phantom/reflection/native/TConstant.h"
 
-// Implementing some methods which depend on TConstant
+// Implementing some member_functions which depend on TConstant
 
 o_begin_phantom_namespace()
 
@@ -1765,37 +1772,35 @@ o_namespace_end(phantom, extension, detail)
 
 #include "phantom/reflection/Member.h"
 
-#include "phantom/reflection/Method.h"
-#include "phantom/reflection/InstanceMethod.h"
-#include "phantom/reflection/StaticMethod.h"
-#include "phantom/reflection/native/TNativeStaticMethodBase.h"
-#include "phantom/reflection/native/TNativeStaticMethod.h"
-#include "phantom/reflection/native/TNativeInstanceMethodBase.h"
-#include "phantom/reflection/native/TNativeInstanceMethod.h"
-#include "phantom/reflection/native/TNativeInstanceMethodConst.h"
-#include "phantom/reflection/native/TNativeInterfaceMethod.h"
-#include "phantom/reflection/native/TNativeInterfaceMethodConst.h"
-#include "phantom/reflection/native/TNativeMethodProvider.h"
+#include "phantom/reflection/MemberFunction.h"
+#include "phantom/reflection/InstanceMemberFunction.h"
+#include "phantom/reflection/StaticMemberFunction.h"
+#include "phantom/reflection/native/TNativeStaticMemberFunctionBase.h"
+#include "phantom/reflection/native/TNativeStaticMemberFunction.h"
+#include "phantom/reflection/native/TNativeInstanceMemberFunctionBase.h"
+#include "phantom/reflection/native/TNativeInstanceMemberFunction.h"
+#include "phantom/reflection/native/TNativeInstanceMemberFunctionConst.h"
+#include "phantom/reflection/native/TNativeMemberFunctionProvider.h"
 
-#include "phantom/reflection/Attribute.h"
-#include "phantom/reflection/InstanceAttribute.h"
-#include "phantom/reflection/StaticAttribute.h"
-#include "phantom/reflection/Accessor.h"
+#include "phantom/reflection/DataMember.h"
+#include "phantom/reflection/InstanceDataMember.h"
+#include "phantom/reflection/StaticDataMember.h"
+#include "phantom/reflection/Property.h"
 #include "phantom/reflection/Collection.h"
-#include "phantom/reflection/native/TNativeInstanceAttribute.h"
-#include "phantom/reflection/native/TNativeAccessor.h"
+#include "phantom/reflection/native/TNativeInstanceDataMember.h"
+#include "phantom/reflection/native/TNativeProperty.h"
 #include "phantom/reflection/native/TNativeCollection.h"
-#include "phantom/reflection/native/TNativeStaticAttribute.h"
-#include "phantom/reflection/native/TNativeAttributeProvider.h"
+#include "phantom/reflection/native/TNativeStaticDataMember.h"
+#include "phantom/reflection/native/TNativeDataMemberProvider.h"
 #include "phantom/util/Comparator.h"
 
-#include "phantom/reflection/SubProperty.h"
+#include "phantom/reflection/SubValueMember.h"
 #include "phantom/reflection/TemplateSpecialization.h"
 #include "phantom/reflection/Signal.h"
 #include "phantom/reflection/native/TNativeSignalBase.h"
 #include "phantom/reflection/native/TNativeSignal.h"
 #include "phantom/reflection/ClassExtension.h"
-#include "phantom/reflection/AbstractMethod.h"
+#include "phantom/reflection/PureVirtualMemberFunction.h"
 #include "phantom/reflection/Function.h"
 
 // DEFINE INLINE TEMPLATE FUNCS WHICH USE REFLECTION CLASSES (GCC constraint)
@@ -1803,9 +1808,9 @@ o_namespace_end(phantom, extension, detail)
 o_begin_phantom_namespace()
 
 template<typename _Type, typename _MetaType>
-o_forceinline void Phantom::o_accessor_func(_MetaType* a_pMetaType, const character* a_pName, const character* a_pSetter, const character* a_pGetter, const char* a_strFile, size_t a_uiLine, bitfield a_Modifiers )
+o_forceinline void Phantom::o_property_func(_MetaType* a_pMetaType, const character* a_pName, const character* a_pSetter, const character* a_pGetter, const char* a_strFile, size_t a_uiLine, bitfield a_Modifiers )
 {
-    phantom::reflection::InstanceMethod* pSetter = a_pMetaType->getInstanceMethodCascade(a_pSetter);
+    phantom::reflection::InstanceMemberFunction* pSetter = a_pMetaType->getInstanceMemberFunctionCascade(a_pSetter);
     if(pSetter == NULL)
     {
         astring exceptext = a_strFile;
@@ -1813,10 +1818,10 @@ o_forceinline void Phantom::o_accessor_func(_MetaType* a_pMetaType, const charac
         exceptext += a_uiLine;
         exceptext += " : ";
         exceptext += " : ";
-        exceptext += "accessor declaration error : cannot find or resolve given set method";
+        exceptext += "property declaration error : cannot find or resolve given set member_function";
         o_exception(exception::reflection_runtime_exception, exceptext.c_str());
     }
-    phantom::reflection::InstanceMethod* pGetter = a_pMetaType->getInstanceMethodCascade(a_pGetter);
+    phantom::reflection::InstanceMemberFunction* pGetter = a_pMetaType->getInstanceMemberFunctionCascade(a_pGetter);
     if(pGetter == NULL)
     {
         astring exceptext = a_strFile;
@@ -1824,15 +1829,15 @@ o_forceinline void Phantom::o_accessor_func(_MetaType* a_pMetaType, const charac
         exceptext += a_uiLine;
         exceptext += " : ";
         exceptext += " : ";
-        exceptext += "accessor declaration error : cannot find or resolve given get method";
+        exceptext += "property declaration error : cannot find or resolve given get member_function";
         o_exception(exception::reflection_runtime_exception, exceptext.c_str());
     }
-    phantom::reflection::Accessor* pProperty = o_new(phantom::reflection::Accessor)
+    phantom::reflection::Property* pValueMember = o_new(phantom::reflection::Property)
         (a_pName
         , pSetter
         , pGetter
         , a_Modifiers);
-    a_pMetaType->addAccessor(pProperty);
+    a_pMetaType->addProperty(pValueMember);
 }
 
 o_end_phantom_namespace()
@@ -1870,9 +1875,9 @@ o_reflection_in_cpp_deferred_setupN((phantom, reflection), Constant)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), ClassType)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), Union)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), Member)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Method)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), InstanceAttribute)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), InstanceMethod)
+o_reflection_in_cpp_deferred_setupN((phantom, reflection), MemberFunction)
+o_reflection_in_cpp_deferred_setupN((phantom, reflection), InstanceDataMember)
+o_reflection_in_cpp_deferred_setupN((phantom, reflection), InstanceMemberFunction)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), ContainerClass)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), SequentialContainerClass)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), MapContainerClass)
@@ -1881,8 +1886,8 @@ o_reflection_in_cpp_deferred_setupN((phantom, reflection), Variable)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), StaticVariable)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), IteratorConstant)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), IteratorVariable)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), StaticAttribute)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), StaticMethod)
+o_reflection_in_cpp_deferred_setupN((phantom, reflection), StaticDataMember)
+o_reflection_in_cpp_deferred_setupN((phantom, reflection), StaticMemberFunction)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), Signal)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), Signature)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), SourceFile)
@@ -1895,15 +1900,15 @@ o_reflection_in_cpp_deferred_setupN((phantom, reflection), ReferenceType)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), ConstDataPointerType)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), ConstReferenceType)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), PrimitiveType)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Accessor)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), Property)
+o_reflection_in_cpp_deferred_setupN((phantom, reflection), ValueMember)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), Namespace)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Attribute)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), SubProperty)
+o_reflection_in_cpp_deferred_setupN((phantom, reflection), DataMember)
+o_reflection_in_cpp_deferred_setupN((phantom, reflection), SubValueMember)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), TemplateSpecialization)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), ClassExtension)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), VirtualMethodTable)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), AbstractMethod)
+o_reflection_in_cpp_deferred_setupN((phantom, reflection), VirtualMemberFunctionTable)
+o_reflection_in_cpp_deferred_setupN((phantom, reflection), PureVirtualMemberFunction)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), PODUnion)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), PODStruct)
 o_reflection_in_cpp_deferred_setupN((phantom, state), State)
@@ -2071,8 +2076,8 @@ o_classN((phantom), data)
 {
     o_reflection
     {
-        o_attribute(void*, m_address, o_public);
-        o_attribute(phantom::reflection::Type*, m_type, o_public);
+        o_data_member(void*, m_address, o_public);
+        o_data_member(phantom::reflection::Type*, m_type, o_public);
     };
 };
 o_exposeN((phantom), data);
@@ -2081,8 +2086,8 @@ o_classN((phantom), object)
 {
     o_reflection
     {
-        o_attribute(void*, m_address, o_public);
-        o_attribute(phantom::reflection::ClassType*, m_class_type, o_public);
+        o_data_member(void*, m_address, o_public);
+        o_data_member(phantom::reflection::ClassType*, m_class_type, o_public);
     };
 };
 o_exposeN((phantom), object);
@@ -2091,7 +2096,7 @@ o_classN((phantom), bitfield)
 {
     o_reflection
     {
-        o_attribute(uint, m_uiContent, o_protected);
+        o_data_member(uint, m_uiContent, o_protected);
     };
 };
 o_exposeN((phantom), bitfield);
@@ -2100,8 +2105,8 @@ o_classN((phantom, reflection), CodePosition)
 {
     o_reflection
     {
-        o_attribute(int, line, o_public);
-        o_attribute(int, column, o_public);
+        o_data_member(int, line, o_public);
+        o_data_member(int, column, o_public);
     };
 };
 o_exposeN((phantom, reflection), CodePosition);
@@ -2110,10 +2115,10 @@ o_classN((phantom, reflection), CodeLocation)
 {
     o_reflection
     {
-        o_attribute(CodePosition, m_Start, o_protected);
-        o_attribute(CodePosition, m_End, o_protected);
-        o_accessor(const CodePosition&, start, setStart, getStart, o_transient|o_public);
-        o_accessor(const CodePosition&, end, setEnd, getEnd, o_transient|o_public);
+        o_data_member(CodePosition, m_Start, o_protected);
+        o_data_member(CodePosition, m_End, o_protected);
+        o_property(const CodePosition&, start, setStart, getStart, o_no_signal, o_transient|o_public);
+        o_property(const CodePosition&, end, setEnd, getEnd, o_no_signal, o_transient|o_public);
     };
 };
 o_exposeN((phantom, reflection), CodeLocation);
@@ -2124,11 +2129,5 @@ o_exposeN((phantom, reflection), CodeLocation);
 
 // PARTIAL STL INTEGRATION (specific for each compiler)
 #include "phantom/externals/std/std.h"
-
-// Auto use of internal namespace symbol, and macro aliasing
-
-#define o_register_typedef o_reflection_register_typedef
-#define o_register_namespace_alias o_reflection_register_namespace_alias
-
 
 #endif // __prerequisites_h__

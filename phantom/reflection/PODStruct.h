@@ -42,7 +42,7 @@
 /* The *.classdef.h file must be the last #include */
 #include "PODStruct.classdef.h"
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, Attribute)
+o_declare(class, phantom, reflection, DataMember)
 o_declare(class, phantom, reflection, Constructor)
 /* *********************************************** */
 

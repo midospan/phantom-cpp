@@ -31,8 +31,8 @@
     THE SOFTWARE
 */
 
-#ifndef o_phantom_reflection_native_TNativeInterfaceMethod_h__
-#define o_phantom_reflection_native_TNativeInterfaceMethod_h__
+#ifndef o_phantom_reflection_native_TNativeInterfaceMemberFunction_h__
+#define o_phantom_reflection_native_TNativeInterfaceMemberFunction_h__
 
 
 
@@ -45,16 +45,16 @@ using namespace fastdelegate;
 o_namespace_begin(phantom, reflection, native)
 
 template<typename t_Ty, typename _ReturnType>
-class TNativeInterfaceMethod0 : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction0 : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
     typedef _ReturnType (t_Ty::*member_function_pointer)(void);
-    typedef TNativeInterfaceMethod0<t_Ty, _ReturnType> self_type;
+    typedef TNativeInterfaceMemberFunction0<t_Ty, _ReturnType> self_type;
 
-    TNativeInterfaceMethod0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_interface | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_interface | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
 
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -95,16 +95,16 @@ protected:
 
 
 template<typename t_Ty>
-class TNativeInterfaceMethod0<t_Ty, void> : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction0<t_Ty, void> : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod0<t_Ty, void>    self_type;
+    typedef TNativeInterfaceMemberFunction0<t_Ty, void>    self_type;
     typedef void (t_Ty::*member_function_pointer)(void);
 
-    TNativeInterfaceMethod0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_interface | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_interface | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -121,7 +121,7 @@ public:
 
     virtual void invoke(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
     virtual void invoke(void* a_pObject, void** a_pParams) const 
@@ -131,7 +131,7 @@ public:
 
     virtual void invoke(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -141,16 +141,16 @@ protected:
 
 
 template<typename t_Ty, typename _ReturnType, typename t_Param0>
-class TNativeInterfaceMethod1 : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction1 : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod1<t_Ty, _ReturnType, t_Param0>    self_type;
+    typedef TNativeInterfaceMemberFunction1<t_Ty, _ReturnType, t_Param0>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0);
 
-    TNativeInterfaceMethod1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_interface | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_interface | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
 
@@ -191,16 +191,16 @@ protected:
 
 
 template<typename t_Ty, typename t_Param0>
-class TNativeInterfaceMethod1<t_Ty, void, t_Param0> : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction1<t_Ty, void, t_Param0> : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod1<t_Ty, void, t_Param0>    self_type;
+    typedef TNativeInterfaceMemberFunction1<t_Ty, void, t_Param0>    self_type;
     typedef void (t_Ty::*member_function_pointer)(t_Param0);
 
-    TNativeInterfaceMethod1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_interface | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_interface | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
 
@@ -218,7 +218,7 @@ public:
 
     virtual void invoke(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
     virtual void invoke(void* a_pObject, void** a_pParams) const 
@@ -228,7 +228,7 @@ public:
     }
     virtual void invoke(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -237,16 +237,16 @@ protected:
 
 
 template<typename t_Ty, typename _ReturnType, typename t_Param0, typename t_Param1>
-class TNativeInterfaceMethod2 : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction2 : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod2<t_Ty, _ReturnType, t_Param0, t_Param1>    self_type;
+    typedef TNativeInterfaceMemberFunction2<t_Ty, _ReturnType, t_Param0, t_Param1>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1);
 
-    TNativeInterfaceMethod2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_interface | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_interface | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -289,16 +289,16 @@ protected:
 };
 
 template<typename t_Ty, typename t_Param0, typename t_Param1>
-class TNativeInterfaceMethod2<t_Ty, void, t_Param0, t_Param1> : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction2<t_Ty, void, t_Param0, t_Param1> : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod2<t_Ty, void, t_Param0, t_Param1>    self_type;
+    typedef TNativeInterfaceMemberFunction2<t_Ty, void, t_Param0, t_Param1>    self_type;
     typedef void (t_Ty::*member_function_pointer)(t_Param0,t_Param1);
 
-    TNativeInterfaceMethod2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_interface | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_interface | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -316,7 +316,7 @@ public:
     }
     virtual void invoke(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
     virtual void invoke(void* a_pObject, void** a_pParams) const 
     {        
@@ -326,7 +326,7 @@ public:
     }
     virtual void invoke(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -339,16 +339,16 @@ protected:
 ///  ==================================================================================================
 
 template<typename t_Ty, typename _ReturnType, typename t_Param0, typename t_Param1, typename t_Param2>
-class TNativeInterfaceMethod3 : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction3 : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod3<t_Ty, _ReturnType, t_Param0, t_Param1,t_Param2>    self_type;
+    typedef TNativeInterfaceMemberFunction3<t_Ty, _ReturnType, t_Param0, t_Param1,t_Param2>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2);
 
-    TNativeInterfaceMethod3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -394,16 +394,16 @@ protected:
 };
 
 template<typename t_Ty, typename t_Param0, typename t_Param1, typename t_Param2>
-class TNativeInterfaceMethod3<t_Ty, void, t_Param0, t_Param1, t_Param2> : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction3<t_Ty, void, t_Param0, t_Param1, t_Param2> : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod3<t_Ty, void, t_Param0, t_Param1, t_Param2>    self_type;
+    typedef TNativeInterfaceMemberFunction3<t_Ty, void, t_Param0, t_Param1, t_Param2>    self_type;
     typedef void (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2);
 
-    TNativeInterfaceMethod3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -422,7 +422,7 @@ public:
     }
     virtual void invoke(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
     virtual void invoke(void* a_pObject, void** a_pParams) const 
     {        
@@ -433,7 +433,7 @@ public:
     }
     virtual void invoke(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -452,16 +452,16 @@ template<typename t_Ty
     , typename t_Param1
     , typename t_Param2
     , typename t_Param3>
-class TNativeInterfaceMethod4 : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction4 : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod4<t_Ty, _ReturnType, t_Param0, t_Param1,t_Param2,t_Param3>    self_type;
+    typedef TNativeInterfaceMemberFunction4<t_Ty, _ReturnType, t_Param0, t_Param1,t_Param2,t_Param3>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3);
 
-    TNativeInterfaceMethod4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -515,16 +515,16 @@ template<typename t_Ty
     , typename t_Param1
     , typename t_Param2
     , typename t_Param3>
-class TNativeInterfaceMethod4<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3> : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction4<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3> : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod4<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3>    self_type;
+    typedef TNativeInterfaceMemberFunction4<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3>    self_type;
     typedef void (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3);
 
-    TNativeInterfaceMethod4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -544,7 +544,7 @@ public:
     }
     virtual void invoke(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
     virtual void invoke(void* a_pObject, void** a_pParams) const 
     {        
@@ -556,7 +556,7 @@ public:
     }
     virtual void invoke(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -575,16 +575,16 @@ template<typename t_Ty
     , typename t_Param2
     , typename t_Param3
     , typename t_Param4>
-class TNativeInterfaceMethod5 : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction5 : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod5<t_Ty, _ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4>    self_type;
+    typedef TNativeInterfaceMemberFunction5<t_Ty, _ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4);
 
-    TNativeInterfaceMethod5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -643,16 +643,16 @@ template<typename t_Ty
     , typename t_Param2
     , typename t_Param3
     , typename t_Param4>
-class TNativeInterfaceMethod5<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4> : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction5<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4> : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod5<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4>    self_type;
+    typedef TNativeInterfaceMemberFunction5<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4>    self_type;
     typedef void (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4);
 
-    TNativeInterfaceMethod5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -673,7 +673,7 @@ public:
     }
     virtual void invoke(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
     virtual void invoke(void* a_pObject, void** a_pParams) const 
     {        
@@ -686,7 +686,7 @@ public:
     }
     virtual void invoke(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -709,16 +709,16 @@ template<typename t_Ty
     , typename t_Param3
     , typename t_Param4
     , typename t_Param5>
-class TNativeInterfaceMethod6 : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction6 : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod6<t_Ty, _ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>    self_type;
+    typedef TNativeInterfaceMemberFunction6<t_Ty, _ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5);
 
-    TNativeInterfaceMethod6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -783,16 +783,16 @@ template<typename t_Ty
     , typename t_Param3
     , typename t_Param4
     , typename t_Param5>
-class TNativeInterfaceMethod6<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5> : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction6<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5> : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod6<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5>    self_type;
+    typedef TNativeInterfaceMemberFunction6<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5>    self_type;
     typedef void (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5);
 
-    TNativeInterfaceMethod6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -814,7 +814,7 @@ public:
     }
     virtual void invoke(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
     virtual void invoke(void* a_pObject, void** a_pParams) const 
@@ -829,7 +829,7 @@ public:
     }
     virtual void invoke(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -853,16 +853,16 @@ template<typename t_Ty
     , typename t_Param4
     , typename t_Param5
     , typename t_Param6>
-class TNativeInterfaceMethod7 : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction7 : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod7<t_Ty, _ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>    self_type;
+    typedef TNativeInterfaceMemberFunction7<t_Ty, _ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6);
 
-    TNativeInterfaceMethod7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -932,16 +932,16 @@ template<typename t_Ty
     , typename t_Param4
     , typename t_Param5
     , typename t_Param6>
-class TNativeInterfaceMethod7<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6> : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction7<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6> : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod7<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6>    self_type;
+    typedef TNativeInterfaceMemberFunction7<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6>    self_type;
     typedef void (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6);
 
-    TNativeInterfaceMethod7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -964,7 +964,7 @@ public:
     }
     virtual void invoke(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
     virtual void invoke(void* a_pObject, void** a_pParams) const 
@@ -980,7 +980,7 @@ public:
     }
     virtual void invoke(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -1003,16 +1003,16 @@ template<typename t_Ty
     , typename t_Param5
     , typename t_Param6
     , typename t_Param7>
-class TNativeInterfaceMethod8 : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction8 : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod8<t_Ty, _ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>    self_type;
+    typedef TNativeInterfaceMemberFunction8<t_Ty, _ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7);
 
-    TNativeInterfaceMethod8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -1087,16 +1087,16 @@ template<typename t_Ty
     , typename t_Param5
     , typename t_Param6
     , typename t_Param7>
-class TNativeInterfaceMethod8<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7> : public TNativeInstanceMethodBase<t_Ty>
+class TNativeInterfaceMemberFunction8<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7> : public TNativeInstanceMemberFunctionBase<t_Ty>
 {
 public:
-    typedef TNativeInterfaceMethod8<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7>    self_type;
+    typedef TNativeInterfaceMemberFunction8<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7>    self_type;
     typedef void (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7);
 
-    TNativeInterfaceMethod8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMethodBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInterfaceMemberFunction8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
     {
-        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMethodIndexOf(a_pFunc));
+        if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_delete(self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
@@ -1120,7 +1120,7 @@ public:
     }
     virtual void invoke(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
     virtual void invoke(void* a_pObject, void** a_pParams) const 
@@ -1137,7 +1137,7 @@ public:
     }
     virtual void invoke(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        throw exception::reflection_runtime_exception("void method called with expected return result");
+        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -1147,16 +1147,16 @@ protected:
 #ifndef o_NO_FUNCTION_STYLE_TEMPLATE_SIGNATURE
 
 template<typename t_Ty, typename Signature>
-class TNativeInterfaceMethod;
+class TNativeInterfaceMemberFunction;
 
 template<typename t_Ty, typename _ReturnType>
-class TNativeInterfaceMethod<t_Ty, _ReturnType()> : public TNativeInterfaceMethod0< t_Ty, _ReturnType>
+class TNativeInterfaceMemberFunction<t_Ty, _ReturnType()> : public TNativeInterfaceMemberFunction0< t_Ty, _ReturnType>
 {
 public:
-    typedef TNativeInterfaceMethod<t_Ty, _ReturnType()>    self_type;
+    typedef TNativeInterfaceMemberFunction<t_Ty, _ReturnType()>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(void);
-    TNativeInterfaceMethod(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInterfaceMethod0< t_Ty, _ReturnType>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInterfaceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInterfaceMemberFunction0< t_Ty, _ReturnType>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
     {
 
     }
@@ -1164,13 +1164,13 @@ public:
 };
 
 template<typename t_Ty, typename _ReturnType, typename t_Param0>
-class TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0)> : public TNativeInterfaceMethod1<t_Ty, _ReturnType, t_Param0>
+class TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0)> : public TNativeInterfaceMemberFunction1<t_Ty, _ReturnType, t_Param0>
 {
 public:
-    typedef TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0)>    self_type;
+    typedef TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0)>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0);
-    TNativeInterfaceMethod(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInterfaceMethod1<t_Ty, _ReturnType, t_Param0>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInterfaceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInterfaceMemberFunction1<t_Ty, _ReturnType, t_Param0>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
     {
 
     }
@@ -1178,13 +1178,13 @@ public:
 };
 
 template<typename t_Ty, typename _ReturnType, typename t_Param0, typename t_Param1>
-class TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0,t_Param1)> : public TNativeInterfaceMethod2<t_Ty, _ReturnType, t_Param0, t_Param1>
+class TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0,t_Param1)> : public TNativeInterfaceMemberFunction2<t_Ty, _ReturnType, t_Param0, t_Param1>
 {
 public:
-    typedef TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0, t_Param1)>    self_type;
+    typedef TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0, t_Param1)>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1);
-    TNativeInterfaceMethod(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInterfaceMethod2<t_Ty, _ReturnType, t_Param0, t_Param1>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInterfaceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInterfaceMemberFunction2<t_Ty, _ReturnType, t_Param0, t_Param1>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
     {
 
     }
@@ -1197,14 +1197,14 @@ template<typename t_Ty
     , typename t_Param0
     , typename t_Param1
     , typename t_Param2>
-class TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0,t_Param1,t_Param2)> 
-    : public TNativeInterfaceMethod3<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2>
+class TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0,t_Param1,t_Param2)> 
+    : public TNativeInterfaceMemberFunction3<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2>
 {
 public:
-    typedef TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0, t_Param1, t_Param2)>    self_type;
+    typedef TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0, t_Param1, t_Param2)>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2);
-    TNativeInterfaceMethod(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInterfaceMethod3<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInterfaceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInterfaceMemberFunction3<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
     {
 
     }
@@ -1219,14 +1219,14 @@ template<typename t_Ty
     , typename t_Param1
     , typename t_Param2
     , typename t_Param3>
-class TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0,t_Param1,t_Param2,t_Param3)> 
-    : public TNativeInterfaceMethod4<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>
+class TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0,t_Param1,t_Param2,t_Param3)> 
+    : public TNativeInterfaceMemberFunction4<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>
 {
 public:
-    typedef TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0, t_Param1, t_Param2,t_Param3)>    self_type;
+    typedef TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0, t_Param1, t_Param2,t_Param3)>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3);
-    TNativeInterfaceMethod(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInterfaceMethod4<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInterfaceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInterfaceMemberFunction4<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
     {
 
     }
@@ -1241,14 +1241,14 @@ template<typename t_Ty
     , typename t_Param2
     , typename t_Param3
     , typename t_Param4>
-class TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4)> 
-    : public TNativeInterfaceMethod5<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>
+class TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4)> 
+    : public TNativeInterfaceMemberFunction5<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>
 {
 public:
-    typedef TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4)>    self_type;
+    typedef TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4)>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4);
-    TNativeInterfaceMethod(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInterfaceMethod5<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInterfaceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInterfaceMemberFunction5<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
     {
 
     }
@@ -1264,14 +1264,14 @@ template<typename t_Ty
     , typename t_Param3
     , typename t_Param4
     , typename t_Param5>
-class TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5)> 
-    : public TNativeInterfaceMethod6<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>
+class TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5)> 
+    : public TNativeInterfaceMemberFunction6<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>
 {
 public:
-    typedef TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5)>    self_type;
+    typedef TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5)>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5);
-    TNativeInterfaceMethod(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInterfaceMethod6<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInterfaceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInterfaceMemberFunction6<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
     {
 
     }
@@ -1288,14 +1288,14 @@ template<typename t_Ty
     , typename t_Param4
     , typename t_Param5
     , typename t_Param6>
-class TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)> 
-    : public TNativeInterfaceMethod7<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>
+class TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)> 
+    : public TNativeInterfaceMemberFunction7<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>
 {
 public:
-    typedef TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)>    self_type;
+    typedef TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6);
-    TNativeInterfaceMethod(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInterfaceMethod7<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInterfaceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInterfaceMemberFunction7<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
     {
 
     }
@@ -1314,13 +1314,13 @@ template<typename t_Ty
     , typename t_Param5
     , typename t_Param6
     , typename t_Param7>
-class TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)> : public TNativeInterfaceMethod8<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>
+class TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)> : public TNativeInterfaceMemberFunction8<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>
 {
 public:
-    typedef TNativeInterfaceMethod<t_Ty, _ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)>    self_type;
+    typedef TNativeInterfaceMemberFunction<t_Ty, _ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)>    self_type;
     typedef _ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7);
-    TNativeInterfaceMethod(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInterfaceMethod8<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInterfaceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
+        :TNativeInterfaceMemberFunction8<t_Ty, _ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
     {
 
     }
@@ -1333,4 +1333,4 @@ public:
 o_namespace_end(phantom, reflection, native)
 
 
-#endif // TNativeInterfaceMethod_h__
+#endif // TNativeInterfaceMemberFunction_h__

@@ -97,7 +97,7 @@ public:
     
     virtual void    interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_dest, uint mode) const 
     {
-        o_exception(exception::unsupported_method_exception, "interpolation is not supported for any pointer type");
+        o_exception(exception::unsupported_member_function_exception, "interpolation is not supported for any pointer type");
     }
 
 protected:

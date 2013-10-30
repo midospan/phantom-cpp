@@ -94,7 +94,7 @@ o_classN((sc2), GameEntity)
 o_exposeN((sc2), GameEntity);
 
 
-o_static_assert(phantom::has_initializer_method_initialize_declared<sc2::GameEntity>::value);
+o_static_assert(phantom::has_initializer_member_function_initialize_declared<sc2::GameEntity>::value);
 o_static_assert(phantom::has_statechart<sc2::GameEntity>::value);
 o_static_assert(phantom::has_root_statechart<sc2::GameEntity>::value);
 o_static_assert(phantom::track_count_of<sc2::GameEntity>::value == 1);

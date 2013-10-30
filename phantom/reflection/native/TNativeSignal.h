@@ -68,12 +68,12 @@ public:
         return FastDelegate0<signal_t>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void invoke(void* a_pObject, argument::list* a_pParams) const 
+    virtual void call(void* a_pObject, argument::list* a_pParams) const 
     {
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)();
     }
 
-    virtual void invoke(void* a_pObject, void** a_pParams) const 
+    virtual void call(void* a_pObject, void** a_pParams) const 
     {
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)();
     }
@@ -118,13 +118,13 @@ public:
 
     
 
-    virtual void invoke(void* a_pObject, argument::list* a_pParams) const 
+    virtual void call(void* a_pObject, argument::list* a_pParams) const 
     {
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             (static_cast<argument::list_1<t_Param0>*>(a_pParams)->p0);
     }
 
-    virtual void invoke(void* a_pObject, void** a_pParams) const 
+    virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0]) );
@@ -169,13 +169,13 @@ public:
 
     
 
-    virtual void invoke(void* a_pObject, argument::list* a_pParams) const 
+    virtual void call(void* a_pObject, argument::list* a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p0
             , static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p1 );
     }
-    virtual void invoke(void* a_pObject, void** a_pParams) const 
+    virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
@@ -219,14 +219,14 @@ public:
         return FastDelegate3<signal_t, t_Param0,t_Param1,t_Param2>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void invoke(void* a_pObject, argument::list* a_pParams) const 
+    virtual void call(void* a_pObject, argument::list* a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p0
             , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p1
             , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p2 );
     }
-    virtual void invoke(void* a_pObject, void** a_pParams) const 
+    virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
@@ -278,7 +278,7 @@ public:
         return FastDelegate4<signal_t, t_Param0,t_Param1,t_Param2,t_Param3>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void invoke(void* a_pObject, argument::list* a_pParams) const 
+    virtual void call(void* a_pObject, argument::list* a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p0
@@ -286,7 +286,7 @@ public:
             , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p2
             , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p3 );
     }
-    virtual void invoke(void* a_pObject, void** a_pParams) const 
+    virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
@@ -340,7 +340,7 @@ public:
         return FastDelegate5<signal_t, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void invoke(void* a_pObject, argument::list* a_pParams) const 
+    virtual void call(void* a_pObject, argument::list* a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p0
@@ -349,7 +349,7 @@ public:
             , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p3
             , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p4 );
     }
-    virtual void invoke(void* a_pObject, void** a_pParams) const 
+    virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
@@ -406,7 +406,7 @@ public:
         return FastDelegate6<signal_t, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void invoke(void* a_pObject, argument::list* a_pParams) const 
+    virtual void call(void* a_pObject, argument::list* a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p0
@@ -416,7 +416,7 @@ public:
             , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p4
             , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p5 );
     }
-    virtual void invoke(void* a_pObject, void** a_pParams) const 
+    virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
@@ -477,7 +477,7 @@ public:
         return FastDelegate7<signal_t, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void invoke(void* a_pObject, argument::list* a_pParams) const 
+    virtual void call(void* a_pObject, argument::list* a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p0
@@ -488,7 +488,7 @@ public:
             , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p5
             , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p6 );
     }
-    virtual void invoke(void* a_pObject, void** a_pParams) const 
+    virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
@@ -552,7 +552,7 @@ public:
         return FastDelegate8<signal_t, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void invoke(void* a_pObject, argument::list* a_pParams) const 
+    virtual void call(void* a_pObject, argument::list* a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p0
@@ -564,7 +564,7 @@ public:
             , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p6
             , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p7 );
     }
-    virtual void invoke(void* a_pObject, void** a_pParams) const 
+    virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
@@ -772,6 +772,6 @@ public:
 
 o_namespace_end(phantom, reflection, native)
 
-o_traits_specialize_all_super_traitNTTS_TNativeMethodXXX(TNativeSignal)
+o_traits_specialize_all_super_traitNTTS_TNativeMemberFunctionXXX(TNativeSignal)
                                                                                                                                                                                           
 #endif // TNativeSignal

@@ -48,21 +48,21 @@ public:
     o_initialize() {}
     o_terminate() {}
 
-    void const_tester_method() {}
-    void const_tester_method() const {}
+    void const_tester_member_function() {}
+    void const_tester_member_function() const {}
 
     RootClass(void);
     o_destructor ~RootClass(void) {}
 
-    int                 instance_method(int a_iValue) 
+    int                 instance_member_function(int a_iValue) 
     { 
         return a_iValue; 
     }
-    void                set_method(int a_iValue)    {}
-    int                 get_method(void) const        { return 0; }
-    static RootClass*   static_method() 
+    void                set_member_function(int a_iValue)    {}
+    int                 get_member_function(void) const        { return 0; }
+    static RootClass*   static_member_function() 
     {
-        return m_pStaticAttribute;
+        return m_pStaticDataMember;
     }
 
     o_signal_data(signal, phantom::real);
@@ -72,15 +72,15 @@ public:
         m_fMultAcc *= a_fFactor;
     }
 
-    void    setInstanceAttributeValue(phantom::uint a_uiValue)
+    void    setInstanceDataMemberValue(phantom::uint a_uiValue)
     {
-        m_uiInstanceAttribute = a_uiValue;
+        m_uiInstanceDataMember = a_uiValue;
     }
 
-    virtual void aVirtualMethod() const { return; }
+    virtual void aVirtualMemberFunction() const { return; }
     
-    phantom::uint            m_uiInstanceAttribute;
-    static RootClass*        m_pStaticAttribute;
+    phantom::uint            m_uiInstanceDataMember;
+    static RootClass*        m_pStaticDataMember;
     phantom::real            m_fMultAcc;
 };
 
@@ -90,18 +90,18 @@ o_classN((unitest), RootClass)
 {
     o_reflection 
     {
-        o_method(int, instance_method, (int))
-        o_method(RootClass*, static_method, (), o_static)
+        o_member_function(int, instance_member_function, (int))
+        o_member_function(RootClass*, static_member_function, (), o_static)
         o_slot(void, mult, (phantom::real))
-        o_method(int, get_method, ())
-        o_method(void, set_method, (int))
-        o_method(void, aVirtualMethod, (), o_virtual)
+        o_member_function(int, get_member_function, ())
+        o_member_function(void, set_member_function, (int))
+        o_member_function(void, aVirtualMemberFunction, (), o_virtual)
         o_signal(signal, (phantom::real))
-        o_accessor(int, accessor, set_method, get_method, o_public)
-        o_attribute(phantom::uint, m_uiInstanceAttribute, o_protected)
-        o_attribute(RootClass*, m_pStaticAttribute, o_static)
-        o_method(void, const_tester_method,(), o_noconst)
-        o_method(void, const_tester_method,(), o_const)
+        o_property(int, property, set_member_function, get_member_function, o_no_signal, o_public)
+        o_data_member(phantom::uint, m_uiInstanceDataMember, o_protected)
+        o_data_member(RootClass*, m_pStaticDataMember, o_static)
+        o_member_function(void, const_tester_member_function,(), o_noconst)
+        o_member_function(void, const_tester_member_function,(), o_const)
     };
 };
 o_exposeN((unitest), RootClass);

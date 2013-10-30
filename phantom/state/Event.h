@@ -83,7 +83,7 @@ namespace phantom
   { 
     __forceinline static void* apply(reflection::Class* a_pClass, phantom::state::Event * a_pBase) 
     { 
-      return phantom::state::Event ::PHANTOM_CODEGEN_static_method_DynamicCast(a_pClass, a_pBase); 
+      return phantom::state::Event ::PHANTOM_CODEGEN_static_member_function_DynamicCast(a_pClass, a_pBase); 
     } 
   }; 
 } 

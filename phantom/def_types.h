@@ -136,9 +136,9 @@ struct make_float<double>
  * \struct signal_t
  *
  * \brief Signal return type
- *        used to differenciate a classic method void return
+ *        used to differenciate a classic member_function void return
  *        from a signal return type. Useful when passed as template argument to differentiate
- *        a method from a signal.
+ *        a member_function from a signal.
  *
  */
 
@@ -519,7 +519,7 @@ typedef boost::property_tree_custom::basic_ptree<
 
 
 /**
- * \brief Association of a path with a property tree object
+ * \brief Association of a path with a valueMember tree object
  *
  */
 class property_branch
@@ -730,10 +730,10 @@ enum restore_state
 struct vtable_info
 {
     vtable_info()
-        : offset(0xffffffff) , count(0xffffffff), methods(NULL) {}
+        : offset(0xffffffff) , count(0xffffffff), member_functions(NULL) {}
 
-    vtable_info(size_t a_offset, void** a_methods, size_t a_count)
-        : offset(a_offset), methods(a_methods), count(a_count) {}
+    vtable_info(size_t a_offset, void** a_member_functions, size_t a_count)
+        : offset(a_offset), member_functions(a_member_functions), count(a_count) {}
 
     bool operator<(const vtable_info& other) const
     {
@@ -741,7 +741,7 @@ struct vtable_info
     }
 
     size_t offset;
-    void** methods;
+    void** member_functions;
     size_t count;
 };
 

@@ -1453,32 +1453,32 @@ struct is_meta_type
 };
 
 template<typename t_Ty, typename Sig>
-struct has_destroyed_method;
+struct has_destroyed_member_function;
 
 template<typename t_Ty>
 struct enum_integral_type : public detail::enum_integral_type_<t_Ty> {};
 
 
     template <typename type> 
-    class has_method_void_exp_result 
+    class has_member_function_void_exp_result 
     {}; 
     template <typename type, typename U> 
-    U const& operator,(U const&, has_method_void_exp_result<type>); 
+    U const& operator,(U const&, has_member_function_void_exp_result<type>); 
     template <typename type, typename U> 
-    U& operator,(U&, has_method_void_exp_result<type>); 
+    U& operator,(U&, has_member_function_void_exp_result<type>); 
     template <typename src_type, typename dest_type> 
-    struct has_method_clone_constness 
+    struct has_member_function_clone_constness 
     { 
         typedef dest_type type; 
     }; 
     template <typename src_type, typename dest_type> 
-    struct has_method_clone_constness<const src_type, dest_type> 
+    struct has_member_function_clone_constness<const src_type, dest_type> 
     { 
         typedef const dest_type type; 
     }; 
 
 
-#define o_create_has_method_0(foo)\
+#define o_create_has_member_function_0(foo)\
 template <typename Type>                                                          \
 class _____has_member_##foo                                                                  \
 {                                                                                 \
@@ -1500,7 +1500,7 @@ public:                                                                         
 };                                                                                \
                                                                                   \
 template <typename type, typename call_details>                                   \
-    struct has_method_##foo                                                       \
+    struct has_member_function_##foo                                                       \
 {                                                                                 \
 private:                                                                          \
     class yes {};                                                                 \
@@ -1510,7 +1510,7 @@ private:                                                                        
         using type::foo;                                                          \
         no foo(...) const;                                                        \
     };                                                                            \
-    typedef typename has_method_clone_constness<type, derived>::type              \
+    typedef typename has_member_function_clone_constness<type, derived>::type              \
         derived_type;                                                             \
     template <typename T, typename due_type>                                      \
     struct return_value_check                                                     \
@@ -1518,7 +1518,7 @@ private:                                                                        
         static yes deduce(due_type);                                              \
         static no deduce(...);                                                    \
         static no deduce(no);                                                     \
-        static no deduce(has_method_void_exp_result<type>);                       \
+        static no deduce(has_member_function_void_exp_result<type>);                       \
     };                                                                            \
     template <typename T>                                                         \
     struct return_value_check<T, void>                                            \
@@ -1538,7 +1538,7 @@ private:                                                                        
             sizeof(                                                               \
             return_value_check<type, r>::deduce(                                  \
             (((derived_type*)0)->foo(),                                           \
-            has_method_void_exp_result<type>())                                   \
+            has_member_function_void_exp_result<type>())                                   \
             )                                                                     \
             ) == sizeof(yes);                                                     \
     };                                                                            \
@@ -1550,7 +1550,7 @@ public:                                                                         
 
 
 
-#define o_create_has_method_const_0(foo)\
+#define o_create_has_member_function_const_0(foo)\
     template <typename Type>                                                          \
     class _____has_member_##foo                                                                  \
     {                                                                                 \
@@ -1572,7 +1572,7 @@ public:                                                                         
     };                                                                                \
     \
     template <typename type, typename call_details>                                   \
-    struct has_method_##foo                                                       \
+    struct has_member_function_##foo                                                       \
     {                                                                                 \
     private:                                                                          \
     class yes {};                                                                 \
@@ -1582,7 +1582,7 @@ public:                                                                         
     using type::foo;                                                          \
     no foo(...) const;                                                        \
     };                                                                            \
-    typedef typename has_method_clone_constness<type, derived>::type              \
+    typedef typename has_member_function_clone_constness<type, derived>::type              \
     derived_type;                                                             \
     template <typename T, typename due_type>                                      \
     struct return_value_check                                                     \
@@ -1590,7 +1590,7 @@ public:                                                                         
     static yes deduce(due_type);                                              \
     static no deduce(...);                                                    \
     static no deduce(no);                                                     \
-    static no deduce(has_method_void_exp_result<type>);                       \
+    static no deduce(has_member_function_void_exp_result<type>);                       \
     };                                                                            \
     template <typename T>                                                         \
     struct return_value_check<T, signal_t>                                            \
@@ -1610,7 +1610,7 @@ public:                                                                         
     sizeof(                                                               \
     return_value_check<type, r>::deduce(                                  \
     (((derived_type*)0)->foo(),                                           \
-    has_method_void_exp_result<type>())                                   \
+    has_member_function_void_exp_result<type>())                                   \
     )                                                                     \
     ) == sizeof(yes);                                                     \
     };                                                                            \
@@ -1626,7 +1626,7 @@ public:                                                                         
 
 
 
-#define o_create_has_method_1(foo)                                                      \
+#define o_create_has_member_function_1(foo)                                                      \
     template <typename Type>                                                            \
     class ____has_member_##foo                                                          \
     {                                                                                   \
@@ -1648,7 +1648,7 @@ public:                                                                         
     };                                                                                  \
                                                                                         \
     template <typename type, typename call_details>                                     \
-    struct has_method_##foo                                                             \
+    struct has_member_function_##foo                                                             \
     {                                                                                   \
     private:                                                                            \
         class yes {};                                                                   \
@@ -1658,7 +1658,7 @@ public:                                                                         
             using type::foo;                                                            \
             no foo(...) const;                                                          \
         };                                                                              \
-        typedef typename has_method_clone_constness<type, derived>::type                \
+        typedef typename has_member_function_clone_constness<type, derived>::type                \
             derived_type;                                                               \
         template <typename T, typename due_type>                                        \
         struct return_value_check                                                       \
@@ -1666,7 +1666,7 @@ public:                                                                         
             static yes deduce(due_type);                                                \
             static no deduce(...);                                                      \
             static no deduce(no);                                                       \
-            static no deduce(has_method_void_exp_result<type>);                         \
+            static no deduce(has_member_function_void_exp_result<type>);                         \
         };                                                                              \
         template <typename T>                                                           \
         struct return_value_check<T, void>                                              \
@@ -1686,7 +1686,7 @@ public:                                                                         
                 sizeof(                                                                 \
                 return_value_check<type, r>::deduce(                                    \
                 (((derived_type*)0)->foo(*(arg1*)0),                                    \
-                has_method_void_exp_result<type>())                            \
+                has_member_function_void_exp_result<type>())                            \
                 )                                                                       \
                 ) == sizeof(yes);                                                       \
         };                                                                              \
@@ -1698,7 +1698,7 @@ public:                                                                         
 
 
 
-#define o_create_has_method_2(foo)                                                      \
+#define o_create_has_member_function_2(foo)                                                      \
     template <typename Type>                                                            \
 class ____has_member_##foo                                                          \
     {                                                                                   \
@@ -1720,7 +1720,7 @@ struct Base : public Type, public BaseMixin {};                                 
     };                                                                                  \
     \
     template <typename type, typename call_details>                                     \
-struct has_method_##foo                                                             \
+struct has_member_function_##foo                                                             \
     {                                                                                   \
     private:                                                                            \
 class yes {};                                                                   \
@@ -1730,7 +1730,7 @@ struct derived : public type                                                    
         using type::foo;                                                            \
         no foo(...) const;                                                          \
         };                                                                              \
-        typedef typename has_method_clone_constness<type, derived>::type                \
+        typedef typename has_member_function_clone_constness<type, derived>::type                \
         derived_type;                                                               \
         template <typename T, typename due_type>                                        \
 struct return_value_check                                                       \
@@ -1738,7 +1738,7 @@ struct return_value_check                                                       
         static yes deduce(due_type);                                                \
         static no deduce(...);                                                      \
         static no deduce(no);                                                       \
-        static no deduce(has_method_void_exp_result<type>);                         \
+        static no deduce(has_member_function_void_exp_result<type>);                         \
         };                                                                              \
         template <typename T>                                                           \
 struct return_value_check<T, void>                                              \
@@ -1758,7 +1758,7 @@ struct impl<true, r(arg1,arg2)>                                                 
         sizeof(                                                                 \
         return_value_check<type, r>::deduce(                                    \
         (((derived_type*)0)->foo(*(arg1*)0,*(arg2*)0),                                    \
-        has_method_void_exp_result<type>())                            \
+        has_member_function_void_exp_result<type>())                            \
         )                                                                       \
         ) == sizeof(yes);                                                       \
         };                                                                              \
@@ -1768,9 +1768,9 @@ struct impl<true, r(arg1,arg2)>                                                 
     }; 
 
 
-o_create_has_method_0(PHANTOM_CODEGEN_initialize)
-o_create_has_method_0(PHANTOM_CODEGEN_terminate)
-o_create_has_method_2(PHANTOM_CODEGEN_restore)
+o_create_has_member_function_0(PHANTOM_CODEGEN_initialize)
+o_create_has_member_function_0(PHANTOM_CODEGEN_terminate)
+o_create_has_member_function_2(PHANTOM_CODEGEN_restore)
 
 BOOST_MPL_HAS_XXX_TRAIT_DEF(PHANTOM_CODEGEN_smdataptr_marker);
 BOOST_MPL_HAS_XXX_TRAIT_DEF(PHANTOM_CODEGEN_destroyed_marker)
@@ -1789,7 +1789,7 @@ struct has_destroyed_signal
 
 };
 
-template<typename t_Ty, bool t_has_method, int t_super_class_count>
+template<typename t_Ty, bool t_has_member_function, int t_super_class_count>
 struct has_destroyed_signal_declared_helper
 {
     typedef char yes;
@@ -1801,7 +1801,7 @@ struct has_destroyed_signal_declared_helper
     static no deduce(phantom::signal_t (super_class ::*)() const);
 
     enum { value = sizeof(deduce(&t_Ty::PHANTOM_CODEGEN_destroyed)) == sizeof(yes) 
-        AND has_destroyed_signal_declared_helper<t_Ty, t_has_method, t_super_class_count-1>::value };
+        AND has_destroyed_signal_declared_helper<t_Ty, t_has_member_function, t_super_class_count-1>::value };
 };
 
 template<typename t_Ty, int t_super_class_count>
@@ -1810,10 +1810,10 @@ struct has_destroyed_signal_declared_helper<t_Ty, false, t_super_class_count>
     enum {value = false };
 };
 
-template<typename t_Ty, bool t_has_method>
-struct has_destroyed_signal_declared_helper<t_Ty, t_has_method, 0>
+template<typename t_Ty, bool t_has_member_function>
+struct has_destroyed_signal_declared_helper<t_Ty, t_has_member_function, 0>
 {
-    enum {value = t_has_method };
+    enum {value = t_has_member_function };
 };
 
 template<typename t_Ty>
@@ -1832,16 +1832,16 @@ struct has_destroyed_signal_declared
 };
 
 template<typename t_Ty>
-struct has_initializer_method_restore
-    : public has_method_PHANTOM_CODEGEN_restore<t_Ty, phantom::restore_state (phantom::uint,phantom::uint)>
+struct has_initializer_member_function_restore
+    : public has_member_function_PHANTOM_CODEGEN_restore<t_Ty, phantom::restore_state (phantom::uint,phantom::uint)>
 {
 
 };
 
 // RESTORE METHOD DECLARATION EXISTENCE
 
-template<typename t_Ty, bool t_has_method, int t_super_class_count>
-struct has_initializer_method_restore_declared_helper
+template<typename t_Ty, bool t_has_member_function, int t_super_class_count>
+struct has_initializer_member_function_restore_declared_helper
 {
     typedef char yes;
     typedef long no;
@@ -1852,32 +1852,32 @@ struct has_initializer_method_restore_declared_helper
     static no deduce(phantom::restore_state (super_class ::*)(phantom::uint,phantom::uint));
 
     enum { value = sizeof(deduce(&t_Ty::PHANTOM_CODEGEN_restore)) == sizeof(yes) 
-        AND has_initializer_method_restore_declared_helper<t_Ty, t_has_method, t_super_class_count-1>::value };
+        AND has_initializer_member_function_restore_declared_helper<t_Ty, t_has_member_function, t_super_class_count-1>::value };
 };
 
 
 template<typename t_Ty>
-struct has_initializer_method_restore_declared_helper<t_Ty, false, 0>
+struct has_initializer_member_function_restore_declared_helper<t_Ty, false, 0>
 {
     enum {value = false };
 };
 
 template<typename t_Ty, int t_super_class_count>
-struct has_initializer_method_restore_declared_helper<t_Ty, false, t_super_class_count>
+struct has_initializer_member_function_restore_declared_helper<t_Ty, false, t_super_class_count>
 {
     enum {value = false };
 };
 
-template<typename t_Ty, bool t_has_method>
-struct has_initializer_method_restore_declared_helper<t_Ty, t_has_method, 0>
+template<typename t_Ty, bool t_has_member_function>
+struct has_initializer_member_function_restore_declared_helper<t_Ty, t_has_member_function, 0>
 {
-    enum {value = t_has_method };
+    enum {value = t_has_member_function };
 };
 
 template<typename t_Ty>
-struct has_initializer_method_restore_declared
-    : public has_initializer_method_restore_declared_helper<t_Ty
-    , has_initializer_method_restore<t_Ty>::value
+struct has_initializer_member_function_restore_declared
+    : public has_initializer_member_function_restore_declared_helper<t_Ty
+    , has_initializer_member_function_restore<t_Ty>::value
     , super_class_count_of<t_Ty>::value>
 {
 
@@ -1887,16 +1887,16 @@ struct has_initializer_method_restore_declared
 // INITIALIZE METHOD EXISTENCE
 
 template<typename t_Ty>
-struct has_initializer_method_initialize
-    : public has_method_PHANTOM_CODEGEN_initialize<t_Ty, void()>
+struct has_initializer_member_function_initialize
+    : public has_member_function_PHANTOM_CODEGEN_initialize<t_Ty, void()>
 {
 
 };
 
 // INITIALIZE METHOD DECLARATION EXISTENCE
 
-template<typename t_Ty, bool t_has_method, int t_super_class_count>
-struct has_initializer_method_initialize_declared_helper
+template<typename t_Ty, bool t_has_member_function, int t_super_class_count>
+struct has_initializer_member_function_initialize_declared_helper
 {
     typedef char yes;
     typedef long no;
@@ -1907,31 +1907,31 @@ struct has_initializer_method_initialize_declared_helper
     static no deduce(void (super_class ::*)());
     
     enum { value = sizeof(deduce(&t_Ty::PHANTOM_CODEGEN_initialize)) == sizeof(yes) 
-            AND has_initializer_method_initialize_declared_helper<t_Ty, t_has_method, t_super_class_count-1>::value };
+            AND has_initializer_member_function_initialize_declared_helper<t_Ty, t_has_member_function, t_super_class_count-1>::value };
 };
 
 template<typename t_Ty, int t_super_class_count>
-struct has_initializer_method_initialize_declared_helper<t_Ty, false, t_super_class_count>
+struct has_initializer_member_function_initialize_declared_helper<t_Ty, false, t_super_class_count>
 {
     enum {value = false };
 };
 
-template<typename t_Ty, bool t_has_method>
-struct has_initializer_method_initialize_declared_helper<t_Ty, t_has_method, 0>
+template<typename t_Ty, bool t_has_member_function>
+struct has_initializer_member_function_initialize_declared_helper<t_Ty, t_has_member_function, 0>
 {
-    enum {value = t_has_method };
+    enum {value = t_has_member_function };
 };
 
 template<typename t_Ty>
-struct has_initializer_method_initialize_declared_helper<t_Ty, false, 0>
+struct has_initializer_member_function_initialize_declared_helper<t_Ty, false, 0>
 {
     enum {value = false };
 };
 
 template<typename t_Ty>
-struct has_initializer_method_initialize_declared
-    : public has_initializer_method_initialize_declared_helper<t_Ty
-    , has_initializer_method_initialize<t_Ty>::value
+struct has_initializer_member_function_initialize_declared
+    : public has_initializer_member_function_initialize_declared_helper<t_Ty
+    , has_initializer_member_function_initialize<t_Ty>::value
     , super_class_count_of<t_Ty>::value>
 {
 
@@ -1940,16 +1940,16 @@ struct has_initializer_method_initialize_declared
 // EXISTENCE TRAIT
 
 template<typename t_Ty>
-struct has_initializer_method_terminate
-    : public has_method_PHANTOM_CODEGEN_terminate<t_Ty, void()>
+struct has_initializer_member_function_terminate
+    : public has_member_function_PHANTOM_CODEGEN_terminate<t_Ty, void()>
 {
 
 };
 
 // DECLARATION EXISTENCE TRAIT 
 
-template<typename t_Ty, bool t_has_method, int t_super_class_count>
-struct has_initializer_method_terminate_declared_helper
+template<typename t_Ty, bool t_has_member_function, int t_super_class_count>
+struct has_initializer_member_function_terminate_declared_helper
 {
     typedef char yes;
     typedef long no;
@@ -1960,83 +1960,83 @@ struct has_initializer_method_terminate_declared_helper
     static no deduce(void (super_class ::*)());
 
     enum { value = sizeof(deduce(&t_Ty::PHANTOM_CODEGEN_terminate)) == sizeof(yes) 
-        AND has_initializer_method_terminate_declared_helper<t_Ty, t_has_method, t_super_class_count-1>::value };
+        AND has_initializer_member_function_terminate_declared_helper<t_Ty, t_has_member_function, t_super_class_count-1>::value };
 };
 
 
 template<typename t_Ty>
-struct has_initializer_method_terminate_declared_helper<t_Ty, false, 0>
+struct has_initializer_member_function_terminate_declared_helper<t_Ty, false, 0>
 {
     enum {value = false };
 };
 
 template<typename t_Ty, int t_super_class_count>
-struct has_initializer_method_terminate_declared_helper<t_Ty, false, t_super_class_count>
+struct has_initializer_member_function_terminate_declared_helper<t_Ty, false, t_super_class_count>
 {
     enum {value = false };
 };
 
-template<typename t_Ty, bool t_has_method>
-struct has_initializer_method_terminate_declared_helper<t_Ty, t_has_method, 0>
+template<typename t_Ty, bool t_has_member_function>
+struct has_initializer_member_function_terminate_declared_helper<t_Ty, t_has_member_function, 0>
 {
-    enum {value = t_has_method };
+    enum {value = t_has_member_function };
 };
 
 template<typename t_Ty>
-struct has_initializer_method_terminate_declared
-    : public has_initializer_method_terminate_declared_helper<t_Ty, has_initializer_method_terminate<t_Ty>::value, super_class_count_of<t_Ty>::value>
+struct has_initializer_member_function_terminate_declared
+    : public has_initializer_member_function_terminate_declared_helper<t_Ty, has_initializer_member_function_terminate<t_Ty>::value, super_class_count_of<t_Ty>::value>
 {
 
 };
 
 template<typename t_Ty, bool t_is_class>
-struct has_initializer_methods_helper
+struct has_initializer_member_functions_helper
 {
     static const bool value =
-            has_initializer_method_initialize<t_Ty>::value
+            has_initializer_member_function_initialize<t_Ty>::value
             AND
-            has_initializer_method_terminate<t_Ty>::value
+            has_initializer_member_function_terminate<t_Ty>::value
             AND
-            has_initializer_method_restore<t_Ty>::value;
+            has_initializer_member_function_restore<t_Ty>::value;
 
 };
 
 template<typename t_Ty>
-struct has_initializer_methods_helper<t_Ty, false> : public detail::false_
+struct has_initializer_member_functions_helper<t_Ty, false> : public detail::false_
 {
 };
 
 template<typename t_Ty>
-struct has_initializer_methods
-    : public has_initializer_methods_helper<t_Ty, boost::is_class<t_Ty>::value>
+struct has_initializer_member_functions
+    : public has_initializer_member_functions_helper<t_Ty, boost::is_class<t_Ty>::value>
 {
 
 };
 
 
 template<typename t_Ty>
-struct has_initializer_methods_cascade;
+struct has_initializer_member_functions_cascade;
 
 namespace detail
 {
     template<typename t_Ty, int t_super_class_count>
-    struct has_initializer_methods_cascade_helper
+    struct has_initializer_member_functions_cascade_helper
     {
         const static bool value =
-            has_initializer_methods_cascade_helper<t_Ty, t_super_class_count-1>::value
-            OR has_initializer_methods_cascade<o_NESTED_TYPE super_class_of<t_Ty, t_super_class_count-1>::type>::value
+            has_initializer_member_functions_cascade_helper<t_Ty, t_super_class_count-1>::value
+            OR has_initializer_member_functions_cascade<o_NESTED_TYPE super_class_of<t_Ty, t_super_class_count-1>::type>::value
             ;
     };
     template<typename t_Ty>
-    struct has_initializer_methods_cascade_helper<t_Ty,0>
+    struct has_initializer_member_functions_cascade_helper<t_Ty,0>
     {
-        const static bool value = has_initializer_methods<t_Ty>::value;
+        const static bool value = has_initializer_member_functions<t_Ty>::value;
     };
 }
 
 template<typename t_Ty>
-struct has_initializer_methods_cascade
-    : public detail::has_initializer_methods_cascade_helper<t_Ty, super_class_count_of<t_Ty>::value>
+struct has_initializer_member_functions_cascade
+    : public detail::has_initializer_member_functions_cascade_helper<t_Ty, super_class_count_of<t_Ty>::value>
 {
 };
 
@@ -2145,8 +2145,8 @@ o_classNTS(
 {
     o_reflection
     {
-        o_method(void, method, (int))
-        o_attribute(int, attribute)
+        o_member_function(void, member_function, (int))
+        o_data_member(int, dataMember)
     };
     o_statechart
     {

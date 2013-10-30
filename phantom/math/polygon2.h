@@ -51,7 +51,7 @@ o_classNT((phantom, celsius), (typename, size_t), (t_Ty, t_PointCount), polygon2
 {
 	o_reflection
 	{
-		o_attribute(vector2_type[t_PointCount], points, o_public);
+		o_data_member(vector2_type[t_PointCount], points, o_public);
 	};
 };
 o_exposeN((phantom, celsius), polygon2);

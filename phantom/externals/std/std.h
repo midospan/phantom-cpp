@@ -53,17 +53,17 @@ o_classNT((std), (typename, typename, typename), (t_Elem, t_Traits, t_Ax), basic
 {
     o_reflection
     {
-        o_method(iterator, begin, ());
-        o_method(iterator, end, ());
-        o_method(const_iterator, begin, ());
-        o_method(const_iterator, end, ());
-        o_method(reverse_iterator, rbegin, ());
-        o_method(reverse_iterator, rend, ());
-        o_method(const_reverse_iterator, rbegin, ());
-        o_method(const_reverse_iterator, rend, ());
-        o_method(_Myt&, append, (const_pointer, const_pointer));
-        o_method(_Myt&, append, (const_iterator, const_iterator));
-        o_method(_Myt&, append, (size_type, t_Elem));
+        o_member_function(iterator, begin, ());
+        o_member_function(iterator, end, ());
+        o_member_function(const_iterator, begin, ());
+        o_member_function(const_iterator, end, ());
+        o_member_function(reverse_iterator, rbegin, ());
+        o_member_function(reverse_iterator, rend, ());
+        o_member_function(const_reverse_iterator, rbegin, ());
+        o_member_function(const_reverse_iterator, rend, ());
+        o_member_function(_Myt&, append, (const_pointer, const_pointer));
+        o_member_function(_Myt&, append, (const_iterator, const_iterator));
+        o_member_function(_Myt&, append, (size_type, t_Elem));
     };
 };
 o_exposeNT((std), (typename, typename, typename), (t_Elem, t_Traits, t_Ax), basic_string);
@@ -79,8 +79,8 @@ o_classNT((std), (typename, typename), (t_First, t_Second), _Pair_base
 {
     o_reflection 
     {
-        o_attribute(t_First, first, o_public) ;
-        o_attribute(t_Second, second, o_public);
+        o_data_member(t_First, first, o_public) ;
+        o_data_member(t_Second, second, o_public);
     };
 };
 o_exposeNT((std), (typename, typename), (t_First, t_Second), _Pair_base);
@@ -91,8 +91,8 @@ o_classNT((std), (typename, typename), (t_First, t_Second), pair, o_disable_copy
 {
     o_reflection
     {
-        o_attribute(t_First, first, o_public) ;
-        o_attribute(t_Second, second, o_public);
+        o_data_member(t_First, first, o_public) ;
+        o_data_member(t_Second, second, o_public);
     };
 };
 o_exposeNT((std), (typename, typename), (t_First, t_Second), pair);

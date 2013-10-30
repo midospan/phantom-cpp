@@ -733,7 +733,7 @@ This lets you set a multiplier (bit 15 set) or a 1<< shift value.
 #if !NO_MALLINFO
 /*
   This version of malloc supports the standard SVID/XPG mallinfo
-  routine that returns a struct containing usage properties and
+  routine that returns a struct containing usage valueMembers and
   statistics. It should work on any system that has a
   /usr/include/malloc.h defining struct mallinfo.  The main
   declaration needed is the mallinfo struct that is returned (by-copy)
@@ -1354,7 +1354,7 @@ size_t mspace_max_footprint(mspace msp);
 
 #if !NO_MALLINFO
 /*
-  mspace_mallinfo behaves as mallinfo, but reports properties of
+  mspace_mallinfo behaves as mallinfo, but reports valueMembers of
   the given space.
 */
 struct mallinfo mspace_mallinfo(mspace msp);
@@ -1367,7 +1367,7 @@ struct mallinfo mspace_mallinfo(mspace msp);
 
 /*
   mspace_malloc_stats behaves as malloc_stats, but reports
-  properties of the given space.
+  valueMembers of the given space.
 */
 void mspace_malloc_stats(mspace msp);
 
@@ -1557,7 +1557,7 @@ unsigned char _BitScanReverse(unsigned long *index, unsigned long mask);
 
 
 
-/* ------------------- size_t and alignment properties -------------------- */
+/* ------------------- size_t and alignment valueMembers -------------------- */
 
 /* The byte and bit size of a size_t */
 #define SIZE_T_SIZE         (sizeof(size_t))
@@ -1587,7 +1587,7 @@ unsigned char _BitScanReverse(unsigned long *index, unsigned long mask);
   ((MALLOC_ALIGNMENT - ((size_t)(A) & CHUNK_ALIGN_MASK)) & CHUNK_ALIGN_MASK))
 
 /*
-  malloc_params holds global properties, including those that can be
+  malloc_params holds global valueMembers, including those that can be
   dynamically set using mallopt. There is a single instance, mparams,
   initialized in init_mparams. Note that the non-zeroness of "magic"
   also serves as an initialization flag.
@@ -1765,9 +1765,9 @@ static FORCEINLINE void* win32mmap(size_t size) {
   return (ptr != 0)? ptr: MFAIL;
 }
 
-/* For direct MMAP, we have two allocation methods, one which is
+/* For direct MMAP, we have two allocation member_functions, one which is
 unresizeable and the other which is resizeable. The resizeable
-method is slower to allocate and free, but is much quicker to
+member_function is slower to allocate and free, but is much quicker to
 reallocate. Benchmarking shows that the crossover is at around
 512Kb-1Mb, so if you are reallocating blocks 1Mb or above then you
 ought to specify one of the M2_RESERVE_* flags which can specify
@@ -1787,7 +1787,7 @@ solution is to use a win32 file mapping of the swap file as the
 reservation and then to map views of differing sizes which exactly
 is what mremap() does on Linux.
 
-Unfortunately the file mapping method is benchmarked at around
+Unfortunately the file mapping member_function is benchmarked at around
 40-45% slower than using VirtualAlloc to over-reserve. It is still
 50% faster for avrg. 2Mb block sizes than no mremap() at all, so
 we turn it on on 32 bit and disable it on 64 bit.
@@ -2333,7 +2333,7 @@ static void init_malloc_global_mutex() {
   necessary).  It declares a "view" into memory allowing access to
   necessary fields at known offsets from a given base.
 
-  Chunks of memory are maintained using a `boundary tag' method as
+  Chunks of memory are maintained using a `boundary tag' member_function as
   originally described by Knuth.  (See the paper by Paul Wilson
   ftp://ftp.cs.utexas.edu/pub/garbage/allocsrv.ps for a survey of such
   techniques.)  Sizes of free chunks are stored both in the front of
@@ -2343,7 +2343,7 @@ static void init_malloc_global_mutex() {
 
   Here are some pictures to make it clearer.  They are "exploded" to
   show that the state of a chunk can be thought of as extending from
-  the high 31 bits of the head field of its header through the
+  the high 31 bits of the head dataMember of its header through the
   prev_foot and PINUSE_BIT bit of the following chunk header.
 
   A chunk that's in use looks like:
@@ -2446,14 +2446,14 @@ static void init_malloc_global_mutex() {
         system if it is very large (see M_TRIM_THRESHOLD).  In effect,
         the top chunk is treated as larger (and thus less well
         fitting) than any other available chunk.  The top chunk
-        doesn't update its trailing size field since there is no next
+        doesn't update its trailing size dataMember since there is no next
         contiguous chunk that would have to index off it. However,
         space is still allocated for it (TOP_FOOT_SIZE) to enable
         separation or merging when space is extended.
 
      3. Chunks allocated via mmap, have both cinuse and pinuse bits
         cleared in their head fields.  Because they are allocated
-        one-by-one, each must carry its own prev_foot field, which is
+        one-by-one, each must carry its own prev_foot dataMember, which is
         also used to hold the offset this chunk has within its mmapped
         region, which is needed to preserve alignment. Each mmapped
         chunk is trailed by the first two fields of a fake next-chunk
@@ -2516,7 +2516,7 @@ chunk and one for handle ... */
 /* ------------------ Operations on head and foot fields ----------------- */
 
 /*
-  The head field of a chunk is or'ed with PINUSE_BIT when previous
+  The head dataMember of a chunk is or'ed with PINUSE_BIT when previous
   adjacent chunk in use, and or'ed with CINUSE_BIT if this chunk is in
   use, unless mmapped, in which case both bits are cleared.
 
@@ -2694,7 +2694,7 @@ typedef struct malloc_tree_chunk* tbinptr; /* The type of bins of trees */
 /*
   Each malloc space may include non-contiguous segments, held in a
   list headed by an embedded malloc_segment record representing the
-  top-most space. Segments also include flags holding properties of
+  top-most space. Segments also include flags holding valueMembers of
   the space. Large chunks that are directly allocated by mmap are not
   included in this list. They are instead independently created and
   destroyed without otherwise keeping track of them.
@@ -2815,12 +2815,12 @@ typedef struct malloc_segment* msegmentptr;
     representing the initial space.
 
   Address check support
-    The least_addr field is the least address ever obtained from
+    The least_addr dataMember is the least address ever obtained from
     MORECORE or MMAP. Attempted frees and reallocs of any address less
     than this are trapped (unless INSECURE is defined).
 
   Magic tag
-    A cross-check field that should always hold same value as mparams.magic.
+    A cross-check dataMember that should always hold same value as mparams.magic.
 
   Flags
     Bits recording whether to use MMAP, locks, or contiguous MORECORE
@@ -2830,7 +2830,7 @@ typedef struct malloc_segment* msegmentptr;
     obtained via MORECORE or MMAP.
 
   Trim support
-    Fields holding the amount of unused topmost memory that should trigger
+    DataMembers holding the amount of unused topmost memory that should trigger
     timming, and a counter to force periodic scanning to release unused
     non-topmost segments.
 
@@ -2839,7 +2839,7 @@ typedef struct malloc_segment* msegmentptr;
     around every public call using this mspace.
 
   Extension support
-    A void* pointer and a size_t field that can be used to help implement
+    A void* pointer and a size_t dataMember that can be used to help implement
     extensions to this malloc.
 */
 
@@ -3266,7 +3266,7 @@ static size_t traverse_and_check(mstate m);
 #endif /* !INSECURE */
 
 #if (FOOTERS && !INSECURE)
-/* Check if (alleged) mstate m has expected magic field */
+/* Check if (alleged) mstate m has expected magic dataMember */
 #define ok_magic(M)      ((M)->magic == mparams.magic)
 #else  /* (FOOTERS && !INSECURE) */
 #define ok_magic(M)      (1)
@@ -3481,13 +3481,13 @@ static int change_mparam(int param_number, int value) {
 #if DEBUG
 /* ------------------------- Debugging Support --------------------------- */
 
-/* Check properties of any chunk, whether free, inuse, mmapped etc  */
+/* Check valueMembers of any chunk, whether free, inuse, mmapped etc  */
 static void do_check_any_chunk(mstate m, mchunkptr p) {
   assert((is_aligned(chunk2mem(p))) || (p->head == FENCEPOST_HEAD));
   assert(ok_address(m, p));
 }
 
-/* Check properties of top chunk */
+/* Check valueMembers of top chunk */
 static void do_check_top_chunk(mstate m, mchunkptr p) {
   msegmentptr sp = segment_holding(m, (char*)p);
   size_t  sz = p->head & ~INUSE_BITS; /* third-lowest bit can be set! */
@@ -3501,7 +3501,7 @@ static void do_check_top_chunk(mstate m, mchunkptr p) {
   assert(!pinuse(chunk_plus_offset(p, sz)));
 }
 
-/* Check properties of (inuse) mmapped chunks */
+/* Check valueMembers of (inuse) mmapped chunks */
 static void do_check_mmapped_chunk(mstate m, mchunkptr p) {
   size_t  sz = chunksize(p);
   size_t len = (sz + (p->prev_foot) + MMAP_FOOT_PAD);
@@ -3515,7 +3515,7 @@ static void do_check_mmapped_chunk(mstate m, mchunkptr p) {
   assert(chunk_plus_offset(p, sz+SIZE_T_SIZE)->head == 0);
 }
 
-/* Check properties of inuse chunks */
+/* Check valueMembers of inuse chunks */
 static void do_check_inuse_chunk(mstate m, mchunkptr p) {
   do_check_any_chunk(m, p);
   assert(is_inuse(p));
@@ -3526,7 +3526,7 @@ static void do_check_inuse_chunk(mstate m, mchunkptr p) {
     do_check_mmapped_chunk(m, p);
 }
 
-/* Check properties of free chunks */
+/* Check valueMembers of free chunks */
 static void do_check_free_chunk(mstate m, mchunkptr p) {
   size_t sz = chunksize(p);
   mchunkptr next = chunk_plus_offset(p, sz);
@@ -3549,7 +3549,7 @@ static void do_check_free_chunk(mstate m, mchunkptr p) {
   }
 }
 
-/* Check properties of malloced chunks at the point they are malloced */
+/* Check valueMembers of malloced chunks at the point they are malloced */
 static void do_check_malloced_chunk(mstate m, void* mem, size_t s) {
   if (mem != 0) {
     mchunkptr p = mem2chunk(mem);
@@ -3716,7 +3716,7 @@ static size_t traverse_and_check(mstate m) {
   return sum;
 }
 
-/* Check all properties of malloc_state. */
+/* Check all valueMembers of malloc_state. */
 static void do_check_malloc_state(mstate m) {
   bindex_t i;
   size_t total;
@@ -4077,7 +4077,7 @@ static void* mspace_malloc_implementation(mstate ms, size_t bytes, unsigned flag
 
 /*
   Directly mmapped chunks are set up with an offset to the start of
-  the mmapped region stored in the prev_foot field of the chunk. This
+  the mmapped region stored in the prev_foot dataMember of the chunk. This
   allows reconstruction of the required argument to MUNMAP when freed,
   and also allows adjustment of the returned chunk to meet alignment
   requirements (especially in memalign).

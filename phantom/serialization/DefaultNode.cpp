@@ -139,33 +139,33 @@ void DefaultNode::clearDataReference( const vector<void*>& layout ) const
         for(;it!=end;++it)
         {
             void* address = *it;
-            // A data shouldn't have property pointing on itself, so we skip
+            // A data shouldn't have valueMember pointing on itself, so we skip
             if(currentData.address() == address) 
                 continue;
 
-            // A data type can have property only if it's a ClassType (struct/union/class)
+            // A data type can have valueMember only if it's a ClassType (struct/union/class)
             reflection::ClassType* pClassType = currentData.type()->asClassType();
             if(pClassType)
             {
                 reflection::Class* pClass = pClassType->asClass();
-                vector<reflection::Property*> properties;
+                vector<reflection::ValueMember*> valueMembers;
                 vector<reflection::Collection*> collections;
                 if(pClass)
                 {
-                    pClass->getAllPropertyCascade(properties);
+                    pClass->getAllValueMemberCascade(valueMembers);
                     pClass->getAllCollectionCascade(collections);
                 }
                 else
                 {
-                    pClassType->getAllProperty(properties);
+                    pClassType->getAllValueMember(valueMembers);
                     pClassType->getAllCollection(collections);
                 }
-                struct AccessorThenAttributeSorter
+                struct PropertyThenAttributeSorter
                 {
-                    bool operator()(const reflection::Property* first, const reflection::Property* second) const 
+                    bool operator()(const reflection::ValueMember* first, const reflection::ValueMember* second) const 
                     {
-                        if(first->isAccessor() AND NOT(second->isAccessor())) return true;
-                        if(second->isAccessor() AND NOT(first->isAccessor())) return false;
+                        if(first->isProperty() AND NOT(second->isProperty())) return true;
+                        if(second->isProperty() AND NOT(first->isProperty())) return false;
                         return first < second;
                     }
                 };
@@ -199,26 +199,26 @@ void DefaultNode::clearDataReference( const vector<void*>& layout ) const
                 }
 
 
-                std::sort(properties.begin(), properties.end(), AccessorThenAttributeSorter());
+                std::sort(valueMembers.begin(), valueMembers.end(), PropertyThenAttributeSorter());
 
-                o_foreach(reflection::Property* pProperty, properties)
+                o_foreach(reflection::ValueMember* pValueMember, valueMembers)
                 {
-                    reflection::DataPointerType* pPropertyValueType = pProperty->getValueType()->asDataPointerType();
-                    if(pPropertyValueType)
+                    reflection::DataPointerType* pValueMemberValueType = pValueMember->getValueType()->asDataPointerType();
+                    if(pValueMemberValueType)
                     {
-                        // Cast the unreferenced data address to the property value type
-                        phantom::data castedCurrentData = currentData.cast(pProperty->getOwnerClassType());
+                        // Cast the unreferenced data address to the valueMember value type
+                        phantom::data castedCurrentData = currentData.cast(pValueMember->getOwnerClassType());
 
-                        // Extract the property value from the current data
+                        // Extract the valueMember value from the current data
                         void* pointerValue = nullptr;
-                        pProperty->getValue(castedCurrentData.address(), &pointerValue);
+                        pValueMember->getValue(castedCurrentData.address(), &pointerValue);
 
                         // Test it with the cleared data
                         if(pointerValue == address)
                         {
                             // if pointer are the same, clear the data reference into the current node data
                             pointerValue = nullptr;
-                            pProperty->setValue(castedCurrentData.address(), &pointerValue);
+                            pValueMember->setValue(castedCurrentData.address(), &pointerValue);
                             currentDataModified = true;
                         }
                     }
@@ -251,7 +251,7 @@ bool    DefaultNode::replaceDataReference(const vector<void*>& a_OldLayout, cons
         for(;it!=end;++it)
         {
             void* oldAddress = *it;
-            // A data shouldn't have property pointing on itself, so we skip
+            // A data shouldn't have valueMember pointing on itself, so we skip
             if(currentData.address() == oldAddress) 
                 continue;
 
@@ -269,50 +269,50 @@ bool    DefaultNode::replaceDataReference(const vector<void*>& a_OldLayout, cons
             }
             else if(oldAddress == m_pOwnerDataBase->getSubDataOwner(currentData).address())
             {
-                // this case must be handled via the setOwner methods on the owned object (via accessors)
+                // this case must be handled via the setOwner member_functions on the owned object (via propertys)
                 //continue;
             }
 
-            // A data type can have property only if it's a ClassType (struct/union/class)
+            // A data type can have valueMember only if it's a ClassType (struct/union/class)
             reflection::ClassType* pClassType = currentData.type()->asClassType();
             if(pClassType)
             {
                 reflection::Class* pClass = pClassType->asClass();
-                vector<reflection::Property*> properties;
+                vector<reflection::ValueMember*> valueMembers;
                 if(pClass)
                 {
-                    pClass->getAllPropertyCascade(properties);
+                    pClass->getAllValueMemberCascade(valueMembers);
                 }
                 else
                 {
-                    pClassType->getAllProperty(properties);
+                    pClassType->getAllValueMember(valueMembers);
                 }
-                o_foreach(reflection::Property* pProperty, properties)
+                o_foreach(reflection::ValueMember* pValueMember, valueMembers)
                 {
-                    reflection::InstanceAttribute* pInstanceAttribute = pProperty->asInstanceAttribute();
+                    reflection::InstanceDataMember* pInstanceDataMember = pValueMember->asInstanceDataMember();
 
-                    // Only treat attributes (no accessor or other properties) 
+                    // Only treat attributes (no property or other valueMembers) 
                     // because we want real "physical memory" reference replacement
-                    if(pInstanceAttribute == nullptr) continue;
-                    phantom::data castedCurrentData = currentData.cast(pInstanceAttribute->getOwnerClassType());
+                    if(pInstanceDataMember == nullptr) continue;
+                    phantom::data castedCurrentData = currentData.cast(pInstanceDataMember->getOwnerClassType());
 
                     // Test reference by pointer
-                    reflection::DataPointerType* pPropertyPointerValueType = pInstanceAttribute->getValueType()->asDataPointerType();
-                    if(pPropertyPointerValueType)
+                    reflection::DataPointerType* pValueMemberPointerValueType = pInstanceDataMember->getValueType()->asDataPointerType();
+                    if(pValueMemberPointerValueType)
                     {
                         
-                        // Extract the property value from the current data
+                        // Extract the valueMember value from the current data
                         void* pointerValue = nullptr;
-                        pInstanceAttribute->getValue(castedCurrentData.address(), &pointerValue);
+                        pInstanceDataMember->getValue(castedCurrentData.address(), &pointerValue);
 
                         // Test it with the cleared data
                         if(pointerValue == oldAddress)
                         {
                             // if pointer are the same, replace the data reference into the current node data
-                            pointerValue = a_New.cast(pPropertyPointerValueType->getPointedType()).address();
-                            if(pointerValue != nullptr OR a_SetIncompatibleToNull) // This means the type are no more compatible we need to nullify the property in a second pass
+                            pointerValue = a_New.cast(pValueMemberPointerValueType->getPointedType()).address();
+                            if(pointerValue != nullptr OR a_SetIncompatibleToNull) // This means the type are no more compatible we need to nullify the valueMember in a second pass
                             {
-                                pInstanceAttribute->setValue(castedCurrentData.address(), &pointerValue);
+                                pInstanceDataMember->setValue(castedCurrentData.address(), &pointerValue);
                                 currentDataModified = true;
                             }
                             else 
@@ -325,7 +325,7 @@ bool    DefaultNode::replaceDataReference(const vector<void*>& a_OldLayout, cons
                     else
                     {
                         // Test reference in container (still by pointer)
-                        reflection::ContainerClass* pContainerClass = pInstanceAttribute->getValueType()->asContainerClass();
+                        reflection::ContainerClass* pContainerClass = pInstanceDataMember->getValueType()->asContainerClass();
                         if(pContainerClass)
                         {
                             reflection::DataPointerType* pDataPointerType = pContainerClass->getValueType()->asDataPointerType();
@@ -334,7 +334,7 @@ bool    DefaultNode::replaceDataReference(const vector<void*>& a_OldLayout, cons
                                 // Cast to content type worked, this may be a potential container referencing the current data
                                 void* container = pContainerClass->newInstance();
                                 // Get the whole container
-                                pInstanceAttribute->getValue(castedCurrentData.address(), container);
+                                pInstanceDataMember->getValue(castedCurrentData.address(), container);
 
                                 // Iterate through the container to find a potential reference
                                 void* the_old = oldAddress;
@@ -352,7 +352,7 @@ bool    DefaultNode::replaceDataReference(const vector<void*>& a_OldLayout, cons
                                 if(replacedCount) //  if at least one reference has been replaced/removed,
                                     // we replace the whole collection
                                 {
-                                    pInstanceAttribute->setValue(castedCurrentData.address(), container);
+                                    pInstanceDataMember->setValue(castedCurrentData.address(), container);
                                     currentDataModified = true;
                                 }
                                 pContainerClass->deleteInstance(container);

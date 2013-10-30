@@ -93,28 +93,28 @@ public:
 
     virtual void        safeConstruct(void* a_pBuffer) const 
     {
-        o_exception(exception::unsupported_method_exception, "references cannot be constructed");
+        o_exception(exception::unsupported_member_function_exception, "references cannot be constructed");
     }
     virtual void        safeConstruct(void* a_pBuffer, size_t a_uiCount, size_t a_uiChunkSectionSize) const 
     {
-        o_exception(exception::unsupported_method_exception, "references cannot be constructed");
+        o_exception(exception::unsupported_member_function_exception, "references cannot be constructed");
     }
 
     virtual void        construct(void* a_pBuffer) const 
     {
-        o_exception(exception::unsupported_method_exception, "references cannot be constructed");
+        o_exception(exception::unsupported_member_function_exception, "references cannot be constructed");
     }
     virtual void        destroy(void* a_pBuffer) const 
     {
-        o_exception(exception::unsupported_method_exception, "references cannot be constructed");
+        o_exception(exception::unsupported_member_function_exception, "references cannot be constructed");
     }
     virtual void        construct(void* a_pBuffer, size_t a_uiCount, size_t a_uiChunkSectionSize) const 
     {
-        o_exception(exception::unsupported_method_exception, "references cannot be constructed");
+        o_exception(exception::unsupported_member_function_exception, "references cannot be constructed");
     }
     virtual void        destroy(void* a_pBuffer, size_t a_uiCount, size_t a_uiChunkSectionSize) const 
     {
-        o_exception(exception::unsupported_method_exception, "references cannot be constructed");
+        o_exception(exception::unsupported_member_function_exception, "references cannot be constructed");
     }
 
     virtual void    interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_dest, uint mode) const 

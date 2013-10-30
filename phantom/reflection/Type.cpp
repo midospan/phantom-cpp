@@ -62,7 +62,8 @@ Type::Type( const string& a_strName, bitfield a_bfModifiers /*= bitfield()*/ ) :
 , m_uiSerializedSize(0)
 , m_uiResetSize(0)
 , m_uiAlignment(0)
-, m_pSubTypes(nullptr)
+, m_pNestedTypes(nullptr)
+, m_pNestedTypedefs(nullptr)
 {
 
 }
@@ -72,7 +73,8 @@ Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitf
     , m_uiAlignment(a_uiAlignment)
     , m_uiSerializedSize(a_uiSize)
     , m_uiResetSize(a_uiSize)
-    , m_pSubTypes(nullptr)
+    , m_pNestedTypes(nullptr)
+    , m_pNestedTypedefs(nullptr)
 {
 
 }
@@ -82,7 +84,8 @@ Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint
     , m_uiAlignment(a_uiAlignment)
     , m_uiSerializedSize(a_uiSize)
     , m_uiResetSize(a_uiSize)
-    , m_pSubTypes(nullptr)
+    , m_pNestedTypes(nullptr)
+    , m_pNestedTypedefs(nullptr)
 {
 
 }
@@ -95,11 +98,11 @@ Type::~Type()
     }
     else if(getOwnerType())
     {
-        getOwnerType()->removeSubType(this);
+        getOwnerType()->removeNestedType(this);
     }
-    while(m_pSubTypes != nullptr)
+    while(m_pNestedTypes != nullptr)
     {
-        o_dynamic_delete(m_pSubTypes->back());
+        o_dynamic_delete(m_pNestedTypes->back());
     }
 }
 
@@ -166,49 +169,88 @@ Type* Type::getOwnerType() const
     return m_pOwner ? m_pOwner->asType() : nullptr;
 }
 
+void Type::addNestedTypedef( const string& a_strTypedef, Type* a_pType )
+{
+    if(m_pNestedTypedefs == nullptr)
+    {
+        m_pNestedTypedefs = o_default_new(nested_typedef_map);
+    }
+    o_assert(m_pNestedTypedefs->find(a_strTypedef) == m_pNestedTypedefs->end(), "Typedef already registered");
+    (*m_pNestedTypedefs)[a_strTypedef] = a_pType;
+}
+
+void Type::removeNestedTypedef( const string& a_strTypedef, Type* a_pType )
+{
+    o_assert(m_pNestedTypedefs);
+    auto found = m_pNestedTypedefs->find(a_strTypedef);
+    o_assert( found != m_pNestedTypedefs->end(), "Typedef not found");
+    m_pNestedTypedefs->erase(found);
+    if(m_pNestedTypedefs->empty()) 
+    {
+        o_default_delete(nested_typedef_map) m_pNestedTypedefs;
+        m_pNestedTypedefs = nullptr;
+    }
+}
+
+
+inline Type* Type::getNestedTypedef( const string& a_strTypedef ) const
+{
+    if(m_pNestedTypedefs == nullptr) return nullptr;
+    auto found = m_pNestedTypedefs->find(a_strTypedef);
+    if( found != m_pNestedTypedefs->end() ) return found->second;
+    return nullptr;
+}
+
 LanguageElement* Type::getElement( const char* a_strName, template_specialization const* a_pTemplateSpecialization, function_signature const* a_pFunctionSignature, bitfield a_bfModifiers /*= bitfield()*/ ) const
 {
-    if(m_pSubTypes == NULL)  return NULL;
-    vector<Type*>::const_iterator it = m_pSubTypes->begin();
-    vector<Type*>::const_iterator end = m_pSubTypes->end();
-    for(;it != end; ++it)
+    if(m_pNestedTypedefs)  
     {
-        if((*it)->matches(a_strName, a_pTemplateSpecialization, a_bfModifiers))
+        auto found = m_pNestedTypedefs->find(a_strName);
+        if(found != m_pNestedTypedefs->end()) return found->second;
+    }
+    if(m_pNestedTypes)  
+    {
+        vector<Type*>::const_iterator it = m_pNestedTypes->begin();
+        vector<Type*>::const_iterator end = m_pNestedTypes->end();
+        for(;it != end; ++it)
         {
-            return *it;
-        }
-        else if((*it)->isEnum())
-        {
-            LanguageElement* pConstant = (*it)->getElement(a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_bfModifiers);
-            if(pConstant) return pConstant;
+            if((*it)->matches(a_strName, a_pTemplateSpecialization, a_bfModifiers))
+            {
+                return *it;
+            }
+            else if((*it)->isEnum())
+            {
+                LanguageElement* pConstant = (*it)->getElement(a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_bfModifiers);
+                if(pConstant) return pConstant;
+            }
         }
     }
     return NULL;
 }
 
-void Type::addSubType( Type* a_pType )
+void Type::addNestedType( Type* a_pType )
 {
-    if(m_pSubTypes == NULL)
+    if(m_pNestedTypes == NULL)
     {
-        m_pSubTypes = o_default_new(vector<Type*>);
+        m_pNestedTypes = o_default_new(vector<Type*>);
     }
     o_assert(a_pType->m_pOwner == NULL, "Type has already been attached to a Namespace or Type");
-    o_assert(std::find(m_pSubTypes->begin(), m_pSubTypes->end(), a_pType) == m_pSubTypes->end(), "Type already added");
-    m_pSubTypes->push_back(a_pType);
+    o_assert(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), a_pType) == m_pNestedTypes->end(), "Type already added");
+    m_pNestedTypes->push_back(a_pType);
     addElement(a_pType);
 }
 
-void Type::removeSubType( Type* a_pType )
+void Type::removeNestedType( Type* a_pType )
 {
-    o_assert(m_pSubTypes);
+    o_assert(m_pNestedTypes);
     o_assert(a_pType->m_pOwner == this, "Type doesn't belong to this type");
-    o_assert(std::find(m_pSubTypes->begin(), m_pSubTypes->end(), a_pType) != m_pSubTypes->end(), "Type not fount");
-    m_pSubTypes->erase(std::find(m_pSubTypes->begin(), m_pSubTypes->end(), a_pType));
+    o_assert(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), a_pType) != m_pNestedTypes->end(), "Type not fount");
+    m_pNestedTypes->erase(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), a_pType));
     removeElement(a_pType);
-    if(m_pSubTypes->size() == 0)
+    if(m_pNestedTypes->size() == 0)
     {
-        o_default_delete(vector<Type*>) m_pSubTypes;
-        m_pSubTypes = nullptr;
+        o_default_delete(vector<Type*>) m_pNestedTypes;
+        m_pNestedTypes = nullptr;
     }
 }
 
@@ -384,9 +426,9 @@ void                Type::fireKindDestroyed(void* a_pObject) const
     void Type::getElements( vector<LanguageElement*>& out, Class* a_pClass ) const
     {
         TemplateElement::getElements(out, a_pClass);
-        if(m_pSubTypes AND (a_pClass == nullptr OR classOf<Type>()->isKindOf(a_pClass)))
+        if(m_pNestedTypes AND (a_pClass == nullptr OR classOf<Type>()->isKindOf(a_pClass)))
         {
-            for(auto it = m_pSubTypes->begin(); it != m_pSubTypes->end(); ++it)
+            for(auto it = m_pNestedTypes->begin(); it != m_pNestedTypes->end(); ++it)
             {
                 out.push_back(*it);
             }

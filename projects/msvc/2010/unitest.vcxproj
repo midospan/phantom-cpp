@@ -15,6 +15,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\phantom\_pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\build\pch\unitestD.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\build\pch\unitest.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\unitest\phantom\unitest\Bench.cpp" />
     <ClCompile Include="..\..\..\unitest\phantom\unitest\StateMachineTest.cpp" />
     <ClCompile Include="..\..\..\unitest\main.cpp" />
     <ClCompile Include="..\..\..\unitest\phantom\unitest\Ability.cpp" />
@@ -25,6 +32,7 @@
     <ClCompile Include="..\..\..\unitest\phantom\unitest\RootClass.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\unitest\phantom\unitest\Bench.h" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\StateMachineTest.h" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\Ability.h" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\ActorPlatform.classdef.h" />
@@ -94,9 +102,11 @@
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <ShowIncludes>false</ShowIncludes>
-      <AdditionalOptions>/MP -Zm300 /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MP -Zm390 /bigobj %(AdditionalOptions)</AdditionalOptions>
       <MinimalRebuild>false</MinimalRebuild>
-      <PrecompiledHeaderOutputFile>..\..\..\build\pch\phantomD.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>..\..\..\build\pch\unitestD.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>phantom/phantom.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -118,10 +128,10 @@
       <AdditionalIncludeDirectories>..\..\..\unitest;..\..\..;$(GTEST_INC_PATH);$(BOOST_ROOT);</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalOptions>/MP -Zm300 /bigobj %(AdditionalOptions)</AdditionalOptions>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalOptions>/MP -Zm390 /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>phantom/phantom.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>..\..\..\build\pch\phantom.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>..\..\..\build\pch\unitest.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

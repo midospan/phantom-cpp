@@ -38,17 +38,17 @@
 // Signal emission marker, no real incidence at this time
 #define o_emit
 
-#define o_connect(_emitter_, _signal_, _receiver_, _method_)\
-    phantom::connect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_method_))
+#define o_connect(_emitter_, _signal_, _receiver_, _member_function_)\
+    phantom::connect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_))
 
-#define o_disconnect(_emitter_, _signal_, _receiver_, _method_)\
-    phantom::disconnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_method_))
+#define o_disconnect(_emitter_, _signal_, _receiver_, _member_function_)\
+    phantom::disconnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_))
 
-#define o_try_connect(_emitter_, _signal_, _receiver_, _method_)\
-    phantom::tryConnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_method_))
+#define o_try_connect(_emitter_, _signal_, _receiver_, _member_function_)\
+    phantom::tryConnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_))
 
-#define o_try_disconnect(_emitter_, _signal_, _receiver_, _method_)\
-    phantom::tryDisconnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_method_))
+#define o_try_disconnect(_emitter_, _signal_, _receiver_, _member_function_)\
+    phantom::tryDisconnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_))
 
 o_begin_phantom_namespace()
 
@@ -61,9 +61,9 @@ namespace connection
     {
         friend void*    sender();
         friend slot const*    current_slot();
-        friend o_export boolean    canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMethod* a_pMethod );
-        friend o_export connection::slot*       connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
-        friend o_export boolean                 disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
+        friend o_export boolean    canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
+        friend o_export connection::slot*       connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
+        friend o_export boolean                 disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
         o_friend(class, phantom, Phantom)
         o_friend(class, phantom, reflection, Signal)
     public:
@@ -87,9 +87,9 @@ namespace connection
 
     class o_export slot
     {
-        friend o_export boolean    canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMethod* a_pMethod );
-        friend o_export connection::slot*    connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
-        friend o_export boolean    disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
+        friend o_export boolean    canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
+        friend o_export connection::slot*    connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
+        friend o_export boolean    disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
         friend class detail::dynamic_initializer_handle;
         friend class phantom::Phantom;
         o_friend(class, phantom, reflection, Signal);
@@ -182,9 +182,9 @@ namespace connection
         class list
         {
             o_friend(class, phantom, Phantom)
-                friend o_export boolean    canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMethod* a_pMethod );
-            friend o_export connection::slot*    connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
-            friend o_export boolean    disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMethod);
+                friend o_export boolean    canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
+            friend o_export connection::slot*    connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
+            friend o_export boolean    disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
             friend class slot;
         public:
             list() : m_head(NULL), m_queue(NULL) {}

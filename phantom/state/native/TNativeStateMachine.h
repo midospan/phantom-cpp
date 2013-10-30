@@ -166,10 +166,10 @@ public:
     
     virtual size_t  getDataPtrOffset() const 
     { 
-        return (size_t)&(static_cast<root_object_class*>(static_cast<object_class*>(NULL))->PHANTOM_CODEGEN_m_smdataptr);
+        return ((size_t)&(static_cast<root_object_class*>(static_cast<object_class*>((void*)1))->PHANTOM_CODEGEN_m_smdataptr))-1;
     }
     
-    // Internal methods
+    // Internal member_functions
 
     void    solveQueuedTransitions(instance_data* smdataptr)
     {
