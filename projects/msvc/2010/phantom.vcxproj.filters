@@ -770,6 +770,12 @@
     <ClInclude Include="..\..\..\phantom\util\flags.h">
       <Filter>util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\Trashbin.classdef.h">
+      <Filter>serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\Trashbin.h">
+      <Filter>serialization</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\phantom\reflection\TemplateSpecialization.cpp">
@@ -1057,6 +1063,9 @@
     <ClCompile Include="..\..\..\phantom\variant.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Location.cpp">
       <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\serialization\Trashbin.cpp">
+      <Filter>serialization</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -127,8 +127,13 @@ void FileTreeDataBase::createNodeEntry( Node* a_pNode )
 
 void FileTreeDataBase::destroyNodeEntry( Node* a_pNode )
 {
+	boost::system::error_code ec;
     boost::filesystem::path p(nodePath(a_pNode, a_pNode->getGuid(), a_pNode->getParentNode()).c_str());
-    boost::filesystem::remove(p);
+    boost::filesystem::remove(p, ec);
+	std::cout << ec.value() << std::endl; 
+	std::cout << ec.category().name() << std::endl;
+	bool b = true;
+	b = false;
 }
 
 void FileTreeDataBase::moveNodeEntry( Node* a_pNode, Node* a_pNewParent )

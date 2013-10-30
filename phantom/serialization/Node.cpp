@@ -285,10 +285,21 @@ Node* Node::addChildNode()
     return m_pOwnerDataBase->createNewNode(this);
 }
 
+void Node::addChildNode(Node* a_pNode, uint a_uiGuid)
+{
+	return m_pOwnerDataBase->addNode(a_pNode, this, a_uiGuid);
+}
+
 void Node::removeAndDeleteChildNode( Node* a_pNode )
 {
     o_assert(containsNode(a_pNode));
     return m_pOwnerDataBase->deleteNode(a_pNode);
+}
+
+void Node::removeChildNode( Node* a_pNode )
+{
+	o_assert(containsNode(a_pNode));
+	return m_pOwnerDataBase->removeNode(a_pNode);
 }
 
 void Node::load()

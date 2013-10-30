@@ -36,6 +36,7 @@
 /* ** The Class Header must be the last #include * */
 #include <phantom/serialization/DataBase.h>
 #include <phantom/serialization/DataTypeManager.h>
+#include <phantom/serialization/Trashbin.h>
 /* *********************************************** */
 o_cpp_begin
 
@@ -68,9 +69,20 @@ DataBase::DataBase( const string& url, uint a_uiSerializationFlag )
 , m_uiSerializationFlag(a_uiSerializationFlag)
 , m_pDataTypeManager(nullptr)
 , m_pDataStateBase(nullptr)
+, m_pTrashbin(nullptr)
 , m_eActionOnMissingType(e_ActionOnMissingType_IgnoreAndDestroyData)
 {
 
+}
+
+Trashbin* DataBase::getTrashbin() const
+{
+	return m_pTrashbin;
+}
+
+void DataBase::setTrashbin(Trashbin* a_pTrashbin)
+{
+	m_pTrashbin = a_pTrashbin;
 }
 
 void            DataBase::moveNode(Node* a_pNode, Node* a_pNewParent)
@@ -232,6 +244,51 @@ void DataBase::defaultDependencyGetterClassType( void* a_SrcAddress, phantom::re
     }
 }
 
+void DataBase::addDataToTrashbin(const phantom::data& a_Data)
+{
+	o_assert(m_pTrashbin);
+
+	Node* pNode = getNode(a_Data);
+	uint uiGuid = getGuid(a_Data);
+	m_pTrashbin->addData(a_Data, pNode, uiGuid);
+	pNode->removeData(a_Data);
+}
+
+void DataBase::removeDataFromTrashbin(uint a_uiGuid)
+{
+	o_assert(m_pTrashbin);
+
+	phantom::data d = m_pTrashbin->getDataByGuid(a_uiGuid);
+	Node* pNode = m_pTrashbin->getNodeOf(d);
+	m_pTrashbin->removeDataByGuid(a_uiGuid);
+	pNode->addData(d, a_uiGuid);
+}
+
+void DataBase::addNodeToTrashbin(Node* a_pNode)
+{
+	o_assert(m_pTrashbin);
+
+	Node* pParentNode = a_pNode->getParentNode();
+	uint uiGuid = a_pNode->getGuid();
+	m_pTrashbin->addNode(a_pNode, pParentNode, uiGuid);
+	a_pNode->unload();
+	pParentNode->removeChildNode(a_pNode);
+}
+
+void DataBase::removeNodeFromTrashbin(uint a_uiGuid)
+{
+	o_assert(m_pTrashbin);
+
+	Node* pNode = m_pTrashbin->getNodeByGuid(a_uiGuid);	
+	Node* pParentNode = m_pTrashbin->getNodeOf(pNode);	
+	pParentNode->addChildNode(pNode, a_uiGuid);
+	pParentNode->getOwnerDataBase()->setNodeAttributeValue(pNode, pParentNode->getOwnerDataBase()->getAttributeIndex("name"), "Node");
+	pNode->saveAttributes();
+	pNode->load(m_uiSerializationFlag);
+
+	m_pTrashbin->removeNodeByGuid(a_uiGuid);	
+}
+
 void DataBase::registerData( const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode )
 {
     o_assert(hasDataEntry(a_Data, a_Guid, a_pOwnerNode), "Data must have an entry created to be registered");
@@ -337,6 +394,15 @@ Node* DataBase::createNewNode( Node* a_pParentNode )
     return pNewNode;
 }
 
+void DataBase::addNode( Node* a_pNode, Node* a_pParentNode, uint a_uiGuid )
+{
+	a_pParentNode->storeNode(a_pNode);
+	createNodeEntry(a_pNode);	
+	registerNode(a_pNode);
+	a_pNode->save(m_uiSerializationFlag);
+	o_emit nodeAdded(a_pNode, a_pParentNode);
+}
+
 void DataBase::deleteNode( Node* a_pNode )
 {
     o_emit nodeAboutToBeRemoved(a_pNode, a_pNode->getParentNode());
@@ -348,6 +414,15 @@ void DataBase::deleteNode( Node* a_pNode )
     releaseGuid(guid);
 }
 
+void DataBase::removeNode( Node* a_pNode )
+{
+	o_emit nodeAboutToBeRemoved(a_pNode, a_pNode->getParentNode());
+	uint guid = getGuid(a_pNode);
+	o_assert(guid != 0xFFFFFFFF);
+	destroyNodeEntry(a_pNode);
+	unregisterNode(a_pNode);
+	releaseGuid(guid);
+}
 
 void DataBase::replaceDataInfo( const phantom::data& a_Old, const phantom::data& a_New )
 {

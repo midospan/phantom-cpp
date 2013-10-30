@@ -265,6 +265,8 @@
     <ClInclude Include="..\..\..\phantom\serialization\PackageDataStateBase.h" />
     <ClInclude Include="..\..\..\phantom\serialization\PackageNode.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\PackageNode.h" />
+    <ClInclude Include="..\..\..\phantom\serialization\Trashbin.classdef.h" />
+    <ClInclude Include="..\..\..\phantom\serialization\Trashbin.h" />
     <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeDataBase.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeDataBase.h" />
     <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeDataStateBase.h" />
@@ -482,6 +484,7 @@
     <ClCompile Include="..\..\..\phantom\serialization\PackageDataBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\PackageDataStateBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\PackageNode.cpp" />
+    <ClCompile Include="..\..\..\phantom\serialization\Trashbin.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\XmlFileTreeDataBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\XmlFileTreeDataStateBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\XmlFileTreeNode.cpp" />

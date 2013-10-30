@@ -291,11 +291,13 @@ public:
      *   /brief add a new child node to the given node
     */
     Node*           addChildNode();
+	void			addChildNode(Node* a_pNode, uint a_uiGuid);
 
     /*
      *   /brief add a new child node to the given node
     */
     void            removeAndDeleteChildNode(Node* a_pNode);
+	void            removeChildNode(Node* a_pNode);
 
     /*
      *   /brief add a new data to the given node

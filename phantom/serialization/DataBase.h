@@ -49,6 +49,7 @@ o_h_begin
 
 class DefaultNode;
 class DataTypeManager;
+class Trashbin;
 
 class o_export DataBase : public Object
 {
@@ -235,6 +236,9 @@ public:
         }
     }
 
+	Trashbin*		getTrashbin() const;
+	void			setTrashbin(Trashbin* a_pTrashbin);
+
     virtual void    clearDataReference(const phantom::data& a_data);
     virtual void    replaceDataReference(const phantom::data& a_old, const phantom::data& a_New);
     
@@ -313,8 +317,10 @@ public:
     virtual boolean hasDataEntry(const data& a_Data, uint guid, Node* a_pOwnerNode) const = 0;
     
     Node*           createNewNode(Node* a_pParentNode);
+	void			addNode(Node* a_pNode, Node* a_pParentNode, uint a_uiGuid);
 
     void            deleteNode(Node* a_pNode);
+	void            removeNode(Node* a_pNode);
 
     void            moveNode(Node* a_pNode, Node* a_pNewParent);
     void            moveData(const phantom::data& a_Data, Node* a_pNewOwnerNode);
@@ -323,6 +329,12 @@ public:
     {
         return m_dependency_tester_delegate(a_Data, a_CandidateDependency);
     }
+
+	void            addDataToTrashbin(const phantom::data& a_Data);
+	void            removeDataFromTrashbin(uint a_uiGuid);
+
+	void            addNodeToTrashbin(Node* a_pNode);
+	void            removeNodeFromTrashbin(uint a_uiGuid);
 
     void            registerData( const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode );
     void            unregisterData( const phantom::data& a_Data);
@@ -534,6 +546,7 @@ protected:
     attribute_name_container        m_AttributeNames;
     DataTypeManager*                m_pDataTypeManager;
     DataStateBase*                  m_pDataStateBase;
+	Trashbin*						m_pTrashbin;
     EActionOnMissingType            m_eActionOnMissingType;
     size_t                          m_uiLoadedDataSize;
     size_t                          m_uiLoadedDataResetSize;
