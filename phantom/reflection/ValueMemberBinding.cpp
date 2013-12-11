@@ -43,7 +43,7 @@ ReflectionCPP___________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
 ValueMemberBinding::ValueMemberBinding( void* a_pObject, ValueMember* a_pValueMember ) 
-    : Variable(a_pValueMember->getName(), a_pValueMember->getModifiers())
+    : Variable(a_pValueMember->getName(), a_pValueMember->getRange(), a_pValueMember->getModifiers())
     , m_pObject(nullptr)
     , m_pValueMember(a_pValueMember)
 {
@@ -56,6 +56,8 @@ ValueMemberBinding::ValueMemberBinding( void* a_pObject, ValueMember* a_pValueMe
     {
         m_pObject = a_pObject;
     }
+
+    
 }
 
 

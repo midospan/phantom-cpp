@@ -26,58 +26,26 @@ public:
     {
         o_assert(false, "call version not available with Jit compilation");
     }
-    virtual void    call( void* a_pThis, void** a_ppArgs ) const 
-    {
-        void* shiftedArgs[32];
-        if(a_ppArgs)
-        {
-            memcpy(&shiftedArgs[1], a_ppArgs, getSignature()->getParameterCount());
-        }
-        shiftedArgs[0] = &a_pThis;
-        jit_function_apply(m_jit_function, shiftedArgs, nullptr);
-    }
-    virtual void		call( void* a_pThis, void** a_ppArgs, void* a_pReturnArea ) const
-    {
-        void* shiftedArgs[32];
-        if(a_ppArgs)
-        {
-            memcpy(&shiftedArgs[1], a_ppArgs, getSignature()->getParameterCount());
-        }
-        shiftedArgs[0] = &a_pThis;
-        jit_function_apply(m_jit_function, shiftedArgs, a_pReturnArea);
-    }
+    virtual void    call( void* a_pThis, void** a_ppArgs ) const;
+    virtual void	call( void* a_pThis, void** a_ppArgs, void* a_pReturnArea ) const;
 
-    virtual void		call( void** args, void* a_pReturnArea ) const
-    {
-        jit_function_apply(m_jit_function, args, a_pReturnArea);
-    }
+    virtual void	call( void** args, void* a_pReturnArea ) const;
 
-    virtual void		call( void** args ) const
-    {
-        jit_function_apply(m_jit_function, args, nullptr);
-    }
+    virtual void	call( void** args ) const;
 
-    jit_function_t getJitFunction() const { return m_jit_function; }
+    jit_function getJitFunction() const { return m_jit_function; }
     
     JitInstanceDataMember* getDataMember() const {return m_pDataMember; }
    
-    void* getClosurePointer() const 
-    {
-        return jit_function_to_closure(m_jit_function);
-    }
+    void* getClosurePointer() const;
 
-    generic_member_func_ptr getGenericMemberFunctionPointer() const
-    {
-        generic_member_func_ptr ptr;
-        ptr.setClosurePointer(jit_function_to_closure(m_jit_function));
-        return ptr;
-    }
+    generic_member_func_ptr getGenericMemberFunctionPointer() const;
 
     bool isCompiled() const { return m_uiDataOffset != 0xffffffff; }
     void compile();
 
 protected:
-    jit_context_t getContext() const;
+    jit_context getContext() const;
 
     virtual connection::slot::list* getSlotList( void* a_pCaller ) const 
     {
@@ -86,10 +54,10 @@ protected:
     }
 
 protected:
-    jit_function_t  m_jit_function;
-    jit_context_t   m_jit_context;
-    JitInstanceDataMember* m_pDataMember;
-    size_t          m_uiDataOffset;
+    jit_function            m_jit_function;
+    jit_context             m_jit_context;
+    JitInstanceDataMember*  m_pDataMember;
+    size_t                  m_uiDataOffset;
 };
 
 o_namespace_end(phantom, reflection, jit)

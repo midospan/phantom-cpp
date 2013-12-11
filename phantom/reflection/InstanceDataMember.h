@@ -51,13 +51,13 @@ class o_export InstanceDataMember : public ValueMember, public DataMember
     _____________________________________________________________________________________Reflection
 public:
 
-    InstanceDataMember(const string& a_strName, Type* a_pContentType, uint a_uiSerializationMask, bitfield a_uiModifiers = bitfield());
-    // InstanceDataMember(const string& a_strName, Type* a_pContentType, uint a_uiAddressOffset, bitfield a_uiModifiers = bitfield());
+    InstanceDataMember(const string& a_strName, Type* a_pContentType, Range* a_pRange, uint a_uiSerializationMask, bitfield a_uiModifiers = 0);
     o_destructor ~InstanceDataMember()
     {
 
     }
 
+    Range*                  getRange() const { return ValueMember::getRange(); }
     virtual size_t          getOffset() const = 0;
     virtual void*           getAddress( void const* a_pObject ) const = 0;
     virtual boolean         isInstanceDataMember() const { return true; }

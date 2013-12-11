@@ -56,8 +56,8 @@ public:
     _____________________________________________________________________________________Reflection
 public:
 
-    PODStruct(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers = bitfield())
-        : ClassType(a_strName, a_uiSize, a_uiAlignment, a_bfModifiers) 
+    PODStruct(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
+        : ClassType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) 
     {}
 
     o_destructor ~PODStruct(void)     

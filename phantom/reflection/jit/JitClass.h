@@ -62,9 +62,7 @@ public:
     o_destructor ~JitClass(void);
 
 public:
-    jit_context_t   getContext() const { return m_Context; }
-
-    void        extractVirtualMemberFunctionTableInfos(const void* a_pInstance, vector<vtable_info>& vtables);
+    void    extractVirtualMemberFunctionTableInfos(const void* a_pInstance, vector<vtable_info>& vtables);
 
     bool    hasStateMachineDataPtr() const { return m_uiStateMachineDataPtrOffset == (hasVTableDataPtr()*sizeof(void*)); }
     bool    hasVTableDataPtr() const { return m_bHasVTablePtr; }
@@ -177,9 +175,11 @@ public:
     virtual void        remember(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) const { o_exception(exception::unsupported_method_exception, "not yet implemented"); }
     virtual void        reset(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) const { o_exception(exception::unsupported_method_exception, "not yet implemented"); }
 
-    virtual
-        serialization::Bundle*  createBundle(serialization::BundleNode* a_pOwnerNode) const { o_exception(exception::unsupported_method_exception, "not yet implemented"); return NULL; }
-    virtual void            destroyBundle(serialization::Bundle* a_pBundle) const { o_exception(exception::unsupported_method_exception, "not yet implemented"); }
+    JitInstanceMemberFunction* addRestoreMemberFunction();
+    JitInstanceMemberFunction* addInitializeMemberFunction();
+    JitInstanceMemberFunction* addTerminateMemberFunction();
+
+
 
 protected:
     signal_t                aboutToBeReplaced(JitClass* a_pNew, JitClass* a_pOld) const;
@@ -202,8 +202,10 @@ protected:
     Type::alignment::computer       m_AlignmentComputer;
     mutable connection::slot::list  PHANTOM_CODEGEN_m_slot_list_of_aboutToBeReplaced;
     mutable vector<vtable_info>     m_VTableInfos;
-    jit_context_t                   m_Context;
     EState                          m_eState;
+    JitInstanceMemberFunction*      m_pInitializeMemberFunction;
+    JitInstanceMemberFunction*      m_pRestoreMemberFunction;
+    JitInstanceMemberFunction*      m_pTerminateMemberFunction;
 
     size_t                          m_uiDataMemberMemoryOffset;
     size_t                          m_uiClassPtrOffset;

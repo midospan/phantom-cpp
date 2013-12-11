@@ -101,7 +101,6 @@ int main(int argc, char **argv)
 
     // TEST SIGNAL
     phantom::reflection::Signature* pSignalSignature = o_new(phantom::reflection::Signature);
-    pSignalSignature->beginConstruction();
 
 #ifdef DYNAMIC_INSTANCIATION
     pSignalSignature->setReturnType(phantom::typeByName("phantom::signal_t"));
@@ -109,16 +108,15 @@ int main(int argc, char **argv)
     pSignalSignature->setReturnType(phantom::typeOf<phantom::signal_t>());
 #endif
 
-    pSignalSignature->endConstruction();
     phantom::reflection::jit::JitSignal* pSignal = o_new(phantom::reflection::jit::JitSignal)("prout", pSignalSignature, 0);
     pJitClass->addSignal(pSignal);
 
     pJitClass->startCompilation();
-    phantom::reflection::jit::JitInstanceMemberFunction::CompileDebugMemberFunction(pJitMemberFunction, "aVirtualMemberFunction Jitted !!!\n");
+    pJitMemberFunction->compileDebugPrint("aVirtualMemberFunction Jitted !!!\n");
 
-    phantom::reflection::jit::JitInstanceMemberFunction::CompileDebugMemberFunction(pEnterMemberFunction,  "ENTER\n");;
-    phantom::reflection::jit::JitInstanceMemberFunction::CompileDebugMemberFunction(pUpdateMemberFunction, "UPDATE\n");
-    phantom::reflection::jit::JitInstanceMemberFunction::CompileDebugMemberFunction(pLeaveMemberFunction,  "LEAVE\n");
+    pJitMemberFunction->compileDebugPrint("ENTER\n");;
+    pJitMemberFunction->compileDebugPrint("UPDATE\n");
+    pJitMemberFunction->compileDebugPrint("LEAVE\n");
 
     pSignal->compile();
 

@@ -41,8 +41,8 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
-Property::Property( const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pChangeNotificationSignal, uint a_uiSerializationMask, bitfield a_bfModifiers /*= bitfield()*/ ) 
-    : ValueMember(a_strName, a_uiSerializationMask, a_bfModifiers) 
+Property::Property( const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pChangeNotificationSignal, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ ) 
+    : ValueMember(a_strName, a_pRange, a_uiSerializationMask, a_Modifiers) 
     , m_pValueType(a_pValueType)
     , m_pSetMemberFunction(a_pSetMemberFunction)
     , m_pGetMemberFunction(a_pGetMemberFunction)

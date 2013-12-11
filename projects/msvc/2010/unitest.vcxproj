@@ -15,11 +15,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\phantom\_pch.cpp">
+    <ClCompile Include="..\..\..\phantom\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\build\pch\unitestD.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\build\pch\unitest.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">-Zm500 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">-Zm500 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="..\..\..\unitest\phantom\unitest\Bench.cpp" />
     <ClCompile Include="..\..\..\unitest\phantom\unitest\StateMachineTest.cpp" />
@@ -102,7 +104,7 @@
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <ShowIncludes>false</ShowIncludes>
-      <AdditionalOptions>/MP -Zm390 /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MP -Zm500 /bigobj %(AdditionalOptions)</AdditionalOptions>
       <MinimalRebuild>false</MinimalRebuild>
       <PrecompiledHeaderOutputFile>..\..\..\build\pch\unitestD.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -111,7 +113,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(SolutionDir)\..\..\..\bin\$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>..\..\..\lib\;$(GTEST_LIBMD_PATH)\Debug;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\lib\;$(GTEST_LIBMD_PATH)\Debug;$(BOOST_ROOT)/lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>phantomD.lib;gtestd.lib;gtest_main-mdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <BuildLog>
@@ -128,7 +130,7 @@
       <AdditionalIncludeDirectories>..\..\..\unitest;..\..\..;$(GTEST_INC_PATH);$(BOOST_ROOT);</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalOptions>/MP -Zm390 /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MP -Zm500 /bigobj %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>phantom/phantom.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>..\..\..\build\pch\unitest.pch</PrecompiledHeaderOutputFile>
@@ -138,7 +140,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(SolutionDir)\..\..\..\bin\$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>..\..\..\lib;$(GTEST_LIBMD_PATH)\Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\lib;$(GTEST_LIBMD_PATH)\Release;$(BOOST_ROOT)/lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>Phantom.lib;gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <BuildLog>

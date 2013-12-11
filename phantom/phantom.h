@@ -119,6 +119,7 @@
 #include <limits>
 #include <algorithm>
 /* ********************* BOOST ******************** */
+#if !defined(Q_MOC_RUN)
 #include <boost/foreach.hpp>
 #include <boost/pool/pool_alloc.hpp>
 #include <boost/pool/object_pool.hpp>
@@ -127,6 +128,8 @@
 #if o__bool__enable_serialization
 #include <boost/property_tree_custom/ptree.hpp>
 #endif
+#endif // Q_MOC_RUN
+
 /* ***************** FASTDELEGATE ***************** */
 #include <fastdelegate/FastDelegate.h>
 #include <fastdelegate/FastDelegateBind.h>
@@ -706,9 +709,6 @@ o_declare(class, phantom, Phantom)
     o_declare(class, phantom, serialization, DefaultNode)
     o_declare(class, phantom, serialization, DataBase)
     o_declare(class, phantom, serialization, DataStateBase)
-    o_declare(class, phantom, serialization, Bundle)
-    o_declare(class, phantom, serialization, BundleNode)
-    o_declare(class, phantom, serialization, BundleDataBase)
 
 #include "phantom/def_util.h"
 #include "phantom/def_exceptions.h"
@@ -778,8 +778,6 @@ o_declare(class, phantom, Phantom)
     o_declareT(class, phantom, reflection, native, (int, typename), TNativeSignatureProvider)
 #endif
 
-    o_declareT(class, phantom, serialization, native, (typename), TBundle)
-
 
 o_begin_phantom_namespace()
 
@@ -792,10 +790,10 @@ class type_name_of_helper_<phantom::signal_t>
 {
 public:
        static const char*    decoratedName() { return o_PP_QUOTE(signal_t); }
-       static const char*    qualifiedDecoratedName() { return o_CS("phantom::") o_PP_QUOTE(signal_t); }
+       static const char*    qualifiedDecoratedName() { return "phantom::" o_PP_QUOTE(signal_t); }
        static const char*    name() { return o_PP_QUOTE(signal_t); }
-       static const char*    qualifiedName() { return o_CS("phantom::") o_PP_QUOTE(signal_t); }
-       static const char*    namespaceName() { return o_CS("phantom"); }
+       static const char*    qualifiedName() { return "phantom::" o_PP_QUOTE(signal_t); }
+       static const char*    namespaceName() { return "phantom"; }
        static const char*    classScopeName() { return ""; }
 };
 template<int t_counter>
@@ -812,7 +810,7 @@ class type_name_of_helper_counter_<signal_t,t_counter> : public type_name_of_hel
         static const char*    qualifiedDecoratedName() { return o_PP_QUOTE(_type_); }\
         static const char*    name() { return o_PP_QUOTE(_type_); }\
         static const char*    qualifiedName() { return o_PP_QUOTE(_type_); }\
-        static const char*    namespaceName() { return o_CS(""); }\
+        static const char*    namespaceName() { return ""; }\
         static const char*    classScopeName() { return ""; }\
     };\
     template<int t_counter>\
@@ -1038,9 +1036,6 @@ private:
     static map<string, reflection::SourceFile*> m_SourceFiles;
 
 public:
-    template<typename _Type, typename _MetaType>
-    o_forceinline static void o_property_func(_MetaType* a_pMetaType, const character* a_pName, const character* a_pSetter, const character* a_pGetter, const char* a_strFile, size_t a_uiLine, bitfield a_Modifiers = bitfield());
-
     friend o_export phantom::reflection::Namespace*     namespaceByName(  const string& a_strNamespaceName);
     friend o_export phantom::reflection::Namespace*     namespaceByList( list<string>* a_pNamespaceNameAsStringList );
 
@@ -1217,6 +1212,12 @@ namespace detail
 o_export inline phantom::reflection::Namespace*     rootNamespace() { return phantom::Phantom::m_pRootNamespace; }
 o_export inline phantom::reflection::SourceFile*    sourceFile(const string& absoluteName) { return phantom::Phantom::sourceFile(absoluteName); }
 o_export inline void                                discardSourceFile(phantom::reflection::SourceFile* a_pSourceFile) { return phantom::Phantom::discardSourceFile(a_pSourceFile); }
+
+enum 
+{
+    eInvalidMetaDataIndex = 0xffffffff,
+};
+
 o_export inline size_t                              metaDataIndex(const string& elementName)
 {
     const vector<string>& metaData = phantom::Phantom::m_instance->m_meta_data_names;
@@ -1226,7 +1227,7 @@ o_export inline size_t                              metaDataIndex(const string& 
     {
         if(metaData[i] == elementName) return i;
     }
-    return 0xffffffff;
+    return eInvalidMetaDataIndex;
 }
 o_export void                                       setMetaDataValue(const string& elementName, size_t index, const string& value);
 o_export inline void                                setMetaDataValue(const string& elementName, const string& metaDataName, const string& value) 
@@ -1557,23 +1558,7 @@ t_Ty* phantom::object::as  ()
 #include "phantom/reflection/SequentialContainerClass.h"
 #include "phantom/reflection/MapContainerClass.h"
 #include "phantom/reflection/SetContainerClass.h"
-#include "phantom/serialization/Bundle.h"
-#include "phantom/serialization/Node.h"
-#include "phantom/serialization/DefaultNode.h"
-#include "phantom/serialization/BundleNode.h"
-#include "phantom/serialization/native/TBundle.h"
-
-template<typename t_Ty>
-inline phantom::serialization::native::TBundle<t_Ty>*  phantom::serialization::BundleNode::bundle()
-{
-    return static_cast<phantom::serialization::native::TBundle<t_Ty>*>(bundle(phantom::typeOf<t_Ty>()));
-}
-
-
-
 #include "phantom/serialization/DataBase.h"
-#include "phantom/serialization/BundleDataBase.h"
-#include "phantom/serialization/DataStateBase.h"
 
 o_forceinline void*   phantom::rtti_data::cast(phantom::reflection::Class* a_pTargetClass) const
 {
@@ -1781,6 +1766,7 @@ o_namespace_end(phantom, extension, detail)
 #include "phantom/reflection/native/TNativeInstanceMemberFunction.h"
 #include "phantom/reflection/native/TNativeInstanceMemberFunctionConst.h"
 #include "phantom/reflection/native/TNativeMemberFunctionProvider.h"
+#include "phantom/reflection/native/TRange.h"
 
 #include "phantom/reflection/DataMember.h"
 #include "phantom/reflection/InstanceDataMember.h"
@@ -1804,49 +1790,6 @@ o_namespace_end(phantom, extension, detail)
 #include "phantom/reflection/Function.h"
 
 // DEFINE INLINE TEMPLATE FUNCS WHICH USE REFLECTION CLASSES (GCC constraint)
-
-o_begin_phantom_namespace()
-
-template<typename _Type, typename _MetaType>
-o_forceinline void Phantom::o_property_func(_MetaType* a_pMetaType, const character* a_pName, const character* a_pSetter, const character* a_pGetter, const char* a_strFile, size_t a_uiLine, bitfield a_Modifiers )
-{
-    phantom::reflection::InstanceMemberFunction* pSetter = a_pMetaType->getInstanceMemberFunctionCascade(a_pSetter);
-    if(pSetter == NULL)
-    {
-        astring exceptext = a_strFile;
-        exceptext += " : ";
-        exceptext += a_uiLine;
-        exceptext += " : ";
-        exceptext += " : ";
-        exceptext += "property declaration error : cannot find or resolve given set member_function";
-        o_exception(exception::reflection_runtime_exception, exceptext.c_str());
-    }
-    phantom::reflection::InstanceMemberFunction* pGetter = a_pMetaType->getInstanceMemberFunctionCascade(a_pGetter);
-    if(pGetter == NULL)
-    {
-        astring exceptext = a_strFile;
-        exceptext += " : ";
-        exceptext += a_uiLine;
-        exceptext += " : ";
-        exceptext += " : ";
-        exceptext += "property declaration error : cannot find or resolve given get member_function";
-        o_exception(exception::reflection_runtime_exception, exceptext.c_str());
-    }
-    phantom::reflection::Property* pValueMember = o_new(phantom::reflection::Property)
-        (a_pName
-        , pSetter
-        , pGetter
-        , a_Modifiers);
-    a_pMetaType->addProperty(pValueMember);
-}
-
-o_end_phantom_namespace()
-
-// ********************************************************************* //
-// ******************************************************************* ///
-// ********************* UML NESTED STATE MACHINE ******************** ///
-// ******************************************************************* ///
-// ********************************************************************* //
 
 #include "phantom/state/StateMachineElement.h"
 
@@ -1911,18 +1854,14 @@ o_reflection_in_cpp_deferred_setupN((phantom, reflection), VirtualMemberFunction
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), PureVirtualMemberFunction)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), PODUnion)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), PODStruct)
+o_reflection_in_cpp_deferred_setupN((phantom, reflection), Range)
 o_reflection_in_cpp_deferred_setupN((phantom, state), State)
 o_reflection_in_cpp_deferred_setupN((phantom, state), Event)
 o_reflection_in_cpp_deferred_setupN((phantom, state), Track)
 o_reflection_in_cpp_deferred_setupN((phantom, state), Reaction)
 o_reflection_in_cpp_deferred_setupN((phantom, state), StateMachine)
 o_reflection_in_cpp_deferred_setupN((phantom, state), StateMachineElement)
-o_reflection_in_cpp_deferred_setupN((phantom, serialization), Node)
-o_reflection_in_cpp_deferred_setupN((phantom, serialization), DefaultNode)
 o_reflection_in_cpp_deferred_setupN((phantom, serialization), DataBase)
-o_reflection_in_cpp_deferred_setupN((phantom, serialization), Bundle)
-o_reflection_in_cpp_deferred_setupN((phantom, serialization), BundleNode)
-o_reflection_in_cpp_deferred_setupN((phantom, serialization), BundleDataBase)
 
 #include "phantom/reflection/Block.h"
 #include "phantom/reflection/LocalVariable.h"
@@ -1970,14 +1909,14 @@ namespace phantom
         public:
             static void serialize(phantom::data const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
             {
-                uint guid = a_pDataBase->getGuid(*a_pInstance);
+                uint guid = a_pDataBase ? a_pDataBase->getGuid(*a_pInstance) : (uint)(a_pInstance->address());
                 serializer<uint>::serialize(&guid, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
             }
             static void deserialize(phantom::data* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
             {
                 uint guid = 0;
                 serializer<size_t>::deserialize(&guid, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
-                *a_pInstance = a_pDataBase->getData(guid);
+                *a_pInstance = a_pDataBase ? a_pDataBase->getData(guid) : phantom::data((void*)guid);
             }
             static void serialize(phantom::data const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
             {
@@ -2001,7 +1940,7 @@ namespace phantom
             }
             static void serialize(phantom::data const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
             {
-                uint guid = a_pDataBase->getGuid(*a_pInstance);
+                uint guid = a_pDataBase ? a_pDataBase->getGuid(*a_pInstance) : (uint)a_pInstance->address();
                 a_OutBranch.put_value(phantom::lexical_cast<string>(guid));
             }
             static void deserialize(phantom::data* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
@@ -2010,7 +1949,7 @@ namespace phantom
                 if(opt.is_initialized())
                 {
                     uint guid = phantom::lexical_cast<uint>(*opt);
-                    *a_pInstance = a_pDataBase->getData(guid);
+                    *a_pInstance = a_pDataBase ? a_pDataBase->getData(guid) : phantom::data((void*)guid);
                 }
                 else *a_pInstance = phantom::data();
             }
@@ -2076,8 +2015,8 @@ o_classN((phantom), data)
 {
     o_reflection
     {
-        o_data_member(void*, m_address, o_public);
-        o_data_member(phantom::reflection::Type*, m_type, o_public);
+        o_data_member(void*, m_address, o_no_range, o_public);
+        o_data_member(phantom::reflection::Type*, m_type, o_no_range, o_public);
     };
 };
 o_exposeN((phantom), data);
@@ -2086,27 +2025,29 @@ o_classN((phantom), object)
 {
     o_reflection
     {
-        o_data_member(void*, m_address, o_public);
-        o_data_member(phantom::reflection::ClassType*, m_class_type, o_public);
+        o_data_member(void*, m_address, o_no_range, o_public);
+        o_data_member(phantom::reflection::ClassType*, m_class_type, o_no_range, o_public);
     };
 };
 o_exposeN((phantom), object);
 
+//#if defined(o__bool__enable_bitfield_type)
 o_classN((phantom), bitfield)
 {
     o_reflection
     {
-        o_data_member(uint, m_uiContent, o_protected);
+        o_data_member(int, m_iContent, o_no_range, o_protected);
     };
 };
 o_exposeN((phantom), bitfield);
+//#endif
 
 o_classN((phantom, reflection), CodePosition)
 {
     o_reflection
     {
-        o_data_member(int, line, o_public);
-        o_data_member(int, column, o_public);
+        o_data_member(int, line, (0, std::numeric_limits<int>::max()), o_public);
+        o_data_member(int, column, (0, std::numeric_limits<int>::max()), o_public);
     };
 };
 o_exposeN((phantom, reflection), CodePosition);
@@ -2115,10 +2056,10 @@ o_classN((phantom, reflection), CodeLocation)
 {
     o_reflection
     {
-        o_data_member(CodePosition, m_Start, o_protected);
-        o_data_member(CodePosition, m_End, o_protected);
-        o_property(const CodePosition&, start, setStart, getStart, o_no_signal, o_transient|o_public);
-        o_property(const CodePosition&, end, setEnd, getEnd, o_no_signal, o_transient|o_public);
+        o_data_member(CodePosition, m_Start, o_no_range, o_protected);
+        o_data_member(CodePosition, m_End, o_no_range, o_protected);
+        o_property(const CodePosition&, start, setStart, getStart, o_no_signal, o_no_range, o_transient|o_public);
+        o_property(const CodePosition&, end, setEnd, getEnd, o_no_signal, o_no_range, o_transient|o_public);
     };
 };
 o_exposeN((phantom, reflection), CodeLocation);
@@ -2129,5 +2070,6 @@ o_exposeN((phantom, reflection), CodeLocation);
 
 // PARTIAL STL INTEGRATION (specific for each compiler)
 #include "phantom/externals/std/std.h"
+#include "phantom/variant.h"
 
 #endif // __prerequisites_h__

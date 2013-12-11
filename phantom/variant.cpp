@@ -8,6 +8,7 @@ o_registerN((phantom), variant_generic_class);
 
 o_namespace_begin(phantom)
 
+const variant variant::null;
 
 
 o_namespace_end(phantom)

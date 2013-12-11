@@ -51,8 +51,8 @@ class o_export Function : public Subroutine
     _____________________________________________________________________________________Reflection
 
 protected:
-    Function(const string& a_strName, Signature* a_pSignature, bitfield a_bfModifiers = bitfield())
-        : Subroutine(a_strName, a_pSignature, a_bfModifiers)
+    Function(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Subroutine(a_strName, a_pSignature, a_Modifiers)
     {
 
     }

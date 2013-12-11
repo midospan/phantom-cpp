@@ -162,8 +162,8 @@ public:
         result_map        m_ResultMap;
     };
 
-    Class(const string& a_strName, bitfield a_bfModifiers = bitfield());
-    Class(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers = bitfield());
+    Class(const string& a_strName, bitfield a_Modifiers = 0);
+    Class(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0);
 
     ~Class(void);
     
@@ -176,7 +176,7 @@ public:
      *
      */
 
-    virtual void        valueToString( string& s, void* src) const;
+    virtual void        valueToString( string& s, const void* src) const;
 
     /**
      * \fn virtual void Class::valueFromString( const string& cs, void* dest) const;
@@ -221,7 +221,7 @@ public:
 
     MemberFunction*             getMemberFunctionCascade(const string& a_strIdentifierString) const;
 
-    MemberFunction*             getMemberFunctionCascade(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers = bitfield()) const;
+    MemberFunction*             getMemberFunctionCascade(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers = 0) const;
 
     /**
      * \fn  InstanceMemberFunction* Class::getInstanceMemberFunctionCascade(const string& a_strName,
@@ -307,19 +307,19 @@ public:
     /**
      * \fn  InstanceMemberFunction* Class::getInstanceMemberFunctionCascade(const char* a_strName,
      *      LanguageElement** a_pParameterTypes, size_t a_uiParameterCount,
-     *      bitfield a_bfModifiers = bitfield()) const;
+     *      bitfield a_Modifiers = 0) const;
      *
      * \brief Gets an instance member_function recursively through all the base classes.
      *
      * \param   a_strName                 The name.
      * \param [in,out]  a_pParameterTypes If non-null, list of the parameters' types.
      * \param   a_uiParameterCount        Number of parameters.
-     * \param   a_bfModifiers             (optional) member_function's modifiers (ex: o_const).
+     * \param   a_Modifiers             (optional) member_function's modifiers (ex: o_const).
      *
      * \return null if it fails, else the instance member_function cascade.
      */
 
-    InstanceMemberFunction*     getInstanceMemberFunctionCascade(const char* a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers = bitfield()) const;
+    InstanceMemberFunction*     getInstanceMemberFunctionCascade(const char* a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers = 0) const;
 
     /**
      * \fn ValueMember* Class::getValueMemberCascade(const string& a_strValueMemberName) const;
@@ -640,7 +640,7 @@ public:
         const char* a_strQualifiedName 
         , template_specialization const*
         , function_signature const*
-        , bitfield a_bfModifiers = bitfield()) const ;
+        , bitfield a_Modifiers = 0) const ;
 
     size_t              getInstanceCount() const { return m_uiRegisteredInstances; }
     size_t              getKindCount() const 
@@ -656,6 +656,8 @@ public:
     }
 
     void                setStateMachine(phantom::state::StateMachine* a_pStateMachine);
+
+    const variant&      getAttributeCascade(const string& a_strName) const;
 
 protected:
     void                fireKindCreated(void* a_pObject) const;
@@ -748,6 +750,22 @@ inline t_Ty*    Class::getExtension() const
 
 o_h_end
 
+o_namespace_begin(phantom)
+
+template<typename t_Ty>
+struct string_converter_helper<t_Ty, true, false>
+{
+    static void to(const reflection::Class* a_pClass, string& a_strOut, const t_Ty* a_pSrc)
+    {
+        a_pClass->reflection::Class::valueToString(a_strOut, a_pSrc);
+    }
+    static void from(const reflection::Class* a_pClass, const string& a_strIn, t_Ty* a_pDest)
+    {
+        a_pClass->reflection::Class::valueFromString(a_strIn, a_pDest);
+    }
+};
+
+o_namespace_end(phantom)
 
 #else // o_phantom_reflection_Class_h__
 #include "Class.classdef.h"

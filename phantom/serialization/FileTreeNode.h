@@ -37,16 +37,13 @@
 
 
 /* ****************** Includes ******************* */
-#include "phantom/serialization/DefaultNode.h"
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "phantom/_kernel.noclassdef.h"
+#include "phantom/serialization/Node.h"
 /* **************** Declarations ***************** */
 o_declare(class, phantom, serialization, FileTreeDataBase)
 /* *********************************************** */
 o_namespace_begin(phantom, serialization)
 
-class o_export FileTreeNode : public DefaultNode
+class o_export FileTreeNode : public Node
 {
     friend class FileTreeDataBase;
 
@@ -61,7 +58,7 @@ protected:
 
 o_namespace_end(phantom, serialization)
 
-o_classNS((phantom, serialization), FileTreeNode, (DefaultNode))
+o_classNS((phantom, serialization), FileTreeNode, (Node))
 {
     o_reflection {};
 };

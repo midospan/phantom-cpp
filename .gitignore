@@ -4,3 +4,5 @@
 *.ipch
 *.sdf
 *.suo
+dependencies/QWidgets/build
+dependencies/QWidgets/bin

@@ -55,7 +55,7 @@ template <typename t_Ty, typename t_Allocator>
 inline t_Ty*	stat_allocator<t_Ty,t_Allocator>::allocate(o_memory_stat_insert_parameters)
 {
     t_Ty* ptr = t_Allocator::allocate();
-    if(Statistics::m_Locked) return ptr;
+    while(Statistics::m_Locked);
     Statistics::Lock();
     o_assert(Statistics::m_Allocations.find(ptr) == Statistics::m_Allocations.end());
     Statistics::m_Allocations[ptr] = Statistics::allocation_info(a_strFILE, a_uiLINE, sizeof(t_Ty));
@@ -71,7 +71,8 @@ template <typename t_Ty, typename t_Allocator>
 inline void    stat_allocator<t_Ty,t_Allocator>::deallocate(t_Ty* a_pPtr, size_t n o_memory_stat_append_parameters)
 {
     t_Allocator::deallocate(a_pPtr, n);
-    if(Statistics::m_Locked) return;
+    o_warning(!Statistics::m_Locked, "Statistic allocator locked");
+    while(Statistics::m_Locked);
     auto found = Statistics::m_Allocations.find(a_pPtr);
     o_assert(found != Statistics::m_Allocations.end());
     Statistics::Lock();
@@ -84,6 +85,7 @@ template <typename t_Ty, typename t_Allocator>
 inline void	stat_allocator<t_Ty,t_Allocator>::deallocate(t_Ty* a_pPtr o_memory_stat_append_parameters)
 {
     t_Allocator::deallocate(a_pPtr);
+    o_warning(!Statistics::m_Locked, "Statistic allocator locked");
     if(Statistics::m_Locked) return;
     auto found = Statistics::m_Allocations.find(a_pPtr);
     o_assert(found != Statistics::m_Allocations.end());

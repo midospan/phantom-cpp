@@ -128,14 +128,14 @@ public:
         return getOverloadRelationWith(a_pMemberFunction->getName(), a_pMemberFunction->getSignature());
     }
 
-    boolean             isAbstract() const { return m_bfModifiers.matchesMask(o_abstract); }
-    boolean             isVirtual() const { return m_bfModifiers.matchesMask(o_virtual); }
+    boolean             isAbstract() const { return ((m_Modifiers & o_abstract) == o_abstract); }
+    boolean             isVirtual() const { return ((m_Modifiers & o_virtual) == o_virtual); }
 
-    boolean             isConst() const { return m_bfModifiers.matchesMask(o_const); }
+    boolean             isConst() const { return ((m_Modifiers & o_const) == o_const); }
 
     virtual boolean     isInstanceMemberFunction() const { return true; }
-    virtual boolean     isSlot() const { return (m_bfModifiers & o_slot_member_function) == o_slot_member_function; }
-    virtual InstanceMemberFunction*    asSlot() const { return (m_bfModifiers & o_slot_member_function) == o_slot_member_function ? const_cast<InstanceMemberFunction*>(this) : nullptr; }
+    virtual boolean     isSlot() const { return ((m_Modifiers & o_slot_member_function) == o_slot_member_function); }
+    virtual InstanceMemberFunction*    asSlot() const { return (((m_Modifiers & o_slot_member_function) == o_slot_member_function)) ? const_cast<InstanceMemberFunction*>(this) : nullptr; }
 
     int                 getVirtualTableIndex() const { return m_iVirtualTableIndex; }
 

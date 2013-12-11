@@ -41,8 +41,8 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
-StaticDataMember::StaticDataMember( const string& a_strName, Type* a_pContentType, void* a_pStaticDataMemberAddress, bitfield a_bfModifiers /*= bitfield()*/ ) 
-: StaticVariable(a_strName, a_pContentType, a_pStaticDataMemberAddress, a_bfModifiers)
+StaticDataMember::StaticDataMember( const string& a_strName, Type* a_pContentType, void* a_pStaticDataMemberAddress, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) 
+: StaticVariable(a_strName, a_pContentType, a_pStaticDataMemberAddress, a_pRange, a_Modifiers)
 {
 }
 

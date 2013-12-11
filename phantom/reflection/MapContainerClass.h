@@ -13,14 +13,15 @@
 
 o_h_begin
 
+
 class MapContainerClass : public ContainerClass
 {
     reflection_____________________________________________________________________
     _____________________________________________________________________reflection
 
 public:
-    MapContainerClass(Type* a_pKeyType, Type* a_pMappedType, Type* a_pValueType, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers = bitfield())
-    : ContainerClass(a_pValueType, a_strName, a_uiSize, a_uiAlignment, a_bfModifiers)
+    MapContainerClass(Type* a_pKeyType, Type* a_pMappedType, Type* a_pValueType, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
+    : ContainerClass(a_pValueType, a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
     , m_pKeyType(a_pKeyType) 
     , m_pMappedType(a_pMappedType) 
     {
@@ -41,6 +42,7 @@ protected:
 };
 
 o_h_end
+
 
 #else
 #include "MapContainerClass.classdef.h"

@@ -19,8 +19,8 @@ public:
     JitProperty(const string& a_strName, Type* a_pValueType, JitInstanceMemberFunction* a_pSetter, JitInstanceMemberFunction* a_pGetter, JitSignal* a_pChangeNotificationSignal, uint a_uiSerializationMask, bitfield a_Modifiers);
     ~JitProperty(void);
 
-    jit_function_t getSetJitFunction() const { return m_set_jit_function; }
-    jit_function_t getGetJitFunction() const { return m_get_jit_function; }
+    jit_function getSetJitFunction() const { return m_set_jit_function; }
+    jit_function getGetJitFunction() const { return m_get_jit_function; }
 
     void getValue( void const* a_pObject, void* dest ) const;
     void setValue( void* a_pObject, const void* src ) const;
@@ -28,8 +28,8 @@ public:
     void setChangeNotificationSignal(JitSignal* a_pSignal);
 
 protected:
-    jit_function_t      m_get_jit_function;
-    jit_function_t      m_set_jit_function;
+    jit_function      m_get_jit_function;
+    jit_function      m_set_jit_function;
 };
 
 o_namespace_end(phantom, reflection, jit)

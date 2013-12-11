@@ -9,8 +9,8 @@
     <ClCompile Include="..\..\..\unitest\phantom\unitest\ActorPlatform.cpp" />
     <ClCompile Include="..\..\..\unitest\phantom\unitest\Ability.cpp" />
     <ClCompile Include="..\..\..\unitest\phantom\unitest\StateMachineTest.cpp" />
-    <ClCompile Include="..\..\..\phantom\_pch.cpp" />
     <ClCompile Include="..\..\..\unitest\phantom\unitest\Bench.cpp" />
+    <ClCompile Include="..\..\..\phantom\pch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\unitest\phantom\unitest\GameEntity.h" />

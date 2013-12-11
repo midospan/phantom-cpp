@@ -40,8 +40,6 @@ public:
     void remember(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pBuffer) const { m_pIntTypeRef->remember(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pBuffer); }
     void reset(void* a_pInstance, byte const*& a_pBuffer) const { m_pIntTypeRef->reset(a_pInstance, a_pBuffer); }
     void reset(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer) const { m_pIntTypeRef->reset(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pBuffer); }
-    phantom::serialization::Bundle* createBundle(phantom::serialization::BundleNode *) const { return nullptr; }
-	void destroyBundle(phantom::serialization::Bundle *) const {  }
 	void valueFromString(const phantom::string & a_src, void * a_dest) const { m_pIntTypeRef->valueFromString(a_src, a_dest); }
 	void valueToString(phantom::string & a_dest,void * a_src) const { m_pIntTypeRef->valueToString(a_dest, a_src); }
     void interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode = 0) const

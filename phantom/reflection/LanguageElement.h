@@ -69,20 +69,20 @@ public:
 
 protected:
     LanguageElement();
-    LanguageElement(const string& a_strName, bitfield a_bfModifiers = bitfield());
-    LanguageElement(const string& a_strName, uint a_uiGuid, bitfield a_bfModifiers = bitfield());
+    LanguageElement(const string& a_strName, bitfield a_Modifiers = 0);
+    LanguageElement(const string& a_strName, uint a_uiGuid, bitfield a_Modifiers = 0);
 
 public:
     ~LanguageElement();
 
 public:
 
-    void                                setModifiers(uint a_Flags);
-    o_forceinline bitfield              getModifiers() const { return m_bfModifiers; }
-    o_forceinline boolean               testModifiers(uint a_uiModifiers) const { return m_bfModifiers.matchesMask(a_uiModifiers); }
+    void                                setModifiers(bitfield a_Flags);
+    o_forceinline bitfield              getModifiers() const { return m_Modifiers; }
+    o_forceinline boolean               testModifiers(int a_uiModifiers) const { return ((m_Modifiers & a_uiModifiers) == a_uiModifiers); }
 
-    o_forceinline void                  setShared()            { m_bfModifiers.setMask(o_shared); }
-    o_forceinline boolean               isShared() const    { return m_bfModifiers.matchesMask(o_shared); }
+    o_forceinline void                  setShared()            { m_Modifiers |= o_shared; }
+    o_forceinline boolean               isShared() const    { return ((m_Modifiers & o_shared) == o_shared); }
 
     o_forceinline const string&         getName() const { return m_strName; }
     virtual string                      getQualifiedName() const;
@@ -144,14 +144,14 @@ public:
     virtual InstanceMemberFunction*     asSlot() const  { return nullptr; }
     virtual Namespace*                  asNamespace() const { return nullptr; }
 
-    o_forceinline boolean               isStatic() const  { return m_bfModifiers.matchesMask(o_static); }
-    o_forceinline boolean               isPublic() const { return m_bfModifiers.matchesMask(o_public); }
-    o_forceinline boolean               isProtected() const { return m_bfModifiers.matchesMask(o_protected) ; }
-    o_forceinline boolean               isPrivate() const { return NOT(m_bfModifiers.matchesOneOfMask(o_protected|o_public)); }
-    o_forceinline boolean               isUnionAlternative() const { return m_bfModifiers.matchesMask(o_union_alternative) ; }
-    o_forceinline boolean               isComponent() const { return m_bfModifiers.matchesMask(o_component) ; }
-    o_forceinline boolean               isOwner() const { return m_bfModifiers.matchesMask(o_owner) ; }
-    o_forceinline boolean               isAbstract() const { return m_bfModifiers.matchesMask(o_abstract); }
+    o_forceinline boolean               isStatic() const  { return ((m_Modifiers & o_static) == o_static); }
+    o_forceinline boolean               isPublic() const { return ((m_Modifiers & o_public) == o_public); }
+    o_forceinline boolean               isProtected() const { return ((m_Modifiers & o_protected) == o_protected) ; }
+    o_forceinline boolean               isPrivate() const { return (m_Modifiers & (o_protected|o_public)) == 0; }
+    o_forceinline boolean               isUnionAlternative() const { return ((m_Modifiers & o_union_alternative) == o_union_alternative) ; }
+    o_forceinline boolean               isComponent() const { return ((m_Modifiers & o_component) == o_component) ; }
+    o_forceinline boolean               isOwner() const { return ((m_Modifiers & o_owner) == o_owner) ; }
+    o_forceinline boolean               isAbstract() const { return ((m_Modifiers & o_abstract) == o_abstract); }
 
     virtual boolean                     isNative() const { return false ; }
     virtual boolean                     isRuntime() const { return false; }
@@ -166,7 +166,7 @@ public:
                                             const char* a_strQualifiedName
                                             , template_specialization const*
                                             , function_signature const*
-                                            , bitfield a_bfModifiers = bitfield()) const;
+                                            , bitfield a_Modifiers = 0) const;
 
     void getElementsCascade(vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
     void getElements(vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
@@ -222,7 +222,7 @@ protected:
     vector<CodeLocation>*   m_CodeLocations;
     uint                m_uiGuid;
     LanguageElement*    m_pOwner;
-    bitfield            m_bfModifiers;
+    bitfield            m_Modifiers;
     mutable string*     m_pMetaData;
 
 };

@@ -37,8 +37,6 @@
 
 
 /* ****************** Includes ******************* */
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
 #include "DataBase.classdef.h"
 /* **************** Declarations ***************** */
 
@@ -55,6 +53,7 @@ class o_export DataBase : public Object
 {
     friend class Node;
     friend class DefaultNode;
+    friend class Trashbin;
 
     Reflection_____________________________________________________________________________________
     _____________________________________________________________________________________Reflection
@@ -197,28 +196,15 @@ public:
 
     }
 
-    void    save()
-    {
-        save(m_uiSerializationFlag);
-    }
+    void    save();
 
-    void    saveState(uint a_uiState)
-    {
-        o_assert(m_pDataStateBase, "You must associate a DataStateBase with this DataBase to be able to load/save states");
-        if(rootNode()->isLoaded())
-        {
-            rootNode()->saveStateCascade(m_pDataStateBase, a_uiState);
-        }
-    }
+    void    saveData(const phantom::data& a_Data);
 
-    void    loadState(uint a_uiState)
-    {
-        o_assert(m_pDataStateBase, "You must associate a DataStateBase with this DataBase to be able to load/save states");
-        if(rootNode()->isLoaded())
-        {
-            rootNode()->loadStateCascade(m_pDataStateBase, a_uiState);
-        }
-    }
+    void    saveState(uint a_uiState);
+
+    void    saveDataState(const phantom::data& a_Data, uint a_uiState);
+
+    void    loadState(uint a_uiState);
 
     void    setDataStateBase(DataStateBase* a_pDataStateBase)
     {
@@ -227,14 +213,6 @@ public:
     }
 
     DataStateBase*  getDataStateBase() const { return m_pDataStateBase; }
-
-    void    save(uint a_uiSerializationFlag)
-    {
-        if(rootNode()->isLoaded())
-        {
-            rootNode()->saveCascade(a_uiSerializationFlag);
-        }
-    }
 
 	Trashbin*		getTrashbin() const;
 	void			setTrashbin(Trashbin* a_pTrashbin);
@@ -249,20 +227,7 @@ public:
 
     void    terminate();
     
-    inline Node*    rootNode()
-    {
-        if (m_pRootNode == NULL)
-        {
-            m_pRootNode = createNode(0, NULL);
-            if(NOT(hasNodeEntry(m_pRootNode)))
-            {
-                createNodeEntry(m_pRootNode);
-                m_pRootNode->save(m_uiSerializationFlag);
-            }
-            registerNode(m_pRootNode);
-        }
-        return m_pRootNode;
-    }
+    Node*    rootNode();
 
     Node*           getNode( const phantom::data& a_Data ) const
     {
@@ -282,12 +247,14 @@ public:
         sub_data_owner_map::const_iterator found = m_SubDataOwnerMap.find(phantom::baseOf(a_pAddress));
         return found == m_SubDataOwnerMap.end() ? null_data : found->second;
     }
+
     const phantom::data&  getSubDataOwner( const phantom::data& a_Data ) const
     {
         static phantom::data null_data;
         sub_data_owner_map::const_iterator found = m_SubDataOwnerMap.find(a_Data.address());
         return found == m_SubDataOwnerMap.end() ? null_data : found->second;
     }
+
 	bool  isSubDataOwner(const phantom::data& a_Data) const
 	{
 		sub_data_owner_map::const_iterator it = m_SubDataOwnerMap.begin();
@@ -342,92 +309,33 @@ public:
     void            registerNode(Node* a_pNode);
     void            unregisterNode(Node* a_pNode);
 
-    const string&   getDataAttributeValue(const phantom::data& a_Data, size_t attributeIndex) const
-    {
-        o_assert(attributeIndex < getAttributeCount());
-        static string null_string;
-        attribute_map::const_iterator found = m_AttributeValues.find(a_Data.address());
-        if(found != m_AttributeValues.end())
-        {
-            return (found->second)[attributeIndex];
-        }
-        return null_string;
-    }
+    const string&   getDataAttributeValue(const phantom::data& a_Data, size_t attributeIndex) const;
 
-    const string&   getNodeAttributeValue(Node* a_pNode, size_t attributeIndex) const
-    {
-        o_assert(attributeIndex < getAttributeCount());
-        static string null_string;
-        attribute_map::const_iterator found = m_AttributeValues.find(a_pNode);
-        if(found != m_AttributeValues.end())
-        {
-            return (found->second)[attributeIndex];
-        }
-        return null_string;
-    }
+    const string&   getDataAttributeValue(const phantom::data& a_Data, const string& attributeName) const;
 
-    const string* getDataAttributeValues(const phantom::data& a_data) 
-    { 
-        attribute_map::const_iterator found = m_AttributeValues.find(a_data.address());
-        return found != m_AttributeValues.end() ? found->second : NULL;
-    }
+    const string&   getNodeAttributeValue(Node* a_pNode, size_t attributeIndex) const;
 
-    const string* getNodeAttributeValues(Node* a_pNode) const
-    { 
-        attribute_map::const_iterator found = m_AttributeValues.find(a_pNode);
-        return found != m_AttributeValues.end() ? found->second : NULL;
-    }
+    const string&   getNodeAttributeValue(Node* a_pNode, const string& attributeName) const;
 
-    void            setDataAttributeValue(const phantom::data& a_Data, size_t attributeIndex, const string& value)
-    {
-        o_assert(attributeIndex < getAttributeCount());
-        m_AttributeValues[a_Data.address()][attributeIndex] = value;
-        o_emit dataAttributeValueChanged(a_Data, attributeIndex, value);
-    }
+    const string*   getDataAttributeValues(const phantom::data& a_data);
 
-    void            setDataAttributeValue(const phantom::data& a_Data, const string& fieldName, const string& value)
-    {
-        setDataAttributeValue(a_Data, getAttributeIndex(fieldName), value);
-    }
+    const string*   getNodeAttributeValues(Node* a_pNode) const;
 
-    void            setNodeAttributeValue(Node* a_pNode, size_t attributeIndex, const string& value)
-    {
-        o_assert(attributeIndex < getAttributeCount());
-        m_AttributeValues[a_pNode][attributeIndex] = value;
-        o_emit nodeAttributeValueChanged(a_pNode, attributeIndex, value);
-    }
+    void            setDataAttributeValue(const phantom::data& a_Data, size_t attributeIndex, const string& value);
 
-    void            setNodeAttributeValue(Node* a_pNode, const string& fieldName, const string& value)
-    {
-        setNodeAttributeValue(a_pNode, getAttributeIndex(fieldName), value);
-    }
+    void            setDataAttributeValue(const phantom::data& a_Data, const string& fieldName, const string& value);
+
+    void            setNodeAttributeValue(Node* a_pNode, size_t attributeIndex, const string& value);
+
+    void            setNodeAttributeValue(Node* a_pNode, const string& fieldName, const string& value);
 
     size_t          getAttributeCount() const { return m_AttributeNames.size(); }
 
+    size_t          addAttribute(const string& a_name);
 
-    size_t          addAttribute(const string& a_name)
-    {
-        o_assert(m_GuidBase.isEmpty(), "Cannot add dataMember after data");
-        m_AttributeNames.push_back(a_name);
-        return m_AttributeNames.size()-1;
-    }
+    size_t          getAttributeIndex(const string& a_name) const;
 
-    size_t          getAttributeIndex(const string& a_name) const 
-    {
-        size_t i = 0;
-        size_t count = m_AttributeNames.size();
-        for(;i<count;++i)
-        {
-            if(m_AttributeNames[i] == a_name) return i;
-        }
-        return e_Constant_InvalidAttributeIndex;
-    }
-
-    const string&   getAttributeName(size_t attributeIndex) const 
-    {
-        o_assert(attributeIndex < getAttributeCount());
-        return m_AttributeNames[attributeIndex];
-    }
+    const string&   getAttributeName(size_t attributeIndex) const;
 
     size_t          getLoadedDataSize() const { return m_uiLoadedDataSize; }
     size_t          getLoadedDataResetSize() const { return m_uiLoadedDataResetSize; }
@@ -449,11 +357,7 @@ public:
     }
 
     const string&   getUrl() const { return m_strUrl; }
-    boolean         isDataCompatibleWithNode(const phantom::data& a_Data, Node* a_pOwnerNode) const
-    {
-        return NOT(a_pOwnerNode->childNodesContainDependencyOfDeep(a_Data))
-            AND a_pOwnerNode->acceptsData(a_Data);
-    }
+    boolean         isDataCompatibleWithNode(const phantom::data& a_Data, Node* a_pOwnerNode) const;
 
     void            setDependencyTesterDelegate(dependency_tester_delegate a_dependency_tester_delegate)
     {
@@ -474,26 +378,21 @@ public:
     reflection::Type* solveTypeById(uint id) const;
 
 protected:
-    o_signal_data(dataAdded, const phantom::data&, Node*)
+    o_signal_data(dataAdded, const phantom::data&, Node*);
     o_signal_data(dataReplaced, const phantom::data&, const phantom::data&);
-    o_signal_data(dataAboutToBeRemoved, const phantom::data&, Node*)
-    o_signal_data(dataAboutToBeAborted, const phantom::data&, Node*)
-    o_signal_data(dataMoved, const phantom::data&, Node*, Node*)
-    o_signal_data(dataAttributeValueChanged, const phantom::data&, size_t, const string&)
+    o_signal_data(dataAboutToBeRemoved, const phantom::data&, Node*);
+    o_signal_data(dataAboutToBeAborted, const phantom::data&, Node*);
+    o_signal_data(dataMoved, const phantom::data&, Node*, Node*);
+    o_signal_data(dataAttributeValueChanged, const phantom::data&, size_t, const string&);
 
     o_signal_data(subDataOwnershipLost, const phantom::data&);
 
-    o_signal_data(nodeAdded, Node*, Node*)
-    o_signal_data(nodeAboutToBeRemoved, Node*, Node*)
-    o_signal_data(nodeMoved, Node*, Node*, Node*)
-    o_signal_data(nodeAttributeValueChanged, Node*, size_t, const string&)
+    o_signal_data(nodeAdded, Node*, Node*);
+    o_signal_data(nodeAboutToBeRemoved, Node*, Node*);
+    o_signal_data(nodeMoved, Node*, Node*, Node*);
+    o_signal_data(nodeAttributeValueChanged, Node*, size_t, const string&);
 
-    virtual void    dataDestroyed(void* a_pAddress)
-    {
-        Node* pDataNode = getNode(a_pAddress);
-        if(pDataNode) return; // Means that this instance is not in the database
-        pDataNode->removeData(a_pAddress);
-    }
+    virtual void    dataDestroyed(void* a_pAddress);
 
     void            replaceDataInfo(const phantom::data& a_Old, const phantom::data& a_New);
 
@@ -509,22 +408,13 @@ protected:
 
     virtual void    createNodeEntry(Node* a_pNode) = 0;
     virtual void    destroyNodeEntry(Node* a_pNode) = 0;
-    virtual void    moveNodeEntry(Node* a_pNode, Node* a_pNewParent) = 0;         
+    virtual void    moveNodeEntry(Node* a_pNode, Node* a_pNewParent) = 0;       
+
+    void            rebuildData( phantom::data& a_inOutData, reflection::Type* a_pOld, reflection::Type* a_pNewType, vector<data>& a_Old, vector<data>& a_New, uint a_uiStateId /*= 0xffffffff*/ );  
 
 protected:
-    void            registerSubDataOwner(const data& a_Data, const data& a_Owner)
-    {
-        o_assert(m_SubDataOwnerMap.find(a_Data.address()) == m_SubDataOwnerMap.end());
-        m_SubDataOwnerMap[a_Data.address()] = a_Owner;
-    }
-    void            unregisterSubDataOwner(const data& a_Data)
-    {
-        sub_data_owner_map::iterator found = m_SubDataOwnerMap.find(a_Data.address());
-        if(found != m_SubDataOwnerMap.end())
-        {
-            m_SubDataOwnerMap.erase(found);
-        }
-    }
+    void            registerSubDataOwner(const data& a_Data, const data& a_Owner);
+    void            unregisterSubDataOwner(const data& a_Data);
     reflection::Collection* getCollectionContainingSubData(const phantom::data& d) const;
 
 protected:

@@ -91,10 +91,11 @@ public:
     static DataMember* CreateDataMember(    const string& a_strName,
         Type*    a_pContentType,
         t_ContentType* a_pDataMemberPtr,
+        Range* a_pRange,
         uint a_uiSerializationMask, 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeStaticDataMember<t_Ty, t_ContentType>) (a_strName, a_pContentType, a_pDataMemberPtr, a_bfModifiers|o_static);
+        return o_new(TNativeStaticDataMember<t_Ty, t_ContentType>) (a_strName, a_pContentType, a_pDataMemberPtr, a_pRange, a_Modifiers|o_static);
     }
 };
 
@@ -105,18 +106,20 @@ public:
     static DataMember* CreateDataMember(    const string& a_strName,
         Type*    a_pContentType,
         t_ContentType (t_Ty::*a_pDataMemberPtr),
+        Range* a_pRange,
         uint a_uiSerializationMask, 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceDataMember<t_Ty, t_ContentType>)(a_strName, a_pContentType, a_pDataMemberPtr, a_uiSerializationMask, a_bfModifiers);
+        return o_new(TNativeInstanceDataMember<t_Ty, t_ContentType>)(a_strName, a_pContentType, a_pDataMemberPtr, a_pRange, a_uiSerializationMask, a_Modifiers);
     }
     static DataMember* CreateDataMember(    const string& a_strName,
         Type*    a_pContentType,
         t_ContentType* a_pDataMemberPtr,
+        Range* a_pRange,
         uint a_uiSerializationMask, 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeStaticDataMember<t_Ty, t_ContentType>) (a_strName, a_pContentType, a_pDataMemberPtr, a_bfModifiers|o_static);
+        return o_new(TNativeStaticDataMember<t_Ty, t_ContentType>) (a_strName, a_pContentType, a_pDataMemberPtr, a_pRange, a_Modifiers|o_static);
     }
 };
 

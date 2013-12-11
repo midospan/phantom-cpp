@@ -47,12 +47,12 @@ Enum::Enum() : Type("", 4, 4, 0)
 
 }
 
-Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers /*= bitfield()*/ ) : Type(a_strName, a_uiSize, a_uiAlignment, a_bfModifiers)
+Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) : Type(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
 {
 
 }
 
-Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_bfModifiers /*= bitfield()*/ ) : Type(a_strName, a_uiSize, a_uiAlignment, a_uiGuid, a_bfModifiers)
+Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) : Type(a_strName, a_uiSize, a_uiAlignment, a_uiGuid, a_Modifiers)
 {
 
 }
@@ -65,7 +65,7 @@ Enum::~Enum()
     }
 }
 
-LanguageElement* Enum::getElement( const char* a_strName , template_specialization const* ts , function_signature const* fs , bitfield a_bfModifiers /*= bitfield()*/ ) const
+LanguageElement* Enum::getElement( const char* a_strName , template_specialization const* ts , function_signature const* fs , bitfield a_Modifiers /*= 0*/ ) const
 {
     if(ts AND !ts->empty()) return NULL;
     if(fs AND !fs->empty()) return NULL;
@@ -142,5 +142,40 @@ Constant* Enum::getConstant( const string& a_strKey ) const
     }
     return NULL;
 }
+
+void Enum::valueFromString( const string& a_strIn, void* a_pDest ) const
+{
+    size_t i = 0;
+    size_t count = getConstantCount();
+    for(;i<count;++i)
+    {
+        size_t constantValue = 0;
+        reflection::Constant* pConstant = getConstant(i);
+        if(pConstant->getName() == a_strIn)
+        {
+            pConstant->getValue(a_pDest);
+            return;
+        }
+    }
+}
+
+void Enum::valueToString( string& a_strOut, const void* a_pSrc ) const
+{
+    size_t i = 0;
+    size_t count = getConstantCount();
+    for(;i<count;++i)
+    {
+        size_t constantValue = 0;
+        reflection::Constant* pConstant = getConstant(i);
+        pConstant->getValue(&constantValue);
+        if(constantValue == *((size_t*)a_pSrc))
+        {
+            a_strOut = pConstant->getName();
+            return;
+        }
+    }
+}
+
+
 
 o_cpp_end

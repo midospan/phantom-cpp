@@ -114,7 +114,7 @@ public:
         , state_function_pointer a_pUpdateFunctionPointer
         , state_function_pointer a_pLeaveFunctionPointer
         , uint a_uiOrderingFactor
-        , bitfield bf = bitfield())
+        , bitfield bf = 0)
             : State(a_strName, a_uiOrderingFactor, bf)
             , m_pEnterFunctionPointer(a_pEnterFunctionPointer)
             , m_pUpdateFunctionPointer(a_pUpdateFunctionPointer)

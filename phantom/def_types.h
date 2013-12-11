@@ -34,7 +34,7 @@
 #ifndef o_phantom_typedefs_h__
 #define o_phantom_typedefs_h__
 
-#include <phantom/_kernel.noclassdef.h>
+#include <phantom/def_export.h>
 
 
 o_begin_phantom_namespace()
@@ -269,7 +269,7 @@ typedef std::basic_istream<char, std::char_traits<char> > aistream;
 typedef std::basic_istream<wchar_t, std::char_traits<wchar_t> > wistream;
 
 
-#include <phantom/_kernel.noclassdef.h>
+#include <phantom/def_export.h>
 
 template<typename t_Ty>
 class vector : public std::vector<t_Ty, o__t1_class__contiguous_memory_allocator(t_Ty)>    
@@ -792,6 +792,35 @@ public:
 };
 
 _STD_END
+
+
+o_namespace_begin(phantom)
+
+inline astring to_astring(const string& str) 
+{
+#if defined(_UNICODE) 
+    phantom::wstringstream ws;
+    ws << str.c_str();
+    return ws.str();
+#else
+    return str;
+#endif
+}
+
+inline astring to_astring(const wstring& wstr) 
+{
+#if defined(_UNICODE) 
+    return wstr;
+#else
+    astring str;
+    str.resize(wstr.size());
+    for(size_t i = 0; i<wstr.size(); ++i)
+        str = (character)wstr[i];
+    return str;
+#endif
+}
+
+o_namespace_end(phantom)
 
 //#endif // defined(o_USE_POOL_ALLOCATORS)
 

@@ -42,7 +42,7 @@ o_namespace_begin(phantom, serialization)
 
 
 PackageNode::PackageNode(PackageDataBase* a_pOwnerDataBase, uint a_uiGuid, PackageNode* a_pParentNode)
-: DefaultNode(a_pOwnerDataBase, a_uiGuid, a_pParentNode) 
+: Node(a_pOwnerDataBase, a_uiGuid, a_pParentNode) 
 {
 
 }

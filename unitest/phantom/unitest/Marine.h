@@ -77,6 +77,8 @@ o_classNS((sc2), Marine, (Unit))
 {
     o_reflection 
     {
+        o_attribute("appearance", "rock");
+        o_attribute("level", 10);
     };
     o_statechart
     {

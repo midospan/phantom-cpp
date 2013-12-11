@@ -159,11 +159,11 @@ public:
 
     Type*               getReturnType() const    {        return m_pSignature->getReturnType();    }
     
-    boolean             matches( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/ ) const
+    boolean             matches( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/ ) const
     {
         return m_strName == a_strName
           AND m_pSignature->matches(a_FunctionSignature)
-          AND testModifiers(a_bfModifiers);
+          AND testModifiers(a_Modifiers);
     }
 
     virtual void  call( void** a_pArgs ) const = 0;
@@ -203,7 +203,7 @@ public:
     Block*  getBlock() const { return m_pBlock; }
     void    setBlock(Block* a_pBlock);
 
-    virtual LanguageElement* getElement( const char* a_strQualifiedName , template_specialization const* a_pTS, function_signature const* a_pFS, bitfield a_bfModifiers /* = bitfield */ ) const;
+    virtual LanguageElement* getElement( const char* a_strQualifiedName , template_specialization const* a_pTS, function_signature const* a_pFS, bitfield a_Modifiers /* = bitfield */ ) const;
     
     bool containsMemoryAddress(const byte* a_pAddress);
 

@@ -39,9 +39,9 @@
 #include "DataBase.h"
 /* *********************************************** */
 /* The *.classdef.h file must be the last #include */
-#include "phantom/_kernel.noclassdef.h"
+#include "phantom/def_export.h"
 /* **************** Declarations ***************** */
-namespace boost { namespace filesystem3 { class path; } }
+namespace boost { namespace filesystem { class path; } }
 /* *********************************************** */
 
 o_namespace_begin(phantom, serialization)
@@ -83,7 +83,7 @@ public:
 
 protected:
 
-	void							loadNodeEntriesHelper(Node* a_pNode, const boost::filesystem3::path& a_Path);
+	void							loadNodeEntriesHelper(Node* a_pNode, const boost::filesystem::path& a_Path);
 
 
 protected:

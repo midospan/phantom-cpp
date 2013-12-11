@@ -178,10 +178,10 @@ o_classNS((sc2), Unit, (GameEntity))
 {
     o_reflection 
     {
-        o_data_member(bool, m_bPatrolWay, o_protected);
-        o_data_member(int, m_iLifePoints, o_protected);
-        o_data_member(phantom::vector<Ability*>, m_Abilities, o_protected);
-        o_data_member(int, m_iInitialLifePoints, o_protected);
+        o_data_member(bool, m_bPatrolWay, o_no_range, o_protected);
+        o_data_member(int, m_iLifePoints, o_no_range, o_protected);
+        o_data_member(phantom::vector<Ability*>, m_Abilities, o_no_range, o_protected);
+        o_data_member(int, m_iInitialLifePoints, o_no_range, o_protected);
         o_signal(abilityAdded, (Ability*));
         o_signal(abilityRemoved, (Ability*));
         o_collection(Ability*, abilities, addAbility, removeAbility, moveAbility, setAbility, getAbility, getAbilityCount);

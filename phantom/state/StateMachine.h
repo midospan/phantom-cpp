@@ -71,7 +71,7 @@ public:
     _____________________________________________________________________________________Reflection
 public:
 
-    StateMachine(bitfield a_Modifiers = bitfield());
+    StateMachine(bitfield a_Modifiers = 0);
     o_destructor ~StateMachine(void);
 
     reflection::Class*    getOwnerClass() const { return static_cast<reflection::Class*>(m_pOwner); }

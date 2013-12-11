@@ -54,9 +54,14 @@ public:
     _____________________________________________________________________________________Reflection
 
 public:
-    Property(const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pChangeNotificationSignal
+    Property(const string& a_strName
+        , Type* a_pValueType
+        , InstanceMemberFunction* a_pSetMemberFunction
+        , InstanceMemberFunction* a_pGetMemberFunction
+        , Signal* a_pChangeNotificationSignal
+        , Range* a_pRange
     , uint a_uiSerializationMask
-    , bitfield a_bfModifiers = bitfield());
+    , bitfield a_Modifiers = 0);
 
     o_destructor ~Property(void) {}
 

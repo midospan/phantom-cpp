@@ -48,8 +48,8 @@ class TNativeInstanceMemberFunctionBase : public InstanceMemberFunction
 {
 public:
     typedef void (t_Class::*simplest_member_function_ptr)();
-    TNativeInstanceMemberFunctionBase(const string& a_strName, Signature* a_pSignature, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName, a_pSignature, a_bfModifiers)
+    TNativeInstanceMemberFunctionBase(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName, a_pSignature, a_Modifiers)
     {
 
     }

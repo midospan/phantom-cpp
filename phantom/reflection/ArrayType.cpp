@@ -62,16 +62,6 @@ void ArrayType::deserialize( void* a_pInstance, const property_tree& a_InBranch,
     m_pStoredType->deserialize(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_InBranch, a_uiSerializationMask, a_pDataBase);
 }
 
-serialization::Bundle* ArrayType::createBundle( serialization::BundleNode* a_pOwnerNode ) const
-{
-    return o_new(serialization::native::TBundle<void*>)(a_pOwnerNode);
-}
-
-void ArrayType::destroyBundle( serialization::Bundle* a_pBundle ) const
-{
-    o_delete(serialization::native::TBundle<void*>) a_pBundle;
-}
-
 Type* ArrayType::createConstType() const
 {
     return o_new(ConstArrayType)(const_cast<ArrayType*>(this));

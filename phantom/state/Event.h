@@ -55,7 +55,7 @@ class o_export Event : public StateMachineElement
     Reflection_____________________________________________________________________________________
     _____________________________________________________________________________________Reflection
 public:
-    Event(const string& a_strName, uint id, bitfield a_bfModifiers = bitfield());
+    Event(const string& a_strName, uint id, bitfield a_Modifiers = 0);
     ~Event() {}
 
     uint getId() const  { return m_uiId; }

@@ -106,10 +106,10 @@ void Subroutine::addInstruction( Instruction* a_pInstruction )
     std::sort(m_pInstructions->begin(), m_pInstructions->end(), InstructionSorter());
 }
 
-LanguageElement* Subroutine::getElement( const char* a_strQualifiedName , template_specialization const* a_pTS, function_signature const* a_pFS, bitfield a_bfModifiers /* = bitfield */ ) const
+LanguageElement* Subroutine::getElement( const char* a_strQualifiedName , template_specialization const* a_pTS, function_signature const* a_pFS, bitfield a_Modifiers /* = bitfield */ ) const
 {
     if(m_pBlock) 
-        return m_pBlock->getElement(a_strQualifiedName, a_pTS, a_pFS, a_bfModifiers);
+        return m_pBlock->getElement(a_strQualifiedName, a_pTS, a_pFS, a_Modifiers);
     return nullptr;
 }
 

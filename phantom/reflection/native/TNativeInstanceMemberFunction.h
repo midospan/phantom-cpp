@@ -57,8 +57,8 @@ public:
     typedef TNativeInstanceMemberFunction0<t_Ty, t_ReturnType> self_type;
 
 
-    TNativeInstanceMemberFunction0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -110,8 +110,8 @@ public:
 
 
 
-    TNativeInstanceMemberFunction0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -161,8 +161,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
 
 
-    TNativeInstanceMemberFunction1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -216,8 +216,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
 
 
-    TNativeInstanceMemberFunction1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -274,8 +274,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
 
 
-    TNativeInstanceMemberFunction2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -330,8 +330,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
 
 
-    TNativeInstanceMemberFunction2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -386,8 +386,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
 
 
-    TNativeInstanceMemberFunction3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -446,8 +446,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
 
 
-    TNativeInstanceMemberFunction3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -511,8 +511,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
 
 
-    TNativeInstanceMemberFunction4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -579,8 +579,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
 
 
-    TNativeInstanceMemberFunction4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -647,8 +647,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
 
 
-    TNativeInstanceMemberFunction5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -722,8 +722,8 @@ public:
 
 
 
-    TNativeInstanceMemberFunction5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -794,8 +794,8 @@ public:
 
 
 
-    TNativeInstanceMemberFunction6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -873,8 +873,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
 
 
-    TNativeInstanceMemberFunction6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -952,8 +952,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
 
 
-    TNativeInstanceMemberFunction7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -1038,8 +1038,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
 
 
-    TNativeInstanceMemberFunction7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -1119,8 +1119,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param7>::type t_Param7_noref;
 
 
-    TNativeInstanceMemberFunction8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -1211,8 +1211,8 @@ public:
 
 
 
-    TNativeInstanceMemberFunction8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeInstanceMemberFunction8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeInstanceMemberFunctionBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
@@ -1275,8 +1275,8 @@ public:
     typedef TNativeInstanceMemberFunction<t_Ty, t_ReturnType()>    self_type;
   typedef t_ReturnType (t_Ty::*member_function_pointer)(void);
 
-    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunction0< t_Ty, t_ReturnType>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunction0< t_Ty, t_ReturnType>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1290,8 +1290,8 @@ public:
     typedef TNativeInstanceMemberFunction<t_Ty, t_ReturnType(t_Param0)>    self_type;
   typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0);
 
-    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunction1<t_Ty, t_ReturnType, t_Param0>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunction1<t_Ty, t_ReturnType, t_Param0>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1305,8 +1305,8 @@ public:
     typedef TNativeInstanceMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1)>    self_type;
   typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1);
 
-    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1325,8 +1325,8 @@ public:
     typedef TNativeInstanceMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2)>    self_type;
   typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2);
 
-    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1347,8 +1347,8 @@ public:
     typedef TNativeInstanceMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3)>    self_type;
   typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3);
 
-    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunction4<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunction4<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1369,8 +1369,8 @@ public:
     typedef TNativeInstanceMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4)>    self_type;
   typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4);
 
-    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunction5<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunction5<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1393,8 +1393,8 @@ public:
     typedef TNativeInstanceMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5)>    self_type;
   typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5);
 
-    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunction6<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunction6<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1417,8 +1417,8 @@ public:
     typedef TNativeInstanceMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)>    self_type;
   typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6);
 
-    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunction7<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunction7<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1444,8 +1444,8 @@ public:
     typedef TNativeInstanceMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)>    self_type;
   typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7);
 
-    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeInstanceMemberFunction8<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeInstanceMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeInstanceMemberFunction8<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }

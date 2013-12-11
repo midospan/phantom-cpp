@@ -54,19 +54,29 @@ class o_export Variable : public Constant
     
 public:
     Variable()
+        : m_pRange(nullptr)
     {
 
     }
-    Variable(const string& a_strName, bitfield a_Modifiers = bitfield())
+    Variable(const string& a_strName, bitfield a_Modifiers = 0)
         : Constant(a_strName, a_Modifiers)
+        , m_pRange(nullptr)
+    {
+
+    }
+    Variable(const string& a_strName, Range* a_pRange, bitfield a_Modifiers = 0)
+        : Constant(a_strName, a_Modifiers)
+        , m_pRange(a_pRange)
     {
 
     }
     // To be set is the main goal of a variable
     virtual void        setValue(void const* src) const = 0;
     virtual void*       getAddress() const { return NULL; }
+    Range*              getRange() const { return m_pRange; }
 
 protected:
+    Range* m_pRange;
 };
 
 o_h_end

@@ -39,10 +39,6 @@
 /* ****************** Includes ******************* */
 #include <phantom/serialization/FileTreeDataStateBase.h>
 /* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "phantom/_kernel.noclassdef.h"
-/* **************** Declarations ***************** */
-/* *********************************************** */
 
 o_namespace_begin(phantom, serialization)
 

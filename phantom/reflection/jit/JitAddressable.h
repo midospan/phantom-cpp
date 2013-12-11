@@ -19,12 +19,12 @@ public:
 	JitAddressable(void) {}
 	~JitAddressable(void) {}
 
-    virtual int store(jit_phantom_value_t value) const = 0;
-    virtual jit_phantom_value_t load() const = 0;
-    virtual jit_function_t getJitFunction() const = 0;
-    virtual reflection::Type*   getValueType() const = 0;
-    virtual jit_phantom_value_t address() const = 0;
-    jit_phantom_value_t implicitCast(reflection::Type* a_pType) const;
+    virtual int store(jit_value value) const = 0;
+    virtual jit_value load() const = 0;
+    virtual JitSubroutine* getJitSubroutine() const = 0;
+    virtual reflection::Type* getValueType() const = 0;
+    virtual jit_value address() const = 0;
+    jit_value loadAs(reflection::Type* a_pType) const;
 
 protected:
 

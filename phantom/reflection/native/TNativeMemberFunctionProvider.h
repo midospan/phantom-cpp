@@ -131,9 +131,9 @@ public:
     static MemberFunction* CreateMemberFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (*a_pFunc)(), 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeStaticMemberFunction0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers|o_static);
+        return o_new(TNativeStaticMemberFunction0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
 };
 
@@ -144,7 +144,7 @@ public:
     static MemberFunction* CreateMemberFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (*a_pFunc)(t_Param0), 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
         return o_new(TNativeStaticMemberFunction1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, o_static);
     }
@@ -157,7 +157,7 @@ public:
     static MemberFunction* CreateMemberFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (*a_pFunc)(t_Param0, t_Param1), 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
         return o_new(TNativeStaticMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, o_static);
     }
@@ -171,7 +171,7 @@ public:
     static MemberFunction* CreateMemberFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (*a_pFunc)(t_Param0, t_Param1, t_Param2), 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
         return o_new(TNativeStaticMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, o_static);
     }
@@ -187,17 +187,17 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(), 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunction0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunction0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)() const, 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -208,16 +208,16 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0), 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunction1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunction1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0) const, 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -228,16 +228,16 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1),
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1) const,
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -248,16 +248,16 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1, t_Param2),
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1, t_Param2) const,
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -269,9 +269,9 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)() const, 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -282,9 +282,9 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0) const, 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -295,9 +295,9 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1) const,
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -308,9 +308,9 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1, t_Param2) const,
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -322,9 +322,9 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)() const, 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -335,9 +335,9 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0), 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -348,9 +348,9 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1),
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -361,9 +361,9 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1, t_Param2),
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -375,17 +375,17 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(), 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInterfaceMemberFunction0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInterfaceMemberFunction0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)() const, 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInterfaceMemberFunctionConst0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInterfaceMemberFunctionConst0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -396,16 +396,16 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0), 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInterfaceMemberFunction1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInterfaceMemberFunction1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0) const, 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInterfaceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInterfaceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -416,16 +416,16 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1),
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInterfaceMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInterfaceMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1) const,
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInterfaceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInterfaceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -436,16 +436,16 @@ public:
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1, t_Param2),
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInterfaceMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInterfaceMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1, t_Param2) const,
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInterfaceMemberFunctionConst3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInterfaceMemberFunctionConst3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -457,25 +457,25 @@ public:
     static MemberFunction* CreateMemberFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (*a_pFunc)(), 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeStaticMemberFunction0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeStaticMemberFunction0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
                                     Signature* a_pSignature, 
                                     t_ReturnType (t_Ty::*a_pFunc)(), 
-                                    bitfield a_bfModifiers = bitfield())
+                                    bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunction0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunction0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)() const, 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -486,23 +486,23 @@ public:
     static MemberFunction* CreateMemberFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (*a_pFunc)(t_Param0), 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeStaticMemberFunction1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers|o_static);
+        return o_new(TNativeStaticMemberFunction1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0), 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunction1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunction1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0) const, 
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -513,23 +513,23 @@ public:
     static MemberFunction* CreateMemberFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (*a_pFunc)(t_Param0, t_Param1),
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeStaticMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers|o_static);
+        return o_new(TNativeStaticMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1),
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1) const,
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -540,23 +540,23 @@ public:
     static MemberFunction* CreateMemberFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (*a_pFunc)(t_Param0, t_Param1, t_Param2),
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeStaticMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers|o_static);
+        return o_new(TNativeStaticMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1, t_Param2),
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1, t_Param2) const,
-        bitfield a_bfModifiers = bitfield())
+        bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceMemberFunctionConst3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_bfModifiers);
+        return o_new(TNativeInstanceMemberFunctionConst3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 

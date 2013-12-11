@@ -62,7 +62,7 @@ public:
     _____________________________________________________________________________________Reflection
 
 public:
-    Collection(const string& a_strName, Type* a_pElementType, bitfield a_bfModifiers = bitfield());
+    Collection(const string& a_strName, Type* a_pElementType, bitfield a_Modifiers = 0);
 
     o_destructor ~Collection(void) {}
 

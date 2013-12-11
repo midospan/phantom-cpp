@@ -62,7 +62,7 @@ public:
 
     bool containsLine(int line) const;
 
-    virtual LanguageElement* getElement(const char* a_strName, template_specialization const* , function_signature const* , bitfield a_bfModifiers /* = bitfield */) const;
+    virtual LanguageElement* getElement(const char* a_strName, template_specialization const* , function_signature const* , bitfield a_Modifiers /* = bitfield */) const;
 
     Block* findBlockAtCodePosition(const CodePosition& a_Position) const;
 

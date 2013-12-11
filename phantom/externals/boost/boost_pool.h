@@ -1,7 +1,7 @@
 #ifndef o_phantom_externals_boost_boost_pool_h__
 #define o_phantom_externals_boost_boost_pool_h__
 
-#include <phantom/_kernel.noclassdef.h>
+#include <phantom/def_export.h>
 
 o_classN((phantom, memory), malloc_free_allocator_for_boost)
 {

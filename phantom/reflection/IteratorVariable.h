@@ -25,7 +25,7 @@ public:
     {
 
     }
-    IteratorVariable(void* a_pContainer, ContainerClass* a_pContainerClass, const string& a_strName, bitfield a_modifiers = bitfield())
+    IteratorVariable(void* a_pContainer, ContainerClass* a_pContainerClass, const string& a_strName, bitfield a_modifiers = 0)
         : Variable(a_strName, a_modifiers)
         , m_pContainer(a_pContainer) 
         , m_pContainerClass(a_pContainerClass) 

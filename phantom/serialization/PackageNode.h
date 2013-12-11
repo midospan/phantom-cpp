@@ -36,10 +36,10 @@
 
 
 /* ****************** Includes ******************* */
-#include "phantom/serialization/DefaultNode.h"
+#include "phantom/serialization/Node.h"
 /* *********************************************** */
 /* The *.classdef.h file must be the last #include */
-#include "phantom/_kernel.noclassdef.h"
+#include "phantom/def_export.h"
 /* **************** Declarations ***************** */
 o_declare(class, phantom, serialization, PackageDataBase)
 /* *********************************************** */
@@ -47,7 +47,7 @@ o_declare(class, phantom, serialization, PackageDataBase)
 o_namespace_begin(phantom, serialization)
 
 
-class o_export PackageNode : public DefaultNode
+class o_export PackageNode : public Node
 {
     friend class PackageDataBase;
 
@@ -59,7 +59,7 @@ public:
 
 o_namespace_end(phantom, serialization)
 
-o_classNS((phantom, serialization), PackageNode, (DefaultNode))
+o_classNS((phantom, serialization), PackageNode, (Node))
 {
     o_reflection 
 	{

@@ -41,8 +41,8 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
-Collection::Collection( const string& a_strName, Type* a_pElementType, bitfield a_bfModifiers /*= bitfield()*/ ) 
-    : LanguageElement(a_strName, a_bfModifiers) 
+Collection::Collection( const string& a_strName, Type* a_pElementType, bitfield a_Modifiers /*= 0*/ ) 
+    : LanguageElement(a_strName, a_Modifiers) 
     , m_pElementType(a_pElementType)
 {
 }

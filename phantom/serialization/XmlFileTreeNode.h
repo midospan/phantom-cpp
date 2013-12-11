@@ -38,9 +38,6 @@
 
 /* ****************** Includes ******************* */
 #include "phantom/serialization/FileTreeNode.h"
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "phantom/_kernel.noclassdef.h"
 /* **************** Declarations ***************** */
 o_declare(class, phantom, serialization, XmlFileTreeDataBase)
 o_declare(class, phantom, serialization, XmlFileTreeDataStateBase)
@@ -54,10 +51,10 @@ class o_export XmlFileTreeNode : public FileTreeNode
 
 public:
     XmlFileTreeNode(XmlFileTreeDataBase* a_pOwnerDataBase, uint guid, XmlFileTreeNode* a_pParentNode);
-
+    
+protected:
     virtual void    saveIndex() ;
     virtual void    saveAttributes() ;
-    virtual void    saveData(uint a_uiSerializationFlag) ;
     virtual void    saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) ;
     virtual void    saveDataAttributes();
     virtual void    saveDataAttributes(const phantom::data& a_Data, uint guid);
@@ -65,7 +62,7 @@ public:
     virtual void    loadAttributes();
     virtual void    loadDataAttributes();
     virtual void    loadDataAttributes(const phantom::data& a_Data, uint guid);
-    virtual boolean canLoad(vector<string>& missing_types);
+    virtual bool    canLoad(vector<string>* missing_types) const;
     virtual void    cache();
     virtual void    build();
     virtual void    deserialize(uint a_uiSerializationFlag);
@@ -75,20 +72,17 @@ public:
     virtual void    configure();
     virtual void    unconfigure();
 
-	virtual void    preCache();
-	virtual bool    cacheOne(uint a_uiIndex);
-	virtual void    postCache();
-	virtual void    uncacheOne(const phantom::data& a_Data);
-	virtual void    buildOne(const phantom::data& a_Data);
-	virtual void    unbuildOne(const phantom::data& a_Data);
-	virtual void    deserializeOne(const phantom::data& a_Data, uint a_uiSerializationFlag);
-	virtual bool    restoreOne(const phantom::data& a_Data, uint a_uiSerializationFlag, uint a_uiPass);
-
-
-protected:
-    void            saveDataAttributesHelper(property_tree& tree, const phantom::data& a_Data);
-    void            loadDataAttributesHelper( const property_tree& tree, const phantom::data& a_Data );
-    void            loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid);
+    virtual void    preCache();
+    virtual bool    cacheOne(uint a_uiIndex);
+    virtual void    postCache();
+    virtual void    uncacheOne(const phantom::data& a_Data);
+    virtual void    buildOne(const phantom::data& a_Data);
+    virtual void    unbuildOne(const phantom::data& a_Data);
+    virtual void    deserializeOne(const phantom::data& a_Data, uint a_uiSerializationFlag);
+    virtual bool    restoreOne(const phantom::data& a_Data, uint a_uiSerializationFlag, uint a_uiPass);
+    virtual void    saveDataAttributesHelper(property_tree& tree, const phantom::data& a_Data);
+    virtual void    loadDataAttributesHelper( const property_tree& tree, const phantom::data& a_Data );
+    virtual void    loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid);
     
 protected:
     list<data>      m_DataRestoreQueue;

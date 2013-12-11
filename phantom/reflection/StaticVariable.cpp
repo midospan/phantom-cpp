@@ -41,8 +41,8 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
-StaticVariable::StaticVariable( const string& a_strName, Type* a_pContentType, void* a_pStaticVariableAddress, bitfield a_bfModifiers /*= bitfield()*/ ) 
-: Variable(a_strName, a_bfModifiers)
+StaticVariable::StaticVariable( const string& a_strName, Type* a_pContentType, void* a_pStaticVariableAddress, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) 
+: Variable(a_strName, a_pRange, a_Modifiers)
 , m_pContentType(a_pContentType)
 , m_pAddress(a_pStaticVariableAddress)
 {

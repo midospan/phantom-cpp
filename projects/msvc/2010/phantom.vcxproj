@@ -80,7 +80,7 @@
       <PrecompiledHeaderOutputFile>..\..\..\build\pch\phantomD.pch</PrecompiledHeaderOutputFile>
       <MinimalRebuild>false</MinimalRebuild>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
-      <AdditionalOptions>-Zm390 /MP /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm500 /MP /bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -102,7 +102,7 @@
       <AdditionalIncludeDirectories>../../..;$(BOOST_ROOT);</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <PreprocessorDefinitions>_WIN32;WIN32;_PHANTOM_KERNEL;NDEBUG;_NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>-Zm390 /MP /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm500 /MP /bigobj %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>phantom/phantom.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>..\..\..\build\pch\phantom.pch</PrecompiledHeaderOutputFile>
@@ -203,6 +203,9 @@
     <ClInclude Include="..\..\..\phantom\reflection\Location.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeCollection.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeStaticMemberFunction.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\TRange.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Range.classdef.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Range.h" />
     <ClInclude Include="..\..\..\phantom\reflection\SequentialContainerClass.classdef.h" />
     <ClInclude Include="..\..\..\phantom\reflection\SequentialContainerClass.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ConstArrayType.classdef.h" />
@@ -237,43 +240,23 @@
     <ClInclude Include="..\..\..\phantom\reflection\TemplateElement.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Variable.classdef.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Variable.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\BinaryFileTreeDataBase.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\BinaryFileTreeDataBase.h" />
     <ClInclude Include="..\..\..\phantom\serialization\BinaryFileTreeDataStateBase.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\BinaryFileTreeNode.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\BinaryFileTreeNode.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\BinaryPackageDataBase.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\BinaryPackageDataBase.h" />
     <ClInclude Include="..\..\..\phantom\serialization\BinaryPackageDataStateBase.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\BinaryPackageNode.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\BinaryPackageNode.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\Bundle.classdef.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\BundleDataBase.classdef.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\BundleDataBase.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\BundleNode.classdef.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\BundleNode.h" />
     <ClInclude Include="..\..\..\phantom\serialization\DataTypeManager.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\DefaultNode.classdef.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\DefaultNode.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\FileTreeDataBase.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\FileTreeDataBase.h" />
     <ClInclude Include="..\..\..\phantom\serialization\FileTreeDataStateBase.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\FileTreeNode.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\FileTreeNode.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\Node.classdef.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\DataStateBase.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\DataStateBase.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\PackageDataBase.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\PackageDataBase.h" />
     <ClInclude Include="..\..\..\phantom\serialization\PackageDataStateBase.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\PackageNode.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\PackageNode.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\Trashbin.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\Trashbin.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeDataBase.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeDataBase.h" />
     <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeDataStateBase.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeNode.classdef.h" />
     <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeNode.h" />
     <ClInclude Include="..\..\..\phantom\memory\malloc.c.h" />
     <ClInclude Include="..\..\..\phantom\memory\nedmalloc.h" />
@@ -358,9 +341,6 @@
     <ClInclude Include="..\..\..\phantom\reflection\VirtualMemberFunctionTable.h" />
     <ClInclude Include="..\..\..\phantom\serialization\DataBase.h" />
     <ClInclude Include="..\..\..\phantom\serialization\Node.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\native\TBundle.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\Bundle.h" />
-    <ClInclude Include="..\..\..\phantom\serialization\DataBase.classdef.h" />
     <ClInclude Include="..\..\..\phantom\state\Event.classdef.h" />
     <ClInclude Include="..\..\..\phantom\state\Event.h" />
     <ClInclude Include="..\..\..\phantom\state\native\TNativeState.classdef.h" />
@@ -387,6 +367,8 @@
     <ClInclude Include="..\..\..\phantom\util\flags.h" />
     <ClInclude Include="..\..\..\phantom\util\Iterator.classdef.h" />
     <ClInclude Include="..\..\..\phantom\util\Iterator.h" />
+    <ClInclude Include="..\..\..\phantom\util\Message.h" />
+    <ClInclude Include="..\..\..\phantom\util\MessageTree.h" />
     <ClInclude Include="..\..\..\phantom\util\TComposition.h" />
     <ClInclude Include="..\..\..\phantom\util\TVisitor.classdef.h" />
     <ClInclude Include="..\..\..\phantom\util\TVisitor.h" />
@@ -429,6 +411,7 @@
     <ClCompile Include="..\..\..\phantom\reflection\LocalVariable.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Location.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\MapContainerClass.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Range.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ValueMemberBinding.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ReferenceType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\SequentialContainerClass.cpp" />
@@ -470,12 +453,8 @@
     <ClCompile Include="..\..\..\phantom\serialization\BinaryPackageDataBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\BinaryPackageDataStateBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\BinaryPackageNode.cpp" />
-    <ClCompile Include="..\..\..\phantom\serialization\Bundle.cpp" />
-    <ClCompile Include="..\..\..\phantom\serialization\BundleDataBase.cpp" />
-    <ClCompile Include="..\..\..\phantom\serialization\BundleNode.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\DataBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\DataTypeManager.cpp" />
-    <ClCompile Include="..\..\..\phantom\serialization\DefaultNode.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\FileTreeDataBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\FileTreeDataStateBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\FileTreeNode.cpp" />
@@ -497,12 +476,14 @@
     <ClCompile Include="..\..\..\phantom\state\Track.cpp" />
     <ClCompile Include="..\..\..\phantom\util\Comparator.cpp" />
     <ClCompile Include="..\..\..\phantom\util\Iterator.cpp" />
+    <ClCompile Include="..\..\..\phantom\util\Message.cpp" />
+    <ClCompile Include="..\..\..\phantom\util\MessageTree.cpp" />
     <ClCompile Include="..\..\..\phantom\variant.cpp" />
-    <ClCompile Include="..\..\..\phantom\_pch.cpp">
+    <ClCompile Include="..\..\..\phantom\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">-Zm390 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">-Zm500 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">-Zm390 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">-Zm500 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\build\pch\phantomD.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\build\pch\phantom.pch</PrecompiledHeaderOutputFile>
     </ClCompile>

@@ -5,6 +5,9 @@
 
 o_fwd(class, phantom, Phantom)
 o_fwd(class, phantom, Object)
+o_fwd(class, phantom, variant)
+o_fwd(class, phantom, data)
+o_fwd(struct, phantom, signal_t)
 
 o_fwd(struct, phantom, reflection, CodePosition)
 o_fwd(class, phantom, reflection, CodeLocation)
@@ -36,6 +39,7 @@ o_fwd(class, phantom, reflection, ConstDataPointerType)
 o_fwd(class, phantom, reflection, ReferenceType)
 o_fwd(class, phantom, reflection, ConstReferenceType)
 o_fwd(class, phantom, reflection, ArrayType)
+o_fwd(class, phantom, reflection, Enum)
 o_fwd(class, phantom, reflection, Class)
 o_fwd(class, phantom, reflection, ClassType)
 o_fwd(class, phantom, reflection, ContainerClass)
@@ -52,6 +56,7 @@ o_fwd(class, phantom, reflection, TemplateElement)
 o_fwd(class, phantom, reflection, VirtualMemberFunctionTable)
 o_fwd(class, phantom, reflection, Namespace)
 o_fwd(class, phantom, reflection, TemplateSpecialization)
+o_fwd(class, phantom, reflection, Range)
 
 o_fwd(class, phantom, state, StateMachine)
 o_fwd(class, phantom, state, StateMachineElement)
@@ -68,9 +73,6 @@ o_fwdT(class, phantom, state, native, (typename,bool), TNativeStateMachineHelper
 o_fwd(class, phantom, serialization, Node)
 o_fwd(class, phantom, serialization, DataBase)
 o_fwd(class, phantom, serialization, DataStateBase)
-o_fwd(class, phantom, serialization, Bundle)
-o_fwd(class, phantom, serialization, BundleNode)
-o_fwd(class, phantom, serialization, BundleDataBase)
     
 o_fwdT(class, phantom, reflection, native, (typename,typename), TNativeInstanceMemberFunction0 )
 o_fwdT(class, phantom, reflection, native, (typename,typename,typename), TNativeInstanceMemberFunction1 )
@@ -139,7 +141,6 @@ o_fwdT(class, phantom, reflection, native, (typename, uint, typename), TNativeIn
 o_fwdT(class, phantom, reflection, native, (int, typename), TNativeSignatureProvider)
 #endif
 
-o_fwdT(class, phantom, serialization, native, (typename), TBundle)
 o_fwdT(class, phantom, state, native, (typename), root_statechart)
 
 #endif // o_phantom_fwd_h__

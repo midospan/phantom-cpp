@@ -37,21 +37,17 @@
 
 
 /* ****************** Includes ******************* */
+#include <phantom/phantom.h>
 /* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "DataStateBase.classdef.h"
-/* **************** Declarations ***************** */
 
 /* *********************************************** */
-o_h_begin
 
-class o_export DataStateBase : public Object
+o_namespace_begin(phantom, serialization)
+
+class o_export DataStateBase 
 {
     friend class Node;
     friend class DataBase;
-    
-    reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________reflection
 
 protected:
     DataStateBase(const string& a_Url, uint a_uiSerializationFlag)
@@ -75,8 +71,15 @@ protected:
     uint    m_uiSerializationFlag;
 };
 
-o_h_end
+o_namespace_end(phantom, serialization)
 
-#else
-#include "DataStateBase.classdef.h"
+o_classN((phantom, serialization), DataStateBase)
+{
+    o_reflection
+    {
+
+    };
+};
+o_exposeN((phantom, serialization), DataStateBase);
+
 #endif // serialization_TDataStateBase_h__

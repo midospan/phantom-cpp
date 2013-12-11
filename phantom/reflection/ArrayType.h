@@ -130,9 +130,9 @@ public:
         *reinterpret_cast<void**>(dest) = ::phantom::lexical_cast<void*>(a_str);
     }
 
-    virtual void        valueToString(string& a_str, void* src) const
+    virtual void        valueToString(string& a_str, const void* src) const
     {
-        a_str += ::phantom::lexical_cast<string>(*reinterpret_cast<void**>(src));;
+        a_str += ::phantom::lexical_cast<string>(*((void**)src));
     }
 
     virtual void        serialize(void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
@@ -217,8 +217,6 @@ public:
     }
 
 
-    virtual serialization::Bundle*  createBundle(serialization::BundleNode* a_pOwnerNode) const;       
-    virtual void                    destroyBundle(serialization::Bundle* a_pBundle) const;
     virtual Type*                   removeArray() const { return m_pStoredType; }
 
     Type*                           createConstType() const;

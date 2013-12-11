@@ -116,9 +116,9 @@ public:
         size_t    m_WrittenBytes;
     };
 
-    Type(const string& a_strName, bitfield a_bfModifiers = bitfield());
-    Type(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers = bitfield());
-    Type(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_bfModifiers = bitfield());
+    Type(const string& a_strName, bitfield a_Modifiers = 0);
+    Type(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0);
+    Type(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers = 0);
     ~Type();
 
     o_forceinline o_initialize() {m_uiBuildOrder = NextBuildOrderValue();}
@@ -194,9 +194,6 @@ public:
     virtual void            reset(void* a_pInstance, byte const*& a_pBuffer) const = 0;
     virtual void            reset(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer) const = 0;
 
-    virtual
-    serialization::Bundle*  createBundle(serialization::BundleNode* a_pOwnerNode) const = 0;
-    virtual void            destroyBundle(serialization::Bundle* a_pBundle) const = 0;
 
     /// Combination
     virtual void*           newInstance() const;
@@ -210,12 +207,9 @@ public:
     virtual ERelation       getRelationWith(Type* a_pType) const;
 
     /// Value and Conversion
-    virtual boolean         isConvertibleTo(Type* a_pType) const;
-    virtual boolean         isImplicitlyConvertibleTo(Type* a_pType) const;
     virtual void            convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;
     virtual boolean         areValueEqual(void const* a_pSrc0, void const* a_pSrc1) const;
 
-    virtual boolean         isDefaultConstructible() const { return true; }
 
     Namespace*              getNamespace() const;
     void                    removeFromNamespace();
@@ -223,19 +217,64 @@ public:
     Type*                   getOwnerType() const;
 
     virtual void            valueFromString(const string& a_str, void* dest) const = 0;
-    virtual void            valueToString( string& s, void* src) const = 0;
+    virtual void            valueToString( string& s, const void* src) const = 0;
     virtual void            interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode = 0) const = 0;
     virtual void            copy(void* a_pDest, void const* a_pSrc) const { o_exception(unsupported_member_function_exception, "not implemented yet"); }
-    virtual void            smartCopy(void* a_pDest, void const* a_pSource, reflection::Type* a_pSourceType) const 
-    {
-        if(a_pSourceType == this)
-        copy(a_pDest, a_pSource);
-    }
+    virtual void            smartCopy(void* a_pDest, void const* a_pSource, reflection::Type* a_pSourceType) const;
+
+    // Traits
+    virtual bool            isConvertibleTo(Type* a_pType) const;
+    virtual bool            isImplicitlyConvertibleTo(Type* a_pType) const;
+    virtual bool            isDefaultConstructible() const { return true; }
+    virtual bool            hasCopy() const { return false; }
+    virtual bool            hasBitAnd() const { return false; }
+    virtual bool            hasBitAndAssign() const { return false; }
+    virtual bool            hasBitOr() const { return false; }
+    virtual bool            hasBitOrAssign() const { return false; }
+    virtual bool            hasBitXor() const { return false; }
+    virtual bool            hasBitXorAssign() const { return false; }
+    virtual bool            hasComplement() const { return false; }
+    virtual bool            hasDereference() const { return false; }
+    virtual bool            hasDivides() const { return false; }
+    virtual bool            hasDividesAssign() const { return false; }
+    virtual bool            hasEqualTo() const { return false; }
+    virtual bool            hasGreater() const { return false; }
+    virtual bool            hasGreaterEqual() const { return false; }
+    virtual bool            hasLeftShift() const { return false; }
+    virtual bool            hasLeftShiftAssign() const { return false; }
+    virtual bool            hasLess() const { return false; }
+    virtual bool            hasLessEqual() const { return false; }
+    virtual bool            hasLogicalAnd() const { return false; }
+    virtual bool            hasLogicalNot() const { return false; }
+    virtual bool            hasLogicalOr() const { return false; }
+    virtual bool            hasMinus() const { return false; }
+    virtual bool            hasMinusAssign() const { return false; }
+    virtual bool            hasModulus() const { return false; }
+    virtual bool            hasModulusAssign() const { return false; }
+    virtual bool            hasMultiplies() const { return false; }
+    virtual bool            hasMultipliesAssign() const { return false; }
+    virtual bool            hasNegate() const { return false; }
+    virtual bool            hasNewOperator() const { return false; }
+    virtual bool            hasNotEqualTo() const { return false; }
+    virtual bool            hasNothrowAssign() const { return false; }
+    virtual bool            hasNothrowConstructor() const { return false; }
+    virtual bool            hasNothrowCopy() const { return false; }
+    virtual bool            hasNothrowCopyConstructor() const { return false; }
+    virtual bool            hasNothrowDefaultConstructor() const { return false; }
+    virtual bool            hasPlus() const { return false; }
+    virtual bool            hasPlusAssign() const { return false; }
+    virtual bool            hasPostDecrement() const { return false; }
+    virtual bool            hasPostIncrement() const { return false; }
+    virtual bool            hasPreDecrement() const { return false; }
+    virtual bool            hasPreIncrement() const { return false; }
+    virtual bool            hasRightShift() const { return false; }
+    virtual bool            hasRightShiftAssign() const { return false; }
+
     virtual bool            hasTrivialCastTo(Type* a_pType) const { return a_pType == this; }
 
     virtual uint            getDataPointerLevel() const { return 0; }
 
-    virtual boolean         matches(const char* a_strName, template_specialization const* a_TemplateSpecialization = NULL, bitfield a_bfModifiers = bitfield()) const;
+    virtual boolean         matches(const char* a_strName, template_specialization const* a_TemplateSpecialization = NULL, bitfield a_Modifiers = 0) const;
 
     size_t                  getNestedTypeCount() const
     {
@@ -255,13 +294,22 @@ public:
     void                    removeNestedTypedef( const string& a_strTypedef, Type* a_pType );
     inline Type*            getNestedTypedef(const string& a_strTypedef) const;
 
+    Type*                   getCommonAncestor(Type* a_pType) const;
+
     virtual LanguageElement*            getElement(
         const char* a_strName
         , template_specialization const*
         , function_signature const*
-        , bitfield a_bfModifiers = bitfield()) const;
+        , bitfield a_Modifiers = 0) const;
 
     virtual void getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr ) const;
+
+    // Operators
+    virtual bool less(const void* a_pLHS, const void* a_pRHS) const 
+    {
+        o_assert(hasLess());
+        return false;
+    }
 
 protected:
     virtual DataPointerType*createDataPointerType() const;

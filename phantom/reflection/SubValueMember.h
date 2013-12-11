@@ -57,10 +57,11 @@ public:
 public:
 
     SubValueMember(const string& a_strName
+    , Range* a_pRange
     , Type*        a_pContentType
     , ValueMember* a_pParentValueMember
     , uint a_uiSubOffset
-    , bitfield a_bfModifiers = bitfield());
+    , bitfield a_Modifiers = 0);
     o_destructor ~SubValueMember(void)     {}
 
     virtual        void        getValue(void const* a_pObject, void* dest) const;

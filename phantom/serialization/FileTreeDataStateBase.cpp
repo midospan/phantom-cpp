@@ -57,5 +57,28 @@ bool FileTreeDataStateBase::hasStateSaved( Node* a_pNode, uint a_uiStateId ) con
     return boost::filesystem::exists(p);
 }
 
+string FileTreeDataStateBase::statePath( Node* a_pNode, uint a_uiStateId ) const
+{
+    Node* pParent = a_pNode->getParentNode();
+    string path = pParent
+        ? statePath(pParent, a_uiStateId) 
+        : getUrl() + "/[" + phantom::lexical_cast<string>(reinterpret_cast<void*>(a_uiStateId)) + "]";
+    path += "/[";
+    path += phantom::lexical_cast<string>(reinterpret_cast<void*>(a_pNode->getGuid()));
+    path += "]";
+    return path;
+}
+
+string FileTreeDataStateBase::dataPath( const phantom::data& a_Data, uint a_uiGuid, Node* a_pNode, uint a_uiStateId ) const
+{
+    string path = statePath(a_pNode, a_uiStateId);
+    path += "/[";
+    path += phantom::lexical_cast<string>(reinterpret_cast<void*>(a_uiGuid));
+    path += "]";
+    return path;
+}
+
+
+
 
 o_namespace_end(phantom, serialization)

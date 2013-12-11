@@ -25,7 +25,7 @@ public:
     {
 
     }
-    IteratorConstant(void const* a_pContainer, ContainerClass* a_pContainerClass, const string& a_strName, bitfield a_modifiers = bitfield())
+    IteratorConstant(void const* a_pContainer, ContainerClass* a_pContainerClass, const string& a_strName, bitfield a_modifiers = 0)
         : Constant(a_strName, a_modifiers)
         , m_pContainer(a_pContainer) 
         , m_pContainerClass(a_pContainerClass) 

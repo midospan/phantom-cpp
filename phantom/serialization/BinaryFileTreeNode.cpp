@@ -171,13 +171,13 @@ void BinaryFileTreeNode::loadDataAttributes(const phantom::data& a_Data, uint gu
 
 }
 
-boolean BinaryFileTreeNode::canLoad(vector<string>& missing_types)
+bool BinaryFileTreeNode::canLoad(vector<string>* missing_types) const
 {
 	byte buffer[1000000];
 	byte* pBuffer = &(buffer[0]);
 	uint uiBufferSize = 0;
     BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);    
-    const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
+    const string& self_path = pDB->nodePath(const_cast<BinaryFileTreeNode*>(this), getGuid(), getParentNode());
     readBinary(self_path+'/'+"index", pBuffer, uiBufferSize);
         
     boolean result = true;
@@ -395,7 +395,7 @@ void BinaryFileTreeNode::unconfigure()
 {
 }
 
-void BinaryFileTreeNode::readBinary(const string& a_strPath, byte* a_pBuffer, uint& a_uiBufferSize)
+void BinaryFileTreeNode::readBinary(const string& a_strPath, byte* a_pBuffer, uint& a_uiBufferSize) const
 {
 	FILE* pFile = fopen(a_strPath.c_str() , "rb");
 	if (pFile != NULL)
@@ -426,14 +426,14 @@ void BinaryFileTreeNode::readBinary(const string& a_strPath, byte* a_pBuffer, ui
 	}*/
 }
 
-void BinaryFileTreeNode::writeBinary(const string& a_strPath, byte* a_pBuffer, uint a_uiBufferSize)
+void BinaryFileTreeNode::writeBinary(const string& a_strPath, const byte* a_pBuffer, uint a_uiBufferSize) const
 {
 	FILE* pFile = fopen(a_strPath.c_str() , "wb");
 	if (pFile != NULL)
 	{
 		for (uint i = 0; i < a_uiBufferSize; i++)
 		{
-			fputc((reinterpret_cast<char*>(a_pBuffer))[i], pFile);
+			fputc((reinterpret_cast<const char*>(a_pBuffer))[i], pFile);
 		}
 		fclose(pFile);
 	}

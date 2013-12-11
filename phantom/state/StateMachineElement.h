@@ -60,7 +60,7 @@ public:
 
     StateMachineElement() {}
     StateMachineElement(const string& a_strName 
-        , bitfield bf = bitfield())
+        , bitfield bf = 0)
         : LanguageElement(a_strName, bf)
     {
 

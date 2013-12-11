@@ -54,8 +54,8 @@ public:
 
 
     TNativeStaticMemberFunction0(){}
-    TNativeStaticMemberFunction0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeStaticMemberFunctionBase<t_Ty>(a_strName, a_pSignature, a_bfModifiers|o_native|o_static), m_member_function_pointer(a_pFunc){}
+    TNativeStaticMemberFunction0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeStaticMemberFunctionBase<t_Ty>(a_strName, a_pSignature, a_Modifiers|o_native|o_static), m_member_function_pointer(a_pFunc){}
 
     virtual void            deleteNow() { o_delete(self_type) this; }
 
@@ -104,8 +104,8 @@ public:
     {
 
     }
-    TNativeStaticMemberFunction0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunctionBase<t_Ty>(a_strName, a_pSignature, a_bfModifiers|o_native|o_static), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunctionBase<t_Ty>(a_strName, a_pSignature, a_Modifiers|o_native|o_static), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -156,8 +156,8 @@ public:
     {
 
     }
-    TNativeStaticMemberFunction1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunctionBase<t_Ty>(a_strName, a_pSignature, a_bfModifiers|o_native|o_static), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunctionBase<t_Ty>(a_strName, a_pSignature, a_Modifiers|o_native|o_static), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -214,8 +214,8 @@ public:
     {
 
     }
-    TNativeStaticMemberFunction1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunctionBase<t_Ty>(a_strName, a_pSignature, a_bfModifiers|o_native|o_static), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunctionBase<t_Ty>(a_strName, a_pSignature, a_Modifiers|o_native|o_static), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -270,8 +270,8 @@ public:
     {
 
     }
-    TNativeStaticMemberFunction2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunctionBase<t_Ty>(a_strName, a_pSignature, a_bfModifiers|o_native|o_static), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunctionBase<t_Ty>(a_strName, a_pSignature, a_Modifiers|o_native|o_static), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -330,8 +330,8 @@ public:
     {
 
     }
-    TNativeStaticMemberFunction2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunctionBase<t_Ty>(a_strName, a_pSignature, a_bfModifiers|o_native|o_static), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunctionBase<t_Ty>(a_strName, a_pSignature, a_Modifiers|o_native|o_static), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -386,8 +386,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
 
 
-    TNativeStaticMemberFunction3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -445,8 +445,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
 
-    TNativeStaticMemberFunction3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -510,8 +510,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
 
-    TNativeStaticMemberFunction4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -577,8 +577,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
 
-    TNativeStaticMemberFunction4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -645,8 +645,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
 
-    TNativeStaticMemberFunction5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -719,8 +719,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
 
-    TNativeStaticMemberFunction5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -794,8 +794,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
 
-    TNativeStaticMemberFunction6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -874,8 +874,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
 
-    TNativeStaticMemberFunction6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -953,8 +953,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
 
-    TNativeStaticMemberFunction7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -1039,8 +1039,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
 
-    TNativeStaticMemberFunction7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -1119,8 +1119,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param7>::type t_Param7_noref;
 
-    TNativeStaticMemberFunction8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -1212,8 +1212,8 @@ public:
 
 
 
-    TNativeStaticMemberFunction8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : InstanceMemberFunction(a_strName,a_pSignature, a_bfModifiers | o_native), m_member_function_pointer(a_pFunc)
+    TNativeStaticMemberFunction8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -1276,8 +1276,8 @@ public:
     typedef TNativeStaticMemberFunction<t_Ty, t_ReturnType()>    self_type;
     typedef t_ReturnType (*member_function_pointer)(void);
 
-    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        : TNativeStaticMemberFunction0<t_Ty,t_ReturnType>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        : TNativeStaticMemberFunction0<t_Ty,t_ReturnType>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1291,8 +1291,8 @@ public:
     typedef TNativeStaticMemberFunction<t_Ty, t_ReturnType(t_Param0)>    self_type;
     typedef t_ReturnType (*member_function_pointer)(t_Param0);
 
-    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunction1<t_Ty,t_ReturnType,t_Param0>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunction1<t_Ty,t_ReturnType,t_Param0>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1306,8 +1306,8 @@ public:
     typedef TNativeStaticMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1)>    self_type;
   typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1);
 
-    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunction2<t_Ty,t_ReturnType,t_Param0,t_Param1>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunction2<t_Ty,t_ReturnType,t_Param0,t_Param1>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1326,8 +1326,8 @@ public:
     typedef TNativeStaticMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2)>    self_type;
   typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1,t_Param2);
 
-    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1348,8 +1348,8 @@ public:
     typedef TNativeStaticMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3)>    self_type;
   typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3);
 
-    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunction4<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunction4<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1370,8 +1370,8 @@ public:
     typedef TNativeStaticMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4)>    self_type;
   typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4);
 
-    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunction5<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunction5<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1393,8 +1393,8 @@ public:
     typedef TNativeStaticMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5)>    self_type;
   typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5);
 
-    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunction6<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunction6<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1417,8 +1417,8 @@ public:
     typedef TNativeStaticMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)>    self_type;
   typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6);
 
-    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunction7<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunction7<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }
@@ -1443,8 +1443,8 @@ public:
     typedef TNativeStaticMemberFunction<t_Ty, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)>    self_type;
   typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7);
 
-    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_bfModifiers = bitfield())
-        :TNativeStaticMemberFunction8<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(a_strName,a_pSignature, a_pFunc , a_bfModifiers | o_native)
+    TNativeStaticMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
+        :TNativeStaticMemberFunction8<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(a_strName,a_pSignature, a_pFunc , a_Modifiers | o_native)
     {
 
     }

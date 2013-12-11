@@ -150,7 +150,7 @@ public:
         const char* a_strQualifiedName
         , template_specialization const*
         , function_signature const*
-        , bitfield a_bfModifiers = bitfield()) const;
+        , bitfield a_Modifiers = 0) const;
 
     virtual void    getElements(vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
 

@@ -52,8 +52,8 @@ public:
     typedef TNativeStaticDataMember<t_Ty, t_ContentType> self_type;
     
 public:
-    TNativeStaticDataMember(const string& a_strName, Type* a_pContentType, t_ContentType* a_member_field_pointer, bitfield a_uiModifiers = bitfield())
-        : StaticDataMember(a_strName, a_pContentType, a_member_field_pointer, a_uiModifiers)
+    TNativeStaticDataMember(const string& a_strName, Type* a_pContentType, t_ContentType* a_member_field_pointer, Range* a_pRange, bitfield a_uiModifiers = 0)
+        : StaticDataMember(a_strName, a_pContentType, a_member_field_pointer, a_pRange, a_uiModifiers)
     {}
     
     virtual void        getValue( void const* a_pObject, void* dest ) const

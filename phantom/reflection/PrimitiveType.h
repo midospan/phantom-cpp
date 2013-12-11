@@ -54,8 +54,8 @@ class o_export PrimitiveType : public Type
     _____________________________________________________________________________________Reflection
 
 public:
-    PrimitiveType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_bfModifiers = bitfield())
-        : Type(a_strName, a_uiSize, a_uiAlignment, a_uiGuid, a_bfModifiers) 
+    PrimitiveType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers = 0)
+        : Type(a_strName, a_uiSize, a_uiAlignment, a_uiGuid, a_Modifiers) 
     {
     }
 

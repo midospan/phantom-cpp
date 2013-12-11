@@ -1,7 +1,7 @@
 #ifndef o_phantom_externals_std_h__
 #define o_phantom_externals_std_h__
 
-#include <phantom/_kernel.noclassdef.h>
+#include <phantom/def_export.h>
 
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 
@@ -74,7 +74,7 @@ o_exposeNT((std), (typename, typename, typename), (t_Elem, t_Traits, t_Ax), basi
 
 // _Pair_base
 o_classNT((std), (typename, typename), (t_First, t_Second), _Pair_base
-    , o_disable_copy * (phantom::has_copy_disabled_cascade<t_First>::value 
+    , o_no_copy * (phantom::has_copy_disabled_cascade<t_First>::value 
     OR phantom::has_copy_disabled<t_Second>::value))
 {
     o_reflection 
@@ -86,13 +86,13 @@ o_classNT((std), (typename, typename), (t_First, t_Second), _Pair_base
 o_exposeNT((std), (typename, typename), (t_First, t_Second), _Pair_base);
 
 // pair
-o_classNT((std), (typename, typename), (t_First, t_Second), pair, o_disable_copy * (phantom::has_copy_disabled_cascade<t_First>::value 
+o_classNT((std), (typename, typename), (t_First, t_Second), pair, o_no_copy * (phantom::has_copy_disabled_cascade<t_First>::value 
     OR phantom::has_copy_disabled<t_Second>::value))
 {
     o_reflection
     {
-        o_data_member(t_First, first, o_public) ;
-        o_data_member(t_Second, second, o_public);
+        o_data_member(t_First, first, o_no_range, o_public) ;
+        o_data_member(t_Second, second, o_no_range, o_public);
     };
 };
 o_exposeNT((std), (typename, typename), (t_First, t_Second), pair);

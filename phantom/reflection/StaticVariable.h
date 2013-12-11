@@ -52,7 +52,7 @@ class o_export StaticVariable : public Variable
     _____________________________________________________________________________________Reflection
 
 public:
-    StaticVariable(const string& a_strName, Type* a_pContentType, void* a_pStaticVariableAddress, bitfield a_bfModifiers = bitfield());
+    StaticVariable(const string& a_strName, Type* a_pContentType, void* a_pStaticVariableAddress, Range* a_pRange, bitfield a_Modifiers = 0);
     o_destructor ~StaticVariable(void)     {}
 
     void*           getAddress() const { return m_pAddress; }

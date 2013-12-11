@@ -56,8 +56,8 @@ public:
     _____________________________________________________________________________________Reflection
 
 public:
-    PureVirtualMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_bfModifiers = 0)
-        : InstanceMemberFunction(a_strName, a_pSignature, a_bfModifiers|o_pure_virtual)
+    PureVirtualMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName, a_pSignature, a_Modifiers|o_pure_virtual)
     {
 
     }

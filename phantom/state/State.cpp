@@ -41,7 +41,7 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
-State::State( const string& a_strName , bitfield modifiers /*= bitfield()*/) 
+State::State( const string& a_strName , bitfield modifiers /*= 0*/) 
     : StateMachineElement(a_strName, modifiers)
     , m_pParentTrack(NULL)
     , m_uiKey(0xffffffff)
@@ -51,7 +51,7 @@ State::State( const string& a_strName , bitfield modifiers /*= bitfield()*/)
 
 }
 
-State::State(const string& a_strName, uint a_uiOrderingFactor, bitfield modifiers /*= bitfield()*/)
+State::State(const string& a_strName, uint a_uiOrderingFactor, bitfield modifiers /*= 0*/)
     : StateMachineElement(a_strName, modifiers)
     , m_pParentTrack(NULL)
     , m_uiOrderingFactor(a_uiOrderingFactor)

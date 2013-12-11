@@ -63,20 +63,8 @@ public:
         _____________________________________________________________________________________Reflection
 public:
 
-    ClassType(const string& a_strName, bitfield a_bfModifiers = bitfield())
-        : Type(a_strName, a_bfModifiers)
-        , m_pTemplateSpecialization(NULL)
-    {
-        m_uiSerializedSize = m_uiResetSize = 0;
-    }
-
-    ClassType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers = bitfield())
-        : Type(a_strName, a_uiSize, a_uiAlignment, a_bfModifiers)
-        , m_pTemplateSpecialization(NULL)
-    {
-        m_uiSerializedSize = m_uiResetSize = 0;
-    }
-
+    ClassType(const string& a_strName, bitfield a_Modifiers = 0);
+    ClassType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0);
     o_destructor ~ClassType(void);
 
     virtual void            destroyContent();
@@ -106,7 +94,7 @@ public:
     virtual void            addStaticMemberFunction(StaticMemberFunction* a_MetaMemberFunction);
 
     Constructor*            getConstructor( const string& a_strIdentifierString ) const;
-    ValueMember*               getValueMember(const string& a_strName) const;
+    ValueMember*            getValueMember(const string& a_strName) const;
     size_t                  getValueMemberCount() const;
     Collection*             getCollection(const string& a_strName) const;
     size_t                  getCollectionCount() const;
@@ -114,12 +102,12 @@ public:
     InstanceDataMember*     getInstanceDataMember(const string& a_strName) const;
     StaticDataMember*       getStaticDataMember(const string& a_strName) const;
     MemberFunction*         getMemberFunction(const string& a_strIdentifierString) const;
-    MemberFunction*         getMemberFunction(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers = bitfield()) const;
+    MemberFunction*         getMemberFunction(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers = 0) const;
     InstanceMemberFunction* getInstanceMemberFunction(const string& a_strIdentifierString) const;
-    InstanceMemberFunction* getInstanceMemberFunction(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers = bitfield()) const;
+    InstanceMemberFunction* getInstanceMemberFunction(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers = 0) const;
     size_t                  getInstanceMemberFunctionCount() const;
     StaticMemberFunction*   getStaticMemberFunction( const string& a_strIdentifierString ) const;
-    StaticMemberFunction*   getStaticMemberFunction( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/ ) const;
+    StaticMemberFunction*   getStaticMemberFunction( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/ ) const;
     size_t                  getStaticMemberFunctionCount() const;
 
     InstanceMemberFunction* getUniqueInstanceMemberFunctionWithName(const string& a_strName) const;
@@ -141,9 +129,9 @@ public:
 
     virtual void            interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode = 0) const;
     virtual void            valueFromString( const string& cs, void* dest ) const;
-    virtual void            valueToString( string& s, void* src ) const;
+    virtual void            valueToString( string& s, const void* src ) const;
 
-    virtual boolean         matches(const char* a_strName, template_specialization const* a_TemplateSpecialization = NULL, bitfield a_bfModifiers = bitfield()) const;
+    virtual boolean         matches(const char* a_strName, template_specialization const* a_TemplateSpecialization = NULL, bitfield a_Modifiers = 0) const;
     virtual void            smartCopy(void* a_Instance, void const* a_pSource, reflection::Type* a_pSourceType) const;
     virtual boolean         isClassType() const { return true; }
 
@@ -151,10 +139,14 @@ public:
         const char* a_strQualifiedName
         , template_specialization const*
         , function_signature const*
-        , bitfield a_bfModifiers = bitfield()) const ;
+        , bitfield a_Modifiers = 0) const ;
 
     virtual void getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
 
+    // Attributes
+    void addAttribute(const string& a_strName, const variant& a_Variant);
+    void removeAttribute( const string& a_strName );
+    const variant& getAttribute(const string& a_strName) const;
 
 protected:
     void                    addMember( LanguageElement* a_pMember );
@@ -174,6 +166,7 @@ protected:
 protected:
     member_collection       m_Members;
     TemplateSpecialization* m_pTemplateSpecialization;
+    void*                   m_pAttributes; // use pimpl to avoid need to include variant type
 
 };
 

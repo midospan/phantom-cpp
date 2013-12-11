@@ -1767,7 +1767,6 @@ struct impl<true, r(arg1,arg2)>                                                 
     call_details>::value;                                                       \
     }; 
 
-
 o_create_has_member_function_0(PHANTOM_CODEGEN_initialize)
 o_create_has_member_function_0(PHANTOM_CODEGEN_terminate)
 o_create_has_member_function_2(PHANTOM_CODEGEN_restore)
@@ -2101,7 +2100,7 @@ struct track_count_cascade_of
 template<typename t_Ty>
 struct has_copy_disabled 
 {
-    static const bool value = ((phantom::meta_specifiers<t_Ty>::value & o_disable_copy) == o_disable_copy) 
+    static const bool value = ((phantom::meta_specifiers<t_Ty>::value & o_no_copy) == o_no_copy) 
         OR (boost::is_const<t_Ty>::value)
         OR (boost::is_void<t_Ty>::value);
 };

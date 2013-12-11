@@ -53,14 +53,14 @@ class o_export TemplateElement : public LanguageElement
 public:
     inline TemplateElement() {}
 
-    inline TemplateElement(const string& a_strName, bitfield a_bfModifiers = bitfield()) 
-        : LanguageElement(a_strName, a_bfModifiers)
+    inline TemplateElement(const string& a_strName, bitfield a_Modifiers = 0) 
+        : LanguageElement(a_strName, a_Modifiers)
     {
 
     }
 
-    inline TemplateElement(const string& a_strName, uint a_uiGuid, bitfield a_bfModifiers = bitfield()) 
-        : LanguageElement(a_strName, a_uiGuid, a_bfModifiers)
+    inline TemplateElement(const string& a_strName, uint a_uiGuid, bitfield a_Modifiers = 0) 
+        : LanguageElement(a_strName, a_uiGuid, a_Modifiers)
     {
 
     }

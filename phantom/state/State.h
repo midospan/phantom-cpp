@@ -59,7 +59,7 @@ protected:
     _____________________________________________________________________________________Reflection
 
 public:
-    State(const string& a_strName, bitfield modifiers = bitfield());
+    State(const string& a_strName, bitfield modifiers = 0);
     o_destructor ~State(void);
 
     void            addTrack(Track* a_pTrack);
@@ -95,7 +95,7 @@ public:
     virtual generic_member_func_ptr   getLeaveGenericMemberFunctionPointer() const = 0;
 
 protected:
-    State(const string& a_strName, uint a_uiOrderingFactor, bitfield modifiers = bitfield());
+    State(const string& a_strName, uint a_uiOrderingFactor, bitfield modifiers = 0);
     
     void            setOrderingFactor(uint a_uiOrderingFactor)
     {

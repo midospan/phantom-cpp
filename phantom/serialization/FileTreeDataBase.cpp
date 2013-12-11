@@ -153,6 +153,11 @@ phantom::string FileTreeDataBase::nodePath( Node* a_pNode, uint a_Guid, Node* a_
     return path;
 }
 
+string FileTreeDataBase::nodePath( Node* a_pNode ) const
+{
+    return nodePath(a_pNode, a_pNode->getGuid(), a_pNode->getParentNode());
+}
+
 phantom::string FileTreeDataBase::dataPath( const phantom::data& a_Data, uint a_Guid, Node* a_pParent ) const
 {
     o_assert(a_Guid != 0xffffffff);
@@ -246,7 +251,7 @@ phantom::uint FileTreeDataBase::generateGuid()
     return c;
 }
 
-void FileTreeDataBase::generateGuidHelper( const boost::filesystem3::path& a_Path, map<uint,uint>& guids )
+void FileTreeDataBase::generateGuidHelper( const boost::filesystem::path& a_Path, map<uint,uint>& guids )
 {
     o_assert(boost::filesystem::is_directory(a_Path));      // is p a directory?
 

@@ -57,7 +57,7 @@ o_signal(kindDestroyed, (void*))
 __________________________________________________________________________________ReflectionCPP
 
 
-Type::Type( const string& a_strName, bitfield a_bfModifiers /*= bitfield()*/ ) : TemplateElement(a_strName, a_bfModifiers)
+Type::Type( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) : TemplateElement(a_strName, a_Modifiers)
 , m_uiSize(0)
 , m_uiSerializedSize(0)
 , m_uiResetSize(0)
@@ -68,7 +68,7 @@ Type::Type( const string& a_strName, bitfield a_bfModifiers /*= bitfield()*/ ) :
 
 }
 
-Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers /*= bitfield()*/ ) : TemplateElement(a_strName, a_bfModifiers)
+Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) : TemplateElement(a_strName, a_Modifiers)
     , m_uiSize(a_uiSize)
     , m_uiAlignment(a_uiAlignment)
     , m_uiSerializedSize(a_uiSize)
@@ -79,7 +79,7 @@ Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitf
 
 }
 
-Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_bfModifiers /*= bitfield()*/ ) : TemplateElement(a_strName, a_uiGuid, a_bfModifiers)
+Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) : TemplateElement(a_strName, a_uiGuid, a_Modifiers)
     , m_uiSize(a_uiSize)
     , m_uiAlignment(a_uiAlignment)
     , m_uiSerializedSize(a_uiSize)
@@ -152,11 +152,11 @@ void Type::deleteInstance(void* a_pInstance) const
     o_dynamic_pool_deallocate(a_pInstance, m_uiSize); 
 }
 
-boolean Type::matches( const char* a_strName, template_specialization const* a_TemplateSpecialization, bitfield a_bfModifiers ) const
+boolean Type::matches( const char* a_strName, template_specialization const* a_TemplateSpecialization, bitfield a_Modifiers ) const
 {
   return (m_strName == a_strName) 
       AND (a_TemplateSpecialization == NULL OR a_TemplateSpecialization->empty())
-      AND m_bfModifiers.matchesMask(a_bfModifiers);
+      AND ((m_Modifiers & a_Modifiers) == a_Modifiers);
 }
 
 Namespace* Type::getNamespace() const
@@ -201,7 +201,7 @@ inline Type* Type::getNestedTypedef( const string& a_strTypedef ) const
     return nullptr;
 }
 
-LanguageElement* Type::getElement( const char* a_strName, template_specialization const* a_pTemplateSpecialization, function_signature const* a_pFunctionSignature, bitfield a_bfModifiers /*= bitfield()*/ ) const
+LanguageElement* Type::getElement( const char* a_strName, template_specialization const* a_pTemplateSpecialization, function_signature const* a_pFunctionSignature, bitfield a_Modifiers /*= 0*/ ) const
 {
     if(m_pNestedTypedefs)  
     {
@@ -214,13 +214,13 @@ LanguageElement* Type::getElement( const char* a_strName, template_specializatio
         vector<Type*>::const_iterator end = m_pNestedTypes->end();
         for(;it != end; ++it)
         {
-            if((*it)->matches(a_strName, a_pTemplateSpecialization, a_bfModifiers))
+            if((*it)->matches(a_strName, a_pTemplateSpecialization, a_Modifiers))
             {
                 return *it;
             }
             else if((*it)->isEnum())
             {
-                LanguageElement* pConstant = (*it)->getElement(a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_bfModifiers);
+                LanguageElement* pConstant = (*it)->getElement(a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers);
                 if(pConstant) return pConstant;
             }
         }
@@ -434,6 +434,72 @@ void                Type::fireKindDestroyed(void* a_pObject) const
             }
         }
     }
+
+    void Type::smartCopy( void* a_pDest, void const* a_pSource, reflection::Type* a_pSourceType ) const
+    {
+        if(a_pSourceType == this)
+            copy(a_pDest, a_pSource);
+    }
+
+    Type* Type::getCommonAncestor( Type* a_pType ) const
+    {
+        o_assert(a_pType);
+        Type* pCommonType = const_cast<Type*>(this);
+        Class::ERelation relationType = this->getRelationWith(a_pType);
+        switch(relationType)
+        {
+        case Class::eRelation_Equal:
+        case Class::eRelation_Parent:
+            {
+                // Keep same type
+            }
+            break;
+        case Class::eRelation_Compatible:
+        case Class::eRelation_GenericContentChild:
+        case Class::eRelation_GenericContentParent:
+            {
+                // Not used
+            }
+            break;
+        case Class::eRelation_Child:
+            {
+                pCommonType = a_pType;
+            }
+            break;
+        default:
+            {
+                pCommonType = NULL;
+
+                Class* class1 = this->asClass();
+                Class* class2 = a_pType->asClass();
+                if (class1 AND class2)
+                {
+                    uint uiSuperClassCount = class1->getSuperClassCount();
+                    if (uiSuperClassCount > 0)
+                    {
+                        for (uint i = 0; i < uiSuperClassCount AND pCommonType == NULL; i++)
+                        {
+                            pCommonType = class1->getSuperClass(i)->getCommonAncestor(a_pType);						
+                        }
+                    }
+
+                    uiSuperClassCount = class2->getSuperClassCount();
+                    if (uiSuperClassCount > 0)
+                    {
+                        for (uint i = 0; i < uiSuperClassCount AND pCommonType == NULL; i++)
+                        {
+                            pCommonType = this->getCommonAncestor(class2->getSuperClass(i));						
+                        }
+                    }
+                }
+            }
+            break;
+        }
+
+        return pCommonType;
+    }
+
+
 
 o_cpp_end
 

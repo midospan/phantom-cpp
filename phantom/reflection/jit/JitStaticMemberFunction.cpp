@@ -33,6 +33,7 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
+#include "phantom/def_jit_internal.h"
 #include "JitStaticMemberFunction.h"
 #include "JitLocalVariable.h"
 #include "JitClass.h"
@@ -42,88 +43,52 @@ o_registerN((phantom, reflection, jit), JitStaticMemberFunction);
 o_namespace_begin(phantom, reflection, jit)
 
 JitStaticMemberFunction::JitStaticMemberFunction( const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers ) : StaticMemberFunction(a_strName, a_pSignature, a_Modifiers) 
-    , m_jit_function(0)
 {
-    m_jit_context = jit_context_create();
-    o_assert(m_jit_context);
-    m_jit_function = jit_function_create(m_jit_context, jit_type_from_phantom_signature(jit_abi_cdecl, getSignature()));
-    o_assert(m_jit_function);
 }
 
 JitStaticMemberFunction::~JitStaticMemberFunction( void )
 {
-    jit_context_destroy(m_jit_context);
 }
 
-jit_context_t JitStaticMemberFunction::getContext() const
+jit_function JitStaticMemberFunction::createJitFunction( jit_context context )
 {
-    return m_jit_context;
+    return jit_function_create((jit_context_t)context.context, toJitSignature(e_JitAbi_stdcall, getSignature()));
 }
 
-void JitStaticMemberFunction::reset()
+void JitStaticMemberFunction::call( void* a_pCallerAddress, argument::list* a_pArgs ) const
 {
-    jit_context_destroy(m_jit_context);
-    m_jit_context = jit_context_create();
-    m_jit_function = jit_function_create(m_jit_context, jit_type_from_phantom_signature(jit_abi_cdecl, getSignature()));
+    o_assert(false, "call version not available with Jit compilation");
 }
 
-void JitStaticMemberFunction::instructionCompilationCallback( jit_insn_t insn, byte* start, byte* end )
-{   
-    if(start == end) return; // empty instruction => skip
-    JitStaticMemberFunction* pCompiledStaticMemberFunction = sm_Compiled[jit_insn_get_function(insn)];
-    o_assert(pCompiledStaticMemberFunction);
-    if(pCompiledStaticMemberFunction->getMemoryStart() == 0) 
-        pCompiledStaticMemberFunction->setMemoryStart(start);
-    pCompiledStaticMemberFunction->setMemoryEnd(end);
-    unsigned short start_line;
-    unsigned short start_column;
-    unsigned short end_line;
-    unsigned short end_column;
-    jit_insn_get_code_location(insn, &start_line, &start_column, &end_line, &end_column);
-    SourceFile* pSourceFile = pCompiledStaticMemberFunction->getCodeLocation().getSourceFile();
-    CodeLocation codeLocation(CodePosition(pSourceFile, start_line, start_column)
-        , CodePosition(pSourceFile, end_line, end_column));
-    pCompiledStaticMemberFunction->addInstruction(new Instruction(jit_insn_get_opcode(insn), codeLocation, MemoryLocation(start, end)));
-}
-
-void JitStaticMemberFunction::startCompilation()
+void JitStaticMemberFunction::call( void* a_pCallerAddress, argument::list* a_pArgs, void* a_pReturnAddress ) const
 {
-    o_assert(!jit_function_is_compiled(m_jit_function));
-    o_assert(sm_Compiled[m_jit_function] == nullptr);
-    sm_Compiled[m_jit_function] = this;
-    jit_function_set_insn_compilation_callback(m_jit_function, &JitStaticMemberFunction::instructionCompilationCallback);
-    jit_function_set_compilation_success_callback(m_jit_function, &JitStaticMemberFunction::compilationSuccessCallback);
-    jit_context_build_start(m_jit_context);
+    o_assert(false, "call version not available with Jit compilation");
 }
 
-void JitStaticMemberFunction::endCompilation()
+void JitStaticMemberFunction::call( void* a_pThis, void** a_ppArgs ) const
 {
-    jit_context_build_end(m_jit_context);
-    jit_function_set_insn_compilation_callback(m_jit_function, nullptr);
-    sm_Compiled.erase(m_jit_function);
+    jit_function_apply((jit_function_t)m_jit_function.function, a_ppArgs, nullptr);
 }
 
-void JitStaticMemberFunction::compilationSuccessCallback(jit_function_t func)
+void JitStaticMemberFunction::call( void* a_pThis, void** a_ppArgs, void* a_pReturnArea ) const
 {
-    JitStaticMemberFunction* pCompiledStaticMemberFunction = sm_Compiled[func];
-    o_assert(pCompiledStaticMemberFunction);
-    vector<LocalVariable*> localVariables;
-    pCompiledStaticMemberFunction->getBlock()->getLocalVariablesCascade(localVariables);
-    for(auto it = localVariables.begin(); it != localVariables.end(); ++it)
-    {
-        JitLocalVariable* pLocalVariable = static_cast<JitLocalVariable*>(*it);
-        pLocalVariable->setupFrame();
-    }
+    jit_function_apply((jit_function_t)m_jit_function.function, a_ppArgs, a_pReturnArea);
 }
 
-void JitStaticMemberFunction::abortCompilation()
+void JitStaticMemberFunction::call( void** args, void* a_pReturnArea ) const
 {
-    jit_function_set_insn_compilation_callback(m_jit_function, nullptr);
-    jit_context_build_end(m_jit_context);
-    jit_function_abandon(m_jit_function);
-    sm_Compiled.erase(m_jit_function);
-    reset();
+    jit_function_apply((jit_function_t)m_jit_function.function, args, a_pReturnArea);
 }
-map<jit_function_t, JitStaticMemberFunction*> JitStaticMemberFunction::sm_Compiled;
+
+void JitStaticMemberFunction::call( void** args ) const
+{
+    jit_function_apply((jit_function_t)m_jit_function.function, args, nullptr);
+}
+
+void* JitStaticMemberFunction::getClosurePointer() const
+{
+    return JitSubroutine::getClosurePointer();
+}
+
 
 o_namespace_end(phantom, reflection, jit)

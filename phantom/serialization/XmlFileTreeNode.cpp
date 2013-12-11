@@ -108,19 +108,6 @@ void XmlFileTreeNode::loadData(uint a_uiSerializationFlag, const phantom::data& 
     loadDataAttributesHelper(attribute_tree, a_Data);
 }
 
-void XmlFileTreeNode::saveData(uint a_uiSerializationFlag)
-{
-    data_vector::iterator it = m_Data.begin();
-    data_vector::iterator end = m_Data.end();
-
-    for(;it != end; ++it)
-    {
-        void* pAddress = it->address();
-        uint guid = m_pOwnerDataBase->getGuid(pAddress);
-        saveData(a_uiSerializationFlag, *it, guid);
-    }
-}
-
 void XmlFileTreeNode::saveIndex()
 {
     property_tree index_tree;
@@ -263,13 +250,13 @@ void XmlFileTreeNode::loadDataAttributes(const phantom::data& a_Data, uint guid)
     }
 }
 
-boolean XmlFileTreeNode::canLoad(vector<string>& missing_types)
+bool XmlFileTreeNode::canLoad(vector<string>* missing_types) const
 {
     property_tree index_tree;
     
     XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
     
-    const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
+    const string& self_path = pDB->nodePath(const_cast<XmlFileTreeNode*>(this), getGuid(), getParentNode());
     boost::property_tree_custom::read_xml(self_path+'/'+"index", index_tree);
     
     if(index_tree.empty()) return true;
@@ -287,7 +274,7 @@ boolean XmlFileTreeNode::canLoad(vector<string>& missing_types)
         reflection::Type* pType = m_pOwnerDataBase->solveTypeByName(typeName);
         if(pType == NULL)
         {
-            missing_types.push_back(typeName);
+            if(missing_types) missing_types->push_back(typeName);
             result = false;
         }
     }
@@ -336,7 +323,10 @@ void XmlFileTreeNode::cache()
             case DataBase::e_ActionOnMissingType_NotifyAndDestroyData:
                 continue;
             case DataBase::e_ActionOnMissingType_Exception:
-                o_exception(phantom::exception::unknown_reflection_type_exception, sub_tree.get<string>("typename").c_str());
+                {
+                    string message = sub_tree.get<string>("typename");
+                    o_exception(phantom::exception::unknown_reflection_type_exception, message);
+                }
             }
         }
 

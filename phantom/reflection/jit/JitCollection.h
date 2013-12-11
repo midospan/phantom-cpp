@@ -27,13 +27,6 @@ public:
         , bitfield a_Modifiers);
     ~JitCollection(void);
 
-    jit_function_t  getAddJitFunction() const { return m_add_jit_function; }
-    jit_function_t  getRemoveJitFunction() const { return m_remove_jit_function; }
-    jit_function_t  getMoveJitFunction() const { return m_move_jit_function; }
-    jit_function_t  getSetJitFunction() const { return m_set_jit_function; }
-    jit_function_t  getGetJitFunction() const { return m_get_jit_function; }
-    jit_function_t  getSizeJitFunction() const { return m_size_jit_function; }
-
     virtual void    addElement( void* a_pObject, const void* src ) const;
     virtual void    removeElement( void* a_pObject, const void* src ) const;
     virtual void    setElement( void* a_pObject, size_t index, const void* src ) const;
@@ -49,12 +42,6 @@ protected:
     JitInstanceMemberFunction*  m_pMover;
     JitInstanceMemberFunction*  m_pGetter;
     JitInstanceMemberFunction*  m_pSizeGetter;
-    jit_function_t      m_add_jit_function;
-    jit_function_t      m_remove_jit_function;
-    jit_function_t      m_move_jit_function;
-    jit_function_t      m_set_jit_function;
-    jit_function_t      m_get_jit_function;
-    jit_function_t      m_size_jit_function;
 
 };
 

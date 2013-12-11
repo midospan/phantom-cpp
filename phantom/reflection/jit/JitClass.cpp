@@ -49,7 +49,8 @@ o_registerN((phantom, reflection, jit), JitClass);
 
 o_namespace_begin(phantom, reflection, jit)
 
-JitClass::JitClass( const string& a_strName, bitfield a_bfModifiers /*= bitfield()*/ ) : Class(a_strName, 0, 0, a_bfModifiers)
+JitClass::JitClass( const string& a_strName, bitfield a_bfModifiers /*= bitfield()*/ ) 
+    : Class(a_strName, 0, 0, a_bfModifiers)
     , m_uiDataMemberMemoryOffset(0)
     , m_uiDataTypeCount(0)
     , m_AlignmentComputer(0)
@@ -59,6 +60,9 @@ JitClass::JitClass( const string& a_strName, bitfield a_bfModifiers /*= bitfield
     , m_bHasVTablePtr(true)
     , m_bHasStateMachineDataPtr(true)
     , m_uiStateMachineDataPtrOffset(0xffffffff)
+    , m_pInitializeMemberFunction(nullptr)
+    , m_pRestoreMemberFunction(nullptr)
+    , m_pTerminateMemberFunction(nullptr)
 {
 }
 
@@ -304,13 +308,13 @@ void JitClass::construct( void* a_pObject ) const
                             else
                             {
                                 pMemberFunction->setVirtualTableIndex(pOverloaded->getVirtualTableIndex());
-                                pMemberFunction->compile_vtable_indirection_function();
+                                pMemberFunction->compileVTableIndirectionFunction();
                             }
                         }
                         if(needToAddToTheFirstVtable)
                         {
                             pMemberFunction->setVirtualTableIndex(virtualMemberFunctionIndexAcc++);
-                            pMemberFunction->compile_vtable_indirection_function();
+                            pMemberFunction->compileVTableIndirectionFunction();
                             virtualMemberFunctionCallAddresses.push_back(pMemberFunction->getVTablePointer(0));
                         }
                     }
@@ -381,7 +385,7 @@ void JitClass::construct( void* a_pObject ) const
                             if(uiSuperClassOffset == 0)
                             {
                                 pMemberFunction->setVirtualTableIndex(vtable_index);
-                                pMemberFunction->compile_vtable_indirection_function();
+                                pMemberFunction->compileVTableIndirectionFunction();
                             }
                             virtualMemberFunctionCallAddresses.resize(std::max(virtualMemberFunctionCallAddresses.size(), size_t(vtable_index+1)));
                             virtualMemberFunctionCallAddresses[vtable_index] = pMemberFunction->getVTablePointer(uiSuperClassOffset);
@@ -413,7 +417,7 @@ void JitClass::construct( void* a_pObject ) const
                 if(pMemberFunction->isVirtual())
                 {
                     pMemberFunction->setVirtualTableIndex(virtualMemberFunctionCallAddresses.size());
-                    pMemberFunction->compile_vtable_indirection_function();
+                    pMemberFunction->compileVTableIndirectionFunction();
                     virtualMemberFunctionCallAddresses.push_back(pMemberFunction->getVTablePointer(0));
                 }
             }
@@ -700,18 +704,43 @@ void JitClass::deserializeLayout( void* a_pInstance, const property_tree& a_InBr
 
 phantom::restore_state JitClass::restore( void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass ) const
 {
-    restore_state rs = restore_complete;
+    restore_state result = restore_complete;
     super_class_table::const_iterator it = superClassBegin();
     super_class_table::const_iterator end = superClassEnd();
     for(; it != end; ++it)
     {
-        rs = combine_restore_states(rs, it->m_pClass->restore(((byte*)a_pInstance)+it->m_uiOffset, a_uiSerializationFlag, a_uiPass));
+        result = combine_restore_states(result, it->m_pClass->restore(((byte*)a_pInstance)+it->m_uiOffset, a_uiSerializationFlag, a_uiPass));
     }
-    if(rs == restore_complete AND m_bHasStateMachineDataPtr)
+    if(result == restore_complete AND m_bHasStateMachineDataPtr)
     {
         m_pStateMachine->initialize(a_pInstance);
     }
-    return rs;
+    if(m_pRestoreMemberFunction)
+    {
+        if(NOT(m_pRestoreMemberFunction->isCompiled()))
+        {
+            // Finalize restore function by inserting this code ...
+            // return (pass >= 1) ? phantom::restore_complete : phantom::restore_incomplete;
+            m_pRestoreMemberFunction->startCompilation();
+            jit_value pass_value = m_pRestoreMemberFunction->getParameter(1);
+            jit_label if_label;
+            m_pRestoreMemberFunction->branchIf(m_pRestoreMemberFunction->lt(pass_value, m_pRestoreMemberFunction->createUIntConstant(1)), &if_label);
+            m_pRestoreMemberFunction->returnValue(m_pRestoreMemberFunction->createUIntConstant(phantom::restore_complete));
+            m_pRestoreMemberFunction->label(&if_label);
+            m_pRestoreMemberFunction->returnValue(m_pRestoreMemberFunction->createUIntConstant(phantom::restore_incomplete));
+
+            // ...and of course by compiling it
+            m_pRestoreMemberFunction->endCompilation();
+        }
+
+        void* args[3] = {&a_pInstance, &a_uiSerializationFlag, &a_uiPass};
+
+        phantom::restore_state func_result = phantom::restore_complete;
+        m_pRestoreMemberFunction->call(args, &func_result);
+
+        result = combine_restore_states(result, func_result);
+    }
+    return result;
 }
 
 void JitClass::startCompilation()
@@ -822,10 +851,33 @@ void JitClass::initialize( void* a_pInstance ) const
     {
         m_pStateMachine->initialize(a_pInstance);
     }
+
+    if(m_pInitializeMemberFunction)
+    {
+        if(NOT(m_pInitializeMemberFunction->isCompiled()))
+        {
+            // ...and of course by compiling it
+            m_pInitializeMemberFunction->startCompilation();
+            m_pInitializeMemberFunction->endCompilation();
+            void* args[1] = {&a_pInstance};
+            m_pInitializeMemberFunction->call(args, nullptr);
+        }
+    }
 }
 
 void JitClass::terminate( void* a_pInstance ) const
 {
+    if(m_pTerminateMemberFunction)
+    {
+        if(NOT(m_pTerminateMemberFunction->isCompiled()))
+        {
+            // ...and of course by compiling it
+            m_pTerminateMemberFunction->startCompilation();
+            m_pTerminateMemberFunction->endCompilation();
+            void* args[1] = {&a_pInstance};
+            m_pTerminateMemberFunction->call(args, nullptr);
+        }
+    }
     if(m_bHasStateMachineDataPtr)
     {
         m_pStateMachine->terminate(a_pInstance);
@@ -836,6 +888,37 @@ void JitClass::terminate( void* a_pInstance ) const
     {
         it->m_pClass->terminate((byte*)a_pInstance+it->m_uiOffset);
     }
+}
+JitInstanceMemberFunction* JitClass::addInitializeMemberFunction()
+{
+    o_assert(m_pInitializeMemberFunction == nullptr);
+    Signature* pSignature = o_new(Signature);
+    pSignature->setReturnType(phantom::typeOf<void>());
+    m_pInitializeMemberFunction = o_new(JitInstanceMemberFunction)("PHANTOM_CODEGEN_initialize", pSignature, o_protected);
+    addInstanceMemberFunction(m_pInitializeMemberFunction);
+    return m_pInitializeMemberFunction;
+}
+
+JitInstanceMemberFunction* JitClass::addTerminateMemberFunction()
+{
+    o_assert(m_pTerminateMemberFunction == nullptr);
+    Signature* pSignature = o_new(Signature);
+    pSignature->setReturnType(phantom::typeOf<void>());
+    m_pTerminateMemberFunction = o_new(JitInstanceMemberFunction)("PHANTOM_CODEGEN_terminate", pSignature, o_protected);
+    addInstanceMemberFunction(m_pTerminateMemberFunction);
+    return m_pTerminateMemberFunction;
+}
+
+JitInstanceMemberFunction* JitClass::addRestoreMemberFunction()
+{
+    o_assert(m_pRestoreMemberFunction == nullptr);
+    Signature* pSignature = o_new(Signature);
+    pSignature->setReturnType(phantom::typeOf<uint>());
+    pSignature->addParameterType(phantom::typeOf<uint>());
+    pSignature->addParameterType(phantom::typeOf<uint>());
+    m_pRestoreMemberFunction = o_new(JitInstanceMemberFunction)("PHANTOM_CODEGEN_restore", pSignature, o_protected);
+    addInstanceMemberFunction(m_pRestoreMemberFunction);
+    return m_pRestoreMemberFunction;
 }
 
 o_namespace_end(phantom, reflection, jit)

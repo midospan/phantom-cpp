@@ -47,8 +47,8 @@ template<typename t_Class>
 class TNativeStaticMemberFunctionBase : public StaticMemberFunction
 {
 public:
-    TNativeStaticMemberFunctionBase(const string& a_strName, Signature* a_pSignature, bitfield a_bfModifiers = bitfield())
-        : StaticMemberFunction(a_strName, a_pSignature, a_bfModifiers)
+    TNativeStaticMemberFunctionBase(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : StaticMemberFunction(a_strName, a_pSignature, a_Modifiers)
     {
 
     }

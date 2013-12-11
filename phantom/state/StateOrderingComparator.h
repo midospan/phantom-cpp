@@ -38,9 +38,6 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/util/Comparator.h>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "phantom/_kernel.noclassdef.h"
 /* **************** Declarations ***************** */
 o_declare(class, phantom, util, Comparator)
 /* *********************************************** */

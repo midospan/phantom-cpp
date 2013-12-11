@@ -51,12 +51,14 @@ class o_export DataMember : public Member
     _____________________________________________________________________________________Reflection
 
 public:
+    virtual Range*              getRange() const = 0;
     virtual Type*               getValueType() const = 0;
-    virtual    void             getValue(void const* a_pObject, void* dest) const = 0;
-    virtual    void             setValue(void* a_pObject, void const* src) const = 0;
+    virtual void                getValue(void const* a_pObject, void* dest) const = 0;
+    virtual void                setValue(void* a_pObject, void const* src) const = 0;
     virtual LanguageElement*    asLanguageElement() const  = 0;
-    virtual InstanceDataMember*  asInstanceDataMember() const  = 0;
-    virtual StaticDataMember*    asStaticDataMember() const  = 0;
+    virtual InstanceDataMember* asInstanceDataMember() const  = 0;
+    virtual StaticDataMember*   asStaticDataMember() const  = 0;
+    
 };
 o_h_end
 

@@ -124,6 +124,125 @@ inline phantom::string lexical_cast<phantom::string, unsigned char>(const unsign
     return phantom::lexical_cast<phantom::string>((unsigned int)arg);
 }
 
+template<>
+inline void* lexical_cast<void*, phantom::string>(const phantom::string &arg)
+{
+    void* ptr;
+    sscanf(arg.c_str(), "%X", &ptr);
+    return ptr;
+}
+
+typedef void* msvc_bug_lexical_cast_void_ptr; // WTF ??? why do i need this typedef to make the specialization work ? o‘
+template<>
+inline phantom::string lexical_cast<phantom::string, msvc_bug_lexical_cast_void_ptr>(const msvc_bug_lexical_cast_void_ptr& arg)
+{
+    char buffer[32] = "";
+    sprintf(buffer, "%08X", (size_t)arg);
+    return buffer;
+}
+
+template<typename t_Ty, bool is_class, bool is_enum>
+struct string_converter_helper
+{
+    static void to(const reflection::Type* a_pType, string& a_strOut, const t_Ty* a_pSrc)
+    {
+        a_strOut = phantom::lexical_cast<string>(*a_pSrc);
+    }
+    static void from(const reflection::Type* a_pType, const string& input, t_Ty* a_pDest)
+    {
+        *a_pDest = phantom::lexical_cast<t_Ty>(input);
+    }
+};
+
+template<typename t_Ty>
+struct string_converter : public string_converter_helper<t_Ty, boost::is_class<t_Ty>::value, boost::is_enum<t_Ty>::value>
+{
+
+};
+
+template<>
+struct string_converter<void>
+{
+    static void to(const reflection::Type* a_pType, string& a_strOut, const void* a_pSrc)
+    {
+    }
+    static void from(const reflection::Type* a_pType, const string& a_strIn, void* a_pDest)
+    {
+    }
+};
+
+template<>
+struct string_converter<char>
+{
+    static void to(const reflection::Type* a_pType, string& a_strOut, const char* a_pSrc)
+    {
+        a_strOut += *a_pSrc;
+    }
+    static void from(const reflection::Type* a_pType, const string& a_strIn, char* a_pDest)
+    {
+        *a_pDest = a_strIn[0];
+    }
+};
+
+template<>
+struct string_converter<bool>
+{
+    static void to(const reflection::Type* a_pType, string& a_strOut, const bool* a_pSrc)
+    {
+        a_strOut = *a_pSrc ? "true" : "false";
+    }
+    static void from(const reflection::Type* a_pType, const string& a_strIn, bool* a_pDest)
+    {
+        if(a_strIn == "true")
+        {
+            *a_pDest = true;
+        }
+        else 
+        {
+            *a_pDest = false;
+        }
+    }
+};
+
+template<>
+struct string_converter<wchar_t>
+{
+    static void to(const reflection::Type* a_pType, string& a_strOut, const wchar_t* a_pSrc)
+    {
+        a_strOut += *((const char*)a_pSrc);
+        a_strOut += *(((const char*)a_pSrc)+1);
+    }
+    static void from(const reflection::Type* a_pType, const string& a_strIn, wchar_t* a_pDest)
+    {
+        *((char*)a_pDest) = a_strIn[0];
+        *(((char*)a_pDest)+1) = a_strIn[1];
+    }
+};
+
+template<>
+struct string_converter<signal_t>
+{
+    static void to(const reflection::Type* a_pType, string& a_strOut, const signal_t* a_pSrc)
+    {
+    }
+    static void from(const reflection::Type* a_pType, const string& a_strIn, signal_t* a_pDest)
+    {
+    }
+};
+
+template<>
+struct string_converter<string>
+{
+    static void to(const reflection::Type* a_pType, string& a_strOut, const string* a_pSrc)
+    {
+        a_strOut = *a_pSrc;
+    }
+    static void from(const reflection::Type* a_pType, const string& a_strIn, string* a_pDest)
+    {
+        *a_pDest = a_strIn;
+    }
+};
+
 o_forceinline restore_state   combine_restore_states(restore_state s0, restore_state s1)
 {
     return s0 > s1 ? s0 : s1;
@@ -1275,7 +1394,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
         void* ptr_base = rttiData.base;
         // save the offset from the base address to restore the correct inheritance layout address later
         size_t offset = reinterpret_cast<size_t>(ptr)-reinterpret_cast<size_t>(ptr_base);
-        uint guid = a_pDataBase->getGuid(ptr_base);
+        uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : (uint)ptr_base;
         *reinterpret_cast<uint*>(a_pOutBuffer) = guid;
         a_pOutBuffer += sizeof(uint);
         *reinterpret_cast<size_t*>(a_pOutBuffer) = offset;
@@ -1355,7 +1474,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
         }
         else 
         {
-            *reinterpret_cast<void**>(a_pInstance) = reinterpret_cast<byte*>(a_pDataBase->getDataAddress(guid))+offset; // restore the correct layout
+            *reinterpret_cast<void**>(a_pInstance) = reinterpret_cast<byte*>(a_pDataBase ? a_pDataBase->getDataAddress(guid) : (void*)guid)+offset; // restore the correct layout
         }
     }
 
@@ -1366,7 +1485,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
         o_assert(ptr == nullptr OR NOT(rttiData.isNull()));
         void* ptr_base = rttiData.base;
         size_t offset = reinterpret_cast<size_t>(ptr)-reinterpret_cast<size_t>(ptr_base);
-        uint guid = a_pDataBase->getGuid(ptr_base);
+        uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : (uint)ptr_base;
         a_OutBranch.put<string>("guid", phantom::lexical_cast<string>(guid));
         a_OutBranch.put<string>("offset", phantom::lexical_cast<string>(offset));
         if((guid == 0xffffffff) AND (ptr_base != NULL))
@@ -1389,7 +1508,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
             boost::optional<string> typeName_opt = a_InBranch.get_optional<string>("type"); 
             if(typeName_opt.is_initialized())
             {
-                reflection::Type* pType = a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(*typeName_opt));
+                reflection::Type* pType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(*typeName_opt)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(*typeName_opt));
                 o_assert(pType AND pType->isClass(), "The class associated with the given serialized data cannot be found, "
                     "ensure all the class are registered correctly before deserializing data");
                 reflection::Class* pClass = static_cast<reflection::Class*>(pType);
@@ -1425,7 +1544,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
         }
         else 
         {
-            *reinterpret_cast<void**>(a_pInstance) = reinterpret_cast<byte*>(a_pDataBase->getDataAddress(guid))+offset;
+            *reinterpret_cast<void**>(a_pInstance) = reinterpret_cast<byte*>(a_pDataBase ? a_pDataBase->getDataAddress(guid) : (void*)guid)+offset;
         }
     }
 
@@ -1440,7 +1559,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
             void* ptr_base = rttiData.base;
             // save the offset from the base address to restore the correct inheritance layout address later
             size_t offset = reinterpret_cast<size_t>(ptr)-reinterpret_cast<size_t>(ptr_base);
-            uint guid = a_pDataBase->getGuid(ptr_base);
+            uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : (uint)ptr_base;
             *reinterpret_cast<uint*>(a_pOutBuffer) = guid; // TODO : little/big endian managment
             a_pOutBuffer += sizeof(uint);
             *reinterpret_cast<size_t*>(a_pOutBuffer) = offset; // TODO : little/big endian managment
@@ -1526,7 +1645,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
             }
             else
             {
-                *reinterpret_cast<void**>(pChunk) = reinterpret_cast<byte*>(a_pDataBase->getDataAddress(guid))+offset; // TODO : little/big endian managment
+                *reinterpret_cast<void**>(pChunk) = reinterpret_cast<byte*>(a_pDataBase ? a_pDataBase->getDataAddress(guid) : (void*)guid)+offset; // TODO : little/big endian managment
             }
             pChunk += a_uiChunkSectionSize;
         }
@@ -1544,7 +1663,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
             const rtti_data& rttiData = phantom::rttiDataOf(ptr);
             o_assert(ptr == nullptr OR NOT(rttiData.isNull()));
             void* ptr_base = rttiData.base;
-            uint guid = a_pDataBase->getGuid(ptr_base);
+            uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : (uint)ptr_base;
             // save the offset from the base address to restore the correct inheritance layout address later
             size_t offset = reinterpret_cast<size_t>(ptr)-reinterpret_cast<size_t>(ptr_base);
             property_tree index_tree;
@@ -1584,7 +1703,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
                     if(typeName_opt.is_initialized())
                     {
                         const string& typeName = *typeName_opt;
-                        reflection::Type* pType = a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
+                        reflection::Type* pType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
                         o_assert(pType AND pType->isClass(), "The class associated with the given serialized data cannot be found, "
                             "ensure all the class are registered correctly before deserializing data");
                         reflection::Class* pClass = static_cast<reflection::Class*>(pType);
@@ -1613,12 +1732,12 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
                     }
                     else
                     {
-                        *reinterpret_cast<void**>(pChunk) = reinterpret_cast<byte*>(a_pDataBase->getDataAddress(guid))+offset;
+                        *reinterpret_cast<void**>(pChunk) = reinterpret_cast<byte*>(a_pDataBase ? a_pDataBase->getDataAddress(guid) : (void*)guid)+offset;
                     }
                 }
                 else
                 {
-                    *reinterpret_cast<void**>(pChunk) = reinterpret_cast<byte*>(a_pDataBase->getDataAddress(guid))+offset;
+                    *reinterpret_cast<void**>(pChunk) = reinterpret_cast<byte*>(a_pDataBase ? a_pDataBase->getDataAddress(guid) : (void*)guid)+offset;
                 }
             }
             pChunk += a_uiChunkSectionSize;
@@ -2021,7 +2140,7 @@ public:
             // The test below could seem dirty but it's useful to deserialize typedefs or placeholder types 
             // which goal is to point to a type without having the same representation name (ex: my_vector2 could point to phantom::math::vector2<float>)
             // It's also useful is you have a type versionning (a script class rebuilt with a different name but you still want to deserialize from the older type name
-            reflection::Type* solvedType = a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first));
+            reflection::Type* solvedType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first));
             if(solvedType AND (solvedType->getQualifiedDecoratedName() == qualifiedDecoratedTypeNameOf<t_Ty>()))
             {
                 deserializeLayout(a_pInstance, it->second, a_uiSerializationMask, a_pDataBase);
@@ -2045,7 +2164,7 @@ public:
             // The test below could seem dirty but it's useful to deserialize typedefs or placeholder types 
             // which goal is to point to a type without having the same representation name (ex: my_vector2 could point to phantom::math::vector2<float>)
             // It's also useful is you have a type versionning (a script class rebuilt with a different name but you still want to deserialize from the older type name
-            reflection::Type* solvedType = a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first));
+            reflection::Type* solvedType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first));
             if(solvedType AND (solvedType->getQualifiedDecoratedName() == qualifiedDecoratedTypeNameOf<t_Ty>()))
             {
                 deserializeLayout(a_pChunk, a_uiCount, a_uiChunkSectionSize, it->second, a_uiSerializationMask, a_pDataBase);
@@ -2594,6 +2713,7 @@ struct allocator_ : public allocator_inheritance_helper<
 template<>
 struct allocator_<void>
 {
+//#pragma message(o_PP_QUOTE(o_exception(unsupported_member_function_exception)))
     o_forceinline static void* allocate() { o_exception(unsupported_member_function_exception); return NULL;  }
     o_forceinline static void deallocate(void* a_pInstance) { o_exception(unsupported_member_function_exception); }
     o_forceinline static void* allocate(size_t a_uiCount) { o_exception(unsupported_member_function_exception); return NULL; }
@@ -2916,7 +3036,7 @@ struct default_copier_helper <t_Ty, default_copier_forbidden>
 {
     static void copy(t_Ty* a_pDest, t_Ty const* a_pSrc)
     {
-        o_exception(exception::unsupported_member_function_exception, "copy forbidden for the given type, remove an eventual 'o_disable_copy' meta specifier to enable this member_function for your class");
+        o_exception(exception::unsupported_member_function_exception, "copy forbidden for the given type, remove an eventual 'o_no_copy' meta specifier to enable this member_function for your class");
     }
 };
 

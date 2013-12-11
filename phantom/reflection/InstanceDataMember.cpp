@@ -42,8 +42,8 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
-InstanceDataMember::InstanceDataMember( const string& a_strName, Type* a_pContentType, uint a_uiSerializationMask, bitfield a_bfModifiers /*= bitfield()*/ )
-: ValueMember(a_strName, a_uiSerializationMask, a_bfModifiers)
+InstanceDataMember::InstanceDataMember( const string& a_strName, Type* a_pContentType, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ )
+: ValueMember(a_strName, a_pRange, a_uiSerializationMask, a_Modifiers)
 , m_pContentType(a_pContentType)
 {
     

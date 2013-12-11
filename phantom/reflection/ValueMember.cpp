@@ -41,9 +41,10 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
-ValueMember::ValueMember( const string& a_strName, uint a_uiSerializationMask, bitfield a_bfModifiers /*= bitfield()*/ ) 
-: LanguageElement(a_strName, a_bfModifiers)
+ValueMember::ValueMember( const string& a_strName, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ ) 
+: LanguageElement(a_strName, a_Modifiers)
 , m_uiSerializationMask(a_uiSerializationMask)
+, m_pRange(a_pRange)
 {
 
 }

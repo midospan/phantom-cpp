@@ -52,16 +52,6 @@ boolean DataPointerType::isConvertibleTo( Type* a_pType ) const
         OR static_cast<Class*>(pPointedType)->isKindOf(static_cast<Class*>(m_pPointedType));
 }
 
-serialization::Bundle* DataPointerType::createBundle( serialization::BundleNode* a_pOwnerNode ) const
-{
-    return o_new(serialization::native::TBundle<void*>)(a_pOwnerNode);
-}
-
-void DataPointerType::destroyBundle( serialization::Bundle* a_pBundle ) const
-{
-    o_delete(serialization::native::TBundle<void*>) a_pBundle;
-}
-
 Type* DataPointerType::createConstType() const
 {
     return o_new(ConstDataPointerType)(const_cast<DataPointerType*>(this));
@@ -153,7 +143,7 @@ void        DataPointerType::serialize(void const* a_pInstance, byte*& a_pOutBuf
     void* ptr_base = rttiData.base;
     // save the offset from the base address to restore the correct inheritance layout address later
     size_t offset = reinterpret_cast<size_t>(ptr)-reinterpret_cast<size_t>(ptr_base);
-    uint guid = a_pDataBase->getGuid(ptr_base);
+    uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : (uint)ptr_base;
     *reinterpret_cast<uint*>(a_pOutBuffer) = guid;
     a_pOutBuffer += sizeof(uint);
     *reinterpret_cast<size_t*>(a_pOutBuffer) = offset;
@@ -233,8 +223,8 @@ void        DataPointerType::deserialize(void* a_pInstance, byte const*& a_pInBu
     }
     else 
     {
-        o_assert(a_pDataBase->getDataType(guid)->isKindOf(m_pPointedType)); // in binary mode we assert this (type not supposed to change between serialization and deserialization
-        *reinterpret_cast<void**>(a_pInstance) = reinterpret_cast<byte*>( a_pDataBase->getDataAddress(guid) )+offset; // restore the correct layout
+        o_assert(a_pDataBase == nullptr || a_pDataBase->getDataType(guid)->isKindOf(m_pPointedType)); // in binary mode we assert this (type not supposed to change between serialization and deserialization
+        *reinterpret_cast<void**>(a_pInstance) = reinterpret_cast<byte*>( a_pDataBase ? a_pDataBase->getDataAddress(guid) : (void*)guid )+offset; // restore the correct layout
     }
     
 }
@@ -245,7 +235,7 @@ void DataPointerType::serialize( void const* a_pInstance, property_tree& a_OutBr
     const rtti_data& rttiData = phantom::rttiDataOf(ptr);
     o_assert(ptr == nullptr OR NOT(rttiData.isNull()));
     void* ptr_base = rttiData.base;
-    uint guid = a_pDataBase->getGuid(ptr_base);
+    uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : (uint)ptr_base;
     a_OutBranch.put<string>("guid", phantom::lexical_cast<string>(guid));
     if((guid == 0xffffffff) AND (ptr_base != NULL))
     {
@@ -266,7 +256,7 @@ void DataPointerType::deserialize( void* a_pInstance, const property_tree& a_InB
         if(typeName_opt.is_initialized())
         {
             const string& typeName = *typeName_opt;
-            reflection::Type* pType = a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
+            reflection::Type* pType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
             o_assert(pType AND pType->isClass(), "The class associated with the given serialized data cannot be found, "
                 "ensure all the class are registered correctly before deserializing data");
             reflection::Class* pClass = static_cast<reflection::Class*>(pType);
@@ -302,7 +292,7 @@ void DataPointerType::deserialize( void* a_pInstance, const property_tree& a_InB
     }
     else 
     {
-		phantom::data d = a_pDataBase->getData(guid);
+		phantom::data d = a_pDataBase ? a_pDataBase->getData(guid) : phantom::data((void*)guid);
 		if (NOT(d.isNull()))
 		{
 			*reinterpret_cast<void**>(a_pInstance) = d.cast(m_pPointedType).address();
@@ -325,7 +315,7 @@ void        DataPointerType::serialize(void const* a_pChunk, size_t a_uiCount, s
         void* ptr_base = rttiData.base;
         // save the offset from the base address to restore the correct inheritance layout address later
         size_t offset = reinterpret_cast<size_t>(ptr)-reinterpret_cast<size_t>(ptr_base);
-        uint guid = a_pDataBase->getGuid(ptr_base);
+        uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : (uint)ptr_base;
         *reinterpret_cast<uint*>(a_pOutBuffer) = guid; // TODO : little/big endian managment
         a_pOutBuffer += sizeof(uint);
         *reinterpret_cast<size_t*>(a_pOutBuffer) = offset; // TODO : little/big endian managment
@@ -411,8 +401,8 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
         }
         else
         {
-            o_assert(a_pDataBase->getDataType(guid)->isKindOf(m_pPointedType));
-            *reinterpret_cast<void**>(pChunk) = reinterpret_cast<byte*>(a_pDataBase->getDataAddress(guid))+offset; // TODO : little/big endian managment
+            o_assert(a_pDataBase == nullptr || a_pDataBase->getDataType(guid)->isKindOf(m_pPointedType));
+            *reinterpret_cast<void**>(pChunk) = reinterpret_cast<byte*>(a_pDataBase ? a_pDataBase->getDataAddress(guid) : (void*)guid)+offset; // TODO : little/big endian managment
         }
         pChunk += a_uiChunkSectionSize;
     }
@@ -430,7 +420,7 @@ void        DataPointerType::serialize(void const* a_pChunk, size_t a_uiCount, s
         const rtti_data& rttiData = phantom::rttiDataOf(ptr);
         o_assert(ptr == nullptr OR NOT(rttiData.isNull()));
         void* ptr_base = rttiData.base;
-        uint guid = a_pDataBase->getGuid(ptr_base);
+        uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : (uint)ptr_base;
         property_tree index_tree;
         index_tree.put<string>("guid", phantom::lexical_cast<string>(guid));
         if((guid == 0xffffffff) AND (ptr_base != NULL))
@@ -465,7 +455,7 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
                 if(typeName_opt.is_initialized())
                 {
                     const string& typeName = *typeName_opt;
-                    reflection::Type* pType = a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
+                    reflection::Type* pType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
                     o_assert(pType AND pType->isClass(), "The class associated with the given serialized data cannot be found, "
                         "ensure all the class are registered correctly before deserializing data");
                     reflection::Class* pClass = static_cast<reflection::Class*>(pType);
@@ -499,7 +489,22 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
             }
             else
             {
-                *reinterpret_cast<void**>(pChunk) = a_pDataBase->getData(guid).cast(m_pPointedType).address();
+                if(a_pDataBase)
+                {
+                    *reinterpret_cast<void**>(pChunk) = a_pDataBase->getData(guid).cast(m_pPointedType).address();
+                }
+                else  if(m_pPointedType->asClass())
+                {
+                    phantom::rtti_data rd = phantom::rttiDataOf((void*)guid);
+                    if(rd.isNull())
+                    {
+                        *reinterpret_cast<void**>(pChunk)  = nullptr;
+                    }
+                    else
+                    {
+                        *reinterpret_cast<void**>(pChunk) = rd.cast(m_pPointedType->asClass());
+                    }
+                }
             }
         }
         pChunk += a_uiChunkSectionSize;

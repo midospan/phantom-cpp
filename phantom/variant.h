@@ -115,6 +115,7 @@ class o_export variant
     };
 
 public:
+    static const variant null;
     variant()
         : m_pType(nullptr)
     {
@@ -206,10 +207,11 @@ public:
         return *this;
     }
 
-    inline size_t size() const {return m_pType->getSize(); }
+    inline size_t size() const {return m_pType ? m_pType->getSize() : 0; }
     reflection::Type* type() const { return m_pType; }
 
     inline bool isValid() const { return m_pType != nullptr; }
+    inline bool isNull() const { return m_pType == nullptr; }
 
     inline bool as(reflection::Type* a_pType, void* a_pDest) const
     {

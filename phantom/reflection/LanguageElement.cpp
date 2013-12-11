@@ -49,12 +49,12 @@ LanguageElement::LanguageElement()
     , m_ReferenceCodeLocations(nullptr)
     , m_pElements(nullptr)
     , m_pOwner(nullptr)
-    , m_bfModifiers(0)
+    , m_Modifiers(0)
 {
 	Phantom::registerLanguageElement(this);
 }
 
-LanguageElement::LanguageElement( const string& a_strName, bitfield a_bfModifiers /*= bitfield()*/ ) 
+LanguageElement::LanguageElement( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
     : m_strName(a_strName)
     , m_uiGuid(0)
     , m_pMetaData(nullptr)
@@ -63,13 +63,13 @@ LanguageElement::LanguageElement( const string& a_strName, bitfield a_bfModifier
     , m_ReferenceCodeLocations(nullptr)
     , m_pElements(nullptr)
     , m_pOwner(nullptr)
-    , m_bfModifiers(a_bfModifiers)
+    , m_Modifiers(a_Modifiers)
 {
     o_assert(NOT(isPublic() AND isProtected()), "o_public and o_protected cannot co-exist");
 	Phantom::registerLanguageElement(this);
 }
 
-LanguageElement::LanguageElement( const string& a_strName, uint a_uiGuid, bitfield a_bfModifiers /*= bitfield()*/ ) : m_strName(a_strName)
+LanguageElement::LanguageElement( const string& a_strName, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) : m_strName(a_strName)
     , m_uiGuid(a_uiGuid)
     , m_pMetaData(nullptr)
     , m_CodeLocations(nullptr)
@@ -77,7 +77,7 @@ LanguageElement::LanguageElement( const string& a_strName, uint a_uiGuid, bitfie
     , m_ReferenceCodeLocations(nullptr)
     , m_pElements(nullptr)
     , m_pOwner(nullptr)
-    , m_bfModifiers(a_bfModifiers)
+    , m_Modifiers(a_Modifiers)
 {
     o_assert(NOT(isPublic() AND isProtected()), "o_public and o_protected cannot co-exist");
 	Phantom::registerLanguageElement(this);
@@ -213,7 +213,7 @@ LanguageElement* LanguageElement::getLeafElementAt( const CodePosition& a_Positi
     return nullptr;
 }
 
-LanguageElement* LanguageElement::getElement( const char* a_strQualifiedName , template_specialization const* , function_signature const* , bitfield a_bfModifiers /*= bitfield()*/ ) const
+LanguageElement* LanguageElement::getElement( const char* a_strQualifiedName , template_specialization const* , function_signature const* , bitfield a_Modifiers /*= 0*/ ) const
 {
     return nullptr;
 }
@@ -293,8 +293,8 @@ void LanguageElement::setupMetaData( size_t count )
 const string& LanguageElement::getMetaDataValue( size_t index ) const
 {
     static string null_string;
-    o_assert(index < phantom::metaDataCount());
-    return m_pMetaData == nullptr ? null_string : m_pMetaData[index];
+    o_assert(index == eInvalidMetaDataIndex || index < phantom::metaDataCount());
+    return m_pMetaData == nullptr ? null_string : (index != eInvalidMetaDataIndex) ? m_pMetaData[index] : null_string;
 }
 
 void LanguageElement::setMetaDataValue( size_t index, const string& value )
@@ -326,9 +326,9 @@ const CodeLocation& LanguageElement::getCodeLocation( size_t index ) const
     return defaultLocation;
 }
 
-void LanguageElement::setModifiers( uint a_Flags )
+void LanguageElement::setModifiers( bitfield a_Modifiers )
 {
-    m_bfModifiers = a_Flags; 
+    m_Modifiers = a_Modifiers; 
     o_assert(NOT(isPublic() AND isProtected()), "o_public and o_protected cannot co-exist");
 }
 

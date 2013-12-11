@@ -34,9 +34,6 @@
     <Filter Include="reflection\detail">
       <UniqueIdentifier>{35ca8b63-443d-45ce-9244-de9e61ae6021}</UniqueIdentifier>
     </Filter>
-    <Filter Include="serialization\native">
-      <UniqueIdentifier>{27bc61e0-649a-4511-9214-af50df8f5d30}</UniqueIdentifier>
-    </Filter>
     <Filter Include="defs">
       <UniqueIdentifier>{6cb54f3a-8cc0-4fd2-8fe2-eaaf30cfd5ca}</UniqueIdentifier>
     </Filter>
@@ -283,61 +280,16 @@
     <ClInclude Include="..\..\..\phantom\reflection\StaticVariable.classdef.h">
       <Filter>reflection</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\Bundle.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\DataBase.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\native\TBundle.h">
-      <Filter>serialization\native</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\Bundle.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\Node.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\BundleNode.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\BundleNode.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\BundleDataBase.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\BundleDataBase.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\DefaultNode.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\DefaultNode.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\serialization\FileTreeDataBase.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\FileTreeDataBase.classdef.h">
       <Filter>serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\serialization\FileTreeNode.h">
       <Filter>serialization</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\FileTreeNode.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeNode.h">
       <Filter>serialization</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeNode.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeDataBase.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeDataBase.classdef.h">
       <Filter>serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\detail\element_finder_spirit.h">
@@ -556,9 +508,6 @@
     <ClInclude Include="..\..\..\phantom\reflection\IteratorConstant.classdef.h">
       <Filter>reflection</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\DataStateBase.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\serialization\DataStateBase.h">
       <Filter>serialization</Filter>
     </ClInclude>
@@ -586,28 +535,10 @@
     <ClInclude Include="..\..\..\phantom\serialization\BinaryPackageNode.h">
       <Filter>serialization</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\BinaryPackageDataBase.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\BinaryPackageNode.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\PackageDataBase.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\PackageNode.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\BinaryFileTreeDataBase.classdef.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\serialization\BinaryFileTreeDataBase.h">
       <Filter>serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\serialization\BinaryFileTreeDataStateBase.h">
-      <Filter>serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\BinaryFileTreeNode.classdef.h">
       <Filter>serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\serialization\BinaryFileTreeNode.h">
@@ -773,8 +704,20 @@
     <ClInclude Include="..\..\..\phantom\serialization\Trashbin.h">
       <Filter>serialization</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\serialization\Trashbin.classdef.h">
-      <Filter>serialization</Filter>
+    <ClInclude Include="..\..\..\phantom\reflection\Range.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\native\TRange.h">
+      <Filter>reflection\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\Range.classdef.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\util\Message.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\util\MessageTree.h">
+      <Filter>util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -873,22 +816,10 @@
     <ClCompile Include="..\..\..\phantom\reflection\StaticVariable.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\serialization\Bundle.cpp">
-      <Filter>serialization</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\phantom\serialization\Node.cpp">
       <Filter>serialization</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\serialization\DataBase.cpp">
-      <Filter>serialization</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\serialization\BundleNode.cpp">
-      <Filter>serialization</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\serialization\BundleDataBase.cpp">
-      <Filter>serialization</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\serialization\DefaultNode.cpp">
       <Filter>serialization</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\serialization\FileTreeDataBase.cpp">
@@ -945,7 +876,6 @@
     <ClCompile Include="..\..\..\phantom\reflection\Enum.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\_pch.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\TemplateElement.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
@@ -1066,6 +996,16 @@
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\serialization\Trashbin.cpp">
       <Filter>serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\pch.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Range.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\util\Message.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\util\MessageTree.cpp">
+      <Filter>util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

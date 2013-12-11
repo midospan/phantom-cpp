@@ -11,7 +11,7 @@
 #include "phantom/math/transform2.h"
 #include "phantom/math/aabb2.h"
 
-#include "phantom/_kernel.noclassdef.h"
+#include "phantom/def_export.h"
 // Easy root namespace access
 
 o_namespace_begin(phantom)

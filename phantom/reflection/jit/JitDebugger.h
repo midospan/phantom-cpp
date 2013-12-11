@@ -146,7 +146,7 @@ public:
     o_initialize();
     o_terminate();
 
-    void setDebuggedThread(HANDLE h) { m_DebuggedThread = h; }
+    void setDebuggedThread(size_t h) { m_DebuggedThread = h; }
 
     void setMutex(JitDebuggerMutex* a_pMutex)
     {
@@ -257,7 +257,7 @@ private:
     vector<Subroutine*> m_DebuggableSubroutinesNotReady;
 
     // Step by step
-    HANDLE          m_StepByStepBreakPointHandle;
+    size_t          m_StepByStepBreakPointHandle;
     Subroutine*     m_StepByStepSubroutine;
     byte*           m_StepByStepEBP;
     byte*           m_StepByStepEIP;
@@ -265,7 +265,7 @@ private:
 
     BreakPoint*        m_pCurrentBreakPoint;
     Instruction*        m_pCurrentHardwareBreakpointInstruction;
-    HANDLE                  m_DebuggedThread;
+    size_t                  m_DebuggedThread;
     vector<FrameInfo>       m_CallStackFrames;
     int                     m_iEnablingCounter;
     byte*                   m_EBP;

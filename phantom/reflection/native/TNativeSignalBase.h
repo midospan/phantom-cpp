@@ -47,8 +47,8 @@ template<typename t_Class>
 class TNativeSignalBase : public Signal
 {
 public:
-    TNativeSignalBase(const string& a_strName, Signature* a_pSignature, bitfield a_bfModifiers = bitfield())
-        : Signal(a_strName, a_pSignature, a_bfModifiers)
+    TNativeSignalBase(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Signal(a_strName, a_pSignature, a_Modifiers)
     {
 
     }

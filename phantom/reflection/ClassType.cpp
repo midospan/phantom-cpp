@@ -41,9 +41,27 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
+ClassType::ClassType( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
+    : Type(a_strName, a_Modifiers)
+    , m_pTemplateSpecialization(nullptr)
+    , m_pAttributes(nullptr)
+{
+    m_uiSerializedSize = m_uiResetSize = 0;
+}
+
+ClassType::ClassType( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) 
+    : Type(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+    , m_pTemplateSpecialization(nullptr)
+    , m_pAttributes(nullptr)
+{
+    m_uiSerializedSize = m_uiResetSize = 0;
+}
+
+
 ClassType::~ClassType( void )
 {
     destroyContent();
+    
 }
 
 void ClassType::destroyContent()
@@ -63,6 +81,9 @@ void ClassType::destroyContent()
         o_dynamic_delete_clean(m_pTemplateSpecialization);
         m_pTemplateSpecialization = nullptr;
     }
+
+    if(m_pAttributes)
+        delete ((map<string, variant>*)m_pAttributes);
 }
 
 DataMember* ClassType::getDataMember( const string& a_strName) const
@@ -123,7 +144,7 @@ Constructor* ClassType::getConstructor( const string& a_strIdentifierString ) co
     return NULL;
 }
 
-void ClassType::valueToString( string& s, void* src ) const
+void ClassType::valueToString( string& s, const void* src ) const
 {
     member_const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
     member_const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
@@ -149,13 +170,6 @@ void ClassType::valueToString( string& s, void* src ) const
 void ClassType::valueFromString( const string& cs, void* dest ) const
 {
     o_exception(exception::unsupported_member_function_exception, "TODO (not supported yet)");
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceDataMember>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceDataMember>());
-    for(; it != end; ++it)
-    {
-        InstanceDataMember* pDataMember = static_cast<InstanceDataMember*>(it->second);
-        // TODO : implement
-    }
 }
 
 void ClassType::setTemplateSpecialization( TemplateSpecialization* a_pTemplateSpecialization )
@@ -177,7 +191,7 @@ LanguageElement*            ClassType::getElement(
     const char* a_strName 
     , template_specialization const* a_TemplateSpecialization
     , function_signature const* a_FunctionSignature
-    , bitfield a_bfModifiers /*= bitfield()*/) const 
+    , bitfield a_Modifiers /*= 0*/) const 
 {
     LanguageElement* pElement = nullptr;
     if(m_pTemplateSpecialization)
@@ -185,7 +199,7 @@ LanguageElement*            ClassType::getElement(
         pElement = m_pTemplateSpecialization->getType(a_strName);
         if(pElement) return pElement;
     }
-    pElement = Type::getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_bfModifiers);
+    pElement = Type::getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
     if(pElement) return pElement;
     if(a_FunctionSignature == NULL)
     {
@@ -196,31 +210,31 @@ LanguageElement*            ClassType::getElement(
         }
         return getValueMember(a_strName);
     }
-    MemberFunction* pMemberFunction = getMemberFunction(a_strName, a_FunctionSignature, a_bfModifiers);
+    MemberFunction* pMemberFunction = getMemberFunction(a_strName, a_FunctionSignature, a_Modifiers);
     return pMemberFunction ? pMemberFunction->asLanguageElement() : NULL;
 }
 
-InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/ ) const
+InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/ ) const
 {
   member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
   member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
   for(; it != end; ++it)
   {
     InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
-    if(pMemberFunction->matches(a_strName, a_FunctionSignature, a_bfModifiers))
+    if(pMemberFunction->matches(a_strName, a_FunctionSignature, a_Modifiers))
           return pMemberFunction;
   }
   return NULL;
 }
 
-StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/ ) const
+StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/ ) const
 {
     member_collection::const_iterator it = m_Members.lower_bound(classOf<StaticMemberFunction>());
     member_collection::const_iterator end = m_Members.upper_bound(classOf<StaticMemberFunction>());
     for(; it != end; ++it)
     {
         StaticMemberFunction* pMemberFunction = static_cast<StaticMemberFunction*>(it->second);
-        if(pMemberFunction->matches(a_strName, a_FunctionSignature, a_bfModifiers))
+        if(pMemberFunction->matches(a_strName, a_FunctionSignature, a_Modifiers))
             return pMemberFunction;
     }
     return NULL;
@@ -241,11 +255,11 @@ MemberFunction* ClassType::getMemberFunction(const string& a_strIdentifierString
     return getStaticMemberFunction(a_strIdentifierString);
 }
 
-MemberFunction* ClassType::getMemberFunction(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/) const
+MemberFunction* ClassType::getMemberFunction(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/) const
 {
-    MemberFunction* pMemberFunction = getInstanceMemberFunction(a_strName, a_FunctionSignature, a_bfModifiers);
+    MemberFunction* pMemberFunction = getInstanceMemberFunction(a_strName, a_FunctionSignature, a_Modifiers);
     if(pMemberFunction != NULL) return pMemberFunction;
-    return getStaticMemberFunction(a_strName, a_FunctionSignature, a_bfModifiers);
+    return getStaticMemberFunction(a_strName, a_FunctionSignature, a_Modifiers);
 }
 /*
 
@@ -427,7 +441,7 @@ void* ClassType::newInstance() const
   return pInstance;
 }
 
-boolean ClassType::matches( const char* a_strName, template_specialization const* a_TemplateSpecialization /*= NULL*/, bitfield a_bfModifiers /*= 0*/ ) const
+boolean ClassType::matches( const char* a_strName, template_specialization const* a_TemplateSpecialization /*= NULL*/, bitfield a_Modifiers /*= 0*/ ) const
 {
   if(m_strName != a_strName) 
     return false;
@@ -569,5 +583,39 @@ void ClassType::getElements( vector<LanguageElement*>& out, Class* a_pClass ) co
         }
     }
 }
+
+void ClassType::addAttribute( const string& a_strName, const variant& a_Variant )
+{
+    if(m_pAttributes == nullptr)
+        m_pAttributes = new map<string, variant>;
+    map<string, variant>* pAttributes = static_cast<map<string, variant>*>(m_pAttributes);
+    (*pAttributes)[a_strName] = a_Variant;
+}
+
+void ClassType::removeAttribute( const string& a_strName )
+{
+    o_assert(m_pAttributes);
+    map<string, variant>* pAttributes = static_cast<map<string, variant>*>(m_pAttributes);
+    auto found = pAttributes->find(a_strName);
+    o_assert(found != pAttributes->end());
+    pAttributes->erase(found);
+    if(pAttributes->empty())
+    {
+        delete ((map<string, variant>*)pAttributes);
+        m_pAttributes = nullptr;
+    }
+}
+
+const variant& ClassType::getAttribute( const string& a_strName ) const
+{
+    static variant null_variant;
+    if(m_pAttributes == nullptr) return null_variant;
+    map<string, variant>* pAttributes = static_cast<map<string, variant>*>(m_pAttributes);
+    auto found = pAttributes->find(a_strName);
+    if(found != pAttributes->end()) return found->second;
+    return null_variant;
+}
+
+
 
 o_cpp_end

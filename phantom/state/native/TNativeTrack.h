@@ -135,7 +135,7 @@ public:
     friend class TNativeStateMachine<t_ObjectClass>;
 
     TNativeTrackHelper( const string& a_strName
-        , bitfield bf = bitfield() )
+        , bitfield bf = 0 )
         : Track(a_strName
         , statemachine_class::NextTrackIndex()
         , bf)
@@ -144,7 +144,7 @@ public:
     }
     TNativeTrackHelper( const string& a_strName
         , uint a_iIndex
-        , bitfield bf = bitfield() )
+        , bitfield bf = 0 )
         : Track(a_strName
         , a_iIndex
         , bf)

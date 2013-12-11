@@ -38,7 +38,7 @@
 /* ****************** Includes ******************* */
 #include "phantom/serialization/DataStateBase.h"
 /* **************** Declarations ***************** */
-namespace boost { namespace filesystem3 { class path; } }
+namespace boost { namespace filesystem { class path; } }
 /* *********************************************** */
 
 

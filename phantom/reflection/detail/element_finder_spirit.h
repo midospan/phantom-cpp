@@ -7,7 +7,7 @@ o_namespace_begin(phantom, reflection, detail)
 
 class element_finder_spirit;
 
-#include "phantom/_kernel.noclassdef.h"
+#include "phantom/def_export.h"
 
 class o_export element_finder_spirit
 {

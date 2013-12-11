@@ -57,7 +57,7 @@ public:
 
 protected:
     ReferenceType(Type* a_pType) 
-        : Type(a_pType->getName()+o_CC('&')
+        : Type(a_pType->getName()+'&'
             , sizeof(void*)
             , boost::alignment_of<void*>::value
             , 0xFFFFFFFF
@@ -135,7 +135,7 @@ public:
         m_pReferencedType->valueFromString(a_str, dest);
     }
 
-    virtual void        valueToString(string& a_str, void* src) const
+    virtual void        valueToString(string& a_str, const void* src) const
     {
         m_pReferencedType->valueToString(a_str, src);
     }
@@ -180,13 +180,6 @@ public:
         o_exception(reflection_runtime_exception, "references cannot be serialized");
     }
 
-    virtual serialization::Bundle*  createBundle(serialization::BundleNode* a_pOwnerNode) const
-    {
-        o_exception(reflection_runtime_exception, "references cannot be serialized");
-        return NULL;
-    }
-
-
     virtual void        remember(void const* a_pInstance, byte*& a_pOutBuffer) const 
     {
         o_exception(reflection_runtime_exception, "references cannot be reset");
@@ -202,11 +195,6 @@ public:
     virtual void        reset(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer) const
     {
         o_exception(reflection_runtime_exception, "references cannot be reset");
-    }
-
-    virtual void  destroyBundle(serialization::Bundle* a_pBundle) const
-    {
-        o_exception(reflection_runtime_exception, "references cannot be serialized");
     }
 
     virtual Type*   removeReference() const { return m_pReferencedType; }

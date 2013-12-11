@@ -57,7 +57,7 @@ protected:
     {
 
     }
-    Constant(const string& a_strName, bitfield modifiers = bitfield())
+    Constant(const string& a_strName, bitfield modifiers = 0)
         : TemplateElement(a_strName,modifiers)
     {
 

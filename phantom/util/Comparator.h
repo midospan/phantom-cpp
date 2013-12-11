@@ -38,7 +38,7 @@
 
 
 /* ****************** Includes ******************* */
-
+#include "phantom/def_export.h"
 /* *********************************************** */
 /* The *.classdef.h file must be the last #include */
 #include "Comparator.classdef.h"

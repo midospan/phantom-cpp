@@ -56,7 +56,7 @@ public:
     _____________________________________________________________________________________Reflection
 public:
 
-    StaticDataMember(const string& a_strName, Type* a_pContentType, void* a_pStaticDataMemberAddress, bitfield a_bfModifiers = bitfield());
+    StaticDataMember(const string& a_strName, Type* a_pContentType, void* a_pStaticDataMemberAddress, Range* a_pRange, bitfield a_Modifiers = 0);
     o_destructor ~StaticDataMember(void)     {}
 
     virtual void*               getAddress(void const* a_pObject) const { return m_pAddress; }
@@ -80,6 +80,7 @@ public:
 
     virtual Class*              getSortingCategoryClass() const;
 
+    Range*                      getRange() const { return StaticVariable::getRange(); }
 };
 
 o_h_end

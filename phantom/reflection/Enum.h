@@ -53,8 +53,8 @@ class o_export Enum : public Type
 
 public:
     Enum(); // anonymous enum;
-    Enum(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers = bitfield());
-    Enum(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_bfModifiers = bitfield());
+    Enum(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0);
+    Enum(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers = 0);
     o_destructor ~Enum();
 
     inline Constant*    getConstant(size_t i) const  { return m_Constants[i]; }
@@ -69,7 +69,7 @@ public:
         const char* a_strName
         , template_specialization const* ts
         , function_signature const* fs
-        , bitfield a_bfModifiers = bitfield()) const;
+        , bitfield a_Modifiers = 0) const;
 
     virtual boolean isEnum() const { return true; }
     virtual Enum*   asEnum() const { return const_cast<Enum*>(this); }
@@ -80,12 +80,32 @@ public:
 
     virtual boolean         isIntegralType() const { return true; }
 
+    virtual void            valueFromString(const string& a_strIn, void* a_pDest) const;
+    virtual void            valueToString(string& a_strOut, const void* a_pSrc) const;
+
 protected:
     typedef phantom::vector<Constant*>     value_vector;
     value_vector                           m_Constants;
 };
 
 o_h_end
+
+o_namespace_begin(phantom)
+
+template<typename t_Ty>
+struct string_converter_helper<t_Ty, false, true>
+{
+    static void to(const reflection::Enum* a_pEnum, string& a_strOut, const t_Ty* a_pSrc)
+    {
+        a_pEnum->reflection::Enum::valueToString(a_strOut, a_pSrc);
+    }
+    static void from(const reflection::Enum* a_pEnum, const string& a_strIn, t_Ty* a_pDest)
+    {
+        a_pEnum->reflection::Enum::valueFromString(a_strIn, a_pDest);
+    }
+};
+
+o_namespace_end(phantom)
 
 #else // o_phantom_reflection_Enum_h__ 
 #include "Enum.classdef.h"

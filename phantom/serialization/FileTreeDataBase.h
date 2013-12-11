@@ -37,13 +37,10 @@
 
 
 /* ****************** Includes ******************* */
+#include <phantom/serialization/DataBase.h>
 /* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "phantom/_kernel.noclassdef.h"
-/* **************** Declarations ***************** */
-namespace boost { namespace filesystem3 { class path; } }
+namespace boost { namespace filesystem { class path; } }
 /* *********************************************** */
-
 
 o_namespace_begin(phantom, serialization)
 
@@ -60,10 +57,7 @@ public:
     virtual boolean hasDataEntry(const phantom::data& a_Data, uint guid, Node* a_pOwnerNode) const;
 
     virtual string  nodePath(Node* a_pNode, uint a_Guid, Node* a_pParent) const;
-    virtual string  nodePath(Node* a_pNode) const
-    {
-        return nodePath(a_pNode, a_pNode->getGuid(), a_pNode->getParentNode());
-    }
+    virtual string  nodePath(Node* a_pNode) const;
     virtual string  dataPath(const phantom::data& a_Data, uint a_Guid, Node* a_pParent) const;
     virtual string  dataPath(const phantom::data& a_Data) const
     {
@@ -88,8 +82,8 @@ public:
     virtual void    moveNodeEntry(Node* a_pNode, Node* a_pNewParent) ;
 
 protected:
-    void            loadNodeEntriesHelper(Node* a_pNode, const boost::filesystem3::path& a_Path);
-    void            generateGuidHelper(const boost::filesystem3::path& a_Path, map<uint,uint>& guids);
+    void            loadNodeEntriesHelper(Node* a_pNode, const boost::filesystem::path& a_Path);
+    void            generateGuidHelper(const boost::filesystem::path& a_Path, map<uint,uint>& guids);
 
 protected:
         

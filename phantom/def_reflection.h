@@ -1755,26 +1755,44 @@ struct type_of_counter_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)< o_PP_IDENT
 #   define o_data_member(...) o_PP_CAT(o_PP_CAT(o_data_member_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #   define o_property(...) o_PP_CAT(o_PP_CAT(o_property_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #   define o_collection(...) o_PP_CAT(o_PP_CAT(o_collection_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#   define o_range(...) o_PP_CAT(o_PP_CAT(o_range_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #else
 #   define o_data_member(...) o_PP_CAT(o_data_member_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #   define o_property(...) o_PP_CAT(o_property_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #   define o_collection(...) o_PP_CAT(o_collection_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
+#   define o_range(...) o_PP_CAT(o_range_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #endif
 
-#    define o_data_member_2(_type_, _name_) \
-    o_data_member_4(_type_, _name_, 0, 0xffffffff)
 
-#    define o_data_member_3(_type_, _name_, _modifiers_) \
-    o_data_member_4(_type_, _name_, _modifiers_, 0xffffffff)
+#    define o_range_1(_default_) \
+    phantom::reflection::native::CreateRange(_default_)
+
+#    define o_range_2(_min_, _max_) \
+    phantom::reflection::native::CreateRange(_min_, _max_)
+
+#    define o_range_3(_min_, _default_, _max_) \
+    phantom::reflection::native::CreateRange(_min_, _default_, _max_)
+
+#    define o_data_member_2(_type_, _name_) \
+    o_data_member_5(_type_, _name_, (phantom::reflection::native::null_range), 0, 0xffffffff)
+
+#    define o_data_member_3(_type_, _name_, _range_) \
+    o_data_member_5(_type_, _name_, _range_, 0, 0xffffffff)
+
+#    define o_data_member_4(_type_, _name_, _range_, _modifiers_) \
+    o_data_member_5(_type_, _name_, _range_, _modifiers_, 0xffffffff)
 
 #define o_property_4(_type_, _name_, _set_member_function_, _get_member_function_)\
-    o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, m_PHANTOM_RESERVED_no_signal, 0, 0xffffffff)
+    o_property_8(_type_, _name_, _set_member_function_, _get_member_function_, m_PHANTOM_RESERVED_no_signal, (phantom::reflection::native::null_range), 0, 0xffffffff)
 
 #define o_property_5(_type_, _name_, _set_member_function_, _get_member_function_, _signal_)\
-    o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, 0, 0xffffffff)
+    o_property_8(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, (phantom::reflection::native::null_range), 0, 0xffffffff)
 
-#define o_property_6(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _modifiers_)\
-    o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _modifiers_, 0xffffffff)
+#define o_property_6(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _range_)\
+    o_property_8(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _range_, 0, 0xffffffff)
+
+#define o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _range_, _modifiers_)\
+    o_property_8(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _range_, _modifiers_, 0xffffffff)
 
 #define o_collection_8(_type_, _name_, _add_member_function_, _remove_member_function_, _move_member_function_, _set_member_function_, _get_member_function_, _size_member_function_)\
     o_collection_9(_type_, _name_, _add_member_function_, _remove_member_function_, _move_member_function_, _set_member_function_, _get_member_function_, _size_member_function_, 0)

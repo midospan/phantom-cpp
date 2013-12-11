@@ -1,6 +1,44 @@
 #include <phantom/reflection/Type.h>
 
+
+o_namespace_begin(phantom, reflection)
+
+
+class MapValueIteratorVariable : public IteratorVariable
+{
+public:
+    MapValueIteratorVariable(void* a_pContainer, MapContainerClass* a_pContainerClass, const string& a_strName)
+        : IteratorVariable(a_pContainer, a_pContainerClass, a_strName)
+    {
+
+    }
+    virtual void getKeyValue(void* a_pDest) const = 0;
+
+};
+
+o_namespace_end(phantom, reflection)
+
 o_namespace_begin(phantom, reflection, native)
+
+#define o_declare_binary_operator_caller(name, symbol)\
+template<typename t_Ty, bool has>\
+struct operator_caller_##name##_helper\
+{\
+    static bool apply(const t_Ty* a_pLHS, const t_Ty* a_pRHS)\
+    {\
+        return *a_pLHS symbol *a_pRHS;\
+    }\
+};\
+template<typename t_Ty>\
+struct operator_caller_##name##_helper<t_Ty, false>\
+{\
+    static bool apply(const t_Ty* a_pLHS, const t_Ty* a_pRHS) { o_exception(exception::reflection_runtime_exception, "no " #name " operator declared"); return false; }\
+};\
+template<typename t_Ty>\
+struct operator_caller_##name : public operator_caller_##name##_helper<t_Ty, boost::has_##name<t_Ty>::value>{};
+
+o_declare_binary_operator_caller(less, <);
+
 
 template<typename t_Ty>
 class TSequentialContainerClass;
@@ -122,16 +160,16 @@ protected:
     t_It    m_Iterator;
 };
 
-template<typename t_It, typename t_ValueType>
-class TMapValueIteratorVariable : public IteratorVariable
+template<typename t_It, typename t_KeyType, typename t_ValueType>
+class TMapValueIteratorVariable : public MapValueIteratorVariable
 {
     //o_static_assert(sizeof(t_It) != sizeof(t_It));
-    typedef TMapValueIteratorVariable<t_It, t_ValueType> self_type;
+    typedef TMapValueIteratorVariable<t_It, t_KeyType, t_ValueType> self_type;
     template<typename t_Ty> friend class TMapContainerClass;
 
 public:
     TMapValueIteratorVariable(void* a_pContainer, MapContainerClass* a_pContainerClass, t_It iterator) 
-        : IteratorVariable(a_pContainer, a_pContainerClass, phantom::lexical_cast<string>(iterator->first))
+        : MapValueIteratorVariable(a_pContainer, a_pContainerClass, phantom::lexical_cast<string>(iterator->first))
         , m_Iterator(iterator) 
     {
 
@@ -139,6 +177,11 @@ public:
     virtual void getValue(void* dest) const 
     {
         *static_cast<t_ValueType*>(dest) = m_Iterator->second;
+    }
+
+    virtual void getKeyValue(void* a_pDest) const 
+    {
+        *static_cast<t_KeyType*>(a_pDest) = m_Iterator->first;
     }
 
     virtual void setValue(void const* src) const 
@@ -232,7 +275,7 @@ public:
         return typeOf<t_ValueType>();
     }
 
-    virtual boolean             hasNext() const { return NOT(m_pContainerClass->isEndIterator(m_pContainer, const_cast<self_type*>(this))); }
+    virtual bool             hasNext() const { return NOT(m_pContainerClass->isEndIterator(m_pContainer, const_cast<self_type*>(this))); }
     virtual void                next(void* dest) 
     {
         *static_cast<t_ValueType*>(dest) = *m_Iterator++;
@@ -257,8 +300,8 @@ class TSequentialContainerClass : public SequentialContainerClass
     typedef TSequentialIteratorVariable<container_iterator, container_value_type>         iterator_variable;
 
 public:
-    TSequentialContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers = bitfield())
-        : SequentialContainerClass(typeOf<container_value_type>(), a_strName, a_uiSize, a_uiAlignment, a_bfModifiers)
+    TSequentialContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
+        : SequentialContainerClass(typeOf<container_value_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
     {
 
     }
@@ -387,8 +430,6 @@ public:
         }
         return replacedCount;
     }
-
-
 };
 
 template<typename t_Ty>
@@ -403,13 +444,13 @@ class TMapContainerClass : public MapContainerClass
     typedef o_NESTED_TYPE t_Ty::iterator        container_iterator;
 
     typedef TMapValueIteratorConstant<container_const_iterator, container_mapped_type>   iterator_constant;
-    typedef TMapValueIteratorVariable<container_iterator, container_mapped_type>         iterator_variable;
+    typedef TMapValueIteratorVariable<container_iterator, container_key_type, container_mapped_type>         iterator_variable;
 
 public:
-    TMapContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers = bitfield())
+    TMapContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
         : MapContainerClass(typeOf<container_key_type>()
         , typeOf<container_mapped_type>()
-        , typeOf<container_value_type>(), a_strName, a_uiSize, a_uiAlignment, a_bfModifiers)
+        , typeOf<container_value_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
     {
 
     }
@@ -625,8 +666,8 @@ class TSetContainerClass : public SetContainerClass
     typedef TSetIteratorVariable<container_iterator, container_key_type>        iterator_variable;
 
 public:
-    TSetContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers = bitfield())
-        : SetContainerClass(typeOf<container_key_type>(), a_strName, a_uiSize, a_uiAlignment, a_bfModifiers)
+    TSetContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
+        : SetContainerClass(typeOf<container_key_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
     {
 
     }
@@ -929,41 +970,6 @@ struct ____meta_type_id_solver
 template<typename t_Ty>
 class TType_;
 
-template<typename t_Ty, bool t_is_serializable>
-struct bundle_factory_helper
-{
-    static serialization::Bundle*  create(serialization::BundleNode* a_pOwnerNode)
-    {
-        o_unused(a_pOwnerNode);
-        o_exception(phantom::exception::unserializable_exception);
-        return NULL;
-    }
-    static void  destroy(serialization::Bundle* a_pBundle)
-    {
-        o_unused(a_pBundle);
-        o_exception(phantom::exception::unserializable_exception);
-    }
-};
-
-template<typename t_Ty>
-struct bundle_factory_helper<t_Ty, true>
-{
-    static serialization::Bundle*  create(serialization::BundleNode* a_pOwnerNode)
-    {
-        return o_new(serialization::native::TBundle<t_Ty>)(a_pOwnerNode);
-    }
-    static void  destroy(serialization::Bundle* a_pBundle)
-    {
-        return o_delete(serialization::native::TBundle<t_Ty>) a_pBundle;
-    }
-};
-
-template<typename t_Ty>
-struct bundle_factory : public bundle_factory_helper<t_Ty, phantom::is_serializable<t_Ty>::value>
-{
-
-};
-
 template<typename t_Ty>
 class TType_
     : public ____meta_type_super_class_solver<
@@ -993,13 +999,15 @@ public:
     {
         return phantom::object_dynamic_cast<t_Ty>::apply(a_pTarget, static_cast<t_Ty*>(a_pBase));
     }
-    virtual void valueFromString(const phantom::string &,void *) const
-    {
 
+    virtual void valueFromString(const phantom::string & a_strIn, void * a_pDest) const
+    {
+        string_converter<t_Ty>::from(this, a_strIn, (t_Ty*)a_pDest);
     }
-    virtual void valueToString(phantom::string &,void *) const
-    {
 
+    virtual void valueToString(phantom::string & a_strOut, const void * a_pSrc) const
+    {
+        string_converter<t_Ty>::to(this, a_strOut, (const t_Ty*)a_pSrc);
     }
 
     virtual void* allocate( ) const
@@ -1217,23 +1225,66 @@ public:
     {
         phantom::vtable_info_extractor<t_Ty>::apply(a_pInstance, vtables);
     }
-    virtual boolean     isPolymorphic() const { return boost::is_polymorphic<t_Ty>::value; }
-    virtual boolean     isDefaultConstructible() const { return std::is_default_constructible<t_Ty>::value; }
+    virtual bool     isPolymorphic() const { return boost::is_polymorphic<t_Ty>::value; }
+    virtual bool     isDefaultConstructible() const { return std::is_default_constructible<t_Ty>::value; }
+
+    virtual bool            hasNoCopy() const { return has_meta_specifier<t_Ty, o_no_copy>::value; }
+    virtual bool            hasBitAnd() const { return boost::has_bit_and<t_Ty>::value; }
+    virtual bool            hasBitAndAssign() const { return boost::has_bit_and_assign<t_Ty>::value; }
+    virtual bool            hasBitOr() const { return boost::has_bit_or<t_Ty>::value; }
+    virtual bool            hasBitOrAssign() const { return boost::has_bit_or_assign<t_Ty>::value; }
+    virtual bool            hasBitXor() const { return boost::has_bit_xor<t_Ty>::value; }
+    virtual bool            hasBitXorAssign() const { return boost::has_bit_xor_assign<t_Ty>::value; }
+    virtual bool            hasComplement() const { return boost::has_complement<t_Ty>::value; }
+    virtual bool            hasDereference() const { return boost::has_dereference<t_Ty>::value; }
+    virtual bool            hasDivides() const { return boost::has_divides<t_Ty>::value; }
+    virtual bool            hasDividesAssign() const { return boost::has_divides_assign<t_Ty>::value; }
+    virtual bool            hasEqualTo() const { return boost::has_equal_to<t_Ty>::value; }
+    virtual bool            hasGreater() const { return boost::has_greater<t_Ty>::value; }
+    virtual bool            hasGreaterEqual() const { return boost::has_greater_equal<t_Ty>::value; }
+    virtual bool            hasLeftShift() const { return boost::has_left_shift<t_Ty>::value; }
+    virtual bool            hasLeftShiftAssign() const { return boost::has_left_shift_assign<t_Ty>::value; }
+    virtual bool            hasLess() const { return boost::has_less<t_Ty>::value; }
+    virtual bool            hasLessEqual() const { return boost::has_less_equal<t_Ty>::value; }
+    virtual bool            hasLogicalAnd() const { return boost::has_logical_and<t_Ty>::value; }
+    virtual bool            hasLogicalNot() const { return boost::has_logical_not<t_Ty>::value; }
+    virtual bool            hasLogicalOr() const { return boost::has_logical_or<t_Ty>::value; }
+    virtual bool            hasMinus() const { return boost::has_minus<t_Ty>::value; }
+    virtual bool            hasMinusAssign() const { return boost::has_minus_assign<t_Ty>::value; }
+    virtual bool            hasModulus() const { return boost::has_modulus<t_Ty>::value; }
+    virtual bool            hasModulusAssign() const { return boost::has_modulus_assign<t_Ty>::value; }
+    virtual bool            hasMultiplies() const { return boost::has_multiplies<t_Ty>::value; }
+    virtual bool            hasMultipliesAssign() const { return boost::has_multiplies_assign<t_Ty>::value; }
+    virtual bool            hasNegate() const { return boost::has_negate<t_Ty>::value; }
+    virtual bool            hasNewOperator() const { return boost::has_new_operator<t_Ty>::value; }
+    virtual bool            hasNotEqualTo() const { return boost::has_not_equal_to<t_Ty>::value; }
+    virtual bool            hasNothrowAssign() const { return boost::has_nothrow_assign<t_Ty>::value; }
+    virtual bool            hasNothrowConstructor() const { return boost::has_nothrow_constructor<t_Ty>::value; }
+    virtual bool            hasNothrowCopy() const { return boost::has_nothrow_copy<t_Ty>::value; }
+    virtual bool            hasNothrowCopyConstructor() const { return boost::has_nothrow_copy_constructor<t_Ty>::value; }
+    virtual bool            hasNothrowDefaultConstructor() const { return boost::has_nothrow_default_constructor<t_Ty>::value; }
+    virtual bool            hasPlus() const { return boost::has_plus<t_Ty>::value; }
+    virtual bool            hasPlusAssign() const { return boost::has_plus_assign<t_Ty>::value; }
+    virtual bool            hasPostDecrement() const { return boost::has_post_decrement<t_Ty>::value; }
+    virtual bool            hasPostIncrement() const { return boost::has_post_increment<t_Ty>::value; }
+    virtual bool            hasPreDecrement() const { return boost::has_pre_decrement<t_Ty>::value; }
+    virtual bool            hasPreIncrement() const { return boost::has_pre_increment<t_Ty>::value; }
+    virtual bool            hasRightShift() const { return boost::has_right_shift<t_Ty>::value; }
+    virtual bool            hasRightShiftAssign() const { return boost::has_right_shift_assign<t_Ty>::value; }
+
+    // Operators : TODO : to be completed...
+    virtual bool            less(const void* a_pLHS, const void* a_pRHS) const
+    {
+        return operator_caller_less<t_Ty>::apply((const t_Ty*)a_pLHS, (const t_Ty*)a_pRHS);
+    }
+
     virtual uint        getVirtualMemberFunctionCount(uint a_uiIndex) const
     {
         return phantom::virtualMemberFunctionCountOf<t_Ty>();
     }
-    virtual boolean         isSerializable() const 
+    virtual bool         isSerializable() const 
     { 
         return phantom::is_serializable<t_Ty>::value; 
-    }
-    virtual serialization::Bundle*  createBundle(serialization::BundleNode* a_pOwnerNode) const
-    {
-        return bundle_factory<t_Ty>::create(a_pOwnerNode);
-    }
-    virtual void  destroyBundle(serialization::Bundle* a_pBundle) const
-    {
-        bundle_factory<t_Ty>::destroy(a_pBundle);
     }
     virtual Type*   createConstType() const
     {
@@ -1244,12 +1295,12 @@ public:
             );
     }
 
-    virtual boolean isFundamentalType() const { return boost::is_fundamental<t_Ty>::value; }
-    virtual boolean isArithmeticType() const { return boost::is_arithmetic<t_Ty>::value; }
-    virtual boolean isIntegralType() const { return boost::is_integral<t_Ty>::value; }
-    virtual boolean isEnum() const { return boost::is_enum<t_Ty>::value; }
-    virtual boolean isFloatingPointType() const { return boost::is_floating_point<t_Ty>::value; }
-    virtual boolean isSignalType() const { return phantom::is_signal_t<t_Ty>::value; }
+    virtual bool isFundamentalType() const { return boost::is_fundamental<t_Ty>::value; }
+    virtual bool isArithmeticType() const { return boost::is_arithmetic<t_Ty>::value; }
+    virtual bool isIntegralType() const { return boost::is_integral<t_Ty>::value; }
+    virtual bool isEnum() const { return boost::is_enum<t_Ty>::value; }
+    virtual bool isFloatingPointType() const { return boost::is_floating_point<t_Ty>::value; }
+    virtual bool isSignalType() const { return phantom::is_signal_t<t_Ty>::value; }
 
     virtual string  getQualifiedDName() const { return qualifiedTypeNameOf<t_Ty>(); }
     virtual string  getDecoratedName() const { return decoratedTypeNameOf<t_Ty>(); }
@@ -1267,12 +1318,12 @@ public:
         phantom::extension::converter<t_Ty>::convert(a_pDestType, a_pDestValue, static_cast<t_Ty const*>(a_pSrcValue));
     }
 
-    virtual boolean         isConvertibleTo(Type* a_pType) const 
+    virtual bool         isConvertibleTo(Type* a_pType) const 
     { 
         return phantom::extension::converter<t_Ty>::isConvertibleTo(a_pType); 
     }
 
-    virtual boolean         isImplicitlyConvertibleTo(Type* a_pType) const 
+    virtual bool         isImplicitlyConvertibleTo(Type* a_pType) const 
     { 
         return phantom::extension::converter<t_Ty>::isImplicitlyConvertibleTo(a_pType); 
     }
@@ -1315,7 +1366,7 @@ public:
     {
         t_MetaType::m_strName = a_pConstedType->getName() + " const";
     }
-    virtual boolean         isConstType() const { return true; }
+    virtual bool         isConstType() const { return true; }
     virtual Type*           removeConst() const { return m_pConstedType; }
 
     virtual Type*           createConstType() const
@@ -1376,13 +1427,19 @@ o_end_phantom_namespace()
     {
         o_reflection {};
     };
-    o_exposeNT((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TMapValueIteratorConstant);
-    
-    o_classNTS((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TMapValueIteratorVariable, (IteratorVariable))
+    o_exposeNT((phantom,reflection,native),(typename,typename),(t_Ty, t_ValueType), TMapValueIteratorConstant);
+
+    o_classNS((phantom, reflection), MapValueIteratorVariable, (IteratorVariable))
     {
         o_reflection {};
     };
-    o_exposeNT((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TMapValueIteratorVariable);
+    o_exposeN((phantom,reflection), MapValueIteratorVariable);
+
+    o_classNTS((phantom,reflection,native),(typename,typename,typename),(t_Ty, t_KeyType, t_ValueType), TMapValueIteratorVariable, (MapValueIteratorVariable))
+    {
+        o_reflection {};
+    };
+    o_exposeNT((phantom,reflection,native),(typename,typename,typename),(t_Ty, t_KeyType, t_ValueType), TMapValueIteratorVariable);
 
     o_classNTS((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialIteratorConstant, (IteratorConstant))
     {

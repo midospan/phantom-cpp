@@ -1,5 +1,6 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
+#include "phantom/def_jit_internal.h"
 #include "JitDebugger.h"
 #include "hwbrk.h"
 /* *********************************************** */
@@ -70,6 +71,7 @@ JitDebugger::JitDebugger( void )
     , m_StepByStepEBP(0)
     , m_Request(e_Request_None)
     , m_pMutex(nullptr)
+    , m_pGenericContext(nullptr)
 {
 }
 
@@ -1018,7 +1020,7 @@ void JitDebugger::unregisterSubroutine( Subroutine* a_pSubroutine )
         {
             m_DebuggableSubroutinesNotReady.erase(found);
         }
-        for(size_t i = 0; i < a_pSubroutine->getInstructionCount(); ++i)
+        /*for(size_t i = 0; i < a_pSubroutine->getInstructionCount(); ++i)
         {
             BreakPoint* pBreakPoint = (BreakPoint*)a_pSubroutine->getInstruction(i)->getUserData();
             if(pBreakPoint)
@@ -1029,7 +1031,7 @@ void JitDebugger::unregisterSubroutine( Subroutine* a_pSubroutine )
                 removeBreakPoint(pBreakPoint, BreakPoint::e_Flag_StepOver);
                 removeBreakPoint(pBreakPoint, BreakPoint::e_Flag_Restorer);
             }
-        }
+        }*/
     }
     m_DebuggableSubroutines.erase(std::find(m_DebuggableSubroutines.begin(), m_DebuggableSubroutines.end(), a_pSubroutine));
 }

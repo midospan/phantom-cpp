@@ -34,9 +34,10 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 /* ** The Class Header must be the last #include * */
-#include <phantom/serialization/DataBase.h>
+#include <phantom/serialization/Node.h>
 #include <phantom/serialization/DataTypeManager.h>
 #include <phantom/serialization/Trashbin.h>
+#include <phantom/serialization/DataBase.h>
 /* *********************************************** */
 o_cpp_begin
 
@@ -284,7 +285,7 @@ void DataBase::removeNodeFromTrashbin(uint a_uiGuid)
 	pParentNode->addChildNode(pNode, a_uiGuid);
 	pParentNode->getOwnerDataBase()->setNodeAttributeValue(pNode, pParentNode->getOwnerDataBase()->getAttributeIndex("name"), "Node");
 	pNode->saveAttributes();
-	pNode->load(m_uiSerializationFlag);
+	pNode->load();
 
 	m_pTrashbin->removeNodeByGuid(a_uiGuid);	
 }
@@ -389,7 +390,7 @@ Node* DataBase::createNewNode( Node* a_pParentNode )
     Node* pNewNode = createNode(guid, a_pParentNode);
     createNodeEntry(pNewNode);
     registerNode(pNewNode);
-    pNewNode->save(m_uiSerializationFlag);
+    pNewNode->save();
     o_emit nodeAdded(pNewNode, a_pParentNode);
     return pNewNode;
 }
@@ -399,7 +400,7 @@ void DataBase::addNode( Node* a_pNode, Node* a_pParentNode, uint a_uiGuid )
 	a_pParentNode->storeNode(a_pNode);
 	createNodeEntry(a_pNode);	
 	registerNode(a_pNode);
-	a_pNode->save(m_uiSerializationFlag);
+	a_pNode->save();
 	o_emit nodeAdded(a_pNode, a_pParentNode);
 }
 
@@ -661,7 +662,7 @@ void DataBase::replaceDataTypes( const map<reflection::Type*, reflection::Type*>
         auto end = oldData.end();
         for(;it!=end;++it)
         {
-            rootNode()->getAllDataWhichDependsOnData(*it, dependantData);
+            rootNode()->fetchDataWhichDependsOnData(*it, dependantData);
         }
     }
     // remove duplicates from dependant data (sort + unique)
@@ -859,6 +860,196 @@ reflection::Collection* DataBase::getCollectionContainingSubData( const phantom:
     }
     return nullptr;
 }
+
+void DataBase::rebuildData( phantom::data& a_inOutData, reflection::Type* a_pOld, reflection::Type* a_pNewType, vector<data>& a_Old, vector<data>& a_New, uint a_uiStateId /*= 0xffffffff*/ )
+{
+    o_assert(a_inOutData.type() == a_pOld);
+    o_assert(a_pOld->isClass() == a_pNewType->isClass(), "to be replaced, types must be of the same 'type', both classes or both not classes");
+
+    phantom::data newData(a_pNewType->allocate(), a_pNewType);
+    a_pNewType->build(newData.address());
+    phantom::data oldData = a_inOutData;
+
+    // Replace by the new data
+    a_inOutData = newData;
+
+    a_Old.push_back(oldData);
+    a_New.push_back(newData);
+}
+
+void DataBase::saveState( uint a_uiState )
+{
+    o_assert(m_pDataStateBase, "You must associate a DataStateBase with this DataBase to be able to load/save states");
+    if(rootNode()->isLoaded())
+    {
+        rootNode()->saveStateCascade(m_pDataStateBase, a_uiState);
+    }
+}
+
+void DataBase::loadState( uint a_uiState )
+{
+    o_assert(m_pDataStateBase, "You must associate a DataStateBase with this DataBase to be able to load/save states");
+    if(rootNode()->isLoaded())
+    {
+        rootNode()->loadStateCascade(m_pDataStateBase, a_uiState);
+    }
+}
+
+void DataBase::save()
+{
+    if(rootNode()->isLoaded())
+    {
+        rootNode()->saveCascade();
+    }
+}
+
+Node* DataBase::rootNode()
+{
+    if (m_pRootNode == NULL)
+    {
+        m_pRootNode = createNode(0, NULL);
+        if(NOT(hasNodeEntry(m_pRootNode)))
+        {
+            createNodeEntry(m_pRootNode);
+            m_pRootNode->save();
+        }
+        registerNode(m_pRootNode);
+    }
+    return m_pRootNode;
+}
+
+boolean DataBase::isDataCompatibleWithNode( const phantom::data& a_Data, Node* a_pOwnerNode ) const
+{
+    return NOT(a_pOwnerNode->childNodesContainDependencyOfDeep(a_Data))
+        AND a_pOwnerNode->acceptsData(a_Data);
+}
+
+void DataBase::dataDestroyed( void* a_pAddress )
+{
+    Node* pDataNode = getNode(a_pAddress);
+    if(pDataNode) return; // Means that this instance is not in the database
+    pDataNode->removeData(a_pAddress);
+}
+
+const string& DataBase::getDataAttributeValue( const phantom::data& a_Data, size_t attributeIndex ) const
+{
+    o_assert(attributeIndex < getAttributeCount());
+    static string null_string;
+    attribute_map::const_iterator found = m_AttributeValues.find(a_Data.address());
+    if(found != m_AttributeValues.end())
+    {
+        return (found->second)[attributeIndex];
+    }
+    return null_string;
+}
+
+const string& DataBase::getDataAttributeValue( const phantom::data& a_Data, const string& attributeName ) const
+{
+    return getDataAttributeValue(a_Data, getAttributeIndex(attributeName));
+}
+
+const string& DataBase::getNodeAttributeValue( Node* a_pNode, size_t attributeIndex ) const
+{
+    o_assert(attributeIndex < getAttributeCount());
+    static string null_string;
+    attribute_map::const_iterator found = m_AttributeValues.find(a_pNode);
+    if(found != m_AttributeValues.end())
+    {
+        return (found->second)[attributeIndex];
+    }
+    return null_string;
+}
+
+const string& DataBase::getNodeAttributeValue( Node* a_pNode, const string& attributeName ) const
+{
+    return getNodeAttributeValue(a_pNode, getAttributeIndex(attributeName));
+}
+
+const string* DataBase::getDataAttributeValues( const phantom::data& a_data )
+{
+    attribute_map::const_iterator found = m_AttributeValues.find(a_data.address());
+    return found != m_AttributeValues.end() ? found->second : NULL;
+}
+
+const string* DataBase::getNodeAttributeValues( Node* a_pNode ) const
+{
+    attribute_map::const_iterator found = m_AttributeValues.find(a_pNode);
+    return found != m_AttributeValues.end() ? found->second : NULL;
+}
+
+void DataBase::setDataAttributeValue( const phantom::data& a_Data, size_t attributeIndex, const string& value )
+{
+    o_assert(attributeIndex < getAttributeCount());
+    m_AttributeValues[a_Data.address()][attributeIndex] = value;
+    o_emit dataAttributeValueChanged(a_Data, attributeIndex, value);
+}
+
+void DataBase::setDataAttributeValue( const phantom::data& a_Data, const string& fieldName, const string& value )
+{
+    setDataAttributeValue(a_Data, getAttributeIndex(fieldName), value);
+}
+
+void DataBase::setNodeAttributeValue( Node* a_pNode, size_t attributeIndex, const string& value )
+{
+    o_assert(attributeIndex < getAttributeCount());
+    m_AttributeValues[a_pNode][attributeIndex] = value;
+    o_emit nodeAttributeValueChanged(a_pNode, attributeIndex, value);
+}
+
+void DataBase::setNodeAttributeValue( Node* a_pNode, const string& fieldName, const string& value )
+{
+    setNodeAttributeValue(a_pNode, getAttributeIndex(fieldName), value);
+}
+
+size_t DataBase::addAttribute( const string& a_name )
+{
+    o_assert(m_GuidBase.isEmpty(), "Cannot add dataMember after data");
+    m_AttributeNames.push_back(a_name);
+    return m_AttributeNames.size()-1;
+}
+
+size_t DataBase::getAttributeIndex( const string& a_name ) const
+{
+    size_t i = 0;
+    size_t count = m_AttributeNames.size();
+    for(;i<count;++i)
+    {
+        if(m_AttributeNames[i] == a_name) return i;
+    }
+    return e_Constant_InvalidAttributeIndex;
+}
+
+const string& DataBase::getAttributeName( size_t attributeIndex ) const
+{
+    o_assert(attributeIndex < getAttributeCount());
+    return m_AttributeNames[attributeIndex];
+}
+
+void DataBase::registerSubDataOwner( const data& a_Data, const data& a_Owner )
+{
+    o_assert(m_SubDataOwnerMap.find(a_Data.address()) == m_SubDataOwnerMap.end());
+    m_SubDataOwnerMap[a_Data.address()] = a_Owner;
+}
+
+void DataBase::unregisterSubDataOwner( const data& a_Data )
+{
+    sub_data_owner_map::iterator found = m_SubDataOwnerMap.find(a_Data.address());
+    if(found != m_SubDataOwnerMap.end())
+    {
+        m_SubDataOwnerMap.erase(found);
+    }
+}
+
+void DataBase::saveData( const phantom::data& a_Data )
+{
+    getNode(a_Data)->saveData(a_Data);
+}
+
+void DataBase::saveDataState( const phantom::data& a_Data, uint a_uiState )
+{
+    getNode(a_Data)->saveDataState(a_Data, a_uiState);
+}
+
 
 
 o_cpp_end

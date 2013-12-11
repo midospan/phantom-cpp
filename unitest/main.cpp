@@ -39,6 +39,7 @@
 #include <phantom/unitest/Marine.h>
 #include <phantom/unitest/StateMachineTest.h>
 #include <phantom/serialization/XmlFileTreeDataBase.h>
+#include <phantom/serialization/Node.h>
 #include <boost/property_tree_custom/xml_parser.hpp>
 #include <phantom/reflection/detail/element_finder_spirit.h>
 #include <phantom/variant.h>
@@ -52,8 +53,15 @@ namespace test_struct
     {
         int a;
         void test_met(int i) {}
+
+        bool operator<(const TestStruct& ts) const 
+        {
+            return true;
+        }
     };
 }
+
+o_static_assert(boost::has_less<test_struct::TestStruct>::value);
 
 o_register_namespace_alias(unitest, alias_sc2, sc2)
 
@@ -61,7 +69,7 @@ o_classN((test_struct), TestStruct)
 {
     o_reflection 
     {
-        o_data_member(int, a, o_public);
+        o_data_member(int, a, o_no_range, o_public);
         o_member_function(void, test_met, (int));
     };
 };
@@ -289,7 +297,7 @@ o_namespace_end(unitest)
         o_reflection
         {
             o_member_function(void, member_function, ());
-            o_data_member(float[4][4], m, o_public);
+            o_data_member(float[4][4], m, o_no_range, o_public);
         };
     };
 
@@ -382,7 +390,7 @@ o_classT((typename), (t_Ty), TClass)
 {
     o_reflection 
     {
-        o_data_member(t_Ty, m_DataMember, o_public); 
+        o_data_member(t_Ty, m_DataMember, o_no_range, o_public); 
     };
 };
 o_exposeT((typename), (t_Ty), TClass);
@@ -493,7 +501,7 @@ int main(int argc, char **argv)
     
     // SAVE
     {
-        phantom::serialization::XmlFileTreeDataBase* pDataBase = o_new(phantom::serialization::XmlFileTreeDataBase)(data_base_url, 0);
+        phantom::serialization::XmlFileTreeDataBase* pDataBase = o_new(phantom::serialization::XmlFileTreeDataBase)(data_base_url, 1);
         size_t descriptionIndex = pDataBase->addAttribute("description");
         pDataBase->rootNode()->load();
         pDataBase->rootNode()->addData(pDBMarine1);
@@ -523,8 +531,8 @@ int main(int argc, char **argv)
         }
 
 
-        pDataBase->rootNode()->save(1);
-        pChildNode->save(1);
+        pDataBase->rootNode()->save();
+        pChildNode->save();
 
         pDataBase->rootNode()->destroyAllDataCascade();
         o_delete(phantom::serialization::XmlFileTreeDataBase) pDataBase;
@@ -536,8 +544,8 @@ int main(int argc, char **argv)
         phantom::serialization::XmlFileTreeDataBase* pDataBase = o_new(phantom::serialization::XmlFileTreeDataBase)(data_base_url,0);
         size_t descriptionIndex = pDataBase->addAttribute("description");
         pDataBase->loadNodeEntries();
-        pDataBase->rootNode()->load(1);
-        pDataBase->rootNode()->getChildNode(0)->load(1);
+        pDataBase->rootNode()->load();
+        pDataBase->rootNode()->getChildNode(0)->load();
 
         std::cout<<"test reading dataMember : "<<pDataBase->getNodeAttributeValue(pDataBase->rootNode(), descriptionIndex)<<std::endl;
 

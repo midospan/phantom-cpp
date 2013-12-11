@@ -84,7 +84,7 @@
 #define o_PP_QUOTE_L3(toSurround)    o_PP_QUOTE_L2(toSurround)
 #define o_PP_QUOTE_L2(toSurround)    o_PP_QUOTE_L1(toSurround)
 #define o_PP_QUOTE_L1(toSurround)    o_PP_QUOTE_L0(toSurround)
-#define o_PP_QUOTE_L0(toSurround)    o_CS(#toSurround)
+#define o_PP_QUOTE_L0(toSurround)    #toSurround
 #define o_PP_QUOTE(toSurround)        o_PP_QUOTE_L3(toSurround)
 
 #define o_PP_LEFT_PAREN (
@@ -542,7 +542,7 @@
 #define o_static                    0x00000008
 #define o_no_default_constructor    0x00000010
 #define o_transient                 0x00000020
-#define o_disable_copy              0x00000040
+#define o_no_copy              0x00000040
 #define o_readonly                  0x00000080
 #define o_no_rtti                   0x00000100
 #define o_union_alternative         0x00000200
@@ -566,6 +566,7 @@
 
 #define o_none 0
 #define o_no_signal m_PHANTOM_RESERVED_no_signal
+#define o_no_range (phantom::reflection::native::null_range())
 
 #define o_proxy_class \
     o_local_code_TemplateSignature \
@@ -592,20 +593,6 @@
 #endif
 
 
-// EXCEPTION
-#if o__bool__use_exceptions
-#    define o_exception_1(_exception_class_) throw _exception_class_()
-#    define o_exception_2(_exception_class_, _what_) throw _exception_class_(_what_)
-#else
-#    define o_exception_1(_exception_class_) o_error(false, o_PP_QUOTE(_exception_class_))
-#    define o_exception_2(_exception_class_, _what_) o_error(false, (phantom::string(o_PP_QUOTE(_exception_class_))+o_CS(" : ")+o_CS(_what_)).c_str())
-#endif
-
-#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
-#define o_exception(...) o_PP_CAT(o_PP_CAT(o_exception_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
-#else
-#define o_exception(...) o_PP_CAT(o_exception_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
-#endif
 // DESTRUCTOR SPECIFIERS
 #define o_destructor
 
@@ -689,16 +676,25 @@
 #define o_unused(var) (void)var
 
 
+
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
+#   define o_exception(...) o_PP_CAT(o_PP_CAT(o_exception_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #   define o_assert(...) o_PP_CAT(o_PP_CAT(o_assert_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #   define o_warning(...) o_PP_CAT(o_PP_CAT(o_warning_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #else
+#   define o_exception(...) o_PP_CAT(o_exception_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
 #   define o_assert(...) o_PP_CAT(o_assert_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
 #   define o_warning(...) o_PP_CAT(o_warning_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
 #endif
 
-#    define o_error(_Expression, _Message, ...)    \
-        {(void)( (!!(_Expression)) || (phantom::error BOOST_PREVENT_MACRO_SUBSTITUTION ( #_Expression, _Message, __FILE__, __LINE__), 0) );}
+// EXCEPTION
+#if o__bool__use_exceptions
+#    define o_exception_1(_exception_class_) throw _exception_class_()
+#    define o_exception_2(_exception_class_, _what_) throw _exception_class_(_what_)
+#else
+#    define o_exception_1(_exception_class_) o_error(false, #_exception_class_)
+#    define o_exception_2(_exception_class_, _what_) o_error( false, phantom::to_astring(#_exception_class_) + phantom::to_astring(" : ") + phantom::to_astring(_what_) )
+#endif
 
 #if (defined(_DEBUG) || defined(DEBUG))
 
@@ -708,8 +704,12 @@
 #   define o_warning_2(_Expression, _Message)    \
         {( (!!(_Expression)) || (phantom::warning BOOST_PREVENT_MACRO_SUBSTITUTION ( #_Expression, _Message, __FILE__, __LINE__), 0) );}
 
+
 #   define o_assert_1(_Expression)             o_assert_2(_Expression, "no detail about the assertion")
-#   define o_assert_2(_Expression, _Message)   {( (!!(_Expression)) || (phantom::assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( #_Expression, _Message, __FILE__, __LINE__), 0) );}
+#   define o_assert_2(_Expression, _Message)   {( (!!(_Expression)) || (phantom::assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( o_CS(#_Expression), phantom::to_astring(_Message).c_str(), __FILE__, __LINE__), 0) );}
+#    define o_error(_Expression, _Message, ...)    \
+        {(void)( (!!(_Expression)) || (phantom::error BOOST_PREVENT_MACRO_SUBSTITUTION ( o_CS(#_Expression), phantom::to_astring(_Message).c_str(), __FILE__, __LINE__), 0) );}
+
 #   define o_verify(_Expression, _Message)     o_assert(_Expression, _Message)
 #   define o_debug_only(things)                things
 #   define o_log(level, format, ...)           ::phantom::log BOOST_PREVENT_MACRO_SUBSTITUTION (level, __FILE__, __LINE__, format, __VA_ARGS__)

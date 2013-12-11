@@ -68,7 +68,7 @@ public:
         , setter a_setter
         , getter a_getter
         , size_getter a_size_getter
-        , bitfield a_uiModifiers = bitfield())
+        , bitfield a_uiModifiers = 0)
      : Collection(a_strName, a_pElementType, a_uiModifiers)
      , m_adder(a_adder)
      , m_remover(a_remover)
@@ -132,7 +132,7 @@ public:
 
 public:
     TNativeCollection(const string& a_strName, Type* a_pContentType
-        , member_field_pointer a_member_field_pointer, bitfield a_uiModifiers = bitfield())
+        , member_field_pointer a_member_field_pointer, bitfield a_uiModifiers = 0)
         : TNativeCollection<t_Ty,t_ContentType>(a_strName, a_pContentType
 
         // We manage const-type attributes like no-const-type attributes : we break the const qualifier to be able to force write with "setValue"

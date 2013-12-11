@@ -208,4 +208,15 @@ void Trashbin::clean()
 	m_Nodes.clear();
 }
 
+void Trashbin::rebuildAllData(reflection::Type* a_pOld, reflection::Type* a_pNew, vector<data>& a_OldData, vector<data>& a_NewData, uint a_uiStateId /*= 0xffffffff*/)
+{
+    for(auto it = m_Datas.begin(); it != m_Datas.end(); ++it)
+    {
+        if(it->m_Data.type() == a_pOld) 
+        {
+            m_pDataBase->rebuildData(it->m_Data, a_pOld, a_pNew, a_OldData, a_NewData, a_uiStateId);
+        }
+    }
+}
+
 o_namespace_end(phantom, serialization)

@@ -494,7 +494,7 @@ LanguageElement* Namespace::getElement(
     const char* a_strName 
     , template_specialization const* a_TemplateSpecialization
     , function_signature const* a_FunctionSignature
-    , bitfield a_bfModifiers /*= bitfield()*/) const 
+    , bitfield a_Modifiers /*= 0*/) const 
 {
     if(a_TemplateSpecialization == nullptr OR a_TemplateSpecialization->empty())
     {
@@ -505,13 +505,13 @@ LanguageElement* Namespace::getElement(
     }
     o_foreach(Type* pType, m_Types)
     {
-        if(pType->matches(a_strName, a_TemplateSpecialization, a_bfModifiers))
+        if(pType->matches(a_strName, a_TemplateSpecialization, a_Modifiers))
         {
             return pType;
         }
         else if(pType->isEnum())
         {
-            LanguageElement* pEnumConstant = pType->getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_bfModifiers);
+            LanguageElement* pEnumConstant = pType->getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
             if(pEnumConstant) return pEnumConstant;
         }
     }

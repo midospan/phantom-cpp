@@ -40,7 +40,7 @@
 #include <phantom/serialization/FileTreeDataBase.h>
 /* *********************************************** */
 /* The *.classdef.h file must be the last #include */
-#include "phantom/_kernel.noclassdef.h"
+#include "phantom/def_export.h"
 /* **************** Declarations ***************** */
 /* *********************************************** */
 

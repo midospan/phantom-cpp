@@ -40,9 +40,6 @@
 #include "phantom/serialization/FileTreeNode.h"
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "phantom/_kernel.noclassdef.h"
 /* **************** Declarations ***************** */
 o_declare(class, phantom, serialization, BinaryFileTreeDataBase)
 o_declare(class, phantom, serialization, BinaryFileTreeDataStateBase)
@@ -67,7 +64,7 @@ public:
     virtual void    loadAttributes();
     virtual void    loadDataAttributes();
     virtual void    loadDataAttributes(const phantom::data& a_Data, uint guid);
-    virtual boolean canLoad(vector<string>& missing_types);
+    virtual bool    canLoad(vector<string>* missing_types) const;
     virtual void    cache();
     virtual void    build();
     virtual void    deserialize(uint a_uiSerializationFlag);
@@ -91,8 +88,8 @@ protected:
     void            loadDataAttributesHelper(const vector<string>& a_Values, const phantom::data& a_Data);
     void            loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid);
 
-	void			readBinary(const string& a_strPath, byte* a_pBuffer, uint& a_uiBufferSize);
-	void			writeBinary(const string& a_strPath, byte* a_pBuffer, uint a_uiBufferSize);
+	void			readBinary(const string& a_strPath, byte* a_pBuffer, uint& a_uiBufferSize) const;
+	void			writeBinary(const string& a_strPath, const byte* a_pBuffer, uint a_uiBufferSize) const;
     
 protected:
     list<data>      m_DataRestoreQueue;

@@ -75,6 +75,7 @@ class o_export Trashbin
 		size_t	m_uiGuid;
 	};
 
+    friend class DataBase;
 
 public:
 
@@ -102,9 +103,10 @@ public:
 
 	void				clean();
 
+    void                rebuildAllData(reflection::Type* a_pOld, reflection::Type* a_pNew, vector<data>& a_OldData, vector<data>& a_NewData, uint a_uiStateId = 0xffffffff);
 
 protected:
-
+    DataBase*           m_pDataBase;
 	vector<RemovedData>	m_Datas;
 	vector<RemovedNode>	m_Nodes;
 };

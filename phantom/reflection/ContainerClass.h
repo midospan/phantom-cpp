@@ -19,8 +19,8 @@ class ContainerClass : public Class
     _____________________________________________________________________reflection
 
 public:
-    ContainerClass(Type* a_pValueType, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers = bitfield())
-        : Class(a_strName, a_uiSize, a_uiAlignment, a_bfModifiers)
+    ContainerClass(Type* a_pValueType, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
+        : Class(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
         , m_pValueType(a_pValueType) 
     {
     }

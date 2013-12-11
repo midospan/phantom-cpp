@@ -108,8 +108,8 @@ public:
 
     
 public:
-    TNativeProperty(const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pChangeNotificationSignal, setter a_setter, getter a_getter, uint a_uiSerializationMask, bitfield a_uiModifiers = bitfield())
-     : Property(a_strName, a_pValueType, a_pSetMemberFunction, a_pGetMemberFunction, a_pChangeNotificationSignal, a_uiSerializationMask, a_uiModifiers)
+    TNativeProperty(const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pChangeNotificationSignal, Range* a_pRange, setter a_setter, getter a_getter, uint a_uiSerializationMask, bitfield a_uiModifiers = 0)
+     : Property(a_strName, a_pValueType, a_pSetMemberFunction, a_pGetMemberFunction, a_pChangeNotificationSignal, a_pRange, a_uiSerializationMask, a_uiModifiers)
      , m_setter(a_setter)
      , m_getter(a_getter)
     {
@@ -305,7 +305,7 @@ public:
     typedef t_ContentType const (t_Ty::*member_field_pointer);
 
 public:
-    TNativeProperty(const string& a_strName, Type* a_pContentType, member_field_pointer a_member_field_pointer, bitfield a_uiModifiers = bitfield())
+    TNativeProperty(const string& a_strName, Type* a_pContentType, member_field_pointer a_member_field_pointer, bitfield a_uiModifiers = 0)
         : TNativeProperty<t_Ty,t_ContentType>(a_strName, a_pContentType
 
         // We manage const-type attributes like no-const-type attributes : we break the const qualifier to be able to force write with "setValue"

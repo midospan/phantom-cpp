@@ -3,9 +3,8 @@
 /* ** The Class Header must be the last #include * */
 #include "DataStateBase.h"
 /* *********************************************** */
-o_cpp_begin
+o_registerN((phantom, serialization), DataStateBase);
 
-    ReflectionCPP__________________________________________________________________________________
-    __________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, serialization)
 
-o_cpp_end
+o_namespace_end(phantom, serialization)

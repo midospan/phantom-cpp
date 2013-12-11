@@ -18,30 +18,27 @@ class o_jit_export JitLocalVariable : public LocalVariable, public JitAddressabl
 	
 public:
     JitLocalVariable(Block* a_pBlock, Type* a_pType, const string& a_strName, const CodeLocation& a_Location, bitfield modifiers = 0);
-    JitLocalVariable(Block* a_pBlock, Type* a_pType, const string& a_strName, const CodeLocation& a_Location, jit_value_t value, bitfield modifiers = 0);
+    JitLocalVariable(Block* a_pBlock, Type* a_pType, const string& a_strName, const CodeLocation& a_Location, jit_value value, bitfield modifiers = 0);
 	~JitLocalVariable(void) 	{}
 
-    jit_function_t      getJitFunction() const;
-    jit_value_t         getJitValue() const { return m_Value.value; }
+    JitSubroutine*      getJitSubroutine() const;
+    jit_value           getJitValue() const { return m_Value.value; }
 
-    jit_phantom_value_t getValue() const 
+    jit_value getValue() const 
     {
         return m_Value;
     }
 
     virtual reflection::Type*   getValueType() const { return LocalVariable::getValueType(); }
 
-    virtual int store(jit_phantom_value_t value) const;
-    virtual jit_phantom_value_t load() const
-    {
-        return m_Value;
-    }
-    virtual jit_phantom_value_t address() const;
+    virtual int store(jit_value value) const;
+    virtual jit_value load() const;
+    virtual jit_value address() const;
 
     void setupFrame();
 
 protected:
-    jit_phantom_value_t m_Value;
+    jit_value m_Value;
 };
 
 o_namespace_end(phantom, reflection, jit)

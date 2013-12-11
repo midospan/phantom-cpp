@@ -41,7 +41,8 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
-SubValueMember::SubValueMember( const string& a_strName , Type* a_pContentType , ValueMember* a_pParentValueMember , uint a_uiSubOffset , bitfield a_bfModifiers /*= bitfield()*/ ) : ValueMember(a_strName, a_bfModifiers)
+SubValueMember::SubValueMember( const string& a_strName, Range* a_pRange, Type* a_pContentType , ValueMember* a_pParentValueMember , uint a_uiSubOffset , bitfield a_Modifiers /*= 0*/ ) 
+: ValueMember(a_strName, a_pRange, a_Modifiers)
 , m_uiSubOffset(a_uiSubOffset)
 , m_pParentValueMember(a_pParentValueMember)
 , m_pContentType(a_pContentType)

@@ -5,8 +5,8 @@ o_registerN((phantom, reflection), LocalVariable);
 
 o_namespace_begin(phantom, reflection) 
     
-LocalVariable::LocalVariable( Block* a_pBlock, reflection::Type* a_pType, const string& a_strName, const CodeLocation& a_Location, bitfield a_bfModifiers /*= 0*/ ) 
-    : LanguageElement(a_strName, a_bfModifiers)
+LocalVariable::LocalVariable( Block* a_pBlock, reflection::Type* a_pType, const string& a_strName, const CodeLocation& a_Location, bitfield a_Modifiers /*= 0*/ ) 
+    : LanguageElement(a_strName, a_Modifiers)
     , m_iFrameOffset(e_InvalidFrameOffset)
     , m_pType(a_pType)
 {
@@ -24,7 +24,7 @@ Block* LocalVariable::getBlock() const
     return static_cast<Block*>(m_pOwner);
 }
 
-LanguageElement* LocalVariable::getElement( const char* a_strQualifiedName , template_specialization const* a_pTS, function_signature const* a_pFS, bitfield a_bfModifiers /*= bitfield()*/ ) const
+LanguageElement* LocalVariable::getElement( const char* a_strQualifiedName , template_specialization const* a_pTS, function_signature const* a_pFS, bitfield a_Modifiers /*= 0*/ ) const
 {
     return nullptr;
 }

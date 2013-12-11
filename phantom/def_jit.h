@@ -1,10 +1,7 @@
 #ifndef o_phantom_def_jit
 #define o_phantom_def_jit
 
-
 #include <phantom/phantom.h>
-#include <jit/jit.h>
-
 
 #if (o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS) && !defined(JIT_STATIC_LIB)
 #    ifdef _PHANTOM_JIT
@@ -32,6 +29,7 @@ o_fwd(class, phantom, reflection, jit, JitProperty);
 o_fwd(class, phantom, reflection, jit, JitCollection);
 o_fwd(class, phantom, reflection, jit, JitAddressable);
 o_fwd(class, phantom, reflection, jit, JitLocalVariable);
+o_fwd(class, phantom, reflection, jit, JitSubroutine);
 
 o_fwd(class, phantom, state, jit, JitStateMachine);
 o_fwd(class, phantom, state, jit, JitTrack);
@@ -67,77 +65,111 @@ namespace phantom { namespace state         { namespace jit
 } 
 }
 
-o_jit_export jit_type_t jit_type_from_phantom_type(phantom::reflection::Type* a_pType);
-o_jit_export phantom::reflection::Type* jit_type_to_phantom_type(jit_type_t type);
-o_jit_export jit_type_t jit_type_from_phantom_signature(jit_abi_t abi, phantom::reflection::Signature* a_pSignature);
+o_namespace_begin(phantom, reflection, jit)
 
-
-struct jit_phantom_value_t
+enum EJitAbi
 {
-    jit_phantom_value_t()
-        : value(0), type(0) {}
-    jit_phantom_value_t(jit_value_t a_Value)
-        : value(a_Value)
-        , type(a_Value == 0 ? 0 : jit_type_to_phantom_type(jit_value_get_type(a_Value)))
-    {
-    }
-    jit_phantom_value_t(jit_value_t a_Value, phantom::reflection::Type* a_pType)
-        : value(a_Value)
-        , type(a_Value == 0 ? 0 : a_pType)
-    {
+    e_JitAbi_cdecl,			/* Native C calling conventions */
+    e_JitAbi_vararg,			/* Native C with optional variable arguments */
+    e_JitAbi_stdcall,		/* Win32 STDCALL (same as cdecl if not Win32) */
+    e_JitAbi_fastcall,		/* Win32 FASTCALL (same as cdecl if not Win32) */
+    e_JitAbi_thiscall		/* Method call */
+};
 
-    }
+struct o_jit_export jit_label
+{
+    jit_label();
+    uint label;
+};
+
+struct o_jit_export jit_function
+{
+    jit_function();
+    jit_function(void* b);
+    void* function;
+};
+
+struct o_jit_export jit_context
+{
+    jit_context();
+    jit_context(void* b);
+    void* context;
+};
+
+struct o_jit_export jit_block
+{
+    jit_block();
+    jit_block(void* b);
+    void* block;
+};
+
+struct o_jit_export jit_constant
+{
+    jit_constant();
+    Type* getType () const;
+    int getIntValue() const;
+    uint getUIntValue() const;
+    longlong getLongLongValue() const;
+    ulonglong getULongLongValue() const;
+    Type*			type;
+    union
+    {
+        void*       ptr_value;
+        int			int_value;
+        uint		uint_value;
+        longlong	longlong_value;
+        ulonglong	ulonglong_value;
+        float		float_value;
+        double		double_value;
+    } un;
+};
+
+struct o_jit_export jit_value
+{
+    jit_value();
+    jit_value(void* a_Value);
+    jit_value(void* a_Value, phantom::reflection::Type* a_pType);
 
     bool isNull() const { return value == 0; }
     bool isNullPtr() const{ return type == nullptr; }
 
-    jit_value_t     value;
-    phantom::reflection::Type* type;
+    void*     value;
+    Type*     type;
+    
+    bool operator==(const jit_value& ptr) const { return value == ptr.value; }
+    bool operator!=(const jit_value& ptr) const { return value != ptr.value; }
 
-    operator jit_value_t ()
-    {
-        return (jit_value_t)value;
-    }
-
-    bool operator==(const jit_value_t ptr) const { return value == ptr; }
-    bool operator!=(const jit_value_t ptr) const { return value != ptr; }
+    int             isTemporary () const;
+    void            setLocal();
+    int             isLocal () const;
+    int             isConstant () const;
+    int             isParameter () const;
+    void            ref() const;
+    void            setVolatile () const;
+    int             isVolatile () const;
+    void            setAddressable () const;
+    int             isAddressable () const;
+    Type*           getType () const;
+    JitSubroutine*  getJitSubroutine() const;
+    jit_block       getBlock () const;
+    jit_context     getContext () const;
+    jit_constant    getConstant () const;
+    int             getIntConstant () const;
+    longlong        getLongLongConstant () const;
+    float           getFloatConstant () const;
+    double          getDoubleConstant () const;
+    int             getFrameOffset() const;
+    int             isTrue () const;
+    static int      convertConstant (jit_constant *result, const jit_constant *value, Type* a_pType, int overflow_check);
+    static jit_constant create1Constant();
 };
 
-o_jit_export jit_phantom_value_t jit_insn_phantom_implicit_cast(jit_function_t func, phantom::reflection::Type* dest, jit_phantom_value_t value );;
-o_jit_export jit_phantom_value_t jit_insn_phantom_cast(jit_function_t func, phantom::reflection::Type* dest, jit_phantom_value_t value );;
-o_jit_export jit_phantom_value_t jit_insn_phantom_eq(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_ne(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_lt(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_gt(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_ge(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_le(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_add(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_sub(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_mul(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_div(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-// BITWISE OPERATIONS (only on integral types)
-o_jit_export jit_phantom_value_t jit_insn_phantom_shr(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_shl(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_rem(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_and(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_or(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_xor(jit_function_t func, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_insn_phantom_not(jit_function_t func, jit_phantom_value_t value);
-o_jit_export void jit_value_phantom_create_1_constant(jit_constant_t& constant);
-o_jit_export jit_phantom_value_t jit_insn_phantom_neg( jit_function_t func, jit_phantom_value_t op );
-
-o_jit_export jit_phantom_value_t jit_phantom_math_operation(jit_function_t func, char op, jit_phantom_value_t l, jit_phantom_value_t r);
-o_jit_export jit_phantom_value_t jit_phantom_math_unary_intrinsic(jit_function_t func, const char* intrinsic, jit_phantom_value_t l);
-o_jit_export jit_phantom_value_t jit_phantom_math_binary_intrinsic(jit_function_t func, const char* intrinsic, jit_phantom_value_t l, jit_phantom_value_t r);
-
-o_jit_export jit_phantom_value_t jit_phantom_math_func(jit_function_t func, const char* function, jit_phantom_value_t v0);
-o_jit_export jit_phantom_value_t jit_phantom_math_func(jit_function_t func, const char* function, jit_phantom_value_t v0, jit_phantom_value_t v1);
-o_jit_export jit_phantom_value_t jit_phantom_math_func(jit_function_t func, const char* function, jit_phantom_value_t v0, jit_phantom_value_t v1, jit_phantom_value_t v2);
-
-o_class(jit_phantom_value_t)
+o_namespace_end(phantom, reflection, jit)
+    
+o_classN((phantom, reflection, jit), jit_value)
 {
     o_reflection {};
 };
-o_expose(jit_phantom_value_t);
+o_exposeN((phantom, reflection, jit), jit_value);
 
 #endif

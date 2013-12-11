@@ -38,13 +38,9 @@
 
 /* ****************** Includes ******************* */
 #include "phantom/serialization/DataStateBase.h"
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "phantom/_kernel.noclassdef.h"
 /* **************** Declarations ***************** */
-namespace boost { namespace filesystem3 { class path; } }
+namespace boost { namespace filesystem { class path; } }
 /* *********************************************** */
-
 
 o_namespace_begin(phantom, serialization)
 
@@ -56,26 +52,9 @@ public:
 
     virtual bool hasStateSaved(Node* a_pNode, uint a_uiStateId) const;
 
-    string statePath(Node* a_pNode, uint a_uiStateId) const
-    {
-        Node* pParent = a_pNode->getParentNode();
-        string path = pParent
-            ? statePath(pParent, a_uiStateId) 
-            : getUrl() + "/[" + phantom::lexical_cast<string>(reinterpret_cast<void*>(a_uiStateId)) + "]";
-        path += "/[";
-        path += phantom::lexical_cast<string>(reinterpret_cast<void*>(a_pNode->getGuid()));
-        path += "]";
-        return path;
-    }
+    string statePath(Node* a_pNode, uint a_uiStateId) const;
 
-    string dataPath(const phantom::data& a_Data, uint a_uiGuid, Node* a_pNode, uint a_uiStateId) const
-    {
-        string path = statePath(a_pNode, a_uiStateId);
-        path += "/[";
-        path += phantom::lexical_cast<string>(reinterpret_cast<void*>(a_uiGuid));
-        path += "]";
-        return path;
-    }
+    string dataPath(const phantom::data& a_Data, uint a_uiGuid, Node* a_pNode, uint a_uiStateId) const;
 
 protected:
     virtual void loadState(Node* a_pNode, uint a_uiStateId) = 0;

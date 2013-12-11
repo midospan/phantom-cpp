@@ -37,9 +37,6 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/serialization/PackageDataBase.h>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "phantom/_kernel.noclassdef.h"
 /* **************** Declarations ***************** */
 
 /* *********************************************** */

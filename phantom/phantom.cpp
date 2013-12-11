@@ -36,12 +36,13 @@
 #include <phantom/reflection/detail/element_finder_spirit.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-/* ** The Class Header must be the last #include * */
-#include "phantom.h"
+#include <stdarg.h>
 /* *********************************************** */
 o_registerN((phantom), data);
 o_registerN((phantom), object);
+//#if defined(o__bool__enable_bitfield_type)
 o_registerN((phantom), bitfield);
+//#endif
 
 o_begin_phantom_namespace() 
 
@@ -961,14 +962,17 @@ o_export void        assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const characte
 {
     (*Phantom::m_assert_func)(e,m,f,l);
 }
+
 o_export void        warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l)
 {
     (*Phantom::m_warning_func)(e,m,f,l);
 }
+
 o_export void        error BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l)
 {
     (*Phantom::m_error_func)(e,m,f,l);
 }
+
 o_export void        log BOOST_PREVENT_MACRO_SUBSTITUTION (int level, const char* file, uint line, const char* format, ...)
 {
     va_list args;
@@ -995,7 +999,7 @@ o_export void setMetaDataValue( const string& elementName, size_t index, const s
 {
     reflection::LanguageElement* pElement = elementByName(elementName);
     o_assert(pElement);
-    o_assert(index != 0xffffffff, "Meta data not declared, pass the metadata name list as third argument of the Phantom constructor");
+    o_assert(index != eInvalidMetaDataIndex, "Meta data not declared, pass the metadata name list as third argument of the Phantom constructor");
     pElement->setMetaDataValue(index, value);
 }
 
@@ -1003,7 +1007,7 @@ o_export  const string& metaDataValue( const string& elementName, size_t index )
 {
     reflection::LanguageElement* pElement = elementByName(elementName);
     o_assert(pElement);
-    o_assert(index != 0xffffffff, "Meta data not declared, pass the metadata name list as third argument of the Phantom constructor");
+    o_assert(index != eInvalidMetaDataIndex, "Meta data not declared, pass the metadata name list as third argument of the Phantom constructor");
     return pElement->getMetaDataValue(index);
 }
 

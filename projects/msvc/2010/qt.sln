@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qt", "qt.vcxproj", "{9EE8F983-32AF-4D2E-B18B-02D2FCE8DA2B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qt_test", "qt_test.vcxproj", "{9DD37651-EEBC-46C8-8F64-65B3691FDE12}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9EE8F983-32AF-4D2E-B18B-02D2FCE8DA2B} = {9EE8F983-32AF-4D2E-B18B-02D2FCE8DA2B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qt_jit", "qt_jit.vcxproj", "{4D7F69B1-C9F6-44FC-9D2E-8FDE45BA4512}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9EE8F983-32AF-4D2E-B18B-02D2FCE8DA2B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9EE8F983-32AF-4D2E-B18B-02D2FCE8DA2B}.Debug|Win32.Build.0 = Debug|Win32
+		{9EE8F983-32AF-4D2E-B18B-02D2FCE8DA2B}.Release|Win32.ActiveCfg = Release|Win32
+		{9EE8F983-32AF-4D2E-B18B-02D2FCE8DA2B}.Release|Win32.Build.0 = Release|Win32
+		{9DD37651-EEBC-46C8-8F64-65B3691FDE12}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9DD37651-EEBC-46C8-8F64-65B3691FDE12}.Debug|Win32.Build.0 = Debug|Win32
+		{9DD37651-EEBC-46C8-8F64-65B3691FDE12}.Release|Win32.ActiveCfg = Release|Win32
+		{9DD37651-EEBC-46C8-8F64-65B3691FDE12}.Release|Win32.Build.0 = Release|Win32
+		{4D7F69B1-C9F6-44FC-9D2E-8FDE45BA4512}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4D7F69B1-C9F6-44FC-9D2E-8FDE45BA4512}.Debug|Win32.Build.0 = Debug|Win32
+		{4D7F69B1-C9F6-44FC-9D2E-8FDE45BA4512}.Release|Win32.ActiveCfg = Release|Win32
+		{4D7F69B1-C9F6-44FC-9D2E-8FDE45BA4512}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

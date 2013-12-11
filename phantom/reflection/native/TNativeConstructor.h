@@ -55,8 +55,8 @@ class TNativeConstructor<t_Ty()> : public Constructor
 public:
     typedef TNativeConstructor<t_Ty()>    self_type;
     TNativeConstructor(){}
-    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_bfModifiers = bitfield())
-        : Constructor(a_strName, a_pSignature, a_bfModifiers)
+    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Constructor(a_strName, a_pSignature, a_Modifiers)
     {
 
     }
@@ -107,8 +107,8 @@ public:
     typedef TNativeConstructor<t_Ty(t_Param0)> self_type;
 
     TNativeConstructor(){}
-    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_bfModifiers = bitfield())
-        : Constructor(a_strName, a_pSignature, a_bfModifiers)
+    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Constructor(a_strName, a_pSignature, a_Modifiers)
     {
     }
     virtual boolean         isNative() const { return true; }
@@ -157,8 +157,8 @@ public:
     typedef TNativeConstructor<t_Ty(t_Param0,t_Param1)> self_type;
 
     TNativeConstructor(){}
-    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_bfModifiers = bitfield())
-        : Constructor(a_strName, a_pSignature, a_bfModifiers)
+    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Constructor(a_strName, a_pSignature, a_Modifiers)
     {
     }
     virtual boolean      isNative() const { return true; }

@@ -56,7 +56,7 @@ class o_export Reaction : public StateMachineElement
 
 public:
     Reaction() {}
-    Reaction(const string& a_strName, bitfield bf = bitfield()) : StateMachineElement(a_strName, bf) {}
+    Reaction(const string& a_strName, bitfield bf = 0) : StateMachineElement(a_strName, bf) {}
     ~Reaction() {}
 
     virtual void react(void* a_pObject, Event* a_pTriggerEvent) = 0;

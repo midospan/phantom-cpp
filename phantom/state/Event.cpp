@@ -41,8 +41,8 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
-Event::Event( const string& a_strName, uint id, bitfield a_bfModifiers /*= bitfield()*/ ) 
-: StateMachineElement(a_strName, a_bfModifiers)
+Event::Event( const string& a_strName, uint id, bitfield a_Modifiers /*= 0*/ ) 
+: StateMachineElement(a_strName, a_Modifiers)
 , m_uiId(id)
 {
 

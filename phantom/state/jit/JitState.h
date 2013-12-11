@@ -73,7 +73,6 @@ protected:
     void compile();
 
 protected:
-    jit_type_t  m_ClosureSignature;
     reflection::jit::JitInstanceMemberFunction*       m_pEnterMemberFunction;
     reflection::jit::JitInstanceMemberFunction*       m_pUpdateMemberFunction;
     reflection::jit::JitInstanceMemberFunction*       m_pLeaveMemberFunction;
@@ -84,48 +83,6 @@ protected:
 };
 
 o_namespace_end(phantom, state, jit)
-
-#include <phantom/state/jit/JitTrack.h>
-
-o_namespace_begin(phantom, state, jit)
-
-void JitState::enter( jit_state_machine_data* smdataptr )
-{
-    o_State_TraceEnter();
-    o_assert(m_pEnterClosure);
-    void* args[1] = { &smdataptr->owner };
-    jit_apply( m_ClosureSignature, m_pEnterClosure, args, 1, nullptr);
-    o_foreach(Track* pTrack, m_Tracks)
-    {
-        ((JitTrack*)pTrack)->enter(smdataptr);
-    }
-}
-
-void JitState::update( jit_state_machine_data* smdataptr )
-{
-    o_assert(m_pUpdateClosure);
-    void* args[1] = { &smdataptr->owner };
-    jit_apply( m_ClosureSignature, m_pUpdateClosure, args, 1, nullptr);
-    o_foreach(Track* pTrack, m_Tracks)
-    {
-        ((JitTrack*)pTrack)->update(smdataptr);
-    }
-}
-
-void JitState::leave( jit_state_machine_data* smdataptr )
-{
-    o_foreach(Track* pTrack, m_Tracks)
-    {
-        ((JitTrack*)pTrack)->leave(smdataptr);
-    }
-    o_State_TraceLeave();
-    o_assert(m_pLeaveClosure);
-    void* args[1] = { &smdataptr->owner };
-    jit_apply( m_ClosureSignature, m_pLeaveClosure, args, 1, nullptr);
-}
-
-o_namespace_end(phantom, state, jit)
-
 
 o_classNS((phantom, state, jit), JitState, (State))
 {

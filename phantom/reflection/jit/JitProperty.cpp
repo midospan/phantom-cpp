@@ -1,5 +1,6 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
+#include "phantom/def_jit_internal.h"
 #include "JitProperty.h"
 #include "JitClass.h"
 #include "JitSignal.h"
@@ -42,12 +43,12 @@ void JitProperty::getValue( void const* a_pObject, void* dest ) const
     if(getValueType()->isReferenceType())
     {
         void* reference_address = nullptr;
-        jit_function_apply(m_get_jit_function, &pThis, &reference_address);
+        jit_function_apply((jit_function_t)m_get_jit_function.function, &pThis, &reference_address);
         getValueType()->removeReference()->removeConst()->copy(dest, reference_address);
     }
     else 
     {
-        jit_function_apply(m_get_jit_function, &pThis, dest);
+        jit_function_apply((jit_function_t)m_get_jit_function.function, &pThis, dest);
     }
 }
 
@@ -56,12 +57,12 @@ void JitProperty::setValue( void* a_pObject, const void* src ) const
     if(getValueType()->isReferenceType())
     {
         void* args[2] = { &a_pObject, (void*)&src };                   
-        jit_function_apply(m_set_jit_function, args, nullptr);
+        jit_function_apply((jit_function_t)m_set_jit_function.function, args, nullptr);
     }
     else
     {
         void* args[2] = { &a_pObject, (void*)src };
-        jit_function_apply(m_set_jit_function, args, nullptr);
+        jit_function_apply((jit_function_t)m_set_jit_function.function, args, nullptr);
     }
 }
 

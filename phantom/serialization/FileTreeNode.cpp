@@ -41,15 +41,13 @@ o_registerN((phantom, serialization), FileTreeNode);
 
 o_namespace_begin(phantom, serialization)
 
-
 FileTreeNode::FileTreeNode(FileTreeDataBase* a_pOwnerDataBase, uint guid, FileTreeNode* a_pParentNode)
-    : DefaultNode(a_pOwnerDataBase, guid, a_pParentNode) {}
+    : Node(a_pOwnerDataBase, guid, a_pParentNode) {}
 
 string FileTreeNode::path() const
 {
     return static_cast<FileTreeDataBase const*>(m_pOwnerDataBase)->nodePath(const_cast<FileTreeNode*>(this), m_Guid, m_pParentNode);
 }
-
 
 o_namespace_end(phantom, serialization)
 

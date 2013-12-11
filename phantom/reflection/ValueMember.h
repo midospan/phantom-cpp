@@ -53,8 +53,10 @@ class o_export ValueMember : public LanguageElement
     _____________________________________________________________________________________Reflection
 
 public:
-    ValueMember(const string& a_strName, uint a_uiSerializationMask, bitfield a_bfModifiers = bitfield());
+    ValueMember(const string& a_strName, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers = 0);
     o_destructor ~ValueMember(void) {}
+
+    Range* getRange() const { return m_pRange; }
 
     virtual void            getValue(void const* a_pObject, void* dest) const = 0;
     virtual void            setValue(void* a_pObject, void const* src) const = 0;
@@ -97,14 +99,15 @@ public:
     inline ClassType*        getOwnerClassType() const { return m_pOwner->asClassType(); } 
     inline Class*           getOwnerClass() const { return m_pOwner->asClass(); }                  
 
-    o_forceinline boolean    isSaved(uint a_uiSerializationFlag) const { return NOT(m_bfModifiers.matchesMask(o_transient)) AND ((m_uiSerializationMask & a_uiSerializationFlag) == a_uiSerializationFlag); }
-    o_forceinline boolean    isReset() const { return m_bfModifiers.matchesMask(o_reset); }
-    o_forceinline boolean    isTransient() const { return m_bfModifiers.matchesMask(o_transient); }
+    o_forceinline boolean    isSaved(uint a_uiSerializationFlag) const { return NOT(((m_Modifiers & o_transient) == o_transient)) AND ((m_uiSerializationMask & a_uiSerializationFlag) == a_uiSerializationFlag); }
+    o_forceinline boolean    isReset() const { return ((m_Modifiers & o_reset) == o_reset); }
+    o_forceinline boolean    isTransient() const { return ((m_Modifiers & o_transient) == o_transient); }
 
     virtual void*           getAddress(void const* a_pInstance) const { return NULL; }
 
 protected:
-    phantom::vector<SubValueMember*>       m_SubProperties;
+    phantom::vector<SubValueMember*>    m_SubProperties;
+    Range*                              m_pRange;
     uint                                m_uiSerializationMask;
     
 };

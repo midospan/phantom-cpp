@@ -4,8 +4,12 @@
 #include "JitStateMachine.h"
 #include <phantom/reflection/jit/JitInstanceMemberFunction.h>
 #include <phantom/reflection/jit/JitClass.h>
+#include <phantom/state/jit/JitTrack.h>
+#include "phantom/def_jit_internal.h"
 /* *********************************************** */
 o_registerN((phantom, state, jit), JitState);
+
+static jit_type_t g_ClosureSignature = nullptr;
 
 o_namespace_begin(phantom, state, jit)
 
@@ -19,9 +23,47 @@ o_namespace_begin(phantom, state, jit)
     , m_bCompiled(false)
 {
     jit_type_t this_t = jit_type_void_ptr;
-    m_ClosureSignature = jit_type_create_signature(jit_abi_thiscall, jit_type_void, &this_t, 1, 0);
+    if(g_ClosureSignature == nullptr)
+    {
+        g_ClosureSignature = jit_type_create_signature(jit_abi_thiscall, jit_type_void, &this_t, 1, 0);
+    }
 }
 
+
+void JitState::enter( jit_state_machine_data* smdataptr )
+{
+    o_State_TraceEnter();
+    o_assert(m_pEnterClosure);
+    void* args[1] = { &smdataptr->owner };
+    jit_apply( g_ClosureSignature, m_pEnterClosure, args, 1, nullptr);
+    o_foreach(Track* pTrack, m_Tracks)
+    {
+        ((JitTrack*)pTrack)->enter(smdataptr);
+    }
+}
+
+void JitState::update( jit_state_machine_data* smdataptr )
+{
+    o_assert(m_pUpdateClosure);
+    void* args[1] = { &smdataptr->owner };
+    jit_apply( g_ClosureSignature, m_pUpdateClosure, args, 1, nullptr);
+    o_foreach(Track* pTrack, m_Tracks)
+    {
+        ((JitTrack*)pTrack)->update(smdataptr);
+    }
+}
+
+void JitState::leave( jit_state_machine_data* smdataptr )
+{
+    o_foreach(Track* pTrack, m_Tracks)
+    {
+        ((JitTrack*)pTrack)->leave(smdataptr);
+    }
+    o_State_TraceLeave();
+    o_assert(m_pLeaveClosure);
+    void* args[1] = { &smdataptr->owner };
+    jit_apply( g_ClosureSignature, m_pLeaveClosure, args, 1, nullptr);
+}
 
 void JitState::copyHierarchy( JitStateMachine* a_pStateMachine, State* a_pSourceState )
 {
@@ -49,15 +91,15 @@ void JitState::compile()
 {
     o_assert(!m_bCompiled);
     m_bCompiled = true;
-    if(m_pEnterMemberFunction AND m_pEnterMemberFunction->getJitFunction())
+    if(m_pEnterMemberFunction AND m_pEnterMemberFunction->getClosurePointer())
     {
         m_pEnterClosure = m_pEnterMemberFunction->getClosurePointer();
     }
-    if(m_pUpdateMemberFunction AND m_pUpdateMemberFunction->getJitFunction())
+    if(m_pUpdateMemberFunction AND m_pUpdateMemberFunction->getClosurePointer())
     {
         m_pUpdateClosure = m_pUpdateMemberFunction->getClosurePointer();
     }
-    if(m_pLeaveMemberFunction AND m_pLeaveMemberFunction->getJitFunction())
+    if(m_pLeaveMemberFunction AND m_pLeaveMemberFunction->getClosurePointer())
     {
         m_pLeaveClosure = m_pLeaveMemberFunction->getClosurePointer();
     }

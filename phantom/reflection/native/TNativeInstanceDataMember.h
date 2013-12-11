@@ -102,8 +102,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_const<t_ContentType>::type t_ContentTypeNoConst;
 
 public:
-    TNativeInstanceDataMember(const string& a_strName, Type* a_pContentType, member_field_pointer a_member_field_pointer, uint a_uiSerializationMask, bitfield a_uiModifiers = bitfield())
-     : InstanceDataMember(a_strName, a_pContentType, a_uiSerializationMask, a_uiModifiers)
+    TNativeInstanceDataMember(const string& a_strName, Type* a_pContentType, member_field_pointer a_member_field_pointer, Range* a_pRange, uint a_uiSerializationMask, bitfield a_uiModifiers = 0 )
+     : InstanceDataMember(a_strName, a_pContentType, a_pRange, a_uiSerializationMask, a_uiModifiers)
      , m_member_field_pointer(a_member_field_pointer)
     {}
 
@@ -289,11 +289,12 @@ public:
     typedef t_ContentType const (t_Ty::*member_field_pointer);
 
 public:
-    TNativeInstanceDataMember(const string& a_strName, Type* a_pContentType, member_field_pointer a_member_field_pointer, uint a_uiSerializationMask,  bitfield a_uiModifiers = bitfield())
+    TNativeInstanceDataMember(const string& a_strName, Type* a_pContentType, member_field_pointer a_member_field_pointer, Range* a_pRange, uint a_uiSerializationMask, bitfield a_uiModifiers = 0)
         : TNativeInstanceDataMember<t_Ty,t_ContentType>(a_strName, a_pContentType
 
         // We manage const-type attributes like no-const-type attributes : we break the const qualifier to be able to force write with "setValue"
         , const_cast<typename TNativeInstanceDataMember<t_Ty,t_ContentType>::member_field_pointer>(a_member_field_pointer)
+        , a_pRange
         , a_uiSerializationMask
         , a_uiModifiers)
     {}

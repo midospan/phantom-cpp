@@ -44,15 +44,15 @@ ReflectionCPP___________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
 
-Class::Class(const string& a_strName, bitfield a_bfModifiers)
-: ClassType(a_strName, a_bfModifiers)
+Class::Class(const string& a_strName, bitfield a_Modifiers)
+: ClassType(a_strName, a_Modifiers)
 , m_uiRegisteredInstances(0)
 , m_pStateMachine(NULL)
 {
 }
 
-Class::Class(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_bfModifiers)
-: ClassType(a_strName, a_uiSize, a_uiAlignment, a_bfModifiers)
+Class::Class(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers)
+: ClassType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
 , m_uiRegisteredInstances(0)
 , m_pStateMachine(NULL)
 {
@@ -762,15 +762,15 @@ MemberFunction* Class::getMemberFunctionCascade( const string& a_strIdentifierSt
     return NULL;
 }
 
-MemberFunction* Class::getMemberFunctionCascade(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/) const
+MemberFunction* Class::getMemberFunctionCascade(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/) const
 {
-    MemberFunction* pMemberFunction = getMemberFunction(a_strName, a_FunctionSignature, a_bfModifiers);
+    MemberFunction* pMemberFunction = getMemberFunction(a_strName, a_FunctionSignature, a_Modifiers);
     if(pMemberFunction != NULL) return pMemberFunction;
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        pMemberFunction = it->m_pClass->getMemberFunctionCascade(a_strName, a_FunctionSignature, a_bfModifiers);
+        pMemberFunction = it->m_pClass->getMemberFunctionCascade(a_strName, a_FunctionSignature, a_Modifiers);
         if(pMemberFunction != NULL)
             return pMemberFunction;
     }
@@ -954,9 +954,15 @@ void* Class::cast( Class* a_pSuperClass, void* a_pBaseAddress ) const
 }
 
 
-void Class::valueToString( string& s, void* src ) const
+void Class::valueToString( string& s, const void* src ) const
 {
-    o_exception(exception::unsupported_member_function_exception, "TODO (not supported yet)");
+    super_class_table::const_iterator it = m_SuperClasses.begin();
+    super_class_table::const_iterator end = m_SuperClasses.end();
+    for(;it != end; ++it)
+    {
+        it->m_pClass->valueToString(s, ((byte*)src)+it->m_uiOffset);
+    }
+    valueToString(s, src);
 }
 
 void Class::valueFromString( const string& cs, void* dest ) const
@@ -1004,15 +1010,15 @@ void Class::safeDeleteInstance( void* a_pObject ) const
     deleteInstance(phantom::rttiDataOf(a_pObject).cast(const_cast<Class*>(this)));
 }
 
-InstanceMemberFunction*        Class::getInstanceMemberFunctionCascade(const char* a_strName, function_signature const* a_FunctionSignature, bitfield a_bfModifiers /*= bitfield()*/) const
+InstanceMemberFunction*        Class::getInstanceMemberFunctionCascade(const char* a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/) const
 {
-  InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strName, a_FunctionSignature, a_bfModifiers);
+  InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strName, a_FunctionSignature, a_Modifiers);
   if(pMemberFunction != NULL) return pMemberFunction;
   super_class_table::const_iterator it = m_SuperClasses.begin();
   super_class_table::const_iterator end = m_SuperClasses.end();
   for(;it != end; ++it)
   {
-    pMemberFunction = it->m_pClass->getInstanceMemberFunctionCascade(a_strName, a_FunctionSignature, a_bfModifiers);
+    pMemberFunction = it->m_pClass->getInstanceMemberFunctionCascade(a_strName, a_FunctionSignature, a_Modifiers);
     if(pMemberFunction != NULL) return pMemberFunction;
   }
   return NULL;
@@ -1022,15 +1028,15 @@ LanguageElement* Class::getElement(
     const char* a_strName 
     , template_specialization const* a_TemplateSpecialization
     , function_signature const* a_FunctionSignature
-    , bitfield a_bfModifiers /*= bitfield()*/) const 
+    , bitfield a_Modifiers /*= 0*/) const 
 {
-    LanguageElement* pElement = ClassType::getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_bfModifiers);
+    LanguageElement* pElement = ClassType::getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
     if(pElement) return pElement;
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        if(pElement = it->m_pClass->getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_bfModifiers))
+        if(pElement = it->m_pClass->getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers))
             return pElement;
     }
     return NULL;
@@ -1135,5 +1141,18 @@ boolean            Class::isKindOf( Class* a_pType ) const
     }
     return false;
 }
+
+const variant& Class::getAttributeCascade( const string& a_strName ) const
+{
+    const variant& v = getAttribute(a_strName);
+    if(v.isValid()) return v;
+    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    {
+        const variant& v = it->m_pClass->getAttributeCascade(a_strName);
+        if(v.isValid()) return v;
+    }
+    return variant::null;
+}
+
 
 o_cpp_end

@@ -37,9 +37,6 @@
 
 /* ****************** Includes ******************* */
 #include "phantom/serialization/PackageNode.h"
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "phantom/_kernel.noclassdef.h"
 /* **************** Declarations ***************** */
 o_declare(class, phantom, serialization, BinaryPackageDataBase)
 o_declare(class, phantom, serialization, BinaryPackageDataStateBase)
