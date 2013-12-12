@@ -69,10 +69,7 @@ protected:
     Node(DataBase* a_pOwnerDataBase, uint a_Guid, Node* a_pParentNode);
 
 public:
-    o_terminate() 
-    {
-        destroyAllChildNode();
-    }
+    o_terminate(); 
 
 public:
     boolean         isLoaded() const { return m_eState == e_Loaded; }
@@ -106,6 +103,7 @@ public:
     }
 
     void            unload();
+    void            unloadCascade();
 
     void            load();
     void            loadData(const phantom::data& a_Data);
@@ -158,6 +156,7 @@ public:
         m_data_filter_delegate = a_data_filter_delegate;
     }
 
+    phantom::data   getData(void* a_pAddress) const;
     void            fetchData(vector<data>& a_DataVector) const;
     void            fetchDataCascade(vector<data>& a_DataVector) const;
     void            fetchDataOfType(reflection::Type* a_pType, vector<data>& a_DataVector) const;
@@ -223,6 +222,9 @@ public:
 
     vector<phantom::data>::const_iterator beginData() const { return m_Data.begin(); }
     vector<phantom::data>::const_iterator endData() const { return m_Data.end(); }
+
+    vector<Node*>::const_iterator beginChildNodes() const { return m_ChildNodes.begin(); }
+    vector<Node*>::const_iterator endChildNodes() const { return m_ChildNodes.end(); }
 
     bool            isEmpty() const { return m_Data.empty(); }
 

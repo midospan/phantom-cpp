@@ -68,8 +68,10 @@ namespace phantom {
                 if(pLocalVariable == nullptr)
                 {
                     printf("OPTIMIZED AWAY LOCAL VARIABLE : name\n", name.c_str());
+                    vector<reflection::Variable*> variables;
+                    variables.push_back(o_new(OptimizedAwayVariable)(name));
                     m_pAutoRoot->addSubProperty(
-                        createVariableProperty(o_new(OptimizedAwayVariable)(name))
+                        createVariableProperty(o_new(BufferedVariable)(variables, nullptr))
                     );
                     continue;
                 }
@@ -82,9 +84,11 @@ namespace phantom {
 
             pAddress = ebp + frameOffset;
             printf("LOCAL VARIABLE : name:%s address:[ebp - %d](%x)\n", pLocalVariable->getName().c_str(), frameOffset, pAddress);
+            vector<reflection::Variable*> variables;
+            variables.push_back(o_new(GenericVariable)(pLocalVariable->getName(), pLocalVariable->getValueType(), pAddress, modifiers));
             m_pAutoRoot->addSubProperty(
-                createVariableProperty(o_new(GenericVariable)(pLocalVariable->getName(), pLocalVariable->getValueType(), pAddress, modifiers))
-            );
+                createVariableProperty(o_new(BufferedVariable)(variables, nullptr))
+                );
         }
         printf("\n------------------------------------------\n");
     }
@@ -168,7 +172,7 @@ namespace phantom {
     {
         o_assert(isWatchProperty(property));
         string expression = property->propertyName().toAscii().constData();
-        phantom::reflection::Variable* pEvaluatedVariable = evaluateExpression(expression);
+        BufferedVariable* pEvaluatedVariable = evaluateExpression(expression);
        
         phantom::reflection::Variable* pPreviousVariable = getVariable(property);
         if(pPreviousVariable)
@@ -188,7 +192,7 @@ namespace phantom {
                 {
                     unbindVariable(property);
                     property->clearSubProperties();
-                    bindVariableProperty(property, pEvaluatedVariable);
+                    bindVariable(property, pEvaluatedVariable);
                 }
             }
             else 
@@ -199,7 +203,7 @@ namespace phantom {
         }
         else if(pEvaluatedVariable)
         {
-            bindVariableProperty(property, pEvaluatedVariable);
+            bindVariable(property, pEvaluatedVariable);
         }
     }
 
@@ -229,7 +233,7 @@ namespace phantom {
         return std::find(m_pWatchRoot->subProperties().begin(), m_pWatchRoot->subProperties().end(), property) != m_pWatchRoot->subProperties().end();
     }
 
-    phantom::reflection::Variable* LocalVariableManager::evaluateExpression( const string& expression ) const
+    BufferedVariable* LocalVariableManager::evaluateExpression( const string& expression ) const
     {
         phantom::vector<string> tokens;
         boost::split( tokens, expression, boost::is_any_of("."), boost::token_compress_on );
@@ -286,7 +290,9 @@ namespace phantom {
                 return nullptr;
             }
         }
-        return pEvaluatedVariable;
+        vector<reflection::Variable*> variables;
+        variables.push_back(pEvaluatedVariable);
+        return o_new(BufferedVariable)(variables, nullptr);
     }
 
     void LocalVariableManager::saveWatchExpressions( property_tree& a_Data )

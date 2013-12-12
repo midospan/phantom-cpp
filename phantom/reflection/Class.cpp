@@ -48,6 +48,7 @@ Class::Class(const string& a_strName, bitfield a_Modifiers)
 : ClassType(a_strName, a_Modifiers)
 , m_uiRegisteredInstances(0)
 , m_pStateMachine(NULL)
+, m_pSingleton(nullptr)
 {
 }
 
@@ -55,12 +56,28 @@ Class::Class(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bit
 : ClassType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
 , m_uiRegisteredInstances(0)
 , m_pStateMachine(NULL)
+, m_pSingleton(nullptr)
 {
 }
 
 Class::~Class()
 {
-    o_assert(m_DerivedClasses.empty(), "A class can be destroyed only if all it's derived classes have been destroyed");
+    for(auto it = m_VirtualMemberFunctionTables.begin(); it!=m_VirtualMemberFunctionTables.end(); it++)
+    {
+        o_dynamic_delete (*it);
+    }
+    m_VirtualMemberFunctionTables.clear();
+
+    if(m_pStateMachine)
+    {
+        o_dynamic_delete m_pStateMachine;
+        m_pStateMachine = nullptr;
+    }
+
+    while(m_DerivedClasses.size())
+    {
+        o_dynamic_delete m_DerivedClasses.back();
+    }
     super_class_table::iterator it = m_SuperClasses.begin();
     super_class_table::iterator end = m_SuperClasses.end();
     for(; it != end; ++it)
@@ -962,7 +979,7 @@ void Class::valueToString( string& s, const void* src ) const
     {
         it->m_pClass->valueToString(s, ((byte*)src)+it->m_uiOffset);
     }
-    valueToString(s, src);
+    ClassType::valueToString(s, src);
 }
 
 void Class::valueFromString( const string& cs, void* dest ) const
@@ -1046,23 +1063,26 @@ void Class::destroyContent()
 {
     ClassType::destroyContent();
     // remove from super
-    if(Phantom::getState() != Phantom::eState_Uninstalling)
+    for(auto it = m_VirtualMemberFunctionTables.begin(); it!=m_VirtualMemberFunctionTables.end(); it++)
     {
-        {
-            vmt_vector::iterator it = m_VirtualMemberFunctionTables.begin();
-            for(;it!=m_VirtualMemberFunctionTables.end();it++)
-            {
-                o_dynamic_delete_clean(*it);
-            }
-        }
+        o_dynamic_delete (*it);
     }
+    m_VirtualMemberFunctionTables.clear();
 
     if(m_pStateMachine)
-        o_dynamic_delete_clean(m_pStateMachine);
+    {
+        o_dynamic_delete m_pStateMachine;
+        m_pStateMachine = nullptr;
+    }
 }
 
 void Class::registerRtti( void* a_pThis, void* a_pBase, Class* a_pObjectClass, connection::slot_pool* a_pSlotPool, dynamic_delete_func_t a_dynamic_delete_func )
 {
+    if(a_pObjectClass == this && isSingleton())
+    {
+        o_assert(m_pSingleton == nullptr);
+        m_pSingleton = a_pBase;
+    }
     if(m_SuperClasses.empty()) // Root class
     {
         registerRttiImpl(a_pThis, a_pBase, a_pObjectClass, a_pSlotPool, a_dynamic_delete_func);
@@ -1080,6 +1100,10 @@ void Class::registerRtti( void* a_pThis, void* a_pBase, Class* a_pObjectClass, c
 
 void Class::unregisterRtti( void* a_pThis )
 {
+    if(m_pSingleton == a_pThis)
+    {
+        m_pSingleton = nullptr;
+    }
     if(m_SuperClasses.empty()) // Root class
     {
         unregisterRttiImpl(a_pThis);
@@ -1132,7 +1156,7 @@ void Class::smartCopy(void* a_pInstance, void const* a_pSource, reflection::Type
 boolean            Class::isKindOf( Class* a_pType ) const
 {
     if(this == a_pType) return true;
-    o_check_phantom_setup_step(o_global_value_SetupStepIndex_Inheritance);
+    //o_check_phantom_setup_step(o_global_value_SetupStepIndex_Inheritance);
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(; it != end; ++it)
@@ -1153,6 +1177,14 @@ const variant& Class::getAttributeCascade( const string& a_strName ) const
     }
     return variant::null;
 }
+
+void Class::destroySingleton()
+{
+    o_assert(m_pSingleton && classOf(m_pSingleton) == this);
+    deleteInstance(m_pSingleton);
+    m_pSingleton = nullptr;
+}
+
 
 
 o_cpp_end

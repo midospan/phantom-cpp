@@ -11,79 +11,42 @@ o_registerN((phantom, qt), SequentialContainerItemInsertVariable);
 o_registerN((phantom, qt), MapInsertPairVariable);
 o_registerN((phantom, qt), SetInsertPairVariable);
 o_registerN((phantom, qt), BufferedVariable);
-o_registerN((phantom, qt), CascadeVariable);
-o_registerN((phantom, qt), GroupVariable);
-o_registerN((phantom, qt), GroupBufferedVariable);
  
 namespace phantom { 
 namespace qt {
 
-void VariableManager::addProperties( const vector<void*>& a_Addresses, reflection::Type* a_pType, QVector<QtProperty*>* out /*= NULL*/ )
+void VariableManager::createProperties( const vector<void*>& a_Addresses, reflection::Type* a_pType, QVector<QtProperty*>& out /*= NULL*/ )
 {
     o_assert(a_pType);
 
-    if(a_pType->isClassType())
+    if(a_pType->asClass())
     {
-        reflection::ClassType* pClassType = (reflection::ClassType*)a_pType;
+        reflection::Class* pClass = a_pType->asClass();
+        createClassSubPropertiesCascade(a_Addresses, pClass, nullptr, out);
+    }
+    else if(a_pType->asClassType())
+    {
+        reflection::ClassType* pClassType = a_pType->asClassType();
         if(pClassType->getValueMemberCount()) 
         {
             const string& metaData = pClassType->getMetaDataValue( getNameMetaDataIndex() );
             QtProperty* property = createEmptyProperty(metaData.empty()
                                                         ? pClassType->getName().c_str()
                                                         : metaData.c_str());
-            if(out)
-            {
-                out->push_back(property);
-            }
-            addSubProperties(property, a_Addresses, pClassType, NULL);
-        }
-
-        if(pClassType->isClass())
-        {
-            reflection::Class* pClass = ((reflection::Class*)pClassType);
-            reflection::ContainerClass* pContainerClass = pClass->asContainerClass();
-            if(pContainerClass)
-            {
-                /*vector<reflection::Variable*>   vars;
-                pContainerClass->createItemVariables(a_pAddress, vars);
-                vector<reflection::Variable*>::iterator it = vars.begin();
-                vector<reflection::Variable*>::iterator end = vars.end();
-                for(;it!=end;++it)
-                {
-                    QtProperty* containerItemProperty = addProperty(*it);
-                    //setPropertyFlag(containerItemProperty, )
-                    containerItemProperty->addSubProperty(containerItemProperty);
-                }*/
-            }
-            else
-            {
-                size_t i = 0;
-                size_t count = pClass->getSuperClassCount();
-                for(;i<count;++i)
-                {
-                    int offset = pClass->getSuperClassOffset(pClass->getSuperClass(i));
-                    vector<void*> shiftedAddresses = a_Addresses;
-                    for(auto it = shiftedAddresses.begin(); it != shiftedAddresses.end(); ++it)
-                        *it = ((byte*)(*it)) + offset;
-
-                    addProperties(shiftedAddresses, pClass->getSuperClass(i), out);
-                }
-            }
+            out.push_back(property);
+            addClassSubProperties(property, a_Addresses, pClassType, nullptr);
         }
     }
     else
     {
         QtProperty* property = createEmptyProperty("value");
-        if(out)
-        {
-            out->push_back(property);
-        }
+        out.push_back(property);
     }
 }
 QString VariableManager::valueText( const QtProperty *property ) const
 {
     if(property == nullptr) return "";
-    reflection::Variable* pVariable = getVariable((QtProperty*)property);
+    BufferedVariable* pVariable = getVariable((QtProperty*)property);
 
     if(pVariable)
     {
@@ -102,25 +65,10 @@ QString VariableManager::valueText( const QtProperty *property ) const
 
 QString VariableManager::getValueText( const QtProperty *property ) const
 {
-    reflection::Variable*  pVariable = getVariable((QtProperty*)property);
+    BufferedVariable*  pVariable = getVariable((QtProperty*)property);
     if(pVariable != NULL ) 
     {
-        ProxyVariable* pProxy = NULL;
-        reflection::Variable* pUnproxiedVariable = pVariable;
-        // Remove proxy levels
-        while( (pProxy = as<ProxyVariable*>(pUnproxiedVariable)) )
-        {
-            pUnproxiedVariable = pProxy->getProxiedVariable();
-        }
-
-
-        reflection::Class* pVariableClass = classOf(pUnproxiedVariable);
-
-        GroupVariable* pGroupVariable = as<GroupVariable*>(pUnproxiedVariable);
-        if(pGroupVariable)
-        {
-            pVariableClass = pGroupVariable->getVariableClass();
-        }
+        reflection::Class* pVariableClass = pVariable->getVariableClass() ;
         // Insert variables have empty text
         if(pVariableClass->isKindOf(typeOf<ContainerInsertVariable>())
             || pVariableClass->isKindOf(typeOf<ContainerInsertVariable>()))
@@ -128,7 +76,7 @@ QString VariableManager::getValueText( const QtProperty *property ) const
             return "";
         }
 
-        if(pGroupVariable && pGroupVariable->hasMultipleValues())
+        if(pVariable->hasMultipleValues())
         {
             return "<multiple values>";
         }
@@ -215,7 +163,7 @@ QString VariableManager::getValueText( const QtProperty *property ) const
 
 QIcon VariableManager::valueIcon( const QtProperty *property ) const
 {
-    reflection::Variable*  pVariable = getVariable((QtProperty*)property);
+    BufferedVariable*  pVariable = getVariable((QtProperty*)property);
     if(pVariable != NULL ) 
     {
         return valueIcon(pVariable); 
@@ -224,7 +172,7 @@ QIcon VariableManager::valueIcon( const QtProperty *property ) const
 
 }
 
-QIcon VariableManager::valueIcon( reflection::Variable* a_pVariable ) const
+QIcon VariableManager::valueIcon( BufferedVariable* a_pVariable ) const
 {
     reflection::Type* type = a_pVariable->getValueType();
     if(type->asEnum())
@@ -251,13 +199,7 @@ QIcon VariableManager::valueIcon( reflection::Variable* a_pVariable ) const
         a_pVariable->getValue(&value);
         return value ? QIcon(":/../../bin/resources/icons/accept.png") : QIcon(":/../../bin/resources/icons/exclamation.png");
     }
-    ProxyVariable* pProxy = NULL;
-    // Remove proxy levels
-    while( (pProxy = as<ProxyVariable*>(a_pVariable)) )
-    {
-        a_pVariable = pProxy->getProxiedVariable();
-    }
-    reflection::ValueMemberBinding* pValueMemberBinding = as<reflection::ValueMemberBinding*>(a_pVariable);
+    reflection::ValueMemberBinding* pValueMemberBinding = as<reflection::ValueMemberBinding*>(a_pVariable->getVariable(0));
     if(pValueMemberBinding)
     {
         return QIcon(pValueMemberBinding->getValueMember()->getMetaDataValue(getIconMetaDataIndex()).c_str());
@@ -325,12 +267,11 @@ void VariableManager::addMapContainerIteratorProperties( QtProperty* property, c
     size_t i = 0;
     for(auto it = groupedVariables.begin(); it != groupedVariables.end(); ++it)
     {
-        bool needGroup = it->second.size() > 1;
-        reflection::Variable* pVariable = needGroup ? o_new(GroupVariable)(it->second) : it->second.front();
+        BufferedVariable* pVariable = o_new(BufferedVariable)(it->second, a_pParentVariable) ;
         property->addSubProperty(
             indexNames 
-            ? createVariableProperty(pVariable, a_pParentVariable, QString::number(i++)) 
-            : createVariableProperty(pVariable, a_pParentVariable)
+            ? createVariableProperty(pVariable, QString::number(i++)) 
+            : createVariableProperty(pVariable)
             );
     }
 }
@@ -353,12 +294,11 @@ void VariableManager::addSequentialContainerIteratorProperties( QtProperty* prop
     size_t i = 0;
     for(auto it = groupedVariables.begin(); it != groupedVariables.end(); ++it)
     {
-        bool needGroup = it->size() > 1;
-        reflection::Variable* pVariable = needGroup ? o_new(GroupVariable)(*it) : it->front();
+        BufferedVariable* pVariable = o_new(BufferedVariable)(*it, a_pParentVariable);
         property->addSubProperty(
             indexNames 
-            ? createVariableProperty(pVariable, a_pParentVariable, QString::number(i++)) 
-            : createVariableProperty(pVariable, a_pParentVariable)
+            ? createVariableProperty(pVariable, QString::number(i++)) 
+            : createVariableProperty(pVariable)
             );
     }
 }
@@ -397,104 +337,41 @@ void VariableManager::addArrayElementProperties( QtProperty* property, const vec
     size_t i = 0;
     for(auto it = groupedVariables.begin(); it != groupedVariables.end(); ++it)
     {
-        bool needGroup = it->size() > 1;
-        reflection::Variable* pVariable = needGroup ? o_new(GroupVariable)(*it) : it->front();
-        property->addSubProperty(createVariableProperty(pVariable, a_pParentVariable, QString::number(i++)));
+        property->addSubProperty(createVariableProperty(o_new(BufferedVariable)(*it, a_pParentVariable), QString::number(i++)));
     }
 }
-
-void VariableManager::bindVariableProperty( QtProperty* property, reflection::Variable* a_pVariable, BufferedVariable* a_pParentVariable, const QString& a_strName /*= ""*/ )
+void VariableManager::addClassSubPropertiesCascade( QtProperty* property, const vector<void*>& a_Addresses, reflection::Class* a_pClass, BufferedVariable* a_pParentVariable)
 {
-    GroupVariable* pGroupVariable = as<GroupVariable*>(a_pVariable);
-    if(a_pParentVariable)
+    QVector<QtProperty*> properties;
+    createClassSubPropertiesCascade( a_Addresses, a_pClass, a_pParentVariable, properties);
+    for(auto it = properties.begin(); it != properties.end(); ++it)
     {
-        a_pVariable = o_new(CascadeVariable)(a_pVariable, a_pParentVariable);
-    }
-    if(property != nullptr) 
-    {
-        vector<reflection::Variable*> variables;
-        if(pGroupVariable) 
-        {
-            variables = pGroupVariable->getVariables();
-        }
-        else 
-        {
-            variables.push_back(a_pVariable);
-        }
-
-        // Bufferize variables
-        reflection::Type* pEffectiveType = a_pVariable->getValueType()->removeReference()->removeConst();
-
-        vector<void*> addresses;
-
-        GroupBufferedVariable* pBufferedVariable = nullptr;
-        if(pGroupVariable)
-        {
-            pBufferedVariable = o_new(GroupBufferedVariable)(a_pVariable);
-            a_pParentVariable = pBufferedVariable;
-            bindVariable(property, pBufferedVariable);
-        }
-
-        bool bufferedRequired = false;
-        for(size_t i = 0; i<variables.size(); ++i)
-        {
-            reflection::Variable* pVariable = variables[i];
-            void* pVariableAddress = pVariable->getAddress();
-            if( pVariableAddress OR NOT(pEffectiveType->isClassType()) /*OR as<ContainerInsertVariable*>(a_pVariable)*/)
-            {
-            }
-            else
-            {
-                bufferedRequired = true;
-                // The pVariable is not buffered, we need to create a bufferedvariable to wrap it into real memory
-                if(pBufferedVariable)
-                {
-                    pVariableAddress = pBufferedVariable->getVariableAddress(i);
-                }
-                else 
-                {
-                    BufferedVariable* pBufferedVariable = o_new(BufferedVariable)(pVariable);
-                    variables[i] = a_pParentVariable = pBufferedVariable;
-                    pVariableAddress = pBufferedVariable->getAddress();
-                }
-            }
-            if(pVariableAddress);
-            {
-                addresses.push_back(pVariableAddress);
-            }
-        }
-
-        if(pGroupVariable == nullptr)
-        {
-            bindVariable(property, variables.front());
-        }
-
-        reflection::ClassType* pClassType = as<reflection::ClassType*>(pEffectiveType);
-        if(pClassType)
-        {
-            addSubProperties(property, addresses, pClassType, a_pParentVariable);
-            if(pClassType->asClass() AND (as<reflection::ContainerClass*>(pClassType) == NULL))
-            {
-                reflection::Class* pClass = pClassType->asClass();
-                while(pClass->getSuperClassCount())
-                {
-                    addSubProperties(property, addresses, pClass->getSuperClass(0), a_pParentVariable);
-                    pClass = pClass->getSuperClass(0);
-                }
-            }
-        }
-        else 
-        {
-            reflection::ArrayType* pArrayType = as<reflection::ArrayType*>(pEffectiveType);
-            if(pArrayType)
-            {
-                addArrayElementProperties(property, addresses, pArrayType, a_pParentVariable);
-            }
-        }
+        property->addSubProperty(property);
     }
 }
 
-QtProperty* VariableManager::createVariableProperty( reflection::Variable* a_pVariable, BufferedVariable* a_pParentVariable, const QString& a_strName /*= ""*/ )
+void VariableManager::createClassSubPropertiesCascade( const vector<void*>& a_Addresses, reflection::Class* a_pClass, BufferedVariable* a_pParentVariable, QVector<QtProperty*>& out)
+{
+    const string& metaData = a_pClass->getMetaDataValue( getNameMetaDataIndex() );
+    QtProperty* property = createEmptyProperty(metaData.empty()
+        ? a_pClass->getName().c_str()
+        : metaData.c_str());
+    out.push_back(property);
+    addClassSubProperties(property, a_Addresses, a_pClass, a_pParentVariable);
+    for(size_t i = 0; i<a_pClass->getSuperClassCount(); ++i)
+    {
+        int offset = a_pClass->getSuperClassOffset(i);
+        vector<void*> offsettedAddresses = a_Addresses;
+        for(auto it = offsettedAddresses.begin(); it != offsettedAddresses.end(); ++it)
+        {
+            (*it) = (byte*)(*it) + offset;
+        }
+        reflection::Class* pSuperClass = a_pClass->getSuperClass(i);
+        createClassSubPropertiesCascade(offsettedAddresses, pSuperClass, a_pParentVariable, out);
+    }
+}
+
+QtProperty* VariableManager::createVariableProperty( BufferedVariable* a_pVariable, const QString& a_strName /*= ""*/ )
 {
     QtProperty* property = createEmptyProperty(a_strName.isEmpty() ? a_pVariable->getName().c_str() : a_strName);
     if(a_pVariable->getRange())
@@ -505,7 +382,36 @@ QtProperty* VariableManager::createVariableProperty( reflection::Variable* a_pVa
         a_pVariable->getRange()->getDefault(pBufferDefault);
         property->setModified(!a_pVariable->getValueType()->areValueEqual(pBufferCurrent, pBufferDefault));
     }
-    bindVariableProperty(property, a_pVariable, a_pParentVariable, a_strName);
+    bindVariable(property, a_pVariable);
+    reflection::ClassType* pClassType = as<reflection::ClassType*>(a_pVariable->getValueType()->removeReference()->removeConst());
+    if(pClassType)
+    {
+        reflection::Class* pClass = pClassType->asClass();
+        addClassSubProperties(property, a_pVariable->getAddresses(), pClassType, a_pVariable);
+        if(pClass 
+            AND pClass->getSuperClassCount() 
+            AND (as<reflection::ContainerClass*>(pClassType) == NULL))
+        {
+            for(size_t i = 0; i<pClass->getSuperClassCount(); ++i)
+            {
+                int offset = pClass->getSuperClassOffset(i);
+                vector<void*> offsettedAddresses = a_pVariable->getAddresses();
+                for(auto it = offsettedAddresses.begin(); it != offsettedAddresses.end(); ++it)
+                {
+                    *it = (byte*)(*it) + offset;
+                }
+                addClassSubPropertiesCascade(property, a_pVariable->getAddresses(), pClass->getSuperClass(i), a_pVariable);
+            }
+        }
+    }
+    else 
+    {
+        reflection::ArrayType* pArrayType = as<reflection::ArrayType*>(a_pVariable->getValueType()->removeReference()->removeConst());
+        if(pArrayType)
+        {
+            addArrayElementProperties(property, a_pVariable->getAddresses(), pArrayType, a_pVariable);
+        }
+    }
     return property;
 }
 
@@ -519,9 +425,7 @@ void VariableManager::addCollectionProperties( QtProperty* property, const vecto
     {
         groupedInsertVariables.push_back(o_new(CollectionInsertVariable)(*it, a_pCollection, a_pCollection->getModifiers()));
     }
-    reflection::Variable* pVariable = groupedInsertVariables.size() > 1 ? o_new(GroupVariable)(groupedInsertVariables) : groupedInsertVariables.front();
-
-    property->addSubProperty(createVariableProperty(pVariable, a_pParentVariable));
+    property->addSubProperty(createVariableProperty(o_new(BufferedVariable)(groupedInsertVariables, a_pParentVariable)));
 
     // Elements variables
     vector<vector<reflection::Variable*>> groupedVariables;
@@ -548,9 +452,7 @@ void VariableManager::addCollectionProperties( QtProperty* property, const vecto
     size_t i = 0;
     for(auto it = groupedVariables.begin(); it != groupedVariables.end(); ++it)
     {
-        bool needGroup = it->size() > 1;
-        reflection::Variable* pVariable = needGroup ? o_new(GroupVariable)(*it) : it->front();
-        property->addSubProperty(createVariableProperty(pVariable, a_pParentVariable, QString::number(i++)));
+        property->addSubProperty(createVariableProperty(o_new(BufferedVariable)(*it, a_pParentVariable), QString::number(i++)));
     }
 }
 
@@ -561,19 +463,14 @@ QtProperty* VariableManager::createValueMemberProperty( const vector<void*>& a_A
     {
         groupedVariables.push_back(o_new(reflection::ValueMemberBinding)(*it, a_pValueMember));
     }
-    reflection::Variable* pVariable = groupedVariables.size() > 1 
-                                        ? o_new(GroupVariable)(groupedVariables) 
-                                        : groupedVariables.front();
-
-    QtProperty* property = createVariableProperty(pVariable, a_pParentVariable, a_pValueMember->getMetaDataValue(getNameMetaDataIndex()).c_str());
+    QtProperty* property = createVariableProperty( o_new(BufferedVariable)(groupedVariables, a_pParentVariable), a_pValueMember->getMetaDataValue(getNameMetaDataIndex()).c_str());
     o_assert(property != NULL);
     return property;
 }
 
-void VariableManager::addSubProperties( QtProperty* property, const vector<void*>& a_Addresses, reflection::ClassType* a_pClassType, BufferedVariable* a_pParentVariable )
+void VariableManager::addClassSubProperties( QtProperty* property, const vector<void*>& a_Addresses, reflection::ClassType* a_pClassType, BufferedVariable* a_pParentVariable )
 {
     o_assert(a_pClassType);
-
     {
         auto it = a_pClassType->valueMembersBegin();
         auto end = a_pClassType->valueMembersEnd();
@@ -606,7 +503,7 @@ void VariableManager::addSubProperties( QtProperty* property, const vector<void*
     reflection::ContainerClass* pContainerClass = as<reflection::ContainerClass*>(a_pClassType);
     if(pContainerClass AND NOT(pContainerClass->isKindOf(typeOf<string>())))
     {
-        reflection::Variable* pContainerVariable = getVariable(property);
+        BufferedVariable* pContainerVariable = getVariable(property);
         if(pContainerVariable == NULL) return;
         if(NOT(pContainerVariable->testModifiers(o_readonly)))
         {
@@ -619,10 +516,7 @@ void VariableManager::addSubProperties( QtProperty* property, const vector<void*
                 {
                     groupedVariables.push_back(o_new(MapInsertPairVariable)(*it, pMapContainerClass));
                 }
-                reflection::Variable* pVariable = groupedVariables.size() > 1 
-                    ? o_new(GroupVariable)(groupedVariables) 
-                    : groupedVariables.front();
-                insertProperty = createVariableProperty(pVariable, a_pParentVariable);
+                insertProperty = createVariableProperty(o_new(BufferedVariable)(groupedVariables, a_pParentVariable));
             }
             else
             {
@@ -634,10 +528,7 @@ void VariableManager::addSubProperties( QtProperty* property, const vector<void*
                     {
                         groupedVariables.push_back(o_new(SequentialContainerItemInsertVariable)(*it, pSequentialContainerClass));
                     }
-                    reflection::Variable* pVariable = groupedVariables.size() > 1 
-                        ? o_new(GroupVariable)(groupedVariables) 
-                        : groupedVariables.front();
-                    insertProperty = createVariableProperty(pVariable, a_pParentVariable);
+                    insertProperty = createVariableProperty(o_new(BufferedVariable)(groupedVariables, a_pParentVariable));
                 }
                 else
                 {
@@ -649,10 +540,7 @@ void VariableManager::addSubProperties( QtProperty* property, const vector<void*
                         {
                             groupedVariables.push_back(o_new(SetInsertPairVariable)(*it, pSetContainerClass));
                         }
-                        reflection::Variable* pVariable = groupedVariables.size() > 1 
-                            ? o_new(GroupVariable)(groupedVariables) 
-                            : groupedVariables.front();
-                        insertProperty = createVariableProperty(pVariable, a_pParentVariable);
+                        insertProperty = createVariableProperty(o_new(BufferedVariable)(groupedVariables, a_pParentVariable));
                     }
                 }
             }
@@ -665,7 +553,7 @@ void VariableManager::addSubProperties( QtProperty* property, const vector<void*
     }
 }
 
-void VariableManager::bindVariable( QtProperty* property, reflection::Variable* a_pVariable )
+void VariableManager::bindVariable( QtProperty* property, BufferedVariable* a_pVariable )
 {
     o_assert(getVariable(property) == NULL);
     m_Variables[property] = a_pVariable;
@@ -679,7 +567,7 @@ void VariableManager::unbindVariable( QtProperty* property )
     m_Variables.erase(found);
 }
 
-QtProperty* VariableManager::getProperty( reflection::Variable* a_pVariable ) const
+QtProperty* VariableManager::getProperty( BufferedVariable* a_pVariable ) const
 {
     auto it = m_Variables.begin();
     auto end = m_Variables.end();
@@ -690,13 +578,61 @@ QtProperty* VariableManager::getProperty( reflection::Variable* a_pVariable ) co
     return nullptr;
 }
 
-reflection::Variable* VariableManager::getVariable( QtProperty* property ) const
+BufferedVariable* VariableManager::getVariable( QtProperty* property ) const
 {
     VariableMap::const_iterator found = m_Variables.find(property);
     return (found == m_Variables.end()) ? NULL : found.value();
 }
 
-bool GroupVariable::hasMultipleValues() const 
+
+
+BufferedVariable::BufferedVariable( const vector<reflection::Variable*>& a_Variables, BufferedVariable* a_pParentVariable ) : reflection::Variable(a_Variables[0]->getName(), a_Variables[0]->getRange(), a_Variables[0]->getModifiers())
+    , m_pCommonType(a_Variables[0]->getValueType()->removeReference()->removeConst())
+    , m_pParentVariable(nullptr)
+    , m_pChildVariables(nullptr)
+    , m_Variables(a_Variables)
+{
+    setParentVariable(a_pParentVariable);
+#if defined(_DEBUG)
+    checkCommonAncestorType();
+#endif
+    for(auto it = m_Variables.begin(); it != m_Variables.end(); ++it)
+    {
+        void* pAddress = (*it)->getAddress();
+        m_Addresses.push_back( pAddress ? pAddress : m_pCommonType->removeReference()->removeConst()->newInstance());       
+        m_Buffered.push_back(pAddress == nullptr);
+    }
+    update();
+}
+
+BufferedVariable::~BufferedVariable()
+{
+    for(auto it = m_Variables.begin(); it != m_Variables.end(); ++it)
+    {
+        o_dynamic_delete *it;
+    }
+    for(size_t i = 0; i<m_Addresses.size(); ++i)
+    {
+        if(m_Buffered[i])
+            m_pCommonType->deleteInstance(m_Addresses[i]);
+    }
+}
+
+void BufferedVariable::setParentVariable( BufferedVariable* a_pBufferedVariable )
+{
+    if(m_pParentVariable == a_pBufferedVariable) return;
+    if(m_pParentVariable)
+    {
+        m_pParentVariable->removeChildVariable(this);
+    }
+    m_pParentVariable = a_pBufferedVariable;
+    if(m_pParentVariable)
+    {
+        m_pParentVariable->addChildVariable(this);
+    }
+}
+
+bool BufferedVariable::hasMultipleValues() const
 {
     if(m_Variables.empty()) return false;
     reflection::Type* pType = m_pCommonType->removeReference()->removeConst();
@@ -727,37 +663,100 @@ bool GroupVariable::hasMultipleValues() const
     return false;
 }
 
-void GroupVariable::getValue( void* a_pDest ) const
+reflection::Class* BufferedVariable::getVariableClass() const
 {
-    if(m_Variables.empty()) return;
+    return classOf(m_Variables[0]);
+}
+
+reflection::Type* BufferedVariable::getValueType() const
+{
+    return m_pCommonType;
+}
+
+void BufferedVariable::flush() const
+{
+    for(size_t i = 0; i<m_Variables.size(); ++i)
+    {
+        if(m_Buffered[i])
+        {
+            m_Variables[i]->setValue(m_Addresses[i]); 
+        }
+    }
+    if(m_pParentVariable)
+        m_pParentVariable->flush();
+}
+
+void BufferedVariable::update() const
+{
+    for(size_t i = 0; i<m_Variables.size(); ++i)
+    {
+        if(m_Buffered[i])
+        {
+            m_Variables[i]->getValue(m_Addresses[i]);
+        }
+    }
+}
+
+void BufferedVariable::getValue( void* a_pDest ) const
+{
     m_Variables[0]->getValue(a_pDest);
 }
 
-void GroupVariable::setValue( void const* a_pSrc ) const
+void BufferedVariable::setValue( void const* a_pSrc ) const
 {
     for(auto it = m_Variables.begin(); it != m_Variables.end(); ++it)
     {
         (*it)->setValue(a_pSrc);
     }
-}
-
-void GroupBufferedVariable::setValue( void const* a_pSrc ) const
-{
-    m_pGroupVariable->setValue(a_pSrc);
-    updateBuffers();
-}
-
-void GroupBufferedVariable::updateBuffers() const
-{
-    for(size_t i = 0; i<m_pGroupVariable->getVariableCount(); ++i)
+    update();
+    if(m_pParentVariable)
     {
-        m_pGroupVariable->getVariable(i)->getValue(m_BufferAddresses[i]);
+        m_pParentVariable->flush();
     }
 }
 
-reflection::Class* GroupVariable::getVariableClass() const
+BufferedVariable* BufferedVariable::getNextChild( BufferedVariable* a_pCurrent ) const
 {
-    return classOf(m_Variables[0]);
+    if(m_pChildVariables == nullptr) return nullptr;
+    for(auto it = m_pChildVariables->begin(); it != m_pChildVariables->end(); ++it)
+    {
+        if((*it == a_pCurrent))
+        {
+            return (++it == m_pChildVariables->end()) ? nullptr : *it;
+        }
+    }
+    return nullptr;
+}
+
+BufferedVariable* BufferedVariable::getPrevChild( BufferedVariable* a_pCurrent ) const
+{
+    if(m_pChildVariables == nullptr) return nullptr;
+    for(auto it = m_pChildVariables->rbegin(); it != m_pChildVariables->rend(); ++it)
+    {
+        if((*it == a_pCurrent))
+        {
+            return (++it == m_pChildVariables->rend()) ? nullptr : *it;
+        }
+    }
+    return nullptr;
+}
+
+void BufferedVariable::addChildVariable( BufferedVariable* a_pBufferedVariable )
+{
+    if(m_pChildVariables == nullptr)
+        m_pChildVariables = new vector<BufferedVariable*>;
+    m_pChildVariables->push_back(a_pBufferedVariable);
+}
+
+void BufferedVariable::removeChildVariable( BufferedVariable* a_pBufferedVariable )
+{
+    o_assert(m_pChildVariables != nullptr);
+    m_pChildVariables->erase(std::find(m_pChildVariables->begin(), m_pChildVariables->end(), a_pBufferedVariable));
+    if(m_pChildVariables->empty())
+    {
+        delete m_pChildVariables;
+        m_pChildVariables = nullptr; 
+    }
 }
 
 }}

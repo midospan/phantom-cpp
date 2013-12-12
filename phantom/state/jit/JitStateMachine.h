@@ -37,6 +37,9 @@ public:
     virtual void terminate(void* a_pObject);
     
     virtual void postEvent( void* a_pObject, uint a_uiEventId );
+
+    virtual void queueEvent( void* a_pObject, uint a_uiEventId );
+
     
     virtual State*const* getTransitStates(void const* a_pObject) const;
     virtual State*const* getCurrentStates(void const* a_pObject) const;

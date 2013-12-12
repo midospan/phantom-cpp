@@ -30,7 +30,7 @@ public:
         if(m_pDereferencedVariableAddress == nullptr) 
             // if address not directly available, create an intermediate buffered variable
         {
-            m_pVariableToReference = o_new(BufferedVariable)(m_pVariableToReference);
+            m_pVariableToReference = nullptr;//o_new(BufferedVariable)(m_pVariableToReference);
             m_pDereferencedVariableAddress = m_pVariableToReference->getAddress();
         }
         o_assert(m_pDereferencedVariableAddress);
@@ -224,7 +224,7 @@ protected:
     void addWatchProperty();
     virtual QString valueText(const QtProperty *property) const;
     void evaluateWatchProperty(QtProperty* property);
-    phantom::reflection::Variable* evaluateExpression(const string& expression) const;
+    BufferedVariable* evaluateExpression(const string& expression) const;
     void unbindWatchProperties();
 
 protected:

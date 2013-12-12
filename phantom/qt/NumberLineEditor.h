@@ -1,5 +1,5 @@
-#ifndef ghost_gui_NumberLineEditor_h__
-#define ghost_gui_NumberLineEditor_h__
+#ifndef phantom_qt_NumberLineEditor_h__
+#define phantom_qt_NumberLineEditor_h__
 
 
 /* ****************** Includes ******************* */
@@ -258,4 +258,4 @@ o_classNTS((phantom, qt), (typename), (t_Ty), TNumberLineEditor, (NumberLineEdit
 };
 o_exposeNT((phantom, qt), (typename), (t_Ty), TNumberLineEditor);
 
-#endif // ghost_gui_NumberLineEditor_h__
+#endif // phantom_qt_NumberLineEditor_h__

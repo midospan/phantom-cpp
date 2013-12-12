@@ -10,22 +10,20 @@ namespace phantom { namespace qt {
 class VariableWidget;
 class VariableEditor;
 class CollectionElementVariable;
+class BufferedVariable;
 
 class o_qt_export VariableAction : public QAction
 {
     Q_OBJECT
 
 public:
-    VariableAction(const QIcon& a_Icon, const QString& a_Name, reflection::Variable* a_pVariable, VariableWidget* a_pVariableWidget);
+    VariableAction(const QIcon& a_Icon, const QString& a_Name, BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget);
     ~VariableAction();
     VariableEditor* getVariableEditor() const;
-    reflection::Variable*       getVariable() const { return m_pVariable; }
+    BufferedVariable* getVariable() const { return m_pVariable; }
 
 protected slots:
     void slotActionDone();
-
-signals:
-    void done();
 
 protected:
     virtual void actionDone() = 0;
@@ -38,7 +36,7 @@ protected:
     void valueAboutToBeChanged();
 
 protected:
-    reflection::Variable*       m_pVariable;
+    BufferedVariable*       m_pVariable;
     VariableWidget* m_pVariableWidget;
 
 };
@@ -46,7 +44,7 @@ protected:
 class o_qt_export ResetAction : public VariableAction
 {
 public:
-    ResetAction(reflection::Variable* a_pVariable, VariableWidget* a_pEditor);
+    ResetAction(BufferedVariable* a_pVariable, VariableWidget* a_pEditor);
 
 protected:
     virtual void actionDone();
@@ -56,7 +54,7 @@ protected:
 class o_qt_export ContainerMoveUpAction : public VariableAction
 {
 public:
-    ContainerMoveUpAction(CollectionElementVariable* a_pVariable, VariableWidget* a_pVariableWidget);
+    ContainerMoveUpAction(BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget);
 
     virtual void actionDone();
 
@@ -66,7 +64,7 @@ protected:
 class o_qt_export ContainerMoveDownAction : public VariableAction
 {
 public:
-    ContainerMoveDownAction(CollectionElementVariable* a_pVariable, VariableWidget* a_pVariableWidget);
+    ContainerMoveDownAction(BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget);
 
     virtual void actionDone();
 
@@ -76,7 +74,7 @@ protected:
 class o_qt_export EraseContainerIteratorAction : public VariableAction
 {
 public:
-    EraseContainerIteratorAction(phantom::reflection::IteratorVariable* a_pVariable, VariableWidget* a_pVariableWidget);
+    EraseContainerIteratorAction(BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget);
 
     void actionDone();
 

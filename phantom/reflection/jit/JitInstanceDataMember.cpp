@@ -42,8 +42,8 @@ o_registerN((phantom, reflection, jit), JitInstanceDataMember);
 o_namespace_begin(phantom, reflection, jit)
 
 
-JitInstanceDataMember::JitInstanceDataMember( const string& a_strName, Type* a_pContentType, uint a_uiSerializationMask, bitfield a_bfModifiers /*= bitfield()*/) 
-: InstanceDataMember(a_strName, a_pContentType, a_uiSerializationMask, a_bfModifiers)
+JitInstanceDataMember::JitInstanceDataMember( const string& a_strName, Type* a_pContentType, Range* a_pRange, uint a_uiSerializationMask, bitfield a_bfModifiers /*= bitfield()*/) 
+: InstanceDataMember(a_strName, a_pContentType, a_pRange, a_uiSerializationMask, a_bfModifiers)
 , m_uiOffset(0xffffffff)
 {
 }

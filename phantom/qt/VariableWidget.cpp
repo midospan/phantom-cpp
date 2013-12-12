@@ -54,31 +54,21 @@ void VariableWidget::rebuildLayout()
     setFocusProxy(m_pVariableWidgetEditor->getWidget());
 }
 
-void VariableWidget::setVariable( reflection::Variable* a_pVariable )
+void VariableWidget::setVariable( BufferedVariable* a_pVariable )
 {
     if(m_pVariable == a_pVariable) 
         return; 
     m_pVariable = a_pVariable;
     m_pVariableWidgetEditor->setVariable(a_pVariable);
 
-    reflection::Variable* pUnproxiedVariable = a_pVariable;
-    ProxyVariable* pProxy = nullptr;
-    // Remove proxy levels
-    while( (pProxy = as<ProxyVariable*>(pUnproxiedVariable)) )
+    if(a_pVariable->getVariableClass()->isKindOf(typeOf<CollectionElementVariable>()))
     {
-        pUnproxiedVariable = pProxy->getProxiedVariable();
+        addVariableAction(o_new(ContainerMoveUpAction)(a_pVariable, this));
+        addVariableAction(o_new(ContainerMoveDownAction)(a_pVariable, this));
     }
-
-    CollectionElementVariable* pCollectionElementVariable = phantom::as<CollectionElementVariable*>(pUnproxiedVariable);
-    phantom::reflection::IteratorVariable* pIteratorVariable = phantom::as<phantom::reflection::IteratorVariable*>(pUnproxiedVariable);
-    if(pCollectionElementVariable)
+    if(a_pVariable->getVariableClass()->isKindOf(typeOf<reflection::IteratorVariable>()))
     {
-        addVariableAction(o_new(ContainerMoveUpAction)(pCollectionElementVariable, this));
-        addVariableAction(o_new(ContainerMoveDownAction)(pCollectionElementVariable, this));
-    }
-    if(pIteratorVariable)
-    {
-        addVariableAction(o_new(EraseContainerIteratorAction)(pIteratorVariable, this));
+        addVariableAction(o_new(EraseContainerIteratorAction)(a_pVariable, this));
     }
     else if (a_pVariable->getRange()) 
     {

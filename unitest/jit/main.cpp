@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 
     pJitClass->setStateMachine(pStateMachine);
     
-    pJitClass->addInstanceDataMember(o_new(phantom::reflection::jit::JitInstanceDataMember)("m_iTestInt", phantom::typeOf<int>(), 0));
+    pJitClass->addInstanceDataMember(o_new(phantom::reflection::jit::JitInstanceDataMember)("m_iTestInt", phantom::typeOf<int>(), nullptr, 0));
 
     phantom::reflection::jit::JitInstanceMemberFunction* pJitMemberFunction 
         = o_new(phantom::reflection::jit::JitInstanceMemberFunction)("aVirtualMemberFunction", pSignature, 0);
@@ -143,9 +143,7 @@ int main(int argc, char **argv)
     pJitRootClass->aVirtualMemberFunction();
 
     pJitClass->deleteInstance(pInstance);
-
-    jit_context_create();
-
+    
     system("pause");
   
     return 0;

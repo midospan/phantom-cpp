@@ -116,6 +116,7 @@ public:
 
     void                    setTemplateSpecialization(TemplateSpecialization* a_pTemplateSpecialization);
     TemplateSpecialization* getTemplateSpecialization() const { return m_pTemplateSpecialization; }
+    Template*               getTemplate() const;
 
     member_const_iterator   valueMembersBegin() const;
     member_const_iterator   valueMembersEnd() const;

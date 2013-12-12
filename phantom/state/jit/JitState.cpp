@@ -123,7 +123,7 @@ reflection::jit::JitInstanceMemberFunction* JitState::createEnterMemberFunction(
 {
     o_assert(m_pEnterMemberFunction == nullptr); 
     o_assert(m_pOwner != nullptr, "this JitState must be added to a JitTrack, itself attached to a JitStateMachine"); 
-    m_pEnterMemberFunction = o_new(reflection::jit::JitInstanceMemberFunction)(string("PHANTOM_RESERVED_")+m_strName+"_enter", StateMachine::StateMemberFunctionSignature(), m_bfModifiers);
+    m_pEnterMemberFunction = o_new(reflection::jit::JitInstanceMemberFunction)(string("PHANTOM_RESERVED_")+m_strName+"_enter", StateMachine::StateMemberFunctionSignature(), m_Modifiers);
     reflection::jit::JitClass* pClass = as<reflection::jit::JitClass*>(getOwnerStateMachine()->getOwnerClass());
     o_assert(pClass);
     pClass->addInstanceMemberFunction(m_pEnterMemberFunction);
@@ -134,7 +134,7 @@ reflection::jit::JitInstanceMemberFunction* JitState::createUpdateMemberFunction
 {
     o_assert(m_pUpdateMemberFunction == nullptr); 
     o_assert(m_pOwner != nullptr, "this JitState must be added to a JitTrack, itself attached to a JitStateMachine"); 
-    m_pUpdateMemberFunction = o_new(reflection::jit::JitInstanceMemberFunction)(string("PHANTOM_RESERVED_")+m_strName+"_update", StateMachine::StateMemberFunctionSignature(), m_bfModifiers);
+    m_pUpdateMemberFunction = o_new(reflection::jit::JitInstanceMemberFunction)(string("PHANTOM_RESERVED_")+m_strName+"_update", StateMachine::StateMemberFunctionSignature(), m_Modifiers);
     reflection::jit::JitClass* pClass = as<reflection::jit::JitClass*>(getOwnerStateMachine()->getOwnerClass());
     o_assert(pClass);
     pClass->addInstanceMemberFunction(m_pUpdateMemberFunction);
@@ -145,7 +145,7 @@ reflection::jit::JitInstanceMemberFunction* JitState::createLeaveMemberFunction(
 {
     o_assert(m_pLeaveMemberFunction == nullptr); 
     o_assert(m_pOwner != nullptr, "this JitState must be added to a JitTrack, itself attached to a JitStateMachine"); 
-    m_pLeaveMemberFunction = o_new(reflection::jit::JitInstanceMemberFunction)(string("PHANTOM_RESERVED_")+m_strName+"_leave", StateMachine::StateMemberFunctionSignature(), m_bfModifiers);
+    m_pLeaveMemberFunction = o_new(reflection::jit::JitInstanceMemberFunction)(string("PHANTOM_RESERVED_")+m_strName+"_leave", StateMachine::StateMemberFunctionSignature(), m_Modifiers);
     reflection::jit::JitClass* pClass = as<reflection::jit::JitClass*>(getOwnerStateMachine()->getOwnerClass());
     o_assert(pClass);
     pClass->addInstanceMemberFunction(m_pLeaveMemberFunction);

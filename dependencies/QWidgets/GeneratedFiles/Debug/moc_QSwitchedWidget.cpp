@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'QSwitchedWidget.h'
 **
-** Created: Sat 7. Dec 19:13:16 2013
+** Created: Sat 4. Jan 13:50:03 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!

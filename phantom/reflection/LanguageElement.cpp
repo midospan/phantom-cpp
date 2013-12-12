@@ -50,6 +50,7 @@ LanguageElement::LanguageElement()
     , m_pElements(nullptr)
     , m_pOwner(nullptr)
     , m_Modifiers(0)
+    , m_pModule(nullptr)
 {
 	Phantom::registerLanguageElement(this);
 }
@@ -64,6 +65,7 @@ LanguageElement::LanguageElement( const string& a_strName, bitfield a_Modifiers 
     , m_pElements(nullptr)
     , m_pOwner(nullptr)
     , m_Modifiers(a_Modifiers)
+    , m_pModule(nullptr)
 {
     o_assert(NOT(isPublic() AND isProtected()), "o_public and o_protected cannot co-exist");
 	Phantom::registerLanguageElement(this);
@@ -78,6 +80,7 @@ LanguageElement::LanguageElement( const string& a_strName, uint a_uiGuid, bitfie
     , m_pElements(nullptr)
     , m_pOwner(nullptr)
     , m_Modifiers(a_Modifiers)
+    , m_pModule(nullptr)
 {
     o_assert(NOT(isPublic() AND isProtected()), "o_public and o_protected cannot co-exist");
 	Phantom::registerLanguageElement(this);

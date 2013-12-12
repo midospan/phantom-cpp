@@ -56,6 +56,7 @@ public:
     typedef vector<Namespace*>  namespace_container;
     typedef vector<Function*>   function_container;
     typedef vector<Type*>       type_container;
+    typedef vector<Template*>   template_container;
 
     o_friend(class, phantom, Phantom)
 
@@ -75,13 +76,17 @@ public:
 protected:
     o_signal_data(typeAdded, Type*)
     o_signal_data(typeRemoved, Type*)
-    o_signal_data(packageAdded, Namespace*)
-    o_signal_data(packageRemoved, Namespace*)
+    o_signal_data(namespaceAdded, Namespace*)
+    o_signal_data(namespaceRemoved, Namespace*)
+    o_signal_data(templateAdded, Template*)
+    o_signal_data(templateRemoved, Template*)
     //@}
 
 public:
     virtual Namespace*  asNamespace() const { return (Namespace*)this; }
     void                addType(Type* a_pType);
+    void                addTemplate(Template* a_pTemplate);
+    void                removeTemplate( Template* a_pTemplate );
     void                addNamespace(Namespace* a_pNamespace);
     void                removeType(Type* a_pType);
     void                removeNamespace(Namespace* a_pNamespace);
@@ -99,6 +104,8 @@ public:
     Class*              getPolymorphicType(const string& a_strName) const;
     Class*              getPolymorphicType(uint index) const;
     uint                getPolymorphicTypeCount() const;
+
+    Template*           getTemplate( const string& a_strName ) const ;
 
     Namespace*          findTypeNamespace(Type* a_pType) const;
 
@@ -196,6 +203,7 @@ protected:
     mutable
     function_container  m_Functions;
     type_container      m_Types;
+    template_container  m_Templates;
     typedef_map         m_Typedefs;
     namespace_alias_map m_NamespaceAliases;
 

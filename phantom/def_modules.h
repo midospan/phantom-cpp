@@ -193,6 +193,7 @@
 #define o_register_associated_template_list_4(t0, t1, t2, t3) o_register_associated_template_list_3(t0, t1, t2) o_register_template_instance(t3)
 #define o_register_associated_template_list_5(t0, t1, t2, t3, t4) o_register_associated_template_list_4(t0, t1, t2, t3) o_register_template_instance(t4)
 
+
 #define o_register(_name_)\
     phantom::detail::dynamic_initializer_module_installer_registrer< ::_name_ > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
 
@@ -208,6 +209,13 @@
     phantom::detail::dynamic_initializer_module_installer_registrer< o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_) > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
     //o_register_associated_templates(o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_));
 
+#define o_registerT(_template_types_, _template_params_, _name_)\
+    phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) ("",  #_name_) ;
+
+#define o_registerNT(_namespaces_, _template_types_, _template_params_, _name_)\
+    phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) (o_PP_QUOTE(o_PP_CREATE_SCOPE _namespaces_),  #_name_) ;
+
+
 #define o_reflection_custom_begin(_type_)    \
     protected:\
     enum { PHANTOM_CODEGEN_reflection_counter_value = __COUNTER__};\
@@ -221,6 +229,33 @@
 #define o_reflection_custom_end()    \
     };
 
+
+#if o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS
+#define o_module(name)\
+    BOOL WINAPI DllMain(_In_ HINSTANCE _HDllHandle, _In_ DWORD _Reason, _In_opt_ LPVOID _Reserved)\
+{\
+    switch(_Reason)\
+    {\
+    case DLL_PROCESS_ATTACH:\
+    {\
+        char moduleName[512];\
+        GetModuleFileName(_HDllHandle, moduleName, 512);\
+        phantom::installReflection(name, moduleName, (size_t)_HDllHandle);\
+        }\
+    break;\
+    case DLL_PROCESS_DETACH:\
+    phantom::uninstallReflection(name);\
+    if(strcmp(name, "") == 0) phantom::release();\
+    break;\
+    case DLL_THREAD_ATTACH:\
+    break;\
+    case DLL_THREAD_DETACH:\
+    break;\
+    }\
+    return TRUE;\
+}
+
+#endif
 
 #define o_reflection_custom_declare(_type_)\
     protected:\

@@ -81,6 +81,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
       <AdditionalOptions>-Zm500 /MP /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -192,6 +193,8 @@
     <ClInclude Include="..\..\..\phantom\math\scalar_funcs.h" />
     <ClInclude Include="..\..\..\phantom\math\vector_types.h" />
     <ClInclude Include="..\..\..\phantom\math\vector_funcs.h" />
+    <ClInclude Include="..\..\..\phantom\Module.classdef.h" />
+    <ClInclude Include="..\..\..\phantom\Module.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ArrayType.classdef.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ArrayType.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Block.h" />
@@ -224,6 +227,8 @@
     <ClInclude Include="..\..\..\phantom\reflection\MapContainerClass.classdef.h" />
     <ClInclude Include="..\..\..\phantom\reflection\MapContainerClass.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeProperty.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Template.classdef.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Template.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ValueMemberBinding.classdef.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ValueMemberBinding.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ReferenceType.classdef.h" />
@@ -369,6 +374,7 @@
     <ClInclude Include="..\..\..\phantom\util\Iterator.h" />
     <ClInclude Include="..\..\..\phantom\util\Message.h" />
     <ClInclude Include="..\..\..\phantom\util\MessageTree.h" />
+    <ClInclude Include="..\..\..\phantom\util\Selection.h" />
     <ClInclude Include="..\..\..\phantom\util\TComposition.h" />
     <ClInclude Include="..\..\..\phantom\util\TVisitor.classdef.h" />
     <ClInclude Include="..\..\..\phantom\util\TVisitor.h" />
@@ -387,8 +393,10 @@
     <ClCompile Include="..\..\..\phantom\math\math.cpp" />
     <ClCompile Include="..\..\..\phantom\math\vector_reflection.cpp" />
     <ClCompile Include="..\..\..\phantom\memory\nedmalloc.cpp" />
+    <ClCompile Include="..\..\..\phantom\Module.cpp" />
     <ClCompile Include="..\..\..\phantom\Object.cpp" />
     <ClCompile Include="..\..\..\phantom\phantom.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\native\TType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\PureVirtualMemberFunction.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Property.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ArrayType.cpp" />
@@ -412,6 +420,7 @@
     <ClCompile Include="..\..\..\phantom\reflection\Location.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\MapContainerClass.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Range.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Template.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ValueMemberBinding.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ReferenceType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\SequentialContainerClass.cpp" />
@@ -478,6 +487,7 @@
     <ClCompile Include="..\..\..\phantom\util\Iterator.cpp" />
     <ClCompile Include="..\..\..\phantom\util\Message.cpp" />
     <ClCompile Include="..\..\..\phantom\util\MessageTree.cpp" />
+    <ClCompile Include="..\..\..\phantom\util\Selection.cpp" />
     <ClCompile Include="..\..\..\phantom\variant.cpp" />
     <ClCompile Include="..\..\..\phantom\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

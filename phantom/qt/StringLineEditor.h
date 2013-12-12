@@ -1,5 +1,5 @@
-#ifndef ghost_gui_StringLineEditor_h__
-#define ghost_gui_StringLineEditor_h__
+#ifndef phantom_qt_StringLineEditor_h__
+#define phantom_qt_StringLineEditor_h__
 
 
 /* ****************** Includes ******************* */
@@ -30,4 +30,4 @@ o_classNS((phantom, qt), StringLineEditor, (VariableWidgetEditor))
 };
 o_exposeN((phantom, qt), StringLineEditor);
 
-#endif // ghost_gui_StringLineEditor_h__
+#endif // phantom_qt_StringLineEditor_h__

@@ -176,7 +176,7 @@ bool JitDebugger::handleHardwareBreakPoint(void* a_pGenericContext)
                 }
             }
         }
-        RemoveHardwareBreakpoint(m_StepByStepBreakPointHandle);
+        RemoveHardwareBreakpoint((HANDLE)m_StepByStepBreakPointHandle);
     }
     else 
     {

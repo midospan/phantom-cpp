@@ -719,6 +719,17 @@
     <ClInclude Include="..\..\..\phantom\util\MessageTree.h">
       <Filter>util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\phantom\Module.h" />
+    <ClInclude Include="..\..\..\phantom\Module.classdef.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Template.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\Template.classdef.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\util\Selection.h">
+      <Filter>util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\phantom\reflection\TemplateSpecialization.cpp">
@@ -1005,6 +1016,16 @@
       <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\util\MessageTree.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\Module.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Template.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\native\TType.cpp">
+      <Filter>reflection\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\util\Selection.cpp">
       <Filter>util</Filter>
     </ClCompile>
   </ItemGroup>

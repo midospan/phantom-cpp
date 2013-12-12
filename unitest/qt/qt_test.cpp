@@ -1,9 +1,14 @@
 #include "qt_test.h"
 #include "phantom/qt/VariableEditor.h"
 #include "phantom/qt/VariableManager.h"
+#include "phantom/qt/ModuleLoader.h"
+#include "phantom/qt/MessageDisplay.h"
+#include "phantom/qt/DataTreeView.h"
 #include "phantom/math/math.h"
 #include "phantom/serialization/XmlFileTreeDataBase.h"
 #include "phantom/serialization/Node.h"
+#include "phantom/util/MessageTree.h"
+#include "phantom/util/Message.h"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
@@ -11,7 +16,7 @@
 class Test
 {
 public:
-
+    Test(): mBool(true) {}
     const phantom::math::transform2<float>& getTransform() const { return mTransform; }
     void setTransform(const phantom::math::transform2<float>& transform) { mTransform = transform; }
 
@@ -34,7 +39,7 @@ public:
     phantom::math::transform2<float> mTransform;
 };
 
-o_class(Test)
+o_class(Test, o_public)
 {
     o_reflection 
     {
@@ -52,7 +57,7 @@ o_class(Test)
         o_data_member(std::vector<float>, mFloats, o_no_range, o_public);
         o_data_member(map, mStrings, o_no_range, o_public);
         o_data_member(nested_vectors, mNestedVectors, o_no_range, o_public);
-        //o_property(const phantom::math::transform2<float>&, transform, setTransform, getTransform, o_no_signal, o_no_range, o_public);
+        o_property(const phantom::math::transform2<float>&, transform, setTransform, getTransform, o_no_signal, o_no_range, o_public);
     };
 };
 o_expose(Test);
@@ -65,7 +70,7 @@ public:
     int a;
 };
 
-o_classS(DerivedTestA, (Test))
+o_classS(DerivedTestA, (Test), o_public)
 {
     o_reflection 
     {
@@ -81,7 +86,7 @@ public:
     int b;
 };
 
-o_classS(DerivedTestB, (Test))
+o_classS(DerivedTestB, (Test), o_public)
 {
     o_reflection 
     {
@@ -95,11 +100,17 @@ qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
     : QMainWindow(parent, flags)
 {
     ui.setupUi(this);
+    phantom::MessageTree* pMessageTree = o_new(phantom::MessageTree);
+    phantom::qt::MessageDisplay* pMessageDisplay = o_new(phantom::qt::MessageDisplay);
+    pMessageDisplay->setMessageTree(pMessageTree);
+        
     phantom::qt::VariableEditor* pEditor0 = o_new(phantom::qt::VariableEditor)(o_new(phantom::qt::VariableManager), "Name");
     phantom::qt::VariableEditor* pEditor1 = o_new(phantom::qt::VariableEditor)(o_new(phantom::qt::VariableManager), "Name");
     phantom::qt::VariableEditor* pEditor2 = o_new(phantom::qt::VariableEditor)(o_new(phantom::qt::VariableManager), "Name");
     phantom::qt::VariableEditor* pEditor3 = o_new(phantom::qt::VariableEditor)(o_new(phantom::qt::VariableManager), "Name");
     phantom::serialization::XmlFileTreeDataBase* pDataBase = o_new(phantom::serialization::XmlFileTreeDataBase)("./unitest/qt_test/db/", 0x1);
+    pDataBase->addAttribute("name");
+    pDataBase->addAttribute("category");
     pDataBase->loadNodeEntries();
     pDataBase->rootNode()->load();
     phantom::vector<phantom::data> data0;
@@ -110,14 +121,17 @@ qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
     {
         Test* pTest = o_new(Test);
         pDataBase->rootNode()->addData(pTest);
+        pDataBase->setDataAttributeValue(pTest, "name", "Test");
         data0.push_back(pTest);
         data1.push_back(pTest);
         DerivedTestA* pTestA = o_new(DerivedTestA);
         pDataBase->rootNode()->addData(pTestA);
+        pDataBase->setDataAttributeValue(pTestA, "name", "DerivedTestA");
         data0.push_back(pTestA);
         data2.push_back(pTestA);
         DerivedTestB* pTestB = o_new(DerivedTestB);
         pDataBase->rootNode()->addData(pTestB);
+        pDataBase->setDataAttributeValue(pTestB, "name", "DerivedTestB");
         data0.push_back(pTestB);
         data3.push_back(pTestB);
     }
@@ -143,10 +157,21 @@ qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
     QVBoxLayout* pVLayout1 = new QVBoxLayout;
     pHLayout->addLayout(pVLayout0);
     pVLayout0->addWidget(pEditor0);
-    pVLayout0->addWidget(pEditor1);
+    pVLayout0->addWidget(pMessageDisplay);
     pHLayout->addLayout(pVLayout1);
-    pVLayout1->addWidget(pEditor2);
-    pVLayout1->addWidget(pEditor3);
+    phantom::qt::DataTreeView* pDataTreeView = o_new(phantom::qt::DataTreeView)(pMessageTree->getRootMessage());
+    pDataTreeView->setDataBase(pDataBase, 0, 1);
+    connect(pDataTreeView, SIGNAL(selectionChanged(const phantom::vector<phantom::data>&)), pEditor0, SLOT(edit(const phantom::vector<phantom::data>&)));
+    pVLayout1->addWidget(pDataTreeView);
+    pVLayout1->addWidget(o_new(phantom::qt::ModuleLoader)(".", pMessageTree->getRootMessage()));
+/*
+
+    connect(pEditor1, SIGNAL(variableChanged(BufferedVariable*)), pEditor0, SLOT(reedit()));
+    connect(pEditor2, SIGNAL(variableChanged(BufferedVariable*)), pEditor0, SLOT(reedit()));
+    connect(pEditor3, SIGNAL(variableChanged(BufferedVariable*)), pEditor0, SLOT(reedit()));
+    connect(pEditor0, SIGNAL(variableChanged(BufferedVariable*)), pEditor1, SLOT(reedit()));
+    connect(pEditor0, SIGNAL(variableChanged(BufferedVariable*)), pEditor2, SLOT(reedit()));
+    connect(pEditor0, SIGNAL(variableChanged(BufferedVariable*)), pEditor3, SLOT(reedit()));*/
 
     QWidget* widget = new QWidget;
     widget->setLayout(pHLayout);
@@ -157,5 +182,5 @@ qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
 
 qt_test::~qt_test()
 {
-    o_delete(phantom::qt::VariableEditor) centralWidget();
+    setCentralWidget(nullptr);
 }

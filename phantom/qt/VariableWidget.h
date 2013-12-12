@@ -17,6 +17,7 @@ namespace phantom { namespace qt {
 class VariableAction;
 class VariableEditor;
 class VariableWidgetEditor;
+class BufferedVariable;
 
 class o_qt_export VariableWidget : public QWidget
 {
@@ -28,9 +29,9 @@ public:
 
     VariableWidgetEditor* getVariableWidgetEditor() const { return m_pVariableWidgetEditor; }
 
-    reflection::Variable* getVariable() const { return m_pVariable; }
+    BufferedVariable* getVariable() const { return m_pVariable; }
 
-    void setVariable(reflection::Variable* a_pVariable);
+    void setVariable(BufferedVariable* a_pVariable);
 
     void addVariableAction(VariableAction* a_pAction);
 
@@ -48,7 +49,7 @@ signals:
     void valueChanged();
 
 protected:
-    reflection::Variable*   m_pVariable;
+    BufferedVariable*   m_pVariable;
     VariableEditor*         m_pVariableEditor;
     VariableWidgetEditor*   m_pVariableWidgetEditor;
     QVector<VariableAction*>m_Actions;

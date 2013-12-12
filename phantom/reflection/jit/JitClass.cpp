@@ -713,7 +713,7 @@ phantom::restore_state JitClass::restore( void* a_pInstance, uint a_uiSerializat
     }
     if(result == restore_complete AND m_bHasStateMachineDataPtr)
     {
-        m_pStateMachine->initialize(a_pInstance);
+        m_pStateMachine->getInstanceData(a_pInstance)->initialize();
     }
     if(m_pRestoreMemberFunction)
     {
@@ -849,7 +849,7 @@ void JitClass::initialize( void* a_pInstance ) const
     }
     if(m_bHasStateMachineDataPtr)
     {
-        m_pStateMachine->initialize(a_pInstance);
+        m_pStateMachine->getInstanceData(a_pInstance)->initialize();
     }
 
     if(m_pInitializeMemberFunction)
@@ -880,7 +880,7 @@ void JitClass::terminate( void* a_pInstance ) const
     }
     if(m_bHasStateMachineDataPtr)
     {
-        m_pStateMachine->terminate(a_pInstance);
+        m_pStateMachine->getInstanceData(a_pInstance)->terminate();
     }
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();

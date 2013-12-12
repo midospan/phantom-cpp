@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'LocalVariableEditor.h'
 **
-** Created: Sun 8. Dec 17:25:26 2013
+** Created: Thu 12. Dec 00:28:48 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!

@@ -62,7 +62,7 @@ namespace phantom { namespace qt {
         Q_ASSERT(m_pManager->m_pVariableEditor == nullptr);
         m_pManager->m_pVariableEditor = this;
         setFactoryForManager(m_pManager, new VariableEditorFactory(this));
-        QObject::connect(this, SIGNAL(variableChanged(reflection::Variable*)), this, SLOT(slotVariableChanged(reflection::Variable*)));
+        QObject::connect(this, SIGNAL(variableChanged(BufferedVariable*)), this, SLOT(slotVariableChanged(BufferedVariable*)));
         QObject::connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(createPropertyPopupMenu(QPoint)));
         setContextMenuPolicy(Qt::CustomContextMenu);
         treeWidget()->setEditTriggers(treeWidget()->editTriggers()|QTreeWidget::AnyKeyPressed);
@@ -108,7 +108,7 @@ namespace phantom { namespace qt {
 
     QWidget* VariableEditor::createEditor(VariableManager*a_pManager, QtProperty *property, QWidget *parent)
     {
-        phantom::reflection::Variable* pVariable = a_pManager->getVariable(property);
+        BufferedVariable* pVariable = a_pManager->getVariable(property);
         if(pVariable == NULL) return NULL;
         if(pVariable->testModifiers(o_readonly)) return NULL;
 
@@ -156,7 +156,7 @@ namespace phantom { namespace qt {
         return nullptr;
     }
 
-    QtBrowserItem* VariableEditor::getBrowserItem(phantom::reflection::Variable* a_pVariable) const 
+    QtBrowserItem* VariableEditor::getBrowserItem(BufferedVariable* a_pVariable) const 
     {
         const QtProperty* property = m_pManager->getProperty(a_pVariable);
         if(property == nullptr) return nullptr;
@@ -188,7 +188,7 @@ namespace phantom { namespace qt {
 
     void VariableEditor::updateCustomExtraColumns( QTreeWidgetItem * item, QtProperty * property )
     {
-        phantom::reflection::Variable* pVariable = m_pManager->getVariable(property);
+        BufferedVariable* pVariable = m_pManager->getVariable(property);
         if(pVariable == nullptr) 
         {
             item->setText(2, "");
@@ -201,15 +201,9 @@ namespace phantom { namespace qt {
             string name = pType->getMetaDataValue(getNameMetaDataIndex());
             if(name.empty()) name = pType->getName();
             string icon = pType->getMetaDataValue(getIconMetaDataIndex());
-            ProxyVariable* pProxy = NULL;
-            reflection::Variable* pUnproxiedVariable = pVariable;
-            // Remove proxy levels
-            while( (pProxy = as<ProxyVariable*>(pUnproxiedVariable)) )
-            {
-                pUnproxiedVariable = pProxy->getProxiedVariable();
-            }
-            GroupVariable* pGroupVariable = as<GroupVariable*>(pUnproxiedVariable);
-            string extension = pGroupVariable ? string(" (")+lexical_cast<string>(pGroupVariable->getVariableCount())+" data)" : "";
+            string extension = (pVariable->getVariableCount() > 1) 
+                                ? string(" (")+lexical_cast<string>(pVariable->getVariableCount())+" data)" 
+                                : "";
             item->setText(2, (name + extension).c_str());
             item->setIcon(2, QIcon(icon.c_str()));
         }
@@ -307,7 +301,10 @@ namespace phantom { namespace qt {
             m_pEditedType = m_EditedData.front().type();
             for(auto it = m_EditedData.begin()+1; it != m_EditedData.end(); ++it)
             {
-                m_pEditedType = m_pEditedType->getCommonAncestor(it->type());
+                if(m_pEditedType)
+                {
+                    m_pEditedType = m_pEditedType->getCommonAncestor(it->type());
+                }
             }
             if(m_pEditedType != nullptr)
             {
@@ -318,8 +315,9 @@ namespace phantom { namespace qt {
                     o_assert(!castedData.isNull());
                     editedAddresses.push_back(castedData.address());
                 }
+                
                 QVector<QtProperty*> properties;
-                m_pManager->addProperties(editedAddresses, m_pEditedType, &properties);
+                m_pManager->createProperties(editedAddresses, m_pEditedType, properties);
                 for(auto it = properties.begin(); it != properties.end(); ++it)
                 {
                     addProperty(*it);
@@ -329,8 +327,14 @@ namespace phantom { namespace qt {
         setResizeMode(Interactive);
     }
 
-    void VariableEditor::slotVariableChanged( reflection::Variable* a_pVariable )
+    void VariableEditor::slotVariableChanged( BufferedVariable* a_pVariable )
     {
+        BufferedVariable* pParentVariable = a_pVariable->getParentVariable();
+        while(pParentVariable)
+        {
+            updateBrowserItem(getBrowserItem(pParentVariable));
+            pParentVariable = pParentVariable->getParentVariable();
+        }
         if(a_pVariable->getRange())
         {
             void * pBufferCurrent = a_pVariable->getValueType()->newInstance();
@@ -340,20 +344,11 @@ namespace phantom { namespace qt {
             m_pManager->getProperty(a_pVariable)->setModified(!a_pVariable->getValueType()->areValueEqual(pBufferCurrent, pBufferDefault));
         }
 
-        ProxyVariable* pProxy = nullptr;
-        // Remove proxy levels
-        while( (pProxy = as<ProxyVariable*>(a_pVariable)) )
-        {
-            a_pVariable = pProxy->getProxiedVariable();
-        }
-
-        GroupVariable* pGroupVariable = phantom::as<GroupVariable*>(a_pVariable);
-        if(pGroupVariable && pGroupVariable->getVariables().size())
-            a_pVariable = pGroupVariable->getVariables().back();
-
-        ContainerInsertVariable* pContainerVariable = phantom::as<ContainerInsertVariable*>(a_pVariable);
-        CollectionInsertVariable* pCollectionInsertVariable = phantom::as<CollectionInsertVariable*>(a_pVariable);
-        CollectionElementVariable* pCollectionElementVariable = phantom::as<CollectionElementVariable*>(a_pVariable);
+        BufferedVariable* pBufferedVariable = as<BufferedVariable*>(a_pVariable);
+        reflection::Class* pVariableClass = pBufferedVariable ? pBufferedVariable->getVariableClass() : classOf(a_pVariable);
+        bool pContainerVariable = pVariableClass->isKindOf(typeOf<ContainerInsertVariable>());
+        bool pCollectionInsertVariable = pVariableClass->isKindOf(typeOf<CollectionInsertVariable>());
+        bool pCollectionElementVariable = pVariableClass->isKindOf(typeOf<CollectionElementVariable>());
         if(pContainerVariable OR pCollectionInsertVariable OR pCollectionElementVariable)
         {
             reedit();

@@ -77,7 +77,7 @@ void XmlFileTreeNode::saveDataAttributes(const phantom::data& a_Data, uint guid)
     else
     {
         property_tree attribute_tree;
-        saveDataAttributesHelper(*attribute_tree_opt, a_Data);
+        saveDataAttributesHelper(attribute_tree, a_Data);
         p_tree.add_child("data.attributes", attribute_tree);
     }
     boost::property_tree_custom::write_xml(path.c_str(), p_tree);

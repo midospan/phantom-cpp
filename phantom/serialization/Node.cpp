@@ -55,6 +55,18 @@ Node::Node( DataBase* a_pOwnerDataBase, uint a_Guid, Node* a_pParentNode ) : m_d
     }
 }
 
+o_terminate_cpp(Node)
+{
+    for(auto it = m_ChildNodes.begin(); it != m_ChildNodes.end(); ++it)
+    {
+        o_dynamic_delete *it;
+    }
+    if(isLoaded())
+    {
+        unload();
+    }
+}
+
 const data& Node::findData( void* a_pAddress ) const
 {
     static data s_null;
@@ -384,7 +396,10 @@ void Node::removeChildNode( Node* a_pNode )
 
 void Node::load()
 {
-
+    if(NOT(canLoad()))
+    {
+        o_exception(std::exception, "Node cannot be loaded");
+    }
     o_assert(m_eState == e_Unloaded);
     if(m_pParentNode AND m_pParentNode->getState() == e_Unloaded)
     {
@@ -1310,6 +1325,25 @@ void Node::internalRemoveData( const data& a_Data )
     m_pOwnerDataBase->destroyDataEntry(a_Data, guid, this);
     m_pOwnerDataBase->unregisterData(a_Data);
     eraseData(a_Data); 
+}
+
+phantom::data Node::getData( void* a_pAddress ) const
+{
+    phantom::data d(a_pAddress);
+    return (std::find(m_Data.begin(), m_Data.end(), d) == m_Data.end()) ? phantom::data() : d;
+}
+
+void Node::unloadCascade()
+{
+    o_assert(isLoaded());
+    for(auto it = beginChildNodes(); it != endChildNodes(); ++it)
+    {
+        if((*it)->isLoaded())
+        {
+            (*it)->unloadCascade();
+        }
+    }
+    unload();
 }
 
 o_namespace_end(phantom, serialization)

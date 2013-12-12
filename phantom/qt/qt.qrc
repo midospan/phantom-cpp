@@ -7,5 +7,11 @@
       <file alias="delete.png">../../bin/resources/icons/delete.png</file>
       <file alias="accept.png">../../bin/resources/icons/accept.png</file>
       <file alias="exclamation.png">../../bin/resources/icons/exclamation.png</file>
-    </qresource>
+      <file alias="information.png">../../bin/resources/icons/information.png</file>
+      <file alias="error.png">../../bin/resources/icons/error.png</file>
+      <file alias="plugin.png">../../bin/resources/icons/plugin.png</file>
+      <file alias="plugin_disabled.png">../../bin/resources/icons/plugin_disabled.png</file>
+      <file alias="folder.png">../../bin/resources/icons/folder.png</file>
+      <file alias="database.png">../../bin/resources/icons/database.png</file>
+    </qresource> 
 </RCC>

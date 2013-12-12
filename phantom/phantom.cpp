@@ -37,6 +37,9 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <stdarg.h>
+#if o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS
+#include <windows.h>
+#endif
 /* *********************************************** */
 o_registerN((phantom), data);
 o_registerN((phantom), object);
@@ -55,17 +58,20 @@ size_t                connection::emission_guard::counter = 0;
 size_t                connection::emission_guard::object_destroyed_count = 0;
 connection::slot_pool::allocation_controller_map* connection::slot_pool::m_allocation_controller_map = 0;
 
+uint Phantom::m_uiSetupStep;
+
+
 phantom::Phantom::EState                        Phantom::m_eState;
 phantom::Phantom::message_report_func           Phantom::m_assert_func = default_assert;
 phantom::Phantom::message_report_func           Phantom::m_warning_func = default_warning;
 phantom::Phantom::message_report_func           Phantom::m_error_func = default_error;
 phantom::Phantom::log_func                      Phantom::m_log_func = default_log;
-phantom::uint                                   Phantom::m_uiSetupStep;
 phantom::reflection::Namespace*                 Phantom::m_pRootNamespace;
 void*                                           Phantom::m_typeOf_cycling_address_workaround_ptr;
 phantom::Phantom::rtti_data_map*                Phantom::m_rtti_data_map = NULL;
-phantom::Phantom::element_container*		Phantom::m_elements = NULL;
-phantom::Phantom::singleton_container*          Phantom::m_singleton_container = NULL;
+phantom::Phantom::element_container*		    Phantom::m_elements = NULL;
+phantom::Module*		            Phantom::m_module = NULL;
+phantom::map<phantom::string, phantom::Module*> Phantom::m_modules;
 phantom::Phantom*                               Phantom::m_instance = NULL;
 phantom::Phantom::dynamic_pool_type_map         Phantom::m_DynamicPoolAllocators;
 
@@ -76,8 +82,9 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
     o_assert(m_instance == NULL, "Only one instance allowed and initialized once, the best is to use your main function scope and RAII");
     m_instance = this;
 
-    o_assert(m_eState == eState_NotInstalled, "Phantom has already been installed and can only be installed once per application");
+    //o_assert(m_eState == eState_NotInstalled, "Phantom has already been installed and can only be installed once per application");
 
+#if o_OPERATING_SYSTEM != o_OPERATING_SYSTEM_WINDOWS
     setState(eState_DynamicInitializerDone_StartingInitialization);
 
     // We initialize and give reflection to objects created before Phantom
@@ -91,13 +98,12 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
     }
 
     setState(eState_Installed);
+#endif
 }
 
 
 Phantom::~Phantom()
 {
-    setState(eState_Uninstalling);
-
     // delete SourceFiles
     for(auto it = m_SourceFiles.begin(); it != m_SourceFiles.end(); ++it)
     {
@@ -107,93 +113,20 @@ Phantom::~Phantom()
 
     rootNamespace()->teardownMetaDataCascade(m_meta_data_names.size());
     // Deleting all the registered singletons
-    {
+    /*{
         singleton_container::reverse_iterator it = m_singleton_container->rbegin();
         singleton_container::reverse_iterator end = m_singleton_container->rend();
         for(;it != end; ++it)
         {
             o_dynamic_delete (*it);
         }
-    }
+    }*/
     vector<reflection::Type*> types_to_destroy;
     m_pRootNamespace->release(types_to_destroy);
     o_dynamic_delete_clean(m_pRootNamespace);
     std::sort(types_to_destroy.begin(), types_to_destroy.end(), type_sorter_by_build_order());
 
-
-    vector<reflection::Class*> remaining_classes;
-
-    vector<reflection::Type*>::iterator it = types_to_destroy.begin();
-    vector<reflection::Type*>::iterator end = types_to_destroy.end();
-    for(;it!=end;++it)
-    {
-        reflection::Type* pType = *it;
-        if(pType == NULL) continue;
-        if(pType->isClass())
-        {
-            reflection::Class* pClass = static_cast<reflection::Class*>(pType);
-            pClass->destroyContent();
-            if(pClass->getKindCount() OR pClass->getDerivedClassCount()) 
-            {
-                remaining_classes.push_back(pClass);
-            }
-            else
-            {
-                o_dynamic_delete_clean(pClass);
-            }
-        }
-        else
-        {
-            o_dynamic_delete_clean(pType);
-        }
-    }
-
-    while(!remaining_classes.empty())
-    {
-        vector<reflection::Class*>::iterator it = remaining_classes.begin();
-        vector<reflection::Class*>::iterator end = remaining_classes.end();
-        for(;it!=end;++it)
-        {
-            if((*it)->getKindCount() OR (*it)->getDerivedClassCount()) continue;
-            break;
-        }
-        if(it != end)
-        {
-            o_dynamic_delete_clean((*it));
-            remaining_classes.erase(it);
-        }
-        else
-        {
-            if(remaining_classes.size() == 1 AND remaining_classes[0] == classOf<reflection::Class>() )
-            {
-                o_dynamic_delete_clean(remaining_classes[0]);
-                remaining_classes.clear();
-            }
-            else
-            {
-                std::cout<<console::bg_gray<<console::fg_red;
-                std::cout<<"Phantom release process : some class instances haven't been destroyed"<<std::endl;
-
-                std::cout<<console::bg_black;
-                vector<reflection::Class*>::iterator it = remaining_classes.begin();
-                vector<reflection::Class*>::iterator end = remaining_classes.end();
-                for(;it!=end;++it)
-                {
-                    std::cout<<console::fg_red<<"----------------------------------------------------------------------------"<<std::endl;
-                    std::cout<<console::fg_gray<<(*it)->getQualifiedDecoratedName()<<" : ";
-                    std::cout<<console::fg_red<<"this "<<(*it)->getInstanceCount()<<" ";
-                    std::cout<<console::fg_blue<<"all "<<(*it)->getKindCount()<<std::endl;
-
-                }
-                std::cout<<console::fg_gray;
-#if o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS AND DEBUG
-                system("pause");
-#endif
-                goto end_of_cleaning;
-            }
-        }
-    }
-end_of_cleaning:
+/*end_of_cleaning:
     o_warning(m_rtti_data_map->empty(), "not every phantom managed object has been released");
     m_rtti_data_map->~rtti_data_map();
     o_deallocate(m_rtti_data_map, Phantom::rtti_data_map);
@@ -201,7 +134,7 @@ end_of_cleaning:
 	o_deallocate(m_elements, Phantom::element_container);
     m_singleton_container->~singleton_container();
     o_deallocate(m_singleton_container, Phantom::singleton_container);
-    setState(eState_Uninstalled);
+    setState(eState_Uninstalled);*/
 #if o__bool__enable_allocation_statistics
     phantom::memory::Statistics::Trace(std::cout);
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO AND DEBUG
@@ -229,15 +162,10 @@ detail::dynamic_initializer_handle::dynamic_initializer_handle()
 	Phantom::m_elements = o_allocate(Phantom::element_container);
 	new (Phantom::m_elements) Phantom::element_container; 
 
-    Phantom::m_singleton_container = o_allocate(Phantom::singleton_container);
-    new (Phantom::m_singleton_container) Phantom::singleton_container; 
-
-    
     connection::slot_pool::m_allocation_controller_map= o_allocate(connection::slot_pool::allocation_controller_map);
     new (connection::slot_pool::m_allocation_controller_map) connection::slot_pool::allocation_controller_map; 
 
     Phantom::m_eState = Phantom::eState_NotInstalled;
-    Phantom::m_uiSetupStep = 0;
     Phantom::m_typeOf_cycling_address_workaround_ptr = &Phantom::m_typeOf_cycling_address_workaround_ptr;
     Phantom::m_pRootNamespace = o_new_alloc_and_construct_part(reflection::Namespace)(o_CS(o_root_namespace_name));
     o_new_install_and_initialize_part(Phantom::m_pRootNamespace);
@@ -252,7 +180,9 @@ detail::dynamic_initializer_handle::dynamic_initializer_handle()
 
 }
 
-
+detail::dynamic_initializer_handle::~dynamic_initializer_handle()
+{
+}
 
 void Phantom::setState(EState s) 
 {
@@ -390,15 +320,12 @@ phantom::reflection::Namespace* detail::dynamic_initializer_handle::parseNamespa
     return rootNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
 }
 
-/*
-void detail::dynamic_initializer_handle::registerType( phantom::reflection::Class* a_pType, module_installation_func setupFunc, uint a_uiSetupStepMask, const string& a_strNamespace )
+void detail::dynamic_initializer_handle::registerTemplate( reflection::Template* a_pTemplate )
 {
-    phantom::reflection::Namespace* pNamespace = parseNamespace(a_strNamespace);
-    o_assert(pNamespace != NULL);    
-    registerType(a_pType, setupFunc, a_uiSetupStepMask, pNamespace);
-}*/
+    m_DeferredTemplates.push_back(a_pTemplate);
+}
 
-void detail::dynamic_initializer_handle::registerModule( module_installation_func setupFunc, uint a_uiSetupStepMask )
+void detail::dynamic_initializer_handle::registerModule( module_installation_func setupFunc, uint a_uiSetupStepMask, bool a_bDeferred /*= true*/ )
 {
     if(setupFunc == NULL) 
         return;
@@ -408,13 +335,18 @@ void detail::dynamic_initializer_handle::registerModule( module_installation_fun
     {
         if(o_mask_test(a_uiSetupStepMask, (0x1<<i)))
         {
-            if(Phantom::getSetupStep() > i)
+            /*if(Phantom::getSetupStep() > i)
             {
                 (*setupFunc)(i);
             }
-            else
+            else*/
+            if(a_bDeferred || Phantom::getState() != Phantom::eState_Installed)
             {
                 m_DeferredSetupInfos[i].push_back(dynamic_initializer_module_installation_func(setupFunc));
+            }
+            else
+            {
+                setupFunc(i);
             }
         }
     }
@@ -431,31 +363,46 @@ phantom::reflection::Namespace*            namespaceByList( list<string>* a_pNam
     return rootNamespace()->findOrCreateNamespaceCascade(a_pNamespaceNameAsStringList);
 }
 
-void detail::dynamic_initializer_handle::installReflection()
+void detail::dynamic_initializer_handle::installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle)
 {
-    Phantom::setState(Phantom::eState_Reflection_DeferredSetup);
-    o_foreach(Object* pObject, m_DeferredReflectionSetupObjects)
+    o_assert(phantom::moduleByName(a_strName) == nullptr, "module with same name already registered");
+    Module* pModule = o_new(Module)(a_strName, a_strFileName, a_PlatformHandle);
+    Phantom::m_modules[a_strName] = pModule;
+    phantom::pushModule(pModule);
+    for(auto it = m_DeferredTemplates.begin(); it != m_DeferredTemplates.end(); ++it)
     {
-        pObject->getClass()->install(pObject);
+        pModule->addLanguageElement(*it);
     }
-    m_DeferredReflectionSetupObjects.clear();
-    if(Phantom::m_uiSetupStep > 0)
+    m_DeferredTemplates.clear();
+    size_t i = 0;
+    for(;i<32;++i)
     {
-        throw exception::reflection_runtime_exception("Only one instance of Phantom can be installed");
-    }
-    for(;Phantom::m_uiSetupStep<32;++Phantom::m_uiSetupStep)
-    {
-        dynamic_initializer_module_installation_func_vector& infos = m_DeferredSetupInfos[Phantom::m_uiSetupStep]; 
-        if(infos.empty())
-        {
-            int i = 2;
-        }
-        uint j = 0;
+        dynamic_initializer_module_installation_func_vector& infos = m_DeferredSetupInfos[i]; 
+        size_t j = 0;
         for(;j<infos.size(); ++j)
         {
-            infos[j].exec(Phantom::m_uiSetupStep);
+            infos[j].exec(i);
         }
+        infos.clear();
     }
+    phantom::popModule();
+    if(a_strName == "")
+    {
+        Phantom::m_eState = Phantom::eState_Installed;
+    }
+}
+
+void detail::dynamic_initializer_handle::uninstallReflection(const string& a_strName)
+{
+    if(a_strName == "")
+    {
+        Phantom::m_eState = Phantom::eState_Uninstalled;
+    }
+    o_assert(a_strName != "" OR Phantom::m_modules.size() == 1);
+    auto found = Phantom::m_modules.find(a_strName);
+    o_assert(found != Phantom::m_modules.end());
+    o_delete(Module) found->second;
+    Phantom::m_modules.erase(found);
 }
 
 phantom::reflection::Class* classByName( const string& a_strQualifiedName, phantom::reflection::LanguageElement* a_pRootScope  ) 
@@ -790,6 +737,7 @@ void Phantom::discardSourceFile( phantom::reflection::SourceFile* a_pSourceFile 
     m_SourceFiles.erase(found);
     o_delete(phantom::reflection::SourceFile) a_pSourceFile;
 }
+
 /*
 
 void Phantom::completeElement( const string& a_Prefix, const reflection::CodePosition& a_Position, vector<reflection::LanguageElement*>& a_Elements )
@@ -1113,4 +1061,111 @@ string decodeQualifiedDecoratedNameFromIdentifierName( const string& a_strTypeNa
     return decoded;
 }
 
+o_export size_t currentThreadId()
+{
+    size_t threadId = 0;
+#if o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS
+    threadId = GetCurrentThreadId();
+#endif
+    return threadId;
+}
+
+o_export void yieldCurrentThread()
+{
+#if o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS
+    Yield();
+#endif
+}
+
+o_export void                                          installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle)
+{
+    Phantom::dynamic_initializer()->installReflection(a_strName, a_strFileName, a_PlatformHandle);
+}
+o_export void                                          uninstallReflection(const string& a_strName)
+{
+    Phantom::dynamic_initializer()->uninstallReflection(a_strName);
+}
+
+o_export void pushModule( Module* a_pModule )
+{
+    if(Phantom::m_module)
+    {
+        a_pModule->setParentModule(Phantom::m_module);
+    }
+    Phantom::m_module = a_pModule;
+}
+
+o_export Module* popModule()
+{
+    o_assert(Phantom::m_module);
+    Module* pModule = Phantom::m_module;
+    Phantom::m_module = Phantom::m_module->getParentModule();
+    return pModule;
+}
+
+o_export Module*                           currentModule()
+{
+    return Phantom::m_module;
+}
+
+o_export Module*                           moduleByName(const string& a_strName)
+{
+    auto found = Phantom::m_modules.find(a_strName);
+    if(found == Phantom::m_modules.end()) return nullptr;
+    return found->second;
+}
+
+o_export Module*                           moduleByFileName(const string& a_strFileName)
+{
+    for(auto it = Phantom::m_modules.begin(); it != Phantom::m_modules.end(); ++it)
+    {
+        Module* pModule = it->second;
+        if(boost::filesystem::absolute(a_strFileName.c_str()) == boost::filesystem::absolute(pModule->getFileName().c_str()))
+            return pModule;
+    }
+    return nullptr;
+}
+
+o_export map<string, Module*>::const_iterator          beginModules()
+{
+    return Phantom::m_modules.begin();
+}
+
+o_export map<string, Module*>::const_iterator          endModules()
+{
+    return Phantom::m_modules.end();
+}
+
+void release()
+{
+    Phantom::release();
+}
+
+void Phantom::release()
+{
+    o_warning(Phantom::m_rtti_data_map->empty(), "not every phantom managed object has been released");
+    m_rtti_data_map->~rtti_data_map();
+    o_deallocate(m_rtti_data_map, rtti_data_map);
+    m_elements->~element_container();
+    o_deallocate(m_elements, element_container);
+    Phantom::dynamic_initializer()->~dynamic_initializer_handle();
+    auto di = Phantom::dynamic_initializer();
+    o_deallocate(di, detail::dynamic_initializer_handle);
+}
+
+detail::dynamic_initializer_template_registrer::dynamic_initializer_template_registrer( const string& a_strNamespace, const string& a_strName )
+{
+    Phantom::dynamic_initializer();
+
+    // Ensure the creation of the meta type
+    reflection::Namespace* pNamespace = rootNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
+    /// If you get an error : 'apply' : is not a member of 'phantom::detail::module_installer'
+    /// It's probably because you didn't declare a reflection scope (internal or external) for the given t_Ty class
+    reflection::Template* pTemplate = o_new(reflection::Template)(a_strName);
+    pNamespace->addTemplate(pTemplate);
+    Phantom::dynamic_initializer()->registerTemplate(pTemplate);
+}
+
 o_end_phantom_namespace()
+
+o_module("")

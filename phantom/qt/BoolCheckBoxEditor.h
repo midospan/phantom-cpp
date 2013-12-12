@@ -1,5 +1,5 @@
-#ifndef ghost_gui_BoolCheckBoxEditor_h__
-#define ghost_gui_BoolCheckBoxEditor_h__
+#ifndef phantom_qt_BoolCheckBoxEditor_h__
+#define phantom_qt_BoolCheckBoxEditor_h__
 
 
 /* ****************** Includes ******************* */
@@ -64,4 +64,4 @@ o_classNS((phantom, qt), BoolCheckBoxEditor, (VariableWidgetEditor))
 };
 o_exposeN((phantom, qt), BoolCheckBoxEditor);
 
-#endif // ghost_gui_EnumComboBox_h__
+#endif // phantom_qt_EnumComboBox_h__

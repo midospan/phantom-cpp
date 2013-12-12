@@ -228,7 +228,6 @@ template<typename t_Ty>
  phantom::reflection::ArrayType*                        arrayTypeOf(size_t);
 template<typename t_Ty>
  phantom::reflection::DataPointerType*                  pointerTypeOf();
- void                                                   registerSingleton(void* a_pInstance);
  o_export phantom::reflection::DataPointerType*         pointerTypeOf(phantom::reflection::Type* a_pType);
  o_export phantom::reflection::ReferenceType*           referenceTypeOf(phantom::reflection::Type* a_pType);
  o_export phantom::reflection::Type*                    constTypeOf(phantom::reflection::Type* a_pType);
@@ -264,6 +263,21 @@ template<typename t_Ty>
  o_export void                                          assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const character* e, const character* m , const char* f , uint l);
  o_export void                                          warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
  o_export void                                          error BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
+
+ o_export size_t                                        currentThreadId();
+ o_export void                                          yieldCurrentThread();
+
+ o_export void                                          installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle);
+ o_export void                                          uninstallReflection(const string& a_strName);
+
+ o_export void                                          pushModule(Module* a_pModule);
+ o_export Module*                                       popModule();
+ o_export Module*                                       currentModule();
+ o_export Module*                                       moduleByName(const string& a_strName);
+ o_export Module*                                       moduleByFileName(const string& a_strFileName);
+ o_export map<string, Module*>::const_iterator          beginModules();
+ o_export map<string, Module*>::const_iterator          endModules();
+ o_export void                                          release();
 
 /**
  * \brief data stores a memory address with the reflection Type associated
@@ -533,8 +547,6 @@ o_forceinline phantom::reflection::Type*        registerType()
 {
     return phantom::typeOf<t_Ty>();
 }
-
-o_forceinline void                              registerSingleton(void* a_pInstance);
 
 template <typename t_Ty>
 o_forceinline void                              registerTypedef(const char* a_strNamespace, const char* a_strTypedef)
@@ -845,13 +857,16 @@ namespace detail
 {
     class o_export dynamic_initializer_handle
     {
+        friend o_export void installReflection(const string& a_strName);
+        friend o_export void uninstallReflection(const string& a_strName);
         typedef void    (*module_installation_func)        (uint);
         friend class phantom::Phantom;
         template<typename> friend struct phantom::reflection::detail::type_reflection_registrer;
 
+
     protected:
         dynamic_initializer_handle();
-        void                    installReflection();
+        ~dynamic_initializer_handle();
         phantom::reflection::Namespace*
             parseNamespace(const string& a_strFileName) const;
 
@@ -864,7 +879,7 @@ namespace detail
         struct dynamic_initializer_module_installation_func
         {
             dynamic_initializer_module_installation_func() : setupFunc(NULL){}
-            dynamic_initializer_module_installation_func( module_installation_func    a_setupFunc    )
+            dynamic_initializer_module_installation_func( module_installation_func    a_setupFunc )
                 : setupFunc(a_setupFunc)
             {
 
@@ -878,13 +893,17 @@ namespace detail
         typedef vector<dynamic_initializer_module_installation_func>        dynamic_initializer_module_installation_func_vector;
 
     private:
-        vector<dynamic_initializer_module_installation_func_vector>       m_DeferredSetupInfos;
-        vector<Object*>                                     m_DeferredReflectionSetupObjects;
+        vector<dynamic_initializer_module_installation_func_vector>     m_DeferredSetupInfos;
+        vector<reflection::Template*>                                   m_DeferredTemplates;
+        vector<Object*>                                                 m_DeferredReflectionSetupObjects;
 
     public:
         void    registerType( phantom::reflection::Type* a_pType );
         void    registerType( const string& a_strNamespace, const string& a_strClassScope, phantom::reflection::Type* a_pType );
-        void    registerModule( module_installation_func setupFunc, uint a_uiSetupStepMask );
+        void    registerModule( module_installation_func setupFunc, uint a_uiSetupStepMask, bool a_bDeferred = true );
+        void    registerTemplate( reflection::Template* a_pTemplate );
+        void    installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle);
+        void    uninstallReflection(const string& a_strName);
     };
 }
 
@@ -908,7 +927,6 @@ public:
 	typedef phantom::unordered_map<string, size_t>						element_map;
 	typedef phantom::vector<phantom::reflection::LanguageElement*>		element_container;
     typedef phantom::vector<string>										meta_data_container;
-    typedef phantom::vector<void*>										singleton_container;
 
     template<unsigned alloc_size>
     class static_size_allocator : public boost::singleton_pool<boost::fast_pool_allocator_tag, alloc_size>
@@ -940,6 +958,16 @@ public:
     friend o_export void warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
     friend o_export void error BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
     friend o_export void log BOOST_PREVENT_MACRO_SUBSTITUTION (int level, const char* file, uint line, const char* message, ...);
+
+    friend o_export void pushModule(Module* a_pModule);
+    friend o_export Module* popModule();
+    friend o_export Module* currentModule();
+    friend o_export Module* moduleByName(const string& a_strName);
+    friend o_export Module* moduleByFileName(const string& a_strFileName);
+    friend o_export map<string, Module*>::const_iterator beginModules();
+    friend o_export map<string, Module*>::const_iterator endModules();
+
+    friend o_export void release();
 
     enum EState
     {
@@ -982,7 +1010,6 @@ public:
     friend phantom::reflection::ArrayType*                      arrayTypeOf(size_t);
     template<typename t_Ty>
     friend phantom::reflection::DataPointerType*                pointerTypeOf();
-    friend void                                                 registerSingleton(void* a_pInstance);
     friend o_export phantom::reflection::DataPointerType*       pointerTypeOf(phantom::reflection::Type* a_pType);
     friend o_export phantom::reflection::ReferenceType*         referenceTypeOf(phantom::reflection::Type* a_pType);
     friend o_export phantom::reflection::Type*                  constTypeOf(phantom::reflection::Type* a_pType);
@@ -1017,6 +1044,7 @@ private:
         bool        operator()(reflection::Type* one, reflection::Type* another);
     };
 
+    static void					release();
 
 
 private:
@@ -1024,13 +1052,14 @@ private:
     static uint						m_uiSetupStep;
     static dynamic_pool_type_map	m_DynamicPoolAllocators;
     static rtti_data_map*			m_rtti_data_map;
-    static singleton_container*		m_singleton_container;
     static message_report_func		m_assert_func;
     static message_report_func		m_error_func;
     static message_report_func		m_warning_func;
     static log_func		            m_log_func;
     static Phantom*					m_instance;
 	static element_container*		m_elements;
+    static Module*      m_module;
+    static map<string, Module*> m_modules;
 
     vector<string>                  m_meta_data_names;
     static map<string, reflection::SourceFile*> m_SourceFiles;
@@ -1071,7 +1100,18 @@ namespace detail
     struct reflection_installer_helper<t_Ty, true>
         : public proxy_of<t_Ty>::type::enclosed_reflection
     {
-        reflection_installer_helper() { typeOf<t_Ty>(); } // ensure type is registered even if no members is added
+        reflection_installer_helper() 
+        { 
+            auto pType = typeOf<t_Ty>(); 
+            if(phantom::currentModule()) 
+            {
+                o_assert((pType->asClassType() && pType->asClassType()->getTemplate()) || pType->getModule() == nullptr);
+                if(pType->getModule() == nullptr)
+                {
+                    phantom::currentModule()->addLanguageElement(pType);
+                }
+            }
+        } // ensure type is registered even if no members is added
     };
 
     template<typename t_Ty>
@@ -1112,6 +1152,10 @@ namespace detail
     {
         static void apply(uint step)
         {
+            reflection::Class* saved_class = reflection::g_PHANTOM_RESERVED_class;
+            reflection::TemplateSpecialization* saved_template_specialization = reflection::g_PHANTOM_RESERVED_template_specialization;
+            reflection::g_PHANTOM_RESERVED_class = phantom::typeOf<t_Ty>()->asClass();
+            reflection::g_PHANTOM_RESERVED_template_specialization = reflection::g_PHANTOM_RESERVED_class ? reflection::g_PHANTOM_RESERVED_class->getTemplateSpecialization() : nullptr;
             switch(step)
             {
             case o_global_value_SetupStepIndex_Reflection:
@@ -1127,6 +1171,8 @@ namespace detail
                 }
                 break;
             }
+            reflection::g_PHANTOM_RESERVED_class = saved_class;
+            reflection::g_PHANTOM_RESERVED_template_specialization = saved_template_specialization;
         }
     };
 
@@ -1135,6 +1181,10 @@ namespace detail
     {
         static void apply(uint step)
         {
+            reflection::Class* saved_class = reflection::g_PHANTOM_RESERVED_class;
+            reflection::TemplateSpecialization* saved_template_specialization = reflection::g_PHANTOM_RESERVED_template_specialization;
+            reflection::g_PHANTOM_RESERVED_class = phantom::typeOf<t_Ty>()->asClass();
+            reflection::g_PHANTOM_RESERVED_template_specialization = reflection::g_PHANTOM_RESERVED_class ? reflection::g_PHANTOM_RESERVED_class->getTemplateSpecialization() : nullptr;
             switch(step)
             {
             case o_global_value_SetupStepIndex_StateChart:
@@ -1144,6 +1194,8 @@ namespace detail
                 }
                 break;
             }
+            reflection::g_PHANTOM_RESERVED_class = saved_class;
+            reflection::g_PHANTOM_RESERVED_template_specialization = saved_template_specialization;
         }
     };
 
@@ -1152,6 +1204,10 @@ namespace detail
     {
         static void apply(uint step)
         {
+            reflection::Class* saved_class = reflection::g_PHANTOM_RESERVED_class;
+            reflection::TemplateSpecialization* saved_template_specialization = reflection::g_PHANTOM_RESERVED_template_specialization;
+            reflection::g_PHANTOM_RESERVED_class = phantom::typeOf<t_Ty>()->asClass();
+            reflection::g_PHANTOM_RESERVED_template_specialization = reflection::g_PHANTOM_RESERVED_class ? reflection::g_PHANTOM_RESERVED_class->getTemplateSpecialization() : nullptr;
             switch(step)
             {
             case o_global_value_SetupStepIndex_Reflection:
@@ -1161,6 +1217,8 @@ namespace detail
                 }
                 break;
             }
+            reflection::g_PHANTOM_RESERVED_class = saved_class;
+            reflection::g_PHANTOM_RESERVED_template_specialization = saved_template_specialization;
         }
     };
 
@@ -1185,6 +1243,11 @@ namespace detail
         }
     };
 
+    struct o_export dynamic_initializer_template_registrer
+    {
+        dynamic_initializer_template_registrer(const string& a_strNamespace, const string& a_strName);
+    };
+
     template<typename t_Ty, bool t_is_template>
     struct module_installer_template_auto_registrer_helper
     {
@@ -1196,7 +1259,18 @@ namespace detail
         module_installer_template_auto_registrer_helper()
         {
             Phantom::dynamic_initializer();
-            Phantom::dynamic_initializer()->registerModule(&module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value);
+            auto pType = typeOf<t_Ty>();
+            Module* pModule = nullptr;
+            if(Phantom::getState() == Phantom::eState_Installed)
+            {
+                o_assert(pType->getTemplate());
+                pModule = pType->getTemplate()->getModule();
+                if(pModule)
+                {
+                    pType->getTemplate()->getModule()->addLanguageElement(pType);
+                }
+            }
+            Phantom::dynamic_initializer()->registerModule(&module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value, pModule == nullptr);
         }
     };
     template<typename t_Ty>
@@ -1261,18 +1335,6 @@ inline void reflection::detail::type_reflection_registrer<t_Ty>::apply(Type* a_p
 {
     phantom::detail::dynamic_initializer_handle* pDynamicInitializer = Phantom::dynamic_initializer();
     pDynamicInitializer->registerType(phantom::namespaceNameOf<t_Ty>(), phantom::classScopeNameOf<t_Ty>(), a_pType);
-}
-
-o_forceinline void                              registerSingleton(void* a_pInstance)
-{
-#ifdef _DEBUG
-    o_assert(classOf(a_pInstance) != NULL);
-    o_foreach(void* pSingleton, (*Phantom::m_singleton_container))
-    {
-        o_assert(classOf(a_pInstance) != classOf(pSingleton), "Singleton already registered for this class");
-    }
-#endif
-    Phantom::m_singleton_container->push_back(a_pInstance);
 }
 
 template<size_t t_size>
@@ -1483,8 +1545,10 @@ o_end_phantom_namespace()
 #include "phantom/def_memory.inl"
 #include "phantom/Object.h"
 #include "phantom/reflection/native/NativeVTableInspector.h"
+#include "phantom/Module.h"
 #include "phantom/reflection/LanguageElement.h"
 #include "phantom/reflection/TemplateElement.h"
+#include "phantom/reflection/Template.h"
 #include "phantom/reflection/Signature.h"
 #include "phantom/reflection/VirtualMemberFunctionTable.h"
 #include "phantom/reflection/Type.h"
@@ -1813,6 +1877,7 @@ o_reflection_in_cpp_deferred_setupN((phantom, util), Comparator)
 o_reflection_in_cpp_deferred_setupN((phantom, util), Iterator)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), LanguageElement)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), TemplateElement)
+o_reflection_in_cpp_deferred_setupN((phantom, reflection), Template)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), Function)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), Constant)
 o_reflection_in_cpp_deferred_setupN((phantom, reflection), ClassType)

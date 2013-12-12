@@ -71,7 +71,6 @@ StateOrderingComparator* StateOrderingComparator::Instance()
     if(s_Instance == NULL) 
     {
         s_Instance = o_new(StateOrderingComparator);
-        phantom::registerSingleton(s_Instance);
     }
     return s_Instance;
 }

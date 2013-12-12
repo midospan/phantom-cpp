@@ -43,6 +43,7 @@
 #include <boost/property_tree_custom/xml_parser.hpp>
 #include <phantom/reflection/detail/element_finder_spirit.h>
 #include <phantom/variant.h>
+#include <windows.h>
 
 using namespace sc2;
 using namespace unitest;
@@ -395,11 +396,27 @@ o_classT((typename), (t_Ty), TClass)
 };
 o_exposeT((typename), (t_Ty), TClass);
 
+o_registerT((typename), (t_Ty), TClass);
 o_register_template_instance(TClass<int>);
 
 int main(int argc, char **argv) 
 {
-        phantom::Phantom app(argc, argv);
+    phantom::Phantom app(argc, argv);
+
+    char moduleFileName[512];
+    GetModuleFileName(GetModuleHandle(NULL), moduleFileName, 512);
+
+    phantom::installReflection("unitest", moduleFileName, (size_t)GetModuleHandle(NULL));
+
+    HMODULE plugin = 0;
+#if defined(_DEBUG)
+    plugin = LoadLibrary("unitest_pluginD.dll");
+#else
+    plugin = LoadLibrary("unitest_plugin.dll");
+#endif
+    o_assert(plugin);
+
+    FreeLibrary(plugin);
 
     // StateMachineTest
 
@@ -637,6 +654,8 @@ int main(int argc, char **argv)
     system("pause");
 
     int result = RUN_ALL_TESTS();
+
+    phantom::uninstallReflection("unitest");
 
     return result;
 }

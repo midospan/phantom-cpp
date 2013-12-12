@@ -54,6 +54,7 @@ class o_export StateMachine : public reflection::LanguageElement
     friend class State;
     friend class Track;
     friend class reflection::Class;
+    friend class base_state_machine_data;
 
 public:
     enum
@@ -78,15 +79,7 @@ public:
 
     virtual void    install(void* a_pObject) const = 0;
     virtual void    uninstall(void* a_pObject) const = 0;
-    virtual void    initialize(void* a_pObject) = 0;
-    virtual void    update(void* a_pObject) = 0;
-    virtual void    reset(void* a_pObject)
-    {
-        terminate(a_pObject);
-        initialize(a_pObject);
-    }
-    virtual void    terminate(void* a_pObject) = 0;
-    virtual void    postEvent(void* a_pObject, uint a_uiEventId) = 0;
+    
     void            postRandomEvent(void* a_pObject, vector<uint>* eventIds = nullptr);
     template<typename t_EventTy>
     o_forceinline
@@ -133,6 +126,16 @@ public:
     }
     
 protected:
+    virtual void    initialize(void* a_pObject) = 0;
+    virtual void    update(void* a_pObject) = 0;
+    virtual void    reset(void* a_pObject)
+    {
+        terminate(a_pObject);
+        initialize(a_pObject);
+    }
+    virtual void    terminate(void* a_pObject) = 0;
+    virtual void    postEvent(void* a_pObject, uint a_uiEventId) = 0;
+    virtual void    queueEvent(void* a_pObject, uint a_uiEventId) = 0;
     virtual void    registerTrack(Track* a_pTrack);
     virtual void    registerState(State* a_pState);
 

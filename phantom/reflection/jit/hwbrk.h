@@ -2,6 +2,8 @@
 #ifndef _HWBRK_H
 #define _HWBRK_H
 
+#include <windows.h>
+
 enum HWBRK_TYPE
 	{
 	HWBRK_TYPE_CODE,

@@ -4,8 +4,8 @@ o_namespace_begin(phantom, state, detail)
 template<typename t_Ty>
 void state_machine_serializer<t_Ty>::serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const * a_pDataBase)
 {
-    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->stateMachine();
-    State*const*    current_states  = pStateMachine->getCurrentStates(a_pInstance);
+    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
+    State*const*    current_states  = pStateMachine->getCurrentStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
     uint i = 0;
     uint count = pStateMachine->getTrackCount();
     for(;i<count;++i)
@@ -22,8 +22,8 @@ void state_machine_serializer<t_Ty>::serialize(t_Ty const* a_pInstance, byte*& a
 template<typename t_Ty>
 void state_machine_serializer<t_Ty>::deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const * a_pDataBase)
 {
-    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->stateMachine();
-    State**    transit_states = pStateMachine->getTransitStates(a_pInstance);
+    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
+    State**    transit_states = pStateMachine->getTransitStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
     uint i = 0;
     uint count = pStateMachine->getTrackCount();
     for(;i<count;++i)
@@ -40,8 +40,8 @@ void state_machine_serializer<t_Ty>::deserialize(t_Ty* a_pInstance, byte const*&
 template<typename t_Ty>
 void state_machine_serializer<t_Ty>::serialize(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) 
 { 
-    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->stateMachine();
-    State*const*    current_states = pStateMachine->getCurrentStates(a_pInstance);
+    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
+    State*const*    current_states = pStateMachine->getCurrentStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
     uint i = 0;
     uint count = pStateMachine->getTrackCount();
     for(;i<count;++i)
@@ -58,8 +58,8 @@ void state_machine_serializer<t_Ty>::serialize(t_Ty const* a_pInstance, property
 template<typename t_Ty>
 void state_machine_serializer<t_Ty>::deserialize(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) 
 { 
-    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->stateMachine();
-    State**    transit_states = pStateMachine->getTransitStates(a_pInstance);
+    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
+    State**    transit_states = pStateMachine->getTransitStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
     uint i = 0;
     uint count = pStateMachine->getTrackCount();
     for(;i<count;++i)
@@ -78,8 +78,8 @@ void state_machine_serializer<t_Ty>::deserialize(t_Ty* a_pInstance, const proper
 template<typename t_Ty>
 void state_machine_resetter<t_Ty>::remember(t_Ty const* a_pInstance, byte*& a_pOutBuffer)
 {
-    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->stateMachine();
-    State*const*    current_states  = pStateMachine->getCurrentStates(a_pInstance);
+    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
+    State*const*    current_states  = pStateMachine->getCurrentStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
     uint i = 0;
     uint count = pStateMachine->getTrackCount();
     for(;i<count;++i)
@@ -96,8 +96,8 @@ void state_machine_resetter<t_Ty>::remember(t_Ty const* a_pInstance, byte*& a_pO
 template<typename t_Ty>
 void state_machine_resetter<t_Ty>::reset(t_Ty* a_pInstance, byte const*& a_pInBuffer)
 {
-    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->stateMachine();
-    State**    transit_states = pStateMachine->getTransitStates(a_pInstance);
+    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
+    State**    transit_states = pStateMachine->getTransitStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
     uint i = 0;
     uint count = pStateMachine->getTrackCount();
     for(;i<count;++i)
@@ -120,10 +120,50 @@ o_namespace_end(phantom, state, detail)
 
 o_namespace_begin(phantom, state)
 
-o_forceinline void          base_state_machine_data::initialize() const { state_machine->initialize(owner); }
-o_forceinline void          base_state_machine_data::terminate() const { state_machine->terminate(owner); }
-o_forceinline void          base_state_machine_data::update() const { state_machine->update(owner); }
-o_forceinline void          base_state_machine_data::reset() const { state_machine->reset(owner); }
-o_forceinline void          base_state_machine_data::postEvent(uint a_uiEventId) const { state_machine->postEvent(owner, a_uiEventId); }
+o_forceinline void          base_state_machine_data::initialize() const 
+{
+    /*o_assert(thread_id == 0);
+    thread_id = currentThreadId(); */
+    state_machine->initialize(owner); 
+}
+
+o_forceinline void          base_state_machine_data::terminate() const 
+{ 
+    /*size_t threadId = currentThreadId(); 
+    o_assert(threadId == thread_id);
+    thread_id = 0;*/
+    state_machine->terminate(owner); 
+}
+
+o_forceinline void          base_state_machine_data::update() const 
+{
+    /*size_t threadId = currentThreadId(); 
+    o_assert(threadId == thread_id); */
+    state_machine->update(owner); 
+}
+
+o_forceinline void          base_state_machine_data::reset() const 
+{
+    /*size_t threadId = currentThreadId(); 
+    o_assert(threadId == thread_id); */
+    state_machine->reset(owner); 
+}
+
+o_forceinline void          base_state_machine_data::postEvent(uint a_uiEventId) const 
+{ 
+    /*size_t threadId = currentThreadId(); 
+    if(threadId == thread_id)
+    {*/
+        state_machine->postEvent(owner, a_uiEventId); 
+    /*}
+    else 
+    {
+        while(isLocked()) 
+        {
+            phantom::yieldCurrentThread(); 
+        }
+        state_machine->queueEvent(owner, a_uiEventId);
+    }*/
+}
 
 o_namespace_end(phantom, state)

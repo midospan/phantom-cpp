@@ -55,7 +55,7 @@ phantom::generic_member_func_ptr JitInstanceMemberFunction::getGenericMemberFunc
 void JitInstanceMemberFunction::setVirtual()
 {
     if(isVirtual()) return;
-    m_bfModifiers.setMask(o_virtual);
+    m_Modifiers.setMask(o_virtual);
     o_assert(m_jit_virtual_indirection_function.function == nullptr);
     m_jit_virtual_indirection_function = jit_function_create((jit_context_t)m_jit_context.context, toJitSignature(e_JitAbi_thiscall, getSignature()));
     o_assert(m_jit_virtual_indirection_function.function);

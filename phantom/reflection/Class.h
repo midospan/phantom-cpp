@@ -546,6 +546,10 @@ public:
 
     virtual void        registerRtti(void* a_pThis, void* a_pBase, Class* a_pObjectClass, connection::slot_pool* a_pSlotPool, dynamic_delete_func_t a_dynamic_delete_func);
     virtual void        unregisterRtti(void* a_pThis);
+    
+    void*               getSingleton() const { return m_pSingleton; }
+    void                destroySingleton();
+    
     // Serialization
 
     /**
@@ -694,7 +698,7 @@ protected:
     mutable vmt_vector  m_VirtualMemberFunctionTables;
     state::StateMachine*m_pStateMachine;
     size_t              m_uiRegisteredInstances;
-
+    void*               m_pSingleton;
 };
 
 /// inlines

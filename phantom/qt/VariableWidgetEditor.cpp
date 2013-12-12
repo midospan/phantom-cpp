@@ -16,7 +16,7 @@ VariableWidgetEditor::VariableWidgetEditor( QWidget* a_pWidget, const char* sign
     connect(m_pWidget, SIGNAL(destroyed()), this, SLOT(slotDestroyed()));
 }
 
-void VariableWidgetEditor::setVariable( reflection::Variable* a_pVariable )
+void VariableWidgetEditor::setVariable( BufferedVariable* a_pVariable )
 {
     if(m_pVariable == a_pVariable) 
         return; 
@@ -30,7 +30,7 @@ void VariableWidgetEditor::slotDestroyed()
     o_dynamic_delete this;
 }
 
-void VariableWidgetEditor::variableChanged( reflection::Variable* a_pVariable )
+void VariableWidgetEditor::variableChanged( BufferedVariable* a_pVariable )
 {
 
 }

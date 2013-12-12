@@ -16,7 +16,7 @@ o_registerN((phantom, qt), ContainerMoveUpAction);
 namespace phantom {
 namespace qt {
 
-VariableAction::VariableAction(const QIcon& a_Icon, const QString& a_Name, reflection::Variable* a_pVariable, VariableWidget* a_pVariableWidget)
+VariableAction::VariableAction(const QIcon& a_Icon, const QString& a_Name, BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget)
     : QAction(a_Icon, a_Name, a_pVariableWidget)
     , m_pVariable(a_pVariable)
     , m_pVariableWidget(a_pVariableWidget)
@@ -51,19 +51,26 @@ void VariableAction::valueAboutToBeChanged()
     getVariableEditor()->variableChanged(m_pVariable);
 }
 
-ContainerMoveUpAction::ContainerMoveUpAction(CollectionElementVariable* a_pVariable, VariableWidget* a_pVariableWidget)
+ContainerMoveUpAction::ContainerMoveUpAction(BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget)
     : VariableAction(QIcon(":/../../bin/resources/icons/arrow_up.png"), "Up", a_pVariable, a_pVariableWidget) 
 {
+    o_assert(a_pVariable->getVariableClass()->isKindOf(typeOf<CollectionElementVariable>()));
 }
 
 void ContainerMoveUpAction::actionDone()
 {
     VariableEditor* pVariableEditor = m_pVariableWidget->getVariableEditor();
     valueAboutToBeChanged();
-    if(static_cast<CollectionElementVariable*>(m_pVariable)->moveUp())
+    bool succeeded = true;
+    for(size_t i = 0; i<m_pVariable->getVariableCount(); ++i)
+    {
+        CollectionElementVariable* pVariable = static_cast<CollectionElementVariable*>(m_pVariable->getVariable(i));
+        succeeded = pVariable->moveUp() && succeeded;
+    }
+    if(succeeded)
     {
         QtBrowserItem* pCurrentItem = pVariableEditor->getBrowserItem(m_pVariable);
-        QtBrowserItem* pPrevItem = pVariableEditor->getBrowserItem(static_cast<CollectionElementVariable*>(m_pVariable)->getPrev());
+        QtBrowserItem* pPrevItem = pVariableEditor->getBrowserItem(m_pVariable->getPrev());
         pVariableEditor->updateBrowserItem(pPrevItem);
         pVariableEditor->updateBrowserItem(pCurrentItem);
         pVariableEditor->editItem(pPrevItem);
@@ -71,19 +78,26 @@ void ContainerMoveUpAction::actionDone()
     valueChanged();
 }
 
-ContainerMoveDownAction::ContainerMoveDownAction(CollectionElementVariable* a_pVariable, VariableWidget* a_pVariableWidget)
+ContainerMoveDownAction::ContainerMoveDownAction(BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget)
     : VariableAction(QIcon(":/../../bin/resources/icons/arrow_down.png"), "Down", a_pVariable, a_pVariableWidget) 
 {
+    o_assert(a_pVariable->getVariableClass()->isKindOf(typeOf<CollectionElementVariable>()));
 }
 
 void ContainerMoveDownAction::actionDone()
 {
     VariableEditor* pVariableEditor = m_pVariableWidget->getVariableEditor();
     valueAboutToBeChanged();
-    if(static_cast<CollectionElementVariable*>(m_pVariable)->moveDown())
+    bool succeeded = true;
+    for(size_t i = 0; i<m_pVariable->getVariableCount(); ++i)
+    {
+        CollectionElementVariable* pVariable = static_cast<CollectionElementVariable*>(m_pVariable->getVariable(i));
+        succeeded = pVariable->moveDown() && succeeded;
+    }
+    if(succeeded)
     {
         QtBrowserItem* pCurrentItem = pVariableEditor->getBrowserItem(m_pVariable);
-        QtBrowserItem* pNextItem = pVariableEditor->getBrowserItem(static_cast<CollectionElementVariable*>(m_pVariable)->getNext());
+        QtBrowserItem* pNextItem = pVariableEditor->getBrowserItem(m_pVariable->getNext());
         pVariableEditor->updateBrowserItem(pNextItem);
         pVariableEditor->updateBrowserItem(pCurrentItem);
         pVariableEditor->editItem(pNextItem);
@@ -91,7 +105,7 @@ void ContainerMoveDownAction::actionDone()
     valueChanged();
 }
 
-ResetAction::ResetAction( reflection::Variable* a_pVariable, VariableWidget* a_pEditor ) 
+ResetAction::ResetAction( BufferedVariable* a_pVariable, VariableWidget* a_pEditor ) 
     : VariableAction(QIcon(":/../../bin/resources/icons/arrow_refresh.png"), "Reset", a_pVariable, a_pEditor)
 {
 
@@ -110,7 +124,7 @@ void ResetAction::actionDone()
         pLineEdit->selectAll();
 }
 
-EraseContainerIteratorAction::EraseContainerIteratorAction( phantom::reflection::IteratorVariable* a_pVariable, VariableWidget* a_pVariableWidget ) 
+EraseContainerIteratorAction::EraseContainerIteratorAction( BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget ) 
     : VariableAction(QIcon(":/../../bin/resources/icons/delete.png"), "Erase", a_pVariable, a_pVariableWidget)
 {
 
@@ -118,10 +132,13 @@ EraseContainerIteratorAction::EraseContainerIteratorAction( phantom::reflection:
 
 void EraseContainerIteratorAction::actionDone()
 {
-    auto* pIteratorVariable = static_cast<phantom::reflection::IteratorVariable*>(m_pVariable);
-    phantom::reflection::ContainerClass* pContainerClass = pIteratorVariable->getContainerClass();
     valueAboutToBeChanged();
-    pContainerClass->erase(pIteratorVariable->getContainer(), pIteratorVariable);
+    for(size_t i = 0; i<m_pVariable->getVariableCount(); ++i)
+    {
+        auto* pIteratorVariable = static_cast<phantom::reflection::IteratorVariable*>(m_pVariable->getVariable(i));
+        phantom::reflection::ContainerClass* pContainerClass = pIteratorVariable->getContainerClass();
+        pContainerClass->erase(pIteratorVariable->getContainer(), pIteratorVariable);
+    }
     valueChanged();
     getVariableEditor()->reedit();
 }

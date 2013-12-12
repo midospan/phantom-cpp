@@ -11,6 +11,7 @@ class QPushButton;
 
 namespace phantom { namespace qt {
 
+class BufferedVariable;
 class VariableWidget;
 class VariableEditor;
 class VariableManager;
@@ -43,14 +44,13 @@ public:
 
     VariableManager* getVariableManager() const { return m_pManager; }
 
-    QtBrowserItem* getBrowserItem(phantom::reflection::Variable* a_pVariable) const ;
+    QtBrowserItem* getBrowserItem(BufferedVariable* a_pVariable) const ;
 
     void updateBrowserItem(QtBrowserItem* bitem)
     {
         updateItem(browserItemToItem(bitem));
     }
 
-    void edit(const vector<phantom::data>& a_Data);
 
     bool isAutoSaveEnabled() const { return m_bAutoSaveEnabled; }
     void setAutoSaveEnabled(bool a_bEnabled) { m_bAutoSaveEnabled = a_bEnabled; }
@@ -59,10 +59,12 @@ public:
     void setAutoSaveStateEnabled(bool a_bEnabled) { m_bAutoSaveStateEnabled = a_bEnabled; }
 
     void setDataBase(serialization::DataBase* a_pDataBase);
+    serialization::DataBase* getDataBase() const { return m_pDataBase; }
 
 public slots:
     void refresh();
     void reedit();
+    void edit(const phantom::vector<phantom::data>& a_Data);
 
 protected:
     void init();
@@ -72,15 +74,15 @@ protected:
 
 protected slots:
     void createPropertyPopupMenu(const QPoint& pos);
-    virtual void slotVariableChanged(reflection::Variable* a_pVariable);
+    virtual void slotVariableChanged(BufferedVariable* a_pVariable);
     virtual void slotEditorDestroyed();
     virtual void slotEditorValueChanged();
 
 signals:
-    void variableAboutToBeAccessed(reflection::Variable* a_pVariable) ;
-    void variableAccessed(reflection::Variable* a_pVariable);
-    void variableAboutToBeChanged(reflection::Variable* a_pVariable);
-    void variableChanged(reflection::Variable* a_pVariable);
+    void variableAboutToBeAccessed(BufferedVariable* a_pVariable) ;
+    void variableAccessed(BufferedVariable* a_pVariable);
+    void variableAboutToBeChanged(BufferedVariable* a_pVariable);
+    void variableChanged(BufferedVariable* a_pVariable);
 
 protected:
     VariableManager*        m_pManager;
@@ -110,4 +112,4 @@ o_classN((phantom, qt), VariableEditor, o_no_copy)
 o_exposeN((phantom, qt), VariableEditor);
 
 
-#endif // ghost_gui_VariableEditor_h__
+#endif // phantom_qt_VariableEditor_h__

@@ -20,10 +20,10 @@
 
 o_namespace_begin(phantom, qt)
 
-void setNameMetaDataIndex(size_t index);
-void setIconMetaDataIndex(size_t index);
+o_qt_export void setNameMetaDataIndex(size_t index);
+o_qt_export void setIconMetaDataIndex(size_t index);
 
-size_t getNameMetaDataIndex();
-size_t getIconMetaDataIndex();
+o_qt_export size_t getNameMetaDataIndex();
+o_qt_export size_t getIconMetaDataIndex();
 
 o_namespace_end(phantom, qt)

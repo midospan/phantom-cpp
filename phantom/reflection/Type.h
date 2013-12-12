@@ -121,8 +121,8 @@ public:
     Type(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers = 0);
     ~Type();
 
-    o_forceinline o_initialize() {m_uiBuildOrder = NextBuildOrderValue();}
-    o_forceinline o_terminate()  {}
+    o_initialize();
+    o_terminate();
 
     o_forceinline ushort    getSize() const { return m_uiSize; }
     o_forceinline ushort    getAlignment() const { return m_uiAlignment; }

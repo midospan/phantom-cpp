@@ -49,7 +49,7 @@ class o_jit_export JitInstanceDataMember : public InstanceDataMember
     
 public:
 
-    JitInstanceDataMember(const string& a_strName, Type* a_pContentType, uint a_uiSerializationMask, bitfield a_uiModifiers = bitfield());
+    JitInstanceDataMember(const string& a_strName, Type* a_pContentType, Range* a_pRange, uint a_uiSerializationMask, bitfield a_uiModifiers = bitfield());
     o_destructor ~JitInstanceDataMember() {}
 
     virtual void*        getAddress( void const* a_pObject ) const 

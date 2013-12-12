@@ -8,7 +8,7 @@
 #define o_leave(_name) void _name##_leave(void)
 
 #define o_statemachine_data PHANTOM_CODEGEN_m_smdataptr
-#define o_statemachine_get() o_statemachine_data->stateMachine()
+#define o_statemachine_get() o_statemachine_data->getStateMachine()
 #define o_statemachine_initialize() o_statemachine_data->initialize()
 #define o_statemachine_terminate() o_statemachine_data->terminate()
 #define o_statemachine_update() o_statemachine_data->update()
@@ -341,7 +341,8 @@ public:
         e_Flag_Dispatching = 2,
         e_Flag_Inactive = 4,
     };
-    o_forceinline StateMachine* stateMachine() const { return state_machine; }
+    o_forceinline StateMachine* getStateMachine() const { return state_machine; }
+    o_forceinline void*         getOwner() const { return owner; }
     o_forceinline void          initialize() const ;
     o_forceinline void          terminate() const ;
     o_forceinline void          update() const ;
@@ -355,6 +356,7 @@ public:
         , flags(e_Flag_Inactive) 
         , lock_counter(0L)
         , event_queue_size(0)
+        , thread_id(0)
     {
         memset(event_queue, 0xff, sizeof(event_queue));
     }
@@ -376,6 +378,7 @@ public:
 
 protected:
     void*                   owner;
+    mutable size_t          thread_id;
     StateMachine*           state_machine;
     phantom::state::State*  history_state;
     phantom::uint8          event_queue[o__uint__state_machine_event_queue_size];

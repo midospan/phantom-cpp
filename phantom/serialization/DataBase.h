@@ -191,10 +191,10 @@ public:
     }
 
     DataBase(const string& url, uint a_uiSerializationFlag = 0);
-    o_destructor ~DataBase(void)     
-    {
+    o_destructor ~DataBase(void);
 
-    }
+    o_initialize();
+    o_terminate();
 
     void    save();
 

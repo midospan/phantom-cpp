@@ -132,7 +132,7 @@
       <PrecompiledHeaderOutputFile>..\..\..\build\pch\jitD.pch</PrecompiledHeaderOutputFile>
       <MinimalRebuild>false</MinimalRebuild>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
-      <AdditionalOptions>-Zm350 /MP /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm500 /MP /bigobj %(AdditionalOptions)</AdditionalOptions>
       <BasicjitChecks>Default</BasicjitChecks>
     </ClCompile>
     <Link>
@@ -154,7 +154,7 @@
       <AdditionalIncludeDirectories>../../..;$(BOOST_ROOT);../../../dependencies/libjit/include;</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <PreprocessorDefinitions>_WIN32;WIN32;_PHANTOM_JIT;NDEBUG;_NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>-Zm350 /MP /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm500 /MP /bigobj %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>phantom/phantom.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>..\..\..\build\pch\jit.pch</PrecompiledHeaderOutputFile>

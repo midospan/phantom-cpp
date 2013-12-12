@@ -120,6 +120,10 @@ public:
     {
         object_class* pObject = static_cast<object_class*>(a_pObject);
         instance_data* smdataptr = TNativeStateMachine_smdataptr(pObject);
+        if(!smdataptr->isLocked())
+        {
+            solveQueuedTransitions(smdataptr);
+        }
 		smdataptr->lock();
         static_cast<track_class*>(m_Tracks[0])->update(smdataptr);
 		smdataptr->unlock();
@@ -148,6 +152,13 @@ public:
         {
             solveQueuedTransitions(smdataptr);
         }
+    }
+
+    virtual void    queueEvent(void* a_pObject, uint a_uiEventId) 
+    {
+        object_class* pObject = static_cast<object_class*>(a_pObject);
+        instance_data*    smdataptr = TNativeStateMachine_smdataptr(pObject);
+        queue(smdataptr, a_uiEventId);
     }
 
     virtual State*const *   getTransitStates(void const* a_pInstance) const { return (State*const*)TNativeStateMachine_smdataptr_const(static_cast<object_class const*>(a_pInstance))->transit_states;}

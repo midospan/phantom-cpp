@@ -55,7 +55,7 @@ public:
     _____________________________________________________________________________________Reflection
 public:
 
-    TemplateSpecialization(void);
+    TemplateSpecialization(Template* a_pTemplate);
     o_destructor ~TemplateSpecialization();
 
     uint                getElementCount() const { return m_Elements.size(); }
@@ -69,6 +69,8 @@ public:
     
     boolean             matches(template_specialization const* a_TemplateSpecialization) const;
   
+    Template*           getTemplate() const { return m_pTemplate; }
+
 protected:
     void            _updateName();
 
@@ -76,6 +78,7 @@ protected:
     typedef phantom::map<string, TemplateElement*>    template_element_map;
     template_element_map        m_TemplateNameMap;
     template_specialization     m_Elements;
+    Template*                   m_pTemplate;
 
 };
 

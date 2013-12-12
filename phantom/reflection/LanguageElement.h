@@ -43,7 +43,7 @@
 /* The *.classdef.h file must be the last #include */
 #include "LanguageElement.classdef.h"
 /* **************** Declarations ***************** */
-
+o_declare(class, phantom, Module);
 /* *********************************************** */
 
 
@@ -56,6 +56,7 @@ class o_export LanguageElement : public Object
     friend class ClassType;
     friend class Class;
 	friend class Phantom;
+    friend class Module;
 
     Reflection_____________________________________________________________________________________
     _____________________________________________________________________________________Reflection
@@ -152,6 +153,7 @@ public:
     o_forceinline boolean               isComponent() const { return ((m_Modifiers & o_component) == o_component) ; }
     o_forceinline boolean               isOwner() const { return ((m_Modifiers & o_owner) == o_owner) ; }
     o_forceinline boolean               isAbstract() const { return ((m_Modifiers & o_abstract) == o_abstract); }
+    o_forceinline boolean               isSingleton() const { return ((m_Modifiers & o_singleton) == o_singleton); }
 
     virtual boolean                     isNative() const { return false ; }
     virtual boolean                     isRuntime() const { return false; }
@@ -208,6 +210,8 @@ public:
         return m_pElements ? m_pElements->size() : 0;
     }
 
+    Module*         getModule() const { return m_pModule; }
+
 protected:
     void setupMetaData(size_t count);
     void addElement(LanguageElement* a_pElement);
@@ -224,6 +228,7 @@ protected:
     LanguageElement*    m_pOwner;
     bitfield            m_Modifiers;
     mutable string*     m_pMetaData;
+    Module*             m_pModule;
 
 };
 

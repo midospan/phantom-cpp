@@ -110,7 +110,6 @@ reflection::Signature* StateMachine::StateMemberFunctionSignature()
     {
         s_Value = o_new(reflection::Signature)();
         s_Value->parse(o_CS("void()"));
-        phantom::registerSingleton(s_Value);
         s_Value->setShared();
     }
     return s_Value;

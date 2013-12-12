@@ -61,7 +61,6 @@ ClassType::ClassType( const string& a_strName, ushort a_uiSize, ushort a_uiAlign
 ClassType::~ClassType( void )
 {
     destroyContent();
-    
 }
 
 void ClassType::destroyContent()
@@ -83,7 +82,10 @@ void ClassType::destroyContent()
     }
 
     if(m_pAttributes)
+    {
         delete ((map<string, variant>*)m_pAttributes);
+        m_pAttributes = nullptr;
+    }
 }
 
 DataMember* ClassType::getDataMember( const string& a_strName) const
@@ -148,6 +150,8 @@ void ClassType::valueToString( string& s, const void* src ) const
 {
     member_const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
     member_const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
+    if(it == end) 
+        return;
     byte scratch[phantom::max_type_size];
     s += '{';
     int c = 0;
@@ -156,6 +160,7 @@ void ClassType::valueToString( string& s, const void* src ) const
         if(c != 0)
         {
             s += ';';
+            s += ' ';
         }
         ValueMember* pValueMember = static_cast<ValueMember*>(it->second);
         s += pValueMember->getName();
@@ -615,6 +620,12 @@ const variant& ClassType::getAttribute( const string& a_strName ) const
     if(found != pAttributes->end()) return found->second;
     return null_variant;
 }
+
+Template* ClassType::getTemplate() const
+{
+    return m_pTemplateSpecialization ? m_pTemplateSpecialization->getTemplate() : nullptr;
+}
+
 
 
 

@@ -65,7 +65,7 @@ Type::Type( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) : TemplateEl
 , m_pNestedTypes(nullptr)
 , m_pNestedTypedefs(nullptr)
 {
-
+    m_uiBuildOrder = NextBuildOrderValue();
 }
 
 Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) : TemplateElement(a_strName, a_Modifiers)
@@ -76,7 +76,7 @@ Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitf
     , m_pNestedTypes(nullptr)
     , m_pNestedTypedefs(nullptr)
 {
-
+    m_uiBuildOrder = NextBuildOrderValue();
 }
 
 Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) : TemplateElement(a_strName, a_uiGuid, a_Modifiers)
@@ -87,11 +87,12 @@ Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint
     , m_pNestedTypes(nullptr)
     , m_pNestedTypedefs(nullptr)
 {
-
+    m_uiBuildOrder = NextBuildOrderValue();
 }
 
 Type::~Type()
 {
+    if(m_pModule) m_pModule->removeLanguageElement(this);
     if(getNamespace())
     {
         getNamespace()->removeType(this);
@@ -106,6 +107,13 @@ Type::~Type()
     }
 }
 
+o_initialize_cpp(Type) 
+{
+}
+
+o_terminate_cpp(Type) 
+{
+}
 
 Type::ERelation Type::getRelationWith( Type* a_pType ) const
 {

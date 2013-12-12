@@ -146,7 +146,7 @@ struct string_converter_helper
 {
     static void to(const reflection::Type* a_pType, string& a_strOut, const t_Ty* a_pSrc)
     {
-        a_strOut = phantom::lexical_cast<string>(*a_pSrc);
+        a_strOut += phantom::lexical_cast<string>(*a_pSrc);
     }
     static void from(const reflection::Type* a_pType, const string& input, t_Ty* a_pDest)
     {
@@ -189,7 +189,7 @@ struct string_converter<bool>
 {
     static void to(const reflection::Type* a_pType, string& a_strOut, const bool* a_pSrc)
     {
-        a_strOut = *a_pSrc ? "true" : "false";
+        a_strOut += *a_pSrc ? "true" : "false";
     }
     static void from(const reflection::Type* a_pType, const string& a_strIn, bool* a_pDest)
     {
@@ -235,7 +235,7 @@ struct string_converter<string>
 {
     static void to(const reflection::Type* a_pType, string& a_strOut, const string* a_pSrc)
     {
-        a_strOut = *a_pSrc;
+        a_strOut += *a_pSrc;
     }
     static void from(const reflection::Type* a_pType, const string& a_strIn, string* a_pDest)
     {

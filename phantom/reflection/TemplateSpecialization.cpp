@@ -43,8 +43,9 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
-TemplateSpecialization::TemplateSpecialization( )
+TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate )
 : LanguageElement(o_CS("<>"),bitfield())
+, m_pTemplate(a_pTemplate)
 {
 }
 

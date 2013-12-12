@@ -4,6 +4,7 @@
 #include <QtGui/QLineEdit>
 /* *********************************************** */
 o_registerN((phantom, qt), NumberLineEditor);
+o_registerNT((phantom, qt), (typename), (t_Ty), TNumberLineEditor);
 
 namespace phantom { namespace qt {
 

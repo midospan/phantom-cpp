@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'VariableAction.h'
 **
-** Created: Sun 8. Dec 18:11:06 2013
+** Created: Mon 30. Dec 17:03:08 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -24,24 +24,21 @@ static const uint qt_meta_data_phantom__qt__VariableAction[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       2,   14, // methods
+       1,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
-       1,       // signalCount
-
- // signals: signature, parameters, type, tag, flags
-      29,   28,   28,   28, 0x05,
+       0,       // signalCount
 
  // slots: signature, parameters, type, tag, flags
-      36,   28,   28,   28, 0x09,
+      29,   28,   28,   28, 0x09,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_phantom__qt__VariableAction[] = {
-    "phantom::qt::VariableAction\0\0done()\0"
+    "phantom::qt::VariableAction\0\0"
     "slotActionDone()\0"
 };
 
@@ -51,8 +48,7 @@ void phantom::qt::VariableAction::qt_static_metacall(QObject *_o, QMetaObject::C
         Q_ASSERT(staticMetaObject.cast(_o));
         VariableAction *_t = static_cast<VariableAction *>(_o);
         switch (_id) {
-        case 0: _t->done(); break;
-        case 1: _t->slotActionDone(); break;
+        case 0: _t->slotActionDone(); break;
         default: ;
         }
     }
@@ -91,16 +87,10 @@ int phantom::qt::VariableAction::qt_metacall(QMetaObject::Call _c, int _id, void
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 2)
+        if (_id < 1)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 2;
+        _id -= 1;
     }
     return _id;
-}
-
-// SIGNAL 0
-void phantom::qt::VariableAction::done()
-{
-    QMetaObject::activate(this, &staticMetaObject, 0, 0);
 }
 QT_END_MOC_NAMESPACE

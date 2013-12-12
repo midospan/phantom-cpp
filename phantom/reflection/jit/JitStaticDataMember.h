@@ -50,8 +50,8 @@ class o_jit_export JitStaticDataMember : public StaticDataMember
 {
 
 public:
-    JitStaticDataMember(const string& a_strName, Type* a_pContentType, bitfield a_bfModifiers = bitfield())
-        : StaticDataMember(a_strName, a_pContentType, o_dynamic_pool_allocate(a_pContentType->getSize()), a_bfModifiers)
+    JitStaticDataMember(const string& a_strName, Type* a_pContentType, Range* a_pRange, bitfield a_bfModifiers = bitfield())
+        : StaticDataMember(a_strName, a_pContentType, o_dynamic_pool_allocate(a_pContentType->getSize()), a_pRange, a_bfModifiers)
     {
 
     }

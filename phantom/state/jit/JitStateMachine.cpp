@@ -29,7 +29,7 @@ void JitStateMachine::setup( StateMachine* a_pSuper )
     o_assert(m_Tracks.empty(), "Tracks have already been created, cannot inherit anymore");
     if(a_pSuper == nullptr) // No super state machine, we create a root track from scratch
     {
-        setRootTrack(o_new(JitTrack)("Root", m_bfModifiers));
+        setRootTrack(o_new(JitTrack)("Root", m_Modifiers));
         return;
     }
 
@@ -74,14 +74,22 @@ void JitStateMachine::initialize( void* a_pObject )
     }
     else
     {
-        smdataptr->state_machine->initialize(smdataptr->owner);
+        smdataptr->initialize();
     }
 }
 
 void JitStateMachine::update( void* a_pObject )
 {
     jit_state_machine_data* smdataptr = JitStateMachine_smdataptr(a_pObject);
+    if(!smdataptr->isLocked())
+    {
+        solveQueuedTransitions(smdataptr);
+    }
     static_cast<JitTrack*>(m_Tracks[0])->update(smdataptr);
+    if(!smdataptr->isLocked())
+    {
+        solveQueuedTransitions(smdataptr);
+    }
 }
 
 void JitStateMachine::terminate( void* a_pObject )
@@ -103,6 +111,15 @@ void JitStateMachine::postEvent( void* a_pObject, uint a_uiEventId )
         solveQueuedTransitions(smdataptr);
     }
 }
+
+void JitStateMachine::queueEvent( void* a_pObject, uint a_uiEventId )
+{
+    o_StateMachine_TracePostEvent(a_uiEventId);
+    jit_state_machine_data*    smdataptr = JitStateMachine_smdataptr(a_pObject);
+    queue(smdataptr, a_uiEventId);
+}
+
+
 
 void JitStateMachine::solveTransitions( jit_state_machine_data* smdataptr, uint a_uiEventId )
 {

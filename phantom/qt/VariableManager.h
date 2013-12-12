@@ -1,5 +1,5 @@
-#ifndef ghost_gui_VariableManager_h__
-#define ghost_gui_VariableManager_h__
+#ifndef phantom_qt_VariableManager_h__
+#define phantom_qt_VariableManager_h__
 
 
 /* ****************** Includes ******************* */
@@ -15,6 +15,71 @@ class VariableEditor;
 class VariableAction;
 class VariableDecorator;
 class BufferedVariable;
+
+class o_qt_export BufferedVariable : public reflection::Variable
+{
+public:
+    BufferedVariable(const vector<reflection::Variable*>& a_Variables, BufferedVariable* a_pParentVariable);
+    ~BufferedVariable();
+
+    const vector<void*>& getAddresses() const { return m_Addresses;}
+
+    void setParentVariable(BufferedVariable* a_pBufferedVariable);
+
+    bool hasMultipleValues() const;
+
+    reflection::Class* getVariableClass() const;
+
+    virtual reflection::Type*  getValueType() const;
+
+    void flush() const;
+
+    void update() const;
+
+    virtual void  getValue(void* a_pDest) const;
+
+    virtual void  setValue(void const* a_pSrc) const;
+
+    BufferedVariable* getParentVariable() const { return m_pParentVariable; }
+
+    BufferedVariable* getPrev() const { return m_pParentVariable ? m_pParentVariable->getPrevChild((BufferedVariable*)this) : nullptr; }
+    BufferedVariable* getNext() const { return m_pParentVariable ? m_pParentVariable->getNextChild((BufferedVariable*)this) : nullptr; }
+
+    BufferedVariable* getNextChild(BufferedVariable* a_pCurrent) const;
+
+    BufferedVariable* getPrevChild(BufferedVariable* a_pCurrent) const;
+
+    void* getAddress() const { return nullptr; }
+
+    const vector<Variable*>& getVariables() const { return m_Variables; }
+
+    reflection::Variable* getVariable(size_t i) const { return m_Variables[i]; }
+    size_t getVariableCount() const { return m_Variables.size(); }
+
+protected:
+    void addChildVariable(BufferedVariable* a_pBufferedVariable);
+    void removeChildVariable(BufferedVariable* a_pBufferedVariable);
+    void checkCommonAncestorType()
+    {
+        m_pCommonType = nullptr;
+        o_assert(!m_Variables.empty());
+        {
+            m_pCommonType = m_Variables.front()->getValueType();
+            for(auto it = m_Variables.begin()+1; it != m_Variables.end(); ++it)
+            {
+                o_assert(m_pCommonType == (*it)->getValueType());
+            }
+        }
+    }
+
+protected:
+    vector<reflection::Variable*> m_Variables;
+    vector<void*>   m_Addresses;
+    vector<bool>    m_Buffered;
+    reflection::Type* m_pCommonType;
+    BufferedVariable*   m_pParentVariable;
+    vector<BufferedVariable*>* m_pChildVariables;
+};
 
 class o_qt_export VariableManager : public QtAbstractPropertyManager 
 {
@@ -34,7 +99,7 @@ public:
 
     virtual void initialize() {}
 
-    void addProperties( const vector<void*>& a_Addresses, reflection::Type* a_pType, QVector<QtProperty*>* out /*= NULL*/ );
+    void createProperties( const vector<void*>& a_Addresses, reflection::Type* a_pType, QVector<QtProperty*>& out );
 
     QtProperty* createEmptyProperty(const QString& name)
     {
@@ -42,8 +107,11 @@ public:
         return property;
     }
     QtProperty* createValueMemberProperty(const vector<void*>& a_Addresses, reflection::ValueMember* a_pValueMember, BufferedVariable* a_pParentVariable);
-    QtProperty* createVariableProperty(reflection::Variable* a_pVariable, BufferedVariable* a_pParentVariable = NULL, const QString& a_strName = "");
-    void addSubProperties( QtProperty* property, const vector<void*>& a_Addresses, reflection::ClassType* a_pClassType, BufferedVariable* a_pParentVariable ) ;
+    QtProperty* createVariableProperty(BufferedVariable* a_pVariable, const QString& a_strName = "");
+    
+    void addClassSubProperties( QtProperty* property, const vector<void*>& a_Addresses, reflection::ClassType* a_pClassType, BufferedVariable* a_pParentVariable ) ;
+    void addClassSubPropertiesCascade( QtProperty* property, const vector<void*>& a_Addresses, reflection::Class* a_pClass, BufferedVariable* a_pParentVariable);
+    void createClassSubPropertiesCascade( const vector<void*>& a_Addresses, reflection::Class* a_pClass, BufferedVariable* a_pParentVariable, QVector<QtProperty*>& out);
     void addCollectionProperties( QtProperty* property, const vector<void*>& a_Addresses, reflection::Collection* a_pCollection, BufferedVariable* a_pParentVariable );
     void addContainerIteratorProperties(QtProperty* property, const vector<void*>& a_Addresses, reflection::ContainerClass* pMapContainerClass, BufferedVariable* a_pParentVariable, bool indexNames = false);
     void addMapContainerIteratorProperties( QtProperty* property, const vector<void*>& a_Addresses, reflection::MapContainerClass* a_pContainerClass, BufferedVariable* a_pParentVariable, bool indexNames );
@@ -56,19 +124,18 @@ public:
         if(getVariable(property))
             unbindVariable(property);
     }
-    void bindVariableProperty( QtProperty* property, reflection::Variable* a_pVariable, BufferedVariable* a_pParentVariable = nullptr, const QString& a_strName = "" );
-
-    void bindVariable(QtProperty* property, reflection::Variable* a_pVariable);
+    
+    void bindVariable(QtProperty* property, BufferedVariable* a_pVariable);
 
     void unbindVariable(QtProperty* property);
 
     QString valueText(const QtProperty *property) const;
     QIcon   valueIcon(const QtProperty *property) const;
-    QIcon   valueIcon( reflection::Variable* variable ) const;
+    QIcon   valueIcon( BufferedVariable* a_pVariable ) const;
 
-    reflection::Variable*  getVariable(QtProperty* property) const;
+    BufferedVariable*  getVariable(QtProperty* property) const;
 
-    QtProperty* getProperty(reflection::Variable* a_pVariable) const;
+    QtProperty* getProperty(BufferedVariable* a_pVariable) const;
 
     
 signals:
@@ -77,9 +144,8 @@ signals:
 protected:
     void handlePropertyChanged( reflection::Variable* a_pVariable );
     QString getValueText(const QtProperty *property) const;
-
 protected:
-    typedef QMap<QtProperty*, reflection::Variable*>   VariableMap;
+    typedef QMap<QtProperty*, BufferedVariable*>   VariableMap;
     VariableMap                 m_Variables;
     VariableEditor*             m_pVariableEditor;
 };
@@ -320,228 +386,103 @@ namespace phantom { namespace qt {
         reflection::SetContainerClass* m_pSetContainerClass;
     };
 
-    class o_qt_export ProxyVariable : public reflection::Variable
+
+    class DataBaseAttributeVariable : public phantom::reflection::Variable
     {
+        enum EUnionContent
+        {
+            e_UnionContent_Data,
+            e_UnionContent_Node,
+        };
+
     public:
-        ProxyVariable(reflection::Variable* a_pProxiedVariable)
-            : Variable(a_pProxiedVariable->getName(), a_pProxiedVariable->getRange(), a_pProxiedVariable->getModifiers())
-            , m_pProxiedVariable(a_pProxiedVariable)
+        DataBaseAttributeVariable(phantom::serialization::DataBase* a_pDataBase, const phantom::data& a_Data, size_t attributeIndex) 
+            : Variable(a_pDataBase->getAttributeName(attributeIndex)) 
+            , m_pDataBase(a_pDataBase) 
+            , m_uiAttributeIndex(attributeIndex)
+            , m_eUnionContent(e_UnionContent_Data)
+            , m_pAddress(a_Data.address())
+            , m_pType(a_Data.type())
         {
 
         }
-
-        virtual reflection::Variable*   getProxiedVariable() const { return m_pProxiedVariable; }
-
-    protected:
-        reflection::Variable* m_pProxiedVariable;
-    };
-
-    class o_qt_export BufferedVariable : public ProxyVariable
-    {
-    public:
-        BufferedVariable(reflection::Variable* a_pVariable)
-            : ProxyVariable(a_pVariable)
-            , m_pBufferedType(a_pVariable->getValueType()->removeReference()->removeConst())
-
-        {
-            m_pAddress = m_pBufferedType->newInstance();
-            update();
-        }
-
-        ~BufferedVariable()
-        {
-            m_pBufferedType->deleteInstance(m_pAddress); 
-            o_dynamic_delete m_pProxiedVariable;
-        }
-
-        virtual reflection::Type*  getValueType() const 
-        { 
-            return m_pBufferedType; 
-        }
-
-        virtual void  getValue(void* a_pDest) const 
-        { 
-            m_pProxiedVariable->getValue(a_pDest);
-        }
-
-        virtual void  setValue(void const* a_pSrc) const 
-        {
-            m_pProxiedVariable->setValue(a_pSrc);
-            update();
-        }   
-
-        virtual void* getAddress() const { return m_pAddress; }
-
-        virtual void flush() const
-        {
-            m_pProxiedVariable->setValue(m_pAddress);
-        }
-
-        void update() const
-        {
-            m_pProxiedVariable->getValue(m_pAddress);
-        }
-
-    protected:
-        reflection::Type*      m_pBufferedType;
-        void*                  m_pAddress;
-
-    };
-
-    class o_qt_export CascadeVariable : public ProxyVariable
-    {
-    public:
-        CascadeVariable(reflection::Variable* a_pSourceVariable, BufferedVariable* a_pBufferedVariable)
-            : ProxyVariable(a_pSourceVariable) 
-            , m_pBufferedVariable(a_pBufferedVariable)
+        DataBaseAttributeVariable(phantom::serialization::DataBase* a_pDataBase, phantom::serialization::Node* a_pNode, size_t attributeIndex) 
+            : Variable(a_pDataBase->getAttributeName(attributeIndex)) 
+            , m_pDataBase(a_pDataBase) 
+            , m_uiAttributeIndex(attributeIndex)
+            , m_eUnionContent(e_UnionContent_Node)
+            , m_pNode(a_pNode)
         {
 
         }
+        ~DataBaseAttributeVariable(void) {}
 
-        virtual reflection::Type*  getValueType() const 
-        { 
-            return m_pProxiedVariable->getValueType(); 
-        }
-
-        virtual void  getValue(void* a_pDest) const 
-        { 
-            //m_pBufferedVariable->update();
-            m_pProxiedVariable->getValue(a_pDest);
-        }
-
-        virtual void  setValue(void const* a_pSrc) const 
+        void    setValue(void const* src) const
         {
-            //m_pBufferedVariable->update();
-            m_pProxiedVariable->setValue(a_pSrc);
-            m_pBufferedVariable->flush();
-        }
-
-        void* getAddress() const { return m_pProxiedVariable->getAddress(); }
-
-    protected:
-        BufferedVariable*               m_pBufferedVariable;
-    };
-
-
-    
-    class o_qt_export GroupVariable : public reflection::Variable
-    {
-    public:
-        GroupVariable(const vector<reflection::Variable*>& a_Variables)
-            : Variable(a_Variables[0]->getName(), a_Variables[0]->getRange(), a_Variables[0]->getModifiers()) 
-            , m_Variables(a_Variables)
-        {
-#if defined(_DEBUG)
-            checkCommonAncestorType();
-#endif
-            
-        }
-
-        ~GroupVariable()
-        {
-            for(auto it = m_Variables.begin(); it != m_Variables.end(); ++it)
+            const string& value = *static_cast<string const*>(src);
+            switch (m_eUnionContent)
             {
-                o_dynamic_delete *it;
-            }
-        }
-
-        virtual reflection::Type*  getValueType() const 
-        { 
-            return m_pCommonType; 
-        }
-
-        virtual void  getValue(void* a_pDest) const;
-
-        virtual void  setValue(void const* a_pSrc) const;
-
-        bool hasMultipleValues() const;
-
-        void* getAddress() const { return nullptr; }
-
-        const vector<Variable*>& getVariables() const { return m_Variables; }
-        void setVariables(const vector<Variable*>& a_Variables) { m_Variables = a_Variables; }
-
-        reflection::Variable* getVariable(size_t i) const { return m_Variables[i]; }
-        size_t getVariableCount() const { return m_Variables.size(); }
-
-        reflection::Class* getVariableClass() const;
-
-    
-    protected:
-        void checkCommonAncestorType()
-        {
-            m_pCommonType = nullptr;
-            if(!m_Variables.empty())
-            {
-                m_pCommonType = m_Variables.front()->getValueType();
-                for(auto it = m_Variables.begin()+1; it != m_Variables.end(); ++it)
+            case e_UnionContent_Node:
                 {
-                    o_assert(m_pCommonType == (*it)->getValueType());
+                    m_pDataBase->setNodeAttributeValue(m_pNode, m_uiAttributeIndex, value);
+                    //m_pNode->saveAttributes();
                 }
+                break;
+            case e_UnionContent_Data:
+                {
+                    phantom::data d(m_pAddress, m_pType);
+                    m_pDataBase->setDataAttributeValue(d, m_uiAttributeIndex, value);
+                    //m_pDataBase->getNode(m_pAddress)->saveDataAttributes(d);
+                }
+                break;
+            default:
+                o_assert(false); 
             }
+        }
+
+        void    getValue(void* dest) const
+        {
+            switch (m_eUnionContent)
+            {
+            case e_UnionContent_Node:
+                *static_cast<string*>(dest) = m_pDataBase->getNodeAttributeValue(m_pNode, m_uiAttributeIndex);
+                break;
+            case e_UnionContent_Data:
+                *static_cast<string*>(dest) = m_pDataBase->getDataAttributeValue(phantom::data(m_pAddress, m_pType), m_uiAttributeIndex);
+                break;
+            default:
+                o_assert(false); 
+            }
+        }
+
+
+        void*   getAddress() const { return NULL; }
+
+
+        virtual phantom::reflection::Type*       getValueType() const 
+        {
+            return phantom::typeOf<string>();
         }
 
     protected:
-        vector<reflection::Variable*> m_Variables;
-        reflection::Type* m_pCommonType;
-    };
-
-    class GroupBufferedVariable : public BufferedVariable
-    {
-    public:
-        GroupBufferedVariable(reflection::Variable* a_pVariable)
-            : BufferedVariable(a_pVariable)
+        phantom::serialization::DataBase*    m_pDataBase;
+        size_t                      m_uiAttributeIndex;
+        EUnionContent                m_eUnionContent;
+        union 
         {
-            ProxyVariable* pProxy = NULL;
-            reflection::Variable* pUnproxiedVariable = a_pVariable;
-            // Remove proxy levels
-            while( (pProxy = as<ProxyVariable*>(pUnproxiedVariable)) )
+            struct
             {
-                pUnproxiedVariable = pProxy->getProxiedVariable();
-            }
-            m_pGroupVariable = as<GroupVariable*>(pUnproxiedVariable);
-            o_assert(m_pGroupVariable);
-            // Create buffers
-            for(auto it = m_pGroupVariable->getVariables().begin(); it != m_pGroupVariable->getVariables().end(); ++it)
-            {
-                m_BufferAddresses.push_back(m_pBufferedType->newInstance());       
-            }
-            updateBuffers();
-        }
-        ~GroupBufferedVariable()
-        {
-            for(auto it = m_BufferAddresses.begin(); it != m_BufferAddresses.end(); ++it)
-            {
-                m_pProxiedVariable->getValueType()->deleteInstance(*it);
-            }
-        }
+                void*                   m_pAddress;
+                phantom::reflection::Type*       m_pType;
+            };
+            phantom::serialization::Node*    m_pNode;
+        };
 
-        GroupVariable* getGroupVariable() const { return m_pGroupVariable; }
-
-        virtual void flush() const
-        {
-            for(size_t i = 0; i<m_pGroupVariable->getVariableCount(); ++i)
-            {
-                m_pGroupVariable->getVariable(i)->setValue(m_BufferAddresses[i]);
-            }
-        }
-        void updateBuffers() const;
-        void* getVariableAddress(size_t i) const { return m_BufferAddresses[i]; }
-        const vector<void*>& getVariableAddresses() const { return m_BufferAddresses; }
-        void setValue( void const* a_pSrc ) const;
-    protected:
-        GroupVariable* m_pGroupVariable;
-        vector<void*> m_BufferAddresses;
     };
 
 
 }}
 
-o_classNS((phantom, qt), ProxyVariable, (reflection::Variable))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, qt), ProxyVariable);
 
 o_classNS((phantom, qt), CollectionElementVariable, (reflection::Variable))
 {
@@ -585,29 +526,16 @@ o_classNS((phantom, qt), SetInsertPairVariable, (ContainerInsertVariable))
 };
 o_exposeN((phantom, qt), SetInsertPairVariable);
 
-o_classNS((phantom, qt), BufferedVariable, (ProxyVariable))
+o_classNS((phantom, qt), BufferedVariable, (reflection::Variable))
 {
     o_reflection {};
 };
 o_exposeN((phantom, qt), BufferedVariable);
 
-o_classNS((phantom, qt), CascadeVariable, (ProxyVariable))
+o_classNS((phantom, qt), DataBaseAttributeVariable, (reflection::Variable))
 {
     o_reflection {};
 };
-o_exposeN((phantom, qt), CascadeVariable);
+o_exposeN((phantom, qt), DataBaseAttributeVariable);
 
-o_classNS((phantom, qt), GroupVariable, (reflection::Variable))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, qt), GroupVariable);
-
-o_classNS((phantom, qt), GroupBufferedVariable, (BufferedVariable))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, qt), GroupBufferedVariable);
-
-
-#endif // ghost_gui_VariableManager_h__
+#endif // phantom_qt_VariableManager_h__

@@ -1,5 +1,5 @@
-#ifndef ghost_gui_CharLineEditor_h__
-#define ghost_gui_CharLineEditor_h__
+#ifndef phantom_qt_CharLineEditor_h__
+#define phantom_qt_CharLineEditor_h__
 
 
 /* ****************** Includes ******************* */
@@ -48,4 +48,4 @@ o_classNS((phantom, qt), UCharLineEditor, (VariableWidgetEditor))
 };
 o_exposeN((phantom, qt), UCharLineEditor);
 
-#endif // ghost_gui_CharLineEditor_h__
+#endif // phantom_qt_CharLineEditor_h__

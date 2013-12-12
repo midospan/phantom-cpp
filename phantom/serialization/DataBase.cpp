@@ -76,6 +76,20 @@ DataBase::DataBase( const string& url, uint a_uiSerializationFlag )
 
 }
 
+DataBase::~DataBase( void )
+{
+}
+
+o_initialize_cpp(DataBase)
+{
+
+}
+
+o_terminate_cpp(DataBase)
+{
+    o_dynamic_delete rootNode();
+}
+
 Trashbin* DataBase::getTrashbin() const
 {
 	return m_pTrashbin;
@@ -982,6 +996,7 @@ void DataBase::setDataAttributeValue( const phantom::data& a_Data, size_t attrib
     o_assert(attributeIndex < getAttributeCount());
     m_AttributeValues[a_Data.address()][attributeIndex] = value;
     o_emit dataAttributeValueChanged(a_Data, attributeIndex, value);
+    getNode(a_Data)->saveDataAttributes(a_Data);
 }
 
 void DataBase::setDataAttributeValue( const phantom::data& a_Data, const string& fieldName, const string& value )
@@ -994,6 +1009,7 @@ void DataBase::setNodeAttributeValue( Node* a_pNode, size_t attributeIndex, cons
     o_assert(attributeIndex < getAttributeCount());
     m_AttributeValues[a_pNode][attributeIndex] = value;
     o_emit nodeAttributeValueChanged(a_pNode, attributeIndex, value);
+    a_pNode->saveAttributes();
 }
 
 void DataBase::setNodeAttributeValue( Node* a_pNode, const string& fieldName, const string& value )
@@ -1049,6 +1065,7 @@ void DataBase::saveDataState( const phantom::data& a_Data, uint a_uiState )
 {
     getNode(a_Data)->saveDataState(a_Data, a_uiState);
 }
+
 
 
 

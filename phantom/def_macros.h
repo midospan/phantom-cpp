@@ -150,7 +150,10 @@
      o_PP_CAT(o_PP_IDENTITY, _p_)
 
 #define o_PP_IDENTITY(...)\
-         __VA_ARGS__
+    __VA_ARGS__
+
+#define _o_PP_IDENTITY(...)\
+    _##__VA_ARGS__
 
 #define o_PMM_L3(mmm) o_PMM_L2(mmm)
 #define o_PMM_L2(mmm) o_PMM_L1(mmm)
@@ -282,11 +285,15 @@
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #define o_PP_CREATE_SCOPE(...) \
     o_PP_CAT_P()o_PP_LEFT_PAREN o_PP_CREATE_SCOPE_,o_PP_NARG(__VA_ARGS__) o_PP_RIGHT_PAREN (__VA_ARGS__)
+#define o_PP_CREATE_SCOPE_IDENTIFIER(...) \
+    o_PP_CAT_P()o_PP_LEFT_PAREN o_PP_CREATE_SCOPE_IDENTIFIER_,o_PP_NARG(__VA_ARGS__) o_PP_RIGHT_PAREN (__VA_ARGS__)
 #define o_PP_QUOTE_SCOPE(_namespace_) \
     o_PP_QUOTE o_PP_LEFT_PAREN o_PP_CREATE_SCOPE _namespace_ o_PP_RIGHT_PAREN
 #else
 #define o_PP_CREATE_SCOPE(...) \
     o_PP_CAT( o_PP_CREATE_SCOPE_, o_PP_NARG(__VA_ARGS__) ) (__VA_ARGS__)
+#define o_PP_CREATE_SCOPE_IDENTIFIER(...) \
+    o_PP_CAT( o_PP_CREATE_SCOPE_IDENTIFIER_, o_PP_NARG(__VA_ARGS__) ) (__VA_ARGS__)
 #define o_PP_QUOTE_SCOPE(_namespace_) \
     o_PP_QUOTE( o_PP_CREATE_SCOPE _namespace_ )
 #endif
@@ -303,6 +310,17 @@
 #define o_PP_CREATE_SCOPE_9(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_,_n6_,_n7_,_n8_) o_PP_CREATE_SCOPE_8(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_,_n6_,_n7_)::_n8_
 #define o_PP_CREATE_SCOPE_10(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_,_n6_,_n7_,_n8_,_n9_) o_PP_CREATE_SCOPE_9(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_,_n6_,_n7_,_n8_)::_n9_
 
+#define o_PP_CREATE_SCOPE_IDENTIFIER_0()
+#define o_PP_CREATE_SCOPE_IDENTIFIER_1(_n0_) _n0_
+#define o_PP_CREATE_SCOPE_IDENTIFIER_2(_n0_,_n1_) o_PP_CREATE_SCOPE_IDENTIFIER_1(_n0_)_##_n1_
+#define o_PP_CREATE_SCOPE_IDENTIFIER_3(_n0_,_n1_,_n2_)    o_PP_CREATE_SCOPE_IDENTIFIER_2(_n0_,_n1_)_##_n2_
+#define o_PP_CREATE_SCOPE_IDENTIFIER_4(_n0_,_n1_,_n2_,_n3_) o_PP_CREATE_SCOPE_IDENTIFIER_3(_n0_,_n1_,_n2_)_##_n3_
+#define o_PP_CREATE_SCOPE_IDENTIFIER_5(_n0_,_n1_,_n2_,_n3_,_n4_) o_PP_CREATE_SCOPE_IDENTIFIER_4(_n0_,_n1_,_n2_,_n3_)_##_n4_
+#define o_PP_CREATE_SCOPE_IDENTIFIER_6(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_) o_PP_CREATE_SCOPE_IDENTIFIER_5(_n0_,_n1_,_n2_,_n3_,_n4_)_##_n5_
+#define o_PP_CREATE_SCOPE_IDENTIFIER_7(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_,_n6_) o_PP_CREATE_SCOPE_IDENTIFIER_6(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_)_##_n6_
+#define o_PP_CREATE_SCOPE_IDENTIFIER_8(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_,_n6_,_n7_) o_PP_CREATE_SCOPE_IDENTIFIER_7(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_,_n6_)_##_n7_
+#define o_PP_CREATE_SCOPE_IDENTIFIER_9(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_,_n6_,_n7_,_n8_) o_PP_CREATE_SCOPE_IDENTIFIER_8(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_,_n6_,_n7_)_##_n8_
+#define o_PP_CREATE_SCOPE_IDENTIFIER_10(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_,_n6_,_n7_,_n8_,_n9_) o_PP_CREATE_SCOPE_IDENTIFIER_9(_n0_,_n1_,_n2_,_n3_,_n4_,_n5_,_n6_,_n7_,_n8_)_##_n9_
 
 #define o_PP_CREATE_DEFAULT_TEMPLATE_TYPES(...) \
     o_PP_CAT(o_PP_CREATE_DEFAULT_TEMPLATE_TYPES_, o_PP_NARG(__VA_ARGS__))()
@@ -550,7 +568,7 @@
 #define o_public                    0x00000800
 #define o_native                    0x00001000
 #define o_overloaded                0x00002000
-#define o_no_reflection             0x00004000
+#define o_singleton                 0x00004000
 #define o_shared                    0x00008000
 #define o_template                  0x00010000
 #define o_pod                       0x00020000
@@ -558,7 +576,7 @@
 #define o_noconst                   0x00080000
 #define o_proxy                     0x00100000
 #define o_inherits_allocator        0x00200000
-#define o_slot_member_function               0x00400000
+#define o_slot_member_function      0x00400000
 #define o_component                 0x00800000
 #define o_owner                     0x01000000
 #define o_fixed_size                0x02000000

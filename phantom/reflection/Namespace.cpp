@@ -43,8 +43,10 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
     o_signal(typeAdded, (Type*))
     o_signal(typeRemoved, (Type*))
-    o_signal(packageAdded, (Namespace*))
-    o_signal(packageRemoved, (Namespace*))
+    o_signal(templateAdded, (Template*))
+    o_signal(templateRemoved, (Template*))
+    o_signal(namespaceAdded, (Namespace*))
+    o_signal(namespaceRemoved, (Namespace*))
 __________________________________________________________________________________ReflectionCPP
 
 
@@ -140,6 +142,17 @@ Type*        Namespace::arrayTypeOf(Type* a_pType, size_t a_uiCount)
         addType(pArrayType);
     }
     return pArrayType;
+}
+
+Template* Namespace::getTemplate( const string& a_strName ) const
+{
+    vector<Template*>::const_iterator it = m_Templates.begin();
+    vector<Template*>::const_iterator end = m_Templates.end();
+    for(;it != end; ++it)
+    {
+        if((*it)->getName() == a_strName) return *it;
+    }
+    return false;
 }
 
 Namespace* Namespace::getNamespaceCascade( list<string>* a_HierarchyWords ) const
@@ -337,6 +350,20 @@ void Namespace::addType( Type* a_pType )
     }
 }
 
+void Namespace::addTemplate( Template* a_pTemplate )
+{
+    o_assert(a_pTemplate->m_pOwner == NULL, "Type has already been attached to a Namespace");
+    o_assert(getTypedef(a_pTemplate->getName()) == NULL, "A typedef has already been registered with this type's name");
+    o_assert(getNamespaceAlias(a_pTemplate->getName()) == NULL, "A namespace alias has already been registered with this type's name");
+    o_assert(std::find(m_Templates.begin(), m_Templates.end(), a_pTemplate) == m_Templates.end(), "Template already attached to this Namespace");
+    m_Templates.push_back(a_pTemplate);
+    addElement(a_pTemplate);
+    if(Phantom::getState() == Phantom::eState_Installed)
+    {
+        o_emit templateAdded(a_pTemplate);
+    }
+}
+
 void Namespace::removeType( Type* a_pType )
 {
     o_assert(a_pType->m_pOwner == this, "This type is attached to another Namespace");
@@ -350,6 +377,19 @@ void Namespace::removeType( Type* a_pType )
     }
 }
 
+void Namespace::removeTemplate( Template* a_pTemplate )
+{
+    o_assert(a_pTemplate->m_pOwner == this, "This type is attached to another Namespace");
+    auto found = std::find(m_Templates.begin(), m_Templates.end(), a_pTemplate);
+    o_assert(found != m_Templates.end(), "Template not found");
+    m_Templates.erase(found);
+    removeElement(a_pTemplate);
+    if(Phantom::getState() == Phantom::eState_Installed)
+    {
+        o_emit templateRemoved(a_pTemplate);
+    }
+}
+
 void Namespace::addNamespace( Namespace* a_pNamespace )
 {
     o_assert_not(getNamespace(a_pNamespace->getName()));
@@ -357,7 +397,7 @@ void Namespace::addNamespace( Namespace* a_pNamespace )
     addElement(a_pNamespace);
     if(Phantom::getState() == Phantom::eState_Installed)
     {
-        o_emit packageAdded(a_pNamespace);
+        o_emit namespaceAdded(a_pNamespace);
     }
 }
 
@@ -370,7 +410,7 @@ void Namespace::removeNamespace( Namespace* a_pNamespace )
     removeElement(a_pNamespace);
     if(Phantom::getState() == Phantom::eState_Installed)
     {
-        o_emit packageRemoved(a_pNamespace);
+        o_emit namespaceRemoved(a_pNamespace);
     }
 }
 

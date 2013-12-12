@@ -1,5 +1,5 @@
-#ifndef ghost_gui_EnumComboBoxEditor_h__
-#define ghost_gui_EnumComboBoxEditor_h__
+#ifndef phantom_qt_EnumComboBoxEditor_h__
+#define phantom_qt_EnumComboBoxEditor_h__
 
 
 /* ****************** Includes ******************* */
@@ -95,4 +95,4 @@ o_classNS((phantom, qt), EnumComboBoxEditor, (VariableWidgetEditor))
 };
 o_exposeN((phantom, qt), EnumComboBoxEditor);
 
-#endif // ghost_gui_EnumComboBox_h__
+#endif // phantom_qt_EnumComboBox_h__
