@@ -10,7 +10,7 @@ namespace phantom { namespace qt {
 class o_qt_export Action : public QAction
 {
     Q_OBJECT
-
+         
 public:
     Action(QIcon a_Icon, const QString& a_strName, QObject* a_pParent);
     Action(QObject* a_pParent);

@@ -1,8 +1,12 @@
 /bin/
 /build/
 /lib/
+projects/msvc/2010/unitest/qt_test
 *.ipch
 *.sdf
 *.suo
+*.opensdf
+*.exp
 dependencies/QWidgets/build
+dependencies/QWidgets/bin
 dependencies/QWidgets/bin
