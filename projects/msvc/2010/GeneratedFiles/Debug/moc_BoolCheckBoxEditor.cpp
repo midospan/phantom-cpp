@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'BoolCheckBoxEditor.h'
 **
-** Created: Tue 7. Jan 11:51:33 2014
+** Created: Tue 7. Jan 16:05:35 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.4)
 **
 ** WARNING! All changes made in this file will be lost!

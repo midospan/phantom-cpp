@@ -21,22 +21,6 @@ namespace qt {
 class DataTreeView;
 class Project;
 
-class DataTreeViewItemAdder : public phantom::util::TVisitor<phantom::serialization::Node>
-                            , public phantom::util::TVisitor<phantom::data>
-{
-public:
-    DataTreeViewItemAdder(DataTreeView* a_pDataTreeView)
-        : m_pDataTreeView(a_pDataTreeView)
-    {
-        
-    }
-    virtual void apply(phantom::serialization::Node* a_pNode);
-    virtual void apply(phantom::data* a_pData);
-
-protected:
-    DataTreeView*   m_pDataTreeView;
-};
-
 class DataTreeViewItem : public QTreeWidgetItem
 {
 public:
@@ -99,9 +83,12 @@ protected:
     phantom::data   m_Data;
 };
 
+class DataTreeViewItemAdder;
+class DataTreeViewNodeDisconnector;
 class o_qt_export DataTreeView : public QTreeWidget
 {
     friend class DataTreeViewItemAdder;
+    friend class DataTreeViewNodeDisconnector;
 
     Q_OBJECT
 

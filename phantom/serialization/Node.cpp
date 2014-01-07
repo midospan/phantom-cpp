@@ -61,6 +61,7 @@ o_terminate_cpp(Node)
     {
         o_dynamic_delete *it;
     }
+    m_ChildNodes.clear();
     if(isLoaded())
     {
         unload();

@@ -23,6 +23,40 @@ class DataTreeViewPrivate : public QTreeWidgetPrivate
     Q_DECLARE_PUBLIC(DataTreeView);
 };*/
 
+
+
+class DataTreeViewItemAdder : public phantom::util::TVisitor<phantom::serialization::Node>
+    , public phantom::util::TVisitor<phantom::data>
+{
+public:
+    DataTreeViewItemAdder(DataTreeView* a_pDataTreeView)
+        : m_pDataTreeView(a_pDataTreeView)
+    {
+
+    }
+    virtual void apply(phantom::serialization::Node* a_pNode);
+    virtual void apply(phantom::data* a_pData);
+
+protected:
+    DataTreeView*   m_pDataTreeView;
+};
+
+
+
+class DataTreeViewNodeDisconnector : public phantom::util::TVisitor<phantom::serialization::Node>
+{
+public:
+    DataTreeViewNodeDisconnector(DataTreeView* a_pDataTreeView)
+        : m_pDataTreeView(a_pDataTreeView)
+    {
+
+    }
+    virtual void apply(phantom::serialization::Node* a_pNode);
+
+protected:
+    DataTreeView*   m_pDataTreeView;
+};
+
 DataTreeView::DataTreeView( Message* a_pRootMessage ) 
     : m_pDataBase(NULL)
     , m_pRootMessage(a_pRootMessage)
@@ -87,6 +121,12 @@ void DataTreeViewItemAdder::apply( serialization::Node* a_pNode )
 void DataTreeViewItemAdder::apply( phantom::data* a_pData )
 {
     m_pDataTreeView->addDataItem(*a_pData);
+}
+
+void DataTreeViewNodeDisconnector::apply( serialization::Node* a_pNode )
+{
+    o_disconnect(a_pNode, loaded(), m_pDataTreeView, nodeLoaded());
+    o_disconnect(a_pNode, aboutToBeUnloaded(), m_pDataTreeView, nodeAboutToBeUnloaded());
 }
 
 void DataTreeView::showPopup(const QPoint & pos)
@@ -877,6 +917,9 @@ void DataTreeView::setDataBase( serialization::DataBase* a_pDataBase, size_t a_u
     if(m_pDataBase == a_pDataBase) return;
     if(m_pDataBase)
     {
+
+        DataTreeViewNodeDisconnector   disconnector(this);
+        m_pDataBase->rootNode()->applyNodeVisitor(&disconnector);
         o_disconnect(m_pDataBase, dataAdded(const phantom::data&,serialization::Node*), this, dataAdded(const phantom::data&,serialization::Node*));
         o_disconnect(m_pDataBase, dataReplaced(const phantom::data&,const phantom::data&), this, dataReplaced(const phantom::data&,const phantom::data&));
         o_disconnect(m_pDataBase, dataAboutToBeRemoved(const phantom::data&,serialization::Node*), this, dataAboutToBeRemoved(const phantom::data&,serialization::Node*));

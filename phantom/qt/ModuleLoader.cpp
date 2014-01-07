@@ -32,7 +32,7 @@ namespace phantom { namespace qt {
     {
         setColumnCount(1);
         QStringList headerLabels;
-        headerLabels.append("Message");
+        headerLabels.append("Module");
         setHeaderLabels(headerLabels);
         connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(slotItemDoubleClicked(QTreeWidgetItem*,int)));
     }
