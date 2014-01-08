@@ -335,18 +335,25 @@ void detail::dynamic_initializer_handle::registerModule( module_installation_fun
     {
         if(o_mask_test(a_uiSetupStepMask, (0x1<<i)))
         {
-            /*if(Phantom::getSetupStep() > i)
+            bool alreadyRegistered = false;
+            for(auto it = m_DeferredSetupInfos[i].begin(); it != m_DeferredSetupInfos[i].end(); ++it)
             {
-                (*setupFunc)(i);
+                if(it->setupFunc == setupFunc)
+                {
+                    alreadyRegistered = true;
+                    break;
+                }
             }
-            else*/
-            if(a_bDeferred || Phantom::getState() != Phantom::eState_Installed)
+            if(NOT(alreadyRegistered))
             {
-                m_DeferredSetupInfos[i].push_back(dynamic_initializer_module_installation_func(setupFunc));
-            }
-            else
-            {
-                setupFunc(i);
+                if(a_bDeferred || Phantom::getState() != Phantom::eState_Installed)
+                {
+                    m_DeferredSetupInfos[i].push_back(dynamic_initializer_module_installation_func(setupFunc));
+                }
+                else
+                {
+                    setupFunc(i);
+                }
             }
         }
     }

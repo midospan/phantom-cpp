@@ -37,6 +37,10 @@ protected slots:
     void slotItemDoubleClicked(QTreeWidgetItem*, int);
 
 protected:
+    o_signal_data(dllOperationBegan);
+    o_signal_data(dllOperationEnded);
+
+protected:
     QString m_strPath;
     QIcon m_LoadedIcon;
     QIcon m_UnloadedIcon;
@@ -53,6 +57,8 @@ o_classN((phantom, qt), ModuleLoader, o_no_copy)
     {
         o_slot(void, moduleInstanciated, (void*));
         o_slot(void, moduleDestroyed, (void*));
+        o_signal(dllOperationBegan, ());
+        o_signal(dllOperationEnded, ());
     };
 };
 o_exposeN((phantom, qt), ModuleLoader);

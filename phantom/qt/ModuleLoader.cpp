@@ -95,6 +95,8 @@ namespace phantom { namespace qt {
             if(!canUnload)
                 return;
 
+            o_emit dllOperationBegan();
+
             if(FreeLibrary((HMODULE)pModule->getPlatformHandle()))
             {
                 if(m_pRootMessage) m_pRootMessage->success("Module unloaded : %s", a_pItem->text(0).toAscii().constData());
@@ -126,9 +128,11 @@ namespace phantom { namespace qt {
                     LocalFree(lpMsgBuf);
                 }
             }
+            o_emit dllOperationEnded();
         }
         else 
         {
+            o_emit dllOperationBegan();
             if(LoadLibrary(pItem->m_strAbsolutePath.toAscii().constData()))
             {
                 if(m_pRootMessage) m_pRootMessage->success("Module loaded : %s", a_pItem->text(0).toAscii().constData());
@@ -159,6 +163,7 @@ namespace phantom { namespace qt {
                     LocalFree(lpMsgBuf);
                 }
             }
+            o_emit dllOperationEnded();
         }
         for(size_t i = 0; i<topLevelItemCount(); ++i)
         {

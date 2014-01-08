@@ -3,6 +3,7 @@
 #include "def_jit.h"
 #include "def_jit_internal.h"
 #include <jit/jit.h>
+#include <windows.h>
 
 o_registerN((phantom, reflection, jit), jit_value);
 
@@ -234,3 +235,4 @@ jit_function::jit_function( void* b ) : function(b)
 
 o_namespace_end(phantom, reflection, jit)
 
+o_module("jit");
