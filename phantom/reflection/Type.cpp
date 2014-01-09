@@ -211,6 +211,8 @@ inline Type* Type::getNestedTypedef( const string& a_strTypedef ) const
 
 LanguageElement* Type::getElement( const char* a_strName, template_specialization const* a_pTemplateSpecialization, function_signature const* a_pFunctionSignature, bitfield a_Modifiers /*= 0*/ ) const
 {
+    LanguageElement* pElement = TemplateElement::getElement(a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers);
+    if(pElement) return pElement;
     if(m_pNestedTypedefs)  
     {
         auto found = m_pNestedTypedefs->find(a_strName);
@@ -507,7 +509,189 @@ void                Type::fireKindDestroyed(void* a_pObject) const
         return pCommonType;
     }
 
+    void Type::moduleChanged( Module* a_pModule )
+    {
+        if(m_pExtendedTypes && a_pModule) 
+        {
+            for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
+            {
+                a_pModule->addLanguageElement(*it);
+            }
+        }
+    }
 
+    DataPointerType* Type::getDataPointerType() const
+    {
+        if(m_pExtendedTypes == nullptr) return nullptr;
+        for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
+        {
+            DataPointerType* pDataPointerType = (*it)->asDataPointerType();
+            if(pDataPointerType) return pDataPointerType;
+        }
+        return nullptr;
+    }
+
+    ReferenceType* Type::getReferenceType() const
+    {
+        if(m_pExtendedTypes == nullptr) return nullptr;
+        for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
+        {
+            ReferenceType* pDataPointerType = (*it)->asReferenceType();
+            if(pDataPointerType) return pDataPointerType;
+        }
+        return nullptr;
+    }
+
+    ArrayType* Type::getArrayType( size_t a_uiCount ) const
+    {
+        if(m_pExtendedTypes == nullptr) return nullptr;
+        for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
+        {
+            ArrayType* pArrayType = (*it)->asArrayType();
+            if(pArrayType && pArrayType->getCount() == a_uiCount) return pArrayType;
+        }
+        return nullptr;
+    }
+
+    Type* Type::getConstType() const
+    {
+        if(m_pExtendedTypes == nullptr) return nullptr;
+        for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
+        {
+            Type* pConstType = (*it)->asConstType();
+            if(pConstType) return pConstType;
+        }
+        return nullptr;
+    }
+
+    DataPointerType* Type::pointerType() const
+    {
+        if(m_pExtendedTypes == nullptr)
+        {
+            m_pExtendedTypes = new type_container;
+        }
+        DataPointerType* pType = getDataPointerType();
+        if(pType == nullptr)
+        {
+            pType = createDataPointerType();
+            m_pExtendedTypes->push_back(pType);
+            if(m_pModule)
+            {
+                m_pModule->addLanguageElement(pType);
+            }
+            if(getNamespace())
+            {
+                getNamespace()->addType(pType);
+            }
+            else if(m_pOwner && m_pOwner->asType())
+            {
+                m_pOwner->asType()->addNestedType(pType);
+            }
+        }
+        return pType;
+    }
+
+    ReferenceType* Type::referenceType() const
+    {
+        if(m_pExtendedTypes == nullptr)
+        {
+            m_pExtendedTypes = new type_container;
+        }
+        ReferenceType* pType = getReferenceType();
+        if(pType == nullptr)
+        {
+            pType = createReferenceType();
+            m_pExtendedTypes->push_back(pType);
+            if(m_pModule)
+            {
+                m_pModule->addLanguageElement(pType);
+            }
+            if(getNamespace())
+            {
+                getNamespace()->addType(pType);
+            }
+            else if(m_pOwner && m_pOwner->asType())
+            {
+                m_pOwner->asType()->addNestedType(pType);
+            }
+        }
+        return pType;
+    }
+
+    ArrayType* Type::arrayType( size_t a_uiCount ) const
+    {
+        if(m_pExtendedTypes == nullptr)
+        {
+            m_pExtendedTypes = new type_container;
+        }
+        ArrayType* pType = getArrayType(a_uiCount);
+        if(pType == nullptr)
+        {
+            pType = createArrayType(a_uiCount);
+            m_pExtendedTypes->push_back(pType);
+            if(m_pModule)
+            {
+                m_pModule->addLanguageElement(pType);
+            }
+            if(getNamespace())
+            {
+                getNamespace()->addType(pType);
+            }
+            else if(m_pOwner && m_pOwner->asType())
+            {
+                m_pOwner->asType()->addNestedType(pType);
+            }
+        }
+        return pType;
+    }
+
+    Type* Type::constType() const
+    {
+        if(m_pExtendedTypes == nullptr)
+        {
+            m_pExtendedTypes = new type_container;
+        }
+        Type* pType = getConstType();
+        if(pType == nullptr)
+        {
+            pType = createConstType();
+            if(pType == this) return (Type*)this;
+            m_pExtendedTypes->push_back(pType);
+            if(m_pModule)
+            {
+                m_pModule->addLanguageElement(pType);
+            }
+            if(getNamespace())
+            {
+                getNamespace()->addType(pType);
+            }
+            else if(m_pOwner && m_pOwner->asType())
+            {
+                m_pOwner->asType()->addNestedType(pType);
+            }
+        }
+        return pType;
+    }
+
+    void Type::teardownMetaDataCascade( size_t count )
+    {
+        if(m_pNestedTypes)
+        {
+            type_container::const_iterator it = m_pNestedTypes->begin();
+            type_container::const_iterator end = m_pNestedTypes->end();
+            for(;it != end; ++it)
+            {
+                (*it)->teardownMetaDataCascade(count);
+            }
+        }
+        TemplateElement::teardownMetaDataCascade(count);
+    }
+
+    Type* Type::pointerType( size_t a_uiPointerLevel ) const
+    {
+        if(a_uiPointerLevel == 0) return (Type*)this;
+        return pointerType()->pointerType(a_uiPointerLevel-1);
+    }
 
 o_cpp_end
 

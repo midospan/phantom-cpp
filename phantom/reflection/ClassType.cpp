@@ -43,7 +43,6 @@ ________________________________________________________________________________
 
 ClassType::ClassType( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
     : Type(a_strName, a_Modifiers)
-    , m_pTemplateSpecialization(nullptr)
     , m_pAttributes(nullptr)
 {
     m_uiSerializedSize = m_uiResetSize = 0;
@@ -51,7 +50,6 @@ ClassType::ClassType( const string& a_strName, bitfield a_Modifiers /*= 0*/ )
 
 ClassType::ClassType( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) 
     : Type(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
-    , m_pTemplateSpecialization(nullptr)
     , m_pAttributes(nullptr)
 {
     m_uiSerializedSize = m_uiResetSize = 0;
@@ -73,12 +71,6 @@ void ClassType::destroyContent()
             o_dynamic_delete_clean(it->second);
         }
         m_Members.clear();
-    }
-
-    if(m_pTemplateSpecialization)
-    {
-        o_dynamic_delete_clean(m_pTemplateSpecialization);
-        m_pTemplateSpecialization = nullptr;
     }
 
     if(m_pAttributes)
@@ -177,13 +169,6 @@ void ClassType::valueFromString( const string& cs, void* dest ) const
     o_exception(exception::unsupported_member_function_exception, "TODO (not supported yet)");
 }
 
-void ClassType::setTemplateSpecialization( TemplateSpecialization* a_pTemplateSpecialization )
-{
-    o_assert(m_pTemplateSpecialization == NULL);
-    m_pTemplateSpecialization = a_pTemplateSpecialization;
-    //m_strName += m_pTemplateSpecialization->getName();
-}
-
 InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_strIdentifierString ) const
 {
     LanguageElement* pElement = phantom::elementByName(a_strIdentifierString, const_cast<ClassType*>(this));
@@ -199,11 +184,6 @@ LanguageElement*            ClassType::getElement(
     , bitfield a_Modifiers /*= 0*/) const 
 {
     LanguageElement* pElement = nullptr;
-    if(m_pTemplateSpecialization)
-    {
-        pElement = m_pTemplateSpecialization->getType(a_strName);
-        if(pElement) return pElement;
-    }
     pElement = Type::getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
     if(pElement) return pElement;
     if(a_FunctionSignature == NULL)
@@ -344,23 +324,6 @@ Collection* ClassType::getCollection( const string& a_strName ) const
     return nullptr;
 }
 
-phantom::string ClassType::getDecoratedName() const
-{
-    return m_pTemplateSpecialization?getName()+m_pTemplateSpecialization->getDecoratedName():getName();
-}
-
-phantom::string ClassType::getQualifiedDecoratedName() const
-{
-    return m_pTemplateSpecialization?getQualifiedName()+m_pTemplateSpecialization->getQualifiedDecoratedName():getQualifiedName();
-}
-
-boolean ClassType::matches( template_specialization const* a_pElements ) const
-{
-    return m_pTemplateSpecialization
-            ? m_pTemplateSpecialization->matches(a_pElements)
-            : NULL;
-}
-
 
 ClassType::member_const_iterator ClassType::valueMembersBegin() const
 {
@@ -444,20 +407,6 @@ void* ClassType::newInstance() const
   void* pInstance = o_dynamic_pool_allocate(m_uiSize);
   construct(pInstance);
   return pInstance;
-}
-
-boolean ClassType::matches( const char* a_strName, template_specialization const* a_TemplateSpecialization /*= NULL*/, bitfield a_Modifiers /*= 0*/ ) const
-{
-  if(m_strName != a_strName) 
-    return false;
-  bool ts_empty = a_TemplateSpecialization == NULL OR a_TemplateSpecialization->empty() ;
-  if(ts_empty AND m_pTemplateSpecialization == NULL) 
-    return true;
-  if(!ts_empty AND m_pTemplateSpecialization != NULL) 
-  {
-    return m_pTemplateSpecialization->matches(a_TemplateSpecialization);
-  }
-  return false;
 }
 
 size_t ClassType::getValueMemberCount() const
@@ -619,11 +568,6 @@ const variant& ClassType::getAttribute( const string& a_strName ) const
     auto found = pAttributes->find(a_strName);
     if(found != pAttributes->end()) return found->second;
     return null_variant;
-}
-
-Template* ClassType::getTemplate() const
-{
-    return m_pTemplateSpecialization ? m_pTemplateSpecialization->getTemplate() : nullptr;
 }
 
 

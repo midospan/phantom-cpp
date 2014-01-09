@@ -164,14 +164,14 @@ void Module::addLanguageElement(reflection::LanguageElement* a_pLanguageElement)
     o_assert(a_pLanguageElement->m_pModule == nullptr);
     o_assert(std::find(m_LanguageElements.begin(), m_LanguageElements.end(), a_pLanguageElement) == m_LanguageElements.end());
     m_LanguageElements.push_back(a_pLanguageElement);
-    a_pLanguageElement->m_pModule = this;
+    a_pLanguageElement->setModule(this);
 }
 
 void Module::removeLanguageElement(reflection::LanguageElement* a_pLanguageElement) 
 {
     o_assert(a_pLanguageElement->m_pModule == this);
     m_LanguageElements.erase(std::find(m_LanguageElements.begin(), m_LanguageElements.end(), a_pLanguageElement));
-    a_pLanguageElement->m_pModule = nullptr;
+    a_pLanguageElement->setModule(nullptr);
 }
 
 void Module::setParentModule( Module* a_pModule )

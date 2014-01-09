@@ -135,7 +135,7 @@ static jit_type_t jit_type_vector4f = nullptr;
     : jit_type_##type)
 
 #define JIT_PHANTOM_TYPE_OF_PARAM(type) (jit_type_is_struct(jit_type_##type) \
-    ? phantom::referenceTypeOf(phantom::constTypeOf(phantom_type_##type)) \
+    ? (phantom_type_##type)->constType()->referenceType() \
     : phantom_type_##type)
 
 

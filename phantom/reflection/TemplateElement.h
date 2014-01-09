@@ -47,23 +47,23 @@ o_h_begin
 
 class o_export TemplateElement : public LanguageElement
 {
+    friend class TemplateSpecialization;
+
     reflection_______________________________________________________________________
     _______________________________________________________________________reflection
 
 public:
-    inline TemplateElement() {}
+    TemplateElement();
+    TemplateElement(const string& a_strName, bitfield a_Modifiers = 0);
+    TemplateElement(const string& a_strName, uint a_uiGuid, bitfield a_Modifiers = 0);
+    ~TemplateElement();
 
-    inline TemplateElement(const string& a_strName, bitfield a_Modifiers = 0) 
-        : LanguageElement(a_strName, a_Modifiers)
-    {
+protected:
+    void registerReferencingTemplateSpecialization(TemplateSpecialization* a_pTemplateSpecialization);
+    void unregisterReferencingTemplateSpecialization(TemplateSpecialization* a_pTemplateSpecialization);
 
-    }
-
-    inline TemplateElement(const string& a_strName, uint a_uiGuid, bitfield a_Modifiers = 0) 
-        : LanguageElement(a_strName, a_uiGuid, a_Modifiers)
-    {
-
-    }
+protected:
+    vector<TemplateSpecialization*>* m_pReferencingTemplateSpecializations;
 
 };
 

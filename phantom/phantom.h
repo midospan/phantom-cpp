@@ -228,10 +228,7 @@ template<typename t_Ty>
  phantom::reflection::ArrayType*                        arrayTypeOf(size_t);
 template<typename t_Ty>
  phantom::reflection::DataPointerType*                  pointerTypeOf();
- o_export phantom::reflection::DataPointerType*         pointerTypeOf(phantom::reflection::Type* a_pType);
- o_export phantom::reflection::ReferenceType*           referenceTypeOf(phantom::reflection::Type* a_pType);
- o_export phantom::reflection::Type*                    constTypeOf(phantom::reflection::Type* a_pType);
- o_export phantom::reflection::ArrayType*               arrayTypeOf(phantom::reflection::Type* a_pType, size_t a_uiCount);
+
  o_export phantom::reflection::Namespace*               namespaceByList( list<string>* a_pNamespaceNameAsStringList );
  o_export phantom::reflection::Namespace*               namespaceByName( const string& a_strNamespaceName );
  o_export inline phantom::reflection::Namespace*        rootNamespace();
@@ -1010,10 +1007,6 @@ public:
     friend phantom::reflection::ArrayType*                      arrayTypeOf(size_t);
     template<typename t_Ty>
     friend phantom::reflection::DataPointerType*                pointerTypeOf();
-    friend o_export phantom::reflection::DataPointerType*       pointerTypeOf(phantom::reflection::Type* a_pType);
-    friend o_export phantom::reflection::ReferenceType*         referenceTypeOf(phantom::reflection::Type* a_pType);
-    friend o_export phantom::reflection::Type*                  constTypeOf(phantom::reflection::Type* a_pType);
-    friend o_export phantom::reflection::ArrayType*             arrayTypeOf(phantom::reflection::Type* a_pType, size_t a_uiCount);
 
 
     friend o_export void*                                       baseOf(void const* in);
@@ -1440,22 +1433,22 @@ o_export inline void*                                custom_realloc(void* ptr, s
 template<typename t_Ty>
 o_forceinline    phantom::reflection::DataPointerType*      pointerTypeOf()
 {
-    return pointerTypeOf(typeOf<t_Ty>());
+    return typeOf<t_Ty>()->pointerType();
 }
 template<typename t_Ty>
 o_forceinline    phantom::reflection::ReferenceType*        referenceTypeOf()
 {
-    return referenceTypeOf(typeOf<t_Ty>());
+    return typeOf<t_Ty>()->referenceType();
 }
 template<typename t_Ty>
 o_forceinline    phantom::reflection::Type*                 constTypeOf()
 {
-    return constTypeOf(typeOf<t_Ty>());
+    return typeOf<t_Ty>()->constType();
 }
 template<typename t_Ty>
 o_forceinline    phantom::reflection::ArrayType*            arrayTypeOf(size_t a_uiCount)
 {
-    return arrayTypeOf(typeOf<t_Ty>(),a_uiCount);
+    return typeOf<t_Ty>()->arrayType(a_uiCount);
 }
 template<typename t_Ty>
 o_forceinline    phantom::reflection::PrimitiveType*        basicTypeOf()
@@ -1463,10 +1456,6 @@ o_forceinline    phantom::reflection::PrimitiveType*        basicTypeOf()
     o_assert(false, "basicTypeOf not redefined for that basic type");
     return NULL;
 }
-o_export phantom::reflection::DataPointerType*              pointerTypeOf(phantom::reflection::Type* a_pType);
-o_export phantom::reflection::ReferenceType*                referenceTypeOf(phantom::reflection::Type* a_pType);
-o_export phantom::reflection::ArrayType*                    arrayTypeOf(phantom::reflection::Type* a_pType, size_t a_uiCount);
-o_export phantom::reflection::Type*                         constTypeOf(phantom::reflection::Type* a_pType);
 
 o_export inline void*                                       dynamicPoolAllocate(size_t s o_memory_stat_append_parameters)
 {

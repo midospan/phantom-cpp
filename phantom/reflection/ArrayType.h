@@ -70,6 +70,7 @@ public:
 
     virtual boolean     isPOD() const { return m_pStoredType->isPOD(); }
     virtual boolean     isArrayType() const { return true; }
+    virtual ArrayType*  asArrayType() const { return (ArrayType*)this; }
     size_t              getCount() const { return m_uiCount; }
 
     virtual void        safeConstruct(void* a_pBuffer) const 

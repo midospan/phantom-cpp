@@ -57,6 +57,7 @@ class o_export LanguageElement : public Object
     friend class Class;
 	friend class Phantom;
     friend class Module;
+    friend class TemplateSpecialization;
 
     Reflection_____________________________________________________________________________________
     _____________________________________________________________________________________Reflection
@@ -82,17 +83,25 @@ public:
     o_forceinline bitfield              getModifiers() const { return m_Modifiers; }
     o_forceinline boolean               testModifiers(int a_uiModifiers) const { return ((m_Modifiers & a_uiModifiers) == a_uiModifiers); }
 
+    void                                setTemplateSpecialization(TemplateSpecialization* a_pTemplateSpecialization);
+    TemplateSpecialization*             getTemplateSpecialization() const { return m_pTemplateSpecialization; }
+    Template*                           getTemplate() const;
+
+    virtual bool                        matches(const char* a_strName, template_specialization const* a_TemplateSpecialization = NULL, bitfield a_Modifiers = 0) const;
+    virtual bool                        matches(template_specialization const* a_pElements) const;
+
     o_forceinline void                  setShared()            { m_Modifiers |= o_shared; }
     o_forceinline boolean               isShared() const    { return ((m_Modifiers & o_shared) == o_shared); }
 
     o_forceinline const string&         getName() const { return m_strName; }
     virtual string                      getQualifiedName() const;
-    virtual string                      getDecoratedName() const { return getName(); }
-    virtual string                      getQualifiedDecoratedName() const { return getQualifiedName(); }
+    virtual string                      getDecoratedName() const;
+    virtual string                      getQualifiedDecoratedName() const;
 
 	o_forceinline size_t				getGuid() const { return m_uiGuid; }
 
     // Util member_functions to get the type of element
+    virtual boolean                     isTemplateInstance() const { return m_pTemplateSpecialization != NULL; }
     boolean                             isClass() const { return asClass() != nullptr; }
     boolean                             isClassType() const { return asClassType() != nullptr; }
     virtual boolean                     isArithmeticType() const { return false; }
@@ -132,6 +141,8 @@ public:
     virtual Type*                       asType() const { return nullptr; }
     virtual ClassType*                  asClassType() const { return nullptr; }
     virtual ReferenceType*              asReferenceType() const { return nullptr; }
+    virtual ArrayType*                  asArrayType() const { return nullptr; }
+    virtual Type*                       asConstType() const { return nullptr; }
     virtual Class*                      asClass() const { return nullptr; }
     virtual ContainerClass*             asContainerClass() const { return nullptr; }
     virtual PrimitiveType*              asPrimitiveType() const { return nullptr; }
@@ -213,6 +224,8 @@ public:
     Module*         getModule() const { return m_pModule; }
 
 protected:
+    void setModule(Module* a_pModule);
+    virtual void moduleChanged(Module* a_pModule);
     void setupMetaData(size_t count);
     void addElement(LanguageElement* a_pElement);
     void removeElement(LanguageElement* a_pElement);
@@ -224,8 +237,9 @@ protected:
     vector<CodeLocation>*   m_DeclarationCodeLocations;
     vector<CodeLocation>*   m_ReferenceCodeLocations;
     vector<CodeLocation>*   m_CodeLocations;
-    uint                m_uiGuid;
     LanguageElement*    m_pOwner;
+    TemplateSpecialization* m_pTemplateSpecialization;
+    uint                m_uiGuid;
     bitfield            m_Modifiers;
     mutable string*     m_pMetaData;
     Module*             m_pModule;

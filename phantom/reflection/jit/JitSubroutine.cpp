@@ -203,7 +203,7 @@ jit_value   JitSubroutine::loadElem (jit_value base_addr, jit_value index, Type*
 
 jit_value   JitSubroutine::loadElemAddress (jit_value base_addr, jit_value index, Type* elem_type) 
 {
-    return jit_value(jit_insn_load_elem_address((jit_function_t)m_jit_function.function, (jit_value_t)base_addr.value, (jit_value_t)index.value, toJitType(elem_type)), pointerTypeOf(elem_type));
+    return jit_value(jit_insn_load_elem_address((jit_function_t)m_jit_function.function, (jit_value_t)base_addr.value, (jit_value_t)index.value, toJitType(elem_type)), elem_type->pointerType());
 }
 
 int         JitSubroutine::storeElem (jit_value base_addr, jit_value index, jit_value value) 
@@ -1001,7 +1001,7 @@ jit_value JitSubroutine::getThis() const
 {
     o_assert(asSubroutine()->getOwner());
     return (getAbi() == e_JitAbi_thiscall) 
-        ? jit_value(jit_value_get_param((jit_function_t)m_jit_function.function, 0), pointerTypeOf(asSubroutine()->getOwner()->asClass()))
+        ? jit_value(jit_value_get_param((jit_function_t)m_jit_function.function, 0), asSubroutine()->getOwner()->asClass()->pointerType())
         : jit_value();
 }
 

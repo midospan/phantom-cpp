@@ -51,6 +51,7 @@ LanguageElement::LanguageElement()
     , m_pOwner(nullptr)
     , m_Modifiers(0)
     , m_pModule(nullptr)
+    , m_pTemplateSpecialization(nullptr)
 {
 	Phantom::registerLanguageElement(this);
 }
@@ -66,12 +67,14 @@ LanguageElement::LanguageElement( const string& a_strName, bitfield a_Modifiers 
     , m_pOwner(nullptr)
     , m_Modifiers(a_Modifiers)
     , m_pModule(nullptr)
+    , m_pTemplateSpecialization(nullptr)
 {
     o_assert(NOT(isPublic() AND isProtected()), "o_public and o_protected cannot co-exist");
 	Phantom::registerLanguageElement(this);
 }
 
-LanguageElement::LanguageElement( const string& a_strName, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) : m_strName(a_strName)
+LanguageElement::LanguageElement( const string& a_strName, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) 
+    : m_strName(a_strName)
     , m_uiGuid(a_uiGuid)
     , m_pMetaData(nullptr)
     , m_CodeLocations(nullptr)
@@ -81,6 +84,7 @@ LanguageElement::LanguageElement( const string& a_strName, uint a_uiGuid, bitfie
     , m_pOwner(nullptr)
     , m_Modifiers(a_Modifiers)
     , m_pModule(nullptr)
+    , m_pTemplateSpecialization(nullptr)
 {
     o_assert(NOT(isPublic() AND isProtected()), "o_public and o_protected cannot co-exist");
 	Phantom::registerLanguageElement(this);
@@ -88,6 +92,13 @@ LanguageElement::LanguageElement( const string& a_strName, uint a_uiGuid, bitfie
 
 LanguageElement::~LanguageElement()
 {
+    if(m_pTemplateSpecialization)
+    {
+        o_assert(m_pTemplateSpecialization->m_pOwner == this);
+        m_pTemplateSpecialization->m_pOwner = nullptr;
+        o_dynamic_delete m_pTemplateSpecialization;
+        m_pTemplateSpecialization = nullptr;
+    }
     while(m_CodeLocations && m_CodeLocations->size())
     {
         removeCodeLocation(m_CodeLocations->back());
@@ -106,6 +117,16 @@ LanguageElement::~LanguageElement()
 phantom::string LanguageElement::getQualifiedName() const
 {
   return m_pOwner ? m_pOwner->getQualifiedName() + o_CS("::") + getName() : getName();
+}
+
+phantom::string LanguageElement::getDecoratedName() const
+{
+    return m_pTemplateSpecialization?getName()+m_pTemplateSpecialization->getDecoratedName():getName();
+}
+
+phantom::string LanguageElement::getQualifiedDecoratedName() const
+{
+    return m_pTemplateSpecialization?getQualifiedName()+m_pTemplateSpecialization->getQualifiedDecoratedName():getQualifiedName();
 }
 
 Class* LanguageElement::getSortingCategoryClass() const
@@ -218,7 +239,26 @@ LanguageElement* LanguageElement::getLeafElementAt( const CodePosition& a_Positi
 
 LanguageElement* LanguageElement::getElement( const char* a_strQualifiedName , template_specialization const* , function_signature const* , bitfield a_Modifiers /*= 0*/ ) const
 {
+    if(m_pTemplateSpecialization)
+    {
+        LanguageElement* pElement = m_pTemplateSpecialization->getType(a_strQualifiedName);
+        if(pElement) return pElement;
+    }
     return nullptr;
+}
+
+void LanguageElement::setTemplateSpecialization( TemplateSpecialization* a_pTemplateSpecialization )
+{
+    o_assert(m_pTemplateSpecialization == NULL);
+    o_assert(a_pTemplateSpecialization);
+    o_assert(a_pTemplateSpecialization->m_pOwner == NULL);
+    m_pTemplateSpecialization = a_pTemplateSpecialization;
+    a_pTemplateSpecialization->m_pOwner = this;
+}
+
+Template* LanguageElement::getTemplate() const
+{
+    return m_pTemplateSpecialization ? m_pTemplateSpecialization->getTemplate() : nullptr;
 }
 
 void LanguageElement::getAccessibleElementsAt( const CodePosition& a_Position, vector<LanguageElement*>& a_Elements ) const
@@ -333,6 +373,38 @@ void LanguageElement::setModifiers( bitfield a_Modifiers )
 {
     m_Modifiers = a_Modifiers; 
     o_assert(NOT(isPublic() AND isProtected()), "o_public and o_protected cannot co-exist");
+}
+
+bool LanguageElement::matches( const char* a_strName, template_specialization const* a_TemplateSpecialization /*= NULL*/, bitfield a_Modifiers /*= 0*/ ) const
+{
+    if(m_strName != a_strName) 
+        return false;
+    bool ts_empty = a_TemplateSpecialization == NULL OR a_TemplateSpecialization->empty() ;
+    if(ts_empty AND m_pTemplateSpecialization == NULL) 
+        return true;
+    if(!ts_empty AND m_pTemplateSpecialization != NULL) 
+    {
+        return m_pTemplateSpecialization->matches(a_TemplateSpecialization);
+    }
+    return false;
+}
+
+bool LanguageElement::matches( template_specialization const* a_pElements ) const
+{
+    return m_pTemplateSpecialization
+        ? m_pTemplateSpecialization->matches(a_pElements)
+        : NULL;
+}
+
+void LanguageElement::setModule( Module* a_pModule )
+{
+    m_pModule = a_pModule;
+    moduleChanged(a_pModule);
+}
+
+void LanguageElement::moduleChanged( Module* a_pModule )
+{
+
 }
 
 o_cpp_end

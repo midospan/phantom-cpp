@@ -97,53 +97,6 @@ Type* Namespace::getTypeByGuid( uint a_uiGuid ) const
 	return false;
 }
 
-Type*        Namespace::pointerTypeOf(Type* a_pType, uint a_uiPointerLevel /*= 1*/) 
-{
-    if(a_uiPointerLevel == 0) return a_pType;
-    PointerType* pPointerType = getDataPointerType(a_pType);
-    if(pPointerType == NULL)
-    {
-        pPointerType = a_pType->createDataPointerType();
-        addType(pPointerType);
-    }
-    return pointerTypeOf(pPointerType, a_uiPointerLevel-1);
-}
-
-Type*        Namespace::referenceTypeOf(Type* a_pType, uint a_uiReferenceLevel /*= 1*/) 
-{
-    if(a_uiReferenceLevel == 0) return a_pType;
-    ReferenceType* pReferenceType = getReferenceType(a_pType);
-    if(pReferenceType == NULL)
-    {
-        pReferenceType = a_pType->createReferenceType();
-        addType(pReferenceType);
-    }
-    return referenceTypeOf(pReferenceType, a_uiReferenceLevel-1);
-}
-
-Type*        Namespace::constTypeOf(Type* a_pType) 
-{
-    Type* pConstType = getConstType(a_pType);
-    if(pConstType == NULL)
-    {
-        pConstType = a_pType->createConstType();
-        addType(pConstType);
-    }
-    return pConstType;
-}
-
-Type*        Namespace::arrayTypeOf(Type* a_pType, size_t a_uiCount) 
-{
-    o_assert(a_uiCount > 0);
-    Type* pArrayType = getArrayType(a_pType, a_uiCount);
-    if(pArrayType == NULL)
-    {
-        pArrayType = a_pType->createArrayType(a_uiCount);
-        addType(pArrayType);
-    }
-    return pArrayType;
-}
-
 Template* Namespace::getTemplate( const string& a_strName ) const
 {
     vector<Template*>::const_iterator it = m_Templates.begin();
@@ -594,59 +547,6 @@ void Namespace::removeNamespaceAlias( const string& a_strAlias, Namespace* a_pNa
     m_NamespaceAliases.erase(found);
 }
 
-DataPointerType* Namespace::getDataPointerType( Type* a_pPointedType ) const
-{
-    o_foreach(Type* pType, m_Types)
-    {
-        if(pType->isDataPointerType())
-        {
-            if(static_cast<DataPointerType*>(pType)->getPointedType() == a_pPointedType)
-                return static_cast<DataPointerType*>(pType);
-        }
-    }
-    return NULL;
-}
-
-ReferenceType*      Namespace::getReferenceType(Type* a_pReferencedType) const
-{
-    o_foreach(Type* pType, m_Types)
-    {
-        if(pType->isReferenceType())
-        {
-            if(static_cast<ReferenceType*>(pType)->getReferencedType() == a_pReferencedType)
-                return static_cast<ReferenceType*>(pType);
-        }
-    }
-    return NULL;
-}
-
-Type*      Namespace::getConstType(Type* a_pConstedType) const
-{
-    o_foreach(Type* pType, m_Types)
-    {
-        if(pType->isConstType())
-        {
-            if(pType->removeConst() == a_pConstedType)
-                return pType;
-        }
-    }
-    return NULL;
-}
-
-ArrayType* Namespace::getArrayType( Type* a_pStoredType, size_t a_uiCount ) const
-{
-    o_foreach(Type* pType, m_Types)
-    {
-        if(pType->isArrayType())
-        {
-            if(static_cast<ArrayType*>(pType)->getStoredType() == a_pStoredType
-                AND static_cast<ArrayType*>(pType)->getCount() == a_uiCount)
-                return static_cast<ArrayType*>(pType);
-        }
-    }
-    return NULL;
-}
-
 void Namespace::getElements( vector<LanguageElement*>& out, Class* a_pClass /*= nullptr*/ ) const
 {
     if(a_pClass == nullptr OR classOf<Namespace>()->isKindOf(a_pClass))
@@ -673,6 +573,35 @@ Namespace* Namespace::getNamespaceCascade( const string& a_strQualifiedName ) co
     words.erase( std::remove_if( words.begin(), words.end(), 
         boost::bind( &string::empty, _1 ) ), words.end() );
     return getNamespaceCascade(&words);
+}
+
+void Namespace::teardownMetaDataCascade( size_t count )
+{
+    {
+        type_container::const_iterator it = m_Types.begin();
+        type_container::const_iterator end = m_Types.end();
+        for(;it != end; ++it)
+        {
+            (*it)->teardownMetaDataCascade(count);
+        }
+    }
+    {
+        namespace_container::const_iterator it = m_Namespaces.begin();
+        namespace_container::const_iterator end = m_Namespaces.end();
+        for(;it != end; ++it)
+        {
+            (*it)->teardownMetaDataCascade(count);
+        }
+    }
+    {
+        function_container::const_iterator it = m_Functions.begin();
+        function_container::const_iterator end = m_Functions.end();
+        for(;it != end; ++it)
+        {
+            (*it)->teardownMetaDataCascade(count);
+        }
+    }
+    LanguageElement::teardownMetaDataCascade(count);
 }
 
 o_cpp_end

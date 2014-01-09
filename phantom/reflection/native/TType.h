@@ -1366,7 +1366,8 @@ public:
     {
         t_MetaType::m_strName = a_pConstedType->getName() + " const";
     }
-    virtual bool         isConstType() const { return true; }
+    virtual bool            isConstType() const { return true; }
+    virtual Type*           asConstType() const { return (Type*)this; }
     virtual Type*           removeConst() const { return m_pConstedType; }
 
     virtual Type*           createConstType() const

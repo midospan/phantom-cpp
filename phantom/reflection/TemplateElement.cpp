@@ -41,4 +41,50 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
+TemplateElement::TemplateElement() 
+: m_pReferencingTemplateSpecializations(nullptr)
+{
+
+}
+
+TemplateElement::TemplateElement( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) : LanguageElement(a_strName, a_Modifiers)
+    , m_pReferencingTemplateSpecializations(nullptr)
+{
+
+}
+
+TemplateElement::TemplateElement( const string& a_strName, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) : LanguageElement(a_strName, a_uiGuid, a_Modifiers)
+    , m_pReferencingTemplateSpecializations(nullptr)
+{
+
+}
+
+TemplateElement::~TemplateElement()
+{
+    while(m_pReferencingTemplateSpecializations && m_pReferencingTemplateSpecializations->size())
+    {
+        o_delete(TemplateSpecialization) m_pReferencingTemplateSpecializations->back();
+    }
+}
+
+void TemplateElement::registerReferencingTemplateSpecialization( TemplateSpecialization* a_pTemplateSpecialization )
+{
+    if(m_pReferencingTemplateSpecializations == nullptr)
+    {
+        m_pReferencingTemplateSpecializations = new vector<TemplateSpecialization*>();
+    }
+    m_pReferencingTemplateSpecializations->push_back(a_pTemplateSpecialization);
+}
+
+void TemplateElement::unregisterReferencingTemplateSpecialization( TemplateSpecialization* a_pTemplateSpecialization )
+{
+    o_assert(m_pReferencingTemplateSpecializations);
+    m_pReferencingTemplateSpecializations->push_back(a_pTemplateSpecialization);
+    if(m_pReferencingTemplateSpecializations->empty())
+    {
+        delete m_pReferencingTemplateSpecializations;
+        m_pReferencingTemplateSpecializations = nullptr;
+    }
+}
+
 o_cpp_end

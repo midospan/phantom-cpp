@@ -49,6 +49,8 @@ o_h_begin
 
 class o_export TemplateSpecialization : public LanguageElement
 {
+    friend class TemplateElement;
+    friend class LanguageElement;
 public:
 
     Reflection_____________________________________________________________________________________

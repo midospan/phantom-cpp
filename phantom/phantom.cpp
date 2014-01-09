@@ -426,40 +426,6 @@ phantom::reflection::PrimitiveType* primitiveTypeByName( const string& a_strName
     return NULL;
 }
 
-phantom::reflection::DataPointerType* pointerTypeOf( phantom::reflection::Type* a_pType )
-{
-    return a_pType
-                ? static_cast<phantom::reflection::DataPointerType*>(a_pType->getNamespace()->pointerTypeOf(a_pType))
-                : NULL;
-}
-
-phantom::reflection::ReferenceType* referenceTypeOf( phantom::reflection::Type* a_pType )
-{
-    return a_pType
-                ? static_cast<phantom::reflection::ReferenceType*>(
-                        a_pType->getNamespace()->referenceTypeOf(a_pType)
-                  )
-                : NULL;
-}
-    
-phantom::reflection::ArrayType* arrayTypeOf( phantom::reflection::Type* a_pType, size_t a_uiCount )
-{
-    return a_pType
-        ? static_cast<phantom::reflection::ArrayType*>(
-        a_pType->getNamespace()->arrayTypeOf(a_pType,a_uiCount)
-        )
-        : NULL;
-}
-
-phantom::reflection::Type* constTypeOf( phantom::reflection::Type* a_pType )
-{
-    return a_pType
-                ? static_cast<phantom::reflection::Type*>(
-                        a_pType->getNamespace()->constTypeOf(a_pType)
-                  )
-                : NULL;
-}
-
 void default_assert( const character* expression, const character* message, const char* file, uint line )
 {
     string shortenFile = file;

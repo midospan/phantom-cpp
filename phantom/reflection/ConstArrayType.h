@@ -62,6 +62,7 @@ protected:
 
     virtual Type*   createConstType() const;
     virtual boolean isConstType() const { return true; }
+    virtual Type*   asConstType() const { return (Type*)this; }
 
 public:
     o_destructor ~ConstArrayType(void)     {}

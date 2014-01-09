@@ -84,7 +84,7 @@ struct variant_ctor_helper<t_Ty*>
         else 
         {
             memcpy(a_pBuffer, &rttiData.base, sizeof(t_Ty*));
-            return pointerTypeOf(rttiData.object_class);
+            return rttiData.object_class->pointerType();
         }
     }
 };
@@ -103,7 +103,7 @@ struct variant_ctor_helper<void*>
         else 
         {
             memcpy(a_pBuffer, &rttiData.base, sizeof(void*));
-            return pointerTypeOf(rttiData.object_class);
+            return rttiData.object_class->pointerType();
         }
     }
 };

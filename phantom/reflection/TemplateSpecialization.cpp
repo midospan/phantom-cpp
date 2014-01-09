@@ -52,6 +52,17 @@ TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate )
 
 TemplateSpecialization::~TemplateSpecialization()
 {
+    for(auto it = m_Elements.begin(); it != m_Elements.end(); ++it)
+    {
+        (*it)->unregisterReferencingTemplateSpecialization(this);
+    }
+    if(m_pOwner)
+    {
+        o_assert(m_pOwner->m_pTemplateSpecialization == this);
+        m_pOwner->m_pTemplateSpecialization = nullptr;
+        o_dynamic_delete m_pOwner;
+        m_pOwner = nullptr;
+    }
 }
 
 void            TemplateSpecialization::_updateName()
@@ -103,6 +114,7 @@ void TemplateSpecialization::add( const string& a_strTemplateTypeName, TemplateE
     o_assert(m_TemplateNameMap.find(a_strTemplateTypeName) == m_TemplateNameMap.end());
     m_TemplateNameMap[a_strTemplateTypeName] = a_pElement;
     m_Elements.push_back(a_pElement);
+    a_pElement->registerReferencingTemplateSpecialization(this);
     _updateName();
 }
 

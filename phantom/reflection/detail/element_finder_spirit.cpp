@@ -121,13 +121,13 @@ Type*   solve_type_qualifiers(Type* a_pType, string const& qualifiers)
         switch(*it)
         {
         case 'µ': // const
-            a_pType = phantom::constTypeOf(a_pType);
+            a_pType = a_pType->constType();
             break;
         case '&': // ref
-            a_pType = phantom::referenceTypeOf(a_pType);
+            a_pType = a_pType->referenceType();
             break;
         case '*': // pointer
-            a_pType = phantom::pointerTypeOf(a_pType);
+            a_pType = a_pType->pointerType();
             break;
         }
     }

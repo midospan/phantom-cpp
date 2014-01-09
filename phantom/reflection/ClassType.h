@@ -71,12 +71,6 @@ public:
 
     virtual ClassType*      asClassType() const { return const_cast<ClassType*>(this); }
 
-    virtual boolean         isTemplateSpecialization() const { return m_pTemplateSpecialization != NULL; }
-    virtual boolean         matches(template_specialization const* a_pElements) const;
-
-    string                  getDecoratedName() const;
-    string                  getQualifiedDecoratedName() const;
-
     void                    getAllMember(vector<LanguageElement*>& a_out) const;
     void                    getAllValueMember(vector<ValueMember*>& out) const;
     void                    getAllCollection(vector<Collection*>& out) const;
@@ -114,10 +108,6 @@ public:
 
     void                    findPublicPropertiesPointingValueType(Type* a_pType, vector<ValueMember*>& out) const;
 
-    void                    setTemplateSpecialization(TemplateSpecialization* a_pTemplateSpecialization);
-    TemplateSpecialization* getTemplateSpecialization() const { return m_pTemplateSpecialization; }
-    Template*               getTemplate() const;
-
     member_const_iterator   valueMembersBegin() const;
     member_const_iterator   valueMembersEnd() const;
 
@@ -132,7 +122,6 @@ public:
     virtual void            valueFromString( const string& cs, void* dest ) const;
     virtual void            valueToString( string& s, const void* src ) const;
 
-    virtual boolean         matches(const char* a_strName, template_specialization const* a_TemplateSpecialization = NULL, bitfield a_Modifiers = 0) const;
     virtual void            smartCopy(void* a_Instance, void const* a_pSource, reflection::Type* a_pSourceType) const;
     virtual boolean         isClassType() const { return true; }
 
@@ -166,7 +155,6 @@ protected:
 
 protected:
     member_collection       m_Members;
-    TemplateSpecialization* m_pTemplateSpecialization;
     void*                   m_pAttributes; // use pimpl to avoid need to include variant type
 
 };

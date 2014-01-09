@@ -287,6 +287,17 @@ public:
         return (*m_pNestedTypes)[index];
     }
 
+    size_t                  getExtendedTypeCount() const
+    {
+        return m_pExtendedTypes == NULL ? 0 : m_pExtendedTypes->size();
+    }
+
+    Type*                   getExtendedType(size_t index) const
+    {
+        o_assert(index < getExtendedTypeCount());
+        return (*m_pExtendedTypes)[index];
+    }
+
     void                    addNestedType(Type* a_pType);
     void                    removeNestedType(Type* a_pType);
 
@@ -311,25 +322,25 @@ public:
         return false;
     }
 
+    DataPointerType*getDataPointerType() const;
+    ReferenceType*  getReferenceType() const;
+    ArrayType*      getArrayType(size_t a_uiCount) const;
+    Type*           getConstType() const;
+
+    Type*           pointerType(size_t a_uiPointerLevel) const;
+    DataPointerType*pointerType() const;
+    ReferenceType*  referenceType() const;
+    ArrayType*      arrayType(size_t a_uiCount) const;
+    Type*           constType() const;
+
 protected:
     virtual DataPointerType*createDataPointerType() const;
     virtual ReferenceType*  createReferenceType() const;
     virtual ArrayType*      createArrayType(size_t a_uiCount) const;
     virtual Type*           createConstType() const = 0;
+    virtual void            moduleChanged(Module* a_pModule);
     
-    virtual void            teardownMetaDataCascade(size_t count)
-    {
-        if(m_pNestedTypes)
-        {
-            type_container::const_iterator it = m_pNestedTypes->begin();
-            type_container::const_iterator end = m_pNestedTypes->end();
-            for(;it != end; ++it)
-            {
-                (*it)->teardownMetaDataCascade(count);
-            }
-        }
-        TemplateElement::teardownMetaDataCascade(count);
-    }
+    virtual void            teardownMetaDataCascade(size_t count);
     
     /**
      *  @name Signals
@@ -355,6 +366,7 @@ protected:
 protected:
     type_container* m_pNestedTypes;
     nested_typedef_map* m_pNestedTypedefs;
+    mutable type_container* m_pExtendedTypes;
     size_t          m_uiBuildOrder;
     ushort          m_uiSize;
     ushort          m_uiAlignment;

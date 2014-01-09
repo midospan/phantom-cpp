@@ -163,40 +163,7 @@ public:
 
 protected:
     void                setParentNamespace(Namespace* a_pNamespace) { m_pOwner = a_pNamespace; }
-    Class*              polymorphicArrayClassOf(Class* a_pType, uint a_uiArrayLevel = 1) ;
-    Type*               pointerTypeOf(Type* a_pType, uint a_uiPointerLevel = 1) ;
-    Type*               referenceTypeOf(Type* a_pType, uint a_uiPointerLevel = 1) ;
-    Type*               constTypeOf(Type* a_pType);
-    Type*               arrayTypeOf(Type* a_pType, size_t a_uiCount);
-    
-    virtual void        teardownMetaDataCascade(size_t count)
-    {
-        {
-            type_container::const_iterator it = m_Types.begin();
-            type_container::const_iterator end = m_Types.end();
-            for(;it != end; ++it)
-            {
-                (*it)->teardownMetaDataCascade(count);
-            }
-        }
-        {
-            namespace_container::const_iterator it = m_Namespaces.begin();
-            namespace_container::const_iterator end = m_Namespaces.end();
-            for(;it != end; ++it)
-            {
-                (*it)->teardownMetaDataCascade(count);
-            }
-        }
-        {
-            function_container::const_iterator it = m_Functions.begin();
-            function_container::const_iterator end = m_Functions.end();
-            for(;it != end; ++it)
-            {
-                (*it)->teardownMetaDataCascade(count);
-            }
-        }
-        LanguageElement::teardownMetaDataCascade(count);
-    }
+    virtual void        teardownMetaDataCascade(size_t count);
 
 protected:
     namespace_container m_Namespaces;
@@ -208,10 +175,6 @@ protected:
     namespace_alias_map m_NamespaceAliases;
 
 private:
-    friend phantom::reflection::DataPointerType*         phantom::pointerTypeOf(phantom::reflection::Type* a_pType);
-    friend phantom::reflection::ReferenceType*           phantom::referenceTypeOf(phantom::reflection::Type* a_pType);
-    friend phantom::reflection::Type*                    phantom::constTypeOf(phantom::reflection::Type* a_pType);
-    friend phantom::reflection::ArrayType*               phantom::arrayTypeOf(phantom::reflection::Type* a_pType,size_t);
     void release(vector<Type*>& out_types);
 };
 

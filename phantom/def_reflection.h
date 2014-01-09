@@ -286,7 +286,7 @@ namespace detail {
     {
         static phantom::reflection::DataPointerType* object()
         {
-            return phantom::pointerTypeOf(type_of<t_Ty>::object());
+            return type_of<t_Ty>::object()->pointerType();
         }
     };
 
@@ -295,7 +295,7 @@ namespace detail {
     {
         static phantom::reflection::ReferenceType* object()
         {
-            return phantom::referenceTypeOf(type_of<t_Ty>::object());
+            return type_of<t_Ty>::object()->referenceType();
         }
     };
 
@@ -304,7 +304,7 @@ namespace detail {
     {
         static phantom::reflection::ArrayType* object()
         {
-            return phantom::arrayTypeOf(type_of<t_Ty>::object(), t_size);
+            return type_of<t_Ty>::object()->arrayType(t_size);
         }
     };
 
@@ -313,7 +313,7 @@ namespace detail {
     {
         static phantom::reflection::Type* object()
         {
-            return phantom::constTypeOf(type_of<t_Ty>::object());
+            return type_of<t_Ty>::object()->constType();
         }
     };
 
@@ -380,7 +380,7 @@ namespace detail {
     {
         static phantom::reflection::DataPointerType* object()
         {
-            return phantom::pointerTypeOf(type_of_counter_<t_Ty, t_counter>::object());
+            return type_of_counter_<t_Ty, t_counter>::object()->pointerType();
         }
     };
 
@@ -389,7 +389,7 @@ namespace detail {
     {
         static phantom::reflection::ReferenceType* object()
         {
-            return phantom::referenceTypeOf(type_of_counter_<t_Ty, t_counter>::object());
+            return type_of_counter_<t_Ty, t_counter>::object()->referenceType();
         }
     };
 
@@ -398,7 +398,7 @@ namespace detail {
     {
         static phantom::reflection::Type* object()
         {
-            return phantom::constTypeOf(type_of_counter_<t_Ty, t_counter>::object());
+            return type_of_counter_<t_Ty, t_counter>::object()->constType();
         }
     };
 
@@ -407,7 +407,7 @@ namespace detail {
     {
         static phantom::reflection::Type* object()
         {
-            return phantom::arrayTypeOf(type_of_counter_<t_Ty, t_counter>::object(),t_size);
+            return type_of_counter_<t_Ty, t_counter>::object()->arrayType(t_size);
         }
     };
 
