@@ -56,7 +56,7 @@ public:
         return &m_pDereferencedVariableAddress;
     }
 
-    virtual phantom::reflection::Type* getValueType() const { return pointerTypeOf(m_pVariableToReference->getValueType()); }
+    virtual phantom::reflection::Type* getValueType() const;
 
 protected:
     phantom::reflection::Variable* m_pVariableToReference;

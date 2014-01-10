@@ -2,7 +2,7 @@
 #include "phantom/qt/VariableEditor.h"
 #include "phantom/qt/VariableManager.h"
 #include "phantom/qt/ModuleLoader.h"
-#include "phantom/qt/MessageDisplay.h"
+#include "phantom/qt/MessageDisplay.h" 
 #include "phantom/qt/DataTreeView.h"
 #include "phantom/math/math.h"
 #include "phantom/serialization/XmlFileTreeDataBase.h"

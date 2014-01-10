@@ -333,4 +333,10 @@ namespace phantom {
     }
 
 
+
+    phantom::reflection::Type* ReferencedVariable::getValueType() const
+    {
+        return m_pVariableToReference->getValueType()->pointerType();
+    }
+
 }}}

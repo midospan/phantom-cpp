@@ -64,6 +64,7 @@ Type::Type( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) : TemplateEl
 , m_uiAlignment(0)
 , m_pNestedTypes(nullptr)
 , m_pNestedTypedefs(nullptr)
+, m_pExtendedTypes(nullptr)
 {
     m_uiBuildOrder = NextBuildOrderValue();
 }
@@ -75,6 +76,7 @@ Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitf
     , m_uiResetSize(a_uiSize)
     , m_pNestedTypes(nullptr)
     , m_pNestedTypedefs(nullptr)
+    , m_pExtendedTypes(nullptr)
 {
     m_uiBuildOrder = NextBuildOrderValue();
 }
@@ -86,6 +88,7 @@ Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint
     , m_uiResetSize(a_uiSize)
     , m_pNestedTypes(nullptr)
     , m_pNestedTypedefs(nullptr)
+    , m_pExtendedTypes(nullptr)
 {
     m_uiBuildOrder = NextBuildOrderValue();
 }
@@ -105,6 +108,8 @@ Type::~Type()
     {
         o_dynamic_delete(m_pNestedTypes->back());
     }
+    if(m_pExtendedTypes)
+        delete m_pExtendedTypes;
 }
 
 o_initialize_cpp(Type) 

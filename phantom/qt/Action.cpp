@@ -2,7 +2,7 @@
 #include <phantom/qt/Action.h>
 
 o_registerN((phantom, qt), Action);
-
+ 
 namespace phantom { namespace qt {
 
     Action::Action( QIcon a_Icon, const QString& a_strName, QObject* a_pParent )

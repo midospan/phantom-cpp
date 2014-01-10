@@ -79,7 +79,7 @@ void TemplateElement::registerReferencingTemplateSpecialization( TemplateSpecial
 void TemplateElement::unregisterReferencingTemplateSpecialization( TemplateSpecialization* a_pTemplateSpecialization )
 {
     o_assert(m_pReferencingTemplateSpecializations);
-    m_pReferencingTemplateSpecializations->push_back(a_pTemplateSpecialization);
+    m_pReferencingTemplateSpecializations->erase(std::find(m_pReferencingTemplateSpecializations->begin(), m_pReferencingTemplateSpecializations->end(), a_pTemplateSpecialization));
     if(m_pReferencingTemplateSpecializations->empty())
     {
         delete m_pReferencingTemplateSpecializations;
