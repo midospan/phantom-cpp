@@ -230,6 +230,7 @@ protected:
     void addElement(LanguageElement* a_pElement);
     void removeElement(LanguageElement* a_pElement);
     void setGuid(uint a_uiGuid);
+    virtual bool canBeDestroyed() { return true; }
 
 protected:
     string              m_strName;

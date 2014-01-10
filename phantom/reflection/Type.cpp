@@ -65,6 +65,7 @@ Type::Type( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) : TemplateEl
 , m_pNestedTypes(nullptr)
 , m_pNestedTypedefs(nullptr)
 , m_pExtendedTypes(nullptr)
+, m_pTypedefs(nullptr)
 {
     m_uiBuildOrder = NextBuildOrderValue();
 }
@@ -77,6 +78,7 @@ Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitf
     , m_pNestedTypes(nullptr)
     , m_pNestedTypedefs(nullptr)
     , m_pExtendedTypes(nullptr)
+    , m_pTypedefs(nullptr)
 {
     m_uiBuildOrder = NextBuildOrderValue();
 }
@@ -89,6 +91,7 @@ Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint
     , m_pNestedTypes(nullptr)
     , m_pNestedTypedefs(nullptr)
     , m_pExtendedTypes(nullptr)
+    , m_pTypedefs(nullptr)
 {
     m_uiBuildOrder = NextBuildOrderValue();
 }
@@ -107,6 +110,10 @@ Type::~Type()
     while(m_pNestedTypes != nullptr)
     {
         o_dynamic_delete(m_pNestedTypes->back());
+    }
+    while(m_pTypedefs)
+    {
+        m_pTypedefs->begin()->first->removeTypedef(*m_pTypedefs->begin()->second.begin(), this);
     }
     if(m_pExtendedTypes)
         delete m_pExtendedTypes;
@@ -696,6 +703,28 @@ void                Type::fireKindDestroyed(void* a_pObject) const
     {
         if(a_uiPointerLevel == 0) return (Type*)this;
         return pointerType()->pointerType(a_uiPointerLevel-1);
+    }
+
+    void Type::registerTypedef( Namespace* a_pNamespace, const string& a_strTypedefName )
+    {
+        if(m_pTypedefs == nullptr)
+        {
+            m_pTypedefs = new typedef_namespace_map;
+        }
+        (*m_pTypedefs)[a_pNamespace].push_back(a_strTypedefName);
+    }
+
+    void Type::unregisterTypedef( Namespace* a_pNamespace, const string& a_strTypedefName )
+    {
+        auto& vec = (*m_pTypedefs)[a_pNamespace];
+        vec.erase(std::find(vec.begin(), vec.end(), a_strTypedefName));
+        if(vec.empty())
+            m_pTypedefs->erase(a_pNamespace);
+        if(m_pTypedefs->empty())
+        {
+            delete m_pTypedefs;
+            m_pTypedefs = nullptr;
+        }
     }
 
 o_cpp_end

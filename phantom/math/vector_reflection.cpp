@@ -9,13 +9,13 @@ o_registerNT((phantom, math), (typename), (t_Ty), vector4);
 o_registerNT((phantom, math), (typename), (t_Ty), transform2);
 o_registerNT((phantom, math), (typename), (t_Ty), rotation2D);
 
-o_register_template_instance(phantom::math::matrix2x2<float>);
-o_register_template_instance(phantom::math::matrix3x3<float>);
+o_register(phantom::math::matrix2x2<float>);
+o_register(phantom::math::matrix3x3<float>);
 o_register_typedefNC(phantom::math, matrix2x2<float>, vector2_type);
 o_register_typedefNC(phantom::math, matrix3x3<float>, vector3_type);
 
-o_register_template_instance(phantom::math::matrix2x2<double>);
-o_register_template_instance(phantom::math::matrix3x3<double>);
+o_register(phantom::math::matrix2x2<double>);
+o_register(phantom::math::matrix3x3<double>);
 o_register_typedefNC(phantom::math, matrix2x2<double>, vector2_type);
 o_register_typedefNC(phantom::math, matrix3x3<double>, vector3_type);
 

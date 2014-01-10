@@ -52,11 +52,11 @@ o_registerNT((std), (typename, typename, typename), (t_Kty, t_Pr, t_Alloc), mult
 o_registerNT((std), (typename, typename), (_Kty, _Alloc), _Deque_val);
 o_registerNT((std), (typename, typename), (t_Ty, t_Alloc), deque);
 
-o_register_template_instance(std::vector<int>);
-o_register_template_instance(std::map<std::string,std::string>);
-o_register_template_instance(std::multimap<std::string,std::string>);
-o_register_template_instance(std::unordered_set<int>);
-o_register_template_instance(std::set<int>);
+o_register(std::vector<int>);
+o_register(std::map<std::string,std::string>);
+o_register(std::multimap<std::string,std::string>);
+o_register(std::unordered_set<int>);
+o_register(std::set<int>);
 
 #endif // o_COMPILER == o_COMPILER_VISUAL_STUDIO
 
@@ -64,10 +64,12 @@ o_registerNT((phantom), (typename), (t_Ty), vector);
 o_registerNT((phantom), (typename,typename,typename), (t_Key,t_Value,t_Pred), map);
 o_registerNT((phantom), (typename), (t_Ty), list);
 o_registerNT((phantom), (typename), (t_Ty), deque);
+o_registerNT((phantom), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Hash, t_Pr), unordered_map);
+o_registerNT((phantom), (typename, typename, typename), (t_Kty, t_Ty, t_Pr), multimap);
 
 // ensures that std::basic_string will be available for string based search
 // into the reflection system
-o_register_template_instance(phantom::string);
+o_register(phantom::string);
 
 // registers the basic_string's typedef std::string 
 o_register_typedefN(std, string);
@@ -82,8 +84,8 @@ o_register_typedefN(phantom, string);
 o_register_typedefN(phantom, wstring);
 
 // Various specialization test
-o_register_template_instance(phantom::unordered_map<std::string,int>);
-o_register_template_instance(phantom::map<std::string,std::string>);
+o_register(phantom::unordered_map<std::string,int>);
+o_register(phantom::map<std::string,std::string>);
 
 
-//o_register_template_instance(std::multiset<std::string>);
+//o_register(std::multiset<std::string>);

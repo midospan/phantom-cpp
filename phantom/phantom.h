@@ -1096,14 +1096,9 @@ namespace detail
         reflection_installer_helper() 
         { 
             auto pType = typeOf<t_Ty>(); 
-            if(phantom::currentModule()) 
-            {
-                o_assert((pType->asClassType() && pType->asClassType()->getTemplate()) || pType->getModule() == nullptr);
-                if(pType->getModule() == nullptr)
-                {
-                    phantom::currentModule()->addLanguageElement(pType);
-                }
-            }
+            o_assert(phantom::currentModule(), "no module pushed for the current registered type") ;
+            o_assert(pType->getModule() == nullptr);
+            phantom::currentModule()->addLanguageElement(pType);
         } // ensure type is registered even if no members is added
     };
 
@@ -1253,7 +1248,7 @@ namespace detail
         {
             Phantom::dynamic_initializer();
             auto pType = typeOf<t_Ty>();
-            Module* pModule = nullptr;
+            /*Module* pModule = nullptr;
             if(Phantom::getState() == Phantom::eState_Installed)
             {
                 o_assert(pType->getTemplate());
@@ -1262,8 +1257,8 @@ namespace detail
                 {
                     pType->getTemplate()->getModule()->addLanguageElement(pType);
                 }
-            }
-            Phantom::dynamic_initializer()->registerModule(&module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value, pModule == nullptr);
+            }*/
+            Phantom::dynamic_initializer()->registerModule(&module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value, true);
         }
     };
     template<typename t_Ty>

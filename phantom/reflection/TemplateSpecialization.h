@@ -62,6 +62,7 @@ public:
 
     uint                getElementCount() const { return m_Elements.size(); }
     Type*               getType(const string& a_strTypenameVariableName) const;
+    ClassType*          getClassType() const { return m_pOwner ? m_pOwner->asClassType() : nullptr; }
     TemplateElement*    getElement(const string& a_strTypenameVariableName) const;
 
     void                add(const string& a_strTemplateTypeName, TemplateElement* a_pElement);

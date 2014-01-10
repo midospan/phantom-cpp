@@ -187,33 +187,32 @@
 #   define o_register_associated_template_list(...) o_PP_CAT(o_register_associated_template_list_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #endif
 
-#define o_register_associated_template_list_1(t0) o_register_template_instance(t0)
-#define o_register_associated_template_list_2(t0, t1) o_register_associated_template_list_1(t0) o_register_template_instance(t1)
-#define o_register_associated_template_list_3(t0, t1, t2) o_register_associated_template_list_2(t0, t1) o_register_template_instance(t2)
-#define o_register_associated_template_list_4(t0, t1, t2, t3) o_register_associated_template_list_3(t0, t1, t2) o_register_template_instance(t3)
-#define o_register_associated_template_list_5(t0, t1, t2, t3, t4) o_register_associated_template_list_4(t0, t1, t2, t3) o_register_template_instance(t4)
+#define o_register_associated_template_list_1(t0) o_register(t0)
+#define o_register_associated_template_list_2(t0, t1) o_register_associated_template_list_1(t0) o_register(t1)
+#define o_register_associated_template_list_3(t0, t1, t2) o_register_associated_template_list_2(t0, t1) o_register(t2)
+#define o_register_associated_template_list_4(t0, t1, t2, t3) o_register_associated_template_list_3(t0, t1, t2) o_register(t3)
+#define o_register_associated_template_list_5(t0, t1, t2, t3, t4) o_register_associated_template_list_4(t0, t1, t2, t3) o_register(t4)
 
-
-#define o_register(_name_)\
-    phantom::detail::dynamic_initializer_module_installer_registrer< ::_name_ > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
+#define o_register(...)\
+    static phantom::detail::dynamic_initializer_module_installer_registrer< ::__VA_ARGS__ > o_PP_CAT(g_register_module_, __COUNTER__) ;
 
 #define o_registerN(_namespaces_,_name_)\
-    phantom::detail::dynamic_initializer_module_installer_registrer< o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
+    static phantom::detail::dynamic_initializer_module_installer_registrer< o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
     //o_register_associated_templates(o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_));
 
 #define o_registerC(_classes_,_name_)\
-    phantom::detail::dynamic_initializer_module_installer_registrer< o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_) > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
+    static phantom::detail::dynamic_initializer_module_installer_registrer< o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_) > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
     //o_register_associated_templates(o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_));
 
 #define o_registerNC(_namespaces_,_classes_,_name_)\
-    phantom::detail::dynamic_initializer_module_installer_registrer< o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_) > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
+    static phantom::detail::dynamic_initializer_module_installer_registrer< o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_) > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;
     //o_register_associated_templates(o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_));
 
 #define o_registerT(_template_types_, _template_params_, _name_)\
-    phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) ("",  #_name_) ;
+    static phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) ("",  #_name_) ;
 
 #define o_registerNT(_namespaces_, _template_types_, _template_params_, _name_)\
-    phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) (o_PP_QUOTE(o_PP_CREATE_SCOPE _namespaces_),  #_name_) ;
+    static phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) (o_PP_QUOTE(o_PP_CREATE_SCOPE _namespaces_),  #_name_) ;
 
 
 #define o_reflection_custom_begin(_type_)    \

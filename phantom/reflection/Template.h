@@ -50,20 +50,31 @@ o_h_begin
 class o_export Template : public LanguageElement
 {
     friend class Namespace;
+    friend class TemplateSpecialization;
 
 public:
 
     Reflection_____________________________________________________________________________________
     _____________________________________________________________________________________Reflection
-public:
 
+public:
     Template(const string& a_strName);
     o_destructor ~Template();
 
     Namespace* getNamespace() const { return m_pOwner ? m_pOwner->asNamespace() : nullptr; }
 
-protected:
+    std::vector<TemplateSpecialization*>::const_iterator beginSpecializations() const { return m_Specializations.begin(); }
+    std::vector<TemplateSpecialization*>::const_iterator endSpecializations() const { return m_Specializations.end(); }
 
+protected:
+    virtual bool canBeDestroyed() { return m_Specializations.empty(); }
+
+protected:
+    void registerSpecialization(TemplateSpecialization* a_pTemplateSpecialization) { m_Specializations.push_back(a_pTemplateSpecialization); }
+    void unregisterSpecialization(TemplateSpecialization* a_pTemplateSpecialization) { m_Specializations.erase(std::find(m_Specializations.begin(), m_Specializations.end(), a_pTemplateSpecialization)); }
+
+protected:
+    std::vector<TemplateSpecialization*> m_Specializations;
 };
 
 o_h_end

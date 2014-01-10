@@ -58,7 +58,8 @@ public:
     typedef vector<Type*>       type_container;
     typedef vector<Template*>   template_container;
 
-    o_friend(class, phantom, Phantom)
+    friend class phantom::Phantom;
+    friend class Type;
 
     Reflection_____________________________________________________________________________________
     _____________________________________________________________________________________Reflection

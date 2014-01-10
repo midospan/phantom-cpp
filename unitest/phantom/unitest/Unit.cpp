@@ -38,7 +38,7 @@
 #include "Ability.h"
 /* *********************************************** */
 o_registerN((sc2), Unit)
-o_register_template_instance(phantom::vector<sc2::Ability*>);
+o_register(phantom::vector<sc2::Ability*>);
 o_namespace_begin(sc2)
 
 

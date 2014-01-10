@@ -290,6 +290,14 @@ o_classNTS((phantom), (typename), (t_Ty), deque, (std::deque<t_Ty, o__t1_class__
 };
 o_exposeNT((phantom), (typename), (t_Ty), deque);
 
+#if o_HAS_CPP0X
+o_classNTS((phantom), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Hash, t_Pr), unordered_map, (std::unordered_map<t_Kty, t_Ty, t_Hash, t_Pr, o__t1_class__partioned_memory_allocator(o_TT(std::pair, const t_Kty, t_Ty))>)){o_reflection {};};
+#else
+o_classNTS((phantom), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Hash, t_Pr), unordered_map, (std::tr1::unordered_map<t_Kty, t_Ty, t_Hash, t_Pr, o__t1_class__partioned_memory_allocator(o_TT(std::pair, const t_Kty, t_Ty))>)){o_reflection {};};
+#endif
+
+o_exposeNT((phantom), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Hash, t_Pr), unordered_map);
+
 o_namespace_begin(phantom, extension, detail)
 
     template <>

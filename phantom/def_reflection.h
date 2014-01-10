@@ -5,9 +5,6 @@
 #define o_reflection_register_class_type(_namespace_, ...) \
     phantom::reflection::class_type_registrer< _namespace_::__VA_ARGS__ > o_PP_CAT(g_reflection_registration_, __COUNTER__);
 
-#define o_register_template_instance(...) \
-    phantom::reflection::template_specialization_registrer< __VA_ARGS__ > o_PP_CAT(g_reflection_template_registration_, __COUNTER__);
-
 #define o_register_typedef(_typedef_) \
     phantom::reflection::typedef_registrer  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_typedef_, phantom::typeOf<_typedef_>());
 
@@ -351,8 +348,8 @@ namespace detail {
                     type_reflection_registrer<t_Ty>::apply(s_Type);
                     template_specialization_adder<t_Ty>::apply(s_Type);
 
-                    phantom::detail::module_installer_template_auto_registrer<t_Ty> raii;
-                    (void)raii;
+                   /* phantom::detail::module_installer_template_auto_registrer<t_Ty> raii;
+                    (void)raii;*/
 
                 }
             }

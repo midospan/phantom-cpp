@@ -44,14 +44,15 @@ ReflectionCPP___________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
 TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate )
-: LanguageElement(o_CS("<>"),bitfield())
-, m_pTemplate(a_pTemplate)
+    : LanguageElement(o_CS("<>"), bitfield())
+    , m_pTemplate(a_pTemplate)
 {
+    m_pTemplate->registerSpecialization(this);
 }
-
 
 TemplateSpecialization::~TemplateSpecialization()
 {
+    m_pTemplate->unregisterSpecialization(this);
     for(auto it = m_Elements.begin(); it != m_Elements.end(); ++it)
     {
         (*it)->unregisterReferencingTemplateSpecialization(this);
@@ -65,7 +66,7 @@ TemplateSpecialization::~TemplateSpecialization()
     }
 }
 
-void            TemplateSpecialization::_updateName()
+void TemplateSpecialization::_updateName()
 {
     m_strName = o_CS("<");
     uint i = 0;
@@ -101,13 +102,12 @@ TemplateElement* TemplateSpecialization::getElement( const string& a_strTemplate
     return found->second;
 }
 
-Type*            TemplateSpecialization::getType(const string& a_strTemplateElementName) const
+Type* TemplateSpecialization::getType(const string& a_strTemplateElementName) const
 {
     TemplateElement* pTemplateElement = getElement(a_strTemplateElementName);
     if(pTemplateElement) return pTemplateElement->asType();
     return NULL;
 }
-
 
 void TemplateSpecialization::add( const string& a_strTemplateTypeName, TemplateElement* a_pElement )
 {

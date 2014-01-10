@@ -397,7 +397,7 @@ o_classT((typename), (t_Ty), TClass)
 o_exposeT((typename), (t_Ty), TClass);
 
 o_registerT((typename), (t_Ty), TClass);
-o_register_template_instance(TClass<int>);
+o_register(TClass<int>);
 
 int main(int argc, char **argv) 
 {

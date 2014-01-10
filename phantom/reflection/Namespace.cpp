@@ -523,12 +523,14 @@ void Namespace::addTypedef( const string& a_strTypedef, Type* a_pType )
     o_assert(getType(a_strTypedef) == NULL, "A type has already been registered with this typedef's name");
     o_assert(m_Typedefs.find(a_strTypedef) == m_Typedefs.end(), "Typedef already registered");
     m_Typedefs[a_strTypedef] = a_pType;
+    a_pType->registerTypedef(this, a_strTypedef);
 }
 
 void Namespace::removeTypedef( const string& a_strTypedef, Type* a_pType )
 {
     auto found = m_Typedefs.find(a_strTypedef);
     o_assert( found != m_Typedefs.end(), "Typedef not found");
+    a_pType->unregisterTypedef(this, a_strTypedef);
     m_Typedefs.erase(found);
 }
 

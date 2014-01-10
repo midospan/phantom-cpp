@@ -58,6 +58,8 @@ class o_export Type : public TemplateElement
 public:
     typedef vector<Type*> type_container;
     typedef map<string, Type*> nested_typedef_map;
+    typedef map<Namespace*, std::vector<string>> typedef_namespace_map;
+
     enum ERelation
     {
         eRelation_None = 0,
@@ -342,6 +344,9 @@ protected:
     
     virtual void            teardownMetaDataCascade(size_t count);
     
+    void                    registerTypedef(Namespace* a_pNamespace, const string& a_strTypedefName);
+    void                    unregisterTypedef(Namespace* a_pNamespace, const string& a_strTypedefName);
+
     /**
      *  @name Signals
      */
@@ -367,6 +372,7 @@ protected:
     type_container* m_pNestedTypes;
     nested_typedef_map* m_pNestedTypedefs;
     mutable type_container* m_pExtendedTypes;
+    typedef_namespace_map* m_pTypedefs;
     size_t          m_uiBuildOrder;
     ushort          m_uiSize;
     ushort          m_uiAlignment;
