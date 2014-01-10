@@ -155,6 +155,7 @@ void    extension::detail::dynamic_delete_helper::operator>>(void* instance)
 }
 
 detail::dynamic_initializer_handle::dynamic_initializer_handle()
+    : m_bActive(false)
 {
     Phantom::m_rtti_data_map = o_allocate(Phantom::rtti_data_map);
     new (Phantom::m_rtti_data_map) Phantom::rtti_data_map; 
@@ -1128,6 +1129,7 @@ void Phantom::release()
 
 detail::dynamic_initializer_template_registrer::dynamic_initializer_template_registrer( const string& a_strNamespace, const string& a_strName )
 {
+    Phantom::dynamic_initializer()->setActive(true);
     Phantom::dynamic_initializer();
 
     // Ensure the creation of the meta type
@@ -1137,6 +1139,7 @@ detail::dynamic_initializer_template_registrer::dynamic_initializer_template_reg
     reflection::Template* pTemplate = o_new(reflection::Template)(a_strName);
     pNamespace->addTemplate(pTemplate);
     Phantom::dynamic_initializer()->registerTemplate(pTemplate);
+    Phantom::dynamic_initializer()->setActive(false);
 }
 
 o_end_phantom_namespace()

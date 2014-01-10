@@ -6,10 +6,10 @@
     phantom::reflection::class_type_registrer< _namespace_::__VA_ARGS__ > o_PP_CAT(g_reflection_registration_, __COUNTER__);
 
 #define o_register_typedef(_typedef_) \
-    phantom::reflection::typedef_registrer  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_typedef_, phantom::typeOf<_typedef_>());
+    phantom::reflection::typedef_registrer<_typedef_>  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_typedef_);
 
 #define o_register_typedefN(_namespace_, _typedef_) \
-    phantom::reflection::typedef_registrer  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_namespace_, #_typedef_, phantom::typeOf<_namespace_::_typedef_>());
+    phantom::reflection::typedef_registrer<_namespace_::_typedef_>  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_namespace_, #_typedef_);
 
 #define o_register_typedefNC(_namespace_, _class_, _typedef_) \
     o_register_typedefNC_helper(_namespace_, _class_, o_PP_CAT(g_reflection_registration_friend_##_typedef_, o_PP_IDENTITY o_PP_LEFT_PAREN __COUNTER__ o_PP_RIGHT_PAREN ), _typedef_)
@@ -20,7 +20,7 @@
     public:\
         typedef _typedef_ wrapped_typedef;\
     };\
-    phantom::reflection::typedef_registrer  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_namespace_"::"#_class_, #_typedef_, phantom::typeOf<_friend_class_::wrapped_typedef>());
+    phantom::reflection::typedef_registrer<_friend_class_::wrapped_typedef>  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_namespace_"::"#_class_, #_typedef_);
 
 #define o_register_typedefC(_class_, _typedef_) \
     o_register_typedefC_helper(_class_, o_PP_CAT(g_reflection_registration_friend_##_typedef_, o_PP_IDENTITY o_PP_LEFT_PAREN __COUNTER__ o_PP_RIGHT_PAREN ), _typedef_)
@@ -31,7 +31,7 @@
     public:\
         typedef _typedef_ wrapped_typedef;\
     };\
-    phantom::reflection::typedef_registrer  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_class_, #_typedef_, phantom::typeOf<_friend_class_::wrapped_typedef>());
+    phantom::reflection::typedef_registrer<_friend_class_::wrapped_typedef>  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_class_, #_typedef_);
 
 #define o_reflection_register_type(_namespace_, _type_) \
     phantom::reflection::detail::type_reflection_registrer<_namespace_::_type_> o_PP_CAT(g_reflection_registration_##_type_,__COUNTER__) ;
@@ -75,11 +75,31 @@ struct template_specialization_registrer
     inline template_specialization_registrer() ;
 };
 
-
+template<typename t_Ty>
 struct o_export typedef_registrer
 {
-    typedef_registrer(const char* a_strScope, const char* a_strTypedef, Type* a_pType);
-    typedef_registrer(const char* a_strTypedef, Type* a_pType);
+    typedef_registrer( const char* a_strScope, const char* a_strTypedef )
+    {
+        Phantom::dynamic_initializer(); // ensure modules (and especially reflection here) are initialized and ready
+        phantom::reflection::Type* pType = phantom::typeByName(a_strScope);
+        phantom::reflection::Type* pTypedefType = phantom::typeOf<t_Ty>();
+        if(pType)
+        {
+            pType->addNestedTypedef(a_strTypedef, pTypedefType);
+        }
+        else
+        {
+            Namespace* pNamespace = phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strScope);
+            o_assert(pNamespace);
+            pNamespace->addTypedef(a_strTypedef, pTypedefType);
+        }
+    }
+
+    typedef_registrer( const char* a_strTypedef )
+    {
+        Phantom::dynamic_initializer(); // ensure modules (and especially reflection here) are initialized and ready
+        phantom::rootNamespace()->addTypedef(a_strTypedef, phantom::typeOf<t_Ty>());
+    }
 };
 
 struct o_export namespace_alias_registrer
@@ -348,8 +368,8 @@ namespace detail {
                     type_reflection_registrer<t_Ty>::apply(s_Type);
                     template_specialization_adder<t_Ty>::apply(s_Type);
 
-                   /* phantom::detail::module_installer_template_auto_registrer<t_Ty> raii;
-                    (void)raii;*/
+                    phantom::detail::module_installer_template_auto_registrer<t_Ty> raii;
+                    (void)raii;
 
                 }
             }

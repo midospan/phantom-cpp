@@ -69,6 +69,8 @@ o_registerNT((phantom), (typename, typename, typename), (t_Kty, t_Ty, t_Pr), mul
 
 // ensures that std::basic_string will be available for string based search
 // into the reflection system
+o_register(std::allocator<char>);
+o_register(std::char_traits<char>);
 o_register(phantom::string);
 
 // registers the basic_string's typedef std::string 

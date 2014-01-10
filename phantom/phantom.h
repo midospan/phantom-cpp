@@ -875,7 +875,7 @@ namespace detail
     protected:
         struct dynamic_initializer_module_installation_func
         {
-            dynamic_initializer_module_installation_func() : setupFunc(NULL){}
+            dynamic_initializer_module_installation_func() : setupFunc(NULL) {}
             dynamic_initializer_module_installation_func( module_installation_func    a_setupFunc )
                 : setupFunc(a_setupFunc)
             {
@@ -893,6 +893,7 @@ namespace detail
         vector<dynamic_initializer_module_installation_func_vector>     m_DeferredSetupInfos;
         vector<reflection::Template*>                                   m_DeferredTemplates;
         vector<Object*>                                                 m_DeferredReflectionSetupObjects;
+        bool                                                            m_bActive;
 
     public:
         void    registerType( phantom::reflection::Type* a_pType );
@@ -901,6 +902,8 @@ namespace detail
         void    registerTemplate( reflection::Template* a_pTemplate );
         void    installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle);
         void    uninstallReflection(const string& a_strName);
+        bool    isActive() const { return m_bActive; }
+        void    setActive(bool a_bActive) { o_assert(a_bActive == !m_bActive); m_bActive = a_bActive; }
     };
 }
 
@@ -1223,11 +1226,13 @@ namespace detail
         {
             Phantom::dynamic_initializer();
 
+            Phantom::dynamic_initializer()->setActive(true);
             // Ensure the creation of the meta type
             phantom::typeOf<t_Ty>();
             /// If you get an error : 'apply' : is not a member of 'phantom::detail::module_installer'
             /// It's probably because you didn't declare a reflection scope (internal or external) for the given t_Ty class
             Phantom::dynamic_initializer()->registerModule(&module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value);
+            Phantom::dynamic_initializer()->setActive(false);
         }
     };
 
@@ -1248,16 +1253,8 @@ namespace detail
         {
             Phantom::dynamic_initializer();
             auto pType = typeOf<t_Ty>();
-            /*Module* pModule = nullptr;
-            if(Phantom::getState() == Phantom::eState_Installed)
-            {
-                o_assert(pType->getTemplate());
-                pModule = pType->getTemplate()->getModule();
-                if(pModule)
-                {
-                    pType->getTemplate()->getModule()->addLanguageElement(pType);
-                }
-            }*/
+            o_assert(Phantom::dynamic_initializer()->isActive() && pType->getModule() == nullptr);
+            Module* pModule = nullptr;
             Phantom::dynamic_initializer()->registerModule(&module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value, true);
         }
     };
