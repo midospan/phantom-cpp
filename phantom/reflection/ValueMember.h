@@ -56,7 +56,9 @@ public:
     ValueMember(const string& a_strName, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers = 0);
     o_destructor ~ValueMember(void) {}
 
-    Range* getRange() const { return m_pRange; }
+    virtual ValueMember*    asValueMember() const { return (ValueMember*)this; }
+
+    Range*                  getRange() const { return m_pRange; }
 
     virtual void            getValue(void const* a_pObject, void* dest) const = 0;
     virtual void            setValue(void* a_pObject, void const* src) const = 0;
@@ -77,16 +79,13 @@ public:
 
     virtual    Type*        getValueType() const = 0;
 
-    inline SubValueMember*     getSubValueMember(uint i) const { return m_SubProperties[i]; }
-    SubValueMember*            getSubValueMember(const string& a_strName) const;
-    inline size_t           getSubValueMemberCount() const { return m_SubProperties.size(); }
+    inline SubValueMember*  getSubValueMember(uint i) const { return m_SubValueMembers[i]; }
+    SubValueMember*         getSubValueMember(const string& a_strName) const;
+    inline size_t           getSubValueMemberCount() const { return m_SubValueMembers.size(); }
 
     inline uint             getSerializationMask() const { return m_uiSerializationMask; }
-
-    
-    virtual boolean            isValueMember() const { return true; }
-
-    virtual        void        copyValue(void* dest, void const* src) const 
+                            
+    virtual        void     copyValue(void* dest, void const* src) const 
     {
         void* sourceBuffer = getValueType()->newInstance();
         getValue(src, sourceBuffer);
@@ -106,7 +105,7 @@ public:
     virtual void*           getAddress(void const* a_pInstance) const { return NULL; }
 
 protected:
-    phantom::vector<SubValueMember*>    m_SubProperties;
+    phantom::vector<SubValueMember*>    m_SubValueMembers;
     Range*                              m_pRange;
     uint                                m_uiSerializationMask;
     

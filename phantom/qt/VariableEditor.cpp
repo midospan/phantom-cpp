@@ -18,6 +18,17 @@
 /* *********************************************** */
 o_registerN((phantom, qt), VariableEditor);
 
+o_register(phantom::qt::TNumberLineEditor<phantom::uchar>);
+o_register(phantom::qt::TNumberLineEditor<short>);
+o_register(phantom::qt::TNumberLineEditor<phantom::ushort>);
+o_register(phantom::qt::TNumberLineEditor<int>);
+o_register(phantom::qt::TNumberLineEditor<phantom::uint>);
+o_register(phantom::qt::TNumberLineEditor<long>);
+o_register(phantom::qt::TNumberLineEditor<phantom::ulong>);
+o_register(phantom::qt::TNumberLineEditor<phantom::longlong>);
+o_register(phantom::qt::TNumberLineEditor<phantom::ulonglong>);
+o_register(phantom::qt::TNumberLineEditor<float>);
+o_register(phantom::qt::TNumberLineEditor<double>);
  
 namespace phantom { namespace qt {
 

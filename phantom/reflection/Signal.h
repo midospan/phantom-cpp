@@ -59,10 +59,7 @@ public:
     class return_type {};
 
 public:
-
     Signal(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
-
-    virtual boolean    isStatic() const { return false; }
 
     virtual connection::slot::list*    getSlotList( void* a_pCaller ) const = 0;
 
@@ -73,7 +70,6 @@ public:
 
     virtual void    initializeLocalStorage(void* a_pLocalStorageAddress);
 
-    virtual boolean isSignal() const { return true; }
     virtual Signal* asSignal() const  { return (Signal*)this; }
 
 private:

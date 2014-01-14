@@ -76,11 +76,11 @@ struct template_specialization_registrer
 };
 
 template<typename t_Ty>
-struct o_export typedef_registrer
+struct typedef_registrer
 {
     typedef_registrer( const char* a_strScope, const char* a_strTypedef )
     {
-        Phantom::dynamic_initializer(); // ensure modules (and especially reflection here) are initialized and ready
+        Phantom::dynamic_initializer()->setActive(true);
         phantom::reflection::Type* pType = phantom::typeByName(a_strScope);
         phantom::reflection::Type* pTypedefType = phantom::typeOf<t_Ty>();
         if(pType)
@@ -93,12 +93,14 @@ struct o_export typedef_registrer
             o_assert(pNamespace);
             pNamespace->addTypedef(a_strTypedef, pTypedefType);
         }
+        Phantom::dynamic_initializer()->setActive(false);
     }
 
     typedef_registrer( const char* a_strTypedef )
     {
-        Phantom::dynamic_initializer(); // ensure modules (and especially reflection here) are initialized and ready
+        Phantom::dynamic_initializer()->setActive(true);
         phantom::rootNamespace()->addTypedef(a_strTypedef, phantom::typeOf<t_Ty>());
+        Phantom::dynamic_initializer()->setActive(false);
     }
 };
 
@@ -367,9 +369,8 @@ namespace detail {
                     super_classes_adder<t_Ty>::apply(s_Type);
                     type_reflection_registrer<t_Ty>::apply(s_Type);
                     template_specialization_adder<t_Ty>::apply(s_Type);
-
-                    phantom::detail::module_installer_template_auto_registrer<t_Ty> raii;
-                    (void)raii;
+                    phantom::detail::module_installer_registrer<t_Ty> registrer;
+                    (void)registrer;
 
                 }
             }
@@ -1066,8 +1067,7 @@ o_namespace_end(phantom, reflection)
     {\
         static void apply(phantom::reflection::ClassType* a_pClassType)\
         {\
-            phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->getTemplate(a_pClassType->getName());\
-            o_assert(pTemplate, "template not registered for the current instanciation");\
+            phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName());\
             phantom::reflection::TemplateSpecialization* pTemplateSpecialization = o_new(phantom::reflection::TemplateSpecialization)(pTemplate);\
             o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
             a_pClassType->setTemplateSpecialization(pTemplateSpecialization);\
@@ -1082,8 +1082,7 @@ o_namespace_end(phantom, reflection, detail)
     {\
         static void apply(phantom::reflection::ClassType* a_pClassType)\
         {\
-            phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->getTemplate(a_pClassType->getName());\
-            o_assert(pTemplate, "template not registered for the current instanciation");\
+            phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName());\
             phantom::reflection::TemplateSpecialization* pTemplateSpecialization = o_new(phantom::reflection::TemplateSpecialization)(pTemplate);\
             o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
             a_pClassType->setTemplateSpecialization(pTemplateSpecialization);\
@@ -1098,8 +1097,7 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,
 {\
     static void apply(phantom::reflection::ClassType* a_pClassType)\
 {\
-    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->getTemplate(a_pClassType->getName());\
-    o_assert(pTemplate, "template not registered for the current instanciation");\
+    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName());\
     phantom::reflection::TemplateSpecialization* pTemplateSpecialization = o_new(phantom::reflection::TemplateSpecialization)(pTemplate);\
     o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
     a_pClassType->setTemplateSpecialization(pTemplateSpecialization);\
@@ -1114,8 +1112,7 @@ struct template_specialization_adder_<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name
 {\
     static void apply(phantom::reflection::ClassType* a_pClassType)\
 {\
-    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->getTemplate(a_pClassType->getName());\
-    o_assert(pTemplate, "template not registered for the current instanciation");\
+    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName());\
     phantom::reflection::TemplateSpecialization* pTemplateSpecialization = o_new(phantom::reflection::TemplateSpecialization)(pTemplate);\
     o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
     a_pClassType->setTemplateSpecialization(pTemplateSpecialization);\

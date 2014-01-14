@@ -79,82 +79,49 @@ Module::~Module()
 {
     vector<reflection::Class*> remaining_classes;
     auto languageElements = m_LanguageElements;
-    std::sort(languageElements.begin(), languageElements.end(), ModuleLanguageElementSorter());
-    auto it = languageElements.begin();
-    auto end = languageElements.end();
-    for(;it!=end;++it)
+    std::sort(m_LanguageElements.begin(), m_LanguageElements.end(), ModuleLanguageElementSorter());
+    while(!m_LanguageElements.empty())
     {
-        reflection::LanguageElement* pElement = *it;
-        if(pElement == NULL) continue;
-        if(pElement->isClass())
-        {
-            reflection::Class* pClass = static_cast<reflection::Class*>(pElement);
-            if(pClass->getSingleton())
-            {
-                pClass->destroySingleton();
-            }
-            pClass->destroyContent();
-            if(pClass->getKindCount() OR pClass->getDerivedClassCount()) 
-            {
-                remaining_classes.push_back(pClass);
-            }
-            else
-            {
-                o_dynamic_delete_clean(pClass);
-            }
-        }
-        else
-        {
-            o_dynamic_delete_clean(pElement);
-        }
-    }
-
-    while(!remaining_classes.empty())
-    {
-        auto it = remaining_classes.begin();
-        auto end = remaining_classes.end();
+        auto it = m_LanguageElements.begin();
+        auto end = m_LanguageElements.end();
         for(;it!=end;++it)
         {
-            if((*it)->getKindCount() OR (*it)->getDerivedClassCount()) continue;
-            break;
+            if((*it)->canBeDestroyed()) 
+                break;
         }
         if(it != end)
         {
-            o_dynamic_delete_clean((*it));
-            remaining_classes.erase(it);
+            o_dynamic_delete ((*it));
         }
         else
         {
-            if(remaining_classes.size() == 1 AND remaining_classes[0] == classOf<reflection::Class>() )
-            {
-                o_dynamic_delete_clean(remaining_classes[0]);
-                remaining_classes.clear();
-            }
-            else
-            {
+            
 #if defined(_DEBUG)
-                std::cout<<console::bg_gray<<console::fg_red;
-                std::cout<<"Phantom release process : some class instances haven't been destroyed"<<std::endl;
+            std::cout<<console::bg_gray<<console::fg_red;
+            std::cout<<"Phantom release process : some class instances haven't been destroyed"<<std::endl;
 
-                std::cout<<console::bg_black;
+            std::cout<<console::bg_black;
 
-                auto it = remaining_classes.begin();
-                auto end = remaining_classes.end();
-                for(;it!=end;++it)
+            auto it = m_LanguageElements.begin();
+            auto end = m_LanguageElements.end();
+            for(;it!=end;++it)
+            {
+                std::cout<<console::fg_red<<"----------------------------------------------------------------------------"<<std::endl;
+                std::cout<<console::fg_gray<<(*it)->getQualifiedDecoratedName()<<" : ";
+                if((*it)->asClass())
                 {
-                    std::cout<<console::fg_red<<"----------------------------------------------------------------------------"<<std::endl;
-                    std::cout<<console::fg_gray<<(*it)->getQualifiedDecoratedName()<<" : ";
-                    std::cout<<console::fg_red<<"this "<<(*it)->getInstanceCount()<<" ";
-                    std::cout<<console::fg_blue<<"all "<<(*it)->getKindCount()<<std::endl;
-
+                    std::cout<<console::fg_red<<"this "<<(*it)->asClass()->getInstanceCount()<<" ";
+                    std::cout<<console::fg_blue<<"all "<<(*it)->asClass()->getKindCount()<<std::endl;
                 }
-                std::cout<<console::fg_gray;
+            }
+            std::cout<<console::fg_gray;
+            o_assert(false);
+/*
 #   if o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS 
                 system("pause");
-#   endif
+#   endif*/
 #endif
-                return;
-            }
+            return;
         }
     }
 }
@@ -183,6 +150,23 @@ void Module::setParentModule( Module* a_pModule )
 bool Module::hasLanguageElement( reflection::LanguageElement* a_pLanguageElement ) const
 {
     return std::find(m_LanguageElements.begin(), m_LanguageElements.end(), a_pLanguageElement) != m_LanguageElements.end();
+}
+
+void Module::checkCompleteness()
+{
+    for(auto it = m_LanguageElements.begin(); it != m_LanguageElements.end(); ++it)
+    {
+        (*it)->checkCompleteness();
+    }
+}
+
+bool Module::canBeUnloaded() const
+{
+    for(auto it = m_LanguageElements.begin(); it != m_LanguageElements.end(); ++it)
+    {
+        if(NOT((*it)->canBeDestroyed())) return false;
+    }
+    return true;
 }
 
 o_cpp_end

@@ -59,7 +59,7 @@ public:
     virtual void construct(void* a_pChunk, argument::list* a_pParams, size_t a_uiCount) = 0;
     virtual void construct(void* a_pChunk, void** a_pParams, size_t a_uiCount) = 0;
 
-    virtual boolean        isConstructor() const { return true; }
+    virtual Constructor* asConstructor() const { return (Constructor*)this; }
 
 };
 

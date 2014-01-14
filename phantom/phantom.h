@@ -159,7 +159,9 @@ namespace detail
 {
     class dynamic_initializer_handle;
     template<typename t_Ty>
-    struct module_installer_template_auto_registrer;
+    struct module_installer;
+    template<typename t_Ty>
+    struct module_installer_registrer;
     template<typename t_Ty, boolean t_is_reflected_class>
     struct is_helper;
     template<typename t_Ty, boolean t_is_ptr_to_reflected_class>
@@ -180,7 +182,7 @@ namespace reflection
     template<typename> struct meta_class_type_of;
     template<typename> struct template_specialization_adder;
     template<typename> struct template_specialization_of;
-    struct typedef_registrer;
+    template<typename> struct typedef_registrer;
 
     namespace detail
     {
@@ -548,13 +550,13 @@ o_forceinline phantom::reflection::Type*        registerType()
 template <typename t_Ty>
 o_forceinline void                              registerTypedef(const char* a_strNamespace, const char* a_strTypedef)
 {
-    phantom::reflection::typedef_registrer(a_strNamespace, a_strTypedef, phantom::typeOf<t_Ty>());
+    phantom::reflection::typedef_registrer<t_Ty>(a_strNamespace, a_strTypedef);
 }
 
 template <typename t_Ty>
 o_forceinline void                              registerTypedef(const char* a_strTypedef)
 {
-    phantom::reflection::typedef_registrer(a_strTypedef, phantom::typeOf<t_Ty>());
+    phantom::reflection::typedef_registrer<t_Ty>(a_strTypedef);
 }
 
 o_export boolean           canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
@@ -894,16 +896,19 @@ namespace detail
         vector<reflection::Template*>                                   m_DeferredTemplates;
         vector<Object*>                                                 m_DeferredReflectionSetupObjects;
         bool                                                            m_bActive;
+        bool                                                            m_bAutoRegistrationLocked;
 
     public:
         void    registerType( phantom::reflection::Type* a_pType );
         void    registerType( const string& a_strNamespace, const string& a_strClassScope, phantom::reflection::Type* a_pType );
-        void    registerModule( module_installation_func setupFunc, uint a_uiSetupStepMask, bool a_bDeferred = true );
+        void    registerModule( module_installation_func setupFunc, uint a_uiSetupStepMask );
         void    registerTemplate( reflection::Template* a_pTemplate );
         void    installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle);
         void    uninstallReflection(const string& a_strName);
         bool    isActive() const { return m_bActive; }
+        bool    isAutoRegistrationLocked() const { return m_bAutoRegistrationLocked; }
         void    setActive(bool a_bActive) { o_assert(a_bActive == !m_bActive); m_bActive = a_bActive; }
+        void    setAutoRegistrationLocked(bool a_bLocked) { o_assert(a_bLocked == !m_bAutoRegistrationLocked); m_bAutoRegistrationLocked = a_bLocked; }
     };
 }
 
@@ -1219,49 +1224,75 @@ namespace detail
     {
     };
 
-    template<typename t_Ty>
-    struct dynamic_initializer_module_installer_registrer
+    template<typename t_Ty, bool is_deferred>
+    struct dynamic_initializer_module_installer_registrer_helper
     {
-        dynamic_initializer_module_installer_registrer()
+        dynamic_initializer_module_installer_registrer_helper()
         {
-            Phantom::dynamic_initializer();
-
             Phantom::dynamic_initializer()->setActive(true);
             // Ensure the creation of the meta type
+            Phantom::dynamic_initializer()->setAutoRegistrationLocked(true);
+            o_assert(phantom::typeOf<t_Ty>()->getModule() == nullptr, "Type already registered in another module");
             phantom::typeOf<t_Ty>();
+            Phantom::dynamic_initializer()->setAutoRegistrationLocked(false);
             /// If you get an error : 'apply' : is not a member of 'phantom::detail::module_installer'
             /// It's probably because you didn't declare a reflection scope (internal or external) for the given t_Ty class
-            Phantom::dynamic_initializer()->registerModule(&module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value);
             Phantom::dynamic_initializer()->setActive(false);
         }
+    };
+
+    template<typename t_Ty>
+    struct dynamic_initializer_module_installer_registrer_helper<t_Ty, true> 
+    {
+        dynamic_initializer_module_installer_registrer_helper()
+        {
+            Phantom::dynamic_initializer()->setActive(true);
+            // Ensure the creation of the meta type
+            Phantom::dynamic_initializer()->setAutoRegistrationLocked(true);
+            o_assert(phantom::typeOf<t_Ty>()->getModule() == nullptr, "Type already registered in another module");
+            phantom::typeOf<t_Ty>();
+            Phantom::dynamic_initializer()->registerModule(&phantom::detail::module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value);
+            Phantom::dynamic_initializer()->setAutoRegistrationLocked(false);
+            /// If you get an error : 'apply' : is not a member of 'phantom::detail::module_installer'
+            /// It's probably because you didn't declare a reflection scope (internal or external) for the given t_Ty class
+            Phantom::dynamic_initializer()->setActive(false);
+        }
+    };
+
+    template<typename t_Ty>
+    struct dynamic_initializer_module_installer_registrer 
+        : public dynamic_initializer_module_installer_registrer_helper<t_Ty, (phantom::meta_specifiers<t_Ty>::value & o_deferred) == o_deferred>
+    {
+
+    };
+
+    template<typename t_Ty, bool is_deferred>
+    struct module_installer_registrer_helper
+    {
+        module_installer_registrer_helper()
+        {
+            Phantom::dynamic_initializer()->registerModule(&phantom::detail::module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value);
+        }
+    };
+
+    template<typename t_Ty>
+    struct module_installer_registrer_helper<t_Ty, true> 
+    {
+        module_installer_registrer_helper()
+        {
+        }
+    };
+
+    template<typename t_Ty>
+    struct module_installer_registrer 
+        : public module_installer_registrer_helper<t_Ty, (phantom::meta_specifiers<t_Ty>::value & o_deferred) == o_deferred>
+    {
+
     };
 
     struct o_export dynamic_initializer_template_registrer
     {
         dynamic_initializer_template_registrer(const string& a_strNamespace, const string& a_strName);
-    };
-
-    template<typename t_Ty, bool t_is_template>
-    struct module_installer_template_auto_registrer_helper
-    {
-
-    };
-    template<typename t_Ty>
-    struct module_installer_template_auto_registrer_helper<t_Ty, true>
-    {
-        module_installer_template_auto_registrer_helper()
-        {
-            Phantom::dynamic_initializer();
-            auto pType = typeOf<t_Ty>();
-            o_assert(Phantom::dynamic_initializer()->isActive() && pType->getModule() == nullptr);
-            Module* pModule = nullptr;
-            Phantom::dynamic_initializer()->registerModule(&module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value, true);
-        }
-    };
-    template<typename t_Ty>
-    struct module_installer_template_auto_registrer
-        : public module_installer_template_auto_registrer_helper<t_Ty, phantom::is_template<t_Ty>::value>
-    {
     };
 
 }
@@ -1311,8 +1342,10 @@ o_export inline const string&                       metaDataName(size_t index)
 template<typename t_Ty>
 inline reflection::template_specialization_registrer<t_Ty>::template_specialization_registrer()
 {
+    Phantom::dynamic_initializer()->setActive(true);
     Phantom::dynamic_initializer(); // ensure modules (and especially reflection here) are initialized and ready
     phantom::typeOf<t_Ty>();
+    Phantom::dynamic_initializer()->setActive(false);
 }
 
 template<typename t_Ty>
@@ -1698,7 +1731,7 @@ o_namespace_begin(phantom, extension, detail)
             else o_phantom_extension_fundamental_converter_case(long double)\
             else o_phantom_extension_fundamental_converter_case(float)\
             else o_phantom_extension_fundamental_converter_case(double)\
-            else if(a_pDestType->isEnum()) \
+            else if(a_pDestType->asEnum()) \
             { \
                 switch(a_pDestType->getSize())\
                 {\
@@ -1737,7 +1770,7 @@ o_namespace_begin(phantom, extension, detail)
             else o_phantom_extension_fundamental_converter_can_case(long double)\
             else o_phantom_extension_fundamental_converter_can_case(float)\
             else o_phantom_extension_fundamental_converter_can_case(double)\
-            else if(a_pDestType->isEnum()) { return true; }\
+            else if(a_pDestType->asEnum()) { return true; }\
             return default_converter<s>::isConvertibleTo(a_pDestType);\
         }\
         static bool isImplicitlyConvertibleTo(reflection::Type* a_pDestType)\

@@ -66,7 +66,11 @@
 #        define o_local_value_InheritanceTypeSpecifier 0
 #endif
 
+#if defined(o_DeferredMetaElementSetup)
+#define o_local_value_MetaSpecifiers    (o_Flags|o_local_value_TemplateSpecifier|o_local_value_InheritanceTypeSpecifier|o_deferred)
+#else
 #define o_local_value_MetaSpecifiers    (o_Flags|o_local_value_TemplateSpecifier|o_local_value_InheritanceTypeSpecifier)
+#endif
 
 
 #if (((o_local_value_MetaSpecifiers) & o_proxy) == o_proxy)

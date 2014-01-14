@@ -51,8 +51,8 @@ ValueMember::ValueMember( const string& a_strName, Range* a_pRange, uint a_uiSer
 
 SubValueMember* ValueMember::getSubValueMember( const string& a_strName ) const
 {
-    phantom::vector<SubValueMember*>::const_iterator it = m_SubProperties.begin();
-    for(;it != m_SubProperties.end();++it)
+    phantom::vector<SubValueMember*>::const_iterator it = m_SubValueMembers.begin();
+    for(;it != m_SubValueMembers.end();++it)
     {
         if((*it)->getName() == a_strName)
             return (*it);

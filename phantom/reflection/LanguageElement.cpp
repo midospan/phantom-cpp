@@ -92,12 +92,17 @@ LanguageElement::LanguageElement( const string& a_strName, uint a_uiGuid, bitfie
 
 LanguageElement::~LanguageElement()
 {
-    if(m_pTemplateSpecialization)
+    if(m_pOwner)
     {
-        o_assert(m_pTemplateSpecialization->m_pOwner == this);
-        m_pTemplateSpecialization->m_pOwner = nullptr;
-        o_dynamic_delete m_pTemplateSpecialization;
-        m_pTemplateSpecialization = nullptr;
+        m_pOwner->removeElement(this);
+    }
+    while(m_pElements)
+    {
+        o_dynamic_delete m_pElements->back();
+    }
+    if(m_pModule)
+    {
+        m_pModule->removeLanguageElement(this);
     }
     while(m_CodeLocations && m_CodeLocations->size())
     {
@@ -252,8 +257,7 @@ void LanguageElement::setTemplateSpecialization( TemplateSpecialization* a_pTemp
     o_assert(m_pTemplateSpecialization == NULL);
     o_assert(a_pTemplateSpecialization);
     o_assert(a_pTemplateSpecialization->m_pOwner == NULL);
-    m_pTemplateSpecialization = a_pTemplateSpecialization;
-    a_pTemplateSpecialization->m_pOwner = this;
+    addElement(a_pTemplateSpecialization);
 }
 
 Template* LanguageElement::getTemplate() const
@@ -298,6 +302,7 @@ void LanguageElement::getElementsCascade( vector<LanguageElement*>& out, Class* 
 
 void LanguageElement::addElement( LanguageElement* a_pElement )
 {
+    o_assert(a_pElement != this);
     o_assert(a_pElement->m_pOwner == nullptr);
     if(m_pElements == nullptr)
     {
@@ -305,11 +310,13 @@ void LanguageElement::addElement( LanguageElement* a_pElement )
     }
     m_pElements->push_back(a_pElement);
     a_pElement->m_pOwner = this;
+    elementAdded(a_pElement);
 }
 
 void LanguageElement::removeElement( LanguageElement* a_pElement )
 {
     o_assert(a_pElement->m_pOwner == this);
+    elementRemoved(a_pElement);
     m_pElements->erase(std::find(m_pElements->begin(), m_pElements->end(), a_pElement));
     if(m_pElements->size() == 0)
     {
@@ -405,6 +412,45 @@ void LanguageElement::setModule( Module* a_pModule )
 void LanguageElement::moduleChanged( Module* a_pModule )
 {
 
+}
+
+bool LanguageElement::canBeDestroyed() const
+{
+    if(m_pTemplateSpecialization) return m_pTemplateSpecialization->canBeDestroyed() ;
+    if(m_pElements)
+    {
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            if(NOT((*it)->canBeDestroyed())) return false;
+        }
+    }
+    return true;
+}
+
+void LanguageElement::checkCompleteness() const
+{
+    if(m_pTemplateSpecialization)
+        m_pTemplateSpecialization->checkCompleteness();
+}
+
+void LanguageElement::elementAdded( LanguageElement* a_pElement )
+{
+    TemplateSpecialization* pTemplateSpecialization = a_pElement->asTemplateSpecialization();
+    if(pTemplateSpecialization)
+    {
+        o_assert(m_pTemplateSpecialization == nullptr);
+        m_pTemplateSpecialization = pTemplateSpecialization;
+    }
+}
+
+void LanguageElement::elementRemoved( LanguageElement* a_pElement )
+{
+    TemplateSpecialization* pTemplateSpecialization = a_pElement->asTemplateSpecialization();
+    if(pTemplateSpecialization)
+    {
+        o_assert(m_pTemplateSpecialization == pTemplateSpecialization);
+        m_pTemplateSpecialization = nullptr;
+    }
 }
 
 o_cpp_end

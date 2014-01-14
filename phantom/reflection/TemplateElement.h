@@ -58,6 +58,8 @@ public:
     TemplateElement(const string& a_strName, uint a_uiGuid, bitfield a_Modifiers = 0);
     ~TemplateElement();
 
+    virtual TemplateElement* asTemplateElement() const { return (TemplateElement*)this; }
+
 protected:
     void registerReferencingTemplateSpecialization(TemplateSpecialization* a_pTemplateSpecialization);
     void unregisterReferencingTemplateSpecialization(TemplateSpecialization* a_pTemplateSpecialization);

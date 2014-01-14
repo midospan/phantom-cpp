@@ -46,7 +46,7 @@
 /* *********************************************** */
 o_h_begin
 
-class o_export Enum : public Type
+class o_export Enum : public PrimitiveType
 {
     reflection_____________________________________________________________________________________
     _____________________________________________________________________________________reflection
@@ -71,17 +71,19 @@ public:
         , function_signature const* fs
         , bitfield a_Modifiers = 0) const;
 
-    virtual boolean isEnum() const { return true; }
-    virtual Enum*   asEnum() const { return const_cast<Enum*>(this); }
+    virtual Enum*           asEnum() const { return const_cast<Enum*>(this); }
+    virtual PrimitiveType*  asIntegralType() const { return const_cast<Enum*>(this); }
 
     virtual boolean         isConvertibleTo(Type* a_pType) const;
     virtual boolean         isImplicitlyConvertibleTo(Type* a_pType) const;
     virtual void            convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;
 
-    virtual boolean         isIntegralType() const { return true; }
-
     virtual void            valueFromString(const string& a_strIn, void* a_pDest) const;
     virtual void            valueToString(string& a_strOut, const void* a_pSrc) const;
+
+protected:
+    virtual void            elementAdded(LanguageElement* a_pElement);
+    virtual void            elementRemoved(LanguageElement* a_pElement);
 
 protected:
     typedef phantom::vector<Constant*>     value_vector;

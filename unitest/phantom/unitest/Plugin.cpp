@@ -6,7 +6,7 @@
          N ested state-machines and 
          T emplate 
          O riented 
-         M eta-programming
+         M eta-programming 
 
     For the latest infos and sources, see http://code.google.com/p/phantom-cpp
 

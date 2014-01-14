@@ -123,7 +123,6 @@ public:
     virtual void            valueToString( string& s, const void* src ) const;
 
     virtual void            smartCopy(void* a_Instance, void const* a_pSource, reflection::Type* a_pSourceType) const;
-    virtual boolean         isClassType() const { return true; }
 
     virtual LanguageElement*getElement(
         const char* a_strQualifiedName
@@ -139,19 +138,10 @@ public:
     const variant& getAttribute(const string& a_strName) const;
 
 protected:
-    void                    addMember( LanguageElement* a_pMember );
-    void                    removeMember( LanguageElement* a_pMember );
-    
-    virtual void            teardownMetaDataCascade(size_t count)
-    {
-        member_collection::const_iterator it = m_Members.begin();
-        member_collection::const_iterator end = m_Members.end();
-        for(;it != end; ++it)
-        {
-            it->second->teardownMetaDataCascade(count);
-        }
-        Type::teardownMetaDataCascade(count);
-    }
+    bool canBeDestroyed() const;
+    virtual void  teardownMetaDataCascade(size_t count);
+    void elementAdded(LanguageElement* a_pElement);
+    void elementRemoved(LanguageElement* a_pElement);
 
 protected:
     member_collection       m_Members;

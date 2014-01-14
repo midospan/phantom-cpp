@@ -64,95 +64,41 @@ public:
 
     InstanceMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
 
-    reflection::ClassType*  getOwnerClassType() const { return static_cast<reflection::ClassType*>(m_pOwner); }
-    reflection::Class*      getOwnerClass() const { return static_cast<reflection::ClassType*>(m_pOwner)->asClass(); }
+    reflection::ClassType*              getOwnerClassType() const { return static_cast<reflection::ClassType*>(m_pOwner); }
+    reflection::Class*                  getOwnerClass() const { return static_cast<reflection::ClassType*>(m_pOwner)->asClass(); }
 
-    void    safeInvoke( void* a_pCallerAddress, void** a_pArgs ) const 
-    {
-        reflection::Class* pOwnerClass = m_pOwner->asClass();
-        if(pOwnerClass)
-        {
-            const rtti_data& rttiData = phantom::rttiDataOf(a_pCallerAddress);
-            call( rttiData.cast(pOwnerClass), a_pArgs);
-        }
-        else
-        {
-            call( a_pCallerAddress, a_pArgs);
-        }
-    }
-    void    safeInvoke( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const 
-    {
-        reflection::Class* pOwnerClass = m_pOwner->asClass();
-        if(pOwnerClass)
-        {
-            const rtti_data& rttiData = phantom::rttiDataOf(a_pCallerAddress);
-            call( rttiData.cast(pOwnerClass), a_pArgs, a_pReturnAddress);
-        }
-        else
-        {
-            call( a_pCallerAddress, a_pArgs, a_pReturnAddress);
-        }
-    }
+    void                                safeInvoke( void* a_pCallerAddress, void** a_pArgs ) const;
+    void                                safeInvoke( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const;
 
-    virtual void    call( void* a_pCallerAddress, void** a_pArgs ) const = 0;
-    virtual void    call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const = 0;
+    virtual void                        call( void* a_pCallerAddress, void** a_pArgs ) const = 0;
+    virtual void                        call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const = 0;
     
-    virtual void    call( void** a_pArgs ) const 
-    { 
-        void* caller = *a_pArgs++;
-        call( caller, a_pArgs); 
-    }
-    virtual void    call( void** a_pArgs, void* a_pReturnAddress ) const 
-    {
-        void* caller = *a_pArgs++;
-        call( caller, a_pArgs); 
-    }
+    virtual void                        call( void** a_pArgs ) const;
+    virtual void                        call( void** a_pArgs, void* a_pReturnAddress ) const;
 
-    bool                canOverload(InstanceMemberFunction* a_pInstanceMemberFunction) const
-    {
-        EOverloadRelation r = getOverloadRelationWith(a_pInstanceMemberFunction);
-        return (r == e_OverloadRelation_Covariant) OR (r == e_OverloadRelation_Equal);
-    }
+    bool                                canOverload(InstanceMemberFunction* a_pInstanceMemberFunction) const;
+    bool                                canOverload(const string& a_strName, Signature* a_pSignature) const;
+    EOverloadRelation                   getOverloadRelationWith(const string& a_strName, Signature* a_pSignature) const;
+    EOverloadRelation                   getOverloadRelationWith(InstanceMemberFunction* a_pMemberFunction) const;
 
-    bool                canOverload(const string& a_strName, Signature* a_pSignature) const
-    {
-        EOverloadRelation r = getOverloadRelationWith(a_strName, a_pSignature);
-        return (r == e_OverloadRelation_Covariant) OR (r == e_OverloadRelation_Equal);
-    }
-
-    EOverloadRelation   getOverloadRelationWith(const string& a_strName, Signature* a_pSignature) const;
-
-    EOverloadRelation   getOverloadRelationWith(InstanceMemberFunction* a_pMemberFunction) const
-    {
-        if(NOT(a_pMemberFunction->isVirtual())) return e_OverloadRelation_None;
-        return getOverloadRelationWith(a_pMemberFunction->getName(), a_pMemberFunction->getSignature());
-    }
-
-    boolean             isAbstract() const { return ((m_Modifiers & o_abstract) == o_abstract); }
-    boolean             isVirtual() const { return ((m_Modifiers & o_virtual) == o_virtual); }
-
-    boolean             isConst() const { return ((m_Modifiers & o_const) == o_const); }
-
-    virtual boolean     isInstanceMemberFunction() const { return true; }
-    virtual boolean     isSlot() const { return ((m_Modifiers & o_slot_member_function) == o_slot_member_function); }
-    virtual InstanceMemberFunction*    asSlot() const { return (((m_Modifiers & o_slot_member_function) == o_slot_member_function)) ? const_cast<InstanceMemberFunction*>(this) : nullptr; }
-
-    int                 getVirtualTableIndex() const { return m_iVirtualTableIndex; }
-
-    virtual LanguageElement*    asLanguageElement() const { return const_cast<InstanceMemberFunction*>(this); }
-    virtual Subroutine*         asSubroutine() const { return const_cast<InstanceMemberFunction*>(this); }
-    virtual void                findOverloadedMemberFunctions(vector<InstanceMemberFunction*>& a_Result) const;
-    virtual Class*              getSortingCategoryClass() const;
+    virtual InstanceMemberFunction*     asSlot() const { return (((m_Modifiers & o_slot_member_function) == o_slot_member_function)) ? const_cast<InstanceMemberFunction*>(this) : nullptr; }
+    virtual LanguageElement*            asLanguageElement() const { return const_cast<InstanceMemberFunction*>(this); }
+    virtual Subroutine*                 asSubroutine() const { return const_cast<InstanceMemberFunction*>(this); }
     virtual InstanceMemberFunction*     asInstanceMemberFunction() const { return const_cast<InstanceMemberFunction*>(this); }
     virtual MemberFunction*             asMemberFunction() const { return const_cast<InstanceMemberFunction*>(this); }
 
-    virtual generic_member_func_ptr getGenericMemberFunctionPointer() const = 0;
+    int                                 getVirtualTableIndex() const { return m_iVirtualTableIndex; }
+    
+    virtual void                        findOverloadedMemberFunctions(vector<InstanceMemberFunction*>& a_Result) const;
+    virtual Class*                      getSortingCategoryClass() const;
+    
+    virtual generic_member_func_ptr     getGenericMemberFunctionPointer() const = 0;
 
 protected:
-    void                setVirtualTableIndex(int index) { o_assert(m_iVirtualTableIndex == -1); m_iVirtualTableIndex = index; }
+    void                                setVirtualTableIndex(int index) { o_assert(m_iVirtualTableIndex == -1); m_iVirtualTableIndex = index; }
 
 protected:
-    int            m_iVirtualTableIndex;
+    int                                 m_iVirtualTableIndex;
 
 };
 

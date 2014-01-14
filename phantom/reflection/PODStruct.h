@@ -64,7 +64,7 @@ public:
     {
     }
 
-    virtual boolean    isPOD() const { return true; }
+    virtual Type* asPOD() const { return (PODStruct*)this; }
 
 };
 

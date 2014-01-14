@@ -79,7 +79,7 @@ public:
     static boolean defaultDependencyCheckerInContainer( reflection::ContainerClass* a_pContainerClass, void* a_pContainer, const phantom::data& a_Dep );
     static boolean defaultDependencyChecker(const phantom::data& a_Src, const phantom::data& a_Dep)
     {
-        return a_Src.type()->isClassType()
+        return (a_Src.type()->asClassType() != nullptr)
             AND defaultDependencyCheckerClassType(a_Src.address()
             , static_cast<reflection::ClassType*>(a_Src.type())
             , a_Dep);
@@ -87,13 +87,7 @@ public:
 
     static void         defaultDependencyGetterClassType(void* a_SrcAddress, phantom::reflection::ClassType* a_pClassType, vector<phantom::data>& a_Dependencies);
 
-    static void         defaultDependencyGetter(const phantom::data& a_Src, vector<phantom::data>& a_Dependencies)
-    {
-        if(a_Src.type()->isClassType())
-            defaultDependencyGetterClassType(a_Src.address()
-            , static_cast<reflection::ClassType*>(a_Src.type())
-            , a_Dependencies);
-    }
+    static void         defaultDependencyGetter(const phantom::data& a_Src, vector<phantom::data>& a_Dependencies);
 
 protected:
     struct data_sorter_sub_data_first

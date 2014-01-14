@@ -65,9 +65,8 @@ protected:
 public:
     o_destructor ~PointerType(void)     {}
 
-    virtual boolean        isPOD() const { return true; }
-    
-    virtual boolean        isPointerType() const { return true; }
+    virtual Type*           asPOD() const { return (PointerType*)this; }
+    virtual PointerType*    asPointerType() const { return (PointerType*)this; }
 
     virtual void        safeConstruct(void* a_pBuffer) const 
     {

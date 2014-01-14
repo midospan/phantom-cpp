@@ -95,6 +95,8 @@ public:
     }
     o_destructor ~Signature(void);
 
+    virtual Signature* asSignature() const { return (Signature*)this; }
+
     boolean         equals(Object* other) const
     {
         if(NOT(phantom::is<Signature>(other))) return false;

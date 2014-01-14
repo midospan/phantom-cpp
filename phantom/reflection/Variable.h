@@ -75,6 +75,8 @@ public:
     virtual void*       getAddress() const { return NULL; }
     Range*              getRange() const { return m_pRange; }
 
+    virtual Variable*   asVariable() const  { return (Variable*)this; }
+
 protected:
     Range* m_pRange;
 };

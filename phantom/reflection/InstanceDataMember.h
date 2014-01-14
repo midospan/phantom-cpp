@@ -60,7 +60,6 @@ public:
     Range*                  getRange() const { return ValueMember::getRange(); }
     virtual size_t          getOffset() const = 0;
     virtual void*           getAddress( void const* a_pObject ) const = 0;
-    virtual boolean         isInstanceDataMember() const { return true; }
 
     // fast content type access
     inline Type*            getContentType() const { return m_pContentType; }

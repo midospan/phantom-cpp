@@ -26,6 +26,8 @@ public:
     LocalVariable(Block* a_pBlock, reflection::Type* a_pType, const string& a_strName, const CodeLocation& a_Location, bitfield modifiers = 0);
 	~LocalVariable(void) 	{}
 
+    virtual LocalVariable*  asLocalVariable() const { return (LocalVariable*)this; }
+
     reflection::Type*   getValueType() const { return m_pType; }
     Block*              getBlock() const;
 

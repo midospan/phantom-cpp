@@ -389,7 +389,11 @@
     <ClCompile Include="..\..\..\phantom\def_memory.cpp" />
     <ClCompile Include="..\..\..\phantom\def_reflection.cpp" />
     <ClCompile Include="..\..\..\phantom\externals\boost\boost.cpp" />
+    <ClCompile Include="..\..\..\phantom\externals\std\list.cpp" />
+    <ClCompile Include="..\..\..\phantom\externals\std\map.cpp" />
     <ClCompile Include="..\..\..\phantom\externals\std\std.cpp" />
+    <ClCompile Include="..\..\..\phantom\externals\std\string.cpp" />
+    <ClCompile Include="..\..\..\phantom\externals\std\vector.cpp" />
     <ClCompile Include="..\..\..\phantom\math\math.cpp" />
     <ClCompile Include="..\..\..\phantom\math\vector_reflection.cpp" />
     <ClCompile Include="..\..\..\phantom\memory\nedmalloc.cpp" />

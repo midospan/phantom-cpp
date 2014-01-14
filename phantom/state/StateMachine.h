@@ -75,6 +75,7 @@ public:
     StateMachine(bitfield a_Modifiers = 0);
     o_destructor ~StateMachine(void);
 
+    virtual StateMachine* asStateMachine() const { return (StateMachine*)this; }
     reflection::Class*    getOwnerClass() const { return static_cast<reflection::Class*>(m_pOwner); }
 
     virtual void    install(void* a_pObject) const = 0;

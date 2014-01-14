@@ -53,11 +53,10 @@ public:
     virtual void    call( void* a_pCallerAddress, void** a_pParams) const = 0;
     virtual void    call( void* a_pCallerAddress, void** a_pParams, void* a_pReturnAddress) const = 0;
 
-    virtual boolean         isMemberFunction() const { return true; }
     virtual InstanceMemberFunction* asInstanceMemberFunction() const { return nullptr; }
     virtual StaticMemberFunction*   asStaticMemberFunction() const { return nullptr; }
-    virtual LanguageElement*asLanguageElement() const = 0;
-    virtual Subroutine*     asSubroutine() const = 0;
+    virtual LanguageElement*        asLanguageElement() const = 0;
+    virtual Subroutine*             asSubroutine() const = 0;
 };
 
 o_h_end

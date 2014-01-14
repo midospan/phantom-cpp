@@ -60,6 +60,8 @@ public:
     TemplateSpecialization(Template* a_pTemplate);
     o_destructor ~TemplateSpecialization();
 
+    virtual TemplateSpecialization* asTemplateSpecialization() const { return (TemplateSpecialization*)this; }
+
     uint                getElementCount() const { return m_Elements.size(); }
     Type*               getType(const string& a_strTypenameVariableName) const;
     ClassType*          getClassType() const { return m_pOwner ? m_pOwner->asClassType() : nullptr; }
@@ -74,6 +76,10 @@ public:
   
     Template*           getTemplate() const { return m_pTemplate; }
 
+    virtual void        checkCompleteness() const;
+    virtual bool        canBeDestroyed() const;
+
+ 
 protected:
     void            _updateName();
 

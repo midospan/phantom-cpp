@@ -156,6 +156,7 @@ void    extension::detail::dynamic_delete_helper::operator>>(void* instance)
 
 detail::dynamic_initializer_handle::dynamic_initializer_handle()
     : m_bActive(false)
+    , m_bAutoRegistrationLocked(false)
 {
     Phantom::m_rtti_data_map = o_allocate(Phantom::rtti_data_map);
     new (Phantom::m_rtti_data_map) Phantom::rtti_data_map; 
@@ -326,8 +327,9 @@ void detail::dynamic_initializer_handle::registerTemplate( reflection::Template*
     m_DeferredTemplates.push_back(a_pTemplate);
 }
 
-void detail::dynamic_initializer_handle::registerModule( module_installation_func setupFunc, uint a_uiSetupStepMask, bool a_bDeferred /*= true*/ )
+void detail::dynamic_initializer_handle::registerModule( module_installation_func setupFunc, uint a_uiSetupStepMask )
 {
+    o_assert(isActive());
     if(setupFunc == NULL) 
         return;
 
@@ -347,7 +349,7 @@ void detail::dynamic_initializer_handle::registerModule( module_installation_fun
             }
             if(NOT(alreadyRegistered))
             {
-                if(a_bDeferred || Phantom::getState() != Phantom::eState_Installed)
+                if(isAutoRegistrationLocked() || Phantom::getState() != Phantom::eState_Installed)
                 {
                     m_DeferredSetupInfos[i].push_back(dynamic_initializer_module_installation_func(setupFunc));
                 }
@@ -394,6 +396,8 @@ void detail::dynamic_initializer_handle::installReflection(const string& a_strNa
         infos.clear();
     }
     phantom::popModule();
+    pModule->checkCompleteness();
+    
     if(a_strName == "")
     {
         Phantom::m_eState = Phantom::eState_Installed;
@@ -578,7 +582,7 @@ connection::slot const* connect( void* a_pSender, const character* a_pSignal, vo
         o_warning(false, (string("unknown slot : ")+a_pMemberFunction).c_str());
         return nullptr;
     }
-    if(NOT(pInstanceMemberFunction->isSlot()))
+    if(pInstanceMemberFunction->asSlot() == nullptr)
     {
         o_warning(false, "connecting to a member_function which is not a slot");
     }
@@ -613,7 +617,7 @@ connection::slot const* connect( void* a_pSender, phantom::reflection::Signal* a
     {
         o_exception(exception::reflection_runtime_exception, "the slot doesn't belong to the receiver's class");
     }
-    if(NOT(a_pMemberFunction->isSlot()))
+    if(a_pMemberFunction->asSlot() == nullptr)
     {
         o_warning(false, "connecting to a member_function which is not a slot");
     }
@@ -651,7 +655,7 @@ connection::slot const* tryConnect( void* a_pSender, const character* a_pSignal,
     {
         return nullptr;
     }
-    if(NOT(pInstanceMemberFunction->isSlot()))
+    if(pInstanceMemberFunction->asSlot() == nullptr)
     {
         o_warning(false, "connecting to a member_function which is not a slot");
     }
@@ -1053,11 +1057,15 @@ o_export void yieldCurrentThread()
 
 o_export void                                          installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle)
 {
+    Phantom::dynamic_initializer()->setActive(true);
     Phantom::dynamic_initializer()->installReflection(a_strName, a_strFileName, a_PlatformHandle);
+    Phantom::dynamic_initializer()->setActive(false);
 }
 o_export void                                          uninstallReflection(const string& a_strName)
 {
+    Phantom::dynamic_initializer()->setActive(true);
     Phantom::dynamic_initializer()->uninstallReflection(a_strName);
+    Phantom::dynamic_initializer()->setActive(false);
 }
 
 o_export void pushModule( Module* a_pModule )
@@ -1136,8 +1144,7 @@ detail::dynamic_initializer_template_registrer::dynamic_initializer_template_reg
     reflection::Namespace* pNamespace = rootNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
     /// If you get an error : 'apply' : is not a member of 'phantom::detail::module_installer'
     /// It's probably because you didn't declare a reflection scope (internal or external) for the given t_Ty class
-    reflection::Template* pTemplate = o_new(reflection::Template)(a_strName);
-    pNamespace->addTemplate(pTemplate);
+    reflection::Template* pTemplate = pNamespace->findOrCreateTemplate(a_strName);
     Phantom::dynamic_initializer()->registerTemplate(pTemplate);
     Phantom::dynamic_initializer()->setActive(false);
 }

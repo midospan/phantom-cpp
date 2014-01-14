@@ -140,7 +140,7 @@ boolean DataBase::defaultDependencyCheckerInContainer( reflection::ContainerClas
     bool result = false;
 
     reflection::Type* pType = a_pContainerClass->getValueType();
-    if(pType->isDataPointerType())
+    if(pType->asDataPointerType())
     {
         void* ptr = nullptr; 
         while(pIterator->hasNext())
@@ -184,7 +184,7 @@ boolean DataBase::defaultDependencyCheckerClassType( void* a_SrcAddress, phantom
     {
         reflection::ValueMember* pValueMember = static_cast<reflection::ValueMember*>(it->second);
         reflection::Type* pType = pValueMember->getValueType();
-        if(pType->isDataPointerType())
+        if(pType->asDataPointerType())
         {
             void* ptr = nullptr;
             pValueMember->getValue(a_pClassType->cast(pValueMember->getOwnerClassType(), a_SrcAddress), &ptr);
@@ -207,7 +207,7 @@ boolean DataBase::defaultDependencyCheckerClassType( void* a_SrcAddress, phantom
             }
         }
     }
-    if(a_pClassType->isClass())
+    if(a_pClassType->asClass())
     {
         reflection::Class* pClass = static_cast<reflection::Class*>(a_pClassType);
         size_t i = 0;
@@ -229,7 +229,7 @@ void DataBase::defaultDependencyGetterClassType( void* a_SrcAddress, phantom::re
     for(; it != end; ++it)
     {
         reflection::ValueMember* pValueMember = static_cast<reflection::ValueMember*>(it->second);
-        if(NOT(pValueMember->isTransient()) AND pValueMember->getValueType()->isDataPointerType())
+        if(NOT(pValueMember->isTransient()) AND pValueMember->getValueType()->asDataPointerType() != nullptr)
         {
             void* value = NULL;
             pValueMember->getValue(a_SrcAddress, &value);
@@ -243,7 +243,7 @@ void DataBase::defaultDependencyGetterClassType( void* a_SrcAddress, phantom::re
             }
         }
     }
-    if(a_pClassType->isClass())
+    if(a_pClassType->asClass())
     {
         reflection::Class* pClass = static_cast<reflection::Class*>(a_pClassType);
         size_t i = 0;
@@ -878,7 +878,7 @@ reflection::Collection* DataBase::getCollectionContainingSubData( const phantom:
 void DataBase::rebuildData( phantom::data& a_inOutData, reflection::Type* a_pOld, reflection::Type* a_pNewType, vector<data>& a_Old, vector<data>& a_New, uint a_uiStateId /*= 0xffffffff*/ )
 {
     o_assert(a_inOutData.type() == a_pOld);
-    o_assert(a_pOld->isClass() == a_pNewType->isClass(), "to be replaced, types must be of the same 'type', both classes or both not classes");
+    o_assert((a_pOld->asClass() != nullptr) == (a_pNewType->asClass() != nullptr), "to be replaced, types must be of the same 'type', both classes or both not classes");
 
     phantom::data newData(a_pNewType->allocate(), a_pNewType);
     a_pNewType->build(newData.address());
@@ -1066,7 +1066,12 @@ void DataBase::saveDataState( const phantom::data& a_Data, uint a_uiState )
     getNode(a_Data)->saveDataState(a_Data, a_uiState);
 }
 
-
-
+void DataBase::defaultDependencyGetter( const phantom::data& a_Src, vector<phantom::data>& a_Dependencies )
+{
+    if(a_Src.type()->asClassType())
+        defaultDependencyGetterClassType(a_Src.address()
+        , static_cast<reflection::ClassType*>(a_Src.type())
+        , a_Dependencies);
+}
 
 o_cpp_end

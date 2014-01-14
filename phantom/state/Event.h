@@ -58,6 +58,8 @@ public:
     Event(const string& a_strName, uint id, bitfield a_Modifiers = 0);
     ~Event() {}
 
+    virtual Event* asEvent() const { return (Event*)this; }
+
     uint getId() const  { return m_uiId; }
     
 protected:

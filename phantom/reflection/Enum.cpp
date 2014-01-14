@@ -42,26 +42,29 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
-Enum::Enum() : Type("", 4, 4, 0)
+Enum::Enum() 
+    : PrimitiveType("", 4, 4, 0)
 {
 
 }
 
-Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) : Type(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) 
+    : PrimitiveType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
 {
 
 }
 
-Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) : Type(a_strName, a_uiSize, a_uiAlignment, a_uiGuid, a_Modifiers)
+Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) 
+    : PrimitiveType(a_strName, a_uiSize, a_uiAlignment, a_uiGuid, a_Modifiers)
 {
 
 }
 
 Enum::~Enum()
 {
-    for(auto it = m_Constants.begin(); it != m_Constants.end(); ++it)
+    while(m_Constants.size())
     {
-        o_dynamic_delete (*it);
+        o_dynamic_delete m_Constants.back();
     }
 }
 
@@ -74,19 +77,19 @@ LanguageElement* Enum::getElement( const char* a_strName , template_specializati
 
 boolean Enum::isConvertibleTo( Type* a_pType ) const
 {
-    return a_pType == this OR a_pType->isIntegralType() OR a_pType->isArithmeticType();
+    return a_pType == this OR (a_pType->asIntegralType() != nullptr) OR (a_pType->asArithmeticType() != nullptr);
 }
 
 boolean Enum::isImplicitlyConvertibleTo( Type* a_pType ) const
 {
     return a_pType == this 
-        OR (NOT(a_pType->isEnum()) AND a_pType->isIntegralType() OR a_pType->isArithmeticType());
+        OR ((a_pType->asEnum() == nullptr) AND (a_pType->asIntegralType() != nullptr) OR (a_pType->asArithmeticType() != nullptr));
 }
 
 void Enum::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const
 {
     o_assert(isConvertibleTo(a_pDestType));
-    if(a_pDestType->isIntegralType())
+    if(a_pDestType->asIntegralType())
     {
         if(a_pDestType->getSize() == getSize())
         {
@@ -97,7 +100,7 @@ void Enum::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_
             memcpy(a_pDestValue, a_pSrcValue, std::min(getSize(), a_pDestType->getSize()));
         }
     }
-    else if(a_pDestType->isArithmeticType())
+    else if(a_pDestType->asArithmeticType())
     {
         switch(getSize())
         {
@@ -121,14 +124,13 @@ void Enum::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_
 
 void Enum::addConstant( Constant* a_pConstant )
 {
-    o_assert(getConstant(a_pConstant->getName()) == NULL);
-    m_Constants.push_back(a_pConstant);
+    o_assert(getConstant(a_pConstant->getName()) == nullptr);
     addElement(a_pConstant);
 }
 
 void Enum::removeConstant( Constant* a_pConstant )
 {
-    m_Constants.erase(std::find(m_Constants.begin(), m_Constants.end(), a_pConstant));
+    o_assert(getConstant(a_pConstant->getName()) != nullptr);
     removeElement(a_pConstant);
 }
 
@@ -176,6 +178,18 @@ void Enum::valueToString( string& a_strOut, const void* a_pSrc ) const
     }
 }
 
+void Enum::elementAdded( LanguageElement* a_pElement )
+{
+    Constant* pConstant = a_pElement->asConstant();
+    o_assert(pConstant);
+    m_Constants.push_back(pConstant);
+}
 
+void Enum::elementRemoved( LanguageElement* a_pElement )
+{
+    Constant* pConstant = a_pElement->asConstant();
+    o_assert(pConstant);
+    m_Constants.erase(std::find(m_Constants.begin(), m_Constants.end(), pConstant));
+}
 
 o_cpp_end

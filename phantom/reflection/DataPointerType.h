@@ -56,19 +56,10 @@ public:
     friend class Type;
 
 protected:
-    DataPointerType(Type* a_pType) 
-        : PointerType(a_pType->getName()+'*'
-            , sizeof(void*)
-            , boost::alignment_of<void*>::value
-            , 0xFFFFFFFF
-            , 0)    
-        , m_pPointedType(a_pType)
-    {
-
-    }
+    DataPointerType(Type* a_pType);
 
 public:
-    o_destructor ~DataPointerType(void)     {}
+    o_destructor ~DataPointerType(void);
 
     virtual void*   allocate() const
     {
@@ -91,7 +82,6 @@ public:
 
 
     virtual DataPointerType*    asDataPointerType() const { return const_cast<DataPointerType*>(this); }
-    virtual boolean             isDataPointerType() const { return true; }
 
     virtual boolean     isConvertibleTo(Type* a_pType) const;
     virtual void        convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;

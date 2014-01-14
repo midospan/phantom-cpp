@@ -70,6 +70,10 @@ public:
 
     size_t getPlatformHandle() const { return m_PlatformHandle; }
 
+    void checkCompleteness();
+
+    bool canBeUnloaded() const;
+
 protected:
     Module*                                 m_pParentModule;
     string                                  m_strName;

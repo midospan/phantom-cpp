@@ -124,8 +124,6 @@ public:
 
     Type*               getReferencedType() const { return m_pReferencedType; }
 
-    virtual boolean     isReferenceType() const { return true; }
-
     virtual boolean     isConvertibleTo(Type* a_pType) const;
     virtual boolean     isImplicitlyConvertibleTo( Type* a_pType ) const;
     virtual void        convertValueTo(Type* a_pDestType, void* a_pDestValue, const void* a_pSrcValue) const;

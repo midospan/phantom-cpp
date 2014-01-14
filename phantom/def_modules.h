@@ -59,12 +59,12 @@
     o_reflection_specialize_type_name_of_helperNTT(_namespaces_,_template_types_,_template_params_,_name_) \
     o_reflection_specialize_template_specialization_adderNTT(_namespaces_,_template_types_,_template_params_,_name_)\
     o_traits_specialize_all_super_traitNTTS(_namespaces_, _template_types_,_template_params_, _name_,_supers_)\
-    o_traits_specializeNTT(is_template, (const static bool value = true), _namespaces_, _template_types_,_template_params_, _name_)
+    o_traits_specializeNT(is_template, (const static bool value = true), _namespaces_, _template_types_,_template_params_, _name_)
 
 #define o_type_specialize_traitsNTT(_namespaces_,_template_types_,_template_params_,_name_)  \
     o_reflection_specialize_type_name_of_helperNTT(_namespaces_,_template_types_,_template_params_,_name_) \
     o_reflection_specialize_template_specialization_adderNTT(_namespaces_,_template_types_,_template_params_,_name_)\
-    o_traits_specializeNTT(is_template, (const static bool value = true), _namespaces_, _template_types_,_template_params_, _name_)
+    o_traits_specializeNT(is_template, (const static bool value = true), _namespaces_, _template_types_,_template_params_, _name_)
 
 #define o_type_specialize_traitsNCTT(_namespaces_,_classes_,_template_types_,_template_params_,_name_)  \
     o_reflection_specialize_type_name_of_helperNCTT(_namespaces_,_classes_,_template_types_,_template_params_,_name_) \
@@ -157,13 +157,13 @@
 #define o_classNT(_namespaces_,_template_types_,_template_params_,_name_,...) \
     o_reflection_specialize_type_name_of_forward_helperNTT(_namespaces_,_template_types_,_template_params_,_name_)\
     o_type_specialize_traitsNTT(_namespaces_,_template_types_,_template_params_,_name_) \
-    o_traits_specializeNTT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _template_types_,_template_params_, _name_)\
+    o_traits_specializeNT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _template_types_,_template_params_, _name_)\
     o_class_moduleNTT(_namespaces_,_template_types_,_template_params_,_name_)
 
 #define o_classNTS(_namespaces_,_template_types_,_template_params_,_name_,_supers_,...) \
     o_reflection_specialize_type_name_of_forward_helperNTT(_namespaces_,_template_types_,_template_params_,_name_)\
     o_type_specialize_traitsNTTS(_namespaces_,_template_types_,_template_params_,_name_,_supers_) \
-    o_traits_specializeNTT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _template_types_,_template_params_, _name_)\
+    o_traits_specializeNT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _template_types_,_template_params_, _name_)\
     o_class_moduleNTT(_namespaces_,_template_types_,_template_params_,_name_)
 
 #define o_classNCS(_namespaces_,_classes_,_name_,_supers_,...) \
@@ -194,7 +194,7 @@
 #define o_register_associated_template_list_5(t0, t1, t2, t3, t4) o_register_associated_template_list_4(t0, t1, t2, t3) o_register(t4)
 
 #define o_register(...)\
-    static phantom::detail::dynamic_initializer_module_installer_registrer< ::__VA_ARGS__ > o_PP_CAT(g_register_module_, __COUNTER__) ;
+    static phantom::detail::dynamic_initializer_module_installer_registrer< __VA_ARGS__ > o_PP_CAT(g_register_module_, __COUNTER__) ;
 
 #define o_registerN(_namespaces_,_name_)\
     static phantom::detail::dynamic_initializer_module_installer_registrer< o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) > o_PP_CAT(g_register_module_, o_PP_CAT(_name_, __COUNTER__)) ;

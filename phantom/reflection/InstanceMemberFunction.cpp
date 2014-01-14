@@ -102,10 +102,17 @@ InstanceMemberFunction::EOverloadRelation InstanceMemberFunction::getOverloadRel
     return e_OverloadRelation_Forbidden;
 }
 
+InstanceMemberFunction::EOverloadRelation InstanceMemberFunction::getOverloadRelationWith( InstanceMemberFunction* a_pMemberFunction ) const
+{
+    if(NOT(a_pMemberFunction->isVirtual())) return e_OverloadRelation_None;
+    return getOverloadRelationWith(a_pMemberFunction->getName(), a_pMemberFunction->getSignature());
+}
+
+
 void InstanceMemberFunction::findOverloadedMemberFunctions(vector<InstanceMemberFunction*>& a_Result) const
 {
     if(m_pOwner == NULL) return;
-    if(m_pOwner->isClass()) 
+    if(m_pOwner->asClass()) 
         static_cast<Class*>(m_pOwner)->findOverloadedMemberFunctions(const_cast<InstanceMemberFunction*>(this), a_Result);
 }
 
@@ -113,5 +120,63 @@ Class* InstanceMemberFunction::getSortingCategoryClass() const
 {
     return classOf<InstanceMemberFunction>();
 }
+
+bool InstanceMemberFunction::canOverload( InstanceMemberFunction* a_pInstanceMemberFunction ) const
+{
+    EOverloadRelation r = getOverloadRelationWith(a_pInstanceMemberFunction);
+    return (r == e_OverloadRelation_Covariant) OR (r == e_OverloadRelation_Equal);
+}
+
+bool InstanceMemberFunction::canOverload( const string& a_strName, Signature* a_pSignature ) const
+{
+    EOverloadRelation r = getOverloadRelationWith(a_strName, a_pSignature);
+    return (r == e_OverloadRelation_Covariant) OR (r == e_OverloadRelation_Equal);
+}
+
+void InstanceMemberFunction::call( void** a_pArgs ) const
+{
+    void* caller = *a_pArgs++;
+    call( caller, a_pArgs);
+}
+
+void InstanceMemberFunction::call( void** a_pArgs, void* a_pReturnAddress ) const
+{
+    void* caller = *a_pArgs++;
+    call( caller, a_pArgs);
+}
+
+void InstanceMemberFunction::safeInvoke( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const
+{
+    reflection::Class* pOwnerClass = m_pOwner->asClass();
+    if(pOwnerClass)
+    {
+        const rtti_data& rttiData = phantom::rttiDataOf(a_pCallerAddress);
+        call( rttiData.cast(pOwnerClass), a_pArgs, a_pReturnAddress);
+    }
+    else
+    {
+        call( a_pCallerAddress, a_pArgs, a_pReturnAddress);
+    }
+}
+
+void InstanceMemberFunction::safeInvoke( void* a_pCallerAddress, void** a_pArgs ) const
+{
+    reflection::Class* pOwnerClass = m_pOwner->asClass();
+    if(pOwnerClass)
+    {
+        const rtti_data& rttiData = phantom::rttiDataOf(a_pCallerAddress);
+        call( rttiData.cast(pOwnerClass), a_pArgs);
+    }
+    else
+    {
+        call( a_pCallerAddress, a_pArgs);
+    }
+}
+
+
+
+
+
+
 
 o_cpp_end 

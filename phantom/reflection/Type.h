@@ -132,7 +132,6 @@ public:
     o_forceinline ushort    getResetSize() const { return m_uiResetSize; }
     o_forceinline size_t    getBuildOrder() const { return m_uiBuildOrder; }
     virtual boolean         isSerializable() const { return true; }
-    virtual boolean         isPolymorphic() const { return false; }
     virtual boolean         isKindOf(Type* a_pType) const { return this == a_pType; }
     virtual Type*           asType() const { return const_cast<Type*>(this); }
     virtual Type*           removeConst() const { return const_cast<Type*>(this); }
@@ -200,11 +199,7 @@ public:
     /// Combination
     virtual void*           newInstance() const;
     virtual void            deleteInstance(void* a_pInstance) const;
-
-    /// Template
-    virtual boolean         isTemplateSpecialization() const { return false; }
-    virtual boolean         matches(template_specialization const* a_pElements) const { return false; }
-
+    
     /// Relations
     virtual ERelation       getRelationWith(Type* a_pType) const;
 
@@ -276,8 +271,6 @@ public:
 
     virtual uint            getDataPointerLevel() const { return 0; }
 
-    virtual boolean         matches(const char* a_strName, template_specialization const* a_TemplateSpecialization = NULL, bitfield a_Modifiers = 0) const;
-
     size_t                  getNestedTypeCount() const
     {
         return m_pNestedTypes == NULL ? 0 : m_pNestedTypes->size();
@@ -336,6 +329,8 @@ public:
     Type*           constType() const;
 
 protected:
+    virtual void            elementAdded(LanguageElement* a_pElement);
+    virtual void            elementRemoved(LanguageElement* a_pElement);
     virtual DataPointerType*createDataPointerType() const;
     virtual ReferenceType*  createReferenceType() const;
     virtual ArrayType*      createArrayType(size_t a_uiCount) const;

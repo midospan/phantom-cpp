@@ -44,10 +44,10 @@ ________________________________________________________________________________
 boolean ArrayType::isConvertibleTo( Type* a_pType ) const
 {
     if(a_pType == this) return true;
-    if(NOT(a_pType->isArrayType())) return false;
+    if(a_pType->asArrayType() == nullptr) return false;
     if(a_pType == phantom::typeOf<void*>()) return true;
     Type*    pStoredType = static_cast<ArrayType*>(a_pType)->getStoredType();
-    if(!pStoredType->isClass() OR !m_pStoredType->isClass()) return false;
+    if((pStoredType->asClass() == nullptr) OR (m_pStoredType->asClass() == nullptr)) return false;
     return static_cast<Class*>(pStoredType)->isKindOf(static_cast<Class*>(m_pStoredType));
 }
 

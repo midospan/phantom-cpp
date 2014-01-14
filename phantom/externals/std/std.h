@@ -122,7 +122,24 @@ o_classNTS((std), (typename), (_Ty), _Tree_iterator, (_Tree_const_iterator<_Ty>)
 o_exposeNT((std), (typename), (_Ty), _Tree_iterator);
 
 // map
-o_classNTS((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr, t_Alloc), map, (_Tree<_Tmap_traits<t_Kty, t_Ty, t_Pr, t_Alloc, false>>)){o_reflection{};};
+o_classNTS((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr, t_Alloc), map, (_Tree<_Tmap_traits<t_Kty, t_Ty, t_Pr, t_Alloc, false>>))
+{
+    o_reflection
+    {
+        o_register(iterator);
+        o_register(const_iterator);
+        o_register(reverse_iterator);
+        o_register(const_reverse_iterator);
+        /*o_member_function(iterator, begin, ());
+        o_member_function(iterator, end, ());
+        o_member_function(const_iterator, begin, ());
+        o_member_function(const_iterator, end, ());
+        o_member_function(reverse_iterator, rbegin, ());
+        o_member_function(reverse_iterator, rend, ());
+        o_member_function(const_reverse_iterator, rbegin, ());
+        o_member_function(const_reverse_iterator, rend, ());*/
+    };
+};
 o_exposeNT((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr, t_Alloc), map);
 
 // multimap
@@ -161,29 +178,47 @@ o_classNTS((std), (typename), (_Ty), _Vector_iterator, (_Vector_const_iterator<_
 o_exposeNT((std), (typename), (_Ty), _Vector_iterator);
 
 // vector
-o_classNTS((std), (typename, typename), (t_Ty, t_Alloc), vector, (_Vector_val<t_Ty, t_Alloc>)){o_reflection {};};
+o_classNTS((std), (typename, typename), (t_Ty, t_Alloc), vector, (_Vector_val<t_Ty, t_Alloc>))
+{
+    o_reflection 
+    {
+        o_register(iterator);
+        o_register(const_iterator);
+        o_register(reverse_iterator);
+        o_register(const_reverse_iterator);
+    };
+};
 o_exposeNT((std), (typename, typename), (t_Ty, t_Alloc), vector);
 
 /// LIST
 
-// _List_nod
-o_classNTS((std), (typename, typename), (_Ty, _Alloc), _List_nod, (_Container_base)){o_reflection {};};
-o_exposeNT((std), (typename, typename), (_Ty, _Alloc), _List_nod);
-
 // _List_val
-o_classNTS((std), (typename, typename), (_Ty, _Alloc), _List_val, (_List_nod<_Ty, _Alloc>)) {o_reflection {};};
+o_classNT((std), (typename, typename), (_Ty, _Alloc), _List_val) {o_reflection {};};
 o_exposeNT((std), (typename, typename), (_Ty, _Alloc), _List_val);
 
 // _List_const_iterator
 o_classNT((std), (typename), (_Ty), _List_const_iterator){o_reflection {};};
 o_exposeNT((std), (typename), (_Ty), _List_const_iterator);
 
+o_traits_specializeNT(has_has_something, (static const bool value = false;), (std), (typename), (_Ty), _List_const_iterator);
+
 // _List_iterator
 o_classNTS((std), (typename), (_Ty), _List_iterator, (_List_const_iterator<_Ty>)){o_reflection {};};
 o_exposeNT((std), (typename), (_Ty), _List_iterator);
 
+o_traits_specializeNT(has_has_something, (static const bool value = false;), (std), (typename), (_Ty), _List_iterator);
+
 // list
-o_classNTS((std), (typename, typename), (t_Ty, t_Alloc), list, (_List_val<t_Ty, t_Alloc>)){o_reflection {};};
+o_classNTS((std), (typename, typename), (t_Ty, t_Alloc), list, (_List_val<t_Ty, t_Alloc>))
+{
+    o_reflection 
+    {
+        o_register(iterator);
+        o_register(const_iterator);
+        o_register(reverse_iterator);
+        o_register(const_reverse_iterator);
+    };
+};
 o_exposeNT((std), (typename, typename), (t_Ty, t_Alloc), list);
 
 /// MISC
@@ -223,6 +258,8 @@ o_exposeNT((std), (typename), (t_Ty), equal_to);
 // reverse_iterator
 o_classNT((std), (typename), (t_RanIt), reverse_iterator){o_reflection {};};
 o_exposeNT((std), (typename), (t_RanIt), reverse_iterator);
+
+o_traits_specializeNT(has_has_something, (static const bool value = false;), (std), (typename), (t_RanIt), reverse_iterator);
 
 // set
 o_classNTS((std), (typename, typename, typename), (t_Ty, t_Pr, t_Alloc), set, (_Tree<_Tset_traits<t_Ty, t_Pr, t_Alloc, false>>)) {o_reflection {};};

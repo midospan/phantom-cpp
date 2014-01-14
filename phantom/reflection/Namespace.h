@@ -102,11 +102,12 @@ public:
     uint                getTypeCount() const {return m_Types.size(); }
 
     PrimitiveType*      getPrimitiveType(const string& a_strName) const;
-    Class*              getPolymorphicType(const string& a_strName) const;
-    Class*              getPolymorphicType(uint index) const;
-    uint                getPolymorphicTypeCount() const;
+    Class*              getClass(const string& a_strName) const;
+    Class*              getClass(size_t index) const;
+    size_t              getClassCount() const;
 
     Template*           getTemplate( const string& a_strName ) const ;
+    Template*           findOrCreateTemplate(const string& a_strName);
 
     Namespace*          findTypeNamespace(Type* a_pType) const;
 

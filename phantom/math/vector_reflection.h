@@ -158,6 +158,15 @@ o_classNT((phantom, math), (typename), (t_Ty), transform2)
 o_exposeNT((phantom, math), (typename), (t_Ty), transform2);
 
 
+o_classNT((phantom, math), (typename), (t_Ty), aabb2)
+{
+    o_reflection
+    {
+        o_data_member(vector2_type, lowerBound, o_no_range, o_public);
+        o_data_member(vector2_type, upperBound, o_no_range, o_public);
+    };
+};
+o_exposeNT((phantom, math), (typename), (t_Ty), aabb2);
 
 
 #endif // o_phantom_math_reflection_h__

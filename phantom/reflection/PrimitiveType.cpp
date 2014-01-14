@@ -41,5 +41,20 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________    
 __________________________________________________________________________________ReflectionCPP
 
+PrimitiveType::PrimitiveType() : Type("", 0, 0, 0)
+{
+
+}
+
+PrimitiveType::PrimitiveType( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) : Type(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+{
+
+}
+
+PrimitiveType::PrimitiveType( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) : Type(a_strName, a_uiSize, a_uiAlignment, a_uiGuid, a_Modifiers)
+{
+
+}
+
 
 o_cpp_end

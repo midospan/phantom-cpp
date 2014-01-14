@@ -55,7 +55,6 @@ ClassType::ClassType( const string& a_strName, ushort a_uiSize, ushort a_uiAlign
     m_uiSerializedSize = m_uiResetSize = 0;
 }
 
-
 ClassType::~ClassType( void )
 {
     destroyContent();
@@ -63,16 +62,6 @@ ClassType::~ClassType( void )
 
 void ClassType::destroyContent()
 {
-    {
-        auto membersCopy = m_Members;
-        member_collection::iterator it = membersCopy.begin();
-        for(;it!=membersCopy.end();it++)
-        {
-            o_dynamic_delete_clean(it->second);
-        }
-        m_Members.clear();
-    }
-
     if(m_pAttributes)
     {
         delete ((map<string, variant>*)m_pAttributes);
@@ -87,19 +76,20 @@ DataMember* ClassType::getDataMember( const string& a_strName) const
     return getStaticDataMember(a_strName);
 }
 
-void    ClassType::addMember( LanguageElement* a_pMember )
+void ClassType::elementAdded(LanguageElement* a_pElement)
 {
-    addElement(a_pMember);
-    m_Members.insert(member_pair(a_pMember->getSortingCategoryClass(), a_pMember));
+    Type::elementAdded(a_pElement);
+    m_Members.insert(member_pair(a_pElement->getSortingCategoryClass(), a_pElement));
 }
 
-void    ClassType::removeMember( LanguageElement* a_pMember )
+void ClassType::elementRemoved(LanguageElement* a_pElement)
 {
-    member_collection::const_iterator it = m_Members.lower_bound(a_pMember->getSortingCategoryClass());
-    member_collection::const_iterator end = m_Members.upper_bound(a_pMember->getSortingCategoryClass());
+    Type::elementRemoved(a_pElement);
+    member_collection::const_iterator it = m_Members.lower_bound(a_pElement->getSortingCategoryClass());
+    member_collection::const_iterator end = m_Members.upper_bound(a_pElement->getSortingCategoryClass());
     for(; it != end; ++it)
     {
-        if(it->second == a_pMember)
+        if(it->second == a_pElement)
         {
             m_Members.erase(it);
             return;
@@ -114,9 +104,8 @@ InstanceDataMember* ClassType::getInstanceDataMember( const string& a_strName) c
     member_collection::const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
     for(; it != end; ++it)
     {
-        if(NOT(it->second->isInstanceDataMember())) continue;
-        InstanceDataMember* pDataMember = static_cast<InstanceDataMember*>(it->second);
-        if(pDataMember->getName() == a_strName)
+        InstanceDataMember* pDataMember = it->second->asInstanceDataMember();
+        if(pDataMember && pDataMember->getName() == a_strName)
             return pDataMember;
     }
     return NULL;
@@ -172,9 +161,7 @@ void ClassType::valueFromString( const string& cs, void* dest ) const
 InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_strIdentifierString ) const
 {
     LanguageElement* pElement = phantom::elementByName(a_strIdentifierString, const_cast<ClassType*>(this));
-    return (pElement AND pElement->isInstanceMemberFunction()) 
-                ? static_cast<InstanceMemberFunction*>(pElement)
-                : NULL;
+    return pElement ? pElement->asInstanceMemberFunction() : nullptr; 
 }
 
 LanguageElement*            ClassType::getElement(
@@ -228,9 +215,7 @@ StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strNam
 StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strIdentifierString ) const
 {
     LanguageElement* pElement = phantom::elementByName(a_strIdentifierString, const_cast<ClassType*>(this));
-    return pElement AND pElement->isStaticMemberFunction() 
-        ? static_cast<StaticMemberFunction*>(pElement)
-        : NULL;
+    return pElement ? pElement->asStaticMemberFunction() : nullptr; 
 }
 
 MemberFunction* ClassType::getMemberFunction(const string& a_strIdentifierString) const
@@ -277,17 +262,17 @@ StaticDataMember* ClassType::getStaticDataMember( const string& a_strName) const
 
 void ClassType::addInstanceMemberFunction( InstanceMemberFunction* a_pMemberFunction )
 {
-    addMember(a_pMemberFunction);
+    addElement(a_pMemberFunction);
 }
 
 void ClassType::addStaticMemberFunction( StaticMemberFunction* a_pMemberFunction )
 {
-    addMember(a_pMemberFunction);
+    addElement(a_pMemberFunction);
 }
 
 void ClassType::addMemberFunction( MemberFunction* a_pMemberFunction )
 {
-    addMember(a_pMemberFunction->asLanguageElement());
+    addElement(a_pMemberFunction->asLanguageElement());
 }
 
 void ClassType::getAllMember( vector<LanguageElement*>& out ) const
@@ -338,7 +323,7 @@ ClassType::member_const_iterator ClassType::valueMembersEnd() const
 void                    ClassType::addConstructor( Constructor* a_pConstructor )
 {
     o_assert(getConstructor(""));
-    addMember(a_pConstructor);
+    addElement(a_pConstructor);
 }
 
 void                ClassType::addValueMember(ValueMember* a_pValueMember)
@@ -348,27 +333,27 @@ void                ClassType::addValueMember(ValueMember* a_pValueMember)
     {
         m_uiResetSize += a_pValueMember->getValueType()->getResetSize(); 
     }
-    addMember(a_pValueMember);
+    addElement(a_pValueMember);
 }
 void                ClassType::addProperty( Property* a_pProperty )
 {
-    addMember(a_pProperty);
+    addElement(a_pProperty);
 }
 void                ClassType::addCollection( Collection* a_pCollection)
 {
-    addMember(a_pCollection);
+    addElement(a_pCollection);
 }
 void                ClassType::addDataMember(DataMember* a_pDataMember)
 {
-    addMember(a_pDataMember->asLanguageElement());
+    addElement(a_pDataMember->asLanguageElement());
 }
 void                ClassType::addInstanceDataMember(InstanceDataMember* a_pDataMember)
 {
-    addMember(a_pDataMember);
+    addElement(a_pDataMember);
 }
 void                ClassType::addStaticDataMember(StaticDataMember* a_pDataMember)
 {
-    addMember(a_pDataMember);
+    addElement(a_pDataMember);
 }
 
 void ClassType::interpolate( void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode /*= 0*/ ) const
@@ -570,6 +555,21 @@ const variant& ClassType::getAttribute( const string& a_strName ) const
     return null_variant;
 }
 
+bool ClassType::canBeDestroyed() const
+{
+    return Type::canBeDestroyed();
+}
+
+void ClassType::teardownMetaDataCascade( size_t count )
+{
+    member_collection::const_iterator it = m_Members.begin();
+    member_collection::const_iterator end = m_Members.end();
+    for(;it != end; ++it)
+    {
+        it->second->teardownMetaDataCascade(count);
+    }
+    Type::teardownMetaDataCascade(count);
+}
 
 
 

@@ -24,6 +24,8 @@ public:
     Block(Block* a_pParentBlock);
     ~Block();
 
+    virtual Block* asBlock() const  { return (Block*)this; }
+
 	void addLocalVariable(LocalVariable* a_pVariable);
 	void addChildBlock(Block* a_pBlock);
 

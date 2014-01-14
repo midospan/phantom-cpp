@@ -437,7 +437,11 @@ public:
 
         r_long_keyword = qi::lit("long") [qi::_val = "long"];
         r_signed_keyword = qi::lit("signed") [qi::_val = "signed"];
-        r_unsigned_type = r_unsigned_keyword [qi::_val = qi::_1] >> *(qi::char_("a-zA-Z_")[qi::_val = qi::_val + ' ' + qi::_1] >> *qi::char_("a-zA-Z_0-9")[qi::_val += qi::_1]) ;
+        r_unsigned_type = r_unsigned_keyword [qi::_val = qi::_1] 
+                        >> lexeme[(qi::char_("a-zA-Z_")[qi::_val = qi::_val + ' ' + qi::_1] 
+                        >> *qi::char_("a-zA-Z_0-9")[qi::_val += qi::_1])]
+                        >> -lexeme[(qi::char_("a-zA-Z_")[qi::_val = qi::_val + ' ' + qi::_1] 
+                        >> *qi::char_("a-zA-Z_0-9")[qi::_val += qi::_1])];
         r_signed_type = r_signed_keyword [qi::_val = qi::_1] >> *(qi::char_("a-zA-Z_")[qi::_val = qi::_val + ' ' + qi::_1] >> *qi::char_("a-zA-Z_0-9")[qi::_val += qi::_1]) ;
         r_long_type = r_long_keyword [qi::_val = qi::_1] >> *(qi::char_("a-zA-Z_")[qi::_val = qi::_val + ' ' + qi::_1] >> *qi::char_("a-zA-Z_0-9")[qi::_val += qi::_1]) ;
 

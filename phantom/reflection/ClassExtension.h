@@ -58,9 +58,8 @@ public:
 
     o_initialize();
 
-    virtual boolean        isExtension() const { return true; }
-
-    Class*        getOwnerClass() const { return static_cast<Class*>(m_pOwner); }
+    virtual ClassExtension* asClassExtension() const { return (ClassExtension*)this; }
+    Class*                  getOwnerClass() const { return static_cast<Class*>(m_pOwner); }
 
 };
 

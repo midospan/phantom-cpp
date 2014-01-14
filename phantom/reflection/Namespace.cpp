@@ -423,13 +423,12 @@ void Namespace::getHierarchicalNameNoRoot( string* a_OutString )
 PrimitiveType* Namespace::getPrimitiveType( const string& a_strName ) const
 {
     Type* pType = getType(a_strName);
-    if(pType->isPrimitiveType()) return static_cast<PrimitiveType*>(pType);
-    return NULL;
+    return pType ? pType->asPrimitiveType() : nullptr;
 }
 
-Class* Namespace::getPolymorphicType( uint index ) const
+Class* Namespace::getClass( size_t index ) const
 {
-    uint i = 0;
+    size_t i = 0;
     o_foreach(Type* pType, m_Types)
     {
         if(pType->asClass())
@@ -438,19 +437,18 @@ Class* Namespace::getPolymorphicType( uint index ) const
             ++i;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
-Class* Namespace::getPolymorphicType( const string& a_strName ) const
+Class* Namespace::getClass( const string& a_strName ) const
 {
     Type* pType = getType(a_strName);
-    if(pType->isClass()) return static_cast<Class*>(pType);
-    return NULL;
+    return pType ? pType->asClass() : nullptr;
 }
 
-phantom::uint Namespace::getPolymorphicTypeCount() const
+size_t Namespace::getClassCount() const
 {
-    uint i = 0;
+    size_t i = 0;
     o_foreach(Type* pType, m_Types)
     {
         if(pType->asClass())
@@ -502,7 +500,7 @@ LanguageElement* Namespace::getElement(
         {
             return pType;
         }
-        else if(pType->isEnum())
+        else if(pType->asEnum())
         {
             LanguageElement* pEnumConstant = pType->getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
             if(pEnumConstant) return pEnumConstant;
@@ -604,6 +602,17 @@ void Namespace::teardownMetaDataCascade( size_t count )
         }
     }
     LanguageElement::teardownMetaDataCascade(count);
+}
+
+Template* Namespace::findOrCreateTemplate( const string& a_strName )
+{
+    Template* pTemplate = getTemplate(a_strName);
+    if(pTemplate == nullptr)
+    {
+        pTemplate = o_new(Template)(a_strName);
+        addTemplate(pTemplate);
+    }
+    return pTemplate;
 }
 
 o_cpp_end

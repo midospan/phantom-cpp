@@ -489,7 +489,7 @@ public:
     boolean             isRootClass() const { return m_SuperClasses.empty(); }
 
     virtual boolean     isKindOf( Class* a_pType ) const;
-    virtual boolean     isKindOf( Type* a_pType ) const { return a_pType->isClass() AND isKindOf(static_cast<Class*>(a_pType)); }
+    virtual boolean     isKindOf( Type* a_pType ) const { return a_pType->asClass() ? isKindOf(static_cast<Class*>(a_pType)) : false; }
     virtual ERelation   getRelationWith(Type* a_pType) const;
     boolean             doesInstanceDependOn(void* a_pInstance, void* a_pOther) const;
     
@@ -630,7 +630,7 @@ public:
     virtual void*       cast( Class* a_pBaseClass, void* a_pBaseAddress ) const;
     virtual void*       cast( Type* a_pTarget, void* a_pBase ) const 
     {
-        if(a_pTarget->isClass()) return cast(static_cast<Class*>(a_pTarget), a_pBase);
+        if(a_pTarget->asClass()) return cast(static_cast<Class*>(a_pTarget), a_pBase);
         return NULL;
     }
     virtual void        smartCopy(void* a_Instance, void const* a_pSource, reflection::Type* a_pSourceType) const;
@@ -691,6 +691,10 @@ protected:
         found->second.object_class->m_uiRegisteredInstances--;
         phantom::Phantom::m_rtti_data_map->erase(found);
     }
+
+    void elementAdded(LanguageElement* a_pElement);
+    void elementRemoved(LanguageElement* a_pElement);
+    bool canBeDestroyed() const;
 
 protected:
     super_class_table   m_SuperClasses;

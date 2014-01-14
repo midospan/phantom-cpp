@@ -62,6 +62,8 @@ public:
     State(const string& a_strName, bitfield modifiers = 0);
     o_destructor ~State(void);
 
+    virtual State* asState() const { return (State*)this; }
+
     void            addTrack(Track* a_pTrack);
     void            removeTrack(Track* a_pTrack);
     void            replaceTrack( Track* a_pOld, Track* a_pNew );

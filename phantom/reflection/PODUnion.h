@@ -65,8 +65,8 @@ public:
     {
     }
 
-    virtual boolean    isUnion() const { return true; }
-    virtual boolean isPOD() const { return true; }
+    virtual Type* asUnion() const { return (PODUnion*)this; }
+    virtual Type* asPOD() const { return (PODUnion*)this; }
 
 };
 

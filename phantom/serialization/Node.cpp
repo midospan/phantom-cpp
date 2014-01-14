@@ -619,7 +619,7 @@ void Node::fetchContainerComponents(reflection::ContainerClass* a_pContainerClas
     reflection::IteratorVariable* pIterator = a_pContainerClass->begin(a_pContainer);
     bool needAnotherPass = false;
     reflection::Type* pType = a_pContainerClass->getValueType();
-    if(pType->isDataPointerType())
+    if(pType->asDataPointerType())
     {
         void* ptr = nullptr; 
         while(pIterator->hasNext())
@@ -673,8 +673,8 @@ void Node::fetchDataComponents(const phantom::data& a_Data, vector<phantom::data
     {
         bool operator()(const reflection::ValueMember* first, const reflection::ValueMember* second) const 
         {
-            if(first->isProperty() AND NOT(second->isProperty())) return true;
-            if(second->isProperty() AND NOT(first->isProperty())) return false;
+            if((first->asProperty() != nullptr) AND (second->asProperty() == nullptr)) return true;
+            if((second->asProperty() != nullptr) AND (first->asProperty() == nullptr)) return false;
             return first < second;
         }
     };
@@ -689,7 +689,7 @@ void Node::fetchDataComponents(const phantom::data& a_Data, vector<phantom::data
         if(pValueMember->isComponent())
         {
             reflection::Type* pType = pValueMember->getValueType();
-            if(pType->isDataPointerType())
+            if(pType->asDataPointerType())
             {
                 void* ptr = nullptr;
                 pValueMember->getValue(a_Data.cast(pValueMember->getOwnerClass()).address(), &ptr);
@@ -770,8 +770,8 @@ void Node::clearDataReference( const vector<void*>& layout ) const
                 {
                     bool operator()(const reflection::ValueMember* first, const reflection::ValueMember* second) const 
                     {
-                        if(first->isProperty() AND NOT(second->isProperty())) return true;
-                        if(second->isProperty() AND NOT(first->isProperty())) return false;
+                        if((first->asProperty() != nullptr) AND (second->asProperty() == nullptr)) return true;
+                        if((second->asProperty() != nullptr) AND (first->asProperty() == nullptr)) return false;
                         return first < second;
                     }
                 };

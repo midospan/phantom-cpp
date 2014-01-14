@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'LocalVariableManager.h'
 **
-** Created: Thu 9. Jan 20:01:19 2014
+** Created: Sat 11. Jan 15:54:01 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!

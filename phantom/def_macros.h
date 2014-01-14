@@ -560,7 +560,7 @@
 #define o_static                    0x00000008
 #define o_no_default_constructor    0x00000010
 #define o_transient                 0x00000020
-#define o_no_copy              0x00000040
+#define o_no_copy                   0x00000040
 #define o_readonly                  0x00000080
 #define o_no_rtti                   0x00000100
 #define o_union_alternative         0x00000200
@@ -580,7 +580,8 @@
 #define o_component                 0x00800000
 #define o_owner                     0x01000000
 #define o_fixed_size                0x02000000
-#define o_custom_modifier_start     0x04000000
+#define o_deferred                  0x04000000
+#define o_custom_modifier_start     0x08000000
 
 #define o_none 0
 #define o_no_signal m_PHANTOM_RESERVED_no_signal

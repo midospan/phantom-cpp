@@ -1439,7 +1439,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
             {
                 // we "uninline" it if it's a class instance and we know the said class
                 reflection::Type*  pType = phantom::typeByGuid(classGuid);
-                o_assert(pType AND pType->isClass(), "The class associated with the given serialized data cannot be found, "
+                o_assert(pType AND pType->asClass(), "The class associated with the given serialized data cannot be found, "
                     "ensure all the class are registered correctly before deserializing data");
 
                 reflection::Class* pClass = static_cast<reflection::Class*>(pType);
@@ -1509,7 +1509,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
             if(typeName_opt.is_initialized())
             {
                 reflection::Type* pType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(*typeName_opt)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(*typeName_opt));
-                o_assert(pType AND pType->isClass(), "The class associated with the given serialized data cannot be found, "
+                o_assert(pType AND pType->asClass(), "The class associated with the given serialized data cannot be found, "
                     "ensure all the class are registered correctly before deserializing data");
                 reflection::Class* pClass = static_cast<reflection::Class*>(pType);
                 void* newInstance = pClass->allocate();
@@ -1610,7 +1610,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
                 {
                     // we "uninline" it if it's a class instance and we know the said class
                     reflection::Type*  pType = phantom::typeByGuid(classGuid);
-                    o_assert(pType AND pType->isClass(), "The class associated with the given serialized data cannot be found, "
+                    o_assert(pType AND pType->asClass(), "The class associated with the given serialized data cannot be found, "
                         "ensure all the class are registered correctly before deserializing data");
 
                     reflection::Class* pClass = static_cast<reflection::Class*>(pType);
@@ -1704,7 +1704,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
                     {
                         const string& typeName = *typeName_opt;
                         reflection::Type* pType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
-                        o_assert(pType AND pType->isClass(), "The class associated with the given serialized data cannot be found, "
+                        o_assert(pType AND pType->asClass(), "The class associated with the given serialized data cannot be found, "
                             "ensure all the class are registered correctly before deserializing data");
                         reflection::Class* pClass = static_cast<reflection::Class*>(pType);
                         void* newInstance = pClass->allocate();

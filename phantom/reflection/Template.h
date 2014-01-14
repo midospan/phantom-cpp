@@ -67,7 +67,7 @@ public:
     std::vector<TemplateSpecialization*>::const_iterator endSpecializations() const { return m_Specializations.end(); }
 
 protected:
-    virtual bool canBeDestroyed() { return m_Specializations.empty(); }
+    virtual bool canBeDestroyed() const { return m_Specializations.empty(); }
 
 protected:
     void registerSpecialization(TemplateSpecialization* a_pTemplateSpecialization) { m_Specializations.push_back(a_pTemplateSpecialization); }

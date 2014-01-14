@@ -86,8 +86,6 @@ Class::~Class()
     }
 }    
 
-
-
 DataMember* Class::getDataMemberCascade( const string& a_strName) const
 {
     DataMember* pDataMember = getDataMember(a_strName);
@@ -152,7 +150,7 @@ StaticDataMember* Class::getStaticDataMemberCascade( const string& a_strName ) c
 
 void Class::addExtension( ClassExtension* a_pExtension )
 {
-    addMember(a_pExtension);
+    addElement(a_pExtension);
 }
 
 ClassExtension* Class::getExtension( Class* a_pExtensionClass )
@@ -169,14 +167,13 @@ ClassExtension* Class::getExtension( Class* a_pExtensionClass )
 
 void Class::addSignal( Signal* a_pSignal )
 {
-    addMember(a_pSignal);
+    addElement(a_pSignal);
 }
 
 Signal* Class::getSignal( const string& a_strIdentifierString ) const
 {
     InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strIdentifierString);
-    if(pMemberFunction != NULL AND pMemberFunction->isSignal()) return static_cast<Signal*>(pMemberFunction);
-    return NULL;
+    return pMemberFunction ? pMemberFunction->asSignal() : nullptr;
 }
 
 Signal* Class::getSignalCascade( const string& a_strIdentifierString ) const
@@ -202,8 +199,7 @@ Signal* Class::getSignalCascade( const string& a_strIdentifierString ) const
 InstanceMemberFunction* Class::getSlot( const string& a_strIdentifierString ) const
 {
     InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strIdentifierString);
-    if(pMemberFunction != NULL AND pMemberFunction->isSlot()) return pMemberFunction;
-    return NULL;
+    return pMemberFunction ? pMemberFunction->asSlot() : nullptr;
 }
 
 InstanceMemberFunction* Class::getSlotCascade( const string& a_strIdentifierString ) const
@@ -241,11 +237,11 @@ boolean Class::doesInstanceDependOn( void* a_pInstance, void* a_pOther ) const
     member_collection::const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
     for(; it != end; ++it)
     {
-        if(it->second->isInstanceDataMember())
+        if(it->second->asInstanceDataMember())
         {
             InstanceDataMember* pInstanceDataMember = static_cast<InstanceDataMember*>(it->second);
             Type*    pDataMemberType = pInstanceDataMember->getValueType();
-            if(pDataMemberType->isClass())
+            if(pDataMemberType->asClass())
             {
                 if(*static_cast<void**>(pInstanceDataMember->getAddress(a_pInstance)) == a_pOther) 
                     return true;
@@ -407,9 +403,9 @@ void Class::homonymousMemberFunctionSearch( member_function_search_data* a_pMemb
                 {
                     a_pMemberFunctionRequest->populateWithResult(member_function_search_data::eResultType_PerfectMatch, pMemberFunction);
                 }
-                else if(pCurrentReturnType->isClass())
+                else if(pCurrentReturnType->asClass())
                 {
-                    if(NOT(pRequestReturnType->isClass()))
+                    if(pRequestReturnType->asClass() == nullptr)
                     {
                         a_pMemberFunctionRequest->populateWithResult(member_function_search_data::eResultType_IncompatibleReturnType, pMemberFunction);
                     }
@@ -468,7 +464,7 @@ Class::ERelation Class::getRelationWith( Type* a_pType ) const
 {
     if(a_pType == this)
         return eRelation_Equal;
-    if(NOT(a_pType->isClass()))
+    if(a_pType->asClass() == nullptr)
         return eRelation_None;
     if(this->isKindOf((Class*)a_pType))
         return eRelation_Child;
@@ -956,11 +952,32 @@ void Class::interpolate( void* a_src_start, void* a_src_end, real a_fPercent, vo
 void Class::setStateMachine( state::StateMachine* a_pStateMachine )
 {
     o_assert(m_pStateMachine == NULL, "a state machine has already been set for this class");
-    o_assert(a_pStateMachine->m_pOwner == NULL, "the state machine has already been set in another class");
-    m_pStateMachine = a_pStateMachine;
-    m_pStateMachine->m_pOwner = this;
+    o_assert(a_pStateMachine && a_pStateMachine->m_pOwner == NULL, "the state machine has already been set in another class");
+    addElement(a_pStateMachine);
 }
-  
+
+void Class::elementAdded(LanguageElement* a_pElement)
+{
+    state::StateMachine* pStateMachine = a_pElement->asStateMachine();
+    if(pStateMachine)
+    {
+        o_assert(m_pStateMachine == nullptr);
+        m_pStateMachine = pStateMachine;
+    }
+    else ClassType::elementAdded(a_pElement);
+}
+
+void Class::elementRemoved(LanguageElement* a_pElement)
+{
+    state::StateMachine* pStateMachine = a_pElement->asStateMachine();
+    if(pStateMachine)
+    {
+        o_assert(m_pStateMachine == pStateMachine);
+        m_pStateMachine = nullptr;
+    }
+    else ClassType::elementRemoved(a_pElement);
+}
+
 void* Class::cast( Class* a_pSuperClass, void* a_pBaseAddress ) const
 {
     if(a_pSuperClass == this) return a_pBaseAddress;
@@ -1185,6 +1202,10 @@ void Class::destroySingleton()
     m_pSingleton = nullptr;
 }
 
+bool Class::canBeDestroyed() const
+{
+    return ClassType::canBeDestroyed() && m_DerivedClasses.empty() && (m_uiRegisteredInstances == 0 || (this == classOf<Class>() && m_uiRegisteredInstances == 1));
+}
 
 
 o_cpp_end

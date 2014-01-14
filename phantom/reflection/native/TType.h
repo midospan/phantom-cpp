@@ -35,7 +35,7 @@ struct operator_caller_##name##_helper<t_Ty, false>\
     static bool apply(const t_Ty* a_pLHS, const t_Ty* a_pRHS) { o_exception(exception::reflection_runtime_exception, "no " #name " operator declared"); return false; }\
 };\
 template<typename t_Ty>\
-struct operator_caller_##name : public operator_caller_##name##_helper<t_Ty, boost::has_##name<t_Ty>::value>{};
+struct operator_caller_##name : public operator_caller_##name##_helper<t_Ty, phantom::has_##name<t_Ty>::value>{};
 
 o_declare_binary_operator_caller(less, <);
 
@@ -303,7 +303,8 @@ public:
     TSequentialContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
         : SequentialContainerClass(typeOf<container_value_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
     {
-
+        typeOf<iterator_variable>();
+        typeOf<iterator_constant>();
     }
 
     virtual size_t     getCount(void const* a_pContainer) const 
@@ -452,7 +453,8 @@ public:
         , typeOf<container_mapped_type>()
         , typeOf<container_value_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
     {
-
+        typeOf<iterator_variable>();
+        typeOf<iterator_constant>();
     }
     virtual size_t     getCount(void const* a_pContainer) const 
     { 
@@ -669,7 +671,8 @@ public:
     TSetContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
         : SetContainerClass(typeOf<container_key_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
     {
-
+        typeOf<iterator_variable>();
+        typeOf<iterator_constant>();
     }
 
     virtual size_t     getCount(void const* a_pContainer) const 
@@ -1225,52 +1228,52 @@ public:
     {
         phantom::vtable_info_extractor<t_Ty>::apply(a_pInstance, vtables);
     }
-    virtual bool     isPolymorphic() const { return boost::is_polymorphic<t_Ty>::value; }
-    virtual bool     isDefaultConstructible() const { return std::is_default_constructible<t_Ty>::value; }
+    virtual bool            isPolymorphic() const { return boost::is_polymorphic<t_Ty>::value; }
+    virtual bool            isDefaultConstructible() const { return std::is_default_constructible<t_Ty>::value; }
 
     virtual bool            hasNoCopy() const { return has_meta_specifier<t_Ty, o_no_copy>::value; }
-    virtual bool            hasBitAnd() const { return boost::has_bit_and<t_Ty>::value; }
-    virtual bool            hasBitAndAssign() const { return boost::has_bit_and_assign<t_Ty>::value; }
-    virtual bool            hasBitOr() const { return boost::has_bit_or<t_Ty>::value; }
-    virtual bool            hasBitOrAssign() const { return boost::has_bit_or_assign<t_Ty>::value; }
-    virtual bool            hasBitXor() const { return boost::has_bit_xor<t_Ty>::value; }
-    virtual bool            hasBitXorAssign() const { return boost::has_bit_xor_assign<t_Ty>::value; }
-    virtual bool            hasComplement() const { return boost::has_complement<t_Ty>::value; }
-    virtual bool            hasDereference() const { return boost::has_dereference<t_Ty>::value; }
-    virtual bool            hasDivides() const { return boost::has_divides<t_Ty>::value; }
-    virtual bool            hasDividesAssign() const { return boost::has_divides_assign<t_Ty>::value; }
-    virtual bool            hasEqualTo() const { return boost::has_equal_to<t_Ty>::value; }
-    virtual bool            hasGreater() const { return boost::has_greater<t_Ty>::value; }
-    virtual bool            hasGreaterEqual() const { return boost::has_greater_equal<t_Ty>::value; }
-    virtual bool            hasLeftShift() const { return boost::has_left_shift<t_Ty>::value; }
-    virtual bool            hasLeftShiftAssign() const { return boost::has_left_shift_assign<t_Ty>::value; }
-    virtual bool            hasLess() const { return boost::has_less<t_Ty>::value; }
-    virtual bool            hasLessEqual() const { return boost::has_less_equal<t_Ty>::value; }
-    virtual bool            hasLogicalAnd() const { return boost::has_logical_and<t_Ty>::value; }
-    virtual bool            hasLogicalNot() const { return boost::has_logical_not<t_Ty>::value; }
-    virtual bool            hasLogicalOr() const { return boost::has_logical_or<t_Ty>::value; }
-    virtual bool            hasMinus() const { return boost::has_minus<t_Ty>::value; }
-    virtual bool            hasMinusAssign() const { return boost::has_minus_assign<t_Ty>::value; }
-    virtual bool            hasModulus() const { return boost::has_modulus<t_Ty>::value; }
-    virtual bool            hasModulusAssign() const { return boost::has_modulus_assign<t_Ty>::value; }
-    virtual bool            hasMultiplies() const { return boost::has_multiplies<t_Ty>::value; }
-    virtual bool            hasMultipliesAssign() const { return boost::has_multiplies_assign<t_Ty>::value; }
-    virtual bool            hasNegate() const { return boost::has_negate<t_Ty>::value; }
-    virtual bool            hasNewOperator() const { return boost::has_new_operator<t_Ty>::value; }
-    virtual bool            hasNotEqualTo() const { return boost::has_not_equal_to<t_Ty>::value; }
-    virtual bool            hasNothrowAssign() const { return boost::has_nothrow_assign<t_Ty>::value; }
-    virtual bool            hasNothrowConstructor() const { return boost::has_nothrow_constructor<t_Ty>::value; }
-    virtual bool            hasNothrowCopy() const { return boost::has_nothrow_copy<t_Ty>::value; }
-    virtual bool            hasNothrowCopyConstructor() const { return boost::has_nothrow_copy_constructor<t_Ty>::value; }
-    virtual bool            hasNothrowDefaultConstructor() const { return boost::has_nothrow_default_constructor<t_Ty>::value; }
-    virtual bool            hasPlus() const { return boost::has_plus<t_Ty>::value; }
-    virtual bool            hasPlusAssign() const { return boost::has_plus_assign<t_Ty>::value; }
-    virtual bool            hasPostDecrement() const { return boost::has_post_decrement<t_Ty>::value; }
-    virtual bool            hasPostIncrement() const { return boost::has_post_increment<t_Ty>::value; }
-    virtual bool            hasPreDecrement() const { return boost::has_pre_decrement<t_Ty>::value; }
-    virtual bool            hasPreIncrement() const { return boost::has_pre_increment<t_Ty>::value; }
-    virtual bool            hasRightShift() const { return boost::has_right_shift<t_Ty>::value; }
-    virtual bool            hasRightShiftAssign() const { return boost::has_right_shift_assign<t_Ty>::value; }
+    virtual bool            hasBitAnd() const { return phantom::has_bit_and<t_Ty>::value; }
+    virtual bool            hasBitAndAssign() const { return phantom::has_bit_and_assign<t_Ty>::value; }
+    virtual bool            hasBitOr() const { return phantom::has_bit_or<t_Ty>::value; }
+    virtual bool            hasBitOrAssign() const { return phantom::has_bit_or_assign<t_Ty>::value; }
+    virtual bool            hasBitXor() const { return phantom::has_bit_xor<t_Ty>::value; }
+    virtual bool            hasBitXorAssign() const { return phantom::has_bit_xor_assign<t_Ty>::value; }
+    virtual bool            hasComplement() const { return phantom::has_complement<t_Ty>::value; }
+    virtual bool            hasDereference() const { return phantom::has_dereference<t_Ty>::value; }
+    virtual bool            hasDivides() const { return phantom::has_divides<t_Ty>::value; }
+    virtual bool            hasDividesAssign() const { return phantom::has_divides_assign<t_Ty>::value; }
+    virtual bool            hasEqualTo() const { return phantom::has_equal_to<t_Ty>::value; }
+    virtual bool            hasGreater() const { return phantom::has_greater<t_Ty>::value; }
+    virtual bool            hasGreaterEqual() const { return phantom::has_greater_equal<t_Ty>::value; }
+    virtual bool            hasLeftShift() const { return phantom::has_left_shift<t_Ty>::value; }
+    virtual bool            hasLeftShiftAssign() const { return phantom::has_left_shift_assign<t_Ty>::value; }
+    virtual bool            hasLess() const { return phantom::has_less<t_Ty>::value; }
+    virtual bool            hasLessEqual() const { return phantom::has_less_equal<t_Ty>::value; }
+    virtual bool            hasLogicalAnd() const { return phantom::has_logical_and<t_Ty>::value; }
+    virtual bool            hasLogicalNot() const { return phantom::has_logical_not<t_Ty>::value; }
+    virtual bool            hasLogicalOr() const { return phantom::has_logical_or<t_Ty>::value; }
+    virtual bool            hasMinus() const { return phantom::has_minus<t_Ty>::value; }
+    virtual bool            hasMinusAssign() const { return phantom::has_minus_assign<t_Ty>::value; }
+    virtual bool            hasModulus() const { return phantom::has_modulus<t_Ty>::value; }
+    virtual bool            hasModulusAssign() const { return phantom::has_modulus_assign<t_Ty>::value; }
+    virtual bool            hasMultiplies() const { return phantom::has_multiplies<t_Ty>::value; }
+    virtual bool            hasMultipliesAssign() const { return phantom::has_multiplies_assign<t_Ty>::value; }
+    virtual bool            hasNegate() const { return phantom::has_negate<t_Ty>::value; }
+    virtual bool            hasNewOperator() const { return phantom::has_new_operator<t_Ty>::value; }
+    virtual bool            hasNotEqualTo() const { return phantom::has_not_equal_to<t_Ty>::value; }
+    virtual bool            hasNothrowAssign() const { return phantom::has_nothrow_assign<t_Ty>::value; }
+    virtual bool            hasNothrowConstructor() const { return phantom::has_nothrow_constructor<t_Ty>::value; }
+    virtual bool            hasNothrowCopy() const { return phantom::has_nothrow_copy<t_Ty>::value; }
+    virtual bool            hasNothrowCopyConstructor() const { return phantom::has_nothrow_copy_constructor<t_Ty>::value; }
+    virtual bool            hasNothrowDefaultConstructor() const { return phantom::has_nothrow_default_constructor<t_Ty>::value; }
+    virtual bool            hasPlus() const { return phantom::has_plus<t_Ty>::value; }
+    virtual bool            hasPlusAssign() const { return phantom::has_plus_assign<t_Ty>::value; }
+    virtual bool            hasPostDecrement() const { return phantom::has_post_decrement<t_Ty>::value; }
+    virtual bool            hasPostIncrement() const { return phantom::has_post_increment<t_Ty>::value; }
+    virtual bool            hasPreDecrement() const { return phantom::has_pre_decrement<t_Ty>::value; }
+    virtual bool            hasPreIncrement() const { return phantom::has_pre_increment<t_Ty>::value; }
+    virtual bool            hasRightShift() const { return phantom::has_right_shift<t_Ty>::value; }
+    virtual bool            hasRightShiftAssign() const { return phantom::has_right_shift_assign<t_Ty>::value; }
 
     // Operators : TODO : to be completed...
     virtual bool            less(const void* a_pLHS, const void* a_pRHS) const
@@ -1295,12 +1298,11 @@ public:
             );
     }
 
-    virtual bool isFundamentalType() const { return boost::is_fundamental<t_Ty>::value; }
-    virtual bool isArithmeticType() const { return boost::is_arithmetic<t_Ty>::value; }
-    virtual bool isIntegralType() const { return boost::is_integral<t_Ty>::value; }
-    virtual bool isEnum() const { return boost::is_enum<t_Ty>::value; }
-    virtual bool isFloatingPointType() const { return boost::is_floating_point<t_Ty>::value; }
-    virtual bool isSignalType() const { return phantom::is_signal_t<t_Ty>::value; }
+    virtual PrimitiveType* asFundamentalType() const { return boost::is_fundamental<t_Ty>::value ? (PrimitiveType*)this : nullptr; }
+    virtual PrimitiveType* asArithmeticType() const { return boost::is_arithmetic<t_Ty>::value ? (PrimitiveType*)this : nullptr; }
+    virtual PrimitiveType* asIntegralType() const { return boost::is_integral<t_Ty>::value ? (PrimitiveType*)this : nullptr;; }
+    virtual PrimitiveType* asFloatingPointType() const { return boost::is_floating_point<t_Ty>::value ? (PrimitiveType*)this : nullptr;; }
+    virtual PrimitiveType* asSignalType() const { return phantom::is_signal_t<t_Ty>::value ? (PrimitiveType*)this : nullptr;; }
 
     virtual string  getQualifiedDName() const { return qualifiedTypeNameOf<t_Ty>(); }
     virtual string  getDecoratedName() const { return decoratedTypeNameOf<t_Ty>(); }

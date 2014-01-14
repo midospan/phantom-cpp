@@ -52,4 +52,114 @@ util::Iterator*     Collection::getIterator(void* a_pInstance) const
     return nullptr; // TODO : implement
 }
 
+bool Collection::canBeDestroyed() const
+{
+    return LanguageElement::canBeDestroyed() && m_pElementType->canBeDestroyed();
+}
+
+void Collection::safeAddElement( void* a_pObject, void const* src ) const
+{
+    reflection::Class* pOwnerClass = m_pOwner->asClass();
+    if(pOwnerClass)
+    {
+        const rtti_data& rttiData = phantom::rttiDataOf(a_pObject);
+        addElement( rttiData.cast(pOwnerClass), src);
+    }
+    else
+    {
+        addElement( a_pObject, src);
+    }
+}
+
+void Collection::safeInsertElement( void* a_pObject, size_t a_uiIndex, void const* src ) const
+{
+    safeAddElement(a_pObject, src);
+    safeMoveElement(a_pObject, a_uiIndex, src);
+}
+
+void Collection::safeSetElement( void* a_pObject, size_t a_uiIndex, void const* src ) const
+{
+    reflection::Class* pOwnerClass = m_pOwner->asClass();
+    if(pOwnerClass)
+    {
+        const rtti_data& rttiData = phantom::rttiDataOf(a_pObject);
+        setElement( rttiData.cast(pOwnerClass), a_uiIndex, src );
+    }
+    else
+    {
+        setElement( a_pObject, a_uiIndex, src);
+    }
+}
+
+void Collection::safeGetElement( void const* a_pObject, size_t a_uiIndex, void* dest ) const
+{
+    reflection::Class* pOwnerClass = m_pOwner->asClass();
+    if(pOwnerClass)
+    {
+        const rtti_data& rttiData = phantom::rttiDataOf(a_pObject);
+        getElement( rttiData.cast(pOwnerClass), a_uiIndex, dest );
+    }
+    else
+    {
+        getElement( a_pObject, a_uiIndex, dest );
+    }
+}
+
+size_t Collection::safeGetSize( void const* a_pObject ) const
+{
+    reflection::Class* pOwnerClass = m_pOwner->asClass();
+    if(pOwnerClass)
+    {
+        const rtti_data& rttiData = phantom::rttiDataOf(a_pObject);
+        return getSize( rttiData.cast(pOwnerClass) );
+    }
+    else
+    {
+        return getSize( a_pObject );
+    }
+}
+
+void Collection::safeMoveElement( void* a_pObject, size_t a_uiIndex, void const* src ) const
+{
+    reflection::Class* pOwnerClass = m_pOwner->asClass();
+    if(pOwnerClass)
+    {
+        const rtti_data& rttiData = phantom::rttiDataOf(a_pObject);
+        moveElement( rttiData.cast(pOwnerClass), src, a_uiIndex );
+    }
+    else
+    {
+        moveElement( a_pObject, src, a_uiIndex);
+    }
+}
+
+void Collection::safeRemoveElement( void* a_pObject, void const* src ) const
+{
+    reflection::Class* pOwnerClass = m_pOwner->asClass();
+    if(pOwnerClass)
+    {
+        const rtti_data& rttiData = phantom::rttiDataOf(a_pObject);
+        removeElement( rttiData.cast(pOwnerClass), src);
+    }
+    else
+    {
+        removeElement( a_pObject, src);
+    }
+}
+
+void Collection::insertElement( void* a_pObject, size_t a_uiIndex, void const* src ) const
+{
+    addElement(a_pObject, src);
+    moveElement(a_pObject, src, a_uiIndex);
+}
+
+
+
+
+
+
+
+
+
+
 o_cpp_end

@@ -41,13 +41,28 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
+DataPointerType::DataPointerType( Type* a_pType ) : PointerType(a_pType->getName()+'*'
+, sizeof(void*)
+, boost::alignment_of<void*>::value
+, 0xFFFFFFFF
+, 0)    
+, m_pPointedType(a_pType)
+{
+
+}
+
+DataPointerType::~DataPointerType()
+{
+}
+
 boolean DataPointerType::isConvertibleTo( Type* a_pType ) const
 {
+    o_assert(a_pType);
     if(a_pType == this) return true;
-    if(NOT(a_pType->isDataPointerType())) return false;
+    if(a_pType->asDataPointerType() == nullptr) return false;
     if(a_pType == phantom::typeOf<void*>()) return true;
     Type*    pPointedType = static_cast<DataPointerType*>(a_pType)->getPointedType();
-    if(!pPointedType->isClass() OR !m_pPointedType->isClass()) return false;
+    if((pPointedType->asClass() == nullptr) OR (m_pPointedType->asClass() == nullptr)) return false;
     return static_cast<Class*>(m_pPointedType)->isKindOf(static_cast<Class*>(pPointedType))
         OR static_cast<Class*>(pPointedType)->isKindOf(static_cast<Class*>(m_pPointedType));
 }
@@ -67,7 +82,7 @@ bool DataPointerType::hasTrivialCastTo( Type* a_pType ) const
     {
         Type* pPointedType = static_cast<DataPointerType*>(a_pType)->getPointedType();
         if(pPointedType == m_pPointedType) return true;
-        if(pPointedType->isClass() AND m_pPointedType->isClass()) 
+        if((pPointedType->asClass() != nullptr) AND (m_pPointedType->asClass() != nullptr)) 
         {
             reflection::Class* pDestClass  = static_cast<reflection::Class*>(pPointedType);
             reflection::Class* pClass       = static_cast<reflection::Class*>(m_pPointedType);
@@ -89,7 +104,7 @@ boolean DataPointerType::isImplicitlyConvertibleTo( Type* a_pType ) const
     {
         Type* pPointedType = static_cast<DataPointerType*>(a_pType)->getPointedType();
         if(pPointedType == m_pPointedType) return true;
-        if(pPointedType->isClass() AND m_pPointedType->isClass()) 
+        if((pPointedType->asClass() != nullptr) AND (m_pPointedType->asClass() != nullptr)) 
         {
             reflection::Class* pDestClass  = static_cast<reflection::Class*>(pPointedType);
             reflection::Class* pClass       = static_cast<reflection::Class*>(m_pPointedType);
@@ -188,7 +203,7 @@ void        DataPointerType::deserialize(void* a_pInstance, byte const*& a_pInBu
         {
             // we "uninline" it if it's a class instance and we know the said class
             reflection::Type*  pType = phantom::typeByGuid(classGuid);
-            o_assert(pType AND pType->isClass(), "The class associated with the given serialized data cannot be found, "
+            o_assert(pType AND pType->asClass(), "The class associated with the given serialized data cannot be found, "
                 "ensure all the class are registered correctly before deserializing data");
 
             reflection::Class* pClass = static_cast<reflection::Class*>(pType);
@@ -257,7 +272,7 @@ void DataPointerType::deserialize( void* a_pInstance, const property_tree& a_InB
         {
             const string& typeName = *typeName_opt;
             reflection::Type* pType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
-            o_assert(pType AND pType->isClass(), "The class associated with the given serialized data cannot be found, "
+            o_assert(pType AND pType->asClass(), "The class associated with the given serialized data cannot be found, "
                 "ensure all the class are registered correctly before deserializing data");
             reflection::Class* pClass = static_cast<reflection::Class*>(pType);
             void* newInstance = pClass->allocate();
@@ -366,7 +381,7 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
             {
                 // we "uninline" it if it's a class instance and we know the said class
                 reflection::Type*  pType = phantom::typeByGuid(classGuid);
-                o_assert(pType AND pType->isClass(), "The class associated with the given serialized data cannot be found, "
+                o_assert(pType AND pType->asClass(), "The class associated with the given serialized data cannot be found, "
                     "ensure all the class are registered correctly before deserializing data");
 
                 reflection::Class* pClass = static_cast<reflection::Class*>(pType);
@@ -456,7 +471,7 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
                 {
                     const string& typeName = *typeName_opt;
                     reflection::Type* pType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
-                    o_assert(pType AND pType->isClass(), "The class associated with the given serialized data cannot be found, "
+                    o_assert(pType AND pType->asClass(), "The class associated with the given serialized data cannot be found, "
                         "ensure all the class are registered correctly before deserializing data");
                     reflection::Class* pClass = static_cast<reflection::Class*>(pType);
                     void* newInstance = pClass->allocate();
@@ -509,39 +524,7 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
         }
         pChunk += a_uiChunkSectionSize;
     }
-}/*
-void DataPointerType::serializeLayout(void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
-{
-    serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
 }
-void DataPointerType::deserializeLayout(void* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
-{
-    deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
-}
-void DataPointerType::serializeLayout(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
-{
-    serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
-}
-void DataPointerType::deserializeLayout(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
-{
-    deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
-}
-void DataPointerType::serializeLayout(void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
-{
-    serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
-}
-void DataPointerType::deserializeLayout(void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
-{
-    deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
-}
-void DataPointerType::serializeLayout(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
-{
-    serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
-}
-void DataPointerType::deserializeLayout(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
-{
-    serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
-}
-*/
+
 
 o_cpp_end

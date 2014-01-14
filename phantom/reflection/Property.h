@@ -68,7 +68,6 @@ public:
     virtual void getValue(void const* a_pObject, void* dest) const = 0;
     virtual void setValue(void* a_pObject, void const* src) const = 0;
     Type*        getValueType() const { return m_pValueType; }
-    virtual boolean        isProperty() const { return true; }
     virtual Property*      asProperty() const { return (Property*)this; }
         
     InstanceMemberFunction* getSetMemberFunction() const { return m_pSetMemberFunction; }

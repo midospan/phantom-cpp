@@ -77,8 +77,6 @@ o_classN((test_struct), TestStruct)
 o_exposeN((test_struct), TestStruct);
 o_registerN((test_struct), TestStruct);
 
-
-
 o_namespace_begin(unitest)
 
 // The fixture for testing class Foo.
@@ -497,8 +495,8 @@ int main(int argc, char **argv)
     pBeginMemberFunction->call(pString, (void**)NULL, &it);
     pEndMemberFunction->call(pString, (void**)NULL, &end);
   
-    void* pVectorIntUnk = phantom::typeByName("std::vector<int, std::allocator<int>>")->newInstance();
-    std::vector<int>* pVectorInt = static_cast<std::vector<int>*>(pVectorIntUnk);
+    void* pVectorIntUnk = phantom::typeByName("phantom::vector<int>")->newInstance();
+    phantom::vector<int>* pVectorInt = static_cast<phantom::vector<int>*>(pVectorIntUnk);
     pVectorInt->push_back(10);
     pVectorInt->push_back(9);
     pVectorInt->push_back(1984);
@@ -539,8 +537,8 @@ int main(int argc, char **argv)
         int map_count = 10;
         for(;map_index<map_count;++map_index)
         {
-            void* pMapUnk = phantom::typeOf<std::map<phantom::string,phantom::string>>()->newInstance();
-            std::map<phantom::string,phantom::string>* pMap = static_cast<std::map<phantom::string,phantom::string>*>(pMapUnk);
+            void* pMapUnk = phantom::typeOf<phantom::map<phantom::string,phantom::string>>()->newInstance();
+            phantom::map<phantom::string,phantom::string>* pMap = static_cast<phantom::map<phantom::string,phantom::string>*>(pMapUnk);
             (*pMap)["first name"] = "John";
             (*pMap)["last name"] = "Doe";
             (*pMap)["Job"] = "Unknown";

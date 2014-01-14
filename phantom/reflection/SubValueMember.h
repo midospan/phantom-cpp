@@ -64,6 +64,8 @@ public:
     , bitfield a_Modifiers = 0);
     o_destructor ~SubValueMember(void)     {}
 
+    virtual SubValueMember*    asSubValueMember() const { return (SubValueMember*)this; }
+
     virtual        void        getValue(void const* a_pObject, void* dest) const;
     virtual        void        setValue(void* a_pObject, void const* src) const;
 

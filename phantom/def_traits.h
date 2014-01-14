@@ -1205,7 +1205,7 @@ struct _trait_ < o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_) < o
     o_traits_specialize_object_dynamic_cast_helper(_count_) \
     o_traits_specialize_super_total_track_count_of_helper(_count_)
 
-#define o_traits_specializeNTT(_trait_,_value_,_namespaces_,_template_types_,_template_params_,_name_)\
+#define o_traits_specializeNT(_trait_,_value_,_namespaces_,_template_types_,_template_params_,_name_)\
     namespace phantom { \
     template<o_PP_MIX(_template_types_,_template_params_)>\
 struct _trait_< o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) < o_PP_IDENTITY _template_params_ > >\
@@ -2124,37 +2124,275 @@ template<typename t_Ty>
 struct is_default_constructible_and_not_abstract 
     : public detail::is_default_constructible_and_not_abstract_helper<t_Ty, boost::is_abstract<t_Ty>::value> {};
 
+
+/// has_xxx
+
+template<typename t_Ty>
+struct has_has_something : public detail::true_ {};
+
+#define o_disable_has_something(...) namespace phantom { template<> struct has_has_something<__VA_ARGS__> : public detail::false_ {}; }
+
+o_namespace_begin(detail)
+
+template<typename t_Ty, bool has_has_something>
+struct has_bit_and_helper : public boost::has_bit_and<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_bit_and_assign_helper : public boost::has_bit_and_assign<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_bit_or_helper : public boost::has_bit_or<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_bit_or_assign_helper : public boost::has_bit_or_assign<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_bit_xor_helper : public boost::has_bit_xor<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_bit_xor_assign_helper : public boost::has_bit_xor_assign<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_complement_helper : public boost::has_complement<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_dereference_helper : public boost::has_dereference<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_divides_helper : public boost::has_divides<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_divides_assign_helper : public boost::has_divides_assign<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_equal_to_helper : public boost::has_equal_to<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_greater_helper : public boost::has_greater<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_greater_equal_helper : public boost::has_greater_equal<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_left_shift_helper : public boost::has_left_shift<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_left_shift_assign_helper : public boost::has_left_shift_assign<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_less_helper : public boost::has_less<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_less_equal_helper : public boost::has_less_equal<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_logical_and_helper : public boost::has_logical_and<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_logical_not_helper : public boost::has_logical_not<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_logical_or_helper : public boost::has_logical_or<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_minus_helper : public boost::has_minus<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_minus_assign_helper : public boost::has_minus_assign<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_modulus_helper : public boost::has_modulus<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_modulus_assign_helper : public boost::has_modulus_assign<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_multiplies_helper : public boost::has_multiplies<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_multiplies_assign_helper : public boost::has_multiplies_assign<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_negate_helper : public boost::has_negate<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_new_operator_helper : public boost::has_new_operator<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_not_equal_to_helper : public boost::has_not_equal_to<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_nothrow_assign_helper : public boost::has_nothrow_assign<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_nothrow_constructor_helper : public boost::has_nothrow_constructor<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_nothrow_copy_helper : public boost::has_nothrow_copy<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_nothrow_copy_constructor_helper : public boost::has_nothrow_copy_constructor<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_nothrow_default_constructor_helper : public boost::has_nothrow_default_constructor<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_plus_helper : public boost::has_plus<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_plus_assign_helper : public boost::has_plus_assign<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_post_decrement_helper : public boost::has_post_decrement<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_post_increment_helper : public boost::has_post_increment<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_pre_decrement_helper : public boost::has_pre_decrement<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_pre_increment_helper : public boost::has_pre_increment<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_right_shift_helper : public boost::has_right_shift<t_Ty> {};
+template<typename t_Ty, bool has_has_something>
+struct has_right_shift_assign_helper : public boost::has_right_shift_assign<t_Ty> {};
+
+
+template<typename t_Ty>
+struct has_bit_and_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_bit_and_assign_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_bit_or_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_bit_or_assign_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_bit_xor_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_bit_xor_assign_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_complement_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_dereference_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_divides_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_divides_assign_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_equal_to_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_greater_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_greater_equal_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_left_shift_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_left_shift_assign_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_less_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_less_equal_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_logical_and_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_logical_not_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_logical_or_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_minus_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_minus_assign_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_modulus_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_modulus_assign_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_multiplies_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_multiplies_assign_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_negate_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_new_operator_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_not_equal_to_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_nothrow_assign_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_nothrow_constructor_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_nothrow_copy_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_nothrow_copy_constructor_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_nothrow_default_constructor_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_plus_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_plus_assign_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_post_decrement_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_post_increment_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_pre_decrement_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_pre_increment_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_right_shift_helper<t_Ty, false> : public false_ {};
+template<typename t_Ty>
+struct has_right_shift_assign_helper<t_Ty, false> : public false_ {};
+
+o_namespace_end(detail)
+
+template<typename t_Ty>
+struct has_bit_and : public detail::has_bit_and_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_bit_and_assign : public detail::has_bit_and_assign_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_bit_or : public detail::has_bit_or_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_bit_or_assign : public detail::has_bit_or_assign_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_bit_xor : public detail::has_bit_xor_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_bit_xor_assign : public detail::has_bit_xor_assign_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_complement : public detail::has_complement_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_dereference : public detail::has_dereference_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_divides : public detail::has_divides_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_divides_assign : public detail::has_divides_assign_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_equal_to : public detail::has_equal_to_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_greater : public detail::has_greater_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_greater_equal : public detail::has_greater_equal_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_left_shift : public detail::has_left_shift_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_left_shift_assign : public detail::has_left_shift_assign_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_less : public detail::has_less_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_less_equal : public detail::has_less_equal_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_logical_and : public detail::has_logical_and_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_logical_not : public detail::has_logical_not_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_logical_or : public detail::has_logical_or_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_minus : public detail::has_minus_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_minus_assign : public detail::has_minus_assign_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_modulus : public detail::has_modulus_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_modulus_assign : public detail::has_modulus_assign_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_multiplies : public detail::has_multiplies_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_multiplies_assign : public detail::has_multiplies_assign_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_negate : public detail::has_negate_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_new_operator : public detail::has_new_operator_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_not_equal_to : public detail::has_not_equal_to_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_nothrow_assign : public detail::has_nothrow_assign_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_nothrow_constructor : public detail::has_nothrow_constructor_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_nothrow_copy : public detail::has_nothrow_copy_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_nothrow_copy_constructor : public detail::has_nothrow_copy_constructor_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_nothrow_default_constructor : public detail::has_nothrow_default_constructor_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_plus : public detail::has_plus_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_plus_assign : public detail::has_plus_assign_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_post_decrement : public detail::has_post_decrement_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_post_increment : public detail::has_post_increment_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_pre_decrement : public detail::has_pre_decrement_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_pre_increment : public detail::has_pre_increment_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_right_shift : public detail::has_right_shift_helper<t_Ty, has_has_something<t_Ty>::value> {};
+template<typename t_Ty>
+struct has_right_shift_assign : public detail::has_right_shift_assign_helper<t_Ty, has_has_something<t_Ty>::value> {};
+
 o_namespace_end(phantom)
-    /*
-#ifdef o_THIS_SHOULD_NOT_BE_DEFINED
-
-
-#define o_class_2() // root class
-#define o_class_3() // derived class
-#define o_classT_4() // root class
-
-
-o_classNTS(
-    , (namespace_0, namespace_1)
-    , (typename)
-    , (t_Ty)
-    , TemplateClass
-    , (SuperClass0, SuperClass1)
-)
-{
-    o_reflection
-    {
-        o_member_function(void, member_function, (int))
-        o_data_member(int, dataMember)
-    };
-    o_statechart
-    {
-        o_state(Active, Root)
-        o_track(Life, Active)
-    };
-};
-
-#endif*/
 
 #if o_BUILT_IN_WCHAR_T
 

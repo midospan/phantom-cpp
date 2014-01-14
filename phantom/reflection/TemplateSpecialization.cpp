@@ -57,13 +57,6 @@ TemplateSpecialization::~TemplateSpecialization()
     {
         (*it)->unregisterReferencingTemplateSpecialization(this);
     }
-    if(m_pOwner)
-    {
-        o_assert(m_pOwner->m_pTemplateSpecialization == this);
-        m_pOwner->m_pTemplateSpecialization = nullptr;
-        o_dynamic_delete m_pOwner;
-        m_pOwner = nullptr;
-    }
 }
 
 void TemplateSpecialization::_updateName()
@@ -127,6 +120,24 @@ boolean TemplateSpecialization::matches( template_specialization const* a_Templa
     {
         if((*a_TemplateSpecialization)[i] == NULL) return false;
         if(NOT( (*a_TemplateSpecialization)[i]->equals(m_Elements[i]) )) return false;
+    }
+    return true;
+}
+
+void TemplateSpecialization::checkCompleteness() const
+{
+    o_assert(m_pTemplate);
+    if(m_pTemplate->getModule() == nullptr)
+    {
+        o_exception(exception::reflection_runtime_exception, "Template not registered for this template specialization");
+    }
+}
+
+bool TemplateSpecialization::canBeDestroyed() const
+{
+    for(auto it = m_Elements.begin(); it != m_Elements.end(); ++it)
+    {
+        if(NOT((*it)->canBeDestroyed())) return false;
     }
     return true;
 }

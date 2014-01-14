@@ -107,7 +107,7 @@ Type::~Type()
     {
         getOwnerType()->removeNestedType(this);
     }
-    while(m_pNestedTypes != nullptr)
+    while(m_pNestedTypes)
     {
         o_dynamic_delete(m_pNestedTypes->back());
     }
@@ -116,7 +116,13 @@ Type::~Type()
         m_pTypedefs->begin()->first->removeTypedef(*m_pTypedefs->begin()->second.begin(), this);
     }
     if(m_pExtendedTypes)
+    {
+        for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
+        {
+            o_dynamic_delete *it;
+        }
         delete m_pExtendedTypes;
+    }
 }
 
 o_initialize_cpp(Type) 
@@ -170,13 +176,6 @@ void Type::deleteInstance(void* a_pInstance) const
 {
     destroy(a_pInstance);
     o_dynamic_pool_deallocate(a_pInstance, m_uiSize); 
-}
-
-boolean Type::matches( const char* a_strName, template_specialization const* a_TemplateSpecialization, bitfield a_Modifiers ) const
-{
-  return (m_strName == a_strName) 
-      AND (a_TemplateSpecialization == NULL OR a_TemplateSpecialization->empty())
-      AND ((m_Modifiers & a_Modifiers) == a_Modifiers);
 }
 
 Namespace* Type::getNamespace() const
@@ -240,7 +239,7 @@ LanguageElement* Type::getElement( const char* a_strName, template_specializatio
             {
                 return *it;
             }
-            else if((*it)->isEnum())
+            else if((*it)->asEnum())
             {
                 LanguageElement* pConstant = (*it)->getElement(a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers);
                 if(pConstant) return pConstant;
@@ -252,27 +251,44 @@ LanguageElement* Type::getElement( const char* a_strName, template_specializatio
 
 void Type::addNestedType( Type* a_pType )
 {
-    if(m_pNestedTypes == NULL)
-    {
-        m_pNestedTypes = o_default_new(vector<Type*>);
-    }
-    o_assert(a_pType->m_pOwner == NULL, "Type has already been attached to a Namespace or Type");
-    o_assert(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), a_pType) == m_pNestedTypes->end(), "Type already added");
-    m_pNestedTypes->push_back(a_pType);
     addElement(a_pType);
 }
 
 void Type::removeNestedType( Type* a_pType )
 {
-    o_assert(m_pNestedTypes);
-    o_assert(a_pType->m_pOwner == this, "Type doesn't belong to this type");
-    o_assert(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), a_pType) != m_pNestedTypes->end(), "Type not fount");
-    m_pNestedTypes->erase(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), a_pType));
     removeElement(a_pType);
-    if(m_pNestedTypes->size() == 0)
+}
+
+void Type::elementAdded(LanguageElement* a_pElement)
+{
+    TemplateElement::elementAdded(a_pElement);
+    Type* pType = a_pElement->asType();
+    if(pType)
     {
-        o_default_delete(vector<Type*>) m_pNestedTypes;
-        m_pNestedTypes = nullptr;
+        if(m_pNestedTypes == NULL)
+        {
+            m_pNestedTypes = o_default_new(vector<Type*>);
+        }
+        o_assert(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), pType) == m_pNestedTypes->end(), "Type already added");
+        m_pNestedTypes->push_back(pType);
+    }
+}
+
+void Type::elementRemoved(LanguageElement* a_pElement)
+{
+    TemplateElement::elementRemoved(a_pElement);
+    Type* pType = a_pElement->asType();
+    if(pType)
+    {
+        o_assert(m_pNestedTypes);
+        o_assert(pType->m_pOwner == this, "Type doesn't belong to this type");
+        o_assert(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), pType) != m_pNestedTypes->end(), "Type not fount");
+        m_pNestedTypes->erase(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), pType));
+        if(m_pNestedTypes->size() == 0)
+        {
+            o_default_delete(vector<Type*>) m_pNestedTypes;
+            m_pNestedTypes = nullptr;
+        }
     }
 }
 
@@ -578,6 +594,7 @@ void                Type::fireKindDestroyed(void* a_pObject) const
 
     DataPointerType* Type::pointerType() const
     {
+        if(this == nullptr) return nullptr;
         if(m_pExtendedTypes == nullptr)
         {
             m_pExtendedTypes = new type_container;
@@ -605,6 +622,7 @@ void                Type::fireKindDestroyed(void* a_pObject) const
 
     ReferenceType* Type::referenceType() const
     {
+        if(this == nullptr) return nullptr;
         if(m_pExtendedTypes == nullptr)
         {
             m_pExtendedTypes = new type_container;
@@ -632,6 +650,7 @@ void                Type::fireKindDestroyed(void* a_pObject) const
 
     ArrayType* Type::arrayType( size_t a_uiCount ) const
     {
+        if(this == nullptr) return nullptr;
         if(m_pExtendedTypes == nullptr)
         {
             m_pExtendedTypes = new type_container;
@@ -659,6 +678,7 @@ void                Type::fireKindDestroyed(void* a_pObject) const
 
     Type* Type::constType() const
     {
+        if(this == nullptr) return nullptr;
         if(m_pExtendedTypes == nullptr)
         {
             m_pExtendedTypes = new type_container;

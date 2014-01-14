@@ -72,6 +72,8 @@ public:
     }
     o_destructor ~Track(void);
 
+    virtual Track* asTrack() const { return (Track*)this; }
+
     State*                  getCurrentState(void* a_pObject) const 
     {
         return getOwnerStateMachine()->getCurrentState(a_pObject, this);

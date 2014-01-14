@@ -61,7 +61,6 @@ protected:
     ConstDataPointerType(DataPointerType* a_pDataPointerType);
 
     virtual Type*   createConstType() const;
-    virtual boolean isConstType() const { return true; }
     virtual Type*   asConstType() const { return (Type*)this; }
 
 public:

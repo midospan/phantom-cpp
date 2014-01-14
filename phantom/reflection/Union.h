@@ -64,7 +64,7 @@ public:
     {
     }
 
-    virtual boolean    isUnion() const { return true; }
+    virtual Type*    asUnion() const { return (Type*)this; }
 
 };
 

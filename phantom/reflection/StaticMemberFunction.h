@@ -59,13 +59,12 @@ public:
     virtual void        call( void* a_pCallerAddress, void** a_pParams ) const { call(a_pParams); }
     virtual void        call( void* a_pCallerAddress, void** a_pParams, void* a_pReturnAddress ) const { call(a_pParams, a_pReturnAddress); }
 
-    virtual LanguageElement*    asLanguageElement() const { return const_cast<StaticMemberFunction*>(this); }
-    virtual Subroutine*         asSubroutine() const { return const_cast<StaticMemberFunction*>(this); }
-    virtual StaticMemberFunction*       asStaticMemberFunction() const { return const_cast<StaticMemberFunction*>(this); }
-    virtual MemberFunction*             asMemberFunction() const { return const_cast<StaticMemberFunction*>(this); }
+    virtual LanguageElement*        asLanguageElement() const { return const_cast<StaticMemberFunction*>(this); }
+    virtual Subroutine*             asSubroutine() const { return const_cast<StaticMemberFunction*>(this); }
+    virtual StaticMemberFunction*   asStaticMemberFunction() const { return const_cast<StaticMemberFunction*>(this); }
+    virtual MemberFunction*         asMemberFunction() const { return const_cast<StaticMemberFunction*>(this); }
 
     virtual Class*      getSortingCategoryClass() const;
-    virtual boolean     isStaticMemberFunction() const { return true; }
     virtual void*       getClosurePointer() const = 0;
 
 protected:

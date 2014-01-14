@@ -56,14 +56,13 @@ protected:
     {
 
     }
+    virtual Function* asFunction() const { return (Function*)this; }
 
     virtual void call(void** args) const = 0;
     virtual void call(void** args, void* a_pReturnAddress) const = 0;
 
     virtual void    call( void* a_pCallerAddress, void** a_pArgs ) const { call(a_pArgs); }
     virtual void    call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const { call(a_pArgs, a_pReturnAddress); }
-
-    virtual boolean isFunction() const { return true; }
 
 protected:
 };

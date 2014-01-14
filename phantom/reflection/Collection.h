@@ -67,109 +67,31 @@ public:
     o_destructor ~Collection(void) {}
 
     virtual void                addElement(void* a_pObject, void const* src) const = 0;
-    virtual void                insertElement(void* a_pObject, size_t a_uiIndex, void const* src) const 
-    {
-        addElement(a_pObject, src);
-        moveElement(a_pObject, src, a_uiIndex);
-    }
+    virtual void                insertElement(void* a_pObject, size_t a_uiIndex, void const* src) const;
     virtual void                setElement(void* a_pObject, size_t a_uiIndex, void const* src) const = 0;
     virtual void                getElement(void const* a_pObject, size_t a_uiIndex, void* dest) const = 0;
     virtual size_t              getSize(void const* a_pObject) const = 0;
     virtual void                removeElement(void* a_pObject, void const* src) const = 0;
     virtual void                moveElement(void* a_pObject, void const* src, size_t a_uiIndex) const = 0;
 
-    void                safeAddElement(void* a_pObject, void const* src) const 
-    {
-        reflection::Class* pOwnerClass = m_pOwner->asClass();
-        if(pOwnerClass)
-        {
-            const rtti_data& rttiData = phantom::rttiDataOf(a_pObject);
-            addElement( rttiData.cast(pOwnerClass), src);
-        }
-        else
-        {
-            addElement( a_pObject, src);
-        }
-    }
-    void                safeInsertElement(void* a_pObject, size_t a_uiIndex, void const* src) const 
-    {
-        safeAddElement(a_pObject, src);
-        safeMoveElement(a_pObject, a_uiIndex, src);
-    }
-    virtual void         safeSetElement(void* a_pObject, size_t a_uiIndex, void const* src) const 
-    {
-        reflection::Class* pOwnerClass = m_pOwner->asClass();
-        if(pOwnerClass)
-        {
-            const rtti_data& rttiData = phantom::rttiDataOf(a_pObject);
-            setElement( rttiData.cast(pOwnerClass), a_uiIndex, src );
-        }
-        else
-        {
-            setElement( a_pObject, a_uiIndex, src);
-        }
-    }
-    virtual void         safeGetElement(void const* a_pObject, size_t a_uiIndex, void* dest) const 
-    {
-        reflection::Class* pOwnerClass = m_pOwner->asClass();
-        if(pOwnerClass)
-        {
-            const rtti_data& rttiData = phantom::rttiDataOf(a_pObject);
-            getElement( rttiData.cast(pOwnerClass), a_uiIndex, dest );
-        }
-        else
-        {
-            getElement( a_pObject, a_uiIndex, dest );
-        }
-    }
-    virtual size_t safeGetSize(void const* a_pObject) const 
-    {
-        reflection::Class* pOwnerClass = m_pOwner->asClass();
-        if(pOwnerClass)
-        {
-            const rtti_data& rttiData = phantom::rttiDataOf(a_pObject);
-            return getSize( rttiData.cast(pOwnerClass) );
-        }
-        else
-        {
-            return getSize( a_pObject );
-        }
-    }
-    void                safeMoveElement(void* a_pObject, size_t a_uiIndex, void const* src) const 
-    {
-        reflection::Class* pOwnerClass = m_pOwner->asClass();
-        if(pOwnerClass)
-        {
-            const rtti_data& rttiData = phantom::rttiDataOf(a_pObject);
-            moveElement( rttiData.cast(pOwnerClass), src, a_uiIndex );
-        }
-        else
-        {
-            moveElement( a_pObject, src, a_uiIndex);
-        }
-    }
-    void                safeRemoveElement(void* a_pObject, void const* src) const 
-    {
-        reflection::Class* pOwnerClass = m_pOwner->asClass();
-        if(pOwnerClass)
-        {
-            const rtti_data& rttiData = phantom::rttiDataOf(a_pObject);
-            removeElement( rttiData.cast(pOwnerClass), src);
-        }
-        else
-        {
-            removeElement( a_pObject, src);
-        }
-    }
+    void                        safeAddElement(void* a_pObject, void const* src) const;
+    void                        safeInsertElement(void* a_pObject, size_t a_uiIndex, void const* src) const;
+    virtual void                safeSetElement(void* a_pObject, size_t a_uiIndex, void const* src) const;
+    virtual void                safeGetElement(void const* a_pObject, size_t a_uiIndex, void* dest) const;
+    virtual size_t              safeGetSize(void const* a_pObject) const;
+    void                        safeMoveElement(void* a_pObject, size_t a_uiIndex, void const* src) const;
+    void                        safeRemoveElement(void* a_pObject, void const* src) const;
 
     Type*                       getElementType() const { return m_pElementType; }
 
-    virtual boolean             isCollection() const { return true; }
     virtual Collection*         asCollection() const { return (Collection*)this; }
         
     virtual reflection::Class*  getSortingCategoryClass() const { return classOf<Collection>(); }
 
     virtual util::Iterator*     getIterator(void* a_pInstance) const;
+
+protected:
+    virtual bool                canBeDestroyed() const;
 
 protected:
     Type*   m_pElementType;
