@@ -62,7 +62,10 @@ public:
     virtual Type*   getType() const { return m_pContentType; }
 
 protected:
-    void    setAddress(void* a_pAddress) { m_pAddress = a_pAddress; }
+    void            setAddress(void* a_pAddress) { m_pAddress = a_pAddress; }
+
+protected:
+    virtual void    referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
     Type*    m_pContentType;

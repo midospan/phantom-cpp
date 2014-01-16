@@ -522,6 +522,7 @@ void Namespace::addTypedef( const string& a_strTypedef, Type* a_pType )
     o_assert(m_Typedefs.find(a_strTypedef) == m_Typedefs.end(), "Typedef already registered");
     m_Typedefs[a_strTypedef] = a_pType;
     a_pType->registerTypedef(this, a_strTypedef);
+    addReferencedElement(a_pType);
 }
 
 void Namespace::removeTypedef( const string& a_strTypedef, Type* a_pType )
@@ -530,6 +531,7 @@ void Namespace::removeTypedef( const string& a_strTypedef, Type* a_pType )
     o_assert( found != m_Typedefs.end(), "Typedef not found");
     a_pType->unregisterTypedef(this, a_strTypedef);
     m_Typedefs.erase(found);
+    removeReferencedElement(a_pType);
 }
 
 void Namespace::addNamespaceAlias( const string& a_strAlias, Namespace* a_pNamespace )
@@ -613,6 +615,24 @@ Template* Namespace::findOrCreateTemplate( const string& a_strName )
         addTemplate(pTemplate);
     }
     return pTemplate;
+}
+
+void Namespace::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    bool bFound = true;
+    while(bFound)
+    {
+        bFound = false;
+        for(auto it = m_Typedefs.begin(); it != m_Typedefs.end(); ++it)
+        {
+            if(it->second == a_pElement)
+            {
+                m_Typedefs.erase(it);
+                bFound = true;
+                break;
+            }
+        }
+    }
 }
 
 o_cpp_end

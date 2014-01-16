@@ -44,24 +44,27 @@ ReflectionCPP___________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
 Subroutine::Subroutine( const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers /*= 0*/ ) 
-: LanguageElement(a_strName, a_Modifiers)
-, m_pSignature(a_pSignature)
-, m_pInstructions(nullptr)
-, m_pBlock(nullptr)
+    : LanguageElement(a_strName, a_Modifiers)
+    , m_pSignature(a_pSignature)
+    , m_pInstructions(nullptr)
+    , m_pBlock(nullptr)
 {
-
+    addReferencedElement(a_pSignature);
 }
 
 Subroutine::~Subroutine()
 {
-    if(NOT(m_pSignature->isShared()))
+    
+}
+
+void Subroutine::terminate()
+{
+    LanguageElement::terminate();
+    if(m_pSignature && NOT(m_pSignature->isShared()))
     {
-        o_dynamic_delete_clean(m_pSignature);
-    }
-    if(m_pBlock)
-    {
-        removeElement(m_pBlock);
-        o_dynamic_delete m_pBlock;
+        Signature* pSignature = m_pSignature;
+        pSignature->terminate();
+        o_dynamic_delete pSignature;
     }
     if(m_pInstructions)
     {
@@ -70,6 +73,7 @@ Subroutine::~Subroutine()
             delete *it;
         }
         delete m_pInstructions;
+        m_pInstructions = nullptr;
     }
 }
 
@@ -162,7 +166,6 @@ void Subroutine::setBlock( Block* a_pBlock )
     if(m_pBlock)
     {
         removeElement(m_pBlock);
-        o_dynamic_delete m_pBlock;
     }
     m_pBlock = a_pBlock;
     if(m_pBlock)
@@ -174,6 +177,15 @@ void Subroutine::setBlock( Block* a_pBlock )
 bool Subroutine::containsMemoryAddress( const byte* a_pAddress )
 {
     return m_MemoryLocation.containsMemoryAddress(a_pAddress);
+}
+
+void Subroutine::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    LanguageElement::referencedElementRemoved(a_pElement);
+    if(m_pBlock == a_pElement)
+        m_pBlock = nullptr;
+    else if(m_pSignature == a_pElement)
+        m_pSignature = nullptr;
 }
 
 void MemoryLocation::setStart( byte* a_pAddress )

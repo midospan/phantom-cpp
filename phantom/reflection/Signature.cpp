@@ -44,6 +44,12 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
+Signature::Signature( void ) : m_pReturnType(NULL)
+, m_uiArgumentStorageSize(0)
+{
+
+}
+
 void Signature::parse( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization, LanguageElement* a_pScope /*= NULL*/)
 {
     size_t i = 0;
@@ -89,22 +95,48 @@ Signature::~Signature( void )
 
 void Signature::addParameterType( Type* a_pParameterType )
 {
+    o_assert(a_pParameterType);
     m_ParametersTypes.push_back(a_pParameterType);
+    addReferencedElement(a_pParameterType);
     updateName();
 }
 
 void Signature::setReturnType( Type* a_pType )
 {
+    o_assert(a_pType);
     m_pReturnType = a_pType;
+    addReferencedElement(a_pType);
     updateName();
 }
 
-uint Signature::getParameterCount() const
+void Signature::referencedElementRemoved(LanguageElement* a_pElement)
+{
+    bool bFound = true;
+    while(bFound)
+    {
+        bFound = false;
+        for(auto it = m_ParametersTypes.begin(); it != m_ParametersTypes.end(); ++it)
+        {
+            if((*it) == a_pElement)
+            {
+                bFound = true;
+                m_ParametersTypes.erase(std::find(m_ParametersTypes.begin(), m_ParametersTypes.end(), a_pElement));
+                break;
+            }
+        }
+        if(m_pReturnType == a_pElement)
+        {
+            m_pReturnType = nullptr;
+        }
+    }
+}
+
+size_t Signature::getParameterCount() const
 {
     return m_ParametersTypes.size();
 }
 
-Type* Signature::getParameterType( uint a_uiParamIndex ) const
+Type* Signature::getParameterType( size_t a_uiParamIndex ) const
 {
     o_assert(a_uiParamIndex < getParameterCount(), "Index too big");
     return m_ParametersTypes[a_uiParamIndex];

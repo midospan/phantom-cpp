@@ -421,6 +421,7 @@ int main(int argc, char **argv)
     unitest::StateMachineTest* pStateMachineTest = o_new(StateMachineTest);
     o_statemachine_post(pStateMachineTest, StateMachineTest, AtoA);
     pStateMachineTest->update();
+    o_delete(StateMachineTest) pStateMachineTest;
 
     phantom::console::setSize(800, 600);
 
@@ -592,46 +593,48 @@ int main(int argc, char **argv)
     test_lexical_cast<long double>();
     test_lexical_cast<bool>();
 
-    // variant
-    
-    phantom::variant variant_int = 3;
-    phantom::variant variant_class_ptr = o_new(RootClass);
-    phantom::variant variant_void_ptr = (void*)nullptr;
-    phantom::variant variant_double = 3.0;
-    phantom::variant variant_string = "blabla proutiprout";
-    struct generic_struct
+    /// variant test
     {
+        phantom::variant variant_int = 3;
+        phantom::variant variant_class_ptr = o_new(RootClass);
+        phantom::variant variant_void_ptr = (void*)nullptr;
+        phantom::variant variant_double = 3.0;
+        phantom::variant variant_string = "blabla proutiprout";
+        struct generic_struct
+        {
 
-    } *generic_struct_ptr;
-    phantom::variant variant_generic_struct = generic_struct_ptr;
+        } *generic_struct_ptr;
+        phantom::variant variant_generic_struct = generic_struct_ptr;
 
 
-    bool variant_ok = false;
+        bool variant_ok = false;
 
-    int variant_int_result;
-    variant_int.as<int>(&variant_int_result);
-    variant_int_result = variant_int.as<int>(&variant_ok);
+        int variant_int_result;
+        variant_int.as<int>(&variant_int_result);
+        variant_int_result = variant_int.as<int>(&variant_ok);
 
-    RootClass* variant_class_ptr_result;
-    variant_class_ptr.as<RootClass*>(&variant_class_ptr_result);
-    variant_class_ptr_result = variant_class_ptr.as<RootClass*>(&variant_ok);
+        RootClass* variant_class_ptr_result;
+        variant_class_ptr.as<RootClass*>(&variant_class_ptr_result);
+        variant_class_ptr_result = variant_class_ptr.as<RootClass*>(&variant_ok);
 
-    void* variant_void_ptr_result;
-    variant_void_ptr.as<void*>(&variant_void_ptr_result);
-    variant_void_ptr_result = variant_void_ptr.as<void*>(&variant_ok);
+        void* variant_void_ptr_result;
+        variant_void_ptr.as<void*>(&variant_void_ptr_result);
+        variant_void_ptr_result = variant_void_ptr.as<void*>(&variant_ok);
 
-    double variant_double_result;
-    variant_double.as<double>(&variant_double_result);
-    variant_double_result = variant_double.as<double>(&variant_ok);
+        double variant_double_result;
+        variant_double.as<double>(&variant_double_result);
+        variant_double_result = variant_double.as<double>(&variant_ok);
 
-    phantom::string variant_string_result;
-    variant_string.as(&variant_string_result);
+        phantom::string variant_string_result;
+        variant_string.as(&variant_string_result);
 
-    generic_struct* variant_generic_struct_result;
-    variant_generic_struct.as<generic_struct*>(&variant_generic_struct_result);
-    variant_generic_struct_result = variant_generic_struct.as<generic_struct*>(&variant_ok);
+        generic_struct* variant_generic_struct_result;
+        variant_generic_struct.as<generic_struct*>(&variant_generic_struct_result);
+        variant_generic_struct_result = variant_generic_struct.as<generic_struct*>(&variant_ok);
 
-    variant_int_result = variant_double.as<int>(&variant_ok);
+        variant_int_result = variant_double.as<int>(&variant_ok);
+        o_delete(RootClass) variant_class_ptr.as<RootClass*>();
+    }
 
     system("pause");
 
@@ -647,6 +650,9 @@ int main(int argc, char **argv)
 
     system("pause");
 
+    o_delete(ActorPlatform) actor;
+
+    
     ::testing::InitGoogleTest(&argc, argv);
 
     system("pause");

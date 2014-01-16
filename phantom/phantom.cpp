@@ -111,7 +111,7 @@ Phantom::~Phantom()
     }
     m_SourceFiles.clear();
 
-    rootNamespace()->teardownMetaDataCascade(m_meta_data_names.size());
+    //rootNamespace()->teardownMetaDataCascade(m_meta_data_names.size());
     // Deleting all the registered singletons
     /*{
         singleton_container::reverse_iterator it = m_singleton_container->rbegin();
@@ -121,10 +121,6 @@ Phantom::~Phantom()
             o_dynamic_delete (*it);
         }
     }*/
-    vector<reflection::Type*> types_to_destroy;
-    m_pRootNamespace->release(types_to_destroy);
-    o_dynamic_delete_clean(m_pRootNamespace);
-    std::sort(types_to_destroy.begin(), types_to_destroy.end(), type_sorter_by_build_order());
 
 /*end_of_cleaning:
     o_warning(m_rtti_data_map->empty(), "not every phantom managed object has been released");

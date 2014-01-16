@@ -145,6 +145,8 @@ public:
     Subroutine(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
     o_destructor ~Subroutine();
 
+    virtual void terminate();
+
     virtual Subroutine* asSubroutine() const { return const_cast<Subroutine*>(this); }
 
     inline Signature*   getSignature() const { return m_pSignature; }
@@ -206,6 +208,9 @@ public:
     virtual LanguageElement* getElement( const char* a_strQualifiedName , template_specialization const* a_pTS, function_signature const* a_pFS, bitfield a_Modifiers /* = bitfield */ ) const;
     
     bool containsMemoryAddress(const byte* a_pAddress);
+
+protected:
+    virtual void referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
     vector<Instruction*>*   m_pInstructions;

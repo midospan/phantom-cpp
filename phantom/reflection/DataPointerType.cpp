@@ -41,14 +41,15 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
-DataPointerType::DataPointerType( Type* a_pType ) : PointerType(a_pType->getName()+'*'
-, sizeof(void*)
-, boost::alignment_of<void*>::value
-, 0xFFFFFFFF
-, 0)    
+DataPointerType::DataPointerType( Type* a_pType ) 
+: PointerType(a_pType->getName()+'*'
+            , sizeof(void*)
+            , boost::alignment_of<void*>::value
+            , 0xFFFFFFFF
+            , 0)    
 , m_pPointedType(a_pType)
 {
-
+    addReferencedElement(a_pType);
 }
 
 DataPointerType::~DataPointerType()
@@ -526,5 +527,11 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
     }
 }
 
+void DataPointerType::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    Type::referencedElementRemoved(a_pElement);
+    if(m_pPointedType == a_pElement)
+        m_pPointedType = nullptr;
+}
 
 o_cpp_end

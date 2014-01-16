@@ -67,21 +67,22 @@ public:
     ClassType*          getClassType() const { return m_pOwner ? m_pOwner->asClassType() : nullptr; }
     TemplateElement*    getElement(const string& a_strTypenameVariableName) const;
 
-    void                add(const string& a_strTemplateTypeName, TemplateElement* a_pElement);
+    void                addElement(const string& a_strTemplateTypeName, TemplateElement* a_pElement);
+    void                removeElement(TemplateElement* a_pElement);
 
     string              getQualifiedName() const;
 
-    
     boolean             matches(template_specialization const* a_TemplateSpecialization) const;
   
     Template*           getTemplate() const { return m_pTemplate; }
 
     virtual void        checkCompleteness() const;
     virtual bool        canBeDestroyed() const;
-
  
 protected:
-    void            _updateName();
+    void                _updateName();
+    void                referencedElementAdded(LanguageElement* a_pElement);
+    void                referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
     typedef phantom::map<string, TemplateElement*>    template_element_map;

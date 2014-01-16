@@ -150,6 +150,9 @@ public:
     virtual string          getQualifiedDecoratedName() const { return m_pPointedType->getQualifiedDecoratedName()+'*'; }
 
 protected:
+    virtual void referencedElementRemoved(LanguageElement* a_pElement);
+
+protected:
     Type*        m_pPointedType;
 };
 

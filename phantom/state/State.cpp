@@ -63,10 +63,6 @@ State::State(const string& a_strName, uint a_uiOrderingFactor, bitfield modifier
 
 State::~State( void )
 {
-    o_foreach(Track* pTrack, m_Tracks)
-    {
-        o_dynamic_delete_clean(pTrack);
-    }
 }
 
 void State::addTrack( Track* a_pTrack )

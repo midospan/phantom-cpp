@@ -60,13 +60,6 @@ public:
 
     virtual TemplateElement* asTemplateElement() const { return (TemplateElement*)this; }
 
-protected:
-    void registerReferencingTemplateSpecialization(TemplateSpecialization* a_pTemplateSpecialization);
-    void unregisterReferencingTemplateSpecialization(TemplateSpecialization* a_pTemplateSpecialization);
-
-protected:
-    vector<TemplateSpecialization*>* m_pReferencingTemplateSpecializations;
-
 };
 
 o_h_end

@@ -76,6 +76,9 @@ public:
     virtual DataMember*         asDataMember() const { return const_cast<InstanceDataMember*>(this); }
 
 protected:
+    virtual void referencedElementRemoved(LanguageElement* a_pElement);
+
+protected:
     Type*    m_pContentType;
 
 };

@@ -75,6 +75,7 @@ protected:
     LanguageElement(const string& a_strName, uint a_uiGuid, bitfield a_Modifiers = 0);
 
 public:
+    virtual void terminate();
     ~LanguageElement();
 
 public:
@@ -228,18 +229,28 @@ public:
     virtual void    checkCompleteness() const;
 
 protected:
+    void setGuid(uint a_uiGuid);
+    
+protected:
     void setModule(Module* a_pModule);
     virtual void moduleChanged(Module* a_pModule);
     void setupMetaData(size_t count);
     void addElement(LanguageElement* a_pElement);
     void removeElement(LanguageElement* a_pElement);
-    void setGuid(uint a_uiGuid);
+    void addReferencedElement(LanguageElement* a_pElement);
+    void removeReferencedElement(LanguageElement* a_pElement);
+    void registerReferencingElement(LanguageElement* a_pElement);
+    void unregisterReferencingElement(LanguageElement* a_pElement);
     virtual void elementAdded(LanguageElement* a_pElement);
     virtual void elementRemoved(LanguageElement* a_pElement);
+    virtual void referencedElementAdded(LanguageElement* a_pElement);
+    virtual void referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
     string              m_strName;
     vector<LanguageElement*>* m_pElements;
+    vector<LanguageElement*>* m_pReferencingElements;
+    vector<LanguageElement*>* m_pReferencedElements;
     vector<CodeLocation>*   m_DeclarationCodeLocations;
     vector<CodeLocation>*   m_ReferenceCodeLocations;
     vector<CodeLocation>*   m_CodeLocations;

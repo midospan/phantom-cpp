@@ -88,11 +88,7 @@ public:
 
     typedef phantom::vector<Type*> parameter_type_list;
 
-    Signature( void )
-        : m_pReturnType(NULL)
-        , m_uiArgumentStorageSize(0)
-    {
-    }
+    Signature( void );
     o_destructor ~Signature(void);
 
     virtual Signature* asSignature() const { return (Signature*)this; }
@@ -118,9 +114,9 @@ public:
 
     void            parse( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization = NULL, LanguageElement* pScope = (LanguageElement*)phantom::rootNamespace() );
 
-    uint            getParameterCount() const;
+    size_t          getParameterCount() const;
     void            addParameterType(Type* a_pParameterType);
-    Type*           getParameterType(uint a_uiParamIndex) const;
+    Type*           getParameterType(size_t a_uiParamIndex) const;
     void            setReturnType(Type* a_pType);
     Type*           getReturnType() const;
 
@@ -136,6 +132,7 @@ protected:
     static boolean  ParseParameterTypeList(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, function_signature& a_OutParameterTypes, LanguageElement* a_pScope);
 
     void updateName();
+    void referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
     Type*               m_pReturnType;

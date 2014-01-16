@@ -58,7 +58,6 @@ public:
     virtual LanguageElement*    asLanguageElement() const  = 0;
     virtual InstanceDataMember* asInstanceDataMember() const  = 0;
     virtual StaticDataMember*   asStaticDataMember() const  = 0;
-    
 };
 o_h_end
 

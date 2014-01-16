@@ -46,7 +46,14 @@ StaticVariable::StaticVariable( const string& a_strName, Type* a_pContentType, v
 , m_pContentType(a_pContentType)
 , m_pAddress(a_pStaticVariableAddress)
 {
+    addReferencedElement(m_pContentType);
+}
 
+void StaticVariable::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    Variable::referencedElementRemoved(a_pElement);
+    if(m_pContentType == a_pElement)
+        m_pContentType = nullptr;
 }
 
 o_cpp_end

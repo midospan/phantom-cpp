@@ -91,7 +91,9 @@ Module::~Module()
         }
         if(it != end)
         {
-            o_dynamic_delete ((*it));
+            reflection::LanguageElement* pElement = *it;
+            pElement->terminate();
+            o_dynamic_delete pElement;
         }
         else
         {

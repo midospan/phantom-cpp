@@ -56,6 +56,23 @@ Property::Property( const string& a_strName, Type* a_pValueType, InstanceMemberF
     // TODO : fix this, put it in o_property ...
     if(m_pChangeNotificationSignal && m_pChangeNotificationSignal->getOwner() == nullptr)
         a_pSetMemberFunction->getOwnerClass()->addSignal(m_pChangeNotificationSignal);
+    addReferencedElement(a_pValueType);
+    addReferencedElement(a_pSetMemberFunction);
+    addReferencedElement(a_pGetMemberFunction);
+    if(m_pChangeNotificationSignal)
+        addReferencedElement(m_pChangeNotificationSignal);
 }
+
+void Property::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    ValueMember::referencedElementRemoved(a_pElement);
+    if(m_pChangeNotificationSignal == a_pElement)
+        m_pChangeNotificationSignal = nullptr;
+    else if(m_pGetMemberFunction == a_pElement)
+        m_pGetMemberFunction = nullptr;
+    else if(m_pSetMemberFunction == a_pElement)
+        m_pSetMemberFunction = nullptr;
+}
+
 
 o_cpp_end

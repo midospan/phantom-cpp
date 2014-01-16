@@ -56,16 +56,7 @@ public:
     friend class Type;
 
 protected:
-    ReferenceType(Type* a_pType) 
-        : Type(a_pType->getName()+'&'
-            , sizeof(void*)
-            , boost::alignment_of<void*>::value
-            , 0xFFFFFFFF
-            , 0)    
-        , m_pReferencedType(a_pType)
-    {
-
-    }
+    ReferenceType(Type* a_pType);
 
     virtual ReferenceType* asReferenceType() const { return (ReferenceType*)this; }
 
@@ -200,6 +191,9 @@ public:
 
     virtual string  getDecoratedName() const { return m_pReferencedType->getDecoratedName()+'&'; }
     virtual string  getQualifiedDecoratedName() const { return m_pReferencedType->getQualifiedDecoratedName()+'&'; }
+
+protected:
+    virtual void referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
     Type*        m_pReferencedType;

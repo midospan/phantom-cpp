@@ -92,6 +92,8 @@ public:
 
 protected:
     virtual bool                canBeDestroyed() const;
+    virtual void                referencedElementRemoved(LanguageElement* a_pElement);
+
 
 protected:
     Type*   m_pElementType;

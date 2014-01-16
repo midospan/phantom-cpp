@@ -123,8 +123,7 @@ public:
     Type(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers = 0);
     ~Type();
 
-    o_initialize();
-    o_terminate();
+    virtual void            terminate();
 
     o_forceinline ushort    getSize() const { return m_uiSize; }
     o_forceinline ushort    getAlignment() const { return m_uiAlignment; }
@@ -341,6 +340,8 @@ protected:
     
     void                    registerTypedef(Namespace* a_pNamespace, const string& a_strTypedefName);
     void                    unregisterTypedef(Namespace* a_pNamespace, const string& a_strTypedefName);
+
+    virtual void            referencedElementRemoved(LanguageElement* a_pElement);
 
     /**
      *  @name Signals

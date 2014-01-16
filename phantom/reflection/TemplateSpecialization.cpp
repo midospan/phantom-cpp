@@ -53,10 +53,6 @@ TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate )
 TemplateSpecialization::~TemplateSpecialization()
 {
     m_pTemplate->unregisterSpecialization(this);
-    for(auto it = m_Elements.begin(); it != m_Elements.end(); ++it)
-    {
-        (*it)->unregisterReferencingTemplateSpecialization(this);
-    }
 }
 
 void TemplateSpecialization::_updateName()
@@ -102,13 +98,41 @@ Type* TemplateSpecialization::getType(const string& a_strTemplateElementName) co
     return NULL;
 }
 
-void TemplateSpecialization::add( const string& a_strTemplateTypeName, TemplateElement* a_pElement )
+void TemplateSpecialization::addElement( const string& a_strTemplateTypeName, TemplateElement* a_pElement )
 {
     o_assert(m_TemplateNameMap.find(a_strTemplateTypeName) == m_TemplateNameMap.end());
     m_TemplateNameMap[a_strTemplateTypeName] = a_pElement;
     m_Elements.push_back(a_pElement);
-    a_pElement->registerReferencingTemplateSpecialization(this);
+    addReferencedElement(a_pElement);
     _updateName();
+}
+
+void TemplateSpecialization::removeElement( TemplateElement* a_pElement )
+{
+    removeReferencedElement(a_pElement);
+}
+
+void TemplateSpecialization::referencedElementAdded(LanguageElement* a_pElement)
+{
+}
+
+void TemplateSpecialization::referencedElementRemoved(LanguageElement* a_pElement)
+{
+    bool bFound = true;
+    while(bFound)
+    {
+        bFound = false;
+        for(auto it = m_TemplateNameMap.begin(); it != m_TemplateNameMap.end(); ++it)
+        {
+            if(it->second == a_pElement)
+            {
+                bFound = true;
+                m_TemplateNameMap.erase(it);
+                m_Elements.erase(std::find(m_Elements.begin(), m_Elements.end(), a_pElement));
+                break;
+            }
+        }
+    }
 }
 
 boolean TemplateSpecialization::matches( template_specialization const* a_TemplateSpecialization ) const
@@ -141,5 +165,6 @@ bool TemplateSpecialization::canBeDestroyed() const
     }
     return true;
 }
+
 
 o_cpp_end

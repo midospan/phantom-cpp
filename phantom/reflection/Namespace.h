@@ -166,6 +166,7 @@ public:
 protected:
     void                setParentNamespace(Namespace* a_pNamespace) { m_pOwner = a_pNamespace; }
     virtual void        teardownMetaDataCascade(size_t count);
+    virtual void        referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
     namespace_container m_Namespaces;

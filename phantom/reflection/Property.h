@@ -75,6 +75,9 @@ public:
     Signal* getChangeNotificationSignal() const { return m_pChangeNotificationSignal; }
 
 protected:
+    virtual void referencedElementRemoved(LanguageElement* a_pElement);
+
+protected:
     Type*   m_pValueType;
     Signal* m_pChangeNotificationSignal;
     InstanceMemberFunction* m_pSetMemberFunction;

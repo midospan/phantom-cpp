@@ -44,10 +44,6 @@ ________________________________________________________________________________
 
 Track::~Track( void )
 {
-    o_foreach(State* pState, m_States)
-    {
-        o_dynamic_delete_clean(pState);
-    }
 }
 
 void Track::addState( State* a_pState )

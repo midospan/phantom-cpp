@@ -41,6 +41,16 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
+ReferenceType::ReferenceType( Type* a_pType ) : Type(a_pType->getName()+'&'
+, sizeof(void*)
+, boost::alignment_of<void*>::value
+, 0xFFFFFFFF
+, 0)    
+, m_pReferencedType(a_pType)
+{
+    addReferencedElement(m_pReferencedType);
+}
+
 boolean ReferenceType::isConvertibleTo( Type* a_pType ) const
 {
     return m_pReferencedType->isConvertibleTo(a_pType);
@@ -59,6 +69,13 @@ Type* ReferenceType::createConstType() const
 void ReferenceType::convertValueTo( Type* a_pDestType, void* a_pDestValue, const void* a_pSrcValue ) const
 {
     m_pReferencedType->convertValueTo(a_pDestType, a_pDestValue, a_pSrcValue);
+}
+
+void ReferenceType::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    Type::referencedElementRemoved(a_pElement);
+    if(m_pReferencedType == a_pElement)
+        m_pReferencedType = nullptr;
 }
 
 o_cpp_end

@@ -98,39 +98,12 @@ Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint
 
 Type::~Type()
 {
-    if(m_pModule) m_pModule->removeLanguageElement(this);
-    if(getNamespace())
-    {
-        getNamespace()->removeType(this);
-    }
-    else if(getOwnerType())
-    {
-        getOwnerType()->removeNestedType(this);
-    }
-    while(m_pNestedTypes)
-    {
-        o_dynamic_delete(m_pNestedTypes->back());
-    }
-    while(m_pTypedefs)
-    {
-        m_pTypedefs->begin()->first->removeTypedef(*m_pTypedefs->begin()->second.begin(), this);
-    }
-    if(m_pExtendedTypes)
-    {
-        for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
-        {
-            o_dynamic_delete *it;
-        }
-        delete m_pExtendedTypes;
-    }
+
 }
 
-o_initialize_cpp(Type) 
+void Type::terminate()
 {
-}
-
-o_terminate_cpp(Type) 
-{
+    TemplateElement::terminate();
 }
 
 Type::ERelation Type::getRelationWith( Type* a_pType ) const
@@ -210,7 +183,6 @@ void Type::removeNestedTypedef( const string& a_strTypedef, Type* a_pType )
         m_pNestedTypedefs = nullptr;
     }
 }
-
 
 inline Type* Type::getNestedTypedef( const string& a_strTypedef ) const
 {
@@ -745,6 +717,11 @@ void                Type::fireKindDestroyed(void* a_pObject) const
             delete m_pTypedefs;
             m_pTypedefs = nullptr;
         }
+    }
+
+    void Type::referencedElementRemoved( LanguageElement* a_pElement )
+    {
+        TemplateElement::referencedElementRemoved(a_pElement);
     }
 
 o_cpp_end

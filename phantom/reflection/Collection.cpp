@@ -45,6 +45,7 @@ Collection::Collection( const string& a_strName, Type* a_pElementType, bitfield 
     : LanguageElement(a_strName, a_Modifiers) 
     , m_pElementType(a_pElementType)
 {
+    addReferencedElement(m_pElementType);
 }
 
 util::Iterator*     Collection::getIterator(void* a_pInstance) const
@@ -54,7 +55,7 @@ util::Iterator*     Collection::getIterator(void* a_pInstance) const
 
 bool Collection::canBeDestroyed() const
 {
-    return LanguageElement::canBeDestroyed() && m_pElementType->canBeDestroyed();
+    return LanguageElement::canBeDestroyed() && (m_pElementType == nullptr OR m_pElementType->canBeDestroyed());
 }
 
 void Collection::safeAddElement( void* a_pObject, void const* src ) const
@@ -153,13 +154,10 @@ void Collection::insertElement( void* a_pObject, size_t a_uiIndex, void const* s
     moveElement(a_pObject, src, a_uiIndex);
 }
 
-
-
-
-
-
-
-
-
+void Collection::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    o_assert(a_pElement == m_pElementType);
+    m_pElementType = nullptr;
+}
 
 o_cpp_end

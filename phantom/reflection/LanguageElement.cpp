@@ -48,6 +48,8 @@ LanguageElement::LanguageElement()
     , m_DeclarationCodeLocations(nullptr)
     , m_ReferenceCodeLocations(nullptr)
     , m_pElements(nullptr)
+    , m_pReferencedElements(nullptr)
+    , m_pReferencingElements(nullptr)
     , m_pOwner(nullptr)
     , m_Modifiers(0)
     , m_pModule(nullptr)
@@ -64,6 +66,8 @@ LanguageElement::LanguageElement( const string& a_strName, bitfield a_Modifiers 
     , m_DeclarationCodeLocations(nullptr)
     , m_ReferenceCodeLocations(nullptr)
     , m_pElements(nullptr)
+    , m_pReferencedElements(nullptr)
+    , m_pReferencingElements(nullptr)
     , m_pOwner(nullptr)
     , m_Modifiers(a_Modifiers)
     , m_pModule(nullptr)
@@ -81,6 +85,8 @@ LanguageElement::LanguageElement( const string& a_strName, uint a_uiGuid, bitfie
     , m_DeclarationCodeLocations(nullptr)
     , m_ReferenceCodeLocations(nullptr)
     , m_pElements(nullptr)
+    , m_pReferencedElements(nullptr)
+    , m_pReferencingElements(nullptr)
     , m_pOwner(nullptr)
     , m_Modifiers(a_Modifiers)
     , m_pModule(nullptr)
@@ -92,13 +98,34 @@ LanguageElement::LanguageElement( const string& a_strName, uint a_uiGuid, bitfie
 
 LanguageElement::~LanguageElement()
 {
+    o_assert(m_uiGuid == 0xffffffff, "probably you haven't called terminate before calling delete");
+}
+
+void LanguageElement::terminate()
+{
+    if(m_pMetaData != nullptr)
+    {
+        size_t count = phantom::Phantom::m_instance->m_meta_data_names.size();
+        o_delete_n(count, string) m_pMetaData;
+        m_pMetaData = nullptr;
+    }
     if(m_pOwner)
     {
         m_pOwner->removeElement(this);
     }
+    while(m_pReferencingElements)
+    {
+        m_pReferencingElements->back()->removeReferencedElement(this);
+    }
+    while(m_pReferencedElements)
+    {
+        removeReferencedElement(m_pReferencedElements->back());
+    }
     while(m_pElements)
     {
-        o_dynamic_delete m_pElements->back();
+        LanguageElement* pElement = m_pElements->back();
+        pElement->terminate();
+        o_dynamic_delete pElement;
     }
     if(m_pModule)
     {
@@ -117,6 +144,7 @@ LanguageElement::~LanguageElement()
         removeDeclarationCodeLocation(m_DeclarationCodeLocations->back());
     }
     Phantom::unregisterLanguageElement(this);
+    m_uiGuid = 0xffffffff;
 }
 
 phantom::string LanguageElement::getQualifiedName() const
@@ -326,6 +354,57 @@ void LanguageElement::removeElement( LanguageElement* a_pElement )
     a_pElement->m_pOwner = nullptr;
 }
 
+void LanguageElement::addReferencedElement( LanguageElement* a_pElement )
+{
+    if(m_pReferencedElements == nullptr)
+    {
+        m_pReferencedElements = new vector<LanguageElement*>;
+    }
+    m_pReferencedElements->push_back(a_pElement);
+    a_pElement->registerReferencingElement(this);
+    referencedElementAdded(a_pElement);
+}
+
+void LanguageElement::removeReferencedElement( LanguageElement* a_pElement )
+{
+    referencedElementRemoved(a_pElement);
+    a_pElement->unregisterReferencingElement(this);
+    m_pReferencedElements->erase(std::find(m_pReferencedElements->begin(), m_pReferencedElements->end(), a_pElement));
+    if(m_pReferencedElements->size() == 0)
+    {
+        delete m_pReferencedElements;
+        m_pReferencedElements = nullptr;
+    }
+}
+void LanguageElement::referencedElementAdded( LanguageElement* a_pElement )
+{
+
+}
+
+void LanguageElement::referencedElementRemoved( LanguageElement* a_pElement )
+{
+
+}
+
+void LanguageElement::registerReferencingElement( LanguageElement* a_pElement )
+{
+    if(m_pReferencingElements == nullptr)
+    {
+        m_pReferencingElements = new vector<LanguageElement*>;
+    }
+    m_pReferencingElements->push_back(a_pElement);
+}
+
+void LanguageElement::unregisterReferencingElement( LanguageElement* a_pElement )
+{
+    m_pReferencingElements->erase(std::find(m_pReferencingElements->begin(), m_pReferencingElements->end(), a_pElement));
+    if(m_pReferencingElements->size() == 0)
+    {
+        delete m_pReferencingElements;
+        m_pReferencingElements = nullptr;
+    }
+}
+
 void LanguageElement::teardownMetaDataCascade( size_t count )
 {
     if(m_pMetaData != nullptr)
@@ -452,5 +531,6 @@ void LanguageElement::elementRemoved( LanguageElement* a_pElement )
         m_pTemplateSpecialization = nullptr;
     }
 }
+
 
 o_cpp_end

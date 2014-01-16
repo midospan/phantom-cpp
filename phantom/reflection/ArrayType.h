@@ -56,14 +56,7 @@ public:
     friend class Type;
 
 protected:
-    ArrayType(Type* a_pStoredType, size_t a_uiCount) 
-        : Type(a_pStoredType->getName()+'['+phantom::lexical_cast<string>(m_uiCount)+']'
-        , a_uiCount*a_pStoredType->getSize(), a_pStoredType->getAlignment())    
-        , m_pStoredType(a_pStoredType)
-        , m_uiCount(a_uiCount)
-    {
-
-    }
+    ArrayType(Type* a_pStoredType, size_t a_uiCount);
 
 public:
     o_destructor ~ArrayType(void)     {}
@@ -226,6 +219,9 @@ public:
     virtual string          getQualifiedDecoratedName() const { return m_pStoredType->getQualifiedDecoratedName()+'['+phantom::lexical_cast<string>(m_uiCount)+']'; }
 
     virtual void            copy(void* a_pDest, void const* a_pSrc) const;
+
+protected:
+    virtual void referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
     Type*       m_pStoredType;

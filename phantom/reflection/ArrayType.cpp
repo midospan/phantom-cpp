@@ -41,6 +41,14 @@ o_cpp_begin
 ReflectionCPP__________________________________________________________________________________
 __________________________________________________________________________________ReflectionCPP
 
+ArrayType::ArrayType( Type* a_pStoredType, size_t a_uiCount ) : Type(a_pStoredType->getName()+'['+phantom::lexical_cast<string>(m_uiCount)+']'
+, a_uiCount*a_pStoredType->getSize(), a_pStoredType->getAlignment())    
+, m_pStoredType(a_pStoredType)
+, m_uiCount(a_uiCount)
+{
+    addReferencedElement(m_pStoredType);
+}
+
 boolean ArrayType::isConvertibleTo( Type* a_pType ) const
 {
     if(a_pType == this) return true;
@@ -76,5 +84,13 @@ void ArrayType::copy( void* a_pDest, void const* a_pSrc ) const
         m_pStoredType->copy((byte*)a_pDest + i*storedTypeSize, (byte*)a_pSrc + i*storedTypeSize);
     }
 }
+
+void ArrayType::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    Type::referencedElementRemoved(a_pElement);
+    if(m_pStoredType == a_pElement)
+        m_pStoredType = nullptr;
+}
+
 
 o_cpp_end

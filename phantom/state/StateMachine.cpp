@@ -50,11 +50,6 @@ StateMachine::StateMachine( bitfield a_Modifiers )
 
 StateMachine::~StateMachine( void )
 {
-    if(m_Tracks.size())
-    {
-        // Delete all the tracks recursively starting from the root one
-        o_dynamic_delete m_Tracks[0];
-    }
 }
 
 uint StateMachine::addEvent( const string& name )
@@ -118,7 +113,7 @@ reflection::Signature* StateMachine::StateMemberFunctionSignature()
 void StateMachine::registerTrack( Track* a_pTrack )
 {
     o_assert(getTrack(a_pTrack->getName()) == NULL);
-    a_pTrack->setOwnerStateMachine(this);
+    addElement(a_pTrack);
     a_pTrack->m_uiIndex = m_Tracks.size();
     m_Tracks.push_back(a_pTrack);
 }
@@ -126,7 +121,7 @@ void StateMachine::registerTrack( Track* a_pTrack )
 void StateMachine::registerState( State* a_pState )
 {
     o_assert(getState(a_pState->getName()) == NULL);
-    a_pState->setOwnerStateMachine(this);
+    addElement(a_pState);
     a_pState->m_uiIndex = m_States.size();
     m_States.push_back(a_pState);
 }

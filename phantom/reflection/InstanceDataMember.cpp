@@ -46,7 +46,15 @@ InstanceDataMember::InstanceDataMember( const string& a_strName, Type* a_pConten
 : ValueMember(a_strName, a_pRange, a_uiSerializationMask, a_Modifiers)
 , m_pContentType(a_pContentType)
 {
-    
+    addReferencedElement(m_pContentType);
 }
+
+void InstanceDataMember::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    ValueMember::referencedElementRemoved(a_pElement);
+    if(m_pContentType == a_pElement)
+        m_pContentType = nullptr;
+}
+
 
 o_cpp_end
