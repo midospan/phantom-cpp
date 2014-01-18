@@ -545,15 +545,15 @@ jit_value JitSubroutine::cast( jit_value value, Type* dest )
         return implicit_cast_result;
     }
 
-    if(value.type->isDataPointerType() AND NOT(dest->isDataPointerType()))
+    if(value.type->asDataPointerType() != nullptr AND (dest->asDataPointerType() == nullptr))
         return jit_value();
 
-    if(dest->isDataPointerType())
+    if(dest->asDataPointerType())
     {
-        o_assert(value.type->isDataPointerType());
+        o_assert(value.type->asDataPointerType());
         phantom::reflection::Type* pDestPointedType = dest->asDataPointerType()->getPointedType();
         phantom::reflection::Type* pSrcPointedType = value.type->asDataPointerType()->getPointedType();
-        if(pDestPointedType->isClass() AND pSrcPointedType->isClass())
+        if((pDestPointedType->asClass() != nullptr) AND (pSrcPointedType->asClass() != nullptr))
         {
             // Down cast
             size_t offset = pDestPointedType->asClass()->getSuperClassOffsetCascade(pSrcPointedType->asClass());

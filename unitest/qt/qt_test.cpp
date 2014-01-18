@@ -1,7 +1,7 @@
 #include "qt_test.h"
 #include "phantom/qt/VariableEditor.h"
 #include "phantom/qt/VariableManager.h"
-#include "phantom/qt/ModuleLoader.h"
+#include "phantom/qt/ModuleExplorer.h"
 #include "phantom/qt/MessageDisplay.h" 
 #include "phantom/qt/DataTreeView.h"
 #include "phantom/math/math.h"
@@ -163,7 +163,10 @@ qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
     pDataTreeView->setDataBase(pDataBase, 0, 1);
     connect(pDataTreeView, SIGNAL(selectionChanged(const phantom::vector<phantom::data>&)), pEditor0, SLOT(edit(const phantom::vector<phantom::data>&)));
     pVLayout1->addWidget(pDataTreeView);
-    pVLayout1->addWidget(o_new(phantom::qt::ModuleLoader)(".", pMessageTree->getRootMessage()));
+    phantom::qt::ModuleExplorer* pModuleExplorer = o_new(phantom::qt::ModuleExplorer);
+    pModuleExplorer->setPath(".");
+    pModuleExplorer->setMessage(pMessageTree->getRootMessage());
+    pVLayout1->addWidget(pModuleExplorer);
 /*
 
     connect(pEditor1, SIGNAL(variableChanged(BufferedVariable*)), pEditor0, SLOT(reedit()));

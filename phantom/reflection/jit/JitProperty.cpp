@@ -40,7 +40,7 @@ void JitProperty::setChangeNotificationSignal( JitSignal* a_pSignal )
 void JitProperty::getValue( void const* a_pObject, void* dest ) const
 {
     void* pThis = &a_pObject;
-    if(getValueType()->isReferenceType())
+    if(getValueType()->asReferenceType())
     {
         void* reference_address = nullptr;
         jit_function_apply((jit_function_t)m_get_jit_function.function, &pThis, &reference_address);
@@ -54,7 +54,7 @@ void JitProperty::getValue( void const* a_pObject, void* dest ) const
 
 void JitProperty::setValue( void* a_pObject, const void* src ) const
 {
-    if(getValueType()->isReferenceType())
+    if(getValueType()->asReferenceType())
     {
         void* args[2] = { &a_pObject, (void*)&src };                   
         jit_function_apply((jit_function_t)m_set_jit_function.function, args, nullptr);

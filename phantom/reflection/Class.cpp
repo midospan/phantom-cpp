@@ -62,21 +62,13 @@ Class::Class(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bit
 
 Class::~Class()
 {
-    for(auto it = m_VirtualMemberFunctionTables.begin(); it!=m_VirtualMemberFunctionTables.end(); it++)
-    {
-        o_dynamic_delete (*it);
-    }
     m_VirtualMemberFunctionTables.clear();
-
-    if(m_pStateMachine)
-    {
-        o_dynamic_delete m_pStateMachine;
-        m_pStateMachine = nullptr;
-    }
 
     while(m_DerivedClasses.size())
     {
-        o_dynamic_delete m_DerivedClasses.back();
+        Class* pDerivedClass = m_DerivedClasses.back();
+        pDerivedClass->ClassType::terminate();
+        o_dynamic_delete pDerivedClass;
     }
     super_class_table::iterator it = m_SuperClasses.begin();
     super_class_table::iterator end = m_SuperClasses.end();
@@ -340,7 +332,9 @@ void Class::setupVirtualMemberFunctionTables() const
             if(pMemberFunction->isVirtual())
                 member_functions.push_back(pMemberFunction);
         }
-        m_VirtualMemberFunctionTables.push_back(o_new(VirtualMemberFunctionTable)(const_cast<Class*>(this), &member_functions));
+        VirtualMemberFunctionTable* pVMT = o_new(VirtualMemberFunctionTable)(const_cast<Class*>(this), &member_functions);
+        m_VirtualMemberFunctionTables.push_back(pVMT);
+        ((Class*)this)->addElement(pVMT);
         return;
     }
 
@@ -360,11 +354,15 @@ void Class::setupVirtualMemberFunctionTables() const
             if(it == m_SuperClasses.begin() AND i == 0) // Common branch
             {
                 member_functions.insert(member_functions.end(), rootMemberFunctions.begin(), rootMemberFunctions.end());
-                m_VirtualMemberFunctionTables.push_back(o_new(VirtualMemberFunctionTable)(const_cast<Class*>(this), &member_functions));
+                VirtualMemberFunctionTable* pVMT = o_new(VirtualMemberFunctionTable)(const_cast<Class*>(this), &member_functions);
+                m_VirtualMemberFunctionTables.push_back(pVMT);
+                ((Class*)this)->addElement(pVMT);
             }
             else
             {
-                m_VirtualMemberFunctionTables.push_back(o_new(VirtualMemberFunctionTable)(pSuperType->getVirtualMemberFunctionTable(i)->getBaseClass(), &member_functions));
+                VirtualMemberFunctionTable* pVMT = o_new(VirtualMemberFunctionTable)(pSuperType->getVirtualMemberFunctionTable(i)->getBaseClass(), &member_functions);
+                m_VirtualMemberFunctionTables.push_back(pVMT);
+                ((Class*)this)->addElement(pVMT);
             }
         }
     }
@@ -1204,7 +1202,7 @@ void Class::destroySingleton()
 
 bool Class::canBeDestroyed() const
 {
-    return ClassType::canBeDestroyed() && m_DerivedClasses.empty() && (m_uiRegisteredInstances == 0 || (this == classOf<Class>() && m_uiRegisteredInstances == 1));
+    return ClassType::canBeDestroyed() && (m_uiRegisteredInstances == 0 || (this == classOf<Class>() && m_uiRegisteredInstances == 1));
 }
 
 

@@ -94,7 +94,7 @@ QString VariableManager::getValueText( const QtProperty *property ) const
                 return QString("[")+QString::number(count)+"]";
             }
         }
-        else if(type->isDataPointerType() && m_pVariableEditor->m_pDataBase)
+        else if((type->asDataPointerType() != nullptr) && m_pVariableEditor->m_pDataBase)
         {
             void* value = NULL;
             pVariable->getValue(&value);

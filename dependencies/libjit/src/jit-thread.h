@@ -79,6 +79,11 @@ typedef struct jit_thread_control *jit_thread_control_t;
 void _jit_thread_init(void);
 
 /*
+ * Terminate the thread routines.  Ignored if called multiple times.
+ */
+void _jit_thread_terminate(void);
+
+/*
  * Get the JIT control object for the current thread.
  */
 jit_thread_control_t _jit_thread_get_control(void);

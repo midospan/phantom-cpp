@@ -254,12 +254,14 @@ void Type::elementRemoved(LanguageElement* a_pElement)
     {
         o_assert(m_pNestedTypes);
         o_assert(pType->m_pOwner == this, "Type doesn't belong to this type");
-        o_assert(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), pType) != m_pNestedTypes->end(), "Type not fount");
-        m_pNestedTypes->erase(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), pType));
-        if(m_pNestedTypes->size() == 0)
+        if(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), pType) != m_pNestedTypes->end())
         {
-            o_default_delete(vector<Type*>) m_pNestedTypes;
-            m_pNestedTypes = nullptr;
+            m_pNestedTypes->erase(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), pType));
+            if(m_pNestedTypes->size() == 0)
+            {
+                o_default_delete(vector<Type*>) m_pNestedTypes;
+                m_pNestedTypes = nullptr;
+            }
         }
     }
 }

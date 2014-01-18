@@ -730,6 +730,7 @@
     <ClInclude Include="..\..\..\phantom\util\Selection.h">
       <Filter>util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\phantom\ModuleLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\phantom\reflection\TemplateSpecialization.cpp">
@@ -1040,6 +1041,7 @@
     <ClCompile Include="..\..\..\phantom\externals\std\string.cpp">
       <Filter>externals\std</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\phantom\ModuleLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\phantom\def_memory.inl">

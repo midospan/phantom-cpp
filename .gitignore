@@ -10,3 +10,8 @@ projects/msvc/2010/unitest/qt_test
 dependencies/QWidgets/build
 dependencies/QWidgets/bin
 dependencies/QWidgets/bin
+dependencies/libjit/bin
+dependencies/libjit/libjit_test/Debug
+dependencies/libjit/libjit_test/Release
+dependencies/libjit/msvc/Debug
+dependencies/libjit/msvc/Release

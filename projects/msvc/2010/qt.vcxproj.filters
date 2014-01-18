@@ -63,13 +63,13 @@
     <CustomBuild Include="..\..\..\phantom\qt\StateMachineInspector.h">
       <Filter>src</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\phantom\qt\ModuleLoader.h">
-      <Filter>src</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\..\phantom\qt\DataTreeView.h">
       <Filter>src</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\phantom\qt\Action.h">
+      <Filter>src</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\ModuleExplorer.h">
       <Filter>src</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -182,15 +182,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_StateMachineInspector.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_ModuleLoader.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_ModuleLoader.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\ModuleLoader.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\DataTreeView.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -207,6 +198,15 @@
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\Action.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_ModuleExplorer.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_ModuleExplorer.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\ModuleExplorer.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

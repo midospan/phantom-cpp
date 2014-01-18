@@ -195,6 +195,7 @@
     <ClInclude Include="..\..\..\phantom\math\vector_funcs.h" />
     <ClInclude Include="..\..\..\phantom\Module.classdef.h" />
     <ClInclude Include="..\..\..\phantom\Module.h" />
+    <ClInclude Include="..\..\..\phantom\ModuleLoader.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ArrayType.classdef.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ArrayType.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Block.h" />
@@ -398,6 +399,7 @@
     <ClCompile Include="..\..\..\phantom\math\vector_reflection.cpp" />
     <ClCompile Include="..\..\..\phantom\memory\nedmalloc.cpp" />
     <ClCompile Include="..\..\..\phantom\Module.cpp" />
+    <ClCompile Include="..\..\..\phantom\ModuleLoader.cpp" />
     <ClCompile Include="..\..\..\phantom\Object.cpp" />
     <ClCompile Include="..\..\..\phantom\phantom.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\native\TType.cpp" />

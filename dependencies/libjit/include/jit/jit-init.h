@@ -28,6 +28,7 @@ extern	"C" {
 #endif
 
 void jit_init(void) JIT_NOTHROW;
+void jit_terminate(void) JIT_NOTHROW;
 int jit_uses_interpreter(void) JIT_NOTHROW;
 
 #ifdef	__cplusplus

@@ -11,6 +11,10 @@ static struct jit_initializer {
     {
         jit_init();
     }
+    ~jit_initializer()
+    {
+        jit_terminate();
+    }
 } g_initializer;
 
     
@@ -28,15 +32,15 @@ jit_value   jit_insn_phantom_implicit_cast(jit_function_t func, jit_value value,
     if(!value.type->isConvertibleTo(a_pDestType)) 
         return jit_value();
 
-    o_assert(!value.type->isDataPointerType() || a_pDestType->isDataPointerType(), " src is ptr => dest is ptr, or something is wrong in isConvertibleTo");
-    if(a_pDestType->isDataPointerType())
+    o_assert((value.type->asDataPointerType() == nullptr) || (a_pDestType->asDataPointerType() != nullptr), " src is ptr => dest is ptr, or something is wrong in isConvertibleTo");
+    if(a_pDestType->asDataPointerType())
     {
-        o_assert(value.type->isDataPointerType());
+        o_assert(value.type->asDataPointerType());
         phantom::reflection::Type* pDestPointedType = a_pDestType->asDataPointerType()->getPointedType();
         phantom::reflection::Type* pSrcPointedType = value.type->asDataPointerType()->getPointedType();
-        if(pDestPointedType->isClass() == pSrcPointedType->isClass())
+        if((pDestPointedType->asClass() == nullptr) == (pSrcPointedType->asClass() == nullptr))
         {
-            if(pDestPointedType->isClass())
+            if(pDestPointedType->asClass())
             {
                 size_t offset = pSrcPointedType->asClass()->getSuperClassOffsetCascade(pDestPointedType->asClass());
                 if(offset == 0xffffffff) return jit_value();
@@ -54,26 +58,26 @@ jit_value   jit_insn_phantom_implicit_cast(jit_function_t func, jit_value value,
         }
     }
     // TODO fix that shitty triple test
-    else if(a_pDestType->isArithmeticType() AND value.type->isArithmeticType())
+    else if(a_pDestType->asArithmeticType() AND value.type->asArithmeticType())
     {
         return jit_value(jit_insn_convert(func, (jit_value_t)value.value, toJitType(a_pDestType), 0), a_pDestType);
     }
-    else if(a_pDestType->isIntegralType() AND value.type->isArithmeticType())
+    else if(a_pDestType->asIntegralType() AND value.type->asArithmeticType())
     {
         return jit_value(jit_insn_convert(func, (jit_value_t)value.value, toJitType(a_pDestType), 0), a_pDestType);
     }
-    else if(a_pDestType->isArithmeticType() AND value.type->isIntegralType())
+    else if(a_pDestType->asArithmeticType() AND value.type->asIntegralType())
     {
         return jit_value(jit_insn_convert(func, (jit_value_t)value.value, toJitType(a_pDestType), 0), a_pDestType);
     }
-    else if(a_pDestType->isReferenceType() AND NOT(value.type->isReferenceType()))
+    else if((a_pDestType->asReferenceType() != nullptr) AND (value.type->asReferenceType() == nullptr))
     {
         /// Convert from value to reference => address value
         if(value.isAddressable()) 
         {
             return jit_value(jit_insn_address_of(func, (jit_value_t)value.value), a_pDestType);
         }
-        else if(a_pDestType->asReferenceType()->getReferencedType()->isConstType())
+        else if(a_pDestType->asReferenceType()->getReferencedType()->asConstType())
         {
             jit_value_t temp_value = jit_value_create(func, toJitType(a_pDestType->asReferenceType()->getReferencedType())) ;
             jit_value_set_addressable(temp_value);
@@ -82,7 +86,7 @@ jit_value   jit_insn_phantom_implicit_cast(jit_function_t func, jit_value value,
             return jit_value(jit_insn_address_of(func, temp_value), a_pDestType);
         }
     }
-    else if(NOT(a_pDestType->isReferenceType()) AND value.type->isReferenceType())
+    else if((a_pDestType->asReferenceType() == nullptr) AND (value.type->asReferenceType() != nullptr))
     {
         /// Convert from reference to value (dereference) => get value content
         return jit_insn_load_relative(func, (jit_value_t)value.value, 0, toJitType(a_pDestType));
@@ -819,7 +823,7 @@ jit_type_t toJitType( Type* a_pType )
             jit_type_vector4f = jit_type_create_struct(t, 4, 0);
         }
     }
-    while(a_pType->isConstType())
+    while(a_pType->asConstType())
     {
         a_pType = a_pType->removeConst();
     }
@@ -834,8 +838,8 @@ jit_type_t toJitType( Type* a_pType )
         default: o_assert(false);
         }
     }
-    if(a_pType->isDataPointerType()) return jit_type_void_ptr;
-    if(a_pType->isReferenceType()) return jit_type_void_ptr;
+    if(a_pType->asDataPointerType()) return jit_type_void_ptr;
+    if(a_pType->asReferenceType()) return jit_type_void_ptr;
     if(a_pType == phantom::typeOf<phantom::signal_t>()) return jit_type_phantom_signal_t;
     if(a_pType == phantom::typeOf<phantom::math::vector2<float>>()) return jit_type_vector2f;
     if(a_pType == phantom::typeOf<phantom::math::vector3<float>>()) return jit_type_vector3f;

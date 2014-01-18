@@ -29,9 +29,16 @@ void MessageDisplay::setMessageTree(MessageTree* a_pMessageTree)
     if(m_pMessageTree == a_pMessageTree) return;
     if(m_pMessageTree)
     {
+        size_t i = 0;
+        size_t count = m_pMessageTree->getRootMessage()->getChildCount();
+        for(;i<count;++i)
+        {
+            Message* pChild = m_pMessageTree->getRootMessage()->getChild(i);
+            removeNodeItem(pChild);
+        }
         o_disconnect(m_pMessageTree->getRootMessage(), childAdded(Message*), this, addNodeItem(Message*));
         o_disconnect(m_pMessageTree->getRootMessage(), childRemoved(Message*), this, removeNodeItem(Message*));
-        clear();
+        Q_ASSERT(this->topLevelItemCount() == 0);
     }
     m_pMessageTree = a_pMessageTree;
     if(m_pMessageTree)
@@ -108,12 +115,22 @@ void MessageDisplay::addNodeItem( Message* a_pNode )
 void MessageDisplay::removeNodeItem( Message* a_pNode )
 {
     MessageDisplayItem* pItem = getItem(a_pNode);
+    size_t i = 0;
+    size_t count = a_pNode->getChildCount();
+    for(;i<count;++i)
+    {
+        removeNodeItem(a_pNode->getChild(i));
+    }
     o_disconnect(a_pNode, childAdded(Message*), this, addNodeItem(Message*));
     o_disconnect(a_pNode, childRemoved(Message*), this, removeNodeItem(Message*));
     o_assert(pItem);
     if(pItem->parent())
     {
         pItem->parent()->removeChild(pItem);
+    }
+    else 
+    {
+        takeTopLevelItem(indexOfTopLevelItem(pItem));
     }
     delete pItem;
 }

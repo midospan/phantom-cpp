@@ -65,6 +65,12 @@ done:
 	jit_mutex_unlock(&_jit_global_lock);
 }
 
+
+void jit_terminate(void)
+{
+    _jit_thread_terminate();
+}
+
 /*@
  * @deftypefun int jit_uses_interpreter (void)
  * Determine if the JIT uses a fall-back interpreter to execute code
@@ -80,3 +86,4 @@ int jit_uses_interpreter(void)
 	return 0;
 #endif
 }
+

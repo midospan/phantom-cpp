@@ -1,16 +1,16 @@
 /****************************************************************************
-** Meta object code from reading C++ file 'ModuleLoader.h'
+** Meta object code from reading C++ file 'ModuleExplorer.h'
 **
-** Created: Sat 11. Jan 15:54:02 2014
+** Created: Sat 18. Jan 17:35:56 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
 #include "phantom/qt/qt.h"
-#include "..\..\..\..\..\phantom\qt\ModuleLoader.h"
+#include "..\..\..\..\..\phantom\qt\ModuleExplorer.h"
 #if !defined(Q_MOC_OUTPUT_REVISION)
-#error "The header file 'ModuleLoader.h' doesn't include <QObject>."
+#error "The header file 'ModuleExplorer.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 63
 #error "This file was generated using the moc from 4.8.1. It"
 #error "cannot be used with the include files from this version of Qt."
@@ -18,7 +18,7 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-static const uint qt_meta_data_phantom__qt__ModuleLoader[] = {
+static const uint qt_meta_data_phantom__qt__ModuleExplorer[] = {
 
  // content:
        6,       // revision
@@ -32,21 +32,21 @@ static const uint qt_meta_data_phantom__qt__ModuleLoader[] = {
        0,       // signalCount
 
  // slots: signature, parameters, type, tag, flags
-      29,   27,   26,   26, 0x09,
+      31,   29,   28,   28, 0x09,
 
        0        // eod
 };
 
-static const char qt_meta_stringdata_phantom__qt__ModuleLoader[] = {
-    "phantom::qt::ModuleLoader\0\0,\0"
+static const char qt_meta_stringdata_phantom__qt__ModuleExplorer[] = {
+    "phantom::qt::ModuleExplorer\0\0,\0"
     "slotItemDoubleClicked(QTreeWidgetItem*,int)\0"
 };
 
-void phantom::qt::ModuleLoader::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void phantom::qt::ModuleExplorer::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     if (_c == QMetaObject::InvokeMetaMethod) {
         Q_ASSERT(staticMetaObject.cast(_o));
-        ModuleLoader *_t = static_cast<ModuleLoader *>(_o);
+        ModuleExplorer *_t = static_cast<ModuleExplorer *>(_o);
         switch (_id) {
         case 0: _t->slotItemDoubleClicked((*reinterpret_cast< QTreeWidgetItem*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
         default: ;
@@ -54,33 +54,33 @@ void phantom::qt::ModuleLoader::qt_static_metacall(QObject *_o, QMetaObject::Cal
     }
 }
 
-const QMetaObjectExtraData phantom::qt::ModuleLoader::staticMetaObjectExtraData = {
+const QMetaObjectExtraData phantom::qt::ModuleExplorer::staticMetaObjectExtraData = {
     0,  qt_static_metacall 
 };
 
-const QMetaObject phantom::qt::ModuleLoader::staticMetaObject = {
-    { &QTreeWidget::staticMetaObject, qt_meta_stringdata_phantom__qt__ModuleLoader,
-      qt_meta_data_phantom__qt__ModuleLoader, &staticMetaObjectExtraData }
+const QMetaObject phantom::qt::ModuleExplorer::staticMetaObject = {
+    { &QTreeWidget::staticMetaObject, qt_meta_stringdata_phantom__qt__ModuleExplorer,
+      qt_meta_data_phantom__qt__ModuleExplorer, &staticMetaObjectExtraData }
 };
 
 #ifdef Q_NO_DATA_RELOCATION
-const QMetaObject &phantom::qt::ModuleLoader::getStaticMetaObject() { return staticMetaObject; }
+const QMetaObject &phantom::qt::ModuleExplorer::getStaticMetaObject() { return staticMetaObject; }
 #endif //Q_NO_DATA_RELOCATION
 
-const QMetaObject *phantom::qt::ModuleLoader::metaObject() const
+const QMetaObject *phantom::qt::ModuleExplorer::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->metaObject : &staticMetaObject;
 }
 
-void *phantom::qt::ModuleLoader::qt_metacast(const char *_clname)
+void *phantom::qt::ModuleExplorer::qt_metacast(const char *_clname)
 {
     if (!_clname) return 0;
-    if (!strcmp(_clname, qt_meta_stringdata_phantom__qt__ModuleLoader))
-        return static_cast<void*>(const_cast< ModuleLoader*>(this));
+    if (!strcmp(_clname, qt_meta_stringdata_phantom__qt__ModuleExplorer))
+        return static_cast<void*>(const_cast< ModuleExplorer*>(this));
     return QTreeWidget::qt_metacast(_clname);
 }
 
-int phantom::qt::ModuleLoader::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int phantom::qt::ModuleExplorer::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QTreeWidget::qt_metacall(_c, _id, _a);
     if (_id < 0)

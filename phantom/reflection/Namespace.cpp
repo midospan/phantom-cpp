@@ -633,6 +633,27 @@ void Namespace::referencedElementRemoved( LanguageElement* a_pElement )
             }
         }
     }
+
 }
 
+
+void Namespace::elementRemoved(LanguageElement* a_pElement)
+{
+    for(auto it = m_Types.begin(); it != m_Types.end(); ++it)
+    {
+        if(*it == a_pElement)
+        {
+            m_Types.erase(it);
+            break;
+        }
+    }
+    for(auto it = m_Namespaces.begin(); it != m_Namespaces.end(); ++it)
+    {
+        if(*it == a_pElement)
+        {
+            m_Namespaces.erase(it);
+            break;
+        }
+    }
+}
 o_cpp_end

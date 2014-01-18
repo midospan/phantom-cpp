@@ -165,7 +165,7 @@ void DataTreeView::showPopup(const QPoint & pos)
                 else
                 {
                     // Data first removed from its owner
-                    o_assert(owner.type()->isClass());
+                    o_assert(owner.type()->asClass());
                     //phantom::reflection::Collection* pCollection = m_pDataBase->getSubDataManager()->getCollectionContainingData(d);
                     
                 }

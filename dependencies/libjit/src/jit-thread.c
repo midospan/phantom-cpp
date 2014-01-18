@@ -78,6 +78,13 @@ static void init_win32_thread(void)
 	control_key = TlsAlloc();
 }
 
+static void terminate_win32_thread(void)
+{
+    TlsFree(control_key);
+
+    jit_mutex_destroy(&_jit_global_lock);
+}
+
 jit_thread_id_t _jit_thread_self(void)
 {
 	HANDLE new_handle;
@@ -107,6 +114,20 @@ void _jit_thread_init(void)
 	{
 		init_win32_thread();
 	}
+#endif
+}
+
+void _jit_thread_terminate(void)
+{
+#if defined(JIT_THREADS_PTHREAD)
+    static pthread_once_t once_control = PTHREAD_ONCE_INIT;
+    pthread_once(&once_control, terminate_pthread);
+#elif defined(JIT_THREADS_WIN32)
+    static LONG volatile once_control = 0;
+    if(!InterlockedExchange((PLONG)&once_control, 1))
+    {
+        terminate_win32_thread();
+    }
 #endif
 }
 

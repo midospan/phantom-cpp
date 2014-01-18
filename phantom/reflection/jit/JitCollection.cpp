@@ -35,7 +35,7 @@ JitCollection::~JitCollection( void )
 
 void JitCollection::addElement( void* a_pObject, const void* src ) const
 {
-    if(getElementType()->isReferenceType())
+    if(getElementType()->asReferenceType())
     {
         void* args[2] = { &a_pObject, (void*)&src };                   
         jit_function_apply((jit_function_t)m_pAdder->getJitGenericCallFunction().function, args, nullptr);
@@ -49,7 +49,7 @@ void JitCollection::addElement( void* a_pObject, const void* src ) const
 
 void JitCollection::setElement( void* a_pObject, size_t index, const void* src ) const
 {
-    if(getElementType()->isReferenceType())
+    if(getElementType()->asReferenceType())
     {
         void* args[3] = { &a_pObject, &index, (void*)&src };                   
         jit_function_apply((jit_function_t)m_pSetter->getJitGenericCallFunction().function, args, nullptr);
@@ -63,7 +63,7 @@ void JitCollection::setElement( void* a_pObject, size_t index, const void* src )
 
 void JitCollection::moveElement( void* a_pObject, const void* src, size_t index ) const
 {
-    if(getElementType()->isReferenceType())
+    if(getElementType()->asReferenceType())
     {
         void* args[3] = { &a_pObject, (void*)&src, &index };                   
         jit_function_apply((jit_function_t)m_pMover->getJitGenericCallFunction().function, args, nullptr);
@@ -77,7 +77,7 @@ void JitCollection::moveElement( void* a_pObject, const void* src, size_t index 
 
 void JitCollection::removeElement( void* a_pObject, const void* src ) const
 {
-    if(getElementType()->isReferenceType())
+    if(getElementType()->asReferenceType())
     {
         void* args[2] = { &a_pObject, (void*)&src };                   
         jit_function_apply((jit_function_t)m_pRemover->getJitGenericCallFunction().function, args, nullptr);
@@ -91,7 +91,7 @@ void JitCollection::removeElement( void* a_pObject, const void* src ) const
 
 void JitCollection::getElement( void const* a_pObject, size_t a_uiIndex, void* dest ) const
 {
-    if(getElementType()->isReferenceType())
+    if(getElementType()->asReferenceType())
     {
         void* args[2] = { &a_pObject, &a_uiIndex };                   
         jit_function_apply((jit_function_t)m_pGetter->getJitGenericCallFunction().function, args, &dest);
@@ -106,7 +106,7 @@ void JitCollection::getElement( void const* a_pObject, size_t a_uiIndex, void* d
 size_t JitCollection::getSize( void const* a_pObject ) const
 {
     size_t result = 0;
-    if(getElementType()->isReferenceType())
+    if(getElementType()->asReferenceType())
     {
         void* args[1] = { &a_pObject };                   
         jit_function_apply((jit_function_t)m_pSizeGetter->getJitGenericCallFunction().function, args, &result);
