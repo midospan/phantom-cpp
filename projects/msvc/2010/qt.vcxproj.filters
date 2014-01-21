@@ -72,6 +72,12 @@
     <CustomBuild Include="..\..\..\phantom\qt\ModuleExplorer.h">
       <Filter>src</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\DataComboBox.h">
+      <Filter>src</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\DataComboBoxEditor.h">
+      <Filter>src</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GeneratedFiles\Debug\moc_VariableEditor.cpp">
@@ -207,6 +213,18 @@
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\ModuleExplorer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\DataComboBox.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_DataComboBox.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_DataComboBox.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\DataComboBoxEditor.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

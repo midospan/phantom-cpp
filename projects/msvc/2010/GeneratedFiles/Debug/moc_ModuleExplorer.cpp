@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'ModuleExplorer.h'
 **
-** Created: Sat 18. Jan 17:35:56 2014
+** Created: Mon 20. Jan 21:50:56 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!

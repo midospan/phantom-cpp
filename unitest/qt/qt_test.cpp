@@ -9,6 +9,7 @@
 #include "phantom/serialization/Node.h"
 #include "phantom/util/MessageTree.h"
 #include "phantom/util/Message.h"
+#include "phantom/ModuleLoader.h"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
@@ -164,7 +165,9 @@ qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
     connect(pDataTreeView, SIGNAL(selectionChanged(const phantom::vector<phantom::data>&)), pEditor0, SLOT(edit(const phantom::vector<phantom::data>&)));
     pVLayout1->addWidget(pDataTreeView);
     phantom::qt::ModuleExplorer* pModuleExplorer = o_new(phantom::qt::ModuleExplorer);
+    phantom::ModuleLoader* pModuleLoader = o_new(phantom::ModuleLoader);
     pModuleExplorer->setPath(".");
+    pModuleExplorer->setModuleLoader(pModuleLoader);
     pModuleExplorer->setMessage(pMessageTree->getRootMessage());
     pVLayout1->addWidget(pModuleExplorer);
 /*

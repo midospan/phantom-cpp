@@ -204,7 +204,8 @@ void DataTreeView::showPopup(const QPoint & pos)
                                     AND pClass->isPublic() 
                                     AND NOT(pClass->isComponent())
                                     AND NOT(pClass->isAbstract())
-                                    AND pClass->isDefaultConstructible())
+                                    AND pClass->isDefaultConstructible()
+                                    AND pClass->getSingleton() == nullptr)
                                 {
                                     Action* pAction = o_new(AddDataAction)((serialization::Node*)item->getContent(), pClass, m_AddDataActionDelegate, moduleMenu);
                                     moduleMenu->addAction(pAction);

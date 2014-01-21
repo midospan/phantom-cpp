@@ -8,6 +8,7 @@
 /* ****************** Includes ******************* */
 #include <phantom/phantom.h>
 /* **************** Declarations ***************** */
+o_declare(class, phantom, Module);
 /* *********************************************** */
 o_namespace_begin(phantom)
 
@@ -19,31 +20,50 @@ public:
     ModuleLoader(void);
     ~ModuleLoader(void);
 
-    bool loadModule(const string& a_strPath, Message* a_pMessage = nullptr);
-    bool unloadModule(const string& a_strPath, Message* a_pMessage = nullptr);
-    bool hasLoadedModule(const string& a_strPath) const;
-    bool hasLoadedModule( Module* a_pModule ) const;
+    o_initialize();
+    o_terminate();
+
+    bool loadLibrary(const string& a_strPath, Message* a_pMessage = nullptr);
+    bool unloadLibrary(const string& a_strPath, Message* a_pMessage = nullptr);
 
     vector<Module*>::const_iterator beginLoadedModules() const { return m_LoadedModules.begin(); }
     vector<Module*>::const_iterator endLoadedModules() const { return m_LoadedModules.end(); }
 
+    size_t                          getModuleLoadCount(Module* a_pModule) const;
+
+    size_t                          getLibraryModuleLoadCount(const string& a_strPath, Module* a_pModule) const;
+
+    bool                            isLibraryLoaded(const string& a_strPath) const { return m_LibraryModules.find(a_strPath) != m_LibraryModules.end(); }
+
+    map<Module*, size_t>::const_iterator beginLoadedLibraryModules(const string& a_strPath) const;
+    map<Module*, size_t>::const_iterator endLoadedLibraryModules(const string& a_strPath) const;
+
+    map<string, map<Module*, size_t>>::const_iterator beginLoadedLibraries() const { return m_LibraryModules.begin(); }
+    map<string, map<Module*, size_t>>::const_iterator endLoadedLibraries() const { return m_LibraryModules.end(); }
+
+    bool                            libraryCanBeUnloaded(const string& a_strPath, phantom::Message* a_pMessage = nullptr) const;
+
 protected:
     void moduleInstanciated(void* a_pModule);
     void moduleDestroyed(void* a_pModule);
+    void updateReferenceCounts(const string& a_strLibPath, bool a_bLoading);
             
 protected:
-    o_signal_data(moduleAboutToBeLoaded, const string&);
-    o_signal_data(moduleLoaded, const string&);
-    o_signal_data(moduleLoadFailed, const string&);
-    o_signal_data(moduleAboutToBeUnloaded, const string&);
-    o_signal_data(moduleUnloaded, const string&);
-    o_signal_data(moduleUnloadFailed, const string&);
-       
+    o_signal_data(libraryAboutToBeLoaded, const string&);
+    o_signal_data(libraryLoaded, const string&);
+    o_signal_data(libraryLoadFailed, const string&);
+    o_signal_data(libraryAboutToBeUnloaded, const string&);
+    o_signal_data(libraryUnloaded, const string&);
+    o_signal_data(libraryUnloadFailed, const string&);
+    o_signal_data(moduleLoaded, Module*, size_t, size_t);
+    o_signal_data(moduleUnloaded, Module*, size_t, size_t);
+
 protected:
     vector<Module*> m_LoadedModules;
-    map<Module*, vector<Module*>> m_ModuleDependencies;
-    Module* m_pCurrentlyUnloadedModule;
+    map<Module*, size_t> m_LoadedModuleCounts;
+    map<string, map<Module*, size_t>> m_LibraryModules;
     vector<Module*> m_CurrentlyLoadedModules;
+    size_t m_OperationCounter;
 };
 
 o_namespace_end(phantom)
@@ -54,12 +74,14 @@ o_classN((phantom), ModuleLoader)
     {
         o_slot(void, moduleInstanciated, (void*));
         o_slot(void, moduleDestroyed, (void*));
-        o_signal(moduleAboutToBeLoaded, (const string&));
-        o_signal(moduleLoaded, (const string&));
-        o_signal(moduleAboutToBeUnloaded, (const string&));
-        o_signal(moduleUnloaded, (const string&));
-        o_signal(moduleLoadFailed, (const string&));
-        o_signal(moduleUnloadFailed, (const string&));
+        o_signal(libraryAboutToBeLoaded, (const string&));
+        o_signal(libraryLoaded, (const string&));
+        o_signal(libraryAboutToBeUnloaded, (const string&));
+        o_signal(libraryUnloaded, (const string&));
+        o_signal(libraryLoadFailed, (const string&));
+        o_signal(libraryUnloadFailed, (const string&));
+        o_signal(moduleLoaded, (Module*, size_t, size_t));
+        o_signal(moduleUnloaded, (Module*, size_t, size_t));
     };
 };
 o_exposeN((phantom), ModuleLoader);

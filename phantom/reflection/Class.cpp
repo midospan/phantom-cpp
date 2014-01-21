@@ -803,6 +803,12 @@ void Class::getAllMemberCascade( vector<LanguageElement*>& a_out ) const
 #if o__bool__use_kind_creation_signal
 void                Class::fireKindCreated(void* a_pObject) const
 {
+    // TODO : move this singleton code in a better place
+    if(isSingleton())
+    {
+        o_assert(m_pSingleton == nullptr);
+        ((Class*)this)->m_pSingleton = a_pObject;
+    }
     {
         super_class_table::const_iterator it = m_SuperClasses.begin();
         super_class_table::const_iterator end = m_SuperClasses.end();
@@ -826,6 +832,12 @@ void                Class::fireKindDestroyed(void* a_pObject) const
         {
             it->m_pClass->fireKindDestroyed((byte*)a_pObject + it->m_uiOffset);
         }
+    }
+    // TODO : move this singleton code in a better place
+    if(isSingleton())
+    {
+        o_assert(m_pSingleton == a_pObject);
+        ((Class*)this)->m_pSingleton = nullptr;
     }
 }
 #endif
@@ -1093,11 +1105,6 @@ void Class::destroyContent()
 
 void Class::registerRtti( void* a_pThis, void* a_pBase, Class* a_pObjectClass, connection::slot_pool* a_pSlotPool, dynamic_delete_func_t a_dynamic_delete_func )
 {
-    if(a_pObjectClass == this && isSingleton())
-    {
-        o_assert(m_pSingleton == nullptr);
-        m_pSingleton = a_pBase;
-    }
     if(m_SuperClasses.empty()) // Root class
     {
         registerRttiImpl(a_pThis, a_pBase, a_pObjectClass, a_pSlotPool, a_dynamic_delete_func);

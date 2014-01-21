@@ -143,6 +143,10 @@ namespace phantom { namespace qt {
 
             pVariableWidgetEditor = o_new(EnumComboBoxEditor)(pEnum);
         }
+        /*else if(pVariableType->asDataPointerType() && m_pDataBase)
+        {
+            pVariableWidgetEditor = o_new(DataComboBox)(pVariableType, m_EditedData, m_pDataBase);
+        }*/
         if(pVariableWidgetEditor)
         {
             VariableWidget* pVariableWidget = new VariableWidget(pVariableWidgetEditor, this);
