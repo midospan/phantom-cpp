@@ -6,7 +6,12 @@
 #include "phantom/qt/jit/qt_jit.h"
 #include "phantom/qt/VariableManager.h"
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, qt, jit), LocalVariableManager);
+o_declareN(class, (phantom, qt, jit), GenericVariable);
+o_declareN(class, (phantom, qt, jit), OptimizedAwayVariable);
+o_declareN(class, (phantom, qt, jit), ValueMemberVariable);
+o_declareN(class, (phantom, qt, jit), DereferencedVariable);
+o_declareN(class, (phantom, qt, jit), ReferencedVariable);
 /* *********************************************** */
 
 namespace phantom { 
@@ -178,17 +183,14 @@ public:
 
     }
 
-    virtual void getValue(void* dest) const 
-    {
-        phantom::typeOf<string>()->copy(dest, &sm_strOptimizedAwayText);
-    }
+    virtual void getValue(void* dest) const;
 
     virtual void setValue(const void* src) const 
     {
         o_assert(false);
     }
 
-    virtual phantom::reflection::Type* getValueType() const { return phantom::typeOf<string>(); }
+    virtual phantom::reflection::Type* getValueType() const;
     virtual void* getAddress() const { return &sm_strOptimizedAwayText; }
 
 protected:
@@ -237,60 +239,5 @@ protected:
 } // jit
 } // qt 
 } // phantom 
-
-o_classNS((phantom, qt, jit), GenericVariable, (phantom::reflection::Variable))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt, jit), GenericVariable);
-
-o_classNS((phantom, qt, jit), OptimizedAwayVariable, (phantom::reflection::Variable))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt, jit), OptimizedAwayVariable);
-
-o_classNS((phantom, qt, jit), ReferencedVariable, (phantom::reflection::Variable))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt, jit), ReferencedVariable);
-
-o_classNS((phantom, qt, jit), DereferencedVariable, (phantom::reflection::Variable))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt, jit), DereferencedVariable);
-
-o_classNS((phantom, qt, jit), ValueMemberVariable, (phantom::reflection::Variable))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt, jit), ValueMemberVariable);
-
-o_classNS((phantom, qt, jit), LocalVariableManager, (VariableManager), o_no_copy)
-{
-	o_reflection
-	{
-		
-	};
-};
-o_exposeN((phantom, qt, jit), LocalVariableManager);
-
 
 #endif // phantom_qt_LocalVariableManager_h__

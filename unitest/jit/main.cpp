@@ -31,11 +31,18 @@
     THE SOFTWARE
 */
 
-#include "phantom/phantom.h"
+#include "phantom/jit.h"
 #include "phantom/unitest/Marine.h"
 #include "phantom/unitest/RootClass.h"
 
 #include "phantom/jit.h"
+#include "phantom/reflection/jit/JitClass.h"
+#include "phantom/reflection/jit/JitSignal.h"
+#include "phantom/reflection/jit/JitInstanceDataMember.h"
+#include "phantom/reflection/jit/JitInstanceMemberFunction.h"
+#include "phantom/state/jit/JitState.h"
+#include "phantom/state/jit/JitStateMachine.h"
+#include "phantom/state/jit/JitTrack.h"
 
 int main(int argc, char **argv) 
 {

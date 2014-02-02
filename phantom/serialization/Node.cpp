@@ -33,8 +33,8 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/serialization/Node.h>
+#include <phantom/serialization/Node.hxx>
 #include <phantom/serialization/DataStateBase.h>
 /* *********************************************** */
 o_registerN((phantom, serialization), Node);
@@ -81,7 +81,7 @@ const data& Node::findData( void* a_pAddress ) const
     return s_null;
 }
 
-void Node::applyNodeVisitor( util::TVisitor<Node>* visitor )
+void Node::applyNodeVisitor( TVisitor<Node>* visitor )
 {
     visitor->apply(this);
     node_vector::const_iterator it = m_ChildNodes.begin();
@@ -537,19 +537,6 @@ bool Node::hasStateSaved( uint a_uiState ) const
     return m_pOwnerDataBase->getDataStateBase()->hasStateSaved(const_cast<Node*>(this), a_uiState);
 }
 
-phantom::signal_t Node::loaded(void) const
-{
-    phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_loaded.head();
-    while(pSlot)
-    {
-        phantom::connection::pair::push(this, pSlot);
-        pSlot->subroutine()->call(pSlot->receiver(), o_no_arg );
-        pSlot = pSlot->next();
-        phantom::connection::pair::pop();
-    }
-    return phantom::signal_t();
-}
-
 void Node::rebuildAllDataCascade( reflection::Type* a_pOld, reflection::Type* a_pNew, vector<data>& a_Old, vector<data>& a_New, uint a_uiStateId /*= 0xffffffff*/ )
 {
     o_foreach(Node* pChildNode, m_ChildNodes)
@@ -624,7 +611,7 @@ void Node::fetchContainerComponents(reflection::ContainerClass* a_pContainerClas
         void* ptr = nullptr; 
         while(pIterator->hasNext())
         {
-            ((util::Iterator*)pIterator)->getValue(&ptr);
+            ((Iterator*)pIterator)->getValue(&ptr);
             phantom::data d(ptr);
             if(NOT(d.isNull()))
             {
@@ -654,7 +641,7 @@ void Node::fetchContainerComponents(reflection::ContainerClass* a_pContainerClas
         pSubContainerClass->deleteInstance(pSubContainer);
     }
 
-    o_dynamic_delete pIterator;
+    pIterator->deleteNow();
 
     if(needAnotherPass)
     {
@@ -1089,7 +1076,7 @@ void Node::rebuildAllData( reflection::Type* a_pOld, reflection::Type* a_pNew, v
     }
 }
 
-void Node::applyDataVisitor( util::TVisitor<data>* visitor )
+void Node::applyDataVisitor( TVisitor<data>* visitor )
 {
     data_vector::iterator it = m_Data.begin();
     data_vector::iterator end = m_Data.end();

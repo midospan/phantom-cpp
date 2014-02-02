@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include "Selection.h"
+#include "Selection.hxx"
 /* *********************************************** */
 o_registerN((phantom), Selection);
 

@@ -21,10 +21,7 @@ boolean        is(void*    in)
 template<typename t_Ty, typename t_ITy>
 t_Ty           as(t_ITy    in)
 {
-    return detail::as_helper<t_Ty,
-        boost::is_pointer<t_Ty>::value
-        AND is_reflected_class<typename boost::remove_pointer<t_Ty>::type>::value
-    >::apply(in);
+    return detail::as_helper<t_Ty,boost::is_pointer<t_Ty>::value AND boost::is_pointer<t_ITy>::value>::apply(in);
 }
 
 
@@ -62,32 +59,32 @@ namespace detail {
         }
     };
 
-    template<typename t_Ty, boolean t_is_ptr_to_reflected_class>
+    template<typename t_Ty, boolean t_are_pointers>
     struct as_helper
     {
         template<typename t_ITy>
         static t_Ty apply(t_ITy in)
         {
-            return static_cast<t_Ty>(in);
+            reflection::Type* pDestType = reflection::detail::type_of_counter<o_NESTED_TYPE boost::remove_pointer<t_Ty>::type, o_read_compilation_counter>::object();
+            if(pDestType AND pDestType->asClass())
+            {
+                const rtti_data& oi = rttiDataOf(in);
+                
+                return oi.isNull()
+                    ? nullptr// If no rtti registered we cannot know how to cast, we return NULL which is safer than trying to cast
+                    : static_cast<t_Ty>(oi.cast((reflection::Class*)pDestType));
+            }
+            return nullptr;
         }
     };
 
     template<typename t_Ty>
-    struct as_helper<t_Ty, true>
+    struct as_helper<t_Ty, false>
     {
         template<typename t_ITy>
         static t_Ty apply(t_ITy in)
         {
-            if(in)
-            {
-                const rtti_data& oi = rttiDataOf(in);
-                return oi.isNull()
-                    ? NULL // If no rtti registered we cannot know how to cast, we return NULL which is safer than trying to cast
-                    : static_cast<t_Ty>(
-                    oi.cast(classOf<o_NESTED_TYPE boost::remove_pointer<t_Ty>::type>())
-                    );
-            }
-            return NULL;
+            return in;
         }
     };
 
@@ -309,15 +306,15 @@ o_namespace_end(phantom, extension, detail)
 
 o_namespace_begin(phantom, reflection, detail)
 
-template<typename t_Ty, typename t_STy>
-void super_class_adder_<t_Ty, t_STy>::apply(phantom::reflection::Class* a_pClass)
+template<typename t_Ty, typename t_STy, int t_counter>
+void super_class_adder<t_Ty, t_STy, t_counter>::apply(phantom::reflection::Class* a_pClass)
 {
     enum { is_virtual_base_of = boost::is_virtual_base_of<t_STy,t_Ty>::value };
-    o_static_assert_msg(!is_virtual_base_of, "phantom reflection system doesn't support virtual inheritance yet");
+    o_static_assert_msg(!is_virtual_base_of, "phantom reflection system doesn't support virtual inheritance ... yet ... or never");
     t_Ty* pClass = reinterpret_cast<t_Ty*>((void*)1);
     t_STy* pSuperClass = static_cast<t_STy*>(pClass);
     phantom::uint uiOffset = reinterpret_cast<phantom::uint>(reinterpret_cast<void*>(pSuperClass))-1;
-    a_pClass->addSuperClass(classOf<t_STy>(), uiOffset);
+    a_pClass->addSuperClass(type_of_counter<t_STy, t_counter>::object(), uiOffset);
 }
 
 o_namespace_end(phantom, reflection, detail)

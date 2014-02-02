@@ -32,10 +32,10 @@
 */
 
 /* ******************* Includes ****************** */
-#include "phantom/phantom.h"
+#include "phantom/jit.h"
+#include "JitInstanceDataMember.h"
+#include "JitInstanceDataMember.hxx"
 #include <phantom/def_jit.h>
-/* ** The Class Header must be the last #include * */
-#include <phantom/reflection/jit/JitInstanceDataMember.h>
 /* *********************************************** */
 o_registerN((phantom, reflection, jit), JitInstanceDataMember);
 

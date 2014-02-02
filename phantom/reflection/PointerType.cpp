@@ -33,12 +33,13 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "PointerType.h"
+#include <phantom/reflection/PointerType.h>
+#include <phantom/reflection/PointerType.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), PointerType);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
 
-o_cpp_end
+o_define_meta_type(PointerType);
+
+o_namespace_end(phantom, reflection)

@@ -37,6 +37,7 @@
 
 
 /* ****************** Includes ******************* */
+o_fwd(class, phantom, detail, dynamic_initializer_handle);
 /* *********************************************** */
 
 o_namespace_begin(phantom, memory)
@@ -165,6 +166,7 @@ public:
 class o_export    Statistics
 {
     template <typename t_Ty, typename t_Allocator> friend  class stat_allocator;
+    friend  class detail::dynamic_initializer_handle;
 public:
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
         typedef __int64 counter_type ;
@@ -200,7 +202,7 @@ private:
         size_t size;
         bool dynamic_init;
     };
-    static std::map<void*, allocation_info>  m_Allocations;
+    static std::map<void*, allocation_info>*  m_Allocations;
     static bool            m_Locked;
 
 };

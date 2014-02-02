@@ -1,6 +1,8 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
+#include "phantom/std/string.h"
 #include "VariableAction.h"
+#include "VariableAction.hxx"
 #include "VariableManager.h"
 #include "VariableEditor.h"
 #include "VariableWidget.h"

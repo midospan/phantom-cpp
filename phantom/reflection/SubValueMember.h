@@ -38,22 +38,18 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/ValueMember.h>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "SubValueMember.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 
 class o_export SubValueMember : public ValueMember
 {
-public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+
 public:
 
     SubValueMember(const string& a_strName
@@ -79,9 +75,8 @@ protected:
     uint        m_uiSubOffset;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_SubValueMember_h__
-#include "SubValueMember.classdef.h"
+
 #endif

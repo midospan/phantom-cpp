@@ -7,6 +7,7 @@
 /* **************** Declarations ***************** */
 class QWidget;
 class QtProperty;
+o_declareN(class, (phantom, qt), VariableWidgetEditor);
 /* *********************************************** */
 
 namespace phantom { namespace qt {
@@ -50,13 +51,5 @@ protected:
 };
 
 }}
-
-o_classN((phantom, qt), VariableWidgetEditor, o_no_copy)
-{
-    o_reflection
-    {
-    };
-};
-o_exposeN((phantom, qt), VariableWidgetEditor);
 
 #endif // o_qt_VariableWidgetEditor_h__

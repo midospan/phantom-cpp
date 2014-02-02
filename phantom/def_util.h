@@ -35,8 +35,6 @@
 #define _phantom_utils_h__
 
 /* ****************** Includes ******************* */
-#include <phantom/util/bitfield.h>
-#include <phantom/util/flags.h>
 /* *********************************************** */
 
 #endif // _utils_h__

@@ -6,7 +6,8 @@
 /* ****************** Includes ******************* */
 #include "phantom/phantom.h"
 /* **************** Declarations ***************** */
-o_declare(class, phantom, Message);
+o_declareN(class, (phantom), MessageTree);
+o_fwd(class, phantom, Message);
 /* *********************************************** */
 
 o_namespace_begin(phantom)
@@ -52,14 +53,5 @@ protected:
 };
 
 o_namespace_end(phantom)
-
-o_classN((phantom), MessageTree)
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom), MessageTree);
 
 #endif //o_phantom_MessageTree_h__

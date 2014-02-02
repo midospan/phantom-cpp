@@ -38,15 +38,11 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/LanguageElement.h>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "StateMachineElement.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, state, Event)
-o_declare(class, phantom, state, State)
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, state)
 
 class o_export StateMachineElement : public reflection::LanguageElement
 {
@@ -54,8 +50,6 @@ class o_export StateMachineElement : public reflection::LanguageElement
 
 public:
 
-    Reflection_____________________________________________________________________________________
-        _____________________________________________________________________________________Reflection
 public:
 
     StateMachineElement() {}
@@ -73,9 +67,8 @@ protected:
 
 };
 
-o_h_end
+o_namespace_end(phantom, state)
 
 
-#else // state_StateMachineElement_h__
-#include "StateMachineElement.classdef.h"
+
 #endif

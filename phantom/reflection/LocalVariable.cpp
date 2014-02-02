@@ -1,5 +1,8 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
+#include "LocalVariable.h"
+#include "LocalVariable.hxx"
+#include "Block.h"
 /* *********************************************** */
 o_registerN((phantom, reflection), LocalVariable);
 

@@ -35,6 +35,7 @@
 #include "phantom/phantom.h"
 #include "phantom/serialization/BinaryPackageNode.h"
 #include <phantom/serialization/BinaryPackageDataBase.h>
+#include <phantom/serialization/BinaryPackageDataBase.hxx>
 /* *********************************************** */
 o_registerN((phantom, serialization), BinaryPackageDataBase);
 

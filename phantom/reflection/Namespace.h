@@ -38,15 +38,13 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/LanguageElement.h>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Namespace.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Namespace : public LanguageElement
 {
@@ -61,8 +59,6 @@ public:
     friend class phantom::Phantom;
     friend class Type;
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
     Namespace(void);
@@ -196,9 +192,8 @@ inline Namespace* Namespace::getNamespaceAlias( const string& a_strAlias ) const
     return nullptr;
 }
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_Namespace_h__
-#include "Namespace.classdef.h"
+
 #endif

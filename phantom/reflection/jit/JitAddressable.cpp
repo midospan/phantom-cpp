@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
-#include "phantom/phantom.h"
+#include "phantom/jit.h"
 #include "JitAddressable.h"
+#include "JitAddressable.hxx"
 #include "JitSubroutine.h"
 /* *********************************************** */
 o_registerN((phantom, reflection, jit), JitAddressable);

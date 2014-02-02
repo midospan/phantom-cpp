@@ -39,6 +39,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <phantom/serialization/BinaryPackageDataStateBase.h>
+#include <phantom/serialization/BinaryPackageDataStateBase.hxx>
 /* *********************************************** */
 o_registerN((phantom, serialization), BinaryPackageDataStateBase);
 

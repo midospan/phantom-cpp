@@ -1,0 +1,2 @@
+TODO :
+- store pritmive types pointers in Phantom (ex: type_char, type_unsigned_char ....)

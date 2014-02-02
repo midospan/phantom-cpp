@@ -4,7 +4,6 @@
 
 
 o_fwd(class, phantom, Phantom)
-o_fwd(class, phantom, Object)
 o_fwd(class, phantom, variant)
 o_fwd(class, phantom, data)
 o_fwd(struct, phantom, signal_t)
@@ -68,16 +67,23 @@ o_fwd(class, phantom, state, State)
 o_fwd(class, phantom, state, Track)
 o_fwd(class, phantom, state, Event)
 o_fwd(class, phantom, state, Reaction)
+o_fwd(class, phantom, state, base_state_machine_data)
+
+o_fwdT(class, phantom, state, native, (typename), state_machine_data)
 o_fwdT(class, phantom, state, native, (typename), TNativeState)
 o_fwdT(class, phantom, state, native, (typename, typename, typename, typename), TNativeTransition)
 o_fwdT(class, phantom, state, native, (typename), TNativeTrack)
 o_fwdT(class, phantom, state, native, (typename), TNativeStateMachine)
 o_fwdT(class, phantom, state, native, (typename,bool), TNativeStateMachineHelper)
 
+o_fwd(class, phantom, serialization, data_guid_base)
 o_fwd(class, phantom, serialization, Node)
 o_fwd(class, phantom, serialization, DataBase)
 o_fwd(class, phantom, serialization, DataStateBase)
-    
+
+o_fwdT(class, phantom, reflection, native, (typename), TMapContainerClass )
+o_fwdT(class, phantom, reflection, native, (typename), TSequentialContainerClass )
+o_fwdT(class, phantom, reflection, native, (typename), TSetContainerClass )
 o_fwdT(class, phantom, reflection, native, (typename,typename), TNativeInstanceMemberFunction0 )
 o_fwdT(class, phantom, reflection, native, (typename,typename,typename), TNativeInstanceMemberFunction1 )
 o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInstanceMemberFunction2 )

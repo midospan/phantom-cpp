@@ -1,9 +1,9 @@
 /* ******************* Includes ****************** */
 #include <phantom/qt/qt.h>
 #include "MessageDisplay.h"
+#include "MessageDisplay.hxx"
 #include <phantom/util/MessageTree.h>
 #include <phantom/util/Message.h>
-/* ** The Class Header must be the last #include * */
 /* *********************************************** */
 o_registerN((phantom, qt), MessageDisplay);
 

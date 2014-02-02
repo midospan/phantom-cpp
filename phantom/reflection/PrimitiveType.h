@@ -38,20 +38,17 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/Type.h>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "PrimitiveType.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 
 class o_export PrimitiveType : public Type
 {
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+    o_declare_meta_type(PrimitiveType);
 
 public:
     PrimitiveType();
@@ -66,9 +63,8 @@ protected:
     
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_PrimitiveType_h__
-#include "PrimitiveType.classdef.h"
+
 #endif

@@ -38,38 +38,18 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Variable.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, Type)
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Variable : public Constant
 {
-    reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________reflection
-    
 public:
-    Variable()
-        : m_pRange(nullptr)
-    {
-
-    }
-    Variable(const string& a_strName, bitfield a_Modifiers = 0)
-        : Constant(a_strName, a_Modifiers)
-        , m_pRange(nullptr)
-    {
-
-    }
-    Variable(const string& a_strName, Range* a_pRange, bitfield a_Modifiers = 0)
-        : Constant(a_strName, a_Modifiers)
-        , m_pRange(a_pRange)
-    {
-
-    }
+    Variable();
+    Variable(const string& a_strName, bitfield a_Modifiers = 0);
+    Variable(const string& a_strName, Range* a_pRange, bitfield a_Modifiers = 0);
     // To be set is the main goal of a variable
     virtual void        setValue(void const* src) const = 0;
     virtual void*       getAddress() const { return NULL; }
@@ -81,9 +61,8 @@ protected:
     Range* m_pRange;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_Variable_h__ 
-#include "Variable.classdef.h"
+
 #endif

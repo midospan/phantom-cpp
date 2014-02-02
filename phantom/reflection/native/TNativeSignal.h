@@ -60,7 +60,7 @@ public:
     TNativeSignal0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_pMember, bitfield a_Modifiers = 0)
         : TNativeSignalBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc), m_member_pointer(a_pMember) {}
 
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
 
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -108,7 +108,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
 
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -160,7 +160,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -212,7 +212,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -271,7 +271,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -333,7 +333,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -399,7 +399,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -470,7 +470,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -545,7 +545,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -603,7 +603,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
 };
 
 template<typename t_Ty, typename t_Param0>
@@ -617,7 +617,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
 };
 
 template<typename t_Ty, typename t_Param0, typename t_Param1>
@@ -631,7 +631,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
 
 };
 
@@ -650,7 +650,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
 
 };
 
@@ -671,7 +671,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
 
 };
 
@@ -692,7 +692,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
 
 };
 
@@ -715,7 +715,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
 
 };
 
@@ -738,7 +738,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
 
 };
 
@@ -764,7 +764,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
 
 };
 
@@ -772,6 +772,6 @@ public:
 
 o_namespace_end(phantom, reflection, native)
 
-o_traits_specialize_all_super_traitNTTS_TNativeMemberFunctionXXX(TNativeSignal)
+/*o_traits_specialize_all_super_traitNTS_TNativeMemberFunctionXXX(TNativeSignal)*/
                                                                                                                                                                                           
 #endif // TNativeSignal

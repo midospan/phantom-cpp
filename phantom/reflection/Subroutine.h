@@ -38,15 +38,11 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/LanguageElement.h>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Subroutine.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, Signature)
-o_declare(class, phantom, reflection, Block)
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 struct MemoryLocation
 {
@@ -138,8 +134,6 @@ class o_export Subroutine : public LanguageElement
 {
 public:
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
     Subroutine(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
@@ -219,9 +213,8 @@ protected:
     MemoryLocation          m_MemoryLocation;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_Subroutine_h__
-#include "Subroutine.classdef.h"
+
 #endif

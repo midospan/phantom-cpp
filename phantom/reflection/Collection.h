@@ -38,14 +38,12 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Collection.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Collection : public LanguageElement
 {
@@ -58,8 +56,6 @@ public:
         e_AvailableOperationBit_Remove = 0x8,
     };
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
     Collection(const string& a_strName, Type* a_pElementType, bitfield a_Modifiers = 0);
@@ -86,9 +82,9 @@ public:
 
     virtual Collection*         asCollection() const { return (Collection*)this; }
         
-    virtual reflection::Class*  getSortingCategoryClass() const { return classOf<Collection>(); }
+    virtual reflection::Class*  getSortingCategoryClass() const;
 
-    virtual util::Iterator*     getIterator(void* a_pInstance) const;
+    virtual Iterator*           getIterator(void* a_pInstance) const;
 
 protected:
     virtual bool                canBeDestroyed() const;
@@ -100,9 +96,8 @@ protected:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_Collection_h__
-#include "Collection.classdef.h"
+
 #endif

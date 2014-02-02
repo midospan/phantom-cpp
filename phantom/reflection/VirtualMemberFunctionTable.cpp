@@ -33,14 +33,13 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/VirtualMemberFunctionTable.h>
+#include <phantom/reflection/VirtualMemberFunctionTable.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), VirtualMemberFunctionTable);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
-
+o_namespace_begin(phantom, reflection) 
+    
 
 VirtualMemberFunctionTable::VirtualMemberFunctionTable( Class* a_pBaseClass, member_function_list* a_MemberFunctionList ) 
 : m_pBaseClass(a_pBaseClass)
@@ -75,4 +74,4 @@ o_destructor VirtualMemberFunctionTable::~VirtualMemberFunctionTable( void )
     o_deallocate_n(m_ppMemberFunctions, m_uiSize, InstanceMemberFunction*);
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

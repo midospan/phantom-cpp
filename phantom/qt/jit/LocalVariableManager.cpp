@@ -1,5 +1,6 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/jit/qt_jit.h"
+#include "phantom/std/string.h"
 #include "LocalVariableManager.h"
 #include "LocalVariableEditor.h"
 #include "phantom/reflection/jit/JitDebugger.h"
@@ -337,6 +338,16 @@ namespace phantom {
     phantom::reflection::Type* ReferencedVariable::getValueType() const
     {
         return m_pVariableToReference->getValueType()->pointerType();
+    }
+
+    void OptimizedAwayVariable::getValue( void* dest ) const
+    {
+        phantom::typeOf<string>()->copy(dest, &sm_strOptimizedAwayText);
+    }
+
+    phantom::reflection::Type* OptimizedAwayVariable::getValueType() const
+    {
+        return phantom::typeOf<string>();
     }
 
 }}}

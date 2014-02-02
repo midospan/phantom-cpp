@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
 #include <phantom/phantom.h>
 #include "ModuleLoader.h"
+#include "ModuleLoader.hxx"
 #include "phantom/util/Message.h"
 #include <windows.h>
 #include <TlHelp32.h>
@@ -22,14 +23,14 @@ ModuleLoader::~ModuleLoader( void )
 
 o_initialize_cpp(ModuleLoader)
 {
-    o_connect(phantom::typeOf<Module>(), kindCreated(void*), this, moduleInstanciated(void*));
-    o_connect(phantom::typeOf<Module>(), kindDestroyed(void*), this, moduleDestroyed(void*));
+    o_connect(o_type_of(Module), kindCreated(void*), this, moduleInstanciated(void*));
+    o_connect(o_type_of(Module), kindDestroyed(void*), this, moduleDestroyed(void*));
 }
 
 o_terminate_cpp(ModuleLoader)
 {
-    o_disconnect(phantom::typeOf<Module>(), kindCreated(void*), this, moduleInstanciated(void*));
-    o_disconnect(phantom::typeOf<Module>(), kindDestroyed(void*), this, moduleDestroyed(void*));
+    o_disconnect(o_type_of(Module), kindCreated(void*), this, moduleInstanciated(void*));
+    o_disconnect(o_type_of(Module), kindDestroyed(void*), this, moduleDestroyed(void*));
 }
 
 bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMessage /*= nullptr*/ )

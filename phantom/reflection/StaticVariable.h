@@ -37,19 +37,15 @@
 
 
 /* ****************** Includes ******************* */
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "StaticVariable.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export StaticVariable : public Variable
 {
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
     StaticVariable(const string& a_strName, Type* a_pContentType, void* a_pStaticVariableAddress, Range* a_pRange, bitfield a_Modifiers = 0);
@@ -73,9 +69,8 @@ protected:
     
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_StaticVariable_h__
-#include "StaticVariable.classdef.h"
+
 #endif

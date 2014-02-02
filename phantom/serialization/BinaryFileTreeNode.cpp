@@ -33,12 +33,13 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
+#include <phantom/serialization/BinaryFileTreeNode.h>
+#include <phantom/serialization/BinaryFileTreeNode.hxx>
 #include <phantom/serialization/BinaryFileTreeDataBase.h>
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <iostream>
 #include <stdio.h>
 /* ** The Class Header must be the last #include * */
-#include <phantom/serialization/BinaryFileTreeNode.h>
 /* *********************************************** */
 o_registerN((phantom, serialization), BinaryFileTreeNode);
 
@@ -249,7 +250,7 @@ void BinaryFileTreeNode::cache()
 				case DataBase::e_ActionOnMissingType_NotifyAndDestroyData:
 					continue;
 				case DataBase::e_ActionOnMissingType_Exception:
-					o_exception(phantom::exception::unknown_reflection_type_exception, ""); // TODO : change "" by type name
+					o_exception(phantom::exception::unknown_reflection_type_exception, boost::lexical_cast<phantom::string>((void*)uiTypeGuid).c_str()); // TODO : change "" by type name
 				}
 			}
 

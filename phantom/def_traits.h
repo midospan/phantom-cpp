@@ -3,13 +3,14 @@
 
 o_namespace_begin(phantom)
 
-
 template<typename t_Ty>
 struct meta_specifiers;
 template<typename t_Ty>
 struct proxy_of;
 template<typename t_Ty>
 struct has_deferred_cpp_reflection;
+template<typename t_Ty>
+struct has_module;
 template<typename t_Ty>
 struct is_template;
 template<typename t_Ty>
@@ -222,7 +223,7 @@ o_namespace_end(phantom)
 
 o_namespace_begin(phantom, detail)
 
-template<typename t_Ty, int t_counter>
+template<typename t_Ty, int t_init_counter, int t_counter>
 struct phantom_proxy_generator_track_counter_unit
 {
     phantom_proxy_generator_track_counter_unit() {}
@@ -297,20 +298,6 @@ template<typename t_Ty
     , typename t_S8 = void
     , typename t_S9 = void>
 struct super_class_index_of_helper;
-
-template<typename t_Ty
-    , typename t_S0 = void
-    , typename t_S1 = void
-    , typename t_S2 = void
-    , typename t_S3 = void
-    , typename t_S4 = void
-    , typename t_S5 = void
-    , typename t_S6 = void
-    , typename t_S7 = void
-    , typename t_S8 = void
-    , typename t_S9 = void>
-struct object_dynamic_cast_helper;
-
 template<typename t_Ty
     , typename t_DTy
     , typename t_S0 = void
@@ -965,32 +952,6 @@ struct super_total_track_count_of_helper<t_Ty o_traits_super_helper_super_class_
     o_traits_specialize_super_class_index_of_helper_##_count_(_count_) 
 
 
-#define o_traits_specialize_object_dynamic_cast_helper_0()
-#define o_traits_specialize_object_dynamic_cast_helper_1() o_traits_specialize_object_dynamic_cast_helper_0()  if(result == NULL) result = phantom::object_dynamic_cast<t_S0>::apply( a_pTargetClass, static_cast<t_S0*>(static_cast<t_Ty*>(a_pBase)) ); else return result;
-#define o_traits_specialize_object_dynamic_cast_helper_2() o_traits_specialize_object_dynamic_cast_helper_1()  if(result == NULL) result = phantom::object_dynamic_cast<t_S1>::apply( a_pTargetClass, static_cast<t_S1*>(static_cast<t_Ty*>(a_pBase)) ); else return result;
-#define o_traits_specialize_object_dynamic_cast_helper_3() o_traits_specialize_object_dynamic_cast_helper_2()  if(result == NULL) result = phantom::object_dynamic_cast<t_S2>::apply( a_pTargetClass, static_cast<t_S2*>(static_cast<t_Ty*>(a_pBase)) ); else return result;
-#define o_traits_specialize_object_dynamic_cast_helper_4() o_traits_specialize_object_dynamic_cast_helper_3()  if(result == NULL) result = phantom::object_dynamic_cast<t_S3>::apply( a_pTargetClass, static_cast<t_S3*>(static_cast<t_Ty*>(a_pBase)) ); else return result;
-#define o_traits_specialize_object_dynamic_cast_helper_5() o_traits_specialize_object_dynamic_cast_helper_4()  if(result == NULL) result = phantom::object_dynamic_cast<t_S4>::apply( a_pTargetClass, static_cast<t_S4*>(static_cast<t_Ty*>(a_pBase)) ); else return result;
-#define o_traits_specialize_object_dynamic_cast_helper_6() o_traits_specialize_object_dynamic_cast_helper_5()  if(result == NULL) result = phantom::object_dynamic_cast<t_S5>::apply( a_pTargetClass, static_cast<t_S5*>(static_cast<t_Ty*>(a_pBase)) ); else return result;
-#define o_traits_specialize_object_dynamic_cast_helper_7() o_traits_specialize_object_dynamic_cast_helper_6()  if(result == NULL) result = phantom::object_dynamic_cast<t_S6>::apply( a_pTargetClass, static_cast<t_S6*>(static_cast<t_Ty*>(a_pBase)) ); else return result;
-#define o_traits_specialize_object_dynamic_cast_helper_8() o_traits_specialize_object_dynamic_cast_helper_7()  if(result == NULL) result = phantom::object_dynamic_cast<t_S7>::apply( a_pTargetClass, static_cast<t_S7*>(static_cast<t_Ty*>(a_pBase)) ); else return result;
-#define o_traits_specialize_object_dynamic_cast_helper_9() o_traits_specialize_object_dynamic_cast_helper_8()  if(result == NULL) result = phantom::object_dynamic_cast<t_S8>::apply( a_pTargetClass, static_cast<t_S8*>(static_cast<t_Ty*>(a_pBase)) ); else return result;
-#define o_traits_specialize_object_dynamic_cast_helper_10() o_traits_specialize_object_dynamic_cast_helper_9() if(result == NULL) result = phantom::object_dynamic_cast<t_S9>::apply( a_pTargetClass, static_cast<t_S9*>(static_cast<t_Ty*>(a_pBase)) ); else return result;
-
-#define o_traits_specialize_object_dynamic_cast_helper(_count_) \
-    template<typename t_Ty o_traits_super_helper_typename_super_class_list_##_count_() >\
-struct object_dynamic_cast_helper<t_Ty o_traits_super_helper_super_class_list_##_count_() \
-    o_traits_super_helper_super_class_void_list_##_count_()>\
-{\
-    static void* apply(phantom::reflection::Class* a_pTargetClass, t_Ty* a_pBase) \
-{\
-    void* result = NULL;\
-    if(a_pTargetClass == phantom::reflection::type_of<t_Ty>::object()) return a_pBase;\
-    o_traits_specialize_object_dynamic_cast_helper_##_count_();\
-    return result;\
-}\
-};
-
 #define o_traits_specialize_super_class_count_of_helper(_count_) \
     template<typename t_Ty o_traits_super_helper_typename_super_class_list_##_count_() >\
 struct super_class_count_of_helper<t_Ty o_traits_super_helper_super_class_list_##_count_() \
@@ -1023,11 +984,16 @@ struct super_statechart_helper<t_Ty, t_DTy o_traits_super_helper_super_class_lis
     struct _name_##_super_namespace_solver {\
     typedef _name_ reflected_type;
 
-#define o_traits_begin_super_namespace_solverNTT(_namespaces_,_template_types_ , _template_params_, _name_)\
+#define o_traits_begin_super_namespace_solverNT(_namespaces_,_template_types_ , _template_params_, _name_)\
     o_namespace_begin _namespaces_ \
     template<o_PP_MIX(_template_types_,_template_params_)>\
     struct _name_##_super_namespace_solver {\
     typedef _name_<o_PP_IDENTITY _template_params_> reflected_type;
+
+#define o_traits_begin_super_namespace_solverC(_classes_,_name_)\
+    o_namespace_begin _classes_ \
+struct _name_##_super_namespace_solver {\
+    typedef _name_ reflected_type;
 
 #define o_traits_add_super_trait_to_super_namespace_solver(_trait_,_supers_)\
     typedef phantom::detail::_trait_##_helper< reflected_type, o_PP_IDENTITY _supers_ > _trait_##_____;
@@ -1047,14 +1013,14 @@ o_namespace_end _namespaces_
     : public detail::_trait_##_helper< ::_name_, o_PP_IDENTITY _supers_> {};\
     }
 
-#define o_traits_specialize_super_traitTTS(_trait_, _template_types_ , _template_params_, _name_, _supers_)\
+#define o_traits_specialize_super_traitTS(_trait_, _template_types_ , _template_params_, _name_, _supers_)\
     namespace phantom {\
     template<o_PP_MIX(_template_types_,_template_params_)>\
     struct _trait_ < ::_name_ < o_PP_IDENTITY _template_params_ > >\
     : public detail::_trait_##_helper< ::_name_ < o_PP_IDENTITY _template_params_ >, o_PP_IDENTITY _supers_> {};\
     }
 
-#define o_traits_specialize_super_traitCTTS(_trait_, _classes_, _template_types_ , _template_params_, _name_, _supers_)\
+#define o_traits_specialize_super_traitCTS(_trait_, _classes_, _template_types_ , _template_params_, _name_, _supers_)\
     namespace phantom {\
     template<o_PP_MIX(_template_types_,_template_params_)>\
 struct _trait_ < o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_) < o_PP_IDENTITY _template_params_ > >\
@@ -1068,14 +1034,21 @@ struct _trait_ < o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_) < o_PP_IDENTITY _t
     : public :: o_PP_CREATE_SCOPE _namespaces_ :: _name_##_super_namespace_solver::_trait_##_____{};\
     }
 
-#define o_traits_specialize_super_traitNTT(_trait_,_namespaces_, _template_types_ , _template_params_, _name_)\
+#define o_traits_specialize_super_traitC(_trait_,_classes_,_name_)\
+    namespace phantom {\
+    template<>\
+struct _trait_< o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)> \
+    : public :: o_PP_CREATE_SCOPE _classes_ :: _name_##_super_namespace_solver::_trait_##_____{};\
+    }
+
+#define o_traits_specialize_super_traitNT(_trait_,_namespaces_, _template_types_ , _template_params_, _name_)\
     namespace phantom {\
     template<o_PP_MIX(_template_types_,_template_params_)>\
     struct _trait_ < o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) < o_PP_IDENTITY _template_params_ > >\
     : public :: o_PP_CREATE_SCOPE _namespaces_ :: _name_##_super_namespace_solver< o_PP_IDENTITY _template_params_ >::_trait_##_____{};\
     }
 
-#define o_traits_specialize_super_traitNCTT(_trait_,_namespaces_, _classes_, _template_types_ , _template_params_, _name_)\
+#define o_traits_specialize_super_traitNCT(_trait_,_namespaces_, _classes_, _template_types_ , _template_params_, _name_)\
     namespace phantom {\
     template<o_PP_MIX(_template_types_,_template_params_)>\
 struct _trait_ < o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_) < o_PP_IDENTITY _template_params_ > >\
@@ -1089,14 +1062,14 @@ struct _trait_< ::_name_,_exP_> \
     : public detail::_trait_##_helper< ::_name_, _exP_, o_PP_IDENTITY _supers_> {};\
     }
 
-#define o_traits_specialize_super_traitexTTS(_trait_,_exT_,_exP_, _template_types_ , _template_params_, _name_, _supers_)\
+#define o_traits_specialize_super_traitexTS(_trait_,_exT_,_exP_, _template_types_ , _template_params_, _name_, _supers_)\
     namespace phantom {\
     template<o_PP_MIX(_template_types_,_template_params_), _exT_ _exP_>\
 struct _trait_ < ::_name_ < o_PP_IDENTITY _template_params_ >, _exP_ > \
     : public detail::_trait_##_helper< ::_name_< o_PP_IDENTITY _template_params_ >, _exP_, o_PP_IDENTITY _supers_> {};\
     }
 
-#define o_traits_specialize_super_traitexCTTS(_trait_,_exT_,_exP_, _classes_, _template_types_ , _template_params_, _name_, _supers_)\
+#define o_traits_specialize_super_traitexCTS(_trait_,_exT_,_exP_, _classes_, _template_types_ , _template_params_, _name_, _supers_)\
     namespace phantom {\
     template<o_PP_MIX(_template_types_,_template_params_), _exT_ _exP_>\
 struct _trait_ < o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_) < o_PP_IDENTITY _template_params_ >, _exP_ > \
@@ -1110,14 +1083,21 @@ struct _trait_< o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_), _exP_ > \
     : public :: o_PP_CREATE_SCOPE _namespaces_ :: _name_##_super_namespace_solver:: o_NESTED_TEMPLATE _trait_##_____< _exP_ > {};\
     }
 
-#define o_traits_specialize_super_traitexNTT(_trait_,_exT_,_exP_,_namespaces_, _template_types_ , _template_params_, _name_)\
+#define o_traits_specialize_super_traitexNT(_trait_,_exT_,_exP_,_namespaces_, _template_types_ , _template_params_, _name_)\
     namespace phantom {\
     template<o_PP_MIX(_template_types_,_template_params_), _exT_ _exP_>\
 struct _trait_ < o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) < o_PP_IDENTITY _template_params_ >, _exP_ > \
     : public :: o_PP_CREATE_SCOPE _namespaces_ :: _name_##_super_namespace_solver< o_PP_IDENTITY _template_params_ >::o_NESTED_TEMPLATE _trait_##_____<_exP_> {};\
     }
 
-#define o_traits_specialize_super_traitexNCTT(_trait_,_exT_,_exP_,_namespaces_, _classes_, _template_types_ , _template_params_, _name_)\
+#define o_traits_specialize_super_traitexC(_trait_,_exT_,_exP_,_classes_,_name_)\
+    namespace phantom {\
+    template<_exT_ _exP_>\
+struct _trait_< o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_), _exP_ > \
+    : public :: o_PP_CREATE_SCOPE _classes_ :: _name_##_super_namespace_solver:: o_NESTED_TEMPLATE _trait_##_____< _exP_ > {};\
+    }
+
+#define o_traits_specialize_super_traitexNCT(_trait_,_exT_,_exP_,_namespaces_, _classes_, _template_types_ , _template_params_, _name_)\
     namespace phantom {\
     template<o_PP_MIX(_template_types_,_template_params_), _exT_ _exP_>\
 struct _trait_ < o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_) < o_PP_IDENTITY _template_params_ >, _exP_ > \
@@ -1129,72 +1109,78 @@ struct _trait_ < o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_) < o
     o_traits_specialize_super_traitS(super_class_count_of,_name_, _supers_)\
     o_traits_specialize_super_traitexS(super_class_index_of,typename, t_S,_name_, _supers_)\
     o_traits_specialize_super_traitexS(super_class_of, int, t_index,_name_, _supers_)\
-    o_traits_specialize_super_traitS(object_dynamic_cast, _name_, _supers_)\
     o_traits_specialize_super_traitS(super_total_track_count_of, _name_, _supers_)
 
-#define o_traits_specialize_all_super_traitTTS(_template_types_ , _template_params_, _name_, _supers_) \
-    o_traits_specialize_super_traitexTTS(super_statechart, typename, t_S, _template_types_ , _template_params_, _name_, _supers_)\
-    o_traits_specialize_super_traitTTS(super_class_count_of, _template_types_ , _template_params_, _name_, _supers_)\
-    o_traits_specialize_super_traitexTTS(super_class_index_of,typename, t_S, _template_types_ , _template_params_, _name_, _supers_)\
-    o_traits_specialize_super_traitexTTS(super_class_of, int, t_index,_template_types_ , _template_params_, _name_, _supers_)\
-    o_traits_specialize_super_traitTTS(object_dynamic_cast, _template_types_ , _template_params_, _name_, _supers_)\
-    o_traits_specialize_super_traitTTS(super_total_track_count_of, _template_types_ , _template_params_, _name_, _supers_)
+#define o_traits_specialize_all_super_traitTS(_template_types_ , _template_params_, _name_, _supers_) \
+    o_traits_specialize_super_traitexTS(super_statechart, typename, t_S, _template_types_ , _template_params_, _name_, _supers_)\
+    o_traits_specialize_super_traitTS(super_class_count_of, _template_types_ , _template_params_, _name_, _supers_)\
+    o_traits_specialize_super_traitexTS(super_class_index_of,typename, t_S, _template_types_ , _template_params_, _name_, _supers_)\
+    o_traits_specialize_super_traitexTS(super_class_of, int, t_index,_template_types_ , _template_params_, _name_, _supers_)\
+    o_traits_specialize_super_traitTS(super_total_track_count_of, _template_types_ , _template_params_, _name_, _supers_)
 
 #define o_traits_specialize_all_super_traitNS(_namespaces_, _name_, _supers_) \
     o_traits_begin_super_namespace_solverN(_namespaces_,_name_)\
-    o_traits_add_super_trait_to_super_namespace_solverex(super_statechart,typename, t_S,_supers_)\
     o_traits_add_super_trait_to_super_namespace_solver(super_class_count_of,_supers_)\
+    o_traits_add_super_trait_to_super_namespace_solverex(super_statechart,typename, t_S,_supers_)\
     o_traits_add_super_trait_to_super_namespace_solverex(super_class_index_of,typename, t_S,_supers_)\
     o_traits_add_super_trait_to_super_namespace_solverex(super_class_of, int, t_index,_supers_)\
-    o_traits_add_super_trait_to_super_namespace_solver(object_dynamic_cast,_supers_)\
     o_traits_add_super_trait_to_super_namespace_solver(super_total_track_count_of,_supers_)\
     o_traits_end_super_namespace_solver(_namespaces_)\
-    o_traits_specialize_super_traitexN(super_statechart,typename, t_S,_namespaces_, _name_)\
     o_traits_specialize_super_traitN(super_class_count_of,_namespaces_, _name_)\
+    o_traits_specialize_super_traitexN(super_statechart,typename, t_S,_namespaces_, _name_)\
     o_traits_specialize_super_traitexN(super_class_index_of,typename, t_S,_namespaces_, _name_)\
     o_traits_specialize_super_traitexN(super_class_of, int, t_index,_namespaces_, _name_)\
-    o_traits_specialize_super_traitN(object_dynamic_cast, _namespaces_, _name_)\
     o_traits_specialize_super_traitN(super_total_track_count_of, _namespaces_, _name_)\
 
-#define o_traits_specialize_all_super_traitNTTS(_namespaces_, _template_types_ , _template_params_, _name_, _supers_) \
-    o_traits_begin_super_namespace_solverNTT(_namespaces_,_template_types_ , _template_params_, _name_)\
+#define o_traits_specialize_all_super_traitCS(_classes_, _name_, _supers_) \
+    o_traits_begin_super_namespace_solverC(_classes_,_name_)\
+    o_traits_add_super_trait_to_super_namespace_solver(super_class_count_of,_supers_)\
+    o_traits_add_super_trait_to_super_namespace_solverex(super_statechart,typename, t_S,_supers_)\
+    o_traits_add_super_trait_to_super_namespace_solverex(super_class_index_of,typename, t_S,_supers_)\
+    o_traits_add_super_trait_to_super_namespace_solverex(super_class_of, int, t_index,_supers_)\
+    o_traits_add_super_trait_to_super_namespace_solver(super_total_track_count_of,_supers_)\
+    o_traits_end_super_namespace_solver(_classes_)\
+    o_traits_specialize_super_traitC(super_class_count_of,_classes_, _name_)\
+    o_traits_specialize_super_traitexC(super_statechart,typename, t_S,_classes_, _name_)\
+    o_traits_specialize_super_traitexC(super_class_index_of,typename, t_S,_classes_, _name_)\
+    o_traits_specialize_super_traitexC(super_class_of, int, t_index,_classes_, _name_)\
+    o_traits_specialize_super_traitC(super_total_track_count_of, _classes_, _name_)\
+
+
+#define o_traits_specialize_all_super_traitNTS(_namespaces_, _template_types_ , _template_params_, _name_, _supers_) \
+    o_traits_begin_super_namespace_solverNT(_namespaces_,_template_types_ , _template_params_, _name_)\
     o_traits_add_super_trait_to_super_namespace_solverex(super_statechart,typename, t_S,_supers_)\
     o_traits_add_super_trait_to_super_namespace_solver(super_class_count_of,_supers_)\
     o_traits_add_super_trait_to_super_namespace_solverex(super_class_index_of,typename, t_S,_supers_)\
     o_traits_add_super_trait_to_super_namespace_solverex(super_class_of, int, t_index,_supers_)\
-    o_traits_add_super_trait_to_super_namespace_solver(object_dynamic_cast,_supers_)\
     o_traits_add_super_trait_to_super_namespace_solver(super_total_track_count_of,_supers_)\
     o_traits_end_super_namespace_solver(_namespaces_)\
-    o_traits_specialize_super_traitexNTT(super_statechart,typename, t_S,_namespaces_, _template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitNTT(super_class_count_of,_namespaces_, _template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitexNTT(super_class_index_of,typename, t_S,_namespaces_, _template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitexNTT(super_class_of, int, t_index,_namespaces_, _template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitNTT(object_dynamic_cast, _namespaces_, _template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitNTT(super_total_track_count_of, _namespaces_, _template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitexNT(super_statechart,typename, t_S,_namespaces_, _template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitNT(super_class_count_of,_namespaces_, _template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitexNT(super_class_index_of,typename, t_S,_namespaces_, _template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitexNT(super_class_of, int, t_index,_namespaces_, _template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitNT(super_total_track_count_of, _namespaces_, _template_types_ , _template_params_,_name_)\
 
-#define o_traits_specialize_all_super_traitCTTS(_classes_, _template_types_ , _template_params_, _name_, _supers_) \
-    o_traits_specialize_super_traitexCTTS(super_statechart,typename, t_S,_classes_, _template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitCTTS(super_class_count_of,_classes_, _template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitexCTTS(super_class_index_of,typename, t_S,_classes_, _template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitexCTTS(super_class_of, int, t_index,_classes_, _template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitCTTS(object_dynamic_cast, _classes_, _template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitCTTS(super_total_track_count_of, _classes_, _template_types_ , _template_params_,_name_)\
+#define o_traits_specialize_all_super_traitCTS(_classes_, _template_types_ , _template_params_, _name_, _supers_) \
+    o_traits_specialize_super_traitexCTS(super_statechart,typename, t_S,_classes_, _template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitCTS(super_class_count_of,_classes_, _template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitexCTS(super_class_index_of,typename, t_S,_classes_, _template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitexCTS(super_class_of, int, t_index,_classes_, _template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitCTS(super_total_track_count_of, _classes_, _template_types_ , _template_params_,_name_)\
 
-#define o_traits_specialize_all_super_traitNCTTS(_namespaces_, _classes_, _template_types_ , _template_params_, _name_, _supers_) \
-    o_traits_begin_super_namespace_solverNTT(_namespaces_,_template_types_ , _template_params_, _name_)\
+#define o_traits_specialize_all_super_traitNCTS(_namespaces_, _classes_, _template_types_ , _template_params_, _name_, _supers_) \
+    o_traits_begin_super_namespace_solverNT(_namespaces_,_template_types_ , _template_params_, _name_)\
     o_traits_add_super_trait_to_super_namespace_solverex(super_statechart,typename, t_S,_supers_)\
     o_traits_add_super_trait_to_super_namespace_solver(super_class_count_of,_supers_)\
     o_traits_add_super_trait_to_super_namespace_solverex(super_class_index_of,typename, t_S,_supers_)\
     o_traits_add_super_trait_to_super_namespace_solverex(super_class_of, int, t_index,_supers_)\
-    o_traits_add_super_trait_to_super_namespace_solver(object_dynamic_cast,_supers_)\
     o_traits_add_super_trait_to_super_namespace_solver(super_total_track_count_of,_supers_)\
     o_traits_end_super_namespace_solver(_namespaces_)\
-    o_traits_specialize_super_traitexNCTT(super_statechart,typename, t_S,_namespaces_, _classes_,_template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitNCTT(super_class_count_of,_namespaces_, _classes_,_template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitexNCTT(super_class_index_of,typename, t_S,_namespaces_, _classes_,_template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitexNCTT(super_class_of, int, t_index,_namespaces_, _classes_,_template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitNCTT(object_dynamic_cast, _namespaces_,_classes_, _template_types_ , _template_params_,_name_)\
-    o_traits_specialize_super_traitNCTT(super_total_track_count_of, _namespaces_, _classes_, _template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitexNCT(super_statechart,typename, t_S,_namespaces_, _classes_,_template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitNCT(super_class_count_of,_namespaces_, _classes_,_template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitexNCT(super_class_index_of,typename, t_S,_namespaces_, _classes_,_template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitexNCT(super_class_of, int, t_index,_namespaces_, _classes_,_template_types_ , _template_params_,_name_)\
+    o_traits_specialize_super_traitNCT(super_total_track_count_of, _namespaces_, _classes_, _template_types_ , _template_params_,_name_)\
 
 
 #define o_traits_specialize_super_helpers(_count_) \
@@ -1202,8 +1188,21 @@ struct _trait_ < o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_) < o
     o_traits_specialize_super_class_index_of_helper(_count_) \
     o_traits_specialize_super_statechart_helper(_count_) \
     o_traits_specialize_super_class_count_of_helper(_count_) \
-    o_traits_specialize_object_dynamic_cast_helper(_count_) \
     o_traits_specialize_super_total_track_count_of_helper(_count_)
+
+#define o_traits_opT(_trait_, l0, op)\
+    o_PP_CAT o_PP_LEFT_PAREN o_traits_opT_,o_PP_NARG_FUNC()l0 o_PP_RIGHT_PAREN (_trait_, l0, op)
+
+#define o_traits_opT_1(_trait_, l0, op) _trait_<o_PP_CAT(o_PP_ARG_0,l0)>::value
+#define o_traits_opT_2(_trait_, l0, op) o_traits_opT_1(_trait_, l0, op) op _trait_<o_PP_CAT(o_PP_ARG_1,l0)>::value
+#define o_traits_opT_3(_trait_, l0, op) o_traits_opT_2(_trait_, l0, op) op _trait_<o_PP_CAT(o_PP_ARG_2,l0)>::value
+#define o_traits_opT_4(_trait_, l0, op) o_traits_opT_3(_trait_, l0, op) op _trait_<o_PP_CAT(o_PP_ARG_3,l0)>::value
+#define o_traits_opT_5(_trait_, l0, op) o_traits_opT_4(_trait_, l0, op) op _trait_<o_PP_CAT(o_PP_ARG_4,l0)>::value
+#define o_traits_opT_6(_trait_, l0, op) o_traits_opT_5(_trait_, l0, op) op _trait_<o_PP_CAT(o_PP_ARG_5,l0)>::value
+#define o_traits_opT_7(_trait_, l0, op) o_traits_opT_6(_trait_, l0, op) op _trait_<o_PP_CAT(o_PP_ARG_6,l0)>::value
+#define o_traits_opT_8(_trait_, l0, op) o_traits_opT_7(_trait_, l0, op) op _trait_<o_PP_CAT(o_PP_ARG_7,l0)>::value
+#define o_traits_opT_9(_trait_, l0, op) o_traits_opT_8(_trait_, l0, op) op _trait_<o_PP_CAT(o_PP_ARG_8,l0)>::value
+
 
 #define o_traits_specializeNT(_trait_,_value_,_namespaces_,_template_types_,_template_params_,_name_)\
     namespace phantom { \
@@ -1214,7 +1213,7 @@ struct _trait_< o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) < o_PP_IDENTITY 
 };\
     }
 
-#define o_traits_specializeTT(_trait_,_value_,_template_types_,_template_params_,_name_)\
+#define o_traits_specializeT(_trait_,_value_,_template_types_,_template_params_,_name_)\
     namespace phantom { \
     template<o_PP_MIX(_template_types_,_template_params_)>\
 struct _trait_< ::_name_ < o_PP_IDENTITY _template_params_ > >\
@@ -1223,7 +1222,7 @@ struct _trait_< ::_name_ < o_PP_IDENTITY _template_params_ > >\
 };\
     }
 
-#define o_traits_specializeCTT(_trait_,_value_,_classes_,_template_types_,_template_params_,_name_)\
+#define o_traits_specializeCT(_trait_,_value_,_classes_,_template_types_,_template_params_,_name_)\
     namespace phantom { \
     template<o_PP_MIX(_template_types_,_template_params_)>\
 struct _trait_< o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_) < o_PP_IDENTITY _template_params_ > >\
@@ -1263,7 +1262,7 @@ struct _trait_< o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_) >\
     }
 
 
-#define o_traits_specializeNCTT(_trait_,_value_,_namespaces_,_classes_,_template_types_,_template_params_,_name_)\
+#define o_traits_specializeNCT(_trait_,_value_,_namespaces_,_classes_,_template_types_,_template_params_,_name_)\
     namespace phantom { \
     template<o_PP_MIX(_template_types_,_template_params_)>\
 struct _trait_< o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_) < o_PP_IDENTITY _template_params_ > >\
@@ -1370,13 +1369,6 @@ struct has_reflection
 };
 
 template<typename t_Ty>
-struct setup_steps_mask_of
-{
-    enum { value = o_global_value_SetupStepBit_Reflection
-        | o_global_value_SetupStepBit_StateChart };
-};
-
-template<typename t_Ty>
 struct has_reflection<t_Ty*>
 {
     BOOST_STATIC_CONSTANT(bool, value = has_reflection<t_Ty>::value);
@@ -1400,6 +1392,19 @@ struct has_statechart_cascade : detail::has_statechart_cascade_helper_<t_Ty, sup
 
 template<typename t_Ty>
 struct has_super_statechart_cascade : public detail::has_super_statechart_cascade_<t_Ty> {};
+
+/// has_module specialized in o_classX
+template<typename t_Ty>
+struct has_module : public has_reflection<t_Ty>
+{
+
+};
+
+template<typename t_Ty>
+struct has_full_module 
+{ 
+    const static bool value = has_module<t_Ty>::value; 
+};
 
 template<typename t_Ty>
 struct proxy_of
@@ -2071,7 +2076,7 @@ template<typename t_Ty>
 struct has_virtual_destructor_cascade : public detail::has_virtual_destructor_cascade_helper_<t_Ty, super_class_count_of<t_Ty>::value>{};
 
 template<typename t_Ty>
-struct super_class_count_of : public detail::super_class_count_of_helper<t_Ty>{};
+struct super_class_count_of : public detail::super_class_count_of_helper<t_Ty>{ };
 
 template<typename t_Ty>
 struct has_reflection_cascade : public detail::has_reflection_cascade_helper_<t_Ty, super_class_count_of<t_Ty>::value> {};
@@ -2081,9 +2086,6 @@ struct super_statechart : public detail::super_statechart_helper<t_Ty,t_STy> {};
 
 template<typename t_Ty>
 struct super_total_track_count_of : detail::super_total_track_count_of_helper<t_Ty> {};
-
-template<typename t_Ty>
-struct object_dynamic_cast : detail::object_dynamic_cast_helper<t_Ty> {};
 
 template<typename t_BaseTy, typename t_Ty>
 struct statechart : public detail::statechart_helper<t_BaseTy, t_Ty, has_statechart<t_BaseTy>::value> {};
@@ -2308,6 +2310,16 @@ struct has_right_shift_assign_helper<t_Ty, false> : public false_ {};
 o_namespace_end(detail)
 
 template<typename t_Ty>
+struct setup_steps_mask_of 
+{
+    enum { value = (o_global_value_SetupStepBit_Reflection * has_reflection<t_Ty>::value)
+        | (o_global_value_SetupStepBit_StateChart * has_statechart<t_Ty>::value )
+        | (o_global_value_SetupStepBit_TemplateSignature * is_template<t_Ty>::value )
+        | (o_global_value_SetupStepBit_Inheritance * (super_class_count_of<t_Ty>::value != 0)) };
+};
+
+
+template<typename t_Ty>
 struct has_bit_and : public detail::has_bit_and_helper<t_Ty, has_has_something<t_Ty>::value> {};
 template<typename t_Ty>
 struct has_bit_and_assign : public detail::has_bit_and_assign_helper<t_Ty, has_has_something<t_Ty>::value> {};
@@ -2406,7 +2418,6 @@ o_namespace_end(phantom)
 #endif
 
 # define o_traits_specialize_for_primitives(_trait_, _value_) \
-    o_traits_specialize_primitive(_trait_,phantom::signal_t, _value_)\
     o_traits_specialize_primitive(_trait_,char,_value_)\
     o_traits_specialize_primitive(_trait_,uchar,_value_)\
     o_traits_specialize_primitive(_trait_,schar,_value_)\

@@ -37,6 +37,7 @@
 
 
 /* ****************** Includes ******************* */
+#include <exception>
 /* *********************************************** */
 
 o_namespace_begin(phantom, exception)
@@ -94,7 +95,7 @@ class unknown_reflection_type_exception : public reflection_runtime_exception
 public:
     unknown_reflection_type_exception(void) {}
     unknown_reflection_type_exception(const char * const & _What)
-        : reflection_runtime_exception(_What)
+        : reflection_runtime_exception((string("Unknown type '") + _What + '\'').c_str())
     {
 
     }

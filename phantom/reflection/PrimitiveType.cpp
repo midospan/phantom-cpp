@@ -33,15 +33,18 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "PrimitiveType.h"
+#include <phantom/reflection/PrimitiveType.h>
+#include <phantom/reflection/PrimitiveType.hxx>
+#include <phantom/std/string.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), PrimitiveType);
 
-ReflectionCPP__________________________________________________________________________________    
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
 
-PrimitiveType::PrimitiveType() : Type("", 0, 0, 0)
+o_define_meta_type(PrimitiveType);
+
+PrimitiveType::PrimitiveType() 
+: Type("", 0, 0, 0)
 {
 
 }
@@ -57,4 +60,4 @@ PrimitiveType::PrimitiveType( const string& a_strName, ushort a_uiSize, ushort a
 }
 
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

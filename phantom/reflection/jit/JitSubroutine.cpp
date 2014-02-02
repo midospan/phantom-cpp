@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
-#include "phantom/phantom.h"
+#include "phantom/jit.h"
 #include "JitSubroutine.h"
+#include "JitSubroutine.hxx"
 #include "JitClass.h"
 #include "JitSignal.h"
 #include "JitLocalVariable.h"

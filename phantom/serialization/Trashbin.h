@@ -37,11 +37,8 @@
 
 
 /* ****************** Includes ******************* */
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-//#include "Trashbin.classdef.h"
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, serialization), Trashbin);
 /* *********************************************** */
 
 o_namespace_begin(phantom, serialization)
@@ -112,14 +109,5 @@ protected:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classN((phantom, serialization), Trashbin)
-{
-	o_reflection
-	{
-
-	};
-};
-o_exposeN((phantom, serialization), Trashbin);
 
 #endif // serialization_Trashbin_h__

@@ -32,16 +32,17 @@
 */
 
 /* ******************* Includes ****************** */
-#include "phantom/phantom.h"
+#include "phantom/jit.h"
+#include "JitClass.h"
+#include "JitClass.hxx"
 #include <phantom/def_jit.h>
-#include <phantom/reflection/jit/JitClass.h>
-#include <phantom/reflection/jit/JitInstanceDataMember.h>
-#include <phantom/reflection/jit/JitStaticDataMember.h>
-#include <phantom/reflection/jit/JitInstanceMemberFunction.h>
-#include <phantom/reflection/jit/JitSignal.h>
-#include <phantom/reflection/jit/JitStaticMemberFunction.h>
-#include <phantom/reflection/jit/JitProperty.h>
-#include <phantom/reflection/jit/JitCollection.h>
+#include "JitInstanceDataMember.h"
+#include "JitStaticDataMember.h"
+#include "JitInstanceMemberFunction.h"
+#include "JitSignal.h"
+#include "JitStaticMemberFunction.h"
+#include "JitProperty.h"
+#include "JitCollection.h"
 #include <phantom/state/jit/JitStateMachine.h>
 /* *********************************************** */
 o_registerN((phantom, reflection, jit), JitClass);
@@ -81,7 +82,7 @@ void JitClass::setStateMachine( state::jit::JitStateMachine* a_pStateMachine )
 {
     if(m_pStateMachine)
     {
-        o_exception(exception::reflection_jit_exception, "StateMachine already added, you cannot add more than one state machine");
+        o_exception(reflection_jit_exception, "StateMachine already added, you cannot add more than one state machine");
     }
     if(m_eState == e_State_InheritanceSetup)
     {
@@ -89,7 +90,7 @@ void JitClass::setStateMachine( state::jit::JitStateMachine* a_pStateMachine )
     }
     else if(m_eState >= e_State_Compiling)
     {
-        o_exception(exception::reflection_jit_exception, "Class being compiling or compiled, you cannot add state machine anymore");
+        o_exception(reflection_jit_exception, "Class being compiling or compiled, you cannot add state machine anymore");
     }
     a_pStateMachine->setup(getStateMachineCascade());
     Class::setStateMachine(a_pStateMachine);
@@ -99,7 +100,7 @@ void JitClass::addInstanceDataMember( JitInstanceDataMember* a_pDataMember )
 {
     if(m_eState >= e_State_Compiling)
     {
-        o_exception(exception::reflection_jit_exception, "Class being compiling or compiled, you cannot add attributes anymore");
+        o_exception(reflection_jit_exception, "Class being compiling or compiled, you cannot add attributes anymore");
     }
     else
     {
@@ -125,7 +126,7 @@ void JitClass::addStaticDataMember( JitStaticDataMember* a_pDataMember )
 {
     if(m_eState == e_State_Compiled)
     {
-        o_exception(exception::reflection_jit_exception, "JitClass already built, you cannot add members anymore");
+        o_exception(reflection_jit_exception, "JitClass already built, you cannot add members anymore");
     }
     Class::addStaticDataMember(a_pDataMember);
 }
@@ -144,7 +145,7 @@ void JitClass::addSuperClass( Class* a_pClass )
 {
     if(m_eState != e_State_InheritanceSetup)
     {
-        o_exception(exception::reflection_jit_exception, "Members have been added or class compiled, you cannot add super classes anymore");
+        o_exception(reflection_jit_exception, "Members have been added or class compiled, you cannot add super classes anymore");
     }
 
     // We adjust class offset depending on added class alignment (ex : if the first super class is only a 1 byte aligned class, 
@@ -197,7 +198,7 @@ void JitClass::addPureVirtualMemberFunction( PureVirtualMemberFunction* a_pInsta
 {
     if(m_eState >= e_State_Compiling)
     {
-        o_exception(exception::reflection_jit_exception, "Class compiling or compiled, you cannot add members anymore");
+        o_exception(reflection_jit_exception, "Class compiling or compiled, you cannot add members anymore");
     }
     Class::addInstanceMemberFunction(a_pInstanceMemberFunction);
 }
@@ -206,7 +207,7 @@ void JitClass::addInstanceMemberFunction( JitInstanceMemberFunction* a_pInstance
 {
     if(m_eState >= e_State_Compiling)
     {
-        o_exception(exception::reflection_jit_exception, "Class compiling or compiled, you cannot add members anymore");
+        o_exception(reflection_jit_exception, "Class compiling or compiled, you cannot add members anymore");
     }
     else if(m_eState == e_State_InheritanceSetup)
     {
@@ -523,7 +524,7 @@ void JitClass::addProperty( JitProperty* a_pProperty )
     }
     else if(m_eState >= e_State_Compiling)
     {
-        o_exception(exception::reflection_jit_exception, "Class compiling or compiled, you cannot add members anymore");
+        o_exception(reflection_jit_exception, "Class compiling or compiled, you cannot add members anymore");
     }
 
     Class::addProperty(a_pProperty);
@@ -537,7 +538,7 @@ void JitClass::addCollection( JitCollection* a_pCollection )
     }
     else if(m_eState >= e_State_Compiling)
     {
-        o_exception(exception::reflection_jit_exception, "Class compiling or compiled, you cannot add members anymore");
+        o_exception(reflection_jit_exception, "Class compiling or compiled, you cannot add members anymore");
     }
 
     Class::addCollection(a_pCollection);
@@ -749,7 +750,7 @@ void JitClass::startCompilation()
 
     if(m_eState >= e_State_Compiling)
     {
-        o_exception(exception::reflection_jit_exception, "Class already compiling or compiled");
+        o_exception(reflection_jit_exception, "Class already compiling or compiled");
     }
     m_eState = e_State_Compiling;
 

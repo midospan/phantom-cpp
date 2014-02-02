@@ -35,6 +35,7 @@
 #include "phantom/phantom.h"
 /* ** The Class Header must be the last #include * */
 #include "Bench.h"
+#include "Bench.hxx"
 /* *********************************************** */
 o_registerN((sc2), Bench);
 

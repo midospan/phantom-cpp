@@ -33,14 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/Enum.h>
+#include <phantom/reflection/Enum.hxx>
 /* *********************************************** */
+o_registerN((phantom, reflection), Enum);
 
-o_cpp_begin 
+o_namespace_begin(phantom, reflection) 
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_define_meta_type(Enum);
 
 Enum::Enum() 
     : PrimitiveType("", 4, 4, 0)
@@ -64,7 +64,7 @@ Enum::~Enum()
 {
     while(m_Constants.size())
     {
-        o_dynamic_delete m_Constants.back();
+        m_Constants.back()->deleteNow();
     }
 }
 
@@ -192,4 +192,4 @@ void Enum::elementRemoved( LanguageElement* a_pElement )
     m_Constants.erase(std::find(m_Constants.begin(), m_Constants.end(), pConstant));
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

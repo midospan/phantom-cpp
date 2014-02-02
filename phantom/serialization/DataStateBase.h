@@ -39,7 +39,7 @@
 /* ****************** Includes ******************* */
 #include <phantom/phantom.h>
 /* *********************************************** */
-
+o_declareN(class, (phantom, serialization), DataStateBase)
 /* *********************************************** */
 
 o_namespace_begin(phantom, serialization)
@@ -72,14 +72,5 @@ protected:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classN((phantom, serialization), DataStateBase)
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, serialization), DataStateBase);
 
 #endif // serialization_TDataStateBase_h__

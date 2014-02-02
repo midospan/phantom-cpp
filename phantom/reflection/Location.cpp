@@ -1,4 +1,6 @@
 #include "phantom/phantom.h"
+#include "Location.h"
+#include "Location.hxx"
 
 o_registerN((phantom, reflection), CodeLocation);
 o_registerN((phantom, reflection), CodePosition);

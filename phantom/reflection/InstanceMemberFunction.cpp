@@ -33,14 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/InstanceMemberFunction.h>
+#include <phantom/reflection/InstanceMemberFunction.hxx>
 /* *********************************************** */
+o_registerN((phantom, reflection), InstanceMemberFunction);
 
+o_namespace_begin(phantom, reflection) 
 
-o_cpp_begin 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+Class* const InstanceMemberFunction::metaType = o_type_of(InstanceMemberFunction);
 
 InstanceMemberFunction::InstanceMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers /*= 0*/ )
 : Subroutine(a_strName, a_pSignature, a_Modifiers )
@@ -179,4 +179,4 @@ void InstanceMemberFunction::safeInvoke( void* a_pCallerAddress, void** a_pArgs 
 
 
 
-o_cpp_end 
+o_namespace_end(phantom, reflection) 

@@ -3,9 +3,9 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/def_jit.h>
+#include <phantom/jit.h>
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, state, jit), JitStateMachine);
 /* *********************************************** */
 
 o_namespace_begin(phantom, state, jit)
@@ -96,14 +96,5 @@ protected:
 };
 
 o_namespace_end(phantom, state, jit)
-
-o_classNS((phantom, state, jit), JitStateMachine, (StateMachine))
-{
-	o_reflection
-	{
-		
-	};
-};
-o_exposeN((phantom, state, jit), JitStateMachine);
 
 #endif

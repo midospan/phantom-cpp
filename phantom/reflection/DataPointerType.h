@@ -38,20 +38,17 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "DataPointerType.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export DataPointerType : public PointerType
 {
-public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+    o_declare_meta_type(DataPointerType);
+
 public:
     friend class Type;
 
@@ -156,9 +153,8 @@ protected:
     Type*        m_pPointedType;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // DataPointerType_h__
-#include "DataPointerType.classdef.h"
+
 #endif

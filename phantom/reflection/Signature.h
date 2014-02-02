@@ -38,22 +38,18 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Signature.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, Type)
-o_declare(class, phantom, reflection, TemplateSpecialization)
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Signature : public LanguageElement
 {
+
 public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
-public:
+    static Signature* Create( void );
+    static Signature* Create( const char* a_pText, TemplateSpecialization* a_pTemplateSpecialization, LanguageElement* a_pScope );
 
     enum EState
     {
@@ -89,30 +85,16 @@ public:
     typedef phantom::vector<Type*> parameter_type_list;
 
     Signature( void );
+    Signature( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization = NULL, LanguageElement* a_pScope = (LanguageElement*)phantom::rootNamespace() );
     o_destructor ~Signature(void);
 
     virtual Signature* asSignature() const { return (Signature*)this; }
 
-    boolean         equals(Object* other) const
-    {
-        if(NOT(phantom::is<Signature>(other))) return false;
-        Signature*    pOther = static_cast<Signature*>(other);
-        if(NOT(compareParameterList(pOther))) return false;
-        return m_pReturnType == pOther->m_pReturnType;
-    }
+    virtual bool         equals(LanguageElement* a_pOther) const;
 
-    virtual Signature*  clone() const 
-    {
-        Signature* pSignature = o_new(Signature);
-        o_foreach(Type* pParameterType, m_ParametersTypes)
-        {
-            pSignature->addParameterType(pParameterType);
-        }
-        pSignature->setReturnType(m_pReturnType);
-        return pSignature;
-    }
+    virtual Signature*  clone() const;
 
-    void            parse( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization = NULL, LanguageElement* pScope = (LanguageElement*)phantom::rootNamespace() );
+    void            parse( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization = NULL, LanguageElement* a_pScope = (LanguageElement*)phantom::rootNamespace() );
 
     size_t          getParameterCount() const;
     void            addParameterType(Type* a_pParameterType);
@@ -140,9 +122,8 @@ protected:
     size_t              m_uiArgumentStorageSize;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_Signature_h__
-#include "Signature.classdef.h"
+
 #endif

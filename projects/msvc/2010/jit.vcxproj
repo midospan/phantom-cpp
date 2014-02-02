@@ -37,7 +37,7 @@
     <ClCompile Include="..\..\..\phantom\state\jit\JitState.cpp" />
     <ClCompile Include="..\..\..\phantom\state\jit\JitStateMachine.cpp" />
     <ClCompile Include="..\..\..\phantom\state\jit\JitTrack.cpp" />
-    <ClCompile Include="..\..\..\phantom\pch.cpp">
+    <ClCompile Include="..\..\..\phantom\pch_jit.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\build\pch\jitD.pch</PrecompiledHeaderOutputFile>
@@ -47,6 +47,14 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\phantom\def_jit_internal.h" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\hwbrk.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitAddressable.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitClass.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitCollection.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitDebugger.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitEnum.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitInstanceDataMember.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitInstanceMemberFunction.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitLocalVariable.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitProperty.h" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitAddressable.h" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitCollection.h" />
@@ -57,14 +65,22 @@
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitClass.h" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitInstanceDataMember.h" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitLocalVariable.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitProperty.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitSignal.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitSignal.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitStaticDataMember.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitStaticDataMember.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitStaticMemberFunction.h" />
     <ClInclude Include="..\..\..\phantom\jit.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitStaticMemberFunction.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitSubroutine.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitSubroutine.hxx" />
     <ClInclude Include="..\..\..\phantom\state\jit\JitState.h" />
+    <ClInclude Include="..\..\..\phantom\state\jit\JitState.hxx" />
     <ClInclude Include="..\..\..\phantom\state\jit\JitStateMachine.h" />
+    <ClInclude Include="..\..\..\phantom\state\jit\JitStateMachine.hxx" />
     <ClInclude Include="..\..\..\phantom\state\jit\JitTrack.h" />
+    <ClInclude Include="..\..\..\phantom\state\jit\JitTrack.hxx" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CDCC4020-60EC-43D7-A521-F22C2C7A05D1}</ProjectGuid>
@@ -127,7 +143,7 @@
       <AdditionalIncludeDirectories>../../..;$(BOOST_ROOT);../../../dependencies/libjit/include;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN32;WIN32;_DEBUG;DEBUG;_PHANTOM_JIT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>phantom/phantom.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>phantom/jit.h</PrecompiledHeaderFile>
       <PreprocessToFile>false</PreprocessToFile>
       <PrecompiledHeaderOutputFile>..\..\..\build\pch\jitD.pch</PrecompiledHeaderOutputFile>
       <MinimalRebuild>false</MinimalRebuild>
@@ -156,7 +172,7 @@
       <PreprocessorDefinitions>_WIN32;WIN32;_PHANTOM_JIT;NDEBUG;_NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-Zm500 /MP /bigobj %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>phantom/phantom.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>phantom/jit.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>..\..\..\build\pch\jit.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>

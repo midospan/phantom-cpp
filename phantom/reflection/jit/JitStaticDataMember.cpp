@@ -1,9 +1,9 @@
 /* ******************* Includes ****************** */
-#include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "JitStaticMemberFunction.h"
+#include "phantom/jit.h"
+#include "JitStaticDataMember.h"
+#include "JitStaticDataMember.hxx"
 /* *********************************************** */
-o_registerN((phantom, reflection, jit), JitStaticMemberFunction);
+o_registerN((phantom, reflection, jit), JitStaticDataMember);
 
 o_namespace_begin(phantom, reflection, jit)
 

@@ -33,49 +33,7 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include <phantom/Object.h>
+#include <phantom/object.h>
+#include <phantom/object.hxx>
 /* *********************************************** */
-
-o_cpp_begin
-
-
-ReflectionCPP__________________________________________________________________________________
-    o_member_function(void, destroy, ());
-    o_signal(destroyed, ());
-__________________________________________________________________________________ReflectionCPP
-
-Object::~Object()
-{
-}
-
-void Object::destroy()
-{
-    Object* me = this;
-    o_dynamic_delete_clean(me);
-}
-
-reflection::Class* Object::getClass() const
-{
-    return phantom::classOf(this);
-}
-
-void Object::deleteNow()
-{
-    getClass()->deleteInstance(this);
-}
-
-phantom::signal_t Object::destroyed( void ) const
-{
-    connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_destroyed.head();
-    while(pSlot)
-    {
-        connection::pair::push(const_cast<Object*>(this), pSlot);
-        pSlot->subroutine()->call(pSlot->receiver(), o_no_arg );
-        pSlot = pSlot->next();
-        connection::pair::pop();
-    }
-    return signal_t();
-}
-
-o_cpp_end
+o_registerN((phantom), object);

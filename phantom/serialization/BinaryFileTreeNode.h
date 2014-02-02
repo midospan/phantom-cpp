@@ -41,8 +41,9 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
 /* **************** Declarations ***************** */
-o_declare(class, phantom, serialization, BinaryFileTreeDataBase)
-o_declare(class, phantom, serialization, BinaryFileTreeDataStateBase)
+o_fwd(class, phantom, serialization, BinaryFileTreeDataBase)
+o_fwd(class, phantom, serialization, BinaryFileTreeDataStateBase)
+o_declareN(class, (phantom, serialization), BinaryFileTreeNode)
 /* *********************************************** */
 
 o_namespace_begin(phantom, serialization)
@@ -101,11 +102,5 @@ protected:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classNS((phantom, serialization), BinaryFileTreeNode, (FileTreeNode))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, serialization), BinaryFileTreeNode);
 
 #endif // serialization_BinaryFileTreeNode_h__

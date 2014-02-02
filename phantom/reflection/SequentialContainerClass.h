@@ -4,19 +4,16 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "SequentialContainerClass.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
-class SequentialContainerClass : public ContainerClass
+class o_export SequentialContainerClass : public ContainerClass
 {
-    reflection_____________________________________________________________________
-    _____________________________________________________________________reflection
+    o_declare_meta_type(SequentialContainerClass);
 
 public:
     SequentialContainerClass(Type* a_pValueType
@@ -33,8 +30,7 @@ public:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
-#else
-#include "SequentialContainerClass.classdef.h"
+
 #endif

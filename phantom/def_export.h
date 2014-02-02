@@ -54,7 +54,7 @@
 #endif
 
 #if (o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS) && !defined(PHANTOM_STATIC_LIB)
-#    ifdef _PHANTOM_KERNEL
+#    ifdef PHANTOM_DLL
 #        define o_export __declspec(dllexport)
 #    else
 #       if defined( __MINGW32__ )

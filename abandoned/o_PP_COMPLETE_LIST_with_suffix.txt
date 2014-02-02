@@ -1,0 +1,63 @@
+
+#define o_PP_COMPLETE_LIST(suffix, l0, l1)\
+    o_PP_CAT o_PP_LEFT_PAREN o_PP_COMPLETE_LIST_,o_PP_NARG_FUNC()l0 o_PP_RIGHT_PAREN (suffix, l0, l1)
+
+#define o_PP_COMPLETE_LIST_5(suffix, l0, l1)\
+    (o_PP_CAT o_PP_LEFT_PAREN o_PP_COMPLETE_LIST_5_,o_PP_NARG_FUNC()l1 o_PP_RIGHT_PAREN (suffix, l0, l1))
+
+#define o_PP_COMPLETE_LIST_1_1(suffix, l0, l1) o_PP_IDENTITY l1
+
+#define o_PP_COMPLETE_LIST_2_1(suffix, l0, l1) \
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_1_1(suffix, (o_PP_POP_FRONT_ARG l0), l1)
+
+#define o_PP_COMPLETE_LIST_2_2(suffix, l0, l1) o_PP_IDENTITY l1
+
+#define o_PP_COMPLETE_LIST_3_1(suffix, l0, l1) \
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_2_1(suffix, (o_PP_POP_FRONT_ARG l0), l1)
+
+#define o_PP_COMPLETE_LIST_3_2(suffix, l0, l1) \
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_2_2(suffix, (o_PP_POP_FRONT_ARG l0), l1)
+
+#define o_PP_COMPLETE_LIST_3_3(suffix, l0, l1) o_PP_IDENTITY l1
+
+#define o_PP_COMPLETE_LIST_4_1(suffix, l0, l1)\
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_3_1(suffix, (o_PP_POP_FRONT_ARG l0), l1)
+
+#define o_PP_COMPLETE_LIST_4_2(suffix, l0, l1)\
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_3_2(suffix, (o_PP_POP_FRONT_ARG l0), l1)
+
+#define o_PP_COMPLETE_LIST_4_3(suffix, l0, l1)\
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_3_3(suffix, (o_PP_POP_FRONT_ARG l0), l1)
+
+#define o_PP_COMPLETE_LIST_4_4(suffix, l0, l1) o_PP_IDENTITY l1
+
+#define o_PP_COMPLETE_LIST_5_1(suffix, l0, l1) \
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_4_1(suffix, (o_PP_POP_FRONT_ARG l0), l1) 
+
+#define o_PP_COMPLETE_LIST_5_2(suffix, l0, l1) \
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_4_2(suffix, (o_PP_POP_FRONT_ARG l0), l1) 
+
+#define o_PP_COMPLETE_LIST_5_3(suffix, l0, l1) \
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_4_3(suffix, (o_PP_POP_FRONT_ARG l0), l1) 
+
+#define o_PP_COMPLETE_LIST_5_4(suffix, l0, l1) \
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_4_4(suffix, (o_PP_POP_FRONT_ARG l0), l1) 
+
+#define o_PP_COMPLETE_LIST_5_5(suffix, l0, l1) o_PP_IDENTITY l1
+
+#define o_PP_COMPLETE_LIST_6_1(suffix, l0, l1) \
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_5_1(suffix, (o_PP_POP_FRONT_ARG l0), l1) 
+
+#define o_PP_COMPLETE_LIST_6_2(suffix, l0, l1) \
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_5_2(suffix, (o_PP_POP_FRONT_ARG l0), l1) 
+
+#define o_PP_COMPLETE_LIST_6_3(suffix, l0, l1) \
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_5_3(suffix, (o_PP_POP_FRONT_ARG l0), l1) 
+
+#define o_PP_COMPLETE_LIST_6_4(suffix, l0, l1) \
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_5_4(suffix, (o_PP_POP_FRONT_ARG l0), l1) 
+
+#define o_PP_COMPLETE_LIST_6_5(suffix, l0, l1) \
+    o_PP_CAT o_PP_LEFT_PAREN suffix, o_PP_ARG_0 l0 o_PP_RIGHT_PAREN , o_PP_COMPLETE_LIST_5_4(suffix, (o_PP_POP_FRONT_ARG l0), l1)
+
+#define o_PP_COMPLETE_LIST_6_6(suffix, l0, l1) o_PP_IDENTITY l1

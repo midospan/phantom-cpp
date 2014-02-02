@@ -40,8 +40,6 @@
 #include <phantom/reflection/Range.h>
 /* *********************************************** */
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, DataMember)
-o_declare(class, phantom, reflection, Constructor)
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection, native)
@@ -52,6 +50,9 @@ template<typename t_Ty>
 class TRange : public Range
 {
 public:
+    typedef TRange<t_Ty> self_type;
+
+public:
     TRange(t_Ty a_Min, t_Ty a_Default, t_Ty a_Max) 
         : Range(typeOf<t_Ty>()) 
         , m_Min(a_Min)
@@ -59,6 +60,15 @@ public:
         , m_Max(a_Max)
     {
 
+    }
+    virtual Range* clone() const 
+    {
+        return o_dynamic_proxy_new(phantom::reflection::Range, phantom::reflection::Range::metaType, self_type)(m_Min, m_Default, m_Max);
+    }
+
+    virtual void deleteNow() 
+    {
+        o_dynamic_proxy_delete(phantom::reflection::Range, phantom::reflection::Range::metaType, self_type) this;   
     }
 
     virtual void getMin(void* a_pDest) const 
@@ -105,13 +115,14 @@ class TRange<const t_Ty&> : public TRange<t_Ty>
 
 
 template<typename t_Ty>
-inline TRange<t_Ty>* CreateRange(t_Ty a_Default)
+inline Range* CreateRange(t_Ty a_Default)
 {
-    return o_new(TRange<t_Ty>)(std::numeric_limits<t_Ty>::min(), a_Default, std::numeric_limits<t_Ty>::max());
+    o_static_assert(!(boost::is_same<t_Ty, null_range>::value));
+    return o_dynamic_proxy_new(phantom::reflection::Range, phantom::reflection::Range::metaType, TRange<t_Ty>)(std::numeric_limits<t_Ty>::min(), a_Default, std::numeric_limits<t_Ty>::max());
 }
 
 template<>
-inline TRange<null_range>* CreateRange<null_range>(null_range )
+inline Range* CreateRange<null_range>(null_range )
 {
     return nullptr;
 }
@@ -121,24 +132,24 @@ inline TRange<t_Ty>* CreateRange(t_Ty a_Min, t_Ty a_Default, t_Ty a_Max)
 {
     typedef boost::remove_cv<boost::remove_reference<t_Ty>::type>::type type;
     o_static_assert(boost::has_less<type>::value && boost::has_equal_to<type>::value);
-    return o_new(TRange<t_Ty>)(a_Min, a_Default, a_Max);
+    return o_dynamic_proxy_new(phantom::reflection::Range, phantom::reflection::Range::metaType, TRange<t_Ty>)(a_Min, a_Default, a_Max);
 }
 
 template<typename t_Ty>
 TRange<t_Ty>* CreateRange(t_Ty a_Min, t_Ty a_Max)
 {
-    return o_new(TRange<t_Ty>)(a_Min, t_Ty(), a_Max);
+    return o_dynamic_proxy_new(phantom::reflection::Range, phantom::reflection::Range::metaType, TRange<t_Ty>)(a_Min, t_Ty(), a_Max);
 }
 
 o_namespace_end(phantom, reflection, native)
 
-    o_traits_specialize_all_super_traitNTTS(
+    /*o_traits_specialize_all_super_traitNTS(
     (phantom,reflection,native)
     , (typename)
     , (t_Ty)
     , TRange
     , (Range)
-    )
+    )*/
 
 
 

@@ -33,20 +33,21 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "ValueMember.h"
+#include <phantom/reflection/ValueMember.h>
+#include <phantom/reflection/ValueMember.hxx>
 /* *********************************************** */
-o_cpp_begin 
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_registerN((phantom, reflection), ValueMember);
+o_namespace_begin(phantom, reflection) 
 
 ValueMember::ValueMember( const string& a_strName, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ ) 
 : LanguageElement(a_strName, a_Modifiers)
 , m_uiSerializationMask(a_uiSerializationMask)
 , m_pRange(a_pRange)
 {
-
+    if(a_pRange)
+    {
+        addElement(a_pRange);
+    }
 }
 
 SubValueMember* ValueMember::getSubValueMember( const string& a_strName ) const
@@ -190,4 +191,4 @@ Class* ValueMember::getSortingCategoryClass() const
     return classOf<ValueMember>();
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

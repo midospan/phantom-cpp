@@ -37,26 +37,22 @@
 
 
 /* ****************** Includes ******************* */
-#include "DataBase.classdef.h"
+#include "phantom/Object.h"
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, serialization), DataBase)
 /* *********************************************** */
-
-
-o_h_begin
+o_namespace_begin(phantom, serialization)
 
 class DefaultNode;
 class DataTypeManager;
 class Trashbin;
 
-class o_export DataBase : public Object
+class o_export DataBase
 {
     friend class Node;
     friend class DefaultNode;
     friend class Trashbin;
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
     enum Constant
@@ -263,14 +259,14 @@ public:
 		return false;
 	}
 
-    uint            getGuid( Node* a_pNode ) const { return m_GuidBase.getGuid(a_pNode); }
-    uint            getGuid( const phantom::data& a_Data ) const { return m_GuidBase.getGuid(a_Data.address()); }
+    uint            getGuid( Node* a_pNode ) const;
+    uint            getGuid( const phantom::data& a_Data ) const;
     void*           getDataAddress( uint guid ) const { return m_GuidBase.dataAddress(guid); }
     reflection::Type*getDataType( uint guid ) const { return m_GuidBase.dataType(guid); }
     const data&     getData( uint guid ) const { return m_GuidBase.getData(guid); }
 
     boolean         containsData(const phantom::data& a_Data) const { return m_GuidBase.getGuid(a_Data) != 0xffffffff; }
-    boolean         containsDataAddress(void* a_pData) const { return m_GuidBase.getGuid(phantom::baseOf(a_pData)) != 0xffffffff; }
+    boolean         containsDataAddress(void* a_pData) const;
     virtual void    loadNodeEntries() = 0;
     virtual void    unloadNodeEntries() = 0;
 
@@ -340,15 +336,9 @@ public:
     void            setDataTypeManager(DataTypeManager* a_pDataTypeManager);
     DataTypeManager*getDataTypeManager() const { return m_pDataTypeManager; }
 
-    boolean         isDataRegistered(void* a_pData) const
-    {
-        return m_GuidBase.getGuid(phantom::baseOf(a_pData)) != 0xFFFFFFFF;
-    }
+    boolean         isDataRegistered(void* a_pData) const;
 
-    boolean         isNodeRegistered(Node* a_pNode) const
-    {
-        return m_GuidBase.getGuid(a_pNode) != 0xFFFFFFFF;
-    }
+    boolean         isNodeRegistered(Node* a_pNode) const;
 
     const string&   getUrl() const { return m_strUrl; }
     boolean         isDataCompatibleWithNode(const phantom::data& a_Data, Node* a_pOwnerNode) const;
@@ -441,8 +431,6 @@ private:
     mutable Node*                   m_pRootNode;
 };
 
-o_h_end
+o_namespace_end(phantom, serialization)
 
-#else // serialization_DataBase_h__
-#include "DataBase.classdef.h"
 #endif

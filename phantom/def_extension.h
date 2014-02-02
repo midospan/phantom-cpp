@@ -1,7 +1,7 @@
 #ifndef o_phantom_extension_h__
 #define o_phantom_extension_h__
 
-o_begin_phantom_namespace()
+o_namespace_begin(phantom)
 
 template<typename t_Target, typename t_Source>
 inline t_Target lexical_cast(const t_Source &arg)
@@ -128,7 +128,9 @@ template<>
 inline void* lexical_cast<void*, phantom::string>(const phantom::string &arg)
 {
     void* ptr;
+#pragma warning(disable:4996)
     sscanf(arg.c_str(), "%X", &ptr);
+#pragma warning(default:4996)
     return ptr;
 }
 
@@ -137,7 +139,9 @@ template<>
 inline phantom::string lexical_cast<phantom::string, msvc_bug_lexical_cast_void_ptr>(const msvc_bug_lexical_cast_void_ptr& arg)
 {
     char buffer[32] = "";
+#pragma warning(disable:4996)
     sprintf(buffer, "%08X", (size_t)arg);
+#pragma warning(default:4996)
     return buffer;
 }
 
@@ -284,7 +288,7 @@ namespace state
     }
 }
 
-o_end_phantom_namespace()
+o_namespace_end(phantom)
 
 o_namespace_begin(phantom, extension)
 template<typename t_Ty>
@@ -385,7 +389,7 @@ public:
         o_assert(!connection::slot_pool::hasAllocationController(a_pInstance));
         connection::slot_pool& ac = connection::slot_pool::allocationController(a_pInstance);
         reflection::Class* pBaseClass = classOf<t_Ty>();
-        ++(pBaseClass->m_uiRegisteredInstances);
+        pBaseClass->registerInstance(a_pInstance);
         (*phantom::Phantom::m_rtti_data_map)[a_pInstance] = phantom::rtti_data(pBaseClass, pBaseClass, a_pInstance, &ac, &phantom::extension::dynamic_deleter<t_Ty>::dynamicDelete);
         phantom::extension::rtti_data_registrer<t_Ty>::registerInfo(a_pInstance, a_pInstance, classOf<t_Ty>(), &ac, &phantom::extension::dynamic_deleter<t_Ty>::dynamicDelete);
     }
@@ -394,7 +398,8 @@ public:
     {
         phantom::Phantom::rtti_data_map::iterator found = phantom::Phantom::m_rtti_data_map->find(a_pInstance);
         o_assert(found != phantom::Phantom::m_rtti_data_map->end());
-        --(classOf<t_Ty>()->m_uiRegisteredInstances);
+        reflection::Class* pBaseClass = classOf<t_Ty>();
+        pBaseClass->unregisterInstance(a_pInstance);
         phantom::Phantom::m_rtti_data_map->erase(found);
         phantom::extension::rtti_data_registrer<t_Ty>::unregisterInfo(a_pInstance);
         connection::slot_pool::eraseAllocationController(a_pInstance);
@@ -2580,7 +2585,7 @@ struct default_installer : public default_installer_helper<t_Ty,
         OR (NOT(boost::is_class<t_Ty>::value) AND boost::is_pod<t_Ty>::value)
         OR has_meta_specifier<t_Ty,o_no_rtti>::value)
         ? default_installer_none
-        : has_reflection_cascade<t_Ty>::value
+        : (has_reflection_cascade<t_Ty>::value || is_meta_type<t_Ty>::value)
             ? has_statechart_cascade<t_Ty>::value
                 ? default_installer_static_rtti_registration_and_statechart
                 : default_installer_static_rtti_registration
@@ -2617,8 +2622,21 @@ struct default_serializer : public default_serializer_helper<t_Ty,
     o_rebind(default_serializer)
 };
 
-
-
+template<typename t_Ty>
+struct default_initializer : public default_initializer_helper<t_Ty,
+    (is_signal_t<t_Ty>::value 
+    OR boost::is_void<t_Ty>::value 
+    OR is_meta_type<t_Ty>::value 
+    OR boost::is_abstract<t_Ty>::value
+    OR NOT(has_reflection_cascade<t_Ty>::value))
+    ? detail::default_initializer_none
+    : boost::is_class<t_Ty>::value 
+    ? detail::default_initializer_member_function_and_instanciation_notification
+    : detail::default_initializer_instanciation_notification_only
+>
+{
+    o_rebind(default_initializer)
+};
 
 template <typename t_Ty>
 struct default_resetter : public default_resetter_helper<t_Ty,
@@ -2644,22 +2662,6 @@ struct default_resetter : public default_resetter_helper<t_Ty,
 
 {
     o_rebind(default_resetter)
-};
-
-template<typename t_Ty>
-struct default_initializer : public default_initializer_helper<t_Ty,
-    (is_signal_t<t_Ty>::value 
-    OR boost::is_void<t_Ty>::value 
-    OR is_meta_type<t_Ty>::value 
-    OR boost::is_abstract<t_Ty>::value
-    OR NOT(has_reflection_cascade<t_Ty>::value))
-        ? detail::default_initializer_none
-        : boost::is_class<t_Ty>::value 
-                ? detail::default_initializer_member_function_and_instanciation_notification
-                : detail::default_initializer_instanciation_notification_only
->
-{
-    o_rebind(default_initializer)
 };
 
 /**
@@ -2693,9 +2695,8 @@ struct allocator_inheritance_helper <t_Ty, false>
 ///< If we don't inherit from a super allocator, we use default one.
 };
 
-// the <name>_ versions are the ones which phantom will specialize automatically for customization
 template<typename t_Ty>
-struct allocator_ : public allocator_inheritance_helper<
+struct inherited_allocator : public allocator_inheritance_helper<
     t_Ty
     , super_class_count_of<t_Ty>::value != 0 AND ((meta_specifiers<t_Ty>::value & o_inherits_allocator) == o_inherits_allocator)
 >
@@ -2711,7 +2712,7 @@ struct allocator_ : public allocator_inheritance_helper<
 };
 
 template<>
-struct allocator_<void>
+struct default_allocator<void>
 {
 //#pragma message(o_PP_QUOTE(o_exception(unsupported_member_function_exception)))
     o_forceinline static void* allocate() { o_exception(unsupported_member_function_exception); return NULL;  }
@@ -2719,33 +2720,16 @@ struct allocator_<void>
     o_forceinline static void* allocate(size_t a_uiCount) { o_exception(unsupported_member_function_exception); return NULL; }
     o_forceinline static void deallocate(void* a_pInstance, size_t a_uiCount) { o_exception(unsupported_member_function_exception); }
 };
-template<typename t_Ty>
-struct constructor_ : public default_constructor<t_Ty>
-{
-};
-template<typename t_Ty>
-struct installer_ : public default_installer<t_Ty>
-{
-};
-template<typename t_Ty>
-struct serializer_ : public default_serializer<t_Ty>
-{
 
-};
 
-template<typename t_Ty>
-struct resetter_ : public default_resetter<t_Ty>
-{
-
-};
 
 template <>
-class serializer_<phantom::signal_t>
+class default_serializer<phantom::signal_t>
 {
 public:
     static void serialize(phantom::signal_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
+        o_exception(phantom::exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
     static void deserialize(phantom::signal_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
@@ -2815,7 +2799,7 @@ public:
 
 
 template <>
-class resetter_<phantom::signal_t>
+class default_resetter<phantom::signal_t>
 {
 public:
     o_forceinline static void remember(phantom::signal_t const* a_pInstance, byte*& a_pOutBuffer)
@@ -2838,261 +2822,105 @@ public:
 
 #if o_BUILT_IN_WCHAR_T
 template <>
-struct serializer_<wchar_t>
+struct default_serializer<wchar_t>
 {
     static void serialize(wchar_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::serialize((short*)a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serialize((short*)a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
     static void deserialize(wchar_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::deserialize((short*)a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserialize((short*)a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
     static void serialize(wchar_t const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::serialize((short*)a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serialize((short*)a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
     static void deserialize(wchar_t* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::deserialize((short*)a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserialize((short*)a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
     static void serialize(wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::serialize((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serialize((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
     static void deserialize(wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::deserialize((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserialize((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
     static void serialize(wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::serialize((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serialize((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
     static void deserialize(wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::deserialize((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserialize((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 
 
 
     static void serializeLayout(wchar_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::serializeLayout((short*)a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serializeLayout((short*)a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
     static void deserializeLayout(wchar_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::deserializeLayout((short*)a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserializeLayout((short*)a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
     static void serializeLayout(wchar_t const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::serializeLayout((short*)a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serializeLayout((short*)a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
     static void deserializeLayout(wchar_t* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::deserializeLayout((short*)a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserializeLayout((short*)a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
     static void serializeLayout(wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::serializeLayout((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serializeLayout((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
     static void deserializeLayout(wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::deserializeLayout((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserializeLayout((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
     static void serializeLayout(wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::serializeLayout((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serializeLayout((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
     static void deserializeLayout(wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serializer_<short>::deserializeLayout((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserializeLayout((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 
 };
 template <>
-class resetter_<wchar_t>
+class default_resetter<wchar_t>
 {
 public:
     o_forceinline static void remember(wchar_t const* a_pInstance, byte*& a_pOutBuffer)
     {
-        resetter_<short>::remember((short const*)a_pInstance, a_pOutBuffer);
+        default_resetter<short>::remember((short const*)a_pInstance, a_pOutBuffer);
     }
     o_forceinline static void reset(wchar_t* a_pInstance, byte const*& a_pInBuffer)
     {
-        resetter_<short>::reset((short*)a_pInstance, a_pInBuffer);
+        default_resetter<short>::reset((short*)a_pInstance, a_pInBuffer);
     }
     o_forceinline static void remember(wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
     {
-        resetter_<short>::remember((short const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
+        default_resetter<short>::remember((short const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
     }
     o_forceinline static void reset(wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
     {
-        resetter_<short>::reset((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
+        default_resetter<short>::reset((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
     }
 };
 #endif
 
-template<typename t_Ty>
-struct initializer_ : public default_initializer<t_Ty>
-{
-};
-
-// Interpolator
-
-template<typename t_Ty>
-struct default_interpolator;
-
-enum default_interpolator_id
-{
-    default_interpolator_arithmetic,
-    default_interpolator_compound,
-    default_interpolator_not_available,
-};
-
-template<typename t_Ty, default_interpolator_id t_id>
-struct default_interpolator_helper;
-
-template<typename t_Ty>
-struct default_interpolator_helper <t_Ty, default_interpolator_arithmetic>
-{
-    static void interpolate(t_Ty* a_src_start, t_Ty* a_src_end, real a_fPercent, t_Ty* a_dest, uint mode)
-    {
-        *a_dest = *a_src_start +
-            static_cast<t_Ty>(
-                static_cast<real>(
-                    *a_src_end - static_cast<real>(*a_src_start)
-                )*a_fPercent
-            );
-    }
-};
-
-template<typename t_Ty>
-struct default_interpolator_helper <t_Ty, default_interpolator_not_available>
-{
-    static void interpolate(t_Ty* a_src_start, t_Ty* a_src_end, real a_fPercent, t_Ty* a_dest, uint mode)
-    {
-        o_exception(unsupported_member_function_exception, __FUNCTION__);
-    }
-};
-
-template<typename t_Ty>
-struct default_interpolator_helper <t_Ty, default_interpolator_compound>
-{
-    static void interpolate(t_Ty* a_src_start, t_Ty* a_src_end, real a_fPercent, t_Ty* a_dest, uint mode)
-    {
-        o_unused(a_src_start);
-        o_unused(a_src_end);
-        o_unused(a_fPercent);
-        o_unused(a_dest);
-        o_unused(mode);
-        o_error(false, "not implemented");
-    }
-};
-
-template<typename t_Ty>
-struct default_interpolator : public default_interpolator_helper<t_Ty,
-    boost::is_arithmetic<t_Ty>::value AND NOT(boost::is_same<bool,t_Ty>::value)
-        ? detail::default_interpolator_arithmetic
-        : (boost::is_class<t_Ty>::value AND has_reflection_cascade<t_Ty>::value)
-            ? detail::default_interpolator_compound
-            : detail::default_interpolator_not_available
->
-{
-    o_rebind(default_interpolator)
-};
 
 
-
-template<typename t_Ty>
-struct interpolator_ : public default_interpolator<t_Ty>
-{
-};
-
-// Copier
-
-template<typename t_Ty>
-struct default_copier;
-
-enum default_copier_id
-{
-    default_copier_default,
-    default_copier_forbidden,
-};
-
-template<typename t_Ty, default_copier_id t_id>
-struct default_copier_helper;
-
-template<typename t_Ty>
-struct default_copier_helper <t_Ty, default_copier_default>
-{
-    static void copy(t_Ty* a_pDest, t_Ty const* a_pSrc)
-    {
-        *a_pDest = *a_pSrc;
-    }
-};
-
-template<typename t_Ty>
-struct default_copier_helper <t_Ty, default_copier_forbidden>
-{
-    static void copy(t_Ty* a_pDest, t_Ty const* a_pSrc)
-    {
-        o_exception(exception::unsupported_member_function_exception, "copy forbidden for the given type, remove an eventual 'o_no_copy' meta specifier to enable this member_function for your class");
-    }
-};
-
-template<typename t_Ty>
-struct default_copier : public default_copier_helper<t_Ty,
-    has_copy_disabled_cascade<t_Ty>::value
-        ? detail::default_copier_forbidden
-        : detail::default_copier_default
->
-{
-    o_rebind(default_copier)
-};
-
-
-
-template<typename t_Ty>
-struct copier_ : public default_copier<t_Ty>
-{
-};
-
-
-template<typename t_Ty>
-struct default_converter 
-{
-    // By default converter just copy
-    static void convert(reflection::Type* a_pDestType, void* a_pDestValue, const t_Ty* a_pSrcValue)
-    {
-        reflection::ReferenceType* pRefType = a_pDestType->asReferenceType();
-        if(pRefType)
-        {
-            pRefType->getReferencedType()->copy(a_pDestValue, a_pSrcValue); // for references, copy address to dest
-        }
-        // By default just copy
-        else copier<t_Ty>::copy((t_Ty*)a_pDestValue, a_pSrcValue);
-        
-    }
-    static bool isConvertibleTo(reflection::Type* a_pDestType)
-    {
-        if(a_pDestType->removeConst() == typeOf<t_Ty>()->removeConst()) return !has_copy_disabled<t_Ty>::value;
-        reflection::ReferenceType* pRefType = a_pDestType->asReferenceType();
-        if(pRefType AND pRefType->getReferencedType()->asReferenceType()) return false;
-        return pRefType AND isConvertibleTo(pRefType->getReferencedType()) AND !has_copy_disabled<t_Ty>::value;
-    }
-    static bool isImplicitlyConvertibleTo(reflection::Type* a_pDestType)
-    {
-        if(a_pDestType->removeConst() == typeOf<t_Ty>()->removeConst()) return !has_copy_disabled<t_Ty>::value;
-        reflection::ReferenceType* pRefType = a_pDestType->asReferenceType();
-        if(pRefType AND pRefType->getReferencedType()->asReferenceType()) return false;
-        return pRefType AND isImplicitlyConvertibleTo(pRefType->getReferencedType()) AND !has_copy_disabled<t_Ty>::value;
-    }
-};
-
-template<typename t_Ty>
-struct converter_ : public default_converter<t_Ty>
-{
-};
+#include "phantom/def_interpolator.inl"
+#include "phantom/def_copier.inl"
+#include "phantom/def_converter.inl"
 
 template<typename t_Ty>
 struct safe_constructor_ 
@@ -3100,160 +2928,9 @@ struct safe_constructor_
     static void safeConstruct(void* a_pInstance) { constructor<t_Ty>::construct((t_Ty*)a_pInstance); }
 };
 
-
-/* new / delete */
-
-struct o_export default_new_helper
-{
-    o_forceinline default_new_helper()
-    {
-
-    }
-    template<typename t_Ty>
-    o_forceinline t_Ty*    operator>>(t_Ty* instance)
-    {
-        return instance;
-    }
-};
-
-struct o_export new_helper
-{
-    o_forceinline new_helper()
-    {
-
-    }
-    template<typename t_Ty>
-    o_forceinline t_Ty*    operator>>(t_Ty* instance)
-    {
-        phantom::extension::installer<t_Ty>::install(instance);
-        phantom::extension::initializer<t_Ty>::initialize(instance);
-        return instance;
-    }
-
-};
-
-struct o_export new_n_helper
-{
-    o_forceinline new_n_helper(size_t n)
-        : count(n)
-    {
-
-    }
-    template<typename t_Ty>
-    o_forceinline t_Ty*    operator>>(t_Ty* instance)
-    {
-        t_Ty* pChunk = instance;
-        while(count--)
-        {
-            phantom::extension::constructor<t_Ty>::construct(pChunk);
-            phantom::extension::installer<t_Ty>::install(pChunk);
-            phantom::extension::initializer<t_Ty>::initialize(pChunk);
-            ++pChunk;
-        }
-        return instance;
-    }
-    size_t count;
-};
-
-template<typename t_Ty>
-struct default_delete_helper
-{
-    o_forceinline default_delete_helper(o_memory_stat_insert_parameters)
-    {
-#if o__bool__enable_allocation_statistics
-        this->a_strFILE = a_strFILE;
-        this->a_uiLINE = a_uiLINE;
-#endif
-    }
-    template <typename _Tyy>
-    o_forceinline void    operator>>(_Tyy* instance)
-    {
-        phantom::extension::constructor<t_Ty>::destroy(instance);
-        phantom::extension::allocator<t_Ty>::deallocate(static_cast<t_Ty*>(instance) o_memory_stat_append_parameters_use);
-    }
-#if o__bool__enable_allocation_statistics
-    const char* a_strFILE;
-    int  a_uiLINE;
-#endif
-
-};
-
-
-struct o_export dynamic_delete_helper
-{
-    o_forceinline dynamic_delete_helper(o_memory_stat_insert_parameters)
-    {
-#if o__bool__enable_allocation_statistics
-        this->a_strFILE = a_strFILE;
-        this->a_uiLINE = a_uiLINE;
-#endif
-    }
-    void    operator>>(void* instance);
-#if o__bool__enable_allocation_statistics
-    const char* a_strFILE;
-    int  a_uiLINE;
-#endif
-
-};
-
-template<typename t_Ty>
-struct delete_helper
-{
-    o_forceinline delete_helper(o_memory_stat_insert_parameters)
-    {
-#if o__bool__enable_allocation_statistics
-        this->a_strFILE = a_strFILE;
-        this->a_uiLINE = a_uiLINE;
-#endif
-    }
-    template <typename _Tyy>
-    o_forceinline void    operator>>(_Tyy* instance)
-    {
-        phantom::extension::initializer<t_Ty>::terminate(static_cast<t_Ty*>(instance));
-        phantom::extension::installer<t_Ty>::uninstall(static_cast<t_Ty*>(instance));
-        phantom::extension::constructor<t_Ty>::destroy(static_cast<t_Ty*>(instance));
-        phantom::extension::allocator<t_Ty>::deallocate(static_cast<t_Ty*>(instance) o_memory_stat_append_parameters_use);
-    }
-#if o__bool__enable_allocation_statistics
-    const char* a_strFILE;
-    int  a_uiLINE;
-#endif
-
-};
-
-template<typename t_Ty>
-struct delete_n_helper
-{
-public:
-    o_forceinline delete_n_helper(size_t n o_memory_stat_append_parameters)
-        : count(n)
-    {
-#if o__bool__enable_allocation_statistics
-        this->a_strFILE = a_strFILE;
-        this->a_uiLINE = a_uiLINE;
-#endif
-    }
-    template <typename _Tyy>
-    o_forceinline void    operator>>(_Tyy* instance)
-    {
-        t_Ty* pChunk = static_cast<t_Ty*>(instance);
-        size_t i = count;
-        while(i--)
-        {
-            phantom::extension::initializer<t_Ty>::terminate(pChunk);
-            phantom::extension::installer<t_Ty>::uninstall(pChunk);
-            phantom::extension::constructor<t_Ty>::destroy(pChunk);
-            ++pChunk;
-        }
-        phantom::extension::allocator<t_Ty>::deallocate(static_cast<t_Ty*>(instance), count o_memory_stat_append_parameters_use);
-    }
-#if o__bool__enable_allocation_statistics
-    const char* a_strFILE;
-    int  a_uiLINE;
-#endif
-    size_t count;
-
-};
+#include "phantom/def_new_delete.inl"
+    
+o_namespace_begin(phantom, extension, detail)
 
 template<typename t_Ty, uint t_superclasscount>
 struct rtti_data_registrer_helper_
@@ -3272,19 +2949,57 @@ struct rtti_data_registrer_helper_<t_Ty, 0>
     inline static void unregisterInfo(t_Ty* a_pThis);
 };
 
-o_global_code_Specialize__rtti_data_registrer_helper(1)
-o_global_code_Specialize__rtti_data_registrer_helper(2)
-o_global_code_Specialize__rtti_data_registrer_helper(3)
-o_global_code_Specialize__rtti_data_registrer_helper(4)
-o_global_code_Specialize__rtti_data_registrer_helper(5)
-o_global_code_Specialize__rtti_data_registrer_helper(6)
-o_global_code_Specialize__rtti_data_registrer_helper(7)
-o_global_code_Specialize__rtti_data_registrer_helper(8)
-o_global_code_Specialize__rtti_data_registrer_helper(9)
+#define o_rtti_data_registrer_helper_register_0() 
+#define o_rtti_data_registrer_helper_register_1()  o_rtti_data_registrer_helper_register_0() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(0), phantom::super_class_count_of<o_traits_t_Ty_super_class(0)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
+#define o_rtti_data_registrer_helper_register_2()  o_rtti_data_registrer_helper_register_1() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(1), phantom::super_class_count_of<o_traits_t_Ty_super_class(1)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
+#define o_rtti_data_registrer_helper_register_3()  o_rtti_data_registrer_helper_register_2() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(2), phantom::super_class_count_of<o_traits_t_Ty_super_class(2)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
+#define o_rtti_data_registrer_helper_register_4()  o_rtti_data_registrer_helper_register_3() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(3), phantom::super_class_count_of<o_traits_t_Ty_super_class(3)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
+#define o_rtti_data_registrer_helper_register_5()  o_rtti_data_registrer_helper_register_4() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(4), phantom::super_class_count_of<o_traits_t_Ty_super_class(4)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
+#define o_rtti_data_registrer_helper_register_6()  o_rtti_data_registrer_helper_register_5() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(5), phantom::super_class_count_of<o_traits_t_Ty_super_class(5)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
+#define o_rtti_data_registrer_helper_register_7()  o_rtti_data_registrer_helper_register_6() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(6), phantom::super_class_count_of<o_traits_t_Ty_super_class(6)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
+#define o_rtti_data_registrer_helper_register_8()  o_rtti_data_registrer_helper_register_7() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(7), phantom::super_class_count_of<o_traits_t_Ty_super_class(7)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
+#define o_rtti_data_registrer_helper_register_9()  o_rtti_data_registrer_helper_register_8() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(8), phantom::super_class_count_of<o_traits_t_Ty_super_class(8)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
+#define o_rtti_data_registrer_helper_register_10() o_rtti_data_registrer_helper_register_9() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(9), phantom::super_class_count_of<o_traits_t_Ty_super_class(9)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
+
+#define o_rtti_data_registrer_helper_unregister_0() 
+#define o_rtti_data_registrer_helper_unregister_1()  o_rtti_data_registrer_helper_unregister_0() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(0), phantom::super_class_count_of<o_traits_t_Ty_super_class(0)>::value>::unregisterInfo(a_pThis);
+#define o_rtti_data_registrer_helper_unregister_2()  o_rtti_data_registrer_helper_unregister_1() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(1), phantom::super_class_count_of<o_traits_t_Ty_super_class(1)>::value>::unregisterInfo(a_pThis);
+#define o_rtti_data_registrer_helper_unregister_3()  o_rtti_data_registrer_helper_unregister_2() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(2), phantom::super_class_count_of<o_traits_t_Ty_super_class(2)>::value>::unregisterInfo(a_pThis);
+#define o_rtti_data_registrer_helper_unregister_4()  o_rtti_data_registrer_helper_unregister_3() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(3), phantom::super_class_count_of<o_traits_t_Ty_super_class(3)>::value>::unregisterInfo(a_pThis);
+#define o_rtti_data_registrer_helper_unregister_5()  o_rtti_data_registrer_helper_unregister_4() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(4), phantom::super_class_count_of<o_traits_t_Ty_super_class(4)>::value>::unregisterInfo(a_pThis);
+#define o_rtti_data_registrer_helper_unregister_6()  o_rtti_data_registrer_helper_unregister_5() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(5), phantom::super_class_count_of<o_traits_t_Ty_super_class(5)>::value>::unregisterInfo(a_pThis);
+#define o_rtti_data_registrer_helper_unregister_7()  o_rtti_data_registrer_helper_unregister_6() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(6), phantom::super_class_count_of<o_traits_t_Ty_super_class(6)>::value>::unregisterInfo(a_pThis);
+#define o_rtti_data_registrer_helper_unregister_8()  o_rtti_data_registrer_helper_unregister_7() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(7), phantom::super_class_count_of<o_traits_t_Ty_super_class(7)>::value>::unregisterInfo(a_pThis);
+#define o_rtti_data_registrer_helper_unregister_9()  o_rtti_data_registrer_helper_unregister_8() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(8), phantom::super_class_count_of<o_traits_t_Ty_super_class(8)>::value>::unregisterInfo(a_pThis);
+#define o_rtti_data_registrer_helper_unregister_10() o_rtti_data_registrer_helper_unregister_9() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(9), phantom::super_class_count_of<o_traits_t_Ty_super_class(9)>::value>::unregisterInfo(a_pThis);
+
+#define o_specialize_rtti_data_registrer_helper(_super_class_count_of_) \
+    template<typename t_Ty>\
+struct rtti_data_registrer_helper_<t_Ty, _super_class_count_of_>\
+{\
+    template <typename, phantom::uint > friend struct rtti_data_registrer_helper_;\
+    template <typename > friend struct rtti_data_registrer;\
+    static void registerInfo(t_Ty* a_pThis, void* a_pBase, phantom::reflection::Class* a_pBaseClass, connection::slot_pool* a_csac, dynamic_delete_func_t a_dynamic_delete_func) \
+{\
+    o_rtti_data_registrer_helper_register_##_super_class_count_of_() \
+}\
+    static void unregisterInfo(t_Ty* a_pThis) \
+{\
+    o_rtti_data_registrer_helper_unregister_##_super_class_count_of_() \
+}\
+};
+
+o_specialize_rtti_data_registrer_helper(1)
+o_specialize_rtti_data_registrer_helper(2)
+o_specialize_rtti_data_registrer_helper(3)
+o_specialize_rtti_data_registrer_helper(4)
+o_specialize_rtti_data_registrer_helper(5)
+o_specialize_rtti_data_registrer_helper(6)
+o_specialize_rtti_data_registrer_helper(7)
+o_specialize_rtti_data_registrer_helper(8)
+o_specialize_rtti_data_registrer_helper(9)
 
 o_namespace_end(phantom, extension, detail)
-
-
 
 o_namespace_begin(phantom, extension)
 
@@ -3299,7 +3014,7 @@ o_namespace_begin(phantom, extension)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename t_Ty>
-struct allocator : public o_memory_stat_allocator(t_Ty, detail::allocator_<t_Ty>)
+struct allocator : public o_memory_stat_allocator(t_Ty, detail::inherited_allocator<t_Ty>)
 {
 };
 
@@ -3322,7 +3037,7 @@ struct allocator<void>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename t_Ty>
-struct constructor : public detail::constructor_<t_Ty>
+struct constructor : public detail::default_constructor<t_Ty>
 {
 };
 
@@ -3336,7 +3051,7 @@ struct constructor : public detail::constructor_<t_Ty>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename t_Ty>
-struct installer : public detail::installer_<t_Ty>
+struct installer : public detail::default_installer<t_Ty>
 {
 };
 
@@ -3350,7 +3065,7 @@ struct installer : public detail::installer_<t_Ty>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename t_Ty>
-struct serializer : public detail::serializer_<t_Ty>
+struct serializer : public detail::default_serializer<t_Ty>
 {
 };
 
@@ -3363,7 +3078,7 @@ struct serializer : public detail::serializer_<t_Ty>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename t_Ty>
-struct resetter : public detail::resetter_<t_Ty>
+struct resetter : public detail::default_resetter<t_Ty>
 {
 };
 
@@ -3377,7 +3092,7 @@ struct resetter : public detail::resetter_<t_Ty>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename t_Ty>
-struct initializer : public detail::initializer_<t_Ty>
+struct initializer : public detail::default_initializer<t_Ty>
 {
 };
 
@@ -3390,7 +3105,7 @@ struct initializer : public detail::initializer_<t_Ty>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename t_Ty>
-struct interpolator : public detail::interpolator_<t_Ty>
+struct interpolator : public detail::default_interpolator<t_Ty>
 {
 };
 
@@ -3403,7 +3118,7 @@ struct interpolator : public detail::interpolator_<t_Ty>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename t_Ty>
-struct copier : public detail::copier_<t_Ty>
+struct copier : public detail::default_copier<t_Ty>
 {
 };
 
@@ -3416,7 +3131,7 @@ struct copier : public detail::copier_<t_Ty>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename t_Ty>
-struct converter : public detail::converter_<t_Ty>
+struct converter : public detail::default_converter<t_Ty>
 {
 };
 
@@ -3486,41 +3201,6 @@ struct rtti_data_registrer
     }
 };
 
-
-/// Phantom strongly typed "new" / "delete" "operators" (note the quotes ... for more about that, just check the code bellow)
-
-#define o_new(...) \
-    phantom::extension::detail::new_helper() >> new (o_allocate(__VA_ARGS__)) __VA_ARGS__
-
-#define o_new_n(n, ...) \
-    phantom::extension::detail::new_n_helper(n) >> o_allocate_n(n, __VA_ARGS__)
-
-#define o_new_alloc_and_construct_part(...) \
-    new (o_allocate(__VA_ARGS__)) __VA_ARGS__
-
-#define o_new_install_and_initialize_part(instance) \
-    phantom::extension::detail::new_helper() >> instance
-
-#define o_default_new(...) \
-    phantom::extension::detail::default_new_helper() >> new (o_allocate(__VA_ARGS__)) __VA_ARGS__
-
-#define o_delete(...) \
-    phantom::extension::detail::delete_helper<__VA_ARGS__>(o_memory_stat_insert_arguments) >>
-
-#define o_delete_n(n, ...) \
-    phantom::extension::detail::delete_n_helper<__VA_ARGS__>(n o_memory_stat_append_arguments) >>
-
-#define o_default_delete(...) \
-    phantom::extension::detail::default_delete_helper<__VA_ARGS__>(o_memory_stat_insert_arguments) >>
-
-template<typename t_Ty>
-struct dynamic_deleter
-{
-    o_forceinline static void dynamicDelete(void* a_pBase o_memory_stat_append_parameters)
-    {
-        phantom::extension::detail::delete_helper<t_Ty>(o_memory_stat_insert_parameters_use) >> a_pBase;
-    }
-};
 
 #define o_begin_extension(_extension_, ...)\
     o_namespace_begin(phantom, extension, detail)\

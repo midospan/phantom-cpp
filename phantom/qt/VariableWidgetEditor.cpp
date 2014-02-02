@@ -1,7 +1,9 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
 #include "VariableWidgetEditor.h"
+#include "VariableWidgetEditor.hxx"
 #include "VariableManager.h"
+#include "phantom/std/string.h"
 /* *********************************************** */
 o_registerN((phantom, qt), VariableWidgetEditor);
 

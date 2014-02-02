@@ -33,13 +33,11 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "SubValueMember.h"
+#include <phantom/reflection/SubValueMember.h>
+#include <phantom/reflection/SubValueMember.hxx>
 /* *********************************************** */
-o_cpp_begin 
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_registerN((phantom, reflection), SubValueMember);
+o_namespace_begin(phantom, reflection) 
 
 SubValueMember::SubValueMember( const string& a_strName, Range* a_pRange, Type* a_pContentType , ValueMember* a_pParentValueMember , uint a_uiSubOffset , bitfield a_Modifiers /*= 0*/ ) 
 : ValueMember(a_strName, a_pRange, a_Modifiers)
@@ -65,4 +63,4 @@ void SubValueMember::setValue( void* a_pObject, void const* src ) const
     m_pParentValueMember->setValue(a_pObject, intermediate_buffer);
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

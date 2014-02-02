@@ -35,10 +35,10 @@
 #include "phantom/phantom.h"
 /* ** The Class Header must be the last #include * */
 #include "Comparator.h"
+#include "Comparator.hxx"
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom), Comparator);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom) 
 
-o_cpp_end
+o_namespace_end(phantom)

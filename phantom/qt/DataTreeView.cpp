@@ -1,8 +1,9 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
+#include "DataTreeView.h"
+#include "DataTreeView.hxx"
 #include "phantom/serialization/Node.h"
 #include "phantom/util/Message.h"
-#include "DataTreeView.h"
 #include <QHeaderView>
 #include <QDragEnterEvent>
 #include <QDragLeaveEvent>
@@ -25,8 +26,8 @@ class DataTreeViewPrivate : public QTreeWidgetPrivate
 
 
 
-class DataTreeViewItemAdder : public phantom::util::TVisitor<phantom::serialization::Node>
-    , public phantom::util::TVisitor<phantom::data>
+class DataTreeViewItemAdder : public phantom::TVisitor<phantom::serialization::Node>
+    , public phantom::TVisitor<phantom::data>
 {
 public:
     DataTreeViewItemAdder(DataTreeView* a_pDataTreeView)
@@ -43,7 +44,7 @@ protected:
 
 
 
-class DataTreeViewNodeDisconnector : public phantom::util::TVisitor<phantom::serialization::Node>
+class DataTreeViewNodeDisconnector : public phantom::TVisitor<phantom::serialization::Node>
 {
 public:
     DataTreeViewNodeDisconnector(DataTreeView* a_pDataTreeView)

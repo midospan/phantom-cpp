@@ -33,12 +33,13 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
+#include <phantom/serialization/PackageDataStateBase.h>
+#include <phantom/serialization/PackageDataStateBase.hxx>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <phantom/serialization/PackageNode.h>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <phantom/serialization/PackageDataStateBase.h>
 /* *********************************************** */
 o_registerN((phantom, serialization), PackageDataStateBase);
 

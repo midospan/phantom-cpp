@@ -38,6 +38,7 @@
 /* ****************** Includes ******************* */
 #include "phantom/serialization/DataStateBase.h"
 /* **************** Declarations ***************** */
+o_declareN(class, (phantom, serialization), PackageDataStateBase);
 namespace boost { namespace filesystem { class path; } }
 /* *********************************************** */
 
@@ -61,14 +62,5 @@ protected:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classNS((phantom, serialization), PackageDataStateBase, (DataStateBase))
-{
-    o_reflection
-	{
-
-	};
-};
-o_exposeN((phantom, serialization), PackageDataStateBase);
 
 #endif //serialization_PackageDataStateBase_h__

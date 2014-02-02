@@ -1,7 +1,13 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
 #include "VariableManager.h"
+#include "VariableManager.hxx"
 #include "phantom/qt/VariableEditor.h"
+#include "phantom/std/string.h"
+#include "phantom/reflection/ValueMemberBinding.hxx"
+#include "phantom/reflection/SetContainerClass.hxx"
+#include "phantom/reflection/SequentialContainerClass.hxx"
+#include "phantom/reflection/MapContainerClass.hxx"
 /* *********************************************** */
 o_registerN((phantom, qt), VariableManager);
 
@@ -123,15 +129,20 @@ QString VariableManager::getValueText( const QtProperty *property ) const
             }
         }
 
+        // Construct a temporary buffer to receive the value (don't install rtti to improve performance)
+        
         void* pBufferCurrent = pVariable->getValueType()->removeReference()->removeConst()->allocate();
-        pVariable->getValueType()->removeReference()->removeConst()->safeSetup(pBufferCurrent);
+        pVariable->getValueType()->removeReference()->removeConst()->safeConstruct(pBufferCurrent);
+        pVariable->getValueType()->removeReference()->removeConst()->initialize(pBufferCurrent);
         pVariable->getValue(pBufferCurrent);
 
         string result;
 
         type->valueToString(result, pBufferCurrent);
 
-        pVariable->getValueType()->removeReference()->removeConst()->deleteInstance(pBufferCurrent);
+        pVariable->getValueType()->removeReference()->removeConst()->terminate(pBufferCurrent);
+        pVariable->getValueType()->removeReference()->removeConst()->destroy(pBufferCurrent);
+        pVariable->getValueType()->removeReference()->removeConst()->deallocate(pBufferCurrent);
 
         return result.c_str();
     }
@@ -383,14 +394,14 @@ QtProperty* VariableManager::createVariableProperty( BufferedVariable* a_pVariab
         property->setModified(!a_pVariable->getValueType()->areValueEqual(pBufferCurrent, pBufferDefault));
     }
     bindVariable(property, a_pVariable);
-    reflection::ClassType* pClassType = as<reflection::ClassType*>(a_pVariable->getValueType()->removeReference()->removeConst());
+    reflection::ClassType* pClassType = a_pVariable->getValueType()->removeReference()->removeConst()->asClassType();
     if(pClassType)
     {
         reflection::Class* pClass = pClassType->asClass();
         addClassSubProperties(property, a_pVariable->getAddresses(), pClassType, a_pVariable);
         if(pClass 
             AND pClass->getSuperClassCount() 
-            AND (as<reflection::ContainerClass*>(pClassType) == NULL))
+            AND (pClassType->asContainerClass() == NULL))
         {
             for(size_t i = 0; i<pClass->getSuperClassCount(); ++i)
             {
@@ -406,7 +417,7 @@ QtProperty* VariableManager::createVariableProperty( BufferedVariable* a_pVariab
     }
     else 
     {
-        reflection::ArrayType* pArrayType = as<reflection::ArrayType*>(a_pVariable->getValueType()->removeReference()->removeConst());
+        reflection::ArrayType* pArrayType = a_pVariable->getValueType()->removeReference()->removeConst()->asArrayType();
         if(pArrayType)
         {
             addArrayElementProperties(property, a_pVariable->getAddresses(), pArrayType, a_pVariable);
@@ -500,8 +511,8 @@ void VariableManager::addClassSubProperties( QtProperty* property, const vector<
     }
 
 
-    reflection::ContainerClass* pContainerClass = as<reflection::ContainerClass*>(a_pClassType);
-    if(pContainerClass AND NOT(pContainerClass->isKindOf(typeOf<string>())))
+    reflection::ContainerClass* pContainerClass = a_pClassType->asContainerClass();
+    if(pContainerClass AND NOT(pContainerClass->isKindOf(phantom::reflection::Types::get<string>())))
     {
         BufferedVariable* pContainerVariable = getVariable(property);
         if(pContainerVariable == NULL) return;
@@ -584,9 +595,8 @@ BufferedVariable* VariableManager::getVariable( QtProperty* property ) const
     return (found == m_Variables.end()) ? NULL : found.value();
 }
 
-
-
-BufferedVariable::BufferedVariable( const vector<reflection::Variable*>& a_Variables, BufferedVariable* a_pParentVariable ) : reflection::Variable(a_Variables[0]->getName(), a_Variables[0]->getRange(), a_Variables[0]->getModifiers())
+BufferedVariable::BufferedVariable( const vector<reflection::Variable*>& a_Variables, BufferedVariable* a_pParentVariable ) 
+    : reflection::Variable(a_Variables[0]->getName(), a_Variables[0]->getRange() ? a_Variables[0]->getRange()->clone() : nullptr, a_Variables[0]->getModifiers())
     , m_pCommonType(a_Variables[0]->getValueType()->removeReference()->removeConst())
     , m_pParentVariable(nullptr)
     , m_pChildVariables(nullptr)
@@ -599,8 +609,17 @@ BufferedVariable::BufferedVariable( const vector<reflection::Variable*>& a_Varia
     for(auto it = m_Variables.begin(); it != m_Variables.end(); ++it)
     {
         void* pAddress = (*it)->getAddress();
-        m_Addresses.push_back( pAddress ? pAddress : m_pCommonType->removeReference()->removeConst()->newInstance());       
         m_Buffered.push_back(pAddress == nullptr);
+        if(pAddress == nullptr)
+        {
+            auto pType = m_pCommonType->removeReference()->removeConst();
+            pAddress = pType->allocate();
+            pType->safeConstruct(pAddress);
+            // skip install (rtti)
+            pType->initialize(pAddress);
+        }
+        m_Addresses.push_back( pAddress );       
+        
     }
     update();
 }
@@ -614,7 +633,11 @@ BufferedVariable::~BufferedVariable()
     for(size_t i = 0; i<m_Addresses.size(); ++i)
     {
         if(m_Buffered[i])
-            m_pCommonType->deleteInstance(m_Addresses[i]);
+        {
+            m_pCommonType->terminate(m_Addresses[i]);
+            m_pCommonType->destroy(m_Addresses[i]);
+            m_pCommonType->deallocate(m_Addresses[i]);
+        }
     }
 }
 
@@ -757,6 +780,11 @@ void BufferedVariable::removeChildVariable( BufferedVariable* a_pBufferedVariabl
         delete m_pChildVariables;
         m_pChildVariables = nullptr; 
     }
+}
+
+phantom::reflection::Type* DataBaseAttributeVariable::getValueType() const
+{
+    return phantom::typeOf<string>();
 }
 
 }}

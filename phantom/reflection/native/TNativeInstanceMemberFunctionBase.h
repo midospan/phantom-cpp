@@ -60,12 +60,12 @@ public:
 o_namespace_end(phantom, reflection, native)
 
 
-    o_traits_specialize_all_super_traitNTTS(
+    /*o_traits_specialize_all_super_traitNTS(
     (phantom,reflection,native)
     , (typename)
     , (t_Ty)
     , TNativeInstanceMemberFunctionBase
     , (InstanceMemberFunction)
-    )
+    )*/
 
 #endif // reflection_native_TNativeInstanceMemberFunctionBase_h__

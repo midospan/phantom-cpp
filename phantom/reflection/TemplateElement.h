@@ -36,21 +36,15 @@
 
 
 /* ****************** Includes ******************* */
-
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "TemplateElement.classdef.h"
+#include "LanguageElement.h"
 /* ************* Class Declarations ************** */
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export TemplateElement : public LanguageElement
 {
     friend class TemplateSpecialization;
-
-    reflection_______________________________________________________________________
-    _______________________________________________________________________reflection
 
 public:
     TemplateElement();
@@ -62,9 +56,8 @@ public:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_TemplateElement_h__
-#include "TemplateElement.classdef.h"
+
 #endif

@@ -4,19 +4,16 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "SetContainerClass.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
-class SetContainerClass : public ContainerClass
+class o_export SetContainerClass : public ContainerClass
 {
-    reflection_____________________________________________________________________
-    _____________________________________________________________________reflection
+    o_declare_meta_type(SetContainerClass);
 
 public:
     SetContainerClass(Type* a_pValueType, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
@@ -34,8 +31,7 @@ public:
 protected:
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
-#else
-#include "SetContainerClass.classdef.h"
+
 #endif

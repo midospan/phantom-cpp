@@ -39,7 +39,8 @@
 /* ****************** Includes ******************* */
 #include "phantom/serialization/Node.h"
 /* **************** Declarations ***************** */
-o_declare(class, phantom, serialization, FileTreeDataBase)
+o_fwd(class, phantom, serialization, FileTreeDataBase)
+o_declareN(class, (phantom, serialization), FileTreeNode)
 /* *********************************************** */
 o_namespace_begin(phantom, serialization)
 
@@ -57,11 +58,5 @@ protected:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classNS((phantom, serialization), FileTreeNode, (Node))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, serialization), FileTreeNode);
 
 #endif // serialization_TFileTreeNode_h__

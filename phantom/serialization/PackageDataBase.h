@@ -37,10 +37,8 @@
 
 /* ****************** Includes ******************* */
 #include "DataBase.h"
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "phantom/def_export.h"
 /* **************** Declarations ***************** */
+o_declareN(class, (phantom, serialization), PackageDataBase);
 namespace boost { namespace filesystem { class path; } }
 /* *********************************************** */
 
@@ -92,14 +90,5 @@ protected:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classNS((phantom, serialization), PackageDataBase, (DataBase))
-{
-    o_reflection
-	{
-
-	};
-};
-o_exposeN((phantom, serialization), PackageDataBase);
 
 #endif //serialization_PackageDataBase_h__

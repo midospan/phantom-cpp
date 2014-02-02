@@ -38,22 +38,17 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/ClassType.h>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "PODUnion.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, DataMember)
-o_declare(class, phantom, reflection, Constructor)
+
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export PODUnion : public ClassType
 {
-public:
+    o_declare_meta_type(PODUnion);
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 public:
 
     PODUnion(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
@@ -70,9 +65,8 @@ public:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_PODUnion_h__
-#include "PODUnion.classdef.h"
+
 #endif

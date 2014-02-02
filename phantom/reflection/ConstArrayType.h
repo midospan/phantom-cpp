@@ -38,20 +38,15 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "ConstArrayType.classdef.h"
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, reflection), ConstArrayType);
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export ConstArrayType : public ArrayType
 {
-public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+    o_declare_meta_type(ConstArrayType);
 
 public:
     friend class Type;
@@ -68,9 +63,8 @@ public:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // ConstArrayType_h__
-#include "ConstArrayType.classdef.h"
+
 #endif

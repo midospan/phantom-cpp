@@ -34,11 +34,10 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include "Module.h"
+#include "Module.hxx"
 /* *********************************************** */
-o_cpp_begin 
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom) 
 
 struct ModuleLanguageElementSorter
 {
@@ -80,6 +79,7 @@ Module::~Module()
     vector<reflection::Class*> remaining_classes;
     auto languageElements = m_LanguageElements;
     std::sort(m_LanguageElements.begin(), m_LanguageElements.end(), ModuleLanguageElementSorter());
+
     while(!m_LanguageElements.empty())
     {
         auto it = m_LanguageElements.begin();
@@ -93,7 +93,7 @@ Module::~Module()
         {
             reflection::LanguageElement* pElement = *it;
             pElement->terminate();
-            o_dynamic_delete pElement;
+            pElement->deleteNow();
         }
         else
         {
@@ -171,4 +171,5 @@ bool Module::canBeUnloaded() const
     return true;
 }
 
-o_cpp_end
+
+o_namespace_end(phantom)

@@ -38,20 +38,14 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "ValueMemberBinding.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, Type)
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export ValueMemberBinding : public Variable
 {
-    reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________reflection
-    
 public:
     ValueMemberBinding()
         : m_pObject(NULL)
@@ -89,9 +83,8 @@ protected:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_ValueMemberBinding_h__ 
-#include "ValueMemberBinding.classdef.h"
+
 #endif

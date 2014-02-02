@@ -3,9 +3,9 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/def_jit.h>
+#include <phantom/jit.h>
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, state, jit), JitTrack);
 /* *********************************************** */
 
 o_namespace_begin(phantom, state, jit)
@@ -77,14 +77,5 @@ inline void JitTrack::leave(jit_state_machine_data* smdataptr)
 
 
 o_namespace_end(phantom, state, jit)
-
-o_classNS((phantom, state, jit), JitTrack, (Track))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, state, jit), JitTrack);
 
 #endif

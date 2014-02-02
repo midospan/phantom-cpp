@@ -118,7 +118,7 @@ __attribute__ ((visibility("default"))) or whatever you like. It defaults
 to extern unless NEDMALLOC_DLL_EXPORTS is set as it would be when building
 nedmalloc.dll.
  */
-#ifdef _PHANTOM_KERNEL
+#ifdef PHANTOM_DLL
 #    define NEDMALLOC_DLL_EXPORTS
 #endif
 

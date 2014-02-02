@@ -39,11 +39,8 @@
 /* ****************** Includes ******************* */
 #include <phantom/reflection/MemberFunction.h>
 /* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "InstanceMemberFunction.classdef.h"
-/* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export InstanceMemberFunction : public Subroutine, public MemberFunction
 {
@@ -56,9 +53,7 @@ public:
         e_OverloadRelation_Contravariant,
         e_OverloadRelation_Forbidden,
     };
-
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+    static Class* const metaType;
 
 public:
 
@@ -102,9 +97,8 @@ protected:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_InstanceMemberFunction_h__
-#include "InstanceMemberFunction.classdef.h"
+
 #endif

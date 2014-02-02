@@ -71,12 +71,12 @@ o_namespace_begin(phantom, memory)
 
 #if o__bool__enable_allocation_statistics
 
-Statistics::counter_type    Statistics::m_AllocationCount  = 0;
-Statistics::counter_type    Statistics::m_TotalAllocationCount  = 0;
-Statistics::counter_type    Statistics::m_AllocatedByteCount  = 0;
-Statistics::counter_type    Statistics::m_TotalAllocatedByteCount = 0;
-std::map<void*, Statistics::allocation_info> Statistics::m_Allocations;
-bool                        Statistics::m_Locked = false;
+Statistics::counter_type    Statistics::m_AllocationCount;
+Statistics::counter_type    Statistics::m_TotalAllocationCount  ;
+Statistics::counter_type    Statistics::m_AllocatedByteCount ;
+Statistics::counter_type    Statistics::m_TotalAllocatedByteCount ;
+std::map<void*, Statistics::allocation_info>* Statistics::m_Allocations;
+bool                        Statistics::m_Locked ;
 
 void phantom::memory::Statistics::Trace(std::ostream& output)
 {
@@ -87,7 +87,7 @@ void phantom::memory::Statistics::Trace(std::ostream& output)
     output<<phantom::console::fg_blue<<"[Remaining non-deallocated size] : "<<m_AllocatedByteCount<<std::endl;
     output<<phantom::console::fg_gray<<std::endl;
 
-    for(auto it = m_Allocations.begin(); it != m_Allocations.end(); ++it)
+    for(auto it = m_Allocations->begin(); it != m_Allocations->end(); ++it)
     {
         output<<phantom::console::fg_red<<"+ allocation";
         if(it->second.dynamic_init)

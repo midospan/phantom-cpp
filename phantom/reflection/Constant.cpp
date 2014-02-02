@@ -33,14 +33,15 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/Constant.h>
+#include <phantom/reflection/Constant.hxx>
 /* *********************************************** */
+o_registerN((phantom, reflection), Constant);
 
 
-o_cpp_begin 
+o_namespace_begin(phantom, reflection) 
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+Class* const Constant::metaType = o_type_of(phantom::reflection::Constant);
 
-o_cpp_end
+
+o_namespace_end(phantom, reflection)

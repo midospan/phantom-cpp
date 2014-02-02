@@ -33,15 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "Subroutine.h"
+#include <phantom/reflection/Subroutine.h>
+#include <phantom/reflection/Subroutine.hxx>
+o_registerN((phantom, reflection), Subroutine);
+#include "Block.h"
 /* *********************************************** */
 
 
-o_cpp_begin 
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
 
 Subroutine::Subroutine( const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers /*= 0*/ ) 
     : LanguageElement(a_strName, a_Modifiers)
@@ -64,7 +63,7 @@ void Subroutine::terminate()
     {
         Signature* pSignature = m_pSignature;
         pSignature->terminate();
-        o_dynamic_delete pSignature;
+        pSignature->deleteNow();
     }
     if(m_pInstructions)
     {
@@ -208,4 +207,4 @@ bool MemoryLocation::containsMemoryAddress( const byte* a_pAddress ) const
 }
 
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

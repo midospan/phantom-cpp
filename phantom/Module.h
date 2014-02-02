@@ -35,21 +35,14 @@
 #define o_phantom_reflection_Module_h__
 
 /* ****************** Includes ******************* */
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Module.classdef.h"
+#include <phantom/phantom.h>
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, LanguageElement);
+o_declareN(class, (phantom), Module)
 /* *********************************************** */
-
-
-o_h_begin
-
+o_namespace_begin(phantom)
 
 class o_export Module
 {
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
     Module(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle);
@@ -83,9 +76,6 @@ protected:
 
 };
 
-o_h_end
+o_namespace_end(phantom)
 
-
-#else // o_phantom_reflection_Module_h__
-#include "Module.classdef.h"
 #endif

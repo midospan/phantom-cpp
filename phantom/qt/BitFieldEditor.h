@@ -7,7 +7,7 @@
 #include <QCheckBox>
 #include <QHBoxLayout>
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, qt), BitFieldEditor);
 /* *********************************************** */
 
 namespace phantom { namespace qt {
@@ -49,16 +49,5 @@ public:
 
 } // qt 
 } // phantom 
-
-
-o_classNS((phantom, qt), BitFieldEditor, (VariableWidgetEditor), o_no_copy)
-{
-	o_reflection
-	{
-		
-	};
-};
-o_exposeN((phantom, qt), BitFieldChecker);
-
 
 #endif // o_qt_BitFieldEditor_h__

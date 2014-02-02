@@ -81,11 +81,13 @@ public:
             }
             else
             {
-                s_Instance = o_new(self_type);
+                s_Instance = o_dynamic_proxy_new(phantom::state::StateMachine, phantom::state::StateMachine::metaType, self_type);
             }
         }
         return s_Instance;
     }    
+
+    virtual void deleteNow() { o_dynamic_proxy_delete(phantom::state::StateMachine, phantom::state::StateMachine::metaType, self_type) this; }
 
     static int        NextTrackIndex() 
     {
@@ -281,12 +283,12 @@ protected:
 
 o_namespace_end(phantom, state, native)
 
-    o_traits_specialize_all_super_traitNTTS(
+    /*o_traits_specialize_all_super_traitNTS(
     (phantom,state,native)
     , (typename)
     , (t_Ty)
     , TNativeStateMachine
     , (StateMachine)
-    )
+    )*/
 
 #endif

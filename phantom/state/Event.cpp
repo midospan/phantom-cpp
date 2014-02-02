@@ -33,13 +33,12 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/state/Event.h>
+#include <phantom/state/Event.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, state), Event);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, state) 
 
 Event::Event( const string& a_strName, uint id, bitfield a_Modifiers /*= 0*/ ) 
 : StateMachineElement(a_strName, a_Modifiers)
@@ -48,5 +47,5 @@ Event::Event( const string& a_strName, uint id, bitfield a_Modifiers /*= 0*/ )
 
 }
 
-o_cpp_end
+o_namespace_end(phantom, state)
 

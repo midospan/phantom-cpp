@@ -38,18 +38,14 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Constructor.classdef.h"
+
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Constructor : public Subroutine
 {
-public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+
 public:
 
     Constructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
@@ -63,10 +59,9 @@ public:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_Constructor_h__
-#include "Constructor.classdef.h"
+
 #endif
 

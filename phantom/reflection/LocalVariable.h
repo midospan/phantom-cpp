@@ -49,15 +49,5 @@ protected:
 };
 
 o_namespace_end(phantom, reflection)
-
-o_classNS((phantom, reflection), LocalVariable, (LanguageElement))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, reflection), LocalVariable);
-
-
+    
 #endif

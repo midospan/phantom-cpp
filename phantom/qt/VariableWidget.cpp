@@ -4,6 +4,7 @@
 #include "VariableWidgetEditor.h"
 #include "VariableAction.h"
 #include "VariableManager.h"
+#include "phantom/std/string.h"
 /* *********************************************** */
 namespace phantom { namespace qt {
 

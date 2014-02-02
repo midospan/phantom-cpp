@@ -36,9 +36,9 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/def_jit.h>
+#include <phantom/jit.h>
 /* ************* Class Declarations ************** */
-
+o_declareN(class, (phantom, reflection, jit), JitInstanceDataMember);
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection, jit)
@@ -70,14 +70,5 @@ protected:
 };
 
 o_namespace_end(phantom, reflection, jit)
-
-o_classNS((phantom, reflection, jit), JitInstanceDataMember, (InstanceDataMember))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, reflection, jit), JitInstanceDataMember);
-
-
-#else // o_phantom_reflection_jit_JitInstanceDataMember_h__
 
 #endif

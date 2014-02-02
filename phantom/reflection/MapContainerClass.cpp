@@ -1,12 +1,12 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "MapContainerClass.h"
+#include <phantom/reflection/MapContainerClass.h>
+#include <phantom/reflection/MapContainerClass.hxx>
 /* *********************************************** */
-o_registerN((phantom, reflection), MapValueIteratorVariable);
-o_cpp_begin
+o_registerN((phantom, reflection), MapContainerClass);
+//o_registerN((phantom, reflection), MapValueIteratorVariable);
+o_namespace_begin(phantom, reflection)
 
-    ReflectionCPP__________________________________________________________________________________
-    __________________________________________________________________________________ReflectionCPP
+o_define_meta_type(MapContainerClass);
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

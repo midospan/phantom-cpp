@@ -33,14 +33,12 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/state/StateMachineElement.h>
+#include <phantom/state/StateMachineElement.hxx>
 /* *********************************************** */
+o_registerN((phantom, state), StateMachineElement);
 
-o_cpp_begin 
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, state) 
 
 void StateMachineElement::setOwnerStateMachine( StateMachine* a_pStateMachine )
 {
@@ -48,4 +46,4 @@ void StateMachineElement::setOwnerStateMachine( StateMachine* a_pStateMachine )
 }
 
 
-o_cpp_end 
+o_namespace_end(phantom, state) 

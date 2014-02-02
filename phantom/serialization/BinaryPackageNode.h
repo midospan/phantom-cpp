@@ -38,8 +38,9 @@
 /* ****************** Includes ******************* */
 #include "phantom/serialization/PackageNode.h"
 /* **************** Declarations ***************** */
-o_declare(class, phantom, serialization, BinaryPackageDataBase)
-o_declare(class, phantom, serialization, BinaryPackageDataStateBase)
+o_fwd(class, phantom, serialization, BinaryPackageDataBase)
+o_fwd(class, phantom, serialization, BinaryPackageDataStateBase)
+o_declareN(class, (phantom, serialization), BinaryPackageNode)
 /* *********************************************** */
 
 o_namespace_begin(phantom, serialization)
@@ -89,14 +90,5 @@ protected:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classNS((phantom, serialization), BinaryPackageNode, (PackageNode))
-{
-    o_reflection
-	{
-
-	};
-};
-o_exposeN((phantom, serialization), BinaryPackageNode);
 
 #endif // serialization_BinaryPackageNode_h__

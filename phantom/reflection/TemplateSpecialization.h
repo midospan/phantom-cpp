@@ -38,14 +38,11 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "TemplateSpecialization.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, Type)
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export TemplateSpecialization : public LanguageElement
 {
@@ -53,22 +50,26 @@ class o_export TemplateSpecialization : public LanguageElement
     friend class LanguageElement;
 public:
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 public:
 
     TemplateSpecialization(Template* a_pTemplate);
     o_destructor ~TemplateSpecialization();
 
+    virtual void terminate();
+
     virtual TemplateSpecialization* asTemplateSpecialization() const { return (TemplateSpecialization*)this; }
 
-    uint                getElementCount() const { return m_Elements.size(); }
+    uint                getArgumentCount() const { return m_Arguments.size(); }
     Type*               getType(const string& a_strTypenameVariableName) const;
     ClassType*          getClassType() const { return m_pOwner ? m_pOwner->asClassType() : nullptr; }
-    TemplateElement*    getElement(const string& a_strTypenameVariableName) const;
+    TemplateElement*    getArgumentElement(const string& a_strTypenameVariableName) const;
+    size_t              getArgumentIndex(const string& a_strTemplateTypeName) const;
 
-    void                addElement(const string& a_strTemplateTypeName, TemplateElement* a_pElement);
-    void                removeElement(TemplateElement* a_pElement);
+    void                setArgument(const string& a_strTemplateTypeName, TemplateElement* a_pElement);
+    void                removeArgument(TemplateElement* a_pElement);
+
+    void                setDefaultArgument(const string& a_strParameterName, TemplateElement* a_pElement);
+    TemplateElement*    getDefaultArgument(const string& a_strParameterName) const;
 
     string              getQualifiedName() const;
 
@@ -85,16 +86,24 @@ protected:
     void                referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
-    typedef phantom::map<string, TemplateElement*>    template_element_map;
-    template_element_map        m_TemplateNameMap;
-    template_specialization     m_Elements;
+    typedef phantom::map<string, TemplateElement*>  template_element_map;
+    typedef phantom::map<string, size_t>            template_element_index_map;
+    struct Argument
+    {
+        Argument() : element(nullptr), defaultElement(nullptr) {}
+        Argument(const string& n, TemplateElement* e, TemplateElement* d = nullptr) : name(n), element(e), defaultElement(d) {}
+        string name;
+        TemplateElement* element;
+        TemplateElement* defaultElement;
+    };
+    vector<Argument>            m_Arguments;
+    size_t                      m_DefaultArgumentsCount;
     Template*                   m_pTemplate;
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_InstanciableClass_h__ 
-#include "TemplateSpecialization.classdef.h"
+
 #endif

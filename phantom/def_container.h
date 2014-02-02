@@ -553,4 +553,32 @@ void move_unique(t_ContainerTy& c, typename t_ContainerTy::value_type v, size_t 
 o_namespace_end(phantom, container)
 
 
+
+o_namespace_begin(phantom, container)
+
+template<typename t_Ty>
+struct is_vector<phantom::vector<t_Ty>>
+{
+    enum { value = true };
+};
+
+template<typename t_Ty>
+struct is_list<phantom::list<t_Ty>>
+{
+    enum { value = true };
+};
+
+template<typename t_Key, typename t_Value, typename t_Pred>
+struct is_map<phantom::map<t_Key,t_Value,t_Pred>>
+{
+    enum { value = true };
+};
+
+template<typename t_Kty, typename t_Ty, typename t_Hash, typename t_Pr, typename t_Alloc>
+struct is_map<phantom::unordered_map<t_Kty, t_Ty, t_Hash, t_Pr, t_Alloc>>
+{
+    enum { value = true };
+};
+
+o_namespace_end(phantom, container)
 #endif // o_phantom_container_h__

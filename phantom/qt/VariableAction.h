@@ -4,6 +4,12 @@
 /* ****************** Includes ******************* */
 #include <QtGui/QAction>
 /* **************** Declarations ***************** */
+o_declareN(class, (phantom, qt), VariableAction);
+o_declareN(class, (phantom, qt), ResetAction);
+o_declareN(class, (phantom, qt), EraseContainerIteratorAction);
+o_declareN(class, (phantom, qt), ContainerMoveDownAction);
+o_declareN(class, (phantom, qt), ContainerMoveUpAction);
+/* *********************************************** */
 
 namespace phantom { namespace qt {
 
@@ -81,57 +87,5 @@ public:
 };
 
 }}
-
-
-o_classN((phantom, qt), VariableAction, o_no_copy)
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt), VariableAction);
-
-
-
-
-o_classNS((phantom, qt), EraseContainerIteratorAction, (VariableAction), o_no_copy)
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt), EraseContainerIteratorAction);
-
-o_classNS((phantom, qt), ResetAction, (VariableAction), o_no_copy)
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt), ResetAction);
-
-o_classNS((phantom, qt), ContainerMoveDownAction, (VariableAction), o_no_copy)
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt), ContainerMoveDownAction);
-
-o_classNS((phantom, qt), ContainerMoveUpAction, (VariableAction), o_no_copy)
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt), ContainerMoveUpAction);
-
-
-
 
 #endif // o_qt_VariableAction_h__

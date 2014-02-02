@@ -35,8 +35,8 @@
 #include "phantom/phantom.h"
 #include <boost/property_tree_custom/xml_parser.hpp>
 #include <phantom/serialization/XmlFileTreeDataBase.h>
-/* ** The Class Header must be the last #include * */
 #include <phantom/serialization/XmlFileTreeNode.h>
+#include <phantom/serialization/XmlFileTreeNode.hxx>
 /* *********************************************** */
 o_registerN((phantom, serialization), XmlFileTreeNode);
 
@@ -325,7 +325,7 @@ void XmlFileTreeNode::cache()
             case DataBase::e_ActionOnMissingType_Exception:
                 {
                     string message = sub_tree.get<string>("typename");
-                    o_exception(phantom::exception::unknown_reflection_type_exception, message);
+                    o_exception(phantom::exception::unknown_reflection_type_exception, message.c_str());
                 }
             }
         }

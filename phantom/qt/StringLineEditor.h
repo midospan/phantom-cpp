@@ -6,6 +6,7 @@
 #include <phantom/qt/VariableWidgetEditor.h>
 /* **************** Declarations ***************** */
 class QWidget;
+o_declareN(class, (phantom, qt), StringLineEditor);
 /* *********************************************** */
 
 namespace phantom { namespace qt {
@@ -21,13 +22,5 @@ public:
 };
 
 }}
-
-o_classNS((phantom, qt), StringLineEditor, (VariableWidgetEditor))
-{
-    o_reflection
-    {
-    };
-};
-o_exposeN((phantom, qt), StringLineEditor);
 
 #endif // phantom_qt_StringLineEditor_h__

@@ -3,21 +3,15 @@
 
 
 /* ****************** Includes ******************* */
-
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "IteratorConstant.classdef.h"
+#include "phantom/util/Iterator.h"
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
-class o_export IteratorConstant : public Constant, public util::Iterator
+class o_export IteratorConstant : public Constant, public Iterator
 {
-    reflection_____________________________________________________________________
-    _____________________________________________________________________reflection
-
 public:
     IteratorConstant(void const* a_pContainer, ContainerClass* a_pContainerClass) 
         : m_pContainer(a_pContainer) 
@@ -42,8 +36,7 @@ protected:
     ContainerClass* m_pContainerClass;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
-#else
-#include "IteratorConstant.classdef.h"
+
 #endif // o_phantom_reflection_IteratorConstant_h__

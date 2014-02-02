@@ -9,6 +9,7 @@
 #include <QTreeWidget>
 #include <phantom/util/Message.h>
 /* **************** Declarations ***************** */
+o_declareN(class, (phantom, qt), MessageDisplay);
 /* *********************************************** */
 namespace phantom { 
 
@@ -62,16 +63,5 @@ protected:
 };
 
 }}
-
-
-o_classN((phantom, qt), MessageDisplay, o_no_copy)
-{
-    o_reflection
-    {
-        o_slot(void, addNodeItem, (Message*));
-        o_slot(void, removeNodeItem, (Message*));
-    };
-};
-o_exposeN((phantom, qt), MessageDisplay);
 
 #endif

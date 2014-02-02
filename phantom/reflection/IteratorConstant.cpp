@@ -1,16 +1,14 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "IteratorConstant.h"
+#include <phantom/reflection/IteratorConstant.h>
+#include <phantom/reflection/IteratorConstant.hxx>
 /* *********************************************** */
-o_cpp_begin
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_registerN((phantom, reflection), IteratorConstant);
+o_namespace_begin(phantom, reflection)
 
 boolean IteratorConstant::hasNext() const
 {
     return NOT(m_pContainerClass->isEndIterator(m_pContainer, const_cast<IteratorConstant*>(this)));
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

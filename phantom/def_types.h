@@ -37,7 +37,7 @@
 #include <phantom/def_export.h>
 
 
-o_begin_phantom_namespace()
+o_namespace_begin(phantom)
 
     enum { max_type_size = 1024 };
 
@@ -745,7 +745,7 @@ struct vtable_info
     size_t count;
 };
 
-o_end_phantom_namespace()
+o_namespace_end(phantom)
 
 
 //#if defined(o_USE_POOL_ALLOCATORS)
@@ -820,7 +820,21 @@ inline astring to_astring(const wstring& wstr)
 #endif
 }
 
+inline string to_string(const string& astr)
+{
+    return astr;
+}
+
+inline string to_string(const wstring& astr)
+{
+    assert(false);
+    return "";
+}
+
 o_namespace_end(phantom)
+
+#include <phantom/bitfield.h>
+#include <phantom/flags.h>
 
 //#endif // defined(o_USE_POOL_ALLOCATORS)
 

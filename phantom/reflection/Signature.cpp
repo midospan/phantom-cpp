@@ -36,18 +36,32 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 #include <sstream>
-/* ** The Class Header must be the last #include * */
 #include "phantom/reflection/Signature.h"
+#include "phantom/reflection/Signature.hxx"
 /* *********************************************** */
-o_cpp_begin 
+o_namespace_begin(phantom, reflection) 
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+Signature* Signature::Create( void )
+{
+    return o_new(Signature);
+}
+
+Signature* Signature::Create( const char* a_pText, phantom::reflection::TemplateSpecialization* a_pTemplateSpecialization, phantom::reflection::LanguageElement* a_pScope )
+{
+    return o_new(Signature)(a_pText, a_pTemplateSpecialization, a_pScope);
+}
 
 Signature::Signature( void ) : m_pReturnType(NULL)
 , m_uiArgumentStorageSize(0)
 {
 
+}
+
+Signature::Signature( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization /*= NULL*/, LanguageElement* a_pScope /*= (LanguageElement*)phantom::rootNamespace() */ )
+    : m_pReturnType(NULL)
+    , m_uiArgumentStorageSize(0)
+{
+    parse(a_strSignature, a_pTemplateSpecialization, a_pScope);
 }
 
 void Signature::parse( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization, LanguageElement* a_pScope /*= NULL*/)
@@ -64,21 +78,34 @@ void Signature::parse( const string& a_strSignature, TemplateSpecialization* a_p
             {
                 o_exception(exception::invalid_parsing_exception, "No return type specified in the signature string");
             }
-            if(m_pReturnType == NULL AND a_pTemplateSpecialization != NULL)
+            Type* pReturnType = m_pReturnType;
+            if(pReturnType == NULL AND a_pTemplateSpecialization != NULL)
             {
-                m_pReturnType = a_pTemplateSpecialization->getType(returnType);
+                pReturnType = a_pTemplateSpecialization->getType(returnType);
             }
-            if(m_pReturnType == NULL)
+            if(pReturnType == nullptr)
             {
-                m_pReturnType = phantom::typeByName(returnType, a_pScope);
+                pReturnType = phantom::typeByName(returnType, a_pScope);
             }
-            if(m_pReturnType == NULL) 
+            if(pReturnType == NULL) 
             {
-                o_exception(exception::unknown_reflection_type_exception, "Cannot resolve the given signature's return type reflection");
+                o_exception(exception::unknown_reflection_type_exception, returnType.c_str());
             }
-            if(NOT(ParseParameterTypeList(a_strSignature.substr(i), a_pTemplateSpecialization, m_ParametersTypes, a_pScope)))
+            else
             {
-                o_exception(exception::invalid_parsing_exception, "Signature parameter list parsing failure");
+                setReturnType(pReturnType);
+                vector<Type*> parameterTypes;
+                if(NOT(ParseParameterTypeList(a_strSignature.substr(i), a_pTemplateSpecialization, parameterTypes, a_pScope)))
+                {
+                    o_exception(exception::invalid_parsing_exception, a_strSignature.substr(i).c_str());
+                }
+                else 
+                {
+                    for(auto it = parameterTypes.begin(); it != parameterTypes.end(); ++it)
+                    {
+                        addParameterType(*it);
+                    }
+                }
             }
             return;
         }
@@ -301,4 +328,23 @@ string Signature::getDecoratedName() const
     return result;
 }
 
-o_cpp_end
+Signature* Signature::clone() const
+{
+    Signature* pSignature = o_new(Signature);
+    o_foreach(Type* pParameterType, m_ParametersTypes)
+    {
+        pSignature->addParameterType(pParameterType);
+    }
+    pSignature->setReturnType(m_pReturnType);
+    return pSignature;
+}
+
+bool Signature::equals( LanguageElement* a_pOther ) const
+{
+    if(NOT(phantom::is<Signature>(a_pOther))) return false;
+    Signature*    pOther = static_cast<Signature*>(a_pOther);
+    if(NOT(compareParameterList(pOther))) return false;
+    return m_pReturnType == pOther->m_pReturnType;
+}
+
+o_namespace_end(phantom, reflection)

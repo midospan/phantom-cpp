@@ -36,6 +36,9 @@
 /* ** The Class Header must be the last #include * */
 #include "GameEntity.h"
 /* *********************************************** */
+#if o__int__reflection_template_use_level != 3
+#include "GameEntity.hxx"
+#endif
 o_registerN((sc2), GameEntity)
 
 o_namespace_begin(sc2)

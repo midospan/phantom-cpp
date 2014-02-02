@@ -33,13 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/state/State.h>
+#include <phantom/state/State.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, state), State);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, state) 
+
+reflection::Class* const State::metaType = o_type_of(phantom::state::State);
 
 State::State( const string& a_strName , bitfield modifiers /*= 0*/) 
     : StateMachineElement(a_strName, modifiers)
@@ -111,13 +112,13 @@ Track* State::getTrack( const string& a_strName ) const
     return NULL;
 }
 
-boolean State::equals( Object* a_pObject ) const
+bool State::equals( reflection::LanguageElement* a_pOther ) const
 {
-    if(a_pObject == this) return true;
-    if(NOT(is<State>(a_pObject))) return false;
-    if(static_cast<State*>(a_pObject)->getName() != getName()) return false;
+    if(a_pOther == this) return true;
+    if(NOT(is<State>(a_pOther))) return false;
+    if(static_cast<State*>(a_pOther)->getName() != getName()) return false;
     reflection::Class* pThisOwner = getOwnerStateMachine()->getOwnerClass();
-    reflection::Class* pOtherOwner = static_cast<State*>(a_pObject)->getOwnerStateMachine()->getOwnerClass();
+    reflection::Class* pOtherOwner = static_cast<State*>(a_pOther)->getOwnerStateMachine()->getOwnerClass();
     reflection::Type::ERelation relation = pOtherOwner->getRelationWith(pThisOwner);
     return relation == reflection::Type::eRelation_Equal
         OR relation == reflection::Type::eRelation_Child
@@ -141,4 +142,4 @@ Track* State::getTrackCascade( const string& a_strName ) const
     return NULL;
 }
 
-o_cpp_end
+o_namespace_end(phantom, state)

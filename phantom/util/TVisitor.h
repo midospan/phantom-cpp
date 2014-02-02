@@ -4,14 +4,12 @@
 
 /* ****************** Includes ******************* */
 #include "phantom/phantom.h"
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "TVisitor.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom)
 
 template<typename t_Ty>
 class TVisitor
@@ -20,8 +18,7 @@ public:
     virtual void apply(t_Ty* a_pVisited) = 0;
 };
 
-o_h_end
+o_namespace_end(phantom)
 
-#else
-#include "TVisitor.classdef.h"
+
 #endif

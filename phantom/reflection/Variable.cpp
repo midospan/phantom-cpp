@@ -33,14 +33,31 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/Variable.h>
+#include <phantom/reflection/Variable.hxx>
 /* *********************************************** */
+o_registerN((phantom, reflection), Variable);
 
+o_namespace_begin(phantom, reflection) 
 
-o_cpp_begin 
+Variable::Variable() : m_pRange(nullptr)
+{
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+}
 
-o_cpp_end
+Variable::Variable( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) : Constant(a_strName, a_Modifiers)
+    , m_pRange(nullptr)
+{
+
+}
+
+Variable::Variable( const string& a_strName, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) : Constant(a_strName, a_Modifiers)
+    , m_pRange(a_pRange)
+{
+    if(m_pRange)
+    {
+        addElement(m_pRange);
+    }
+}
+
+o_namespace_end(phantom, reflection)

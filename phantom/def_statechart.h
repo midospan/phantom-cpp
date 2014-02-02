@@ -13,8 +13,14 @@
 #define o_statemachine_terminate() o_statemachine_data->terminate()
 #define o_statemachine_update() o_statemachine_data->update()
 #define o_statemachine_reset() o_statemachine_data->reset()
-#define o_statemachine_post_2(_class_, _event_) o_statemachine_data->postEvent(phantom::statechart<_class_,_class_>::_event_::Id())
-#define o_statemachine_post_3(_ptr_, _class_, _event_) (_ptr_)->o_statemachine_post_2(_class_,_event_)
+
+#if o__int__reflection_template_use_level == 3
+#define o_statemachine_post_2(_ptr_, _event_) (_ptr_)->o_statemachine_data->postEvent(phantom::statechart<boost::remove_const<boost::remove_pointer<boost::remove_const<decltype(_ptr_)>::type>::type>::type>::_event_::Id())
+#else
+#define o_statemachine_post_2(_ptr_, _event_) (_ptr_)->o_statemachine_data->postEvent(#_event_)
+#endif
+
+#define o_statemachine_post_1(_event_) o_statemachine_post_2(this, _event_)
 
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #define o_statemachine_post(...) o_PP_CAT(o_PP_CAT(o_statemachine_post_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
@@ -125,7 +131,7 @@ phantom::state::native::native_event_registrer<_name> RESERVED_##_name##_registr
     public:\
     typedef int PHANTOM_CODEGEN_smdataptr_marker; \
     const phantom::state::base_state_machine_data* PHANTOM_CODEGEN_m_smdataptr;\
-    protected:
+    private:
 
 #define o_TRACK o_track
 #define o_Track o_track
@@ -152,7 +158,7 @@ public: \
             if(s_Instance == NULL)\
             {\
                 phantom::state::State* pParentState = _parent::Instance();\
-                s_Instance = o_new(placeholder_type)(o_CS(#_name), phantom::detail::int_embedder<__VA_ARGS__>::value);\
+                s_Instance = o_dynamic_proxy_new(phantom::state::Track, phantom::state::Track::metaType, placeholder_type)(o_CS(#_name), phantom::detail::int_embedder<__VA_ARGS__>::value);\
                 pParentState->addTrack(s_Instance);\
             }\
         }\
@@ -181,7 +187,7 @@ public: \
             if(s_Instance == NULL)\
             {\
                 phantom::state::Track* pParentTrack = _parent::Instance();\
-                s_Instance = o_new(placeholder_type)(\
+                s_Instance = o_dynamic_proxy_new(phantom::state::State, phantom::state::State::metaType, placeholder_type)(\
                 o_CS(#_name)\
                 , &t_PHANTOM_RESERVED_statechart_objectclass::_name##_enter\
                 , &t_PHANTOM_RESERVED_statechart_objectclass::_name##_update\
@@ -348,6 +354,7 @@ public:
     o_forceinline void          update() const ;
     o_forceinline void          reset() const ;
     o_forceinline void          postEvent(uint a_uiEventId) const ;
+    o_forceinline void          postEvent(const string& a_strEventName) const ;
 
 public:
     base_state_machine_data(void* a_pOwner, StateMachine* a_pStateMachine) 

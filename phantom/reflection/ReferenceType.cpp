@@ -33,13 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "ReferenceType.h"
+#include <phantom/reflection/ReferenceType.h>
+#include <phantom/reflection/ReferenceType.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), ReferenceType);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
+
+o_define_meta_type(ReferenceType);
 
 ReferenceType::ReferenceType( Type* a_pType ) : Type(a_pType->getName()+'&'
 , sizeof(void*)
@@ -78,4 +79,4 @@ void ReferenceType::referencedElementRemoved( LanguageElement* a_pElement )
         m_pReferencedType = nullptr;
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

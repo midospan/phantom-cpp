@@ -2,6 +2,7 @@
 #include "phantom/phantom.h"
 #include "MessageTree.h"
 #include "Message.h"
+#include "Message.hxx"
 #include <stdarg.h>
 /* *********************************************** */
 o_registerN((phantom), Message);

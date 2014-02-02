@@ -7,6 +7,7 @@ o_classNT((phantom, math), (typename), (t_Ty), vector2)
 {
     o_reflection
     {
+        o_typedef(self_type);
         o_data_member(t_Ty, x, o_no_range, o_public);
         o_data_member(t_Ty, y, o_no_range, o_public);
 
@@ -92,6 +93,7 @@ o_classNT((phantom, math), (typename), (t_Ty), matrix2x2)
 {
     o_reflection
     {
+        o_typedef(vector2_type);
         o_data_member(t_Ty[4], a, o_no_range, o_public|o_union_alternative);
         o_data_member(t_Ty[2][2], m, o_no_range, o_public|o_union_alternative|o_transient);
         o_data_member(vector2_type, ex, o_no_range, o_public|o_transient);
@@ -106,6 +108,7 @@ o_classNT((phantom, math), (typename), (t_Ty), matrix3x3)
 {
     o_reflection
     {
+        o_typedef(vector3_type);
         o_data_member(t_Ty[9], a, o_no_range, o_public|o_union_alternative);
         o_data_member(t_Ty[3][3], m, o_no_range, o_public|o_union_alternative|o_transient);
         o_data_member(vector3_type, ex, o_no_range, o_public|o_transient);
@@ -123,6 +126,7 @@ o_classNT((phantom, math), (typename), (t_Ty), rotation2D)
 {
     o_reflection
     {
+        o_typedef(self_type);
         o_property(t_Ty, angle, setAngle, getAngle, o_no_signal, o_no_range, o_public);
         o_member_function(bool, operator==, (const self_type&), o_const);
         o_member_function(bool, operator!=, (const self_type&), o_const);
@@ -138,6 +142,11 @@ o_classNT((phantom, math), (typename), (t_Ty), transform2)
 {
     o_reflection
     {
+        o_typedef(self_type);
+        o_typedef(vector2_type);
+        o_typedef(rotation2D_type);
+        o_typedef(matrix2x2_type);
+        o_typedef(matrix3x3_type);
         o_data_member(vector2_type, position, o_no_range, o_public);
         o_data_member(rotation2D_type, orientation, o_no_range, o_public);
         o_data_member(vector2_type, scale, o_no_range, o_public);
@@ -162,6 +171,7 @@ o_classNT((phantom, math), (typename), (t_Ty), aabb2)
 {
     o_reflection
     {
+        o_typedef(vector2_type);
         o_data_member(vector2_type, lowerBound, o_no_range, o_public);
         o_data_member(vector2_type, upperBound, o_no_range, o_public);
     };

@@ -50,7 +50,7 @@
 #define o_try_disconnect(_emitter_, _signal_, _receiver_, _member_function_)\
     phantom::tryDisconnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_))
 
-o_begin_phantom_namespace()
+o_namespace_begin(phantom)
 
 namespace connection
 {
@@ -294,6 +294,6 @@ namespace connection
 
 
 
-o_end_phantom_namespace()
+o_namespace_end(phantom)
 
 #endif // connection_h__

@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
-#include "phantom/phantom.h"
+#include "phantom/jit.h"
 #include "JitTrack.h"
+#include "JitTrack.hxx"
 #include "JitState.h"
 #include "JitStateMachine.h"
 /* *********************************************** */

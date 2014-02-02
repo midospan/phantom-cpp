@@ -38,22 +38,16 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Union.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, DataMember)
-o_declare(class, phantom, reflection, Constructor)
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Union : public Class
 {
-public:
+    o_declare_meta_type(Union);
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 public:
 
     Union(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
@@ -68,9 +62,8 @@ public:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_Union_h__
-#include "Union.classdef.h"
+
 #endif

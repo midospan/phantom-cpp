@@ -6,20 +6,21 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/def_jit.h>
+#include <phantom/jit.h>
 #include <phantom/reflection/jit/JitAddressable.h>
 /* **************** Declarations ***************** */
+o_declareN(class, (phantom, reflection, jit), JitLocalVariable);
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection, jit)
 
 class o_jit_export JitLocalVariable : public LocalVariable, public JitAddressable
 {
-	
+
 public:
     JitLocalVariable(Block* a_pBlock, Type* a_pType, const string& a_strName, const CodeLocation& a_Location, bitfield modifiers = 0);
     JitLocalVariable(Block* a_pBlock, Type* a_pType, const string& a_strName, const CodeLocation& a_Location, jit_value value, bitfield modifiers = 0);
-	~JitLocalVariable(void) 	{}
+    ~JitLocalVariable(void) 	{}
 
     JitSubroutine*      getJitSubroutine() const;
     jit_value           getJitValue() const { return m_Value.value; }
@@ -42,15 +43,5 @@ protected:
 };
 
 o_namespace_end(phantom, reflection, jit)
-
-o_classNS((phantom, reflection, jit), JitLocalVariable, (LocalVariable, JitAddressable))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, reflection, jit), JitLocalVariable);
-
 
 #endif

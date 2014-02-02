@@ -6,11 +6,11 @@
 /* ****************** Includes ******************* */
 #include <phantom/variant.h>
 /* **************** Declarations ***************** */
-o_declare(class, phantom, MessageTree);
+o_declareN(class, (phantom), Message);
+o_fwd(class, phantom, MessageTree);
 /* *********************************************** */
 
 o_namespace_begin(phantom)
-
 
 /* ************************************************ *
  * \class Message
@@ -129,17 +129,5 @@ protected:
 };
 
 o_namespace_end(phantom)
-
-o_classN((phantom), Message)
-{
-    o_reflection
-    {
-        o_signal(opened, ());
-        o_signal(messageOpened, (Message*));
-        o_signal(childAdded, (Message*));
-        o_signal(childRemoved, (Message*));
-    };
-};
-o_exposeN((phantom), Message);
 
 #endif //o_phantom_Message_h__

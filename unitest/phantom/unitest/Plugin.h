@@ -37,7 +37,7 @@
 /* ****************** Includes ******************* */
 #include "phantom/phantom.h"
 /* **************** Declarations ***************** */
-o_declare(class, phantom, sc2, Plugin);
+o_declareN(class, (phantom, sc2), Plugin);
 /* *********************************************** */
 
 o_namespace_begin(unitest, plugin)

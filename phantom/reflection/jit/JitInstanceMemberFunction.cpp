@@ -1,7 +1,8 @@
 /* ******************* Includes ****************** */
-#include "phantom/phantom.h"
-#include "phantom/def_jit_internal.h"
+#include "phantom/jit.h"
 #include "JitInstanceMemberFunction.h"
+#include "JitInstanceMemberFunction.hxx"
+#include "phantom/def_jit_internal.h"
 #include "JitClass.h"
 #include "JitLocalVariable.h"
 /* *********************************************** */

@@ -33,20 +33,19 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/Class.h>
+#include <phantom/reflection/Class.hxx>
+o_registerN((phantom, reflection), Class);
+#include <phantom/variant.h>
 /* *********************************************** */
-o_cpp_begin 
+o_namespace_begin(phantom, reflection) 
 
+// Set by reflection::Types::Install because Class meta type is a recursive meta type, indeed it's its own meta type (meta meta type)
 
-ReflectionCPP__________________________________________________________________________________
-    
-__________________________________________________________________________________ReflectionCPP
-
+o_define_meta_type(Class);
 
 Class::Class(const string& a_strName, bitfield a_Modifiers)
 : ClassType(a_strName, a_Modifiers)
-, m_uiRegisteredInstances(0)
 , m_pStateMachine(NULL)
 , m_pSingleton(nullptr)
 {
@@ -54,7 +53,6 @@ Class::Class(const string& a_strName, bitfield a_Modifiers)
 
 Class::Class(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers)
 : ClassType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
-, m_uiRegisteredInstances(0)
 , m_pStateMachine(NULL)
 , m_pSingleton(nullptr)
 {
@@ -68,7 +66,7 @@ Class::~Class()
     {
         Class* pDerivedClass = m_DerivedClasses.back();
         pDerivedClass->ClassType::terminate();
-        o_dynamic_delete pDerivedClass;
+        pDerivedClass->deleteNow();
     }
     super_class_table::iterator it = m_SuperClasses.begin();
     super_class_table::iterator end = m_SuperClasses.end();
@@ -301,6 +299,7 @@ boolean Class::hasSuperClass( Class* a_pClass ) const
 void Class::addDerivedClass( Class* a_pType )
 {
     m_DerivedClasses.push_back(a_pType);
+    addReferencedElement(a_pType);
 }
 
 boolean Class::hasDerivedClass( Class* a_pClass ) const
@@ -1092,13 +1091,13 @@ void Class::destroyContent()
     // remove from super
     for(auto it = m_VirtualMemberFunctionTables.begin(); it!=m_VirtualMemberFunctionTables.end(); it++)
     {
-        o_dynamic_delete (*it);
+        (*it)->deleteNow();
     }
     m_VirtualMemberFunctionTables.clear();
 
     if(m_pStateMachine)
     {
-        o_dynamic_delete m_pStateMachine;
+        m_pStateMachine->deleteNow();
         m_pStateMachine = nullptr;
     }
 }
@@ -1209,8 +1208,47 @@ void Class::destroySingleton()
 
 bool Class::canBeDestroyed() const
 {
-    return ClassType::canBeDestroyed() && (m_uiRegisteredInstances == 0 || (this == classOf<Class>() && m_uiRegisteredInstances == 1));
+    return ClassType::canBeDestroyed() 
+        AND m_DerivedClasses.empty() 
+        AND (getInstanceCount() == 0 || (this == classOf<Class>() && getInstanceCount() == 1));
+}
+
+void Class::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    for(auto it = m_DerivedClasses.begin(); it != m_DerivedClasses.end(); ++it)
+    {
+        if(*it == a_pElement)
+        {
+            m_DerivedClasses.erase(it);
+            break;
+        }
+    }
+}
+
+void Class::registerInstance( void* a_pInstance )
+{
+    o_assert(std::find(m_Instances.begin(), m_Instances.end(), a_pInstance) == m_Instances.end())
+    m_Instances.push_back(a_pInstance);
+}
+
+void Class::unregisterInstance( void* a_pInstance )
+{
+    auto found = std::find(m_Instances.begin(), m_Instances.end(), a_pInstance);
+    o_assert(found != m_Instances.end());
+    m_Instances.erase(found);
+}
+
+size_t Class::getKindCount() const
+{
+    size_t count = m_Instances.size();
+    class_vector::const_iterator it = m_DerivedClasses.begin();
+    class_vector::const_iterator end = m_DerivedClasses.end();
+    for(;it!=end;++it)
+    {
+        count += (*it)->getKindCount();
+    }
+    return count;
 }
 
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

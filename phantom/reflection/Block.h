@@ -77,14 +77,4 @@ protected:
 
 o_namespace_end(phantom, reflection)
 
-o_classNS((phantom, reflection), Block, (LanguageElement))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, reflection), Block);
- 
-
 #endif

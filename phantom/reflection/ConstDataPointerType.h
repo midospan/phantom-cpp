@@ -38,20 +38,17 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "ConstDataPointerType.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export ConstDataPointerType : public DataPointerType
 {
-public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+
+    o_declare_meta_type(ConstDataPointerType);
 
 public:
     friend class Type;
@@ -68,9 +65,8 @@ public:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // ConstDataPointerType_h__
-#include "ConstDataPointerType.classdef.h"
+
 #endif

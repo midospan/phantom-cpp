@@ -36,9 +36,16 @@
 /* ** The Class Header must be the last #include * */
 #include "Unit.h"
 #include "Ability.h"
+#include "phantom/std/vector.hxx"
 /* *********************************************** */
+#if o__int__reflection_template_use_level != 3
+#include "Unit.hxx"
+#endif
+
 o_registerN((sc2), Unit)
-o_register(phantom::vector<sc2::Ability*>);
+o_registerNTI((phantom), vector, (sc2::Ability*));
+
+
 o_namespace_begin(sc2)
 
 

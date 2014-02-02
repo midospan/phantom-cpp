@@ -100,7 +100,7 @@ public:
 
     virtual void        deleteNow()
     {
-        o_delete(self_type) this;
+        o_proxy_delete(phantom::reflection::Collection, self_type) this;
     }
 
     virtual void        getElement(void const* a_pObject, size_t a_uiIndex, void* dest) const 
@@ -144,12 +144,12 @@ public:
 
 o_namespace_end(phantom, reflection, native)
 
-o_traits_specialize_all_super_traitNTTS(
+/*o_traits_specialize_all_super_traitNTS(
 (phantom,reflection,native)
 , (typename, typename)
 , (t_Ty, t_ContentType)
 , TNativeCollection
 , (Collection)
-)
+)*/
 
 #endif // TNativeCollection_h__

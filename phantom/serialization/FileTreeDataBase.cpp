@@ -36,8 +36,8 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <phantom/serialization/FileTreeNode.h>
-/* ** The Class Header must be the last #include * */
 #include <phantom/serialization/FileTreeDataBase.h>
+#include <phantom/serialization/FileTreeDataBase.hxx>
 #include <windows.h>
 #include <Lmcons.h>
 #include <stdio.h>

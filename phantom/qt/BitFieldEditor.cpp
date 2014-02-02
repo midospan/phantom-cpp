@@ -1,7 +1,8 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
-/* ** The Class Header must be the last #include * */
+#include "phantom/phantom.hxx"
 #include "BitFieldEditor.h"
+#include "BitFieldEditor.hxx"
 /* *********************************************** */
 o_registerN((phantom, qt), BitFieldEditor);
  

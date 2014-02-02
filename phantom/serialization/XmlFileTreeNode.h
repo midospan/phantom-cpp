@@ -39,8 +39,9 @@
 /* ****************** Includes ******************* */
 #include "phantom/serialization/FileTreeNode.h"
 /* **************** Declarations ***************** */
-o_declare(class, phantom, serialization, XmlFileTreeDataBase)
-o_declare(class, phantom, serialization, XmlFileTreeDataStateBase)
+o_declareN(class, (phantom, serialization), XmlFileTreeNode);
+o_fwd(class, phantom, serialization, XmlFileTreeDataBase);
+o_fwd(class, phantom, serialization, XmlFileTreeDataStateBase);
 /* *********************************************** */
 
 o_namespace_begin(phantom, serialization)
@@ -92,11 +93,5 @@ protected:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classNS((phantom, serialization), XmlFileTreeNode, (FileTreeNode))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, serialization), XmlFileTreeNode);
 
 #endif // serialization_XmlFileTreeNode_h__

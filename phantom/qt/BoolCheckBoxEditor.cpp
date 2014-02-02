@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
 #include "BoolCheckBoxEditor.h"
+#include "BoolCheckBoxEditor.hxx"
 #include <QPainter>
 /* *********************************************** */
 o_registerN((phantom, qt), BoolCheckBoxEditor);

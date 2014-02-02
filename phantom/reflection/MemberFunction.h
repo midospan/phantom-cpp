@@ -36,18 +36,14 @@
 
 
 /* ****************** Includes ******************* */
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "MemberFunction.classdef.h"
+
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export MemberFunction : public Member
 {
     
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
     virtual void    call( void* a_pCallerAddress, void** a_pParams) const = 0;
@@ -59,9 +55,8 @@ public:
     virtual Subroutine*             asSubroutine() const = 0;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_MemberFunction_h__
-#include "MemberFunction.classdef.h"
+
 #endif

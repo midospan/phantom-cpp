@@ -33,13 +33,13 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "ConstArrayType.h"
+#include <phantom/reflection/ConstArrayType.h>
+#include <phantom/reflection/ConstArrayType.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), ConstArrayType);
+o_namespace_begin(phantom, reflection) 
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_define_meta_type(ConstArrayType);
 
 Type* ConstArrayType::createConstType() const
 {
@@ -52,4 +52,4 @@ ConstArrayType::ConstArrayType( ArrayType* a_pArrayType )
 
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

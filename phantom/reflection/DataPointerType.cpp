@@ -33,13 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "DataPointerType.h"
+#include <phantom/reflection/DataPointerType.h>
+#include <phantom/reflection/DataPointerType.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), DataPointerType);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
+
+o_define_meta_type(DataPointerType);
 
 DataPointerType::DataPointerType( Type* a_pType ) 
 : PointerType(a_pType->getName()+'*'
@@ -172,7 +173,7 @@ void        DataPointerType::serialize(void const* a_pInstance, byte*& a_pOutBuf
             reflection::Class*  pClass = rttiData.object_class;
             o_assert(pClass, "The object is not stored in the data base and its type is unknown"
                 ", we cannot save it, ensure the pointer valueMember you are trying to serialize is transient or "
-                "that the internal types are either serializable class instances installed with phantom (o_classN.. + o_new)"
+                "that the internal types are either serializable class instances installed with phantom (o_classX + o_new)"
                 " either data stored in database ");
 
             *reinterpret_cast<uint*>(a_pOutBuffer) = pClass->getGuid(); // Save the class guid ; TODO : little/big endian managment
@@ -344,7 +345,7 @@ void        DataPointerType::serialize(void const* a_pChunk, size_t a_uiCount, s
                 reflection::Class*  pClass = rttiData.object_class;
                 o_assert(pClass, "The object is not stored in the data base and its type is unknown"
                     ", we cannot save it, ensure the pointer valueMember you are trying to serialize is transient or "
-                    "that the internal types are either serializable class instances installed with phantom (o_classN.. + o_new)"
+                    "that the internal types are either serializable class instances installed with phantom (o_classX + o_new)"
                     " either data stored in database ");
 
                 *reinterpret_cast<uint*>(a_pOutBuffer) = pClass->getGuid(); // Save the class guid ; TODO : little/big endian managment
@@ -534,4 +535,4 @@ void DataPointerType::referencedElementRemoved( LanguageElement* a_pElement )
         m_pPointedType = nullptr;
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

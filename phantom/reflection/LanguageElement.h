@@ -39,19 +39,16 @@
 
 /* ****************** Includes ******************* */
 #include "phantom/reflection/Location.h"
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "LanguageElement.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, Module);
 /* *********************************************** */
 
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class SourceFile;
 
-class o_export LanguageElement : public Object
+class o_export LanguageElement
 {
     friend class ClassType;
     friend class Class;
@@ -59,8 +56,6 @@ class o_export LanguageElement : public Object
     friend class Module;
     friend class TemplateSpecialization;
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
 
@@ -69,12 +64,14 @@ public:
         eNativeFlag_Shared = 0x00000004,
     };
 
-protected:
+public:
     LanguageElement();
+protected:
     LanguageElement(const string& a_strName, bitfield a_Modifiers = 0);
     LanguageElement(const string& a_strName, uint a_uiGuid, bitfield a_Modifiers = 0);
 
 public:
+    virtual void deleteNow();
     virtual void terminate();
     ~LanguageElement();
 
@@ -228,6 +225,8 @@ public:
 
     virtual void    checkCompleteness() const;
 
+    virtual bool    equals(LanguageElement* a_pOther) const { return this == a_pOther; }
+
 protected:
     void setGuid(uint a_uiGuid);
     
@@ -263,12 +262,8 @@ protected:
 
 };
 
-// Check if the trait 'has_virtual_destructor_cascade' works well
-BOOST_STATIC_ASSERT(has_virtual_destructor_cascade<LanguageElement>::value);
+o_namespace_end(phantom, reflection)
 
-o_h_end
+//#include "LanguageElement.hxx"
 
-
-#else // o_phantom_reflection_LanguageElement_h__
-#include "LanguageElement.classdef.h"
 #endif

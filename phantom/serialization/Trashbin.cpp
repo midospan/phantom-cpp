@@ -33,8 +33,8 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include "Trashbin.h"
+#include "Trashbin.hxx"
 /* *********************************************** */
 o_registerN((phantom, serialization), Trashbin);
 

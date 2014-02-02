@@ -39,23 +39,19 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "SourceFile.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 namespace phantom { class Phantom; }
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
-class o_export SourceFile : public Object
+class o_export SourceFile
 {
     friend class phantom::Phantom;
     friend class LanguageElement;
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
     
 protected:
     SourceFile(const string& a_strAbsoluteName);
@@ -91,8 +87,7 @@ protected:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
-#else // o_phantom_reflection_SourceFile_h__
-#include "SourceFile.classdef.h"
+
 #endif

@@ -37,14 +37,12 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "State.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, state)
 
 
 class o_export State : public StateMachineElement
@@ -54,9 +52,9 @@ class o_export State : public StateMachineElement
 
 protected:
     typedef vector<Track*>                track_vector;
-    
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+
+public:
+    static reflection::Class* const metaType;
 
 public:
     State(const string& a_strName, bitfield modifiers = 0);
@@ -77,7 +75,7 @@ public:
     inline size_t   getTrackCount(void) const        { return m_Tracks.size(); }
     inline uint     getKey() const { return m_uiKey; }
 
-    virtual boolean equals(Object* a_pObject) const;
+    virtual bool    equals(reflection::LanguageElement* a_pObject) const;
 
     boolean         isEmpty() const { return m_Tracks.empty(); }
 
@@ -113,37 +111,6 @@ protected:
     size_t              m_uiIndex;
 };
 
-o_h_end
+o_namespace_end(phantom, state)
 
-/*
-
-o_begin_phantom_namespace
-
-template<>
-class serializer<state::State>
-{
-    static void serialize(state::State const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) 
-    {
-        *reinterpret_cast<uint*>(a_pOutBuffer) = a_pInstance->getParentTrack()->getIndex();
-        a_pOutBuffer += sizeof(uint);
-    }
-    static void deserialize(state::State* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) 
-    {
-        uint uiIndex = *reinterpret_cast<uint*>(a_pInBuffer);
-         = a_pInstance->getParentTrack()->getIndex();
-
-    }
-    static void serialize(state::State const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) {}
-    static void deserialize(state::State* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) {}
-    
-};
-
-o_end_phantom_namespace
-
-*/
-
-
-
-#else // state_State_h__
-#include "State.classdef.h"
 #endif

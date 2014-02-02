@@ -36,19 +36,15 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Function.classdef.h"
+
 /* **************** Declarations ***************** */
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Function : public Subroutine
 {
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 protected:
     Function(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
@@ -67,8 +63,7 @@ protected:
 protected:
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
-#else
-#include "Function.classdef.h"
+
 #endif

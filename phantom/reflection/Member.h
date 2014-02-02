@@ -37,28 +37,23 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Member.classdef.h"
+
 /* ************* Class Declarations ************** */
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Member 
 {
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
     virtual phantom::reflection::LanguageElement*    asLanguageElement() const = 0;
     
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_Member_h__
-#include "Member.classdef.h"
+
 #endif

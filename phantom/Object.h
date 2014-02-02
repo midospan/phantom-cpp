@@ -31,66 +31,65 @@
     THE SOFTWARE
 */
 
-#ifndef o_phantom_Object_h__
-#define o_phantom_Object_h__
+#ifndef o_object_h__
+#define o_object_h__
 
 /* ****************** Includes ******************* */
-//#include <phantom/PolymorphicBase.h>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Object.classdef.h"
+
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom), object)
 /* *********************************************** */
+o_namespace_begin(phantom)
 
-
-
-o_h_begin
-
-namespace state
+/**
+  * \brief object stores a memory address with the reflection ClassType associated
+  */
+class object
 {
-    namespace native
-    {
-        template <typename > class root_statechart;
-    }
-}
-
-class o_export Object
-{
-    reflection_________________________________________
-    _________________________________________reflection
-
 public:
-    Object()
+    object() : m_address(0), m_class_type(0) {}
+    object(void* a_pAddress, reflection::ClassType* a_pClassType)
+        : m_address(a_pAddress)
+        , m_class_type(a_pClassType)
     {
+
     }
-    o_destructor virtual ~Object();
+    template<typename t_Ty>
+    inline object(t_Ty* const a_address);
 
-    void                            destroy();
+    template<typename t_Ty>
+    inline object& operator=(t_Ty* const a_address);
 
-    virtual void                    deleteNow();
+    template<typename t_Ty>
+    inline t_Ty* as  ();
 
-    phantom::reflection::Class*     getClass() const;
-    virtual boolean                 equals(Object* a_pObject) const { return a_pObject == this; }
+    boolean isNull() const { return m_address == nullptr; }
+    void destroy();
 
-    virtual string                  toString() const { return string(); }
+    operator data  ()
+    {
+        return data(m_address,(reflection::Type*)m_class_type);
+    }
 
-    virtual boolean                 isArray() const { return false; }
+    boolean             operator==(const phantom::object& a_Other) const
+    {
+        return a_Other.m_address == m_address AND a_Other.m_class_type == m_class_type;
+    }
 
-    signal_t destroyed(void) const;
+    boolean             operator!=(const phantom::object& a_Other) const
+    {
+        return a_Other.m_address != m_address OR a_Other.m_class_type != m_class_type;
+    }
+
+    void*                   address() const { return m_address; }
+    reflection::ClassType*  classType() const { return m_class_type; }
 
 protected:
-
-private:    // slot allocator
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_output;
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_destroyed;
-
+    void*                   m_address;
+    reflection::ClassType*  m_class_type;
 };
 
-o_h_end
 
-    o_static_assert(phantom::detail::has_enclosed_reflection<phantom::Object>::value);
+o_namespace_end(phantom)
 
-#else // o_phantom_Object_h__
-#include "Object.classdef.h"
-#endif
+#endif // o_object_h__

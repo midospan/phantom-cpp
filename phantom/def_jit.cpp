@@ -1,9 +1,14 @@
-#include "phantom/phantom.h"
+#include "phantom/jit.h"
 #include "phantom/math/math.h"
 #include "def_jit.h"
 #include "def_jit_internal.h"
 #include <jit/jit.h>
 #include <windows.h>
+
+o_classN((phantom, reflection, jit), jit_value)
+{
+    o_reflection {};
+};
 
 o_registerN((phantom, reflection, jit), jit_value);
 

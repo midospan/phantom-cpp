@@ -33,13 +33,11 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "Constructor.h"
+#include <phantom/reflection/Constructor.h>
+#include <phantom/reflection/Constructor.hxx>
 /* *********************************************** */
-o_cpp_begin 
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_registerN((phantom, reflection), Constructor);
+o_namespace_begin(phantom, reflection) 
 
 
 Constructor::Constructor( const string& a_strName, Signature* a_pSignature , bitfield a_Modifiers) 
@@ -50,4 +48,4 @@ Constructor::Constructor( const string& a_strName, Signature* a_pSignature , bit
 
 
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

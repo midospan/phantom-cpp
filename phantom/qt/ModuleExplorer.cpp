@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
 #include <phantom/qt/qt.h>
 #include "ModuleExplorer.h"
+#include "ModuleExplorer.hxx"
 #include "phantom/ModuleLoader.h"
 #include <QDir>
 #include <QFileInfo>

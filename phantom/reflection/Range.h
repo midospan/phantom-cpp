@@ -38,21 +38,16 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/phantom.h>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Range.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, DataMember)
-o_declare(class, phantom, reflection, Constructor)
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
-class o_export Range 
+class o_export Range : public LanguageElement
 {
 public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+    static Class* const metaType;
 
 public:
     Range(Type* a_pType);
@@ -67,13 +62,14 @@ public:
     virtual void setMax(const void* a_pSrc) = 0;
     virtual void setDefault(const void* a_pSrc) = 0;
 
+    virtual Range* clone() const = 0;
+
 protected:
     Type* m_pType;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_Range_h__
-#include "Range.classdef.h"
+
 #endif

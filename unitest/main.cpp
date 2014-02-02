@@ -43,10 +43,16 @@
 #include <boost/property_tree_custom/xml_parser.hpp>
 #include <phantom/reflection/detail/element_finder_spirit.h>
 #include <phantom/variant.h>
+#include <phantom/std/map.h>
+#include <phantom/std/string.h>
+#include <phantom/std/vector.h>
+#include <phantom/std/vector.hxx>
 #include <windows.h>
 
 using namespace sc2;
 using namespace unitest;
+
+o_static_assert((phantom::setup_steps_mask_of<std::vector<char>>::value & o_global_value_SetupStepBit_TemplateSignature) != 0); 
 
 namespace test_struct
 {
@@ -151,10 +157,6 @@ protected:
 };
 
 TEST(PhantomTest, typeOf) {
-  EXPECT_EQ(phantom::classOf<RootClass>(),                                phantom::typeOf<RootClass>()); 
-  EXPECT_EQ(phantom::rootPointedTypeOf<RootClass>(),    phantom::typeOf<RootClass>()); 
-  EXPECT_EQ(phantom::rootPointedTypeOf<RootClass***>(),    phantom::typeOf<RootClass>()); 
-  EXPECT_EQ(phantom::pointedTypeOf<RootClass*>(),    phantom::typeOf<RootClass>()); 
   EXPECT_EQ(phantom::classOf<RootClass>(),                                phantom::typeOf<RootClass>()); 
   EXPECT_EQ(phantom::string("signal_t"),        phantom::typeOf<phantom::signal_t>()->getName());
   EXPECT_EQ(phantom::string("char"),        phantom::typeOf<char>()->getName());
@@ -395,10 +397,30 @@ o_classT((typename), (t_Ty), TClass)
 o_exposeT((typename), (t_Ty), TClass);
 
 o_registerT((typename), (t_Ty), TClass);
-o_register(TClass<int>);
+o_registerTI(TClass, (int));
+
+struct generic_struct
+{
+
+} *generic_struct_ptr;
+
+o_declare(struct, generic_struct);
+/*
+
+phantom::reflection::Type* type_without_hxx = phantom::typeOf<phantom::map<phantom::string, int>>();
+
+o_static_assert(!phantom::has_module<phantom::map<phantom::string, int>>::value);*/
+
+#include "phantom/std/map.hxx"
+
+o_static_assert(phantom::has_module<phantom::map<phantom::string, int>>::value);
+
+phantom::reflection::Type* type_with_hxx = phantom::typeOf<phantom::map<phantom::string, int>>();
 
 int main(int argc, char **argv) 
 {
+    //o_assert(type_with_hxx == type_without_hxx);
+
     phantom::Phantom app(argc, argv);
 
     char moduleFileName[512];
@@ -419,7 +441,7 @@ int main(int argc, char **argv)
     // StateMachineTest
 
     unitest::StateMachineTest* pStateMachineTest = o_new(StateMachineTest);
-    o_statemachine_post(pStateMachineTest, StateMachineTest, AtoA);
+    o_statemachine_post(pStateMachineTest, AtoA);
     pStateMachineTest->update();
     o_delete(StateMachineTest) pStateMachineTest;
 
@@ -471,8 +493,6 @@ int main(int argc, char **argv)
     phantom::reflection::LanguageElement* pEnumValueN = phantom::elementByName("phantom::prout::TestNamespace2");
     phantom::reflection::LanguageElement* pEnumValueC = phantom::elementByName("GlobalEmbedded::TestGlobalEmbedded0");
 
-    phantom::reflection::Class* pObjectClass = phantom::classOf<phantom::Object>();
-
     o_static_assert(phantom::has_initializer_member_functions_cascade<Marine>::value);
   
 //     phantom::reflection::LanguageElement* pTypeAddedSignal 
@@ -507,7 +527,7 @@ int main(int argc, char **argv)
     /* SERIALIZATION */
 
     Marine* pDBMarine1 = o_new(Marine);
-    phantom::classOf<Marine>()->getStateMachineCascade()->postEvent<phantom::statechart<Marine,Marine>::Spawn>(pDBMarine1);
+    o_statemachine_post(pDBMarine1, Spawn);
     Marine* pDBMarine2 = o_new(Marine);
     Marine* pDBMarine3 = o_new(Marine);
 
@@ -528,7 +548,6 @@ int main(int argc, char **argv)
         pChildNode->addData(pString);
         pChildNode->addData(pVectorInt);
         pChildNode->addData(pAutoReflectedClass);
-
         pChildNode->addData(pMatrix3x3);
 
         pDataBase->setNodeAttributeValue(pDataBase->rootNode(), descriptionIndex, "the root node");
@@ -600,10 +619,6 @@ int main(int argc, char **argv)
         phantom::variant variant_void_ptr = (void*)nullptr;
         phantom::variant variant_double = 3.0;
         phantom::variant variant_string = "blabla proutiprout";
-        struct generic_struct
-        {
-
-        } *generic_struct_ptr;
         phantom::variant variant_generic_struct = generic_struct_ptr;
 
 
@@ -642,11 +657,11 @@ int main(int argc, char **argv)
 
     system("pause");
 
-    o_statemachine_post(actor, ActorPlatform, Spawn);
+    o_statemachine_post(actor, Spawn);
 
     system("pause");
 
-    o_statemachine_post(actor, ActorPlatform, JumpRequired);
+    o_statemachine_post(actor, JumpRequired);
 
     system("pause");
 

@@ -166,4 +166,21 @@ o_forceinline void          base_state_machine_data::postEvent(uint a_uiEventId)
     }*/
 }
 
+o_forceinline void          base_state_machine_data::postEvent(const string& a_strEventName) const 
+{ 
+    /*size_t threadId = currentThreadId(); 
+    if(threadId == thread_id)
+    {*/
+        state_machine->postEvent(owner, a_strEventName); 
+    /*}
+    else 
+    {
+        while(isLocked()) 
+        {
+            phantom::yieldCurrentThread(); 
+        }
+        state_machine->queueEvent(owner, a_uiEventId);
+    }*/
+}
+
 o_namespace_end(phantom, state)

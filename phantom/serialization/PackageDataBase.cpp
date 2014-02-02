@@ -33,10 +33,11 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
+#include <phantom/serialization/PackageDataBase.h>
+#include <phantom/serialization/PackageDataBase.hxx>
+#include <phantom/serialization/PackageNode.h>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <phantom/serialization/PackageNode.h>
-#include <phantom/serialization/PackageDataBase.h>
 #include <windows.h>
 #include <Lmcons.h>
 #include <stdio.h>

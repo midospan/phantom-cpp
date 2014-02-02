@@ -274,7 +274,7 @@ public:
 
     virtual void        deleteNow()
     {
-        o_delete(self_type) this;
+        o_dynamic_proxy_delete(phantom::reflection::InstanceDataMember, phantom::reflection::InstanceDataMember::metaType, self_type) this;
     }
 
     member_field_pointer    m_member_field_pointer;
@@ -303,12 +303,12 @@ public:
 
 o_namespace_end(phantom, reflection, native)
 
-o_traits_specialize_all_super_traitNTTS(
+/*o_traits_specialize_all_super_traitNTS(
 (phantom,reflection,native)
 , (typename, typename)
 , (t_Ty, t_ContentType)
 , TNativeInstanceDataMember
 , (InstanceDataMember)
-)
+)*/
 
 #endif // TNativeInstanceDataMember_h__

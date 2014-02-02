@@ -38,20 +38,17 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "ReferenceType.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export ReferenceType : public Type
 {
-public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+    o_declare_meta_type(ReferenceType);
+
 public:
     friend class Type;
 
@@ -65,21 +62,21 @@ public:
 
     virtual void*   allocate() const
     {
-        o_exception(reflection_runtime_exception, "references cannot be dynamically allocated");
+        o_exception(exception::reflection_runtime_exception, "references cannot be dynamically allocated");
         return NULL;
     }
     virtual void    deallocate(void* a_pInstance) const
     {
-        o_exception(reflection_runtime_exception, "references cannot be dynamically allocated");
+        o_exception(exception::reflection_runtime_exception, "references cannot be dynamically allocated");
     }
     virtual void*   allocate(size_t a_uiCount) const
     {
-        o_exception(reflection_runtime_exception, "references cannot be dynamically allocated");
+        o_exception(exception::reflection_runtime_exception, "references cannot be dynamically allocated");
         return NULL;
     }
     virtual void    deallocate(void* a_pChunk, size_t a_uiCount) const
     {
-        o_exception(reflection_runtime_exception, "references cannot be dynamically allocated");
+        o_exception(exception::reflection_runtime_exception, "references cannot be dynamically allocated");
     }
 
     virtual void        safeConstruct(void* a_pBuffer) const 
@@ -131,59 +128,59 @@ public:
 
     virtual void        serialize(void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        o_exception(reflection_runtime_exception, "references cannot be serialized");
+        o_exception(exception::reflection_runtime_exception, "references cannot be serialized");
     }
 
     virtual void        deserialize(void* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        o_exception(reflection_runtime_exception, "references cannot be serialized");
+        o_exception(exception::reflection_runtime_exception, "references cannot be serialized");
     }
 
     virtual void        serialize(void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        o_exception(reflection_runtime_exception, "references cannot be serialized");
+        o_exception(exception::reflection_runtime_exception, "references cannot be serialized");
     }
 
     virtual void        deserialize(void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-            o_exception(reflection_runtime_exception, "references cannot be serialized");
+        o_exception(exception::reflection_runtime_exception, "references cannot be serialized");
     }
 
     virtual void        serialize(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        o_exception(reflection_runtime_exception, "references cannot be serialized");
+        o_exception(exception::reflection_runtime_exception, "references cannot be serialized");
     }
 
     virtual void        deserialize(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        o_exception(reflection_runtime_exception, "references cannot be serialized");
+        o_exception(exception::reflection_runtime_exception, "references cannot be serialized");
     }
 
     virtual void        serialize(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        o_exception(reflection_runtime_exception, "references cannot be serialized");
+        o_exception(exception::reflection_runtime_exception, "references cannot be serialized");
     }
 
     virtual void        deserialize(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        o_exception(reflection_runtime_exception, "references cannot be serialized");
+        o_exception(exception::reflection_runtime_exception, "references cannot be serialized");
     }
 
     virtual void        remember(void const* a_pInstance, byte*& a_pOutBuffer) const 
     {
-        o_exception(reflection_runtime_exception, "references cannot be reset");
+        o_exception(exception::reflection_runtime_exception, "references cannot be reset");
     }
     virtual void        remember(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pBuffer) const 
     {
-        o_exception(reflection_runtime_exception, "references cannot be reset");
+        o_exception(exception::reflection_runtime_exception, "references cannot be reset");
     }
     virtual void        reset(void* a_pInstance, byte const*& a_pInBuffer) const 
     {
-        o_exception(reflection_runtime_exception, "references cannot be reset");
+        o_exception(exception::reflection_runtime_exception, "references cannot be reset");
     }
     virtual void        reset(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer) const
     {
-        o_exception(reflection_runtime_exception, "references cannot be reset");
+        o_exception(exception::reflection_runtime_exception, "references cannot be reset");
     }
 
     virtual Type*   removeReference() const { return m_pReferencedType; }
@@ -199,9 +196,8 @@ protected:
     Type*        m_pReferencedType;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // ReferenceType_h__
-#include "ReferenceType.classdef.h"
+
 #endif

@@ -38,19 +38,16 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Constant.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, Type)
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Constant : public TemplateElement
 {
-    reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________reflection
+public:
+    static Class* const metaType;
 
 protected:
     Constant()
@@ -68,12 +65,15 @@ public:
     virtual void        getValue(void* dest) const = 0;
     virtual Constant*   asConstant() const { return const_cast<Constant*>(this); }
 
+    virtual string      getQualifiedName() const { return m_strName; }
+    virtual string      getQualifiedDecoratedName() const { return m_strName; }
+    virtual string      getDecoratedName() const { return m_strName; }
+
 protected:
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_InstanciableClass_h__ 
-#include "Constant.classdef.h"
+
 #endif

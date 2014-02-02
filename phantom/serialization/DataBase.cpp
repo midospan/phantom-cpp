@@ -33,31 +33,15 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
+#include <phantom/serialization/DataBase.h>
+#include <phantom/serialization/DataBase.hxx>
 #include <phantom/serialization/Node.h>
 #include <phantom/serialization/DataTypeManager.h>
 #include <phantom/serialization/Trashbin.h>
-#include <phantom/serialization/DataBase.h>
 /* *********************************************** */
-o_cpp_begin
+o_registerN((phantom, serialization), DataBase);
 
-ReflectionCPP__________________________________________________________________________________
-    
-    o_signal(dataAdded, (const phantom::data&, Node*))
-    o_signal(dataAboutToBeRemoved, (const phantom::data&, Node*))
-    o_signal(dataAboutToBeAborted, (const phantom::data&, Node*))
-    o_signal(dataMoved, (const phantom::data&, Node*, Node*))
-    o_signal(dataAttributeValueChanged, (const phantom::data&, size_t, const string&));
-    o_signal(dataReplaced, (const phantom::data&, const phantom::data&));
-
-    o_signal(subDataOwnershipLost, (const phantom::data&));
-
-    o_signal(nodeAdded, (Node*, Node*))
-    o_signal(nodeAboutToBeRemoved, (Node*, Node*))
-    o_signal(nodeMoved, (Node*, Node*, Node*))
-    o_signal(nodeAttributeValueChanged, (Node*, size_t, const string&)); 
-
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, serialization)
     
 DataBase::DataBase( const string& url, uint a_uiSerializationFlag ) 
 : m_strUrl(url)
@@ -135,7 +119,7 @@ void            DataBase::moveData(const phantom::data& a_Data, Node* a_pNewOwne
 
 boolean DataBase::defaultDependencyCheckerInContainer( reflection::ContainerClass* a_pContainerClass, void* a_pContainer, const phantom::data& a_Dep )
 {
-    util::Iterator* pIterator = a_pContainerClass->begin(a_pContainer);
+    Iterator* pIterator = a_pContainerClass->begin(a_pContainer);
 
     bool result = false;
 
@@ -1074,4 +1058,29 @@ void DataBase::defaultDependencyGetter( const phantom::data& a_Src, vector<phant
         , a_Dependencies);
 }
 
-o_cpp_end
+uint DataBase::getGuid( const phantom::data& a_Data ) const
+{
+    return m_GuidBase.getGuid(a_Data.address());
+}
+
+uint DataBase::getGuid( Node* a_pNode ) const
+{
+    return m_GuidBase.getGuid(a_pNode);
+}
+
+boolean DataBase::containsDataAddress( void* a_pData ) const
+{
+    return m_GuidBase.getGuid(phantom::baseOf(a_pData)) != 0xffffffff;
+}
+
+boolean DataBase::isDataRegistered( void* a_pData ) const
+{
+    return m_GuidBase.getGuid(phantom::baseOf(a_pData)) != 0xFFFFFFFF;
+}
+
+boolean DataBase::isNodeRegistered( Node* a_pNode ) const
+{
+    return m_GuidBase.getGuid(a_pNode) != 0xFFFFFFFF;
+}
+
+o_namespace_end(phantom, serialization)

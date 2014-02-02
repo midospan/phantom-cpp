@@ -37,28 +37,16 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Class.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, DataMember)
-o_declare(class, phantom, reflection, InstanceDataMember)
-o_declare(class, phantom, reflection, StaticDataMember)
-o_declare(class, phantom, reflection, Signal)
-o_declare(class, phantom, reflection, Constructor)
-o_declare(class, phantom, reflection, MemberFunction)
-o_declare(class, phantom, reflection, ClassExtension)
-o_declare(class, phantom, reflection, Interface)
-o_declare(class, phantom, reflection, VirtualMemberFunctionTable)
-o_declare(class, phantom, state, StateMachine)
 /* *********************************************** */
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Class : public ClassType
 {
+    o_declare_meta_type(Class);
 
 public:
-    o_friend(class, phantom, Object)
     o_friend(class, phantom, Phantom)
     o_friend(class, phantom, reflection, Namespace)
 
@@ -70,9 +58,9 @@ public:
 
     template<typename t_Ty, phantom::extension::detail::default_installer_id t_default_installer_id>
     friend struct phantom::extension::detail::default_installer_helper;
+    template<typename t_Ty, phantom::extension::detail::default_initializer_id t_default_initializer_id>
+    friend struct phantom::extension::detail::default_initializer_helper;
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 protected:
     typedef phantom::vector<Class*>                    class_vector; 
@@ -627,7 +615,7 @@ public:
 
     void                interpolate( void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode /*= 0*/ ) const;
 
-    virtual void*       cast( Class* a_pBaseClass, void* a_pBaseAddress ) const;
+    void*               cast( Class* a_pBaseClass, void* a_pBaseAddress ) const;
     virtual void*       cast( Type* a_pTarget, void* a_pBase ) const 
     {
         if(a_pTarget->asClass()) return cast(static_cast<Class*>(a_pTarget), a_pBase);
@@ -646,18 +634,8 @@ public:
         , function_signature const*
         , bitfield a_Modifiers = 0) const ;
 
-    size_t              getInstanceCount() const { return m_uiRegisteredInstances; }
-    size_t              getKindCount() const 
-    { 
-        size_t count = m_uiRegisteredInstances;
-        class_vector::const_iterator it = m_DerivedClasses.begin();
-        class_vector::const_iterator end = m_DerivedClasses.end();
-        for(;it!=end;++it)
-        {
-            count += (*it)->getKindCount();
-        }
-        return count;
-    }
+    size_t              getInstanceCount() const { return m_Instances.size(); }
+    size_t              getKindCount() const;
 
     void                setStateMachine(phantom::state::StateMachine* a_pStateMachine);
 
@@ -671,6 +649,8 @@ protected:
     void                addDerivedClass(Class* a_pClass);
     void                removeDerivedClass(Class* a_pClass);
 
+    void                referencedElementRemoved(LanguageElement* a_pElement);
+
     /**
      * \fn void Class::setupVirtualMemberFunctionTables() const;
      *
@@ -682,15 +662,19 @@ protected:
     {
         o_assert(phantom::Phantom::m_rtti_data_map->find(a_pThis) == phantom::Phantom::m_rtti_data_map->end());
         (*phantom::Phantom::m_rtti_data_map)[a_pThis] = phantom::rtti_data(a_pObjectClass, this, a_pBase, a_pSlotPool, a_dynamic_delete_func);
-        a_pObjectClass->m_uiRegisteredInstances++;
+        a_pObjectClass->registerInstance(a_pThis);
     }
     inline void         unregisterRttiImpl(void* a_pThis)
     {
         phantom::Phantom::rtti_data_map::iterator found = phantom::Phantom::m_rtti_data_map->find(a_pThis);
         o_assert(found != phantom::Phantom::m_rtti_data_map->end());
-        found->second.object_class->m_uiRegisteredInstances--;
+        found->second.object_class->unregisterInstance(a_pThis);
         phantom::Phantom::m_rtti_data_map->erase(found);
     }
+
+    void registerInstance(void* a_pInstance);
+
+    void unregisterInstance(void* a_pInstance);
 
     void elementAdded(LanguageElement* a_pElement);
     void elementRemoved(LanguageElement* a_pElement);
@@ -699,9 +683,10 @@ protected:
 protected:
     super_class_table   m_SuperClasses;
     class_vector        m_DerivedClasses;
+    vector<void*>       m_Instances;
     mutable vmt_vector  m_VirtualMemberFunctionTables;
     state::StateMachine*m_pStateMachine;
-    size_t              m_uiRegisteredInstances;
+    size_t              m_uiInstanceCount;
     void*               m_pSingleton;
 };
 
@@ -756,7 +741,7 @@ inline t_Ty*    Class::getExtension() const
     return NULL; 
 }    
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 o_namespace_begin(phantom)
 
@@ -775,6 +760,5 @@ struct string_converter_helper<t_Ty, true, false>
 
 o_namespace_end(phantom)
 
-#else // o_phantom_reflection_Class_h__
-#include "Class.classdef.h"
+
 #endif

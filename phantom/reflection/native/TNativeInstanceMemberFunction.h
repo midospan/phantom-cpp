@@ -63,7 +63,7 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
 
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -115,7 +115,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void        deleteNow() { o_delete(self_type) this; }
+    virtual void        deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -166,7 +166,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -221,7 +221,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -279,7 +279,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -335,7 +335,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -391,7 +391,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -451,7 +451,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -516,7 +516,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -584,7 +584,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -652,7 +652,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -727,7 +727,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -799,7 +799,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -878,7 +878,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -957,7 +957,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -1043,7 +1043,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -1124,7 +1124,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -1216,7 +1216,7 @@ public:
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
     virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
@@ -1280,7 +1280,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 };
 
 template<typename t_Ty, typename t_ReturnType, typename t_Param0>
@@ -1295,7 +1295,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 };
 
 template<typename t_Ty, typename t_ReturnType, typename t_Param0, typename t_Param1>
@@ -1310,7 +1310,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
 };
 
@@ -1330,7 +1330,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
 };
 
@@ -1352,7 +1352,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
 };
 
@@ -1374,7 +1374,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
 };
 
@@ -1398,7 +1398,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
 };
 
@@ -1422,7 +1422,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
 };
 
@@ -1449,7 +1449,7 @@ public:
     {
 
     }
-    virtual void            deleteNow() { o_delete(self_type) this; }
+    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
 };
 
@@ -1457,6 +1457,6 @@ public:
 
 o_namespace_end(phantom, reflection, native)
 
-o_traits_specialize_all_super_traitNTTS_TNativeMemberFunctionRTXXX(TNativeInstanceMemberFunction)
+//o_traits_specialize_all_super_traitNTS_TNativeMemberFunctionRTXXX(TNativeInstanceMemberFunction)
 
 #endif // TNativeInstanceMemberFunction_h__

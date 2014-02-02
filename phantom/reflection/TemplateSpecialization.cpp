@@ -33,19 +33,18 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/TemplateSpecialization.h>
+#include <phantom/reflection/TemplateSpecialization.hxx>
 /* *********************************************** */
+o_registerN((phantom, reflection), TemplateSpecialization);
 
 
-o_cpp_begin 
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
 
 TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate )
     : LanguageElement(o_CS("<>"), bitfield())
     , m_pTemplate(a_pTemplate)
+    , m_DefaultArgumentsCount(0)
 {
     m_pTemplate->registerSpecialization(this);
 }
@@ -59,10 +58,10 @@ void TemplateSpecialization::_updateName()
 {
     m_strName = o_CS("<");
     uint i = 0;
-    uint count = m_Elements.size();
+    uint count = m_Arguments.size();
     for(;i<count;++i)
     {
-        TemplateElement*  pElement = m_Elements[i];
+        TemplateElement*  pElement = m_Arguments[i].element;
         if(i != 0) m_strName += o_CC(',');
         m_strName += pElement->getDecoratedName();
     }
@@ -73,41 +72,51 @@ phantom::string TemplateSpecialization::getQualifiedName() const
 {
     string strQualifiedName = o_CS("<");
     uint i = 0;
-    uint count = m_Elements.size();
+    uint count = m_Arguments.size();
     for(;i<count;++i)
     {
-        TemplateElement*  pElement = m_Elements[i];
+        TemplateElement*  pElement = m_Arguments[i].element;
         if(i != 0) strQualifiedName += o_CC(',');
-        strQualifiedName += pElement->getQualifiedDecoratedName();
+        if(pElement->asConstant())
+        {
+            strQualifiedName += pElement->asConstant()->getName();
+        }
+        else strQualifiedName += pElement->getQualifiedName();
     }
     strQualifiedName += o_CC('>');
     return strQualifiedName;
 }
 
-TemplateElement* TemplateSpecialization::getElement( const string& a_strTemplateElementName ) const
+TemplateElement* TemplateSpecialization::getArgumentElement( const string& a_strParameterName ) const
 {
-    template_element_map::const_iterator found = m_TemplateNameMap.find(a_strTemplateElementName);
-    if(found == m_TemplateNameMap.end()) return NULL;
-    return found->second;
+    for(auto it = m_Arguments.begin(); it != m_Arguments.end(); ++it)
+    {
+        if(it->name == a_strParameterName)
+            return it->element;
+    }
+    return nullptr;
 }
 
-Type* TemplateSpecialization::getType(const string& a_strTemplateElementName) const
+Type* TemplateSpecialization::getType(const string& a_strParameterName) const
 {
-    TemplateElement* pTemplateElement = getElement(a_strTemplateElementName);
+    TemplateElement* pTemplateElement = getArgumentElement(a_strParameterName);
     if(pTemplateElement) return pTemplateElement->asType();
     return NULL;
 }
 
-void TemplateSpecialization::addElement( const string& a_strTemplateTypeName, TemplateElement* a_pElement )
+void TemplateSpecialization::setArgument( const string& a_strTemplateTypeName, TemplateElement* a_pElement )
 {
-    o_assert(m_TemplateNameMap.find(a_strTemplateTypeName) == m_TemplateNameMap.end());
-    m_TemplateNameMap[a_strTemplateTypeName] = a_pElement;
-    m_Elements.push_back(a_pElement);
-    addReferencedElement(a_pElement);
+    o_assert(a_pElement);
+    o_assert(getArgumentElement(a_strTemplateTypeName) == nullptr);
+    m_Arguments.push_back(Argument(a_strTemplateTypeName, a_pElement));
+    if(a_pElement->asConstant() == nullptr)
+    {
+        addReferencedElement(a_pElement);
+    }
     _updateName();
 }
 
-void TemplateSpecialization::removeElement( TemplateElement* a_pElement )
+void TemplateSpecialization::removeArgument( TemplateElement* a_pElement )
 {
     removeReferencedElement(a_pElement);
 }
@@ -118,32 +127,36 @@ void TemplateSpecialization::referencedElementAdded(LanguageElement* a_pElement)
 
 void TemplateSpecialization::referencedElementRemoved(LanguageElement* a_pElement)
 {
-    bool bFound = true;
-    while(bFound)
+    for(auto it = m_Arguments.begin(); it != m_Arguments.end(); )
     {
-        bFound = false;
-        for(auto it = m_TemplateNameMap.begin(); it != m_TemplateNameMap.end(); ++it)
+        if(it->defaultElement == a_pElement)
+            it->defaultElement = nullptr;
+        if(it->element == a_pElement)
         {
-            if(it->second == a_pElement)
-            {
-                bFound = true;
-                m_TemplateNameMap.erase(it);
-                m_Elements.erase(std::find(m_Elements.begin(), m_Elements.end(), a_pElement));
-                break;
-            }
+            it = m_Arguments.erase(it);
         }
+        else ++it;
     }
 }
 
 boolean TemplateSpecialization::matches( template_specialization const* a_TemplateSpecialization ) const
 {
     size_t s0 = a_TemplateSpecialization->size();
-    if(s0 != m_Elements.size()) return false;
+    if((s0 < m_Arguments.size()-m_DefaultArgumentsCount) || (s0 > m_Arguments.size())) 
+        return false;
     size_t i = 0;
-    for(;i<s0;++i)
+    for(;i<m_Arguments.size();++i)
     {
-        if((*a_TemplateSpecialization)[i] == NULL) return false;
-        if(NOT( (*a_TemplateSpecialization)[i]->equals(m_Elements[i]) )) return false;
+        if(i<s0)
+        {
+            if((*a_TemplateSpecialization)[i] == NULL) return false;
+            if(NOT( (*a_TemplateSpecialization)[i]->equals(m_Arguments[i].element) )) return false;
+        }
+        else 
+        {
+            if(m_Arguments[i].element != m_Arguments[i].defaultElement) // default argument doesn't match current specialization argument
+                return false;
+        }
     }
     return true;
 }
@@ -159,12 +172,72 @@ void TemplateSpecialization::checkCompleteness() const
 
 bool TemplateSpecialization::canBeDestroyed() const
 {
-    for(auto it = m_Elements.begin(); it != m_Elements.end(); ++it)
+    return LanguageElement::canBeDestroyed();
+}
+
+void TemplateSpecialization::terminate()
+{
+    size_t i = 0;
+    for(auto it = m_Arguments.begin(); it != m_Arguments.end();)
     {
-        if(NOT((*it)->canBeDestroyed())) return false;
+        if(it->element->asConstant() || (it->defaultElement && it->defaultElement->asConstant()))
+        {
+            if(it->defaultElement && it->defaultElement->asConstant())
+            {
+                it->defaultElement->terminate();
+                it->defaultElement->deleteNow();
+                it->defaultElement = nullptr;
+            }
+            if(it->element->asConstant())
+            {
+                it->element->terminate();
+                it->element->deleteNow();
+                it = m_Arguments.erase(it);
+            }
+            else ++it;
+        }
+        else ++it;
     }
-    return true;
+    LanguageElement::terminate();
 }
 
 
-o_cpp_end
+TemplateElement* TemplateSpecialization::getDefaultArgument(const string& a_strParameterName) const 
+{
+    for(auto it = m_Arguments.begin(); it != m_Arguments.end(); ++it)
+    {
+        if(it->name == a_strParameterName)
+            return it->defaultElement;
+    }
+    return nullptr;
+}
+
+void TemplateSpecialization::setDefaultArgument( const string& a_strParameterName, TemplateElement* a_pElement )
+{
+    o_assert(a_pElement, "Argument type has not been registered");
+    o_assert(getDefaultArgument(a_strParameterName) == nullptr);
+    size_t index = getArgumentIndex(a_strParameterName);
+    if(index != (m_Arguments.size() - m_DefaultArgumentsCount - 1))
+    {
+        o_exception(exception::invalid_argument_exception, "Default template arguments must be passed from right to left, contiguously");
+    }
+    m_Arguments[index].defaultElement = a_pElement;
+    m_DefaultArgumentsCount++;
+    if(a_pElement->asConstant() == nullptr)
+    {
+        addReferencedElement(a_pElement);
+    }
+}
+
+size_t TemplateSpecialization::getArgumentIndex( const string& a_strParameterName ) const
+{
+    for(size_t i = 0; i<m_Arguments.size(); ++i)
+    {
+        if(m_Arguments[i].name == a_strParameterName)
+            return i;
+    }
+    o_assert(false);
+    return 0xffffffff;
+}
+
+o_namespace_end(phantom, reflection)

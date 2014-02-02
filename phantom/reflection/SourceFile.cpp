@@ -33,13 +33,12 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/SourceFile.h>
+#include <phantom/reflection/SourceFile.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), SourceFile);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
 
 SourceFile::SourceFile(const string& a_strAbsoluteName) 
 : m_strAbsoluteName(a_strAbsoluteName) 
@@ -168,4 +167,4 @@ void SourceFile::removeElementDeclaration( const CodeLocation& a_Location, Langu
     m_LanguageElementDeclarations.erase(std::find(m_LanguageElementDeclarations.begin(), m_LanguageElementDeclarations.end(), std::pair<CodeLocation, LanguageElement*>(a_Location, a_pLanguageElement)));
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

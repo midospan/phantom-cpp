@@ -38,21 +38,17 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Reaction.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, state)
 
 class o_export Reaction : public StateMachineElement
 {
     o_friend(class, phantom, state, State)
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
     Reaction() {}
@@ -64,9 +60,8 @@ public:
 protected:
 };
 
-o_h_end
+o_namespace_end(phantom, state)
 
 
-#else // state_Reaction_h__
-#include "Reaction.classdef.h"
+
 #endif

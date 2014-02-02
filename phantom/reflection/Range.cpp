@@ -33,14 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/Range.h>
+#include <phantom/reflection/Range.hxx>
 /* *********************************************** */
-o_cpp_begin
+o_registerN((phantom, reflection), Range);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection)
 
+Class* const Range::metaType = type_of<Range>::object();
 
 Range::Range( Type* a_pType ) : m_pType(a_pType)
 {
@@ -48,4 +48,4 @@ Range::Range( Type* a_pType ) : m_pType(a_pType)
 }
 
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

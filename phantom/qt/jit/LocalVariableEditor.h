@@ -6,7 +6,7 @@
 #include "phantom/qt/jit/qt_jit.h"
 #include "phantom/qt/VariableEditor.h"
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, qt, jit), LocalVariableEditor);
 /* *********************************************** */
 
 namespace phantom { 
@@ -37,16 +37,5 @@ protected slots:
 } // jit
 } // qt 
 } // phantom 
-
-
-o_classNS((phantom, qt, jit), LocalVariableEditor, (VariableEditor), o_no_copy)
-{
-	o_reflection
-	{
-		
-	};
-};
-o_exposeN((phantom, qt, jit), LocalVariableEditor);
-
 
 #endif // phantom_qt_LocalVariableEditor_h__

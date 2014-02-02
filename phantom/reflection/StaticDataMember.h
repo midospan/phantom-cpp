@@ -37,23 +37,20 @@
 
 
 /* ****************** Includes ******************* */
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "StaticDataMember.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 
 class o_export StaticDataMember : public StaticVariable, public DataMember
 {
-
 public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+    static Class* const metaType;
+
 public:
 
     StaticDataMember(const string& a_strName, Type* a_pContentType, void* a_pStaticDataMemberAddress, Range* a_pRange, bitfield a_Modifiers = 0);
@@ -83,9 +80,8 @@ public:
     Range*                      getRange() const { return StaticVariable::getRange(); }
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_StaticDataMember_h__
-#include "StaticDataMember.classdef.h"
+
 #endif

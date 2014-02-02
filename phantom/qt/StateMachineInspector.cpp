@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
 #include "StateMachineInspector.h"
+#include "StateMachineInspector.hxx"
 /* *********************************************** */
 o_registerN((phantom, qt), StateMachineInspector);
 

@@ -38,16 +38,16 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "ClassType.classdef.h"
+
 /* **************** Declarations ***************** */
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export ClassType : public Type
 {
+    o_declare_meta_type(ClassType);
+
 public:
     typedef phantom::reflection::Class*                    member_key;
     typedef std::pair<member_key, LanguageElement*>        member_pair;
@@ -59,8 +59,6 @@ public:
     typedef phantom::vector<InstanceMemberFunction*>            instance_member_function_vector;
     typedef member_collection::const_iterator            member_const_iterator;
 
-    Reflection_____________________________________________________________________________________
-        _____________________________________________________________________________________Reflection
 public:
 
     ClassType(const string& a_strName, bitfield a_Modifiers = 0);
@@ -151,9 +149,8 @@ protected:
 
 
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_ClassType_h__
-#include "ClassType.classdef.h"
+
 #endif

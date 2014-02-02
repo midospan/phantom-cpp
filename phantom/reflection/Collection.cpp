@@ -33,13 +33,11 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "Collection.h"
+#include <phantom/reflection/Collection.h>
+#include <phantom/reflection/Collection.hxx>
 /* *********************************************** */
-o_cpp_begin 
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_registerN((phantom, reflection), Collection);
+o_namespace_begin(phantom, reflection) 
 
 Collection::Collection( const string& a_strName, Type* a_pElementType, bitfield a_Modifiers /*= 0*/ ) 
     : LanguageElement(a_strName, a_Modifiers) 
@@ -48,7 +46,7 @@ Collection::Collection( const string& a_strName, Type* a_pElementType, bitfield 
     addReferencedElement(m_pElementType);
 }
 
-util::Iterator*     Collection::getIterator(void* a_pInstance) const
+Iterator*     Collection::getIterator(void* a_pInstance) const
 {
     return nullptr; // TODO : implement
 }
@@ -160,4 +158,10 @@ void Collection::referencedElementRemoved( LanguageElement* a_pElement )
     m_pElementType = nullptr;
 }
 
-o_cpp_end
+reflection::Class* Collection::getSortingCategoryClass() const
+{
+    return classOf<Collection>();
+}
+
+
+o_namespace_end(phantom, reflection)

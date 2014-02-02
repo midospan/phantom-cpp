@@ -38,20 +38,16 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/LanguageElement.h>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "ClassExtension.classdef.h"
+
 /* ************* Class Declarations ************** */
-
+o_declareN(class, (phantom, reflection), ClassExtension);
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export ClassExtension : public LanguageElement
 {
-public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+
 public:
     
     ClassExtension();
@@ -63,9 +59,8 @@ public:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_ClassExtension_h__
-#include "ClassExtension.classdef.h"
+
 #endif

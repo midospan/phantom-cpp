@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
-#include "phantom/phantom.h"
+#include "phantom/jit.h"
 #include "JitState.h"
+#include "JitState.hxx"
 #include "JitStateMachine.h"
 #include <phantom/reflection/jit/JitInstanceMemberFunction.h>
 #include <phantom/reflection/jit/JitClass.h>

@@ -33,14 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/InstanceDataMember.h>
+#include <phantom/reflection/InstanceDataMember.hxx>
 /* *********************************************** */
+o_registerN((phantom, reflection), InstanceDataMember);
 
-o_cpp_begin 
+o_namespace_begin(phantom, reflection) 
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+Class* const InstanceDataMember::metaType = o_type_of(phantom::reflection::InstanceDataMember);
 
 InstanceDataMember::InstanceDataMember( const string& a_strName, Type* a_pContentType, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ )
 : ValueMember(a_strName, a_pRange, a_uiSerializationMask, a_Modifiers)
@@ -57,4 +57,4 @@ void InstanceDataMember::referencedElementRemoved( LanguageElement* a_pElement )
 }
 
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

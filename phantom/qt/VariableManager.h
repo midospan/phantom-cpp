@@ -6,8 +6,25 @@
 #include "phantom/qt/qt.h"
 #include "qtpropertymanager.h"
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, qt), VariableManager);
+o_declareN(class, (phantom, qt), CollectionElementVariable);
+o_declareN(class, (phantom, qt), ArrayElementVariable);
+o_declareN(class, (phantom, qt), CollectionInsertVariable);
+o_declareN(class, (phantom, qt), ContainerInsertVariable);
+o_declareN(class, (phantom, qt), SequentialContainerItemInsertVariable);
+o_declareN(class, (phantom, qt), MapInsertPairVariable);
+o_declareN(class, (phantom, qt), SetInsertPairVariable);
+o_declareN(class, (phantom, qt), BufferedVariable);
+o_declareN(class, (phantom, qt), DataBaseAttributeVariable);
+o_declareN(class, (phantom, reflection), MapValueIteratorVariable);
 /* *********************************************** */
+
+enum Caca;
+
+enum Caca 
+{
+
+};
 
 namespace phantom { namespace qt {
 
@@ -154,14 +171,6 @@ protected:
 } // phantom 
 
 
-o_classN((phantom, qt), VariableManager, o_no_copy)
-{
-	o_reflection
-	{
-		
-	};
-};
-o_exposeN((phantom, qt), VariableManager);
 
 
 namespace phantom { namespace qt {
@@ -459,10 +468,7 @@ namespace phantom { namespace qt {
         void*   getAddress() const { return NULL; }
 
 
-        virtual phantom::reflection::Type*       getValueType() const 
-        {
-            return phantom::typeOf<string>();
-        }
+        virtual phantom::reflection::Type*       getValueType() const;
 
     protected:
         phantom::serialization::DataBase*    m_pDataBase;
@@ -483,59 +489,5 @@ namespace phantom { namespace qt {
 
 }}
 
-
-o_classNS((phantom, qt), CollectionElementVariable, (reflection::Variable))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, qt), CollectionElementVariable);
-
-o_classNS((phantom, qt), ArrayElementVariable, (reflection::Variable))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, qt), ArrayElementVariable);
-
-o_classNS((phantom, qt), CollectionInsertVariable, (reflection::Variable))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, qt), CollectionInsertVariable);
-
-o_classNS((phantom, qt), ContainerInsertVariable, (reflection::Variable))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, qt), ContainerInsertVariable);
-
-o_classNS((phantom, qt), SequentialContainerItemInsertVariable, (ContainerInsertVariable))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, qt), SequentialContainerItemInsertVariable);
-
-o_classNS((phantom, qt), MapInsertPairVariable, (ContainerInsertVariable))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, qt), MapInsertPairVariable);
-
-o_classNS((phantom, qt), SetInsertPairVariable, (ContainerInsertVariable))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, qt), SetInsertPairVariable);
-
-o_classNS((phantom, qt), BufferedVariable, (reflection::Variable))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, qt), BufferedVariable);
-
-o_classNS((phantom, qt), DataBaseAttributeVariable, (reflection::Variable))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, qt), DataBaseAttributeVariable);
 
 #endif // phantom_qt_VariableManager_h__

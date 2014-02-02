@@ -33,18 +33,15 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/Template.h>
+#include <phantom/reflection/Template.hxx>
 /* *********************************************** */
+o_registerN((phantom, reflection), Template);
 
-
-o_cpp_begin 
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
 
 Template::Template(const string& a_strName)
-: LanguageElement(a_strName,bitfield())
+: LanguageElement(a_strName, bitfield())
 {
 }
 
@@ -53,4 +50,5 @@ Template::~Template()
 
 }
 
-o_cpp_end
+
+o_namespace_end(phantom, reflection)

@@ -3,9 +3,9 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/def_jit.h>
+#include <phantom/jit.h>
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, reflection, jit), JitProperty);
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection, jit)
@@ -33,14 +33,5 @@ protected:
 };
 
 o_namespace_end(phantom, reflection, jit)
-
-o_classNS((phantom, reflection, jit), JitProperty, (Property))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, reflection, jit), JitProperty);
 
 #endif

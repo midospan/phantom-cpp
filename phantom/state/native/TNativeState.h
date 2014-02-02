@@ -97,7 +97,6 @@ class TNativeState : public State
 {
 public:
    friend class TNativeTrack<t_ObjectClass>;
-    friend class TNativeTrackHelper<t_ObjectClass, true>;
 
     typedef void (t_ObjectClass::*state_function_pointer)(void);
     typedef TNativeState<t_ObjectClass> self_type;
@@ -123,6 +122,8 @@ public:
 
     }
     o_destructor ~TNativeState(void)     {}
+
+    virtual void deleteNow() { o_dynamic_proxy_delete(phantom::state::State, phantom::state::State::metaType, self_type) this; }
 
     virtual generic_member_func_ptr getEnterGenericMemberFunctionPointer() const 
     {
@@ -180,12 +181,12 @@ o_namespace_end(phantom, state, native)
 
 #undef TNativeState_smdataptr
 
-    o_traits_specialize_all_super_traitNTTS(
+    /*o_traits_specialize_all_super_traitNTS(
     (phantom,state,native)
     , (typename)
     , (t_Ty)
     , TNativeState
     , (State)
-    )
+    )*/
 
 #endif

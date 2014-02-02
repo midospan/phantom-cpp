@@ -47,6 +47,8 @@ class TConstant : public Constant
     o_static_assert(boost::is_arithmetic<t_Ty>::value OR boost::is_enum<t_Ty>::value);
 
     friend class PrimitiveType;
+
+    typedef TConstant<t_Ty> self_type;
     
 public:
     TConstant(const string& a_strName, t_Ty a_Value)
@@ -55,8 +57,13 @@ public:
     {
     }
     TConstant(t_Ty a_Value)
-     : m_Value(a_Value)
+     : Constant(boost::lexical_cast<string>(a_Value)) m_Value(a_Value)
     {
+    }
+
+    virtual void deleteNow() 
+    {
+        o_dynamic_proxy_delete(phantom::reflection::Constant, phantom::reflection::Constant::metaType, self_type) this;   
     }
 
 public:
@@ -65,10 +72,10 @@ public:
         *static_cast<t_Ty*>(dest) = m_Value;
     }
 
-    virtual boolean        equals(Object* a_pObject) const 
+    virtual boolean        equals(LanguageElement* a_pObject) const 
     {
-        if(NOT(phantom::is<Constant>(a_pObject))) return false;
-        Constant* pOther = static_cast<Constant*>(a_pObject);
+        Constant* pOther = a_pObject->asConstant();
+        if(pOther == nullptr) return false;
         Type* pThisType = getValueType();
         if(NOT(pOther->getValueType()->isConvertibleTo(pThisType))) return false;
         char scratch_buffer[1024];
@@ -86,12 +93,12 @@ protected:
 
 o_namespace_end(phantom, reflection, native)
 
-    o_traits_specialize_all_super_traitNTTS(
+    /*o_traits_specialize_all_super_traitNTS(
     (phantom,reflection,native)
     , (typename)
     , (t_Ty)
     , TConstant
     , (Constant)
-    )
+    )*/
 
 #endif

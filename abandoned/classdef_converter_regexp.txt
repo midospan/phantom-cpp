@@ -1,0 +1,13 @@
+/**** CLASSDEF -> HXX
+
+\#define[ ]*o_Namespace[ ]*{[a-zA-Z0-9_]+(\,[ ]*[a-zA-Z0-9_]+)*}[ ]*\n\#define[ ]*o_Name[ ]*{[a-zA-Z0-9_]+}[ ]*\n\#define[ ]*o_Super[ ]*{[a-zA-Z0-9_]+(\,[ ]*[a-zA-Z0-9_]+)*}[ ]*\n\#define[ ]*o_Export[ ]*[a-zA-Z0-9_]+[ ]*\n\#define[ ]*o_Guid[ ]*[0-9]*[ ]*\n\#define[ ]*o_Flags[ ]*{[a-zA-Z0-9_]*}
+
+/**** o_REGISTER -> o_REGISTERNTI
+
+\<{[\:\,\ a-zA-Z0-9_\*]*}\>
+
+
+/**** to print current __COUNTER__ value (not a regexp)
+#pragma message(__FILE__" "o_PP_QUOTE(__LINE__)" "o_PP_QUOTE(__COUNTER__))
+
+

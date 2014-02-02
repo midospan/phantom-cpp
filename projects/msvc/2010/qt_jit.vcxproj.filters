@@ -24,25 +24,16 @@
     <ClCompile Include="..\..\..\phantom\qt\jit\LocalVariableManager.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_LocalVariableManager.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_LocalVariableManager.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\jit\LocalVariableEditor.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_LocalVariableEditor.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_LocalVariableEditor.cpp">
-      <Filter>Generated Files\Release</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\jit\pch.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\jit\CallStackView.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\jit\qt_jit.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_CallStackView.cpp">
@@ -51,8 +42,17 @@
     <ClCompile Include="GeneratedFiles\Release\moc_CallStackView.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\jit\qt_jit.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="GeneratedFiles\Debug\moc_LocalVariableEditor.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_LocalVariableEditor.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_LocalVariableManager.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_LocalVariableManager.cpp">
+      <Filter>Generated Files\Release</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -63,6 +63,15 @@
       <Filter>src</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\phantom\qt\jit\CallStackView.h">
+      <Filter>src</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\jit\LocalVariableManager.hxx">
+      <Filter>src</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\jit\CallStackView.hxx">
+      <Filter>src</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\jit\LocalVariableEditor.hxx">
       <Filter>src</Filter>
     </CustomBuild>
   </ItemGroup>

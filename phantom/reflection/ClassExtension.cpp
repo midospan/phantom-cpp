@@ -33,13 +33,11 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "ClassExtension.h"
+#include <phantom/reflection/ClassExtension.h>
+#include <phantom/reflection/ClassExtension.hxx>
 /* *********************************************** */
-o_cpp_begin 
-        
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_registerN((phantom, reflection), ClassExtension);
+o_namespace_begin(phantom, reflection) 
 
 ClassExtension::ClassExtension() 
 : LanguageElement(o_CS("NoName"),bitfield())
@@ -49,7 +47,7 @@ ClassExtension::ClassExtension()
 
 o_initialize_cpp(ClassExtension)
 {
-    m_strName = getClass()->getName();
+    m_strName = rttiDataOf(this).object_class->getName();
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

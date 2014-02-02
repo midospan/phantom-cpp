@@ -33,13 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "StaticDataMember.h"
+#include <phantom/reflection/StaticDataMember.h>
+#include <phantom/reflection/StaticDataMember.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), StaticDataMember);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
+
+Class* const StaticDataMember::metaType = o_type_of(phantom::reflection::StaticDataMember);
 
 StaticDataMember::StaticDataMember( const string& a_strName, Type* a_pContentType, void* a_pStaticDataMemberAddress, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) 
 : StaticVariable(a_strName, a_pContentType, a_pStaticDataMemberAddress, a_pRange, a_Modifiers)
@@ -61,4 +62,4 @@ Class* StaticDataMember::getSortingCategoryClass() const
     return classOf<StaticDataMember>();
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

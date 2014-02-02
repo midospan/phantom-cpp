@@ -39,9 +39,10 @@
 /* ****************** Includes ******************* */
 #include <phantom/serialization/FileTreeDataBase.h>
 /* *********************************************** */
-/* The *.classdef.h file must be the last #include */
+/* The *.hxx file must be the last #include */
 #include "phantom/def_export.h"
 /* **************** Declarations ***************** */
+o_declareN(class, (phantom, serialization), XmlFileTreeDataBase);
 /* *********************************************** */
 
 o_namespace_begin(phantom, serialization)
@@ -62,14 +63,5 @@ public:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classNS((phantom, serialization), XmlFileTreeDataBase, (FileTreeDataBase))
-{
-    o_reflection 
-    {
-
-    };
-};
-o_exposeN((phantom, serialization), XmlFileTreeDataBase);
 
 #endif 

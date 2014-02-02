@@ -33,13 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "ConstReferenceType.h"
+#include <phantom/reflection/ConstReferenceType.h>
+#include <phantom/reflection/ConstReferenceType.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), ConstReferenceType);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
+
+o_define_meta_type(ConstReferenceType);
 
 Type* ConstReferenceType::createConstType() const
 {
@@ -51,4 +52,4 @@ ConstReferenceType::ConstReferenceType( ReferenceType* a_pType ) : ReferenceType
 
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

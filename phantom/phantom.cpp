@@ -33,6 +33,12 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
+
+
+#if o__int__reflection_template_use_level != 3
+#   include "def_phantom_deferred_reflection.inl"
+#endif
+
 #include <phantom/reflection/detail/element_finder_spirit.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
@@ -41,13 +47,21 @@
 #include <windows.h>
 #endif
 /* *********************************************** */
-o_registerN((phantom), data);
-o_registerN((phantom), object);
-//#if defined(o__bool__enable_bitfield_type)
-o_registerN((phantom), bitfield);
-//#endif
 
-o_begin_phantom_namespace() 
+#if o__int__reflection_template_use_level != 3
+#   include "phantom/phantom.hxx"
+#endif
+
+o_registerN((phantom, memory), malloc_free_allocator_for_boost)
+o_registerNT((phantom, memory), (typename, typename), (T, UserAllocator), malloc_free_allocator)
+
+o_registerN((phantom), object);
+
+o_declareN(class, (phantom), Module)
+o_declareN(class, (phantom, reflection), SourceFile)
+o_declareN(class, (phantom, reflection), Signature)
+
+o_namespace_begin(phantom) 
 
 #define element_finder_default element_finder_spirit
 
@@ -59,6 +73,7 @@ size_t                connection::emission_guard::object_destroyed_count = 0;
 connection::slot_pool::allocation_controller_map* connection::slot_pool::m_allocation_controller_map = 0;
 
 uint Phantom::m_uiSetupStep;
+phantom::reflection::Type* Phantom::m_type_of_string = nullptr;
 
 
 phantom::Phantom::EState                        Phantom::m_eState;
@@ -90,6 +105,8 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
     // We initialize and give reflection to objects created before Phantom
     // was setup (for instance, Native meta-types objects)
     dynamic_initializer()->installReflection();
+
+    m_type_of_string = typeByName("phantom::string");
 
     int i = 0;
     for(;i<metadatasize;++i)
@@ -139,8 +156,7 @@ Phantom::~Phantom()
 #endif
 }
 
-
-void    extension::detail::dynamic_delete_helper::operator>>(void* instance)
+void    extension::detail::dynamic_delete_function_helper::operator>>(void* instance)
 {
     const phantom::rtti_data& oi = phantom::rttiDataOf(instance);
     o_assert_not(oi.isNull());
@@ -153,22 +169,32 @@ void    extension::detail::dynamic_delete_helper::operator>>(void* instance)
 detail::dynamic_initializer_handle::dynamic_initializer_handle()
     : m_bActive(false)
     , m_bAutoRegistrationLocked(false)
+    , m_iCurrentInstallationStep(-1)
 {
+    memory::Statistics::m_Allocations = new std::map<void*, memory::Statistics::allocation_info>;
+    memory::Statistics::m_AllocationCount = 0 ;
+    memory::Statistics::m_TotalAllocationCount = 0 ;
+    memory::Statistics::m_AllocatedByteCount = 0 ;
+    memory::Statistics::m_TotalAllocatedByteCount = 0 ;
+    memory::Statistics::m_Locked = false;
+
     Phantom::m_rtti_data_map = o_allocate(Phantom::rtti_data_map);
     new (Phantom::m_rtti_data_map) Phantom::rtti_data_map; 
 
 	Phantom::m_elements = o_allocate(Phantom::element_container);
 	new (Phantom::m_elements) Phantom::element_container; 
 
+
     connection::slot_pool::m_allocation_controller_map= o_allocate(connection::slot_pool::allocation_controller_map);
     new (connection::slot_pool::m_allocation_controller_map) connection::slot_pool::allocation_controller_map; 
 
     Phantom::m_eState = Phantom::eState_NotInstalled;
     Phantom::m_typeOf_cycling_address_workaround_ptr = &Phantom::m_typeOf_cycling_address_workaround_ptr;
-    Phantom::m_pRootNamespace = o_new_alloc_and_construct_part(reflection::Namespace)(o_CS(o_root_namespace_name));
-    o_new_install_and_initialize_part(Phantom::m_pRootNamespace);
-        
-    uint i = 0;
+    Phantom::m_pRootNamespace = o_static_new_alloc_and_construct_part(reflection::Namespace)(o_CS(o_root_namespace_name));
+    o_static_new_install_and_initialize_part(Phantom::m_pRootNamespace);
+    
+    // Reserve space for registration steps infos
+    size_t i = 0;
     for(;i<32;++i)
     {
         m_DeferredSetupInfos.push_back(dynamic_initializer_module_installation_func_vector());
@@ -238,12 +264,17 @@ void Phantom::unregisterLanguageElement(phantom::reflection::LanguageElement* pE
 
 phantom::reflection::Type* typeByName( const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope ) 
 {
-    return as<phantom::reflection::Type*>(elementByName(a_strName, a_pRootScope));
+    const string & rootScopeName = a_pRootScope->getQualifiedDecoratedName();
+    phantom::reflection::Type* pType = Phantom::dynamic_initializer()->registeredTypeByName(rootScopeName.empty() ? a_strName : rootScopeName+"::"+a_strName);
+    if(pType) return pType;
+    reflection::LanguageElement* pElement = elementByName(a_strName, a_pRootScope);
+    return pElement ? pElement->asType() : nullptr;
 }
 
 phantom::reflection::Type* typeByNameCascade( const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope ) 
 {
-	return as<phantom::reflection::Type*>(elementByNameCascade(a_strName, reinterpret_cast<phantom::reflection::Namespace*>(a_pRootScope)));
+    reflection::LanguageElement* pElement = elementByNameCascade(a_strName, static_cast<phantom::reflection::Namespace*>(a_pRootScope));
+    return pElement ? pElement->asType() : nullptr;
 }
 
 phantom::reflection::LanguageElement* elementByName( const string& a_strName, phantom::reflection::LanguageElement* a_pRootElement )
@@ -292,13 +323,17 @@ phantom::reflection::LanguageElement*         elementByGuid(uint guid)
     return NULL;
 }
 
-void detail::dynamic_initializer_handle::registerType( phantom::reflection::Type* a_pType )
+void detail::dynamic_initializer_handle::registerType( const string& a_strQualifiedDecoratedName, phantom::reflection::Type* a_pType )
 {
+    o_assert(registeredTypeByName(a_strQualifiedDecoratedName) == nullptr, "type already registered, shouldn't happen, test is in type_of_counter to avoid that");
+    m_RegisteredTypes[a_strQualifiedDecoratedName] = a_pType;
     rootNamespace()->addType(a_pType);
 }
 
-void detail::dynamic_initializer_handle::registerType( const string& a_strNamespace, const string& a_strClassScope, phantom::reflection::Type* a_pType )
+void detail::dynamic_initializer_handle::registerType( const string& a_strQualifiedDecoratedName, const string& a_strNamespace, const string& a_strClassScope, phantom::reflection::Type* a_pType )
 {
+    o_assert(registeredTypeByName(a_strQualifiedDecoratedName) == nullptr, "type already registered, shouldn't happen, test is in type_of_counter to avoid that");
+    m_RegisteredTypes[a_strQualifiedDecoratedName] = a_pType;
     phantom::reflection::Namespace* pNamespace = parseNamespace(a_strNamespace);
     o_assert(pNamespace != NULL);    
     if(a_strClassScope.empty())
@@ -323,13 +358,14 @@ void detail::dynamic_initializer_handle::registerTemplate( reflection::Template*
     m_DeferredTemplates.push_back(a_pTemplate);
 }
 
-void detail::dynamic_initializer_handle::registerModule( module_installation_func setupFunc, uint a_uiSetupStepMask )
+void detail::dynamic_initializer_handle::registerModule( phantom::reflection::Type* a_pType, module_installation_func setupFunc, uint a_uiSetupStepMask )
 {
     o_assert(isActive());
+
     if(setupFunc == NULL) 
         return;
 
-    uint i = 0;
+    int i = 0;
     for(;i<32;++i)
     {
         if(o_mask_test(a_uiSetupStepMask, (0x1<<i)))
@@ -337,7 +373,7 @@ void detail::dynamic_initializer_handle::registerModule( module_installation_fun
             bool alreadyRegistered = false;
             for(auto it = m_DeferredSetupInfos[i].begin(); it != m_DeferredSetupInfos[i].end(); ++it)
             {
-                if(it->setupFunc == setupFunc)
+                if(it->setupFunc == setupFunc || it->type == a_pType)
                 {
                     alreadyRegistered = true;
                     break;
@@ -345,22 +381,23 @@ void detail::dynamic_initializer_handle::registerModule( module_installation_fun
             }
             if(NOT(alreadyRegistered))
             {
-                if(isAutoRegistrationLocked() || Phantom::getState() != Phantom::eState_Installed)
+                if((isAutoRegistrationLocked() || (Phantom::getState() != Phantom::eState_Installed)) && m_iCurrentInstallationStep < i )
                 {
-                    m_DeferredSetupInfos[i].push_back(dynamic_initializer_module_installation_func(setupFunc));
+                    m_DeferredSetupInfos[i].push_back(dynamic_initializer_module_installation_func(a_pType, setupFunc));
                 }
                 else
                 {
-                    setupFunc(i);
+                    setupFunc(a_pType, i);
                 }
             }
         }
     }
 }
 
-phantom::reflection::Namespace*            namespaceByName( const string& a_strNamespaceName )
+phantom::reflection::Namespace*            namespaceByName( const string& a_strNamespaceName, reflection::Namespace* a_pScopeNamespace )
 {
-    return as<phantom::reflection::Namespace*>(elementByName(a_strNamespaceName, rootNamespace()));
+    reflection::LanguageElement* pElement = elementByName(a_strNamespaceName, a_pScopeNamespace);
+    return pElement ? pElement->asNamespace() : nullptr;
 }
 
 phantom::reflection::Namespace*            namespaceByList( list<string>* a_pNamespaceNameAsStringList )
@@ -380,24 +417,32 @@ void detail::dynamic_initializer_handle::installReflection(const string& a_strNa
         pModule->addLanguageElement(*it);
     }
     m_DeferredTemplates.clear();
-    size_t i = 0;
-    for(;i<32;++i)
+    o_assert(m_iCurrentInstallationStep == -1);
+    m_iCurrentInstallationStep = 0;
+    for(;m_iCurrentInstallationStep<32;++m_iCurrentInstallationStep)
     {
-        dynamic_initializer_module_installation_func_vector& infos = m_DeferredSetupInfos[i]; 
+        dynamic_initializer_module_installation_func_vector& infos = m_DeferredSetupInfos[m_iCurrentInstallationStep]; 
         size_t j = 0;
         for(;j<infos.size(); ++j)
         {
-            infos[j].exec(i);
+            if(infos[j].type->getQualifiedDecoratedName().find("vector<char") != std::string::npos)
+            {
+                int c = 0;
+                ++c;
+            }
+            infos[j].exec(m_iCurrentInstallationStep);
         }
         infos.clear();
     }
     phantom::popModule();
+    m_RegisteredTypes.clear();
     pModule->checkCompleteness();
     
     if(a_strName == "")
     {
         Phantom::m_eState = Phantom::eState_Installed;
     }
+    m_iCurrentInstallationStep = -1;
 }
 
 void detail::dynamic_initializer_handle::uninstallReflection(const string& a_strName)
@@ -416,8 +461,7 @@ void detail::dynamic_initializer_handle::uninstallReflection(const string& a_str
 phantom::reflection::Class* classByName( const string& a_strQualifiedName, phantom::reflection::LanguageElement* a_pRootScope  ) 
 {
     reflection::LanguageElement* pElement = phantom::elementByName(a_strQualifiedName, a_pRootScope);
-    if(pElement) return pElement->asClass();
-    return NULL;
+    return pElement ? pElement->asClass() : nullptr;
 }
 
 phantom::reflection::PrimitiveType* primitiveTypeByName( const string& a_strName ) 
@@ -688,7 +732,7 @@ detail::dynamic_initializer_handle* Phantom::dynamic_initializer()
     static detail::dynamic_initializer_handle*    s_Singleton = NULL;
     if(s_Singleton == NULL)
     {
-        s_Singleton = o_allocate(detail::dynamic_initializer_handle);
+        s_Singleton = (detail::dynamic_initializer_handle*)malloc(sizeof(detail::dynamic_initializer_handle));
         new (s_Singleton) detail::dynamic_initializer_handle;
     }
     return s_Singleton;
@@ -1145,6 +1189,94 @@ detail::dynamic_initializer_template_registrer::dynamic_initializer_template_reg
     Phantom::dynamic_initializer()->setActive(false);
 }
 
-o_end_phantom_namespace()
+o_export phantom::reflection::Type* backupType( reflection::Type* a_pType )
+{
+    // TODO : make thread safe, at least ensure an assert if concurrency in debug mode
+    static vector<phantom::reflection::Type*> backupedTypes;
+    o_assert(a_pType);
+    if(a_pType != (reflection::Type*)0xffffffff) 
+    {
+        backupedTypes.push_back(a_pType);
+    }
+    else 
+    {
+        o_assert(backupedTypes.size());
+        a_pType = backupedTypes.back();
+        backupedTypes.pop_back();
+    }
+    return a_pType;
+}
 
-o_module("")
+o_export void* dynamicPoolAllocate( size_t s o_memory_stat_append_parameters )
+{
+    o_assert(s);
+#if o__bool__enable_allocation_statistics
+    phantom::memory::Statistics::RegisterBytes(s o_memory_stat_append_parameters_use);
+#endif
+    phantom::Phantom::dynamic_pool_type_map::iterator it = Phantom::m_DynamicPoolAllocators.find(s);
+    if(it != Phantom::m_DynamicPoolAllocators.end())
+    {
+        return it->second->ordered_malloc();
+    }
+    phantom::Phantom::dynamic_pool_type*    new_pool = o_allocate(phantom::Phantom::dynamic_pool_type);
+    new (new_pool) phantom::Phantom::dynamic_pool_type(s);
+    Phantom::m_DynamicPoolAllocators[s] = new_pool;
+    return new_pool->ordered_malloc();
+}
+
+o_export void* dynamicPoolAllocate( size_t s, size_t count o_memory_stat_append_parameters )
+{
+    o_assert(s);
+    o_assert(count);
+#if o__bool__enable_allocation_statistics
+    phantom::memory::Statistics::RegisterBytesN(s, count o_memory_stat_append_parameters_use);
+#endif
+    phantom::Phantom::dynamic_pool_type_map::iterator it = Phantom::m_DynamicPoolAllocators.find(s);
+    if(it != Phantom::m_DynamicPoolAllocators.end())
+    {
+        return it->second->ordered_malloc(count);
+    }
+    phantom::Phantom::dynamic_pool_type*    new_pool = o_allocate(phantom::Phantom::dynamic_pool_type);
+    new (new_pool) phantom::Phantom::dynamic_pool_type(s);
+    Phantom::m_DynamicPoolAllocators[s] = new_pool;
+    return new_pool->ordered_malloc(count);
+}
+
+o_export void dynamicPoolDeallocate( size_t s, void* a_pAddress o_memory_stat_append_parameters )
+{
+    o_assert(s);
+#if o__bool__enable_allocation_statistics
+    phantom::memory::Statistics::UnregisterBytes(s o_memory_stat_append_parameters_use);
+#endif
+    phantom::Phantom::dynamic_pool_type_map::iterator it = Phantom::m_DynamicPoolAllocators.find(s);
+    if(it != Phantom::m_DynamicPoolAllocators.end())
+    {
+        return it->second->ordered_free(a_pAddress);
+    }
+    phantom::Phantom::dynamic_pool_type*    new_pool = o_allocate(phantom::Phantom::dynamic_pool_type);
+    new (new_pool) phantom::Phantom::dynamic_pool_type(s);
+    Phantom::m_DynamicPoolAllocators[s] = new_pool;
+    new_pool->ordered_free(a_pAddress);
+}
+
+o_export void dynamicPoolDeallocate( size_t s, void* a_pAddress, size_t count o_memory_stat_append_parameters )
+{
+    o_assert(s);
+    o_assert(count);
+#if o__bool__enable_allocation_statistics
+    phantom::memory::Statistics::UnregisterBytesN(s, count o_memory_stat_append_parameters_use);
+#endif
+    phantom::Phantom::dynamic_pool_type_map::iterator it = Phantom::m_DynamicPoolAllocators.find(s);
+    if(it != Phantom::m_DynamicPoolAllocators.end())
+    {
+        return it->second->ordered_free(a_pAddress, count);
+    }
+    phantom::Phantom::dynamic_pool_type*    new_pool = o_allocate(phantom::Phantom::dynamic_pool_type);
+    new (new_pool) phantom::Phantom::dynamic_pool_type(s);
+    Phantom::m_DynamicPoolAllocators[s] = new_pool;
+    new_pool->ordered_free(a_pAddress, count);
+}
+
+o_namespace_end(phantom)
+
+    o_module("")

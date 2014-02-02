@@ -33,11 +33,13 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/Type.h>
+#include <phantom/reflection/Type.hxx>
+#include <phantom/reflection/DataPointerType.hxx>
+#include <phantom/reflection/ArrayType.hxx>
+#include <phantom/reflection/ReferenceType.hxx>
 /* *********************************************** */
-
-
+o_registerN((phantom, reflection), Type);
 o_enumNC((phantom,reflection),(Type),ERelation, (
           eRelation_None
         , eRelation_Equal
@@ -49,12 +51,9 @@ o_enumNC((phantom,reflection),(Type),ERelation, (
 
 o_registerNC((phantom,reflection),(Type),ERelation)
 
-o_cpp_begin 
+o_namespace_begin(phantom, reflection) 
 
-ReflectionCPP__________________________________________________________________________________
-o_signal(kindCreated, (void*))
-o_signal(kindDestroyed, (void*))
-__________________________________________________________________________________ReflectionCPP
+o_define_meta_type(Type);
 
 
 Type::Type( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) : TemplateElement(a_strName, a_Modifiers)
@@ -125,17 +124,17 @@ void Type::removeFromNamespace()
 
 DataPointerType* Type::createDataPointerType() const
 {
-    return o_new(DataPointerType)(const_cast<Type*>(this));
+    return o_static_new(DataPointerType)(const_cast<Type*>(this));
 }
 
 ArrayType* Type::createArrayType(size_t a_uiCount) const
 {
-    return o_new(ArrayType)(const_cast<Type*>(this), a_uiCount);
+    return o_static_new(ArrayType)(const_cast<Type*>(this), a_uiCount);
 }
 
 ReferenceType* Type::createReferenceType() const 
 {
-    return o_new(ReferenceType)(const_cast<Type*>(this));
+    return o_static_new(ReferenceType)(const_cast<Type*>(this));
 }
 
 void* Type::newInstance() const
@@ -165,7 +164,7 @@ void Type::addNestedTypedef( const string& a_strTypedef, Type* a_pType )
 {
     if(m_pNestedTypedefs == nullptr)
     {
-        m_pNestedTypedefs = o_default_new(nested_typedef_map);
+        m_pNestedTypedefs = new nested_typedef_map;
     }
     o_assert(m_pNestedTypedefs->find(a_strTypedef) == m_pNestedTypedefs->end(), "Typedef already registered");
     (*m_pNestedTypedefs)[a_strTypedef] = a_pType;
@@ -179,7 +178,7 @@ void Type::removeNestedTypedef( const string& a_strTypedef, Type* a_pType )
     m_pNestedTypedefs->erase(found);
     if(m_pNestedTypedefs->empty()) 
     {
-        o_default_delete(nested_typedef_map) m_pNestedTypedefs;
+        delete m_pNestedTypedefs;
         m_pNestedTypedefs = nullptr;
     }
 }
@@ -239,7 +238,7 @@ void Type::elementAdded(LanguageElement* a_pElement)
     {
         if(m_pNestedTypes == NULL)
         {
-            m_pNestedTypes = o_default_new(vector<Type*>);
+            m_pNestedTypes = new vector<Type*>;
         }
         o_assert(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), pType) == m_pNestedTypes->end(), "Type already added");
         m_pNestedTypes->push_back(pType);
@@ -259,7 +258,7 @@ void Type::elementRemoved(LanguageElement* a_pElement)
             m_pNestedTypes->erase(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), pType));
             if(m_pNestedTypes->size() == 0)
             {
-                o_default_delete(vector<Type*>) m_pNestedTypes;
+                delete m_pNestedTypes;
                 m_pNestedTypes = nullptr;
             }
         }
@@ -282,12 +281,39 @@ void                Type::fireKindDestroyed(void* a_pObject) const
 #endif
 
 
+
 #if o__bool__use_kind_creation_signal
-    o_signal_data_definition(kindCreated, void*)
+
+phantom::signal_t Type::kindCreated(void* a_pInstance) const
+{
+    phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_kindCreated.head();
+    while(pSlot)
+    {
+        phantom::connection::pair::push(this, pSlot);
+        void* args[] = { (void*)(&a_pInstance) };
+        pSlot->subroutine()->call( pSlot->receiver(), args );
+        pSlot = pSlot->next();
+        phantom::connection::pair::pop();
+    }
+    return phantom::signal_t();
+}
+
 #endif
 
 #if o__bool__use_kind_destruction_signal
-    o_signal_data_definition(kindDestroyed, void*)
+phantom::signal_t Type::kindDestroyed(void* a_pInstance) const
+{
+    phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_kindDestroyed.head();
+    while(pSlot)
+    {
+        phantom::connection::pair::push(this, pSlot);
+        void* args[] = { (void*)(&a_pInstance) };
+        pSlot->subroutine()->call( pSlot->receiver(), args );
+        pSlot = pSlot->next();
+        phantom::connection::pair::pop();
+    }
+    return phantom::signal_t();
+}
 #endif
 
     void Type::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const
@@ -726,6 +752,6 @@ void                Type::fireKindDestroyed(void* a_pObject) const
         TemplateElement::referencedElementRemoved(a_pElement);
     }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)
 
 

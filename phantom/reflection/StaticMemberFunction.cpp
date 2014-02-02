@@ -33,13 +33,15 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/StaticMemberFunction.h>
+#include <phantom/reflection/StaticMemberFunction.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), StaticMemberFunction);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
+
+Class* const StaticMemberFunction::metaType = o_type_of(phantom::reflection::StaticMemberFunction);
+
 
 StaticMemberFunction::StaticMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers /*= 0*/ )
 : Function(a_strName, a_pSignature, a_Modifiers )
@@ -51,4 +53,4 @@ Class* StaticMemberFunction::getSortingCategoryClass() const
     return classOf<StaticMemberFunction>();
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

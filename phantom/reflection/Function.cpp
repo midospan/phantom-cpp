@@ -33,14 +33,12 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/Function.h>
+#include <phantom/reflection/Function.hxx>
 /* *********************************************** */
+o_registerN((phantom, reflection), Function);
 
 
-o_cpp_begin 
+o_namespace_begin(phantom, reflection) 
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
-
-o_cpp_end
+o_namespace_end(phantom, reflection)

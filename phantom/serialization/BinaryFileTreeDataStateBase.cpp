@@ -37,8 +37,8 @@
 #include "phantom/serialization/BinaryFileTreeDataBase.h"
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
-/* ** The Class Header must be the last #include * */
 #include <phantom/serialization/BinaryFileTreeDataStateBase.h>
+#include <phantom/serialization/BinaryFileTreeDataStateBase.hxx>
 /* *********************************************** */
 o_registerN((phantom, serialization), BinaryFileTreeDataStateBase);
 

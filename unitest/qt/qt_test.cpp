@@ -5,6 +5,10 @@
 #include "phantom/qt/MessageDisplay.h" 
 #include "phantom/qt/DataTreeView.h"
 #include "phantom/math/math.h"
+#include "phantom/std/map.h"
+#include "phantom/std/map.hxx"
+#include "phantom/std/string.h"
+#include "phantom/std/vector.h"
 #include "phantom/serialization/XmlFileTreeDataBase.h"
 #include "phantom/serialization/Node.h"
 #include "phantom/util/MessageTree.h"
@@ -12,7 +16,13 @@
 #include "phantom/ModuleLoader.h"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include "phantom/std/vector.h"
+#include "phantom/std/vector.hxx"
 
+o_registerNTI((std), vector, (float));
+o_registerNTI((std), vector, (int));
+o_registerNTI((std), vector, (phantom::vector<std::vector<int>>));
+o_registerNTI((std), map, (phantom::string, phantom::string));
 
 class Test
 {
@@ -44,6 +54,8 @@ o_class(Test, o_public)
 {
     o_reflection 
     {
+        o_typedef(nested_vectors);
+        o_typedef(map);
         o_data_member(bool, mBool, o_no_range, o_public);
         o_data_member(char, mChar, o_no_range, o_public);
         o_data_member(unsigned char, mUChar, o_no_range, o_public);

@@ -8,7 +8,7 @@ o_namespace_begin(unitest)
 
 o_enter(StateMachineTest::A) {}
 o_update(StateMachineTest::A){}
-o_leave(StateMachineTest::A) { o_statemachine_post(this, StateMachineTest, CtoD); }
+o_leave(StateMachineTest::A) { o_statemachine_post(this, CtoD); }
 
 o_enter(StateMachineTest::B) {  }
 o_update(StateMachineTest::B) {}
@@ -16,9 +16,9 @@ o_leave(StateMachineTest::B) {}
 
 o_enter(StateMachineTest::C) {}
 o_update(StateMachineTest::C) {}
-o_leave(StateMachineTest::C) { o_statemachine_post(this, StateMachineTest, AtoB); }
+o_leave(StateMachineTest::C) { o_statemachine_post(this, AtoB); }
 
-o_enter(StateMachineTest::D) { o_statemachine_post(this, StateMachineTest, BtoA); }
+o_enter(StateMachineTest::D) { o_statemachine_post(this, BtoA); }
 o_update(StateMachineTest::D) {}
 o_leave(StateMachineTest::D) {}
 

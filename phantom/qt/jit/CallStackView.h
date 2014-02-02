@@ -5,7 +5,7 @@
 /* ****************** Includes ******************* */
 #include <QTreeWidget>
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, qt), CallStackView);
 /* *********************************************** */
 
 namespace phantom { namespace qt {
@@ -35,20 +35,7 @@ protected:
     int m_iCurrentCallIndex;
 };
 
-
 } // qt 
 } // phantom 
-
-
-o_classN((phantom, qt), CallStackView, o_no_copy)
-{
-	o_reflection
-	{
-        o_slot(void, activate, ());
-        o_slot(void, deactivate, ());
-	};
-};
-o_exposeN((phantom, qt), CallStackView);
-
 
 #endif // phantom_qt_CallStackView_h__

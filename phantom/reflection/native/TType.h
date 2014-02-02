@@ -6,12 +6,13 @@ o_namespace_begin(phantom, reflection)
 
 class MapValueIteratorVariable : public IteratorVariable
 {
-public:
+protected:
     MapValueIteratorVariable(void* a_pContainer, MapContainerClass* a_pContainerClass, const string& a_strName)
         : IteratorVariable(a_pContainer, a_pContainerClass, a_strName)
     {
 
     }
+public:
     virtual void getKeyValue(void* a_pDest) const = 0;
 
 };
@@ -47,6 +48,10 @@ template<typename t_It, typename t_ValueType>
 class TSequentialIteratorConstant : public IteratorConstant
 {
     template<typename t_Ty> friend class TSequentialContainerClass;
+
+    typedef TSequentialIteratorConstant<t_It, t_ValueType> self_type;
+
+    virtual void deleteNow() { o_proxy_delete(phantom::reflection::IteratorConstant, self_type) this; }
 public:
 
     TSequentialIteratorConstant(void const* a_pContainer, ContainerClass* a_pContainerClass, t_It iterator) 
@@ -84,6 +89,9 @@ class TSequentialIteratorVariable : public IteratorVariable
 {
     template<typename t_Ty> friend class TSequentialContainerClass;
 
+    typedef TSequentialIteratorVariable<t_It, t_ValueType> self_type;
+
+    virtual void deleteNow() { o_proxy_delete(phantom::reflection::IteratorVariable, self_type) this; }
 public:
     TSequentialIteratorVariable(void* a_pContainer, ContainerClass* a_pContainerClass, t_It iterator) 
         : IteratorVariable(a_pContainer, a_pContainerClass)
@@ -129,6 +137,8 @@ class TMapValueIteratorConstant : public IteratorConstant
     typedef TMapValueIteratorConstant<t_It, t_ValueType> self_type;
     template<typename t_Ty> friend class TMapContainerClass;
 
+    virtual void deleteNow() { o_proxy_delete(phantom::reflection::IteratorConstant, self_type) this; }
+
 public:
     TMapValueIteratorConstant(void const* a_pContainer, MapContainerClass* a_pContainerClass, t_It iterator) 
         : IteratorConstant(a_pContainer, a_pContainerClass, phantom::lexical_cast<string>(iterator->first))
@@ -165,7 +175,9 @@ class TMapValueIteratorVariable : public MapValueIteratorVariable
 {
     //o_static_assert(sizeof(t_It) != sizeof(t_It));
     typedef TMapValueIteratorVariable<t_It, t_KeyType, t_ValueType> self_type;
-    template<typename t_Ty> friend class TMapContainerClass;
+    template<typename t_Ty> friend class TMapContainerClass;    
+    
+    virtual void deleteNow() { o_proxy_delete(phantom::reflection::IteratorVariable, self_type) this; }
 
 public:
     TMapValueIteratorVariable(void* a_pContainer, MapContainerClass* a_pContainerClass, t_It iterator) 
@@ -213,6 +225,8 @@ class TSetIteratorConstant : public IteratorConstant
     typedef TSetIteratorConstant<t_It, t_ValueType> self_type;
     template<typename t_Ty> friend class TSetContainerClass;
 
+    virtual void deleteNow() { o_proxy_delete(phantom::reflection::IteratorConstant, self_type) this; }
+
 public:
     TSetIteratorConstant(void const* a_pContainer, SetContainerClass* a_pContainerClass, t_It iterator) 
         : IteratorConstant(a_pContainer, a_pContainerClass, phantom::lexical_cast<string>(*iterator))
@@ -250,6 +264,8 @@ class TSetIteratorVariable : public IteratorVariable
     //o_static_assert(sizeof(t_It) != sizeof(t_It));
     typedef TSetIteratorVariable<t_It, t_ValueType> self_type;
     template<typename t_Ty> friend class TSetContainerClass;
+
+    virtual void deleteNow() { o_proxy_delete(phantom::reflection::IteratorVariable, self_type) this; }
 
 public:
     TSetIteratorVariable(void* a_pContainer, SetContainerClass* a_pContainerClass, t_It iterator) 
@@ -303,8 +319,6 @@ public:
     TSequentialContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
         : SequentialContainerClass(typeOf<container_value_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
     {
-        typeOf<iterator_variable>();
-        typeOf<iterator_constant>();
     }
 
     virtual size_t     getCount(void const* a_pContainer) const 
@@ -326,13 +340,13 @@ public:
     virtual IteratorVariable*       begin(void* a_pContainer) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        return o_new(iterator_variable)(a_pContainer, const_cast<TSequentialContainerClass<t_Ty>*>(this), container->begin());
+        return o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TSequentialContainerClass<t_Ty>*>(this), container->begin());
     }
 
     virtual IteratorConstant*       begin(void const* a_pContainer) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
-        return o_new(iterator_constant)(a_pContainer, const_cast<TSequentialContainerClass<t_Ty>*>(this), container->begin());
+        return o_proxy_new(phantom::reflection::IteratorConstant, iterator_constant)(a_pContainer, const_cast<TSequentialContainerClass<t_Ty>*>(this), container->begin());
     }
 
     virtual void append(void* a_pContainer, void const* a_pValue) const 
@@ -349,7 +363,7 @@ public:
         container_iterator end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_new(iterator_variable)(a_pContainer, const_cast<TSequentialContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TSequentialContainerClass<t_Ty>*>(this), it));
         }
     }
 
@@ -360,7 +374,7 @@ public:
         container_const_iterator end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_new(iterator_constant)(a_pContainer, const_cast<TSequentialContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::IteratorConstant, iterator_constant)(a_pContainer, const_cast<TSequentialContainerClass<t_Ty>*>(this), it));
         }
     }
 
@@ -453,8 +467,7 @@ public:
         , typeOf<container_mapped_type>()
         , typeOf<container_value_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
     {
-        typeOf<iterator_variable>();
-        typeOf<iterator_constant>();
+
     }
     virtual size_t     getCount(void const* a_pContainer) const 
     { 
@@ -475,13 +488,13 @@ public:
     virtual IteratorVariable*       begin(void* a_pContainer) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        return o_new(iterator_variable)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), container->begin());
+        return o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), container->begin());
     }
 
     virtual IteratorConstant*       begin(void const* a_pContainer) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
-        return o_new(iterator_constant)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), container->begin());
+        return o_proxy_new(phantom::reflection::IteratorConstant, iterator_constant)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), container->begin());
     }
 
     virtual void           createIteratorVariables(void* a_pContainer, vector<IteratorVariable*>& out) const
@@ -491,7 +504,7 @@ public:
         container_iterator end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_new(iterator_variable)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), it));
         }
     }
     
@@ -502,7 +515,7 @@ public:
         container_const_iterator end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_new(iterator_constant)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::IteratorConstant, iterator_constant)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), it));
         }
     }
 
@@ -515,7 +528,7 @@ public:
         container_iterator end = container->upper_bound(*pLastKey);
         for(;it!=end;++it)
         {
-            out.push_back(o_new(iterator_variable)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), it));
         }
     }
 
@@ -671,8 +684,6 @@ public:
     TSetContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
         : SetContainerClass(typeOf<container_key_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
     {
-        typeOf<iterator_variable>();
-        typeOf<iterator_constant>();
     }
 
     virtual size_t     getCount(void const* a_pContainer) const 
@@ -694,13 +705,13 @@ public:
     virtual IteratorVariable*       begin(void* a_pContainer) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        return o_new(iterator_variable)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), container->begin());
+        return o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), container->begin());
     }
 
     virtual IteratorConstant*       begin(void const* a_pContainer) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
-        return o_new(iterator_constant)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), container->begin());
+        return o_proxy_new(phantom::reflection::IteratorConstant, iterator_constant)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), container->begin());
     }
 
     virtual void       createIteratorVariables(void* a_pContainer, vector<IteratorVariable*>& out) const
@@ -710,7 +721,7 @@ public:
         container_iterator end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_new(iterator_variable)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), it));
         }
     }
 
@@ -721,7 +732,7 @@ public:
         container_const_iterator end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_new(iterator_constant)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::IteratorConstant, iterator_constant)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), it));
         }
     }
 
@@ -734,7 +745,7 @@ public:
         container_iterator end = container->upper_bound(*pLastKey);
         for(;it!=end;++it)
         {
-            out.push_back(o_new(iterator_variable)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), it));
         }
     }
 
@@ -847,146 +858,21 @@ public:
     }
 };
 
-enum meta_type_id
-{
-    meta_pointer_type, // abstract// 1
-    meta_data_pointer_type,// 2
-    meta_function_pointer_type,// 3
-
-    meta_member_pointer_type, // abstract// 4
-    meta_attribute_pointer_type,// 5
-    meta_member_function_pointer_type,// 6
-
-    meta_reference_type,// 7
-
-    meta_fundamental_type,// 8
-    meta_arithmetic_type, // abstract// 9
-    meta_integral_type,// 10
-    meta_floating_point_type,// 11
-
-    meta_pod_struct, // 13
-    meta_class,// 14
-
-    meta_special, // 15
-
-    meta_enum, // 16
-
-    meta_array, // 17
-
-    meta_container, // 18
-
-    meta_todo,// 19
-};
-
-template<typename t_Ty, int t_id>
-struct ____meta_type_super_class_solver;
-
-#define x_specialize____meta_type_super_class_solver(_meta_type_id_,...)\
-    template<typename t_Ty>\
-struct ____meta_type_super_class_solver<t_Ty, _meta_type_id_>\
-{\
-    typedef __VA_ARGS__ type;\
-};
-
-template<typename t_Ty, bool t_is_map, bool t_is_set, bool t_is_sequential>
-struct _____super_container_class_selector_helper 
-{
-    typedef Class type;
-};
-
-template<typename t_Ty>
-struct _____super_container_class_selector_helper<t_Ty, true, false, false>
-{
-    typedef TMapContainerClass<t_Ty> type;
-};
-
-template<typename t_Ty>
-struct _____super_container_class_selector_helper<t_Ty, false, true, false>
-{
-    typedef TSetContainerClass<t_Ty> type;
-};
-
-template<typename t_Ty>
-struct _____super_container_class_selector_helper<t_Ty, false, false, true>
-{
-    typedef TSequentialContainerClass<t_Ty> type;
-};
-
-template<typename t_Ty>
-struct _____super_container_class_selector : public _____super_container_class_selector_helper<t_Ty, is_map_container<t_Ty>::value, is_set_container<t_Ty>::value, is_sequential_container<t_Ty>::value>
-{
-    o_static_assert(is_container<t_Ty>::value);
-};
-
-x_specialize____meta_type_super_class_solver(meta_pointer_type,phantom::reflection::PointerType)
-x_specialize____meta_type_super_class_solver(meta_data_pointer_type,phantom::reflection::DataPointerType)
-x_specialize____meta_type_super_class_solver(meta_function_pointer_type,phantom::reflection::Type)
-x_specialize____meta_type_super_class_solver(meta_member_pointer_type,phantom::reflection::Type)
-x_specialize____meta_type_super_class_solver(meta_attribute_pointer_type,phantom::reflection::Type)
-x_specialize____meta_type_super_class_solver(meta_member_function_pointer_type,phantom::reflection::Type)
-x_specialize____meta_type_super_class_solver(meta_reference_type,phantom::reflection::ReferenceType)
-x_specialize____meta_type_super_class_solver(meta_fundamental_type,phantom::reflection::PrimitiveType)
-x_specialize____meta_type_super_class_solver(meta_arithmetic_type,phantom::reflection::PrimitiveType)
-x_specialize____meta_type_super_class_solver(meta_floating_point_type,phantom::reflection::PrimitiveType)
-x_specialize____meta_type_super_class_solver(meta_integral_type,phantom::reflection::PrimitiveType)
-x_specialize____meta_type_super_class_solver(meta_pod_struct,phantom::reflection::PODStruct)
-x_specialize____meta_type_super_class_solver(meta_class,phantom::reflection::Class)
-x_specialize____meta_type_super_class_solver(meta_container, o_NESTED_TYPE _____super_container_class_selector<t_Ty>::type)
-x_specialize____meta_type_super_class_solver(meta_special,phantom::reflection::PrimitiveType)
-x_specialize____meta_type_super_class_solver(meta_enum,phantom::reflection::Enum)
-x_specialize____meta_type_super_class_solver(meta_todo,phantom::reflection::Type)
-x_specialize____meta_type_super_class_solver(meta_array,phantom::reflection::ArrayType)
-
-#undef x_specialize____meta_type_super_class_solver
-
-    template<typename t_Ty>
-struct ____meta_type_id_solver
-{
-    const static int value =
-        boost::is_array<t_Ty>::value
-        ? meta_array
-        : boost::is_enum<t_Ty>::value
-        ? meta_enum
-        : (boost::is_void<t_Ty>::value OR phantom::is_signal_t<t_Ty>::value)
-        ? meta_special
-        : ::boost::is_pointer<t_Ty>::value
-        ? ::boost::is_convertible<t_Ty, void*>::value
-        ? meta_data_pointer_type
-        : meta_function_pointer_type
-        : ::boost::is_floating_point<t_Ty>::value
-        ? meta_floating_point_type
-        : ::boost::is_integral<t_Ty>::value
-        ? meta_integral_type
-        : ::boost::is_member_function_pointer<t_Ty>::value
-        ? meta_member_function_pointer_type
-        : ::boost::is_member_object_pointer<t_Ty>::value
-        ? meta_attribute_pointer_type
-        : is_container<t_Ty>::value
-        ? meta_container
-        : ::boost::is_class<t_Ty>::value
-        ? meta_class
-        : ::boost::is_pod<t_Ty>::value
-        ? meta_pod_struct
-        : meta_todo;
-};
-
 template<typename t_Ty>
 class TType_;
 
 template<typename t_Ty>
 class TType_
-    : public ____meta_type_super_class_solver<
-                t_Ty
-                , ____meta_type_id_solver<t_Ty>::value
-            >::type
+    : public default_meta_class_type_of<t_Ty>::type
 {
 public:
     typedef int oversized_type[safe_size_of<t_Ty>::value <= o__uint__max_class_size ? 1 : -1];
     typedef TType_<t_Ty> self_type;
-    typedef o_NESTED_TYPE ____meta_type_super_class_solver<
-        t_Ty
-        , ____meta_type_id_solver<t_Ty>::value
-    >::type super_type;
+    typedef o_NESTED_TYPE default_meta_class_type_of<t_Ty>::type super_type;
+
+    typedef super_type proxy_type;
+
+    typedef t_Ty type;
 
     typedef Class recursive_meta_type_stop_type;
 
@@ -998,9 +884,11 @@ protected:
             , meta_specifiers<t_Ty>::value | (boost::is_abstract<t_Ty>::value * o_abstract)) {}
 
 public:
-    void* cast( Class* a_pTarget, void* a_pBase ) const
+    virtual void deleteNow()
     {
-        return phantom::object_dynamic_cast<t_Ty>::apply(a_pTarget, static_cast<t_Ty*>(a_pBase));
+        metaType->terminate(this);
+        metaType->uninstall(this);
+        o__t1_class__default_class_allocator(self_type)::deallocate(this);
     }
 
     virtual void valueFromString(const phantom::string & a_strIn, void * a_pDest) const
@@ -1029,6 +917,26 @@ public:
     {
         o_deallocate_n(static_cast<t_Ty*>(a_pChunk), a_uiCount, t_Ty);
     }
+
+#if o__bool__enable_allocation_statistics
+    virtual void* allocate(o_memory_stat_insert_parameters) const 
+    { 
+        return phantom::extension::allocator<t_Ty>::allocate(o_memory_stat_insert_parameters_use); 
+    }
+    virtual void* allocate(size_t a_uiCount o_memory_stat_append_parameters) const 
+    { 
+        return phantom::extension::allocator<t_Ty>::allocate(a_uiCount o_memory_stat_append_parameters_use);
+    }
+    virtual void deallocate(void* a_pAddress o_memory_stat_append_parameters) const 
+    { 
+        phantom::extension::allocator<t_Ty>::deallocate(static_cast<t_Ty*>(a_pAddress) o_memory_stat_append_parameters_use); 
+    }
+    virtual void deallocate(void* a_pAddress, size_t a_uiCount o_memory_stat_append_parameters) const 
+    { 
+        phantom::extension::allocator<t_Ty>::deallocate(static_cast<t_Ty*>(a_pAddress), a_uiCount o_memory_stat_append_parameters_use);
+    }
+#endif
+
     virtual void construct(void* a_pInstance ) const
     {
         phantom::extension::constructor<t_Ty>::construct(static_cast<t_Ty*>(a_pInstance));
@@ -1291,11 +1199,10 @@ public:
     }
     virtual Type*   createConstType() const
     {
-        return o_new(TConstType<self_type>)(
-            static_cast<self_type*>(
-            phantom::typeOf<t_Ty>()
-            )
-            );
+        TConstType<self_type>* pType = new (o__t1_class__default_class_allocator(TConstType<self_type>)::allocate()) TConstType<self_type>(const_cast<self_type*>(this));
+        metaType->install(pType);
+        metaType->initialize(pType);
+        return pType;
     }
 
     virtual PrimitiveType* asFundamentalType() const { return boost::is_fundamental<t_Ty>::value ? (PrimitiveType*)this : nullptr; }
@@ -1304,7 +1211,8 @@ public:
     virtual PrimitiveType* asFloatingPointType() const { return boost::is_floating_point<t_Ty>::value ? (PrimitiveType*)this : nullptr;; }
     virtual PrimitiveType* asSignalType() const { return phantom::is_signal_t<t_Ty>::value ? (PrimitiveType*)this : nullptr;; }
 
-    virtual string  getQualifiedDName() const { return qualifiedTypeNameOf<t_Ty>(); }
+
+    virtual string  getQualifiedName() const { return qualifiedTypeNameOf<t_Ty>(); }
     virtual string  getDecoratedName() const { return decoratedTypeNameOf<t_Ty>(); }
 
     virtual string  getQualifiedDecoratedName() const { return qualifiedDecoratedTypeNameOf<t_Ty>(); }
@@ -1363,11 +1271,20 @@ class TConstType : public t_MetaType
 {
 public:
     typedef TConstType<t_MetaType> self_type;
+
     TConstType(t_MetaType* a_pConstedType)
         : m_pConstedType(a_pConstedType)
     {
         t_MetaType::m_strName = a_pConstedType->getName() + " const";
     }
+
+    virtual void deleteNow()
+    {
+        metaType->terminate(this);
+        metaType->uninstall(this);
+        o__t1_class__default_class_allocator(self_type)::deallocate(this);
+    }
+    
     virtual bool            isConstType() const { return true; }
     virtual Type*           asConstType() const { return (Type*)this; }
     virtual Type*           removeConst() const { return m_pConstedType; }
@@ -1386,7 +1303,7 @@ protected:
 
 o_namespace_end(phantom, reflection, native)
 
-o_begin_phantom_namespace()
+o_namespace_begin(phantom)
 
 // ensure all are TType supers intermediates are considered as meta type
 template<typename t_Ty>
@@ -1416,54 +1333,50 @@ struct is_serializable<phantom::reflection::native::TType_<t_Ty> > : false_ {};
 template<typename t_Ty>
 struct is_serializable<phantom::reflection::native::TConstType<t_Ty> > : false_ {};
 
-o_end_phantom_namespace()
+o_namespace_end(phantom)
 
+o_namespace_begin(phantom, reflection, detail)
 
-    o_traits_specialize_all_super_traitNTTS((phantom,reflection,native),(typename),(t_MetaType),TConstType,(t_MetaType))
-    o_traits_specialize_all_super_traitNTTS((phantom,reflection,native),(typename),(t_Ty),TType_,(o_NESTED_TYPE ____meta_type_super_class_solver<t_Ty,____meta_type_id_solver<t_Ty>::value>::type))
-    o_traits_specialize_all_super_traitNTTS((phantom,reflection,native),(typename),(t_Ty),TType,(TType_<t_Ty>))
-    o_traits_specialize_all_super_traitNTTS((phantom,reflection,native),(typename),(t_Ty),TSequentialContainerClass,(SequentialContainerClass))
-    o_traits_specialize_all_super_traitNTTS((phantom,reflection,native),(typename),(t_Ty),TMapContainerClass,(MapContainerClass))
-    o_traits_specialize_all_super_traitNTTS((phantom,reflection,native),(typename),(t_Ty),TSetContainerClass,(SetContainerClass))
-
-    o_classNTS((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TMapValueIteratorConstant, (IteratorConstant))
+template<typename t_Ty, int t_counter>
+struct type_of_counter<native::TType<t_Ty>, t_counter>
+{
+    static native::TType<Class>* object()
     {
-        o_reflection {};
-    };
-    o_exposeNT((phantom,reflection,native),(typename,typename),(t_Ty, t_ValueType), TMapValueIteratorConstant);
+        return Class::metaType;
+    }
+};
 
-    o_classNS((phantom, reflection), MapValueIteratorVariable, (IteratorVariable))
-    {
-        o_reflection {};
-    };
-    o_exposeN((phantom,reflection), MapValueIteratorVariable);
+o_namespace_end(phantom, reflection, detail)
 
-    o_classNTS((phantom,reflection,native),(typename,typename,typename),(t_Ty, t_KeyType, t_ValueType), TMapValueIteratorVariable, (MapValueIteratorVariable))
-    {
-        o_reflection {};
-    };
-    o_exposeNT((phantom,reflection,native),(typename,typename,typename),(t_Ty, t_KeyType, t_ValueType), TMapValueIteratorVariable);
+o_namespace_begin(phantom, reflection)
 
-    o_classNTS((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialIteratorConstant, (IteratorConstant))
-    {
-        o_reflection {};
-    };
-    o_exposeNT((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialIteratorConstant);
-    
-    o_classNTS((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialIteratorVariable, (IteratorVariable))
-    {
-        o_reflection {};
-    };
-    o_exposeNT((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialIteratorVariable);
+template<typename t_Ty>
+struct meta_class_type_of<native::TType<t_Ty>>
+{
+    typedef native::TType<Class> type;
+};
 
-    o_classNTS((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSetIteratorConstant, (IteratorConstant))
-    {
-        o_reflection {};
-    };
-    o_exposeNT((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSetIteratorConstant);
+o_namespace_end(phantom, reflection)
 
-    o_classNTS((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSetIteratorVariable, (IteratorVariable))
-    {
-        o_reflection {};
-    };
-    o_exposeNT((phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSetIteratorVariable);
+    /*
+o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_MetaType),TConstType,(t_MetaType))
+o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TType_,(o_NESTED_TYPE default_meta_class_type_of<t_Ty,meta_class_type_id_of<t_Ty>::value>::type))
+o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TType,(TType_<t_Ty>))
+o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TSequentialContainerClass,(SequentialContainerClass))
+o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TMapContainerClass,(MapContainerClass))
+o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TSetContainerClass,(SetContainerClass))
+*//*
+
+o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty, t_ValueType), TMapValueIteratorConstant);
+
+o_declareN(class, (phantom,reflection), MapValueIteratorVariable);
+
+o_declareNT(class, (phantom,reflection,native),(typename,typename,typename),(t_Ty, t_KeyType, t_ValueType), TMapValueIteratorVariable);
+
+o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialIteratorConstant);
+
+o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialIteratorVariable);
+
+o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSetIteratorConstant);
+
+o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSetIteratorVariable);*/

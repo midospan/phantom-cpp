@@ -1,6 +1,8 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
+#include <phantom/reflection/Block.h>
+#include <phantom/reflection/Block.hxx>
+#include "LocalVariable.h"
 /* *********************************************** */
 o_registerN((phantom, reflection), Block);
 o_namespace_begin(phantom, reflection) 
@@ -20,12 +22,12 @@ Block::~Block()
     auto localVariablesCopy = m_LocalVariables;
 	for(auto it = localVariablesCopy.begin(); it != localVariablesCopy.end(); ++it)
 	{
-        o_dynamic_delete (*it);
+        (*it)->deleteNow();
     }
     auto childBlocksCopy = m_ChildBlocks;
     for(auto it = childBlocksCopy.begin(); it != childBlocksCopy.end(); ++it)
 	{
-		o_dynamic_delete (*it);
+		(*it)->deleteNow();
 	}
 }
 

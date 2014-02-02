@@ -36,6 +36,7 @@
 #include <boost/property_tree_custom/xml_parser.hpp>
 #include <phantom/serialization/BinaryPackageDataBase.h>
 #include <phantom/serialization/BinaryPackageNode.h>
+#include <phantom/serialization/BinaryPackageNode.hxx>
 /* *********************************************** */
 o_registerN((phantom, serialization), BinaryPackageNode);
 

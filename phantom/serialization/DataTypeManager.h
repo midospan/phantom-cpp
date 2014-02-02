@@ -5,7 +5,7 @@
 /* ****************** Includes ******************* */
 #include <phantom/phantom.h>
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, serialization), DataTypeManager)
 /* *********************************************** */
 
 o_namespace_begin(phantom, serialization)
@@ -44,14 +44,5 @@ protected:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classN((phantom, serialization), DataTypeManager)
-{
-	o_reflection
-	{
-		
-	};
-};
-o_exposeN((phantom, serialization), DataTypeManager);
 
 #endif

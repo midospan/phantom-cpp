@@ -18,6 +18,7 @@ class variant_generic_class
 
 o_namespace_end(phantom)
 
+
 o_classN((phantom), variant_generic_class)
 {
     o_reflection {};
@@ -132,7 +133,7 @@ public:
     variant(const char* a_Str) 
     {
         new (m_Buffer.dynamicBuffer = (byte*)o_malloc(sizeof(string))) string(a_Str);
-        m_pType = typeOf<string>();
+        m_pType = phantom::reflection::Types::get<string>();
     }
     variant(const variant& a_Other) 
         : m_pType(nullptr)
@@ -189,7 +190,7 @@ public:
             _release();
         }
         new (m_Buffer.dynamicBuffer = (byte*)o_malloc(sizeof(string))) string(a_Str);
-        m_pType = typeOf<string>();
+        m_pType = phantom::reflection::Types::get<string>();
         return *this;
     }
 
@@ -279,6 +280,7 @@ protected:
 };
 
 o_namespace_end(phantom)
+
 
 o_classN((phantom), variant)
 {

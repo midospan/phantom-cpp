@@ -36,21 +36,20 @@
 
 
 /* ****************** Includes ******************* */
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "InstanceDataMember.classdef.h"
+
 /* ************* Class Declarations ************** */
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 
 class o_export InstanceDataMember : public ValueMember, public DataMember
 {
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
-public:
 
+public:
+    static Class* const metaType;
+
+public:
     InstanceDataMember(const string& a_strName, Type* a_pContentType, Range* a_pRange, uint a_uiSerializationMask, bitfield a_uiModifiers = 0);
     o_destructor ~InstanceDataMember()
     {
@@ -82,9 +81,8 @@ protected:
     Type*    m_pContentType;
 
 };
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_InstanceDataMember_h__
-#include "InstanceDataMember.classdef.h"
+
 #endif

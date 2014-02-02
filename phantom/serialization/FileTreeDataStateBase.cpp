@@ -38,8 +38,8 @@
 #include <phantom/serialization/FileTreeNode.h>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
-/* ** The Class Header must be the last #include * */
 #include <phantom/serialization/FileTreeDataStateBase.h>
+#include <phantom/serialization/FileTreeDataStateBase.hxx>
 /* *********************************************** */
 o_registerN((phantom, serialization), FileTreeDataStateBase);
 

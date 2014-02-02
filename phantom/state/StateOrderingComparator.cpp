@@ -33,8 +33,8 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include "StateOrderingComparator.h"
+#include "StateOrderingComparator.hxx"
 /* *********************************************** */
 o_registerN((phantom, state), StateOrderingComparator);
 

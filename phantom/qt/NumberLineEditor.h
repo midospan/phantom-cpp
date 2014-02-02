@@ -8,6 +8,8 @@
 #include <QLineEdit.h>
 /* **************** Declarations ***************** */
 class QWidget;
+o_declareN(class, (phantom, qt), NumberLineEditor);
+o_declareNT(class, (phantom, qt), (typename), (Ty), TNumberLineEditor);
 /* *********************************************** */
 
 namespace phantom { namespace qt {
@@ -241,21 +243,5 @@ public:
 };
 
 }}
-
-o_classNS((phantom, qt), NumberLineEditor, (VariableWidgetEditor))
-{
-    o_reflection
-    {
-    };
-};
-o_exposeN((phantom, qt), NumberLineEditor);
-
-o_classNTS((phantom, qt), (typename), (t_Ty), TNumberLineEditor, (NumberLineEditor), o_no_copy)
-{
-    o_reflection
-    {
-    };
-};
-o_exposeNT((phantom, qt), (typename), (t_Ty), TNumberLineEditor);
 
 #endif // phantom_qt_NumberLineEditor_h__

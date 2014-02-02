@@ -4,20 +4,16 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "MapContainerClass.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
-
-class MapContainerClass : public ContainerClass
+class o_export MapContainerClass : public ContainerClass
 {
-    reflection_____________________________________________________________________
-    _____________________________________________________________________reflection
+    o_declare_meta_type(MapContainerClass);
 
 public:
     MapContainerClass(Type* a_pKeyType, Type* a_pMappedType, Type* a_pValueType, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
@@ -41,9 +37,8 @@ protected:
     Type* m_pMappedType;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else
-#include "MapContainerClass.classdef.h"
+
 #endif

@@ -35,25 +35,17 @@
 #define o_phantom_reflection_Type_h__
 
 /* ****************** Includes ******************* */
-
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Type.classdef.h"
+#include "TemplateElement.h"
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, Namespace)
-o_declare(class, phantom, reflection, Constructor)
-o_declare(class, phantom, reflection, PointerType)
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Type : public TemplateElement
 {
-    o_friend(class, phantom, Object)
-    o_friend(class, phantom, reflection, Namespace)
+    o_friend(class, phantom, reflection, Namespace);
 
-    reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________reflection
+    o_declare_meta_type(Type);
 
 public:
     typedef vector<Type*> type_container;
@@ -145,6 +137,13 @@ public:
     virtual void            deallocate(void* a_pAddress) const = 0;
     virtual void            deallocate(void* a_pAddress, size_t a_uiCount) const = 0;
 
+#if o__bool__enable_allocation_statistics
+    virtual void*           allocate(o_memory_stat_insert_parameters) const { return allocate(); }
+    virtual void*           allocate(size_t a_uiCount o_memory_stat_append_parameters) const { return allocate(a_uiCount); }
+    virtual void            deallocate(void* a_pAddress o_memory_stat_append_parameters) const { deallocate(a_pAddress); }
+    virtual void            deallocate(void* a_pAddress, size_t a_uiCount o_memory_stat_append_parameters) const { deallocate(a_pAddress, a_uiCount); }
+#endif
+
     /// Construction
     virtual void            construct(void* a_pBuffer) const = 0;
     virtual void            construct(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const = 0;
@@ -159,7 +158,19 @@ public:
     virtual void            unbuild(void* a_pBuffer) const { destroy(a_pBuffer); }
     virtual void            unbuild(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { destroy(a_pChunk, a_uiCount, a_uiChunkSectionSize); }
 
-    /// Build (Construction by default (+ installation + initialization for classes))
+    /// Installation (for classes but implemented in Type and empty to make it more generic
+    virtual void            install(void* a_pBuffer) const { }
+    virtual void            install(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) {}
+    virtual void            uninstall(void* a_pBuffer) const { }
+    virtual void            uninstall(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) {}
+
+    /// Initialization (for classes but implemented in Type and empty to make it more generic
+    virtual void            initialize(void* a_pBuffer) const { }
+    virtual void            initialize(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) {}
+    virtual void            terminate(void* a_pBuffer) const { }
+    virtual void            terminate(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) {}
+
+    /// Setup (Construction by default (+ installation + initialization for classes))
     virtual void            setup(void* a_pBuffer) const { construct(a_pBuffer); }
     virtual void            safeSetup(void* a_pBuffer) const  { safeConstruct(a_pBuffer); }
     virtual void            setup(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { construct(a_pChunk, a_uiCount, a_uiChunkSectionSize); }
@@ -215,7 +226,7 @@ public:
     virtual void            valueFromString(const string& a_str, void* dest) const = 0;
     virtual void            valueToString( string& s, const void* src) const = 0;
     virtual void            interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode = 0) const = 0;
-    virtual void            copy(void* a_pDest, void const* a_pSrc) const { o_exception(unsupported_member_function_exception, "not implemented yet"); }
+    virtual void            copy(void* a_pDest, void const* a_pSrc) const { o_exception(exception::unsupported_member_function_exception, "not implemented yet"); }
     virtual void            smartCopy(void* a_pDest, void const* a_pSource, reflection::Type* a_pSourceType) const;
 
     // Traits
@@ -379,9 +390,8 @@ private:
     static size_t NextBuildOrderValue() { static size_t s_NextBuildOrderValue = 0; return s_NextBuildOrderValue++; }
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_Type_h__
-#include "Type.classdef.h"
+
 #endif

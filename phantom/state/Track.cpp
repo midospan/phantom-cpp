@@ -34,13 +34,14 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <phantom/state/StateOrderingComparator.h>
-/* ** The Class Header must be the last #include * */
 #include "Track.h"
+#include "Track.hxx"
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, state), Track);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, state) 
+
+reflection::Class* const Track::metaType = o_type_of(phantom::state::Track);
 
 Track::~Track( void )
 {
@@ -55,8 +56,9 @@ void Track::addState( State* a_pState )
     getOwnerStateMachine()->registerState(a_pState);
 #ifdef _DEBUG
     // To be sure that we add the states in the order they are declared, if not, need to check the code design...
+    StateOrderingComparator comparator;
     vector<State*> debug_states = m_States;
-    std::sort(m_States.begin(),m_States.end(),StateOrderingComparator::std_adapter(StateOrderingComparator::Instance()));
+    std::sort(m_States.begin(),m_States.end(),StateOrderingComparator::std_adapter(&comparator));
     o_assert(debug_states == m_States);
 #endif
 }
@@ -130,4 +132,4 @@ int Track::getLevel() const
     : 0;
 }
 
-o_cpp_end
+o_namespace_end(phantom, state)

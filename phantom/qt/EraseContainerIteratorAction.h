@@ -12,8 +12,6 @@
 namespace phantom { namespace qt {
 
 
-
-
 } // qt 
 } // phantom 
 

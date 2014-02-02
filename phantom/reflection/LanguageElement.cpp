@@ -33,13 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/LanguageElement.h>
+#include <phantom/reflection/LanguageElement.hxx>
+#include <phantom/std/string.h>
+/* ** The Class Header must be the last #include * */
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), LanguageElement);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
 
 LanguageElement::LanguageElement()
     : m_uiGuid(0)
@@ -103,6 +104,7 @@ LanguageElement::~LanguageElement()
 
 void LanguageElement::terminate()
 {
+    o_assert(canBeDestroyed());
     if(m_pMetaData != nullptr)
     {
         size_t count = phantom::Phantom::m_instance->m_meta_data_names.size();
@@ -125,7 +127,7 @@ void LanguageElement::terminate()
     {
         LanguageElement* pElement = m_pElements->back();
         pElement->terminate();
-        o_dynamic_delete pElement;
+        pElement->deleteNow();
     }
     if(m_pModule)
     {
@@ -532,5 +534,10 @@ void LanguageElement::elementRemoved( LanguageElement* a_pElement )
     }
 }
 
+void LanguageElement::deleteNow()
+{
+    o_dynamic_delete this;
+}
 
-o_cpp_end
+
+o_namespace_end(phantom, reflection)

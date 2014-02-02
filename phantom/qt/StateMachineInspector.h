@@ -9,7 +9,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, qt), StateMachineInspector);
 /* *********************************************** */
 
 namespace phantom { namespace qt {
@@ -189,15 +189,6 @@ protected:
 
 } // qt 
 } // phantom 
-
-
-o_classN((phantom, qt), StateMachineInspector, o_no_copy)
-{
-	o_reflection
-	{
-  };
-};
-o_exposeN((phantom, qt), StateMachineInspector);
 
 
 #endif // phantom_qt_StateMachineInspector_h__

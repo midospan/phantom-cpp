@@ -33,14 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "Signal.h"
+#include <phantom/reflection/Signal.h>
+#include <phantom/reflection/Signal.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), Signal);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
 
+Class* const Signal::metaType = o_type_of(Signal);
 
 Signal::Signal( const string& a_strName, Signature* a_pSignature, bitfield a_uiModifiers /*= 0*/ ) 
 : InstanceMemberFunction(a_strName, a_pSignature, a_uiModifiers|o_slot_member_function)
@@ -67,6 +67,6 @@ void Signal::initializeLocalStorage( void* a_pLocalStorageAddress )
 
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)
 
 

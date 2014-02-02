@@ -33,13 +33,11 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "TemplateElement.h"
+#include <phantom/reflection/TemplateElement.h>
+#include <phantom/reflection/TemplateElement.hxx>
 /* *********************************************** */
-o_cpp_begin
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_registerN((phantom, reflection), TemplateElement);
+o_namespace_begin(phantom, reflection)
 
 TemplateElement::TemplateElement() 
 {
@@ -62,4 +60,4 @@ TemplateElement::~TemplateElement()
 {
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

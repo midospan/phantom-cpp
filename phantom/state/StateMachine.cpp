@@ -33,14 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include "StateMachine.h"
+#include "StateMachine.hxx"
 /* *********************************************** */
+o_registerN((phantom, state), StateMachine);
 
-o_cpp_begin 
+o_namespace_begin(phantom, state) 
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+reflection::Class* const StateMachine::metaType = o_type_of(phantom::state::StateMachine);
 
 StateMachine::StateMachine( bitfield a_Modifiers )
 : LanguageElement("", a_Modifiers)
@@ -145,4 +145,4 @@ void StateMachine::postRandomEvent( void* a_pObject, vector<uint>* eventIds /*= 
     }
 }
 
-o_cpp_end
+o_namespace_end(phantom, state)

@@ -1,4 +1,4 @@
-#include "phantom/phantom.h"
+#include "phantom/jit.h"
 #include "phantom/math/math.h"
 #include "def_jit.h"
 #include "def_jit_internal.h"

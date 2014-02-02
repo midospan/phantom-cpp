@@ -34,8 +34,8 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <phantom/serialization/FileTreeDataBase.h>
-/* ** The Class Header must be the last #include * */
 #include <phantom/serialization/FileTreeNode.h>
+#include <phantom/serialization/FileTreeNode.hxx>
 /* *********************************************** */
 o_registerN((phantom, serialization), FileTreeNode);
 

@@ -39,22 +39,18 @@
 
 /* ****************** Includes ******************* */
 #include "phantom/def_export.h"
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Comparator.classdef.h"
+
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom), Comparator)
 /* *********************************************** */
 
 
-o_h_begin
+o_namespace_begin(phantom)
 
 
-class o_export Comparator : public Object
+class o_export Comparator
 {
-public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+
 public:
 
     struct std_adapter
@@ -85,9 +81,8 @@ protected:
     
 };
 
-o_h_end
+o_namespace_end(phantom)
 
 
-#else // util_Comparator_h__
-#include "Comparator.classdef.h"
+
 #endif

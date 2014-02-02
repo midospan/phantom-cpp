@@ -26,14 +26,4 @@ protected slots:
 
 }}
 
-
-o_classN((phantom, qt), Action, o_no_copy)
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt), Action);
-
 #endif // o_qt_Action_h__

@@ -6,7 +6,7 @@
 #include <QComboBox>
 #include <phantom/qt/VariableWidgetEditor.h>
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, qt), EnumComboBoxEditor);
 /* *********************************************** */
 
 namespace phantom { namespace qt {
@@ -85,14 +85,5 @@ public:
 
 } // qt 
 } // phantom 
-
-o_classNS((phantom, qt), EnumComboBoxEditor, (VariableWidgetEditor))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt), EnumComboBoxEditor);
 
 #endif // phantom_qt_EnumComboBox_h__

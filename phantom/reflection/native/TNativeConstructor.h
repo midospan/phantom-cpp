@@ -40,7 +40,7 @@
 #include "Constructor.h"
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection, native)
 
 /* ************* t_Ty Declarations ************** */
 
@@ -62,7 +62,10 @@ public:
     }
     virtual boolean      isNative() const { return true; }
 
-    virtual void            deleteNow() { allocator<TNativeConstructor<t_Ty()>::instance::deallocate(this); }
+    virtual void            deleteNow() 
+    { 
+        o_proxy_delete(phantom::reflection::Constructor, self_type) this;
+    }
 
     virtual void            construct(void* a_pAddress, argument::list* a_pParams)
     {
@@ -112,7 +115,10 @@ public:
     {
     }
     virtual boolean         isNative() const { return true; }
-    virtual void            deleteNow() { allocator<TNativeConstructor<t_Ty(t_Param0)>::instance::deallocate(this); }
+    virtual void            deleteNow() 
+    { 
+        o_proxy_delete(phantom::reflection::Constructor, self_type) this;
+    }
     
     virtual void            construct(void* a_pAddress, argument::list* a_pParams)
     {
@@ -162,7 +168,10 @@ public:
     {
     }
     virtual boolean      isNative() const { return true; }
-    virtual void            deleteNow() { allocator<TNativeConstructor<t_Ty(t_Param0,t_Param1)>::instance::deallocate(this); }
+    virtual void            deleteNow() 
+    { 
+        o_proxy_delete(phantom::reflection::Constructor, self_type) this;
+    }
 
     virtual void            construct(void* a_pAddress, argument::list* a_pParams)
     {
@@ -205,6 +214,6 @@ public:
     }
 };
 
-o_h_end
+o_namespace_end(phantom, reflection, native)
 
 #endif // TConstructor_h__

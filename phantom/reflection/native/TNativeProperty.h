@@ -287,7 +287,7 @@ public:
 
     virtual void        deleteNow()
     {
-        o_delete(self_type) this;
+        o_proxy_delete(phantom::reflection::Property, self_type) this;
     }
 
     reflection::Type*   getValueType() const { return m_pValueType; }
@@ -316,13 +316,12 @@ public:
 };
 
 o_namespace_end(phantom, reflection, native)
-
-o_traits_specialize_all_super_traitNTTS(
+/*o_traits_specialize_all_super_traitNTS(
 (phantom,reflection,native)
 , (typename, typename)
 , (t_Ty, t_ContentType)
 , TNativeProperty
 , (Property)
-)
+)*/
 
 #endif // TNativeProperty_h__

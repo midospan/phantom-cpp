@@ -38,20 +38,18 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Property.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Property : public ValueMember
 {
+
 public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+    static Class* const metaType;
 
 public:
     Property(const string& a_strName
@@ -84,9 +82,8 @@ protected:
     InstanceMemberFunction* m_pGetMemberFunction;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_Property_h__
-#include "Property.classdef.h"
+
 #endif

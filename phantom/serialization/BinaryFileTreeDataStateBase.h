@@ -39,6 +39,7 @@
 /* ****************** Includes ******************* */
 #include <phantom/serialization/FileTreeDataStateBase.h>
 /* *********************************************** */
+o_declareN(class, (phantom, serialization), BinaryFileTreeDataStateBase);
 
 o_namespace_begin(phantom, serialization)
 
@@ -62,11 +63,5 @@ protected:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classNS((phantom, serialization), BinaryFileTreeDataStateBase, (FileTreeDataStateBase))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, serialization), BinaryFileTreeDataStateBase);
 
 #endif 

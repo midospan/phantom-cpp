@@ -33,17 +33,15 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/ValueMemberBinding.h>
+#include <phantom/reflection/ValueMemberBinding.hxx>
 /* *********************************************** */
+o_registerN((phantom, reflection), ValueMemberBinding);
 
-o_cpp_begin 
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
 
 ValueMemberBinding::ValueMemberBinding( void* a_pObject, ValueMember* a_pValueMember ) 
-    : Variable(a_pValueMember->getName(), a_pValueMember->getRange(), a_pValueMember->getModifiers())
+    : Variable(a_pValueMember->getName(), a_pValueMember->getRange() ? a_pValueMember->getRange()->clone() : nullptr, a_pValueMember->getModifiers())
     , m_pObject(nullptr)
     , m_pValueMember(a_pValueMember)
 {
@@ -56,9 +54,7 @@ ValueMemberBinding::ValueMemberBinding( void* a_pObject, ValueMember* a_pValueMe
     {
         m_pObject = a_pObject;
     }
-
-    
 }
 
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

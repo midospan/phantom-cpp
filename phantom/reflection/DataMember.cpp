@@ -33,13 +33,11 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/DataMember.h>
+#include <phantom/reflection/DataMember.hxx>
 /* *********************************************** */
-o_cpp_begin
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_registerN((phantom, reflection), DataMember);
+o_namespace_begin(phantom, reflection)
 
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

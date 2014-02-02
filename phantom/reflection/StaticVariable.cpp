@@ -33,13 +33,11 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "StaticVariable.h"
+#include <phantom/reflection/StaticVariable.h>
+#include <phantom/reflection/StaticVariable.hxx>
 /* *********************************************** */
-o_cpp_begin 
-
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_registerN((phantom, reflection), StaticVariable);
+o_namespace_begin(phantom, reflection) 
 
 StaticVariable::StaticVariable( const string& a_strName, Type* a_pContentType, void* a_pStaticVariableAddress, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) 
 : Variable(a_strName, a_pRange, a_Modifiers)
@@ -56,4 +54,4 @@ void StaticVariable::referencedElementRemoved( LanguageElement* a_pElement )
         m_pContentType = nullptr;
 }
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

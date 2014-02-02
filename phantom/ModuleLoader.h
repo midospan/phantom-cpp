@@ -4,11 +4,10 @@
 #define o_ModuleLoader_h__
 // #pragma message("Including "__FILE__)
 
-
 /* ****************** Includes ******************* */
 #include <phantom/phantom.h>
 /* **************** Declarations ***************** */
-o_declare(class, phantom, Module);
+o_declareN(class, (phantom), ModuleLoader);
 /* *********************************************** */
 o_namespace_begin(phantom)
 
@@ -67,23 +66,5 @@ protected:
 };
 
 o_namespace_end(phantom)
-
-o_classN((phantom), ModuleLoader)
-{
-    o_reflection
-    {
-        o_slot(void, moduleInstanciated, (void*));
-        o_slot(void, moduleDestroyed, (void*));
-        o_signal(libraryAboutToBeLoaded, (const string&));
-        o_signal(libraryLoaded, (const string&));
-        o_signal(libraryAboutToBeUnloaded, (const string&));
-        o_signal(libraryUnloaded, (const string&));
-        o_signal(libraryLoadFailed, (const string&));
-        o_signal(libraryUnloadFailed, (const string&));
-        o_signal(moduleLoaded, (Module*, size_t, size_t));
-        o_signal(moduleUnloaded, (Module*, size_t, size_t));
-    };
-};
-o_exposeN((phantom), ModuleLoader);
 
 #endif // o_ModuleLoaded_h__

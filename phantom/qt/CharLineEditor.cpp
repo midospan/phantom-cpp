@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
 #include "CharLineEditor.h"
+#include "CharLineEditor.hxx"
 #include <QtGui/QLineEdit>
 /* *********************************************** */
 o_registerN((phantom, qt), CharLineEditor);

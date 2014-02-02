@@ -90,7 +90,7 @@ public:
             static placeholder_type*    s_Instance = NULL;
             if(s_Instance == NULL)
             {
-                s_Instance = o_new(placeholder_type)(o_CS("Root"), 0, 0);
+                s_Instance = o_dynamic_proxy_new(phantom::state::Track, phantom::state::Track::metaType, placeholder_type)(o_CS("Root"), 0, 0);
                 TNativeStateMachine<t_ObjectClass>::Instance()->setRootTrack(s_Instance);
             }
             return s_Instance;
@@ -117,51 +117,6 @@ public:
 
 #define TNativeTrack_smdataptr(_object_) \
     ((phantom::state::native::state_machine_data<t_ObjectClass>*)(static_cast<root_object_class*>(static_cast<t_ObjectClass*>(_object_))->PHANTOM_CODEGEN_m_smdataptr))
-
-/*
-
-template <typename t_ObjectClass, bool t_has_statechart>
-class TNativeTrackHelper;
-template <typename t_ObjectClass>
-class TNativeTrackHelper <t_ObjectClass, false> : public Track
-{
-public:    
-    typedef TNativeState<t_ObjectClass>                    state_class;
-    typedef TNativeTrackHelper<t_ObjectClass, false>    self_type;
-    typedef t_ObjectClass                                object_class;
-    typedef TNativeStateMachine<t_ObjectClass>            statemachine_class;
-
-    friend class State;
-    friend class TNativeStateMachine<t_ObjectClass>;
-
-    TNativeTrackHelper( const string& a_strName
-        , bitfield bf = 0 )
-        : Track(a_strName
-        , statemachine_class::NextTrackIndex()
-        , bf)
-    {
-
-    }
-    TNativeTrackHelper( const string& a_strName
-        , uint a_iIndex
-        , bitfield bf = 0 )
-        : Track(a_strName
-        , a_iIndex
-        , bf)
-    {
-
-    }
-
-    o_static_assert(sizeof(t_ObjectClass) == 0);
-    o_destructor ~TNativeTrackHelper(void)     {}
-
-    phantom::state::State * getCurrentState(void *) const { o_exception(exception::reflection_runtime_exception, "class doesn't have an user defined state machine"); return NULL; }
-    phantom::state::State * getTransitState(void *) const { o_exception(exception::reflection_runtime_exception, "class doesn't have an user defined state machine"); return NULL; }
-    phantom::boolean        isActive(void *) const { o_exception(exception::reflection_runtime_exception, "class doesn't have an user defined state machine"); return false; }
-    void                    setCurrentState(void *,phantom::state::State *) const { o_exception(exception::reflection_runtime_exception, "class doesn't have an user defined state machine"); }
-    void                    setTransitState(void *,phantom::state::State *) const { o_exception(exception::reflection_runtime_exception, "class doesn't have an user defined state machine"); }
-};*/
-
 
 
 template <typename t_ObjectClass>
@@ -197,6 +152,8 @@ public:
     o_destructor ~TNativeTrack(void)     {}
 
     o_forceinline State*    parent_state() const { return static_cast<State*>(m_pParentState); }
+
+    virtual void deleteNow() { o_dynamic_proxy_delete(phantom::state::Track, phantom::state::Track::metaType, self_type) this; }
 
     void transit(instance_data* smdataptr, state_class* a_pNextState)
     {
@@ -283,12 +240,12 @@ public:
 
 o_namespace_end(phantom, state, native)
 
-    o_traits_specialize_all_super_traitNTTS(
+    /*o_traits_specialize_all_super_traitNTS(
     (phantom,state,native)
     , (typename)
     , (t_Ty)
     , TNativeTrack
     , (Track)
-    )
+    )*/
 
 #endif

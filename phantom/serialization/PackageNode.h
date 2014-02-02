@@ -38,14 +38,14 @@
 /* ****************** Includes ******************* */
 #include "phantom/serialization/Node.h"
 /* *********************************************** */
-/* The *.classdef.h file must be the last #include */
+/* The *.hxx file must be the last #include */
 #include "phantom/def_export.h"
 /* **************** Declarations ***************** */
-o_declare(class, phantom, serialization, PackageDataBase)
+o_fwd(class, phantom, serialization, PackageDataBase);
+o_declareN(class, (phantom, serialization), PackageNode);
 /* *********************************************** */
 
 o_namespace_begin(phantom, serialization)
-
 
 class o_export PackageNode : public Node
 {
@@ -58,14 +58,5 @@ public:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classNS((phantom, serialization), PackageNode, (Node))
-{
-    o_reflection 
-	{
-
-	};
-};
-o_exposeN((phantom, serialization), PackageNode);
 
 #endif // serialization_PackageNode_h__

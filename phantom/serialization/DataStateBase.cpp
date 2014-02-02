@@ -1,7 +1,7 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include "DataStateBase.h"
+#include "DataStateBase.hxx"
 /* *********************************************** */
 o_registerN((phantom, serialization), DataStateBase);
 

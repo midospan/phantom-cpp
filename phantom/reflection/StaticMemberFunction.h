@@ -38,19 +38,17 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "StaticMemberFunction.classdef.h"
+
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export StaticMemberFunction : public Function, public MemberFunction
 {
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
+    static Class* const metaType;
+
     StaticMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
     
     virtual void        call(void** args) const = 0;
@@ -71,9 +69,8 @@ protected:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_StaticMemberFunction_h__
-#include "StaticMemberFunction.classdef.h"
+
 #endif

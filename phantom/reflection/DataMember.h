@@ -36,19 +36,15 @@
 
 
 /* ****************** Includes ******************* */
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "DataMember.classdef.h"
+
 /* ************* Class Declarations ************** */
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 
 class o_export DataMember : public Member
 {
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
     virtual Range*              getRange() const = 0;
@@ -59,9 +55,8 @@ public:
     virtual InstanceDataMember* asInstanceDataMember() const  = 0;
     virtual StaticDataMember*   asStaticDataMember() const  = 0;
 };
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_DataMember_h__
-#include "DataMember.classdef.h"
+
 #endif

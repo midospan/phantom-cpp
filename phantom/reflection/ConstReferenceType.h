@@ -38,20 +38,16 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "ConstReferenceType.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export ConstReferenceType : public ReferenceType
 {
-public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+    o_declare_meta_type(ConstReferenceType);
 
 public:
     friend class Type;
@@ -68,9 +64,8 @@ public:
 
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // ConstReferenceType_h__
-#include "ConstReferenceType.classdef.h"
+
 #endif

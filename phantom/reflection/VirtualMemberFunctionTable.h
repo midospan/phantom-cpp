@@ -38,14 +38,11 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "VirtualMemberFunctionTable.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, MemberFunction)
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export VirtualMemberFunctionTable : public LanguageElement
 {
@@ -53,8 +50,6 @@ public:
 
     typedef phantom::vector<InstanceMemberFunction*> member_function_list;
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 public:
     VirtualMemberFunctionTable( Class* a_pBaseClass, member_function_list* a_MemberFunctionList );
     o_destructor ~VirtualMemberFunctionTable(void);
@@ -80,9 +75,8 @@ protected:
     
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_VirtualMemberFunctionTable_h__
-#include "VirtualMemberFunctionTable.classdef.h"
+
 #endif

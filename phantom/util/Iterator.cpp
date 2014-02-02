@@ -33,12 +33,11 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include "Iterator.h"
+#include "Iterator.hxx"
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom), Iterator);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom) 
 
-o_cpp_end
+o_namespace_end(phantom)

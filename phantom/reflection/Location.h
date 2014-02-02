@@ -6,7 +6,8 @@
 
 /* ****************** Includes ******************* */
 /* **************** Declarations ***************** */
-
+o_declareN(struct, (phantom, reflection), CodePosition);
+o_declareN(class, (phantom, reflection), CodeLocation);
 /* *********************************************** */
 
 

@@ -37,21 +37,17 @@
 
 
 /* ****************** Includes ******************* */
-
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "ArrayType.classdef.h"
+#include "Type.h"
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export ArrayType : public Type
 {
-public:
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
+    o_declare_meta_type(ArrayType);
+
 public:
     friend class Type;
 
@@ -228,9 +224,8 @@ protected:
     size_t      m_uiCount;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // ArrayType_h__
-#include "ArrayType.classdef.h"
+
 #endif

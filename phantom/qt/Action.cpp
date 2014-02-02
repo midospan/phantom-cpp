@@ -1,5 +1,6 @@
 #include <phantom/qt/qt.h>
 #include <phantom/qt/Action.h>
+#include <phantom/qt/Action.hxx>
 
 o_registerN((phantom, qt), Action);
  

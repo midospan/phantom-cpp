@@ -42,9 +42,6 @@
     <CustomBuild Include="..\..\..\phantom\qt\BoolCheckBoxEditor.h">
       <Filter>src</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\phantom\qt\EraseContainerIteratorAction.h">
-      <Filter>src</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\..\phantom\qt\qt.qrc">
       <Filter>src</Filter>
     </CustomBuild>
@@ -146,12 +143,6 @@
     <ClCompile Include="..\..\..\phantom\qt\VariableAction.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_VariableWidget.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_VariableWidget.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\VariableWidget.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -227,12 +218,63 @@
     <ClCompile Include="..\..\..\phantom\qt\DataComboBoxEditor.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_VariableWidget.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_VariableWidget.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\phantom\qt\qt.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\qt\CharLineEditor.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\StringLineEditor.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\VariableWidgetEditor.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\Action.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\BitFieldEditor.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\BoolCheckBoxEditor.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\CharLineEditor.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\DataTreeView.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\EnumComboBoxEditor.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\MessageDisplay.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ModuleExplorer.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\NumberLineEditor.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\StateMachineInspector.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\VariableManager.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\VariableEditor.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\VariableAction.hxx">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

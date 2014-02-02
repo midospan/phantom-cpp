@@ -39,7 +39,8 @@
 /* ****************** Includes ******************* */
 #include "phantom/util/TVisitor.h"
 /* **************** Declarations ***************** */
-o_declare(class, phantom, serialization, DataBase);
+o_fwd(class, phantom, serialization, DataBase);
+o_declareN(class, (phantom, serialization), Node)
 /* *********************************************** */
 o_namespace_begin(phantom, serialization)
 
@@ -165,9 +166,9 @@ public:
     void            fetchDataWhichDependsOnData(const phantom::data& a_Data, vector<data>& a_DataVector) const;
     void            fetchDataWhichDependsOnDataCascade(const phantom::data& a_Data, vector<data>& a_DataVector) const;
 
-    void            applyNodeVisitor(util::TVisitor<Node>* visitor);
+    void            applyNodeVisitor(TVisitor<Node>* visitor);
 
-    void            applyDataVisitor(util::TVisitor<data>* visitor);
+    void            applyDataVisitor(TVisitor<data>* visitor);
 
     void            destroyAllData();
     void            destroyAllDataCascade();
@@ -253,7 +254,7 @@ protected:
     void            internalRemoveData(const data& a_Data);
 
 protected:
-    o_signal_data_declaration(loaded);
+    o_signal_data(loaded);
     o_signal_data(aboutToBeUnloaded);
 
 protected:
@@ -303,15 +304,5 @@ protected:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classN((phantom, serialization), Node)
-{
-    o_reflection 
-    {
-        o_signal(loaded, ());
-        o_signal(aboutToBeUnloaded, ());
-    };
-};
-o_exposeN((phantom, serialization), Node);
 
 #endif // o_serialization_Node

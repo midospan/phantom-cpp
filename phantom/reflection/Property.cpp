@@ -33,13 +33,14 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "Property.h"
+#include <phantom/reflection/Property.h>
+#include <phantom/reflection/Property.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), Property);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
+
+Class* const Property::metaType = o_type_of(phantom::reflection::Property);
 
 Property::Property( const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pChangeNotificationSignal, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ ) 
     : ValueMember(a_strName, a_pRange, a_uiSerializationMask, a_Modifiers) 
@@ -74,5 +75,4 @@ void Property::referencedElementRemoved( LanguageElement* a_pElement )
         m_pSetMemberFunction = nullptr;
 }
 
-
-o_cpp_end
+o_namespace_end(phantom, reflection)

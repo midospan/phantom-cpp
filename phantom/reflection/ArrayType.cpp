@@ -33,13 +33,15 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "ArrayType.h"
+#include <phantom/reflection/ArrayType.h>
+#include <phantom/reflection/ArrayType.hxx>
+#include <phantom/reflection/ConstArrayType.h>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), ArrayType);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
+
+o_define_meta_type(ArrayType);
 
 ArrayType::ArrayType( Type* a_pStoredType, size_t a_uiCount ) : Type(a_pStoredType->getName()+'['+phantom::lexical_cast<string>(m_uiCount)+']'
 , a_uiCount*a_pStoredType->getSize(), a_pStoredType->getAlignment())    
@@ -93,4 +95,4 @@ void ArrayType::referencedElementRemoved( LanguageElement* a_pElement )
 }
 
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

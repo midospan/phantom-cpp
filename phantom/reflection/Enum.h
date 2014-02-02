@@ -38,18 +38,15 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Enum.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Enum : public PrimitiveType
 {
-    reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________reflection
+    o_declare_meta_type(Enum);
 
 public:
     Enum(); // anonymous enum;
@@ -90,7 +87,7 @@ protected:
     value_vector                           m_Constants;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 o_namespace_begin(phantom)
 
@@ -109,6 +106,5 @@ struct string_converter_helper<t_Ty, false, true>
 
 o_namespace_end(phantom)
 
-#else // o_phantom_reflection_Enum_h__ 
-#include "Enum.classdef.h"
+
 #endif

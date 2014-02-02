@@ -33,13 +33,13 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/Union.h>
+#include <phantom/reflection/Union.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), Union);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
 
+o_define_meta_type(Union);
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

@@ -35,8 +35,15 @@
 #include "phantom/phantom.h"
 /* ** The Class Header must be the last #include * */
 #include "RootClass.h"
+#if o__int__reflection_template_use_level != 3
+#include "RootClass.hxx"
+#endif
+#include "phantom/std/vector.hxx"
+#include "phantom/std/map.hxx"
 /* *********************************************** */
 o_registerN((unitest), RootClass);
+o_registerNTI((phantom), vector, (unitest::RootClass*));
+o_registerNTI((phantom), map, (int, unitest::RootClass*));
 
 o_namespace_begin(unitest)
 

@@ -1,6 +1,8 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
+#include "phantom/std/string.h"
 #include "StringLineEditor.h"
+#include "StringLineEditor.hxx"
 #include <QtGui/QLineEdit>
 /* *********************************************** */
 o_registerN((phantom, qt), StringLineEditor);

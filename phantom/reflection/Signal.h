@@ -38,12 +38,10 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/InstanceMemberFunction.h>
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Signal.classdef.h"
+
 /* ************* Class Declarations ************** */
 /* *********************************************** */
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Signal : public InstanceMemberFunction
 {
@@ -52,9 +50,8 @@ class o_export Signal : public InstanceMemberFunction
     friend o_export void internalConnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction );
     friend o_export void internalDisconnect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
     
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 public:
+    static Class* const metaType;
     /// To recognize signal signature via template arguments
     class return_type {};
 
@@ -101,8 +98,7 @@ protected:
 
 
 
-o_h_end
+o_namespace_end(phantom, reflection)
     
-#else // o_phantom_reflection_Signal_h__
-#include "Signal.classdef.h"
+
 #endif

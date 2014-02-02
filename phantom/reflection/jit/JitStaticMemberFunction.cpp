@@ -32,9 +32,10 @@
 */
 
 /* ******************* Includes ****************** */
-#include "phantom/phantom.h"
-#include "phantom/def_jit_internal.h"
+#include "phantom/jit.h"
 #include "JitStaticMemberFunction.h"
+#include "JitStaticMemberFunction.hxx"
+#include "phantom/def_jit_internal.h"
 #include "JitLocalVariable.h"
 #include "JitClass.h"
 /* *********************************************** */

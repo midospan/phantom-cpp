@@ -33,13 +33,16 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "ClassType.h"
+#include <phantom/reflection/ClassType.h>
+#include <phantom/reflection/ClassType.hxx>
+#include <phantom/variant.h>
+#include <phantom/reflection/ValueMember.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), ClassType);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection) 
+
+o_define_meta_type(ClassType);
 
 ClassType::ClassType( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
     : Type(a_strName, a_Modifiers)
@@ -133,7 +136,6 @@ void ClassType::valueToString( string& s, const void* src ) const
     member_const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
     if(it == end) 
         return;
-    byte scratch[phantom::max_type_size];
     s += '{';
     int c = 0;
     for(; it != end; ++it)
@@ -146,8 +148,10 @@ void ClassType::valueToString( string& s, const void* src ) const
         ValueMember* pValueMember = static_cast<ValueMember*>(it->second);
         s += pValueMember->getName();
         s += '=';
-        pValueMember->getValue(src, scratch);
-        pValueMember->getValueType()->valueToString(s, scratch);
+        void* buffer = pValueMember->getValueType()->newInstance();
+        pValueMember->getValue(src, buffer);
+        pValueMember->getValueType()->valueToString(s, buffer);
+        pValueMember->getValueType()->deleteInstance(buffer);
         ++c;
     }
     s += '}';
@@ -573,4 +577,4 @@ void ClassType::teardownMetaDataCascade( size_t count )
 
 
 
-o_cpp_end
+o_namespace_end(phantom, reflection)

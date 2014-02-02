@@ -38,7 +38,7 @@
 /* ****************** Includes ******************* */
 #include <phantom/serialization/PackageDataStateBase.h>
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, serialization), BinaryPackageDataStateBase)
 /* *********************************************** */
 
 o_namespace_begin(phantom, serialization)
@@ -64,14 +64,5 @@ protected:
 };
 
 o_namespace_end(phantom, serialization)
-
-o_classNS((phantom, serialization), BinaryPackageDataStateBase, (PackageDataStateBase))
-{
-    o_reflection
-	{
-
-	};
-};
-o_exposeN((phantom, serialization), BinaryPackageDataStateBase);
 
 #endif //serialization_BinaryPackageDataStateBase_h__

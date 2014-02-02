@@ -38,8 +38,8 @@
 #include <boost/property_tree_custom/xml_parser.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
-/* ** The Class Header must be the last #include * */
 #include <phantom/serialization/XmlFileTreeDataStateBase.h>
+#include <phantom/serialization/XmlFileTreeDataStateBase.hxx>
 /* *********************************************** */
 o_registerN((phantom, serialization), XmlFileTreeDataStateBase);
 

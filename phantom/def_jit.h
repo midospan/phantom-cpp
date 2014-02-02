@@ -1,23 +1,6 @@
 #ifndef o_phantom_def_jit
 #define o_phantom_def_jit
 
-#include <phantom/phantom.h>
-
-#if (o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS) && !defined(JIT_STATIC_LIB)
-#    ifdef _PHANTOM_JIT
-#        define o_jit_export __declspec(dllexport)
-#    else
-#       if defined( __MINGW32__ )
-#           define o_jit_export
-#       else
-#            define o_jit_export __declspec(dllimport)
-#       endif
-#    endif
-#else
-#    define o_jit_export
-#endif    // #if (o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS) && !defined(PHANTOM_STATIC_LIB)
-
-
 o_fwd(class, phantom, reflection, jit, JitClass);
 o_fwd(class, phantom, reflection, jit, JitEnum);
 o_fwd(class, phantom, reflection, jit, JitInstanceMemberFunction);
@@ -65,7 +48,20 @@ namespace phantom { namespace state         { namespace jit
 } 
 }
 
+
 o_namespace_begin(phantom, reflection, jit)
+
+class reflection_jit_exception : public exception::reflection_runtime_exception
+{
+public:
+    reflection_jit_exception(void) {}
+    reflection_jit_exception(const char * const & _What)
+        : reflection_runtime_exception(_What)
+    {
+
+    }
+
+};
 
 enum EJitAbi
 {
@@ -165,11 +161,5 @@ struct o_jit_export jit_value
 };
 
 o_namespace_end(phantom, reflection, jit)
-    
-o_classN((phantom, reflection, jit), jit_value)
-{
-    o_reflection {};
-};
-o_exposeN((phantom, reflection, jit), jit_value);
 
 #endif

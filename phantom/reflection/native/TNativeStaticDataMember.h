@@ -75,20 +75,19 @@ public:
 
     virtual void        deleteNow() 
     {
-        o_delete(self_type) this;
+        o_dynamic_proxy_delete(phantom::reflection::StaticDataMember, phantom::reflection::StaticDataMember::metaType, self_type) this;
     }
 
 };
 
 o_namespace_end(phantom, reflection, native)
 
-
-o_traits_specialize_all_super_traitNTTS(
+    /*o_traits_specialize_all_super_traitNTS(
 (phantom,reflection,native)
 , (typename, typename)
 , (t_Ty, t_ContentType)
 , TNativeStaticDataMember
 , (StaticDataMember)
-)
+)*/
 
 #endif // TNativeStaticDataMember_h__

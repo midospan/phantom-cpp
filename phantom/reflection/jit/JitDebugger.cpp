@@ -1,7 +1,8 @@
 /* ******************* Includes ****************** */
-#include "phantom/phantom.h"
-#include "phantom/def_jit_internal.h"
+#include "phantom/jit.h"
 #include "JitDebugger.h"
+#include "JitDebugger.hxx"
+#include "phantom/def_jit_internal.h"
 #include "hwbrk.h"
 /* *********************************************** */
 o_registerN((phantom, reflection, jit), JitDebugger);

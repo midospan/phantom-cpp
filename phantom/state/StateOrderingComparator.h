@@ -39,12 +39,11 @@
 /* ****************** Includes ******************* */
 #include <phantom/util/Comparator.h>
 /* **************** Declarations ***************** */
-o_declare(class, phantom, util, Comparator)
 /* *********************************************** */
 
 o_namespace_begin(phantom, state)
 
-class o_export StateOrderingComparator : public util::Comparator
+class o_export StateOrderingComparator : public Comparator
 {
 public:
     StateOrderingComparator(void)             {}
@@ -59,11 +58,5 @@ protected:
 };
 
 o_namespace_end(phantom, state)
-
-o_classNS((phantom, state), StateOrderingComparator, (util::Comparator))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, state), StateOrderingComparator);
 
 #endif

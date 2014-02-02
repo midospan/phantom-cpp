@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include "DataTypeManager.h"
+#include "DataTypeManager.hxx"
 /* *********************************************** */
 o_registerN((phantom, serialization), DataTypeManager);
 

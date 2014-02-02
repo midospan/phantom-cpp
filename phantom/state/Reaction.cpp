@@ -35,10 +35,10 @@
 #include "phantom/phantom.h"
 /* ** The Class Header must be the last #include * */
 #include "Reaction.h"
+#include "Reaction.hxx"
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, state), Reaction);
 
-ReflectionCPP__________________________________________________________________________________
-__________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, state) 
 
-o_cpp_end
+o_namespace_end(phantom, state)

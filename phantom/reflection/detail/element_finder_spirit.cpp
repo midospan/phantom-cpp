@@ -1,12 +1,13 @@
 
+#include "phantom/phantom.h"
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/adapted/struct.hpp>
+#include <boost/spirit/repository/include/qi_distinct.hpp>
 
-#include "phantom/phantom.h"
 #include "element_finder_spirit.h"
 
-
+using boost::spirit::repository::qi::distinct;
 
 o_namespace_begin(phantom, reflection, detail)
 
@@ -409,15 +410,16 @@ public:
     element_spirit_parser()
         : super_type(r_element)
     {
+#define qi_keyword distinct(qi::char_("a-zA-Z_0-9"))
         r_identifier %= 
              r_unsigned_type [ qi::_val = qi::_1 ]
             | r_signed_type [ qi::_val = qi::_1 ]
             | r_long_type [ qi::_val = qi::_1 ]
-            | ((lexeme[qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9")])-(lexeme["long"]|lexeme["unsigned"]|lexeme["signed"]|lexeme["const"]|lexeme["operator"]))
+            | ((lexeme[qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9")])-(qi_keyword["long"]|qi_keyword["unsigned"]|qi_keyword["signed"]|qi_keyword["const"]|qi_keyword["operator"]))
             ;
 
-        r_unsigned_keyword = qi::lit("unsigned") [qi::_val = "unsigned"];
-        r_operator_keyword = qi::lit("operator") [qi::_val = "operator"];
+        r_unsigned_keyword = qi_keyword["unsigned"] [qi::_val = "unsigned"];
+        r_operator_keyword = qi_keyword["operator"] [qi::_val = "operator"];
 
         r_operator =  qi::lit("==") [qi::_val = "=="]
                     | qi::lit("!=") [qi::_val = "!="]
@@ -435,8 +437,8 @@ public:
 
         r_operator_name = r_operator_keyword [qi::_val = qi::_1] >> r_operator [qi::_val = qi::_val + qi::_1];
 
-        r_long_keyword = qi::lit("long") [qi::_val = "long"];
-        r_signed_keyword = qi::lit("signed") [qi::_val = "signed"];
+        r_long_keyword = qi_keyword["long"] [qi::_val = "long"];
+        r_signed_keyword = qi_keyword["signed"] [qi::_val = "signed"];
         r_unsigned_type = r_unsigned_keyword [qi::_val = qi::_1] 
                         >> lexeme[(qi::char_("a-zA-Z_")[qi::_val = qi::_val + ' ' + qi::_1] 
                         >> *qi::char_("a-zA-Z_0-9")[qi::_val += qi::_1])]
@@ -456,7 +458,7 @@ public:
 
         r_type_qualifier %= (qi::char_('*')
                             |qi::char_('&')
-                            |lexeme["const"] [qi::_val = 'µ'] )
+                            |qi_keyword["const"] [qi::_val = 'µ'] )
                             ;
 
         r_template_element_list %= r_template_element //[ &append_template_element ]
@@ -468,7 +470,7 @@ public:
 
         r_template_specialization %= '<' >> r_template_element_list >> '>';
         r_function_signature %= '(' >> -r_type_list >> ')' ;
-        r_const_qualifier %= qi::lit("const") [qi::_val = o_const];
+        r_const_qualifier %= qi_keyword["const"] [qi::_val = o_const];
         r_type_list %= r_type //[ &append_type ]
                         % ',';
 

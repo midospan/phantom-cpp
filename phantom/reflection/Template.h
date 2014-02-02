@@ -38,14 +38,12 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Template.classdef.h"
+
 /* **************** Declarations ***************** */
-o_declare(class, phantom, reflection, Type)
+o_declareN(class, (phantom, reflection), Template);
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, reflection)
 
 class o_export Template : public LanguageElement
 {
@@ -54,8 +52,6 @@ class o_export Template : public LanguageElement
 
 public:
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 
 public:
     Template(const string& a_strName);
@@ -63,8 +59,8 @@ public:
 
     Namespace* getNamespace() const { return m_pOwner ? m_pOwner->asNamespace() : nullptr; }
 
-    std::vector<TemplateSpecialization*>::const_iterator beginSpecializations() const { return m_Specializations.begin(); }
-    std::vector<TemplateSpecialization*>::const_iterator endSpecializations() const { return m_Specializations.end(); }
+    vector<TemplateSpecialization*>::const_iterator beginSpecializations() const { return m_Specializations.begin(); }
+    vector<TemplateSpecialization*>::const_iterator endSpecializations() const { return m_Specializations.end(); }
 
 protected:
     virtual bool canBeDestroyed() const { return m_Specializations.empty(); }
@@ -73,13 +69,13 @@ protected:
     void registerSpecialization(TemplateSpecialization* a_pTemplateSpecialization) { m_Specializations.push_back(a_pTemplateSpecialization); }
     void unregisterSpecialization(TemplateSpecialization* a_pTemplateSpecialization) { m_Specializations.erase(std::find(m_Specializations.begin(), m_Specializations.end(), a_pTemplateSpecialization)); }
 
+
 protected:
-    std::vector<TemplateSpecialization*> m_Specializations;
+    vector<TemplateSpecialization*> m_Specializations;
 };
 
-o_h_end
+o_namespace_end(phantom, reflection)
 
 
-#else // o_phantom_reflection_InstanciableClass_h__ 
-#include "Template.classdef.h"
+
 #endif

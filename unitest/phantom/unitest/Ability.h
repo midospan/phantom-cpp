@@ -36,7 +36,7 @@
 
 /* ****************** Includes ******************* */
 /* **************** Declarations ***************** */
-o_declare(class, phantom, sc2, Unit);
+o_declareN(class, (sc2), Unit);
 /* *********************************************** */
 
 o_namespace_begin(sc2)

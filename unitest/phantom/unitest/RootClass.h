@@ -82,29 +82,17 @@ public:
     phantom::uint            m_uiInstanceDataMember;
     static RootClass*        m_pStaticDataMember;
     phantom::real            m_fMultAcc;
+    phantom::vector<RootClass*> m_SelfVector;
+    typedef phantom::map<int, RootClass*> self_map;
+    self_map m_SelfMap;
 };
 
 o_namespace_end(unitest)
 
-o_classN((unitest), RootClass)
-{
-    o_reflection 
-    {
-        o_member_function(int, instance_member_function, (int))
-        o_member_function(RootClass*, static_member_function, (), o_static)
-        o_slot(void, mult, (phantom::real))
-        o_member_function(int, get_member_function, ())
-        o_member_function(void, set_member_function, (int))
-        o_member_function(void, aVirtualMemberFunction, (), o_virtual)
-        o_signal(signal, (phantom::real))
-        o_property(int, property, set_member_function, get_member_function, o_no_signal, o_no_range, o_public)
-        o_data_member(phantom::uint, m_uiInstanceDataMember, o_no_range, o_protected)
-        o_data_member(RootClass*, m_pStaticDataMember, o_no_range, o_static)
-        o_member_function(void, const_tester_member_function,(), o_noconst)
-        o_member_function(void, const_tester_member_function,(), o_const)
-    };
-};
-o_exposeN((unitest), RootClass);
-
+#if o__int__reflection_template_use_level == 3
+#include "RootClass.hxx"
+#else 
+o_declareN(class, (unitest), RootClass);
+#endif
 
 #endif

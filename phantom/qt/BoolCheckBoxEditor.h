@@ -6,7 +6,7 @@
 #include <phantom/qt/VariableWidgetEditor.h>
 #include <qtpropertybrowserutils_p.h>
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, qt), BoolCheckBoxEditor);
 /* *********************************************** */
 
 namespace phantom { namespace qt {
@@ -54,14 +54,5 @@ signals:
 
 } // qt 
 } // phantom 
-
-o_classNS((phantom, qt), BoolCheckBoxEditor, (VariableWidgetEditor))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt), BoolCheckBoxEditor);
 
 #endif // phantom_qt_EnumComboBox_h__

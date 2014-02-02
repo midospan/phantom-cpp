@@ -37,14 +37,12 @@
 
 
 /* ****************** Includes ******************* */
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "StateMachine.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, state)
 
 class o_export StateMachine : public reflection::LanguageElement
 {
@@ -55,6 +53,9 @@ class o_export StateMachine : public reflection::LanguageElement
     friend class Track;
     friend class reflection::Class;
     friend class base_state_machine_data;
+
+public:
+    static reflection::Class* const metaType;
 
 public:
     enum
@@ -68,8 +69,6 @@ public:
         return StateMemberFunctionSignature();
     }
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 public:
 
     StateMachine(bitfield a_Modifiers = 0);
@@ -88,6 +87,8 @@ public:
     {
         postEvent(a_pObject, t_EventTy::Id());
     }
+    void            postEvent(void* a_pInstance, const string& a_strName) { postEvent(a_pInstance, getEventId(a_strName)); }
+
     virtual State*const* getTransitStates(void const* a_pInstance) const = 0;
     virtual State*const* getCurrentStates(void const* a_pInstance) const = 0;
     virtual State**      getTransitStates(void * a_pInstance) const = 0;
@@ -156,7 +157,7 @@ protected:
     uint                    m_uiTrackCount;
 };
 
-o_h_end
+o_namespace_end(phantom, state)
 
 #include "phantom/state/Track.h"
 #include "phantom/state/State.h"
@@ -187,6 +188,5 @@ phantom::state::State*          phantom::state::StateMachine::getTransitionState
     return nullptr;
 }
 
-#else // state_StateMachine_h__
-#include "StateMachine.classdef.h"
+
 #endif

@@ -7,6 +7,7 @@
 #include "QtTreePropertyBrowser.h"
 /* **************** Declarations ***************** */
 class QPushButton;
+o_declareN(class, (phantom, qt), VariableEditor);
 /* *********************************************** */
 
 namespace phantom { namespace qt {
@@ -101,15 +102,6 @@ protected:
 } // qt 
 } // phantom 
 
-
-o_classN((phantom, qt), VariableEditor, o_no_copy)
-{
-	o_reflection
-	{
-		
-	};
-};
-o_exposeN((phantom, qt), VariableEditor);
 
 
 #endif // phantom_qt_VariableEditor_h__

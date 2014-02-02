@@ -35,20 +35,13 @@
 #include "phantom/phantom.h"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
-/* ** The Class Header must be the last #include * */
 #include <phantom/reflection/Namespace.h>
+#include <phantom/reflection/Namespace.hxx>
+#include <phantom/reflection/Template.hxx>
 /* *********************************************** */
-o_cpp_begin 
+o_registerN((phantom, reflection), Namespace);
 
-ReflectionCPP__________________________________________________________________________________
-    o_signal(typeAdded, (Type*))
-    o_signal(typeRemoved, (Type*))
-    o_signal(templateAdded, (Template*))
-    o_signal(templateRemoved, (Template*))
-    o_signal(namespaceAdded, (Namespace*))
-    o_signal(namespaceRemoved, (Namespace*))
-__________________________________________________________________________________ReflectionCPP
-
+o_namespace_begin(phantom, reflection) 
 
 Namespace::Namespace( void ) 
 {
@@ -133,7 +126,7 @@ Namespace*        Namespace::findOrCreateNamespaceCascade(list<string>* a_Hierar
     Namespace* childNamespace = getNamespace(str);
     if(NOT(childNamespace)) 
     {
-        childNamespace = o_new(Namespace)(str);
+        childNamespace = o_static_new(Namespace)(str);
         addNamespace(childNamespace);
     }
     if(a_HierarchyWords->empty())
@@ -611,7 +604,7 @@ Template* Namespace::findOrCreateTemplate( const string& a_strName )
     Template* pTemplate = getTemplate(a_strName);
     if(pTemplate == nullptr)
     {
-        pTemplate = o_new(Template)(a_strName);
+        pTemplate = o_static_new(Template)(a_strName);
         addTemplate(pTemplate);
     }
     return pTemplate;
@@ -656,4 +649,4 @@ void Namespace::elementRemoved(LanguageElement* a_pElement)
         }
     }
 }
-o_cpp_end
+o_namespace_end(phantom, reflection)

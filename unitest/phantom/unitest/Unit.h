@@ -41,8 +41,8 @@
 #include "Ability.h"
 #include "phantom/util/TComposition.h"
 /* **************** Declarations ***************** */
-o_declare(class, sc2, RallyPoint)
-o_declare(class, sc2, Ability)
+o_declareN(class, (sc2), RallyPoint)
+o_declareN(class, (sc2), Ability)
 /* *********************************************** */
 
 o_namespace_begin(sc2)
@@ -174,50 +174,11 @@ protected:
 
 o_namespace_end(sc2)
 
-o_classNS((sc2), Unit, (GameEntity))
-{
-    o_reflection 
-    {
-        o_data_member(bool, m_bPatrolWay, o_no_range, o_protected);
-        o_data_member(int, m_iLifePoints, o_no_range, o_protected);
-        o_data_member(phantom::vector<Ability*>, m_Abilities, o_no_range, o_protected);
-        o_data_member(int, m_iInitialLifePoints, o_no_range, o_protected);
-        o_signal(abilityAdded, (Ability*));
-        o_signal(abilityRemoved, (Ability*));
-        o_collection(Ability*, abilities, addAbility, removeAbility, moveAbility, setAbility, getAbility, getAbilityCount);
-    };
-    o_statechart
-    {
-        o_track(Life, Spawned)
-        o_state(Alive, Life)
-        o_track(Motion, Alive)
-        o_state(Idle, Motion)
-        o_state(Move, Motion)
-        o_state(Patrol, Motion)
-        o_track(Attack, Alive)
-        o_state(Pacific, Attack)
-        o_state(Hit, Attack)
-        o_state(CoolDown, Attack)
-        o_track(Visibility, Alive)
-        o_state(Visible, Visibility)
-        o_state(Invisible, Visibility)
-        o_track(Control, Alive)
-        o_state(ControlOff, Control)
-        o_state(ControlOn, Control)
-        o_state(Dead, Life)
-
-        o_event(CoolDownFinished)
-        o_event(HitFinished)
-        o_transition(CoolDown, CoolDownFinished, Hit)
-        o_transition(Hit, HitFinished, CoolDown)
-    };
-};
-o_exposeN((sc2), Unit);
-
-o_static_assert(!phantom::has_initializer_member_function_initialize_declared<sc2::Unit>::value);
-o_static_assert(phantom::has_initializer_member_function_initialize<sc2::Unit>::value);
-o_static_assert(phantom::track_count_of<sc2::Unit>::value == 5);
-o_static_assert(phantom::track_count_cascade_of<sc2::Unit>::value == 6);
+#if o__int__reflection_template_use_level == 3
+#include "Unit.hxx"
+#else 
+    o_declareN(class, (sc2), Unit);
+#endif
 
 #endif
 

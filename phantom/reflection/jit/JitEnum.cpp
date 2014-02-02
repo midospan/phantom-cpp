@@ -32,9 +32,10 @@
 */
 
 /* ******************* Includes ****************** */
-#include "phantom/phantom.h"
-#include <phantom/def_jit.h>
+#include "phantom/jit.h"
 #include "JitEnum.h"
+#include "JitEnum.hxx"
+#include <phantom/def_jit.h>
 /* *********************************************** */
 o_registerN((phantom, reflection, jit), JitEnum);
 

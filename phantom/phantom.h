@@ -64,8 +64,6 @@
 #    define _DEBUG
 #endif
 
-// Ensure export in phantom(_d).dll when using o_export
-#include <phantom/_kernel.noclassdef.h>
 /* ******************* NEDMALLOC ****************** */
 #if o__bool__nedalloc
 #    include <phantom/memory/nedmalloc.h>
@@ -141,26 +139,26 @@
 /* ******************** PHANTOM ******************* */
 #include "phantom/def_macros.h"
 #include "phantom/def_alias.h"
-#include "phantom/_global.classdef.h"
 #include "phantom/def_export.h"
 #include "phantom/def_console.h"
 #include "phantom/def_memory.h"
 #include "phantom/def_types.h"
 #include "phantom/def_fwd.h"
+#include "phantom/def_counter.h"
 #include "phantom/def_traits.h"
 #include "phantom/def_container.h"
 
 
-o_begin_phantom_namespace()
+o_namespace_begin(phantom)
 
 namespace util {}
 
 namespace detail
 {
     class dynamic_initializer_handle;
-    template<typename t_Ty>
+    template<typename t_Ty, int t_counter>
     struct module_installer;
-    template<typename t_Ty>
+    template<typename t_Ty, int t_counter>
     struct module_installer_registrer;
     template<typename t_Ty, boolean t_is_reflected_class>
     struct is_helper;
@@ -178,35 +176,39 @@ namespace connection
 namespace reflection
 {
     template<typename> struct type_of;
-    template<typename> struct class_of;
     template<typename> struct meta_class_type_of;
-    template<typename> struct template_specialization_adder;
+    template<typename> struct default_meta_class_type_of;
+    template<typename, int t_counter> struct template_specialization_adder;
     template<typename> struct template_specialization_of;
     template<typename> struct typedef_registrer;
-
-    namespace detail
-    {
-        template<typename> struct type_name_of_helper_;
-        template<typename> struct root_pointed_type_of_;
-        template<typename> struct pointed_type_of_;
-    }
-
-    static phantom::reflection::Class*                 g_PHANTOM_RESERVED_class = 0;
-    static phantom::reflection::Namespace*             g_PHANTOM_RESERVED_namespace = 0;
-    static phantom::reflection::TemplateSpecialization*g_PHANTOM_RESERVED_template_specialization = 0;
+    template<typename> struct type_name_of;
 }
 
 template <typename t_Ty>
-o_forceinline o_NESTED_TYPE phantom::reflection::meta_class_type_of<t_Ty>::type* typeOf()
+o_forceinline o_NESTED_TYPE phantom::reflection::default_meta_class_type_of<t_Ty>::type* typeOf()
 {
-    return phantom::reflection::type_of<t_Ty>::object();
+    static o_NESTED_TYPE phantom::reflection::default_meta_class_type_of<t_Ty>::type* s_pInstance = nullptr;
+    if(s_pInstance == nullptr)
+    {
+        s_pInstance = static_cast<phantom::reflection::default_meta_class_type_of<t_Ty>::type*>(phantom::reflection::Types::get<t_Ty>());
+    }
+    return s_pInstance;
 }
 
+#define o_dynamic_type_of(...) phantom::typeByName(o_qualified_decorated_type_name_of(__VA_ARGS__))
+#define o_type_of(...) phantom::reflection::detail::type_of_counter<__VA_ARGS__, o_read_compilation_counter>::object()
+#define o_type_name_of(...) phantom::reflection::detail::type_name_of_counter<__VA_ARGS__, o_read_compilation_counter>::name()
+#define o_qualified_type_name_of(...) phantom::reflection::detail::type_name_of_counter<__VA_ARGS__, o_read_compilation_counter>::qualifiedName()
+#define o_decorated_type_name_of(...) phantom::reflection::detail::type_name_of_counter<__VA_ARGS__, o_read_compilation_counter>::decoratedName()
+#define o_qualified_decorated_type_name_of(...) phantom::reflection::detail::type_name_of_counter<__VA_ARGS__, o_read_compilation_counter>::qualifiedDecoratedName()
+#define o_namespace_of(...) phantom::namespaceByName(phantom::reflection::detail::type_name_of_counter<__VA_ARGS__, o_read_compilation_counter>::namespaceName())
+#define o_nesting_class_of(...) phantom::classByName(phantom::reflection::detail::type_name_of_counter<__VA_ARGS__, o_read_compilation_counter>::classScopeName())
+
 template<typename t_Ty>
-typename phantom::reflection::meta_class_type_of<t_Ty>::type*  classOf()
+typename o_NESTED_TYPE phantom::reflection::default_meta_class_type_of<t_Ty>::type*  classOf()
 {
     o_static_assert(boost::is_class<t_Ty>::value);
-    return phantom::reflection::type_of<t_Ty>::object();
+    return typeOf<t_Ty>(); 
 }
 
 // function forwarding
@@ -220,8 +222,6 @@ inline boolean                                          is(void*    in);
 
 template<typename t_Ty, typename t_ITy>
 inline t_Ty                                             as(t_ITy    in);
-template <typename t_Ty>
- o_NESTED_TYPE phantom::reflection::meta_class_type_of<t_Ty>::type* typeOf();
 template<typename t_Ty>
  phantom::reflection::ReferenceType*                    referenceTypeOf();
 template<typename t_Ty>
@@ -231,150 +231,101 @@ template<typename t_Ty>
 template<typename t_Ty>
  phantom::reflection::DataPointerType*                  pointerTypeOf();
 
- o_export phantom::reflection::Namespace*               namespaceByList( list<string>* a_pNamespaceNameAsStringList );
- o_export phantom::reflection::Namespace*               namespaceByName( const string& a_strNamespaceName );
- o_export inline phantom::reflection::Namespace*        rootNamespace();
- o_export inline phantom::reflection::SourceFile*       sourceFile(const string& a_strAbsoluteName);
- o_export inline void                                   discardSourceFile(phantom::reflection::SourceFile* a_pSourceFile);
- o_export phantom::reflection::Type*                    typeByName(const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
- o_export phantom::reflection::Type*					typeByNameCascade(const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ; 
- o_export string                                        encodeQualifiedDecoratedNameToIdentifierName(const string& a_strTypeName) ;
- o_export string                                        decodeQualifiedDecoratedNameFromIdentifierName(const string& a_strTypeName) ;
- o_export phantom::reflection::LanguageElement*         elementByName(const string& a_strName, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
- o_export void                                          elementsByClass(reflection::Class* a_pClass, vector<reflection::LanguageElement*>& out, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
- o_export phantom::reflection::LanguageElement*			elementByNameCascade(const string& a_strName, phantom::reflection::Namespace* a_pNamespace = rootNamespace());
- o_export phantom::reflection::Type*                    typeByGuid(uint guid) ;
- o_export phantom::reflection::LanguageElement*         elementByGuid(uint guid) ;
- template<typename t_Ty>
- o_forceinline    t_Ty*                                 elementByNameAs(const string& a_strName, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) { return as<t_Ty*>(elementByName(a_strName, a_pRootElement)); }
- o_export phantom::reflection::Class*                   classByName(const string& a_strQualifiedName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
+o_export inline phantom::reflection::Namespace*        rootNamespace();
+o_export phantom::reflection::Namespace*               namespaceByList( list<string>* a_pNamespaceNameAsStringList );
+o_export phantom::reflection::Namespace*               namespaceByName( const string& a_strNamespaceName, reflection::Namespace* a_pNamespaceScope = rootNamespace() );
+o_export inline phantom::reflection::SourceFile*       sourceFile(const string& a_strAbsoluteName);
+o_export inline void                                   discardSourceFile(phantom::reflection::SourceFile* a_pSourceFile);
+o_export phantom::reflection::Type*                    typeByName(const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
+o_export phantom::reflection::Type*					typeByNameCascade(const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ; 
+o_export string                                        encodeQualifiedDecoratedNameToIdentifierName(const string& a_strTypeName) ;
+o_export string                                        decodeQualifiedDecoratedNameFromIdentifierName(const string& a_strTypeName) ;
+o_export phantom::reflection::LanguageElement*         elementByName(const string& a_strName, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
+o_export void                                          elementsByClass(reflection::Class* a_pClass, vector<reflection::LanguageElement*>& out, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
+o_export phantom::reflection::LanguageElement*			elementByNameCascade(const string& a_strName, phantom::reflection::Namespace* a_pNamespace = rootNamespace());
+o_export phantom::reflection::Type*                    typeByGuid(uint guid) ;
+o_export phantom::reflection::LanguageElement*         elementByGuid(uint guid) ;
+template<typename t_Ty>
+o_forceinline    t_Ty*                                 elementByNameAs(const string& a_strName, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) { return as<t_Ty*>(elementByName(a_strName, a_pRootElement)); }
+o_export phantom::reflection::Class*                   classByName(const string& a_strQualifiedName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
 
- o_export void*                                         baseOf(void const* in);
- o_export phantom::reflection::Class*                   classOf(void const* in);
- o_export phantom::reflection::Class*                   classAt(void const* in);
- o_export const phantom::rtti_data&                     rttiDataOf(void const* in);
- o_export void                                          rttiLayoutOf(void const* in, vector<void*>& out);
- o_export void                                          dynamicDelete(void* in o_memory_stat_append_parameters);
- o_export inline void                                   addRttiData(void const* in, const rtti_data& data);
- o_export inline void                                   replaceRttiData(void const* in, const rtti_data& data);
- o_export inline void                                   removeRttiData(void const* in);
+o_export void*                                         baseOf(void const* in);
+o_export phantom::reflection::Class*                   classOf(void const* in);
+o_export phantom::reflection::Class*                   classAt(void const* in);
+o_export const phantom::rtti_data&                     rttiDataOf(void const* in);
+o_export void                                          rttiLayoutOf(void const* in, vector<void*>& out);
+o_export void                                          dynamicDelete(void* in o_memory_stat_append_parameters);
+o_export inline void                                   addRttiData(void const* in, const rtti_data& data);
+o_export inline void                                   replaceRttiData(void const* in, const rtti_data& data);
+o_export inline void                                   removeRttiData(void const* in);
 
- o_export void                                          assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const character* e, const character* m , const char* f , uint l);
- o_export void                                          warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
- o_export void                                          error BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
+o_export void                                          assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const character* e, const character* m , const char* f , uint l);
+o_export void                                          warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
+o_export void                                          error BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
 
- o_export size_t                                        currentThreadId();
- o_export void                                          yieldCurrentThread();
+o_export size_t                                        currentThreadId();
+o_export void                                          yieldCurrentThread();
 
- o_export void                                          installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle);
- o_export void                                          uninstallReflection(const string& a_strName);
+o_export void                                          installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle);
+o_export void                                          uninstallReflection(const string& a_strName);
 
- o_export void                                          pushModule(Module* a_pModule);
- o_export Module*                                       popModule();
- o_export Module*                                       currentModule();
- o_export Module*                                       moduleByName(const string& a_strName);
- o_export Module*                                       moduleByFileName(const string& a_strFileName);
- o_export map<string, Module*>::const_iterator          beginModules();
- o_export map<string, Module*>::const_iterator          endModules();
- o_export void                                          release();
+o_export void                                          pushModule(Module* a_pModule);
+o_export Module*                                       popModule();
+o_export Module*                                       currentModule();
+o_export Module*                                       moduleByName(const string& a_strName);
+o_export Module*                                       moduleByFileName(const string& a_strFileName);
+o_export map<string, Module*>::const_iterator          beginModules();
+o_export map<string, Module*>::const_iterator          endModules();
+o_export void                                          release();
 
-/**
- * \brief data stores a memory address with the reflection Type associated
- */
-class data
+o_export phantom::reflection::Type*                    backupType(phantom::reflection::Type* a_pType = (phantom::reflection::Type*)0xffffffff);
+
+o_namespace_end(phantom)
+
+    /* EXTENSION (allocator, constructor, installer, serializer, initializer,  ... to be continued) */
+
+    template<typename t_Ty>
+class phantom_proxy_generator__________;
+
+template<typename t_Ty, typename t_Proxy>
+class phantom_proxy_generator_base_____
 {
-public:
-    data() : m_address(0), m_type(0) {}
-    data(void* a_pAddress, reflection::Type* a_pType)
-        : m_address(a_pAddress)
-        , m_type(a_pType)
-    {
-
-    }
-    inline bool isNull() const { return m_address == NULL; }
-    template<typename t_Ty>
-    inline data(t_Ty* const a_address);
-
-    template<typename t_Ty>
-    inline data const& operator=(t_Ty* const a_address);
-
-    template<typename t_Ty>
-    inline t_Ty* as() const;
-
-    phantom::data       cast(reflection::Type* a_pTargetType) const;
-    void*               address() const { return m_address; }
-    reflection::Type*   type() const { return m_type; }
-    boolean             operator==(const phantom::data& a_Other) const
-    {
-        return a_Other.m_address == m_address AND a_Other.m_type == m_type;
-    }
-    boolean             operator!=(const phantom::data& a_Other) const
-    {
-        return a_Other.m_address != m_address OR a_Other.m_type != m_type;
-    }
-    boolean             operator<(const phantom::data& a_Other) const
-    {
-        return m_address == a_Other.m_address ? m_type < a_Other.m_type : m_address < a_Other.m_address;
-    }
-    inline void        destroy() ;
-
 protected:
-    void*              m_address;
-    reflection::Type*  m_type;
+    typedef t_Ty phantom_proxy_generator_reflection_self_type;
+    typedef t_Ty phantom_proxy_generator_statechart_self_type;
+    typedef t_Proxy phantom_proxy_generator_reflection_proxy_type;
+    typedef t_Proxy phantom_proxy_statechart_proxy_type;
+
+    int                                         m_PHANTOM_RESERVED_no_signal;
+    int                                         PHANTOM_CODEGEN_m_slot_list_of_m_PHANTOM_RESERVED_no_signal;
 };
+
+#include "phantom/def_exceptions.h"
+#include "phantom/def_connection.h"
+
+#include "phantom/def_extension.h"
+#include "phantom/def_allocate.h"
+#include "phantom/def_reflection.h"
+#include "phantom/def_statechart.h"
+#include "phantom/def_modules.h"
+#include "phantom/def_declare.h"
+#include "phantom/def_util.h"
+#include "phantom/def_math.h"
+
+#include "phantom/data.h"
+
+#include "phantom/def_serialization.h"
+
+o_namespace_begin(phantom)
 
 typedef data variable;
 typedef std::pair<data,data> data_pair;
 
-/**
-  * \brief object stores a memory address with the reflection ClassType associated
-  */
-class object
-{
-public:
-    object() : m_address(0), m_class_type(0) {}
-    object(void* a_pAddress, reflection::ClassType* a_pClassType)
-        : m_address(a_pAddress)
-        , m_class_type(a_pClassType)
-    {
+o_namespace_end(phantom)
 
-    }
-    template<typename t_Ty>
-    inline object(t_Ty* const a_address);
+#include <phantom/object.h>
 
-    template<typename t_Ty>
-    inline object& operator=(t_Ty* const a_address);
-
-    template<typename t_Ty>
-    inline t_Ty* as  ();
-
-    boolean isNull() const { return m_address == nullptr; }
-    void destroy();
-
-    operator data  ()
-    {
-        return data(m_address,(reflection::Type*)m_class_type);
-    }
-
-    boolean             operator==(const phantom::object& a_Other) const
-    {
-        return a_Other.m_address == m_address AND a_Other.m_class_type == m_class_type;
-    }
-
-    boolean             operator!=(const phantom::object& a_Other) const
-    {
-        return a_Other.m_address != m_address OR a_Other.m_class_type != m_class_type;
-    }
-
-    void*                   address() const { return m_address; }
-    reflection::ClassType*  classType() const { return m_class_type; }
-
-protected:
-    void*                   m_address;
-    reflection::ClassType*  m_class_type;
-};
-
-
+o_namespace_begin(phantom)
 /**
  * \struct rtti_data
  *
@@ -416,8 +367,8 @@ struct rtti_data
     inline void deleteNow(o_memory_stat_insert_parameters) const;
 
     o_forceinline void*   cast(reflection::Class* a_pTargetClass) const ;
-    o_forceinline phantom::data   data() const { return phantom::data(base,(reflection::Type*)object_class); }
-    o_forceinline phantom::data   object() const { return phantom::object(base,(reflection::ClassType*)object_class); }
+    o_forceinline phantom::data     data() const { return phantom::data(base,(reflection::Type*)object_class); }
+    o_forceinline phantom::object   object() const { return phantom::object(base,(reflection::ClassType*)object_class); }
 
     phantom::reflection::Class*     object_class;
     phantom::reflection::Class*     layout_class;
@@ -426,56 +377,8 @@ struct rtti_data
     dynamic_delete_func_t           dynamic_delete_func;
 };
 
-
-template<typename t_Ty>
-inline data::data(t_Ty* const a_address)
-{
-    const rtti_data& rd = rttiDataOf(a_address);
-    m_address = rd.base ? rd.base : a_address;
-    if(rd.object_class)
-        m_type = (phantom::reflection::Type*)rd.object_class ;
-    else
-        m_type = typeOf<t_Ty>();
-    o_assert(m_type, "t_Ty must have reflection");
-}
-
-
- template<typename t_Ty>
- inline data const& data::operator=(t_Ty* const a_address)
- {
-     const rtti_data& rd = rttiDataOf(a_address);
-     m_address = rd.base ? rd.base : a_address;
-     if(rd.object_class)
-         m_type = (phantom::reflection::Type*)rd.object_class ;
-     else
-         m_type = typeOf<t_Ty>();
-     return *this;
- }
-
-
- template<typename t_Ty>
- inline object::object(t_Ty* const a_address)
- {
-     // class
-     const rtti_data& rd = rttiDataOf(a_address);
-     m_address = rd.base ? rd.base : a_address;
-     if(rd.object_class)
-         m_class_type = (phantom::reflection::ClassType*)rd.object_class ;
-     else
-         m_class_type = typeOf<t_Ty>();
- }
-
- template<typename t_Ty>
- inline object& object::operator=(t_Ty* const a_address)
- {
-     const rtti_data& rd = rttiDataOf(a_address);
-     m_address = rd.base ? rd.base : a_address;
-     if(rd.object_class)
-         m_class_type = (phantom::reflection::ClassType*)rd.object_class ;
-     else
-         m_class_type = typeOf<t_Ty>();
-     return *this;
- }
+#include "data.inl"
+#include "object.inl"
 
  o_export inline const phantom::rtti_data&            rttiDataOf(void const* in);
  o_export inline void                                 rttiLayoutOf(void const* in, vector<void*>& out);
@@ -485,53 +388,54 @@ o_export void default_warning(const character* expression, const character* mess
 o_export void default_error(const character* expression, const character* message, const char* file, uint line);
 o_export void default_log(int level, const char* file, uint line, const char* message, va_list args);
 
+/*
 
-template<typename t_Ty>
+template<typename t_Ty, int t_counter>
 o_forceinline phantom::reflection::Type*        pointedTypeOf()
 {
-    return reflection::detail::pointed_type_of_<t_Ty>::object();
+    return reflection::detail::type_of<boost::remove_pointer<t_Ty>::type>::object();
 }
 
 template<typename t_Ty>
 o_forceinline phantom::reflection::Type*        rootPointedTypeOf()
 {
     return reflection::detail::root_pointed_type_of_<t_Ty>::object();
-}
+}*/
 
 template <typename t_Ty>
 o_forceinline string                            decoratedTypeNameOf()
 {
-    return reflection::detail::type_name_of_helper_<t_Ty>::decoratedName();
+    return phantom::reflection::detail::type_name_of_counter<t_Ty, o_read_compilation_counter>::decoratedName();
 }
 
 template <typename t_Ty>
 o_forceinline string                            typeNameOf()
 {
-    return reflection::detail::type_name_of_helper_<t_Ty>::name();
+    return phantom::reflection::detail::type_name_of_counter<t_Ty, o_read_compilation_counter>::name();
 }
 
 template <typename t_Ty>
 o_forceinline string                            qualifiedTypeNameOf()
 {
-    return reflection::detail::type_name_of_helper_<t_Ty>::qualifiedName();
+    return phantom::reflection::detail::type_name_of_counter<t_Ty, o_read_compilation_counter>::qualifiedName();
 }
 
 template <typename t_Ty>
 o_forceinline string                            qualifiedDecoratedTypeNameOf()
 {
-    return reflection::detail::type_name_of_helper_<t_Ty>::qualifiedDecoratedName();
+    return phantom::reflection::detail::type_name_of_counter<t_Ty, o_read_compilation_counter>::qualifiedDecoratedName();
 }
 
 template <typename t_Ty>
 o_forceinline const char*                       namespaceNameOf()
 {
-    return reflection::detail::type_name_of_helper_<t_Ty>::namespaceName();
+    return phantom::reflection::detail::type_name_of_counter<t_Ty, o_read_compilation_counter>::namespaceName();
 }
 
 template <typename t_Ty>
 o_forceinline const char*                       classScopeNameOf()
 {
-    return reflection::detail::type_name_of_helper_<t_Ty>::classScopeName();
+    return phantom::reflection::detail::type_name_of_counter<t_Ty, o_read_compilation_counter>::classScopeName();
 }
 
 template <typename t_Ty>
@@ -573,284 +477,10 @@ o_export void       error BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, 
 o_export void       log BOOST_PREVENT_MACRO_SUBSTITUTION (int level, const char* file, uint line, const char* message, ...);
 
 
-o_end_phantom_namespace()
-
-/* EXTENSION (allocator, constructor, installer, serializer, initializer,  ... to be continued) */
-
-template<typename t_Ty>
-class phantom_proxy_generator__________;
-
-template<typename t_Ty, typename t_Proxy>
-class phantom_proxy_generator_base_____
-{
-protected:
-    typedef t_Ty phantom_proxy_generator_reflection_self_type;
-    typedef t_Ty phantom_proxy_generator_statechart_self_type;
-    typedef t_Proxy phantom_proxy_generator_reflection_proxy_type;
-    typedef t_Proxy phantom_proxy_statechart_proxy_type;
-
-    int                                         m_PHANTOM_RESERVED_no_signal;
-    int                                         PHANTOM_CODEGEN_m_slot_list_of_m_PHANTOM_RESERVED_no_signal;
-};
-
-namespace phantom {
-    namespace state {
-        namespace native {
-            template <typename t_Ty>            class state_machine_data;
-        }
-        class base_state_machine_data;
-    }
-    namespace serialization {
-        class data_guid_base;
-    }
-    using serialization::data_guid_base;
-}
-
-#include "phantom/def_connection.h"
-#include "phantom/def_serialization.h"
-#include "phantom/def_extension.h"
-
-o_namespace_begin(phantom)
-
-#define o_allocate(...) phantom::allocate<__VA_ARGS__>(o_memory_stat_insert_arguments)
-#define o_allocate_n(n, ...) phantom::allocate<__VA_ARGS__>(n o_memory_stat_append_arguments)
-#define o_deallocate(exp,  ...) phantom::deallocate<__VA_ARGS__>(exp o_memory_stat_append_arguments)
-#define o_deallocate_n(exp, n, ...) phantom::deallocate<__VA_ARGS__>(exp, n o_memory_stat_append_arguments)
-
-#define o_dynamic_pool_allocate(s) phantom::dynamicPoolAllocate(s o_memory_stat_append_arguments)
-#define o_dynamic_pool_allocate_n(n, s) phantom::dynamicPoolAllocate(s, n  o_memory_stat_append_arguments)
-#define o_dynamic_pool_deallocate(exp, s) phantom::dynamicPoolDeallocate(s, exp o_memory_stat_append_arguments)
-#define o_dynamic_pool_deallocate_n(exp, n, s) phantom::dynamicPoolDeallocate(s, exp, n o_memory_stat_append_arguments)
-
-template<typename t_Ty>
-inline t_Ty* allocate(o_memory_stat_insert_parameters)
-{
-    return phantom::extension::allocator<t_Ty>::allocate(o_memory_stat_insert_parameters_use);
-}
-
-template<typename t_Ty>
-inline void deallocate(t_Ty* ptr o_memory_stat_append_parameters)
-{
-    return phantom::extension::allocator<t_Ty>::deallocate(ptr o_memory_stat_append_parameters_use);
-}
-
-template<typename t_Ty>
-t_Ty* allocate(size_t n o_memory_stat_append_parameters)
-{
-    o_assert(n);
-    return phantom::extension::allocator<t_Ty>::allocate(n o_memory_stat_append_parameters_use);
-}
-
-template<typename t_Ty>
-void deallocate(t_Ty* ptr, size_t n o_memory_stat_append_parameters)
-{
-    o_assert(n);
-    return phantom::extension::allocator<t_Ty>::deallocate(ptr, n o_memory_stat_append_parameters_use);
-}
-
 o_namespace_end(phantom)
 
 
-
-#include "phantom/def_reflection.h"
-#include "phantom/def_statechart.h"
-
-#include "phantom/def_modules.h"
-
-o_declare(class, phantom, Phantom)
-    o_declare(class, phantom, Object)
-
-    o_declare(class, phantom, util, Iterator)
-
-    o_declare(class, phantom, reflection, SourceFile)
-    o_declare(class, phantom, reflection, Signature)
-    o_declare(class, phantom, reflection, Subroutine)
-    o_declare(class, phantom, reflection, Function)
-    o_declare(class, phantom, reflection, Variable)
-    o_declare(class, phantom, reflection, IteratorConstant)
-    o_declare(class, phantom, reflection, IteratorVariable)
-    o_declare(class, phantom, reflection, StaticVariable)
-    o_declare(class, phantom, reflection, Member)
-    o_declare(class, phantom, reflection, MemberFunction)
-    o_declare(class, phantom, reflection, StaticMemberFunction)
-    o_declare(class, phantom, reflection, Constructor)
-    o_declare(class, phantom, reflection, InstanceMemberFunction)
-    o_declare(class, phantom, reflection, Signal)
-    o_declare(class, phantom, reflection, DataMember)
-    o_declare(class, phantom, reflection, InstanceDataMember)
-    o_declare(class, phantom, reflection, StaticDataMember)
-    o_declare(class, phantom, reflection, Property)
-    o_declare(class, phantom, reflection, Collection)
-    o_declare(class, phantom, reflection, ValueMember)
-    o_declare(class, phantom, reflection, ValueMemberBinding)
-    o_declare(class, phantom, reflection, Type)
-    o_declare(class, phantom, reflection, PrimitiveType)
-    o_declare(class, phantom, reflection, PointerType)
-    o_declare(class, phantom, reflection, DataPointerType)
-    o_declare(class, phantom, reflection, ConstDataPointerType)
-    o_declare(class, phantom, reflection, ReferenceType)
-    o_declare(class, phantom, reflection, ConstReferenceType)
-    o_declare(class, phantom, reflection, ArrayType)
-    o_declare(class, phantom, reflection, Class)
-    o_declare(class, phantom, reflection, PODUnion)
-    o_declare(class, phantom, reflection, PODStruct)
-    o_declare(class, phantom, reflection, Union)
-    o_declare(class, phantom, reflection, Enum)
-    o_declare(class, phantom, reflection, LanguageElement)
-    o_declare(class, phantom, reflection, TemplateElement)
-    o_declare(class, phantom, reflection, Constant)
-    o_declare(class, phantom, reflection, VirtualMemberFunctionTable)
-    o_declare(class, phantom, reflection, Namespace)
-    o_declare(class, phantom, reflection, TemplateSpecialization)
-
-    o_declare(class, phantom, state, StateMachine)
-    o_declare(class, phantom, state, StateMachineElement)
-    o_declare(class, phantom, state, State)
-    o_declare(class, phantom, state, Track)
-    o_declare(class, phantom, state, Event)
-    o_declare(class, phantom, state, Reaction)
-    o_declareT(class, phantom, state, native, (typename), TNativeState)
-    o_declareT(class, phantom, state, native, (typename, typename, typename, typename), TNativeTransition)
-    o_declareT(class, phantom, state, native, (typename), TNativeTrack)
-    o_declareT(class, phantom, state, native, (typename,phantom::boolean), TNativeTrackHelper)
-    o_declareT(class, phantom, state, native, (typename), TNativeStateMachine)
-    o_declareT(class, phantom, state, native, (typename,bool), TNativeStateMachineHelper)
-
-    o_declare(class, phantom, serialization, Node)
-    o_declare(class, phantom, serialization, DefaultNode)
-    o_declare(class, phantom, serialization, DataBase)
-    o_declare(class, phantom, serialization, DataStateBase)
-
-#include "phantom/def_util.h"
-#include "phantom/def_exceptions.h"
-#include "phantom/def_math.h"
-
-    o_declareT(class, phantom, reflection, native, (typename,typename), TNativeInstanceMemberFunction0 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename), TNativeInstanceMemberFunction1 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInstanceMemberFunction2 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInstanceMemberFunction3 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunction4 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunction5 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunction6 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunction7 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunction8 )
-
-    o_declareT(class, phantom, reflection, native, (typename,typename), TNativeInstanceMemberFunctionConst0 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename), TNativeInstanceMemberFunctionConst1 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInstanceMemberFunctionConst2 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst3 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst4 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst5 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst6 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst7 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst8 )
-
-    o_declareT(class, phantom, reflection, native, (typename,typename), TNativeInterfaceMemberFunction0 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename), TNativeInterfaceMemberFunction1 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInterfaceMemberFunction2 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction3 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction4 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction5 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction6 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction7 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction8 )
-
-    o_declareT(class, phantom, reflection, native, (typename,typename), TNativeInterfaceMemberFunctionConst0 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename), TNativeInterfaceMemberFunctionConst1 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst2 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst3 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst4 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst5 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst6 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst7 )
-    o_declareT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst8 )
-
-    o_declareT(class, phantom, reflection, native, (typename), TConstant)
-
-    o_declareT(class, phantom, reflection, native, (typename), TType)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeSignal)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInstanceMemberFunction)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInstanceMemberFunctionConst)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInterfaceMemberFunction)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInterfaceMemberFunctionConst)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeStaticMemberFunction)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeInstanceDataMember)
-    o_declareT(class, phantom, reflection, native, (typename, typename), TNativeStaticDataMember)
-
-    o_declareT(class, phantom, reflection, native, (typename, uint, typename), TNativeDataMemberProvider)
-
-#ifdef o_NO_FUNCTION_STYLE_TEMPLATE_SIGNATURE
-    o_declareT(class, phantom, reflection, native, (typename, uint, typename, typename, typename), TNativeMemberFunctionProvider)
-    o_declareT(class, phantom, reflection, native, (typename, uint, typename, typename, typename), TNativeInterfaceMemberFunctionProvider)
-    o_declareT(class, phantom, reflection, native, (typename, typename, typename), TNativeSignatureProvider)
-#else
-    o_declareT(class, phantom, reflection, native, (typename, uint, typename), TNativeMemberFunctionProvider)
-    o_declareT(class, phantom, reflection, native, (typename, uint, typename), TNativeInterfaceMemberFunctionProvider)
-    o_declareT(class, phantom, reflection, native, (int, typename), TNativeSignatureProvider)
-#endif
-
-
-o_begin_phantom_namespace()
-
-
-// type_name_of_helper_ specializations for primitive types
-o_namespace_begin(reflection, detail)
-
-template<>
-class type_name_of_helper_<phantom::signal_t>
-{
-public:
-       static const char*    decoratedName() { return o_PP_QUOTE(signal_t); }
-       static const char*    qualifiedDecoratedName() { return "phantom::" o_PP_QUOTE(signal_t); }
-       static const char*    name() { return o_PP_QUOTE(signal_t); }
-       static const char*    qualifiedName() { return "phantom::" o_PP_QUOTE(signal_t); }
-       static const char*    namespaceName() { return "phantom"; }
-       static const char*    classScopeName() { return ""; }
-};
-template<int t_counter>
-class type_name_of_helper_counter_<signal_t,t_counter> : public type_name_of_helper_<phantom::signal_t>
-{
-};
-
-#define o_specialize_type_name_of_for_primitive_type(_type_) \
-    template<>\
-    class type_name_of_helper_<_type_>\
-    {\
-    public:\
-        static const char*    decoratedName() { return o_PP_QUOTE(_type_); }\
-        static const char*    qualifiedDecoratedName() { return o_PP_QUOTE(_type_); }\
-        static const char*    name() { return o_PP_QUOTE(_type_); }\
-        static const char*    qualifiedName() { return o_PP_QUOTE(_type_); }\
-        static const char*    namespaceName() { return ""; }\
-        static const char*    classScopeName() { return ""; }\
-    };\
-    template<int t_counter>\
-    class type_name_of_helper_counter_<_type_,t_counter> : public type_name_of_helper_<_type_>\
-    {\
-    };
-
-
-o_specialize_type_name_of_for_primitive_type(char);
-o_specialize_type_name_of_for_primitive_type(unsigned char);
-o_specialize_type_name_of_for_primitive_type(signed char);
-#if o_BUILT_IN_WCHAR_T
-o_specialize_type_name_of_for_primitive_type(wchar_t);
-#endif
-o_specialize_type_name_of_for_primitive_type(short);
-o_specialize_type_name_of_for_primitive_type(unsigned short);
-o_specialize_type_name_of_for_primitive_type(int);
-o_specialize_type_name_of_for_primitive_type(unsigned int);
-o_specialize_type_name_of_for_primitive_type(long);
-o_specialize_type_name_of_for_primitive_type(unsigned long);
-o_specialize_type_name_of_for_primitive_type(long long);
-o_specialize_type_name_of_for_primitive_type(unsigned long long);
-o_specialize_type_name_of_for_primitive_type(float);
-o_specialize_type_name_of_for_primitive_type(double);
-o_specialize_type_name_of_for_primitive_type(long double);
-o_specialize_type_name_of_for_primitive_type(bool);
-o_specialize_type_name_of_for_primitive_type(void);
-
-o_namespace_end(reflection, detail)
+#include "phantom/def_phantom_0_4.inl"
 
 namespace detail
 {
@@ -858,9 +488,9 @@ namespace detail
     {
         friend o_export void installReflection(const string& a_strName);
         friend o_export void uninstallReflection(const string& a_strName);
-        typedef void    (*module_installation_func)        (uint);
+        typedef void    (*module_installation_func)        (phantom::reflection::Type*,uint);
         friend class phantom::Phantom;
-        template<typename> friend struct phantom::reflection::detail::type_reflection_registrer;
+        template<typename> friend struct phantom::reflection::type_reflection_registrer;
 
 
     protected:
@@ -869,39 +499,43 @@ namespace detail
         phantom::reflection::Namespace*
             parseNamespace(const string& a_strFileName) const;
 
-        void                    deferMetaInitialization(Object* a_pObject)
-        {
-            m_DeferredReflectionSetupObjects.push_back(a_pObject);
-        }
-
     protected:
         struct dynamic_initializer_module_installation_func
         {
             dynamic_initializer_module_installation_func() : setupFunc(NULL) {}
-            dynamic_initializer_module_installation_func( module_installation_func    a_setupFunc )
-                : setupFunc(a_setupFunc)
+            dynamic_initializer_module_installation_func( phantom::reflection::Type*      a_pType, module_installation_func    a_setupFunc )
+                : type(a_pType)
+                , setupFunc(a_setupFunc)
             {
 
             }
             o_forceinline void exec(uint step)
             {
-                (*setupFunc)(step);
+                (*setupFunc)(type, step);
             }
             module_installation_func        setupFunc;
+            phantom::reflection::Type*      type;
         };
         typedef vector<dynamic_initializer_module_installation_func>        dynamic_initializer_module_installation_func_vector;
 
     private:
         vector<dynamic_initializer_module_installation_func_vector>     m_DeferredSetupInfos;
         vector<reflection::Template*>                                   m_DeferredTemplates;
-        vector<Object*>                                                 m_DeferredReflectionSetupObjects;
+        int                                                             m_iCurrentInstallationStep;
+        unordered_map<string, reflection::Type*>                        m_RegisteredTypes;
         bool                                                            m_bActive;
         bool                                                            m_bAutoRegistrationLocked;
 
     public:
-        void    registerType( phantom::reflection::Type* a_pType );
-        void    registerType( const string& a_strNamespace, const string& a_strClassScope, phantom::reflection::Type* a_pType );
-        void    registerModule( module_installation_func setupFunc, uint a_uiSetupStepMask );
+        inline reflection::Type*    registeredTypeByName(const string& a_strQualifiedDecoratedName)
+        {
+            auto found = m_RegisteredTypes.find(a_strQualifiedDecoratedName);
+            if(found == m_RegisteredTypes.end()) return nullptr;
+            return found->second;
+        }
+        void    registerType( const string& a_strQualifiedDecoratedName, phantom::reflection::Type* a_pType );
+        void    registerType( const string& a_strQualifiedDecoratedName, const string& a_strNamespace, const string& a_strClassScope, phantom::reflection::Type* a_pType );
+        void    registerModule( phantom::reflection::Type* a_pType, module_installation_func setupFunc, uint a_uiSetupStepMask );
         void    registerTemplate( reflection::Template* a_pTemplate );
         void    installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle);
         void    uninstallReflection(const string& a_strName);
@@ -915,7 +549,6 @@ namespace detail
 class o_export Phantom
 {
 public:
-    o_friend(class, phantom, Object)
     o_friend(class, phantom, reflection, LanguageElement)
     o_friend(class, phantom, reflection, Class) // for rtti registration access
     
@@ -1005,8 +638,6 @@ public:
     Phantom(int argc = 0, char* argv[] = NULL, int metadatasize = 0, char* metadata[] = NULL);
     ~Phantom();
 
-    template <typename t_Ty>
-    friend o_NESTED_TYPE phantom::reflection::meta_class_type_of<t_Ty>::type* typeOf();
     template<typename t_Ty>
     friend phantom::reflection::ReferenceType*                  referenceTypeOf();
     template<typename t_Ty>
@@ -1064,9 +695,10 @@ private:
 
     vector<string>                  m_meta_data_names;
     static map<string, reflection::SourceFile*> m_SourceFiles;
+    static reflection::Type*		m_type_of_string;
 
 public:
-    friend o_export phantom::reflection::Namespace*     namespaceByName(  const string& a_strNamespaceName);
+    friend o_export phantom::reflection::Namespace*     namespaceByName(  const string& a_strNamespaceName, reflection::Namespace* a_pScopeNamespace);
     friend o_export phantom::reflection::Namespace*     namespaceByList( list<string>* a_pNamespaceNameAsStringList );
 
     friend o_export phantom::reflection::Namespace*     rootNamespace();
@@ -1075,6 +707,9 @@ public:
     friend o_export inline const string&                metaDataName(size_t index) ;
     friend o_export inline size_t                       metaDataCount();
     friend o_export inline size_t                       metaDataIndex(const string& elementName);
+
+    friend o_export inline reflection::Type*            stringType();
+
 
 private:
     static phantom::reflection::Namespace*                m_pRootNamespace;
@@ -1086,216 +721,7 @@ public:
     friend o_export class detail::dynamic_initializer_handle;
 };
 
-
-namespace detail
-{
-
-
-    template<typename t_Ty, bool t_has_reflection>
-    struct reflection_installer_helper
-    {
-
-    };
-
-    template<typename t_Ty>
-    struct reflection_installer_helper<t_Ty, true>
-        : public proxy_of<t_Ty>::type::enclosed_reflection
-    {
-        reflection_installer_helper() 
-        { 
-            auto pType = typeOf<t_Ty>(); 
-            o_assert(phantom::currentModule(), "no module pushed for the current registered type") ;
-            o_assert(pType->getModule() == nullptr);
-            phantom::currentModule()->addLanguageElement(pType);
-        } // ensure type is registered even if no members is added
-    };
-
-    template<typename t_Ty>
-    struct reflection_installer : public reflection_installer_helper<t_Ty, has_enclosed_reflection<t_Ty>::value>
-    {
-
-    };
-
-    template<typename t_Ty, bool t_has_statechart>
-    struct statechart_installer_helper
-    {
-
-    };
-
-    template<typename t_Ty>
-    struct statechart_installer_helper<t_Ty, true>
-        : public proxy_of<t_Ty>::type::o_NESTED_TEMPLATE enclosed_statechart<t_Ty>
-    {
-        statechart_installer_helper()
-        {
-            classOf<t_Ty>()->setStateMachine(phantom::state::native::TNativeStateMachine<t_Ty>::Instance());
-        }
-    };
-
-    template<typename t_Ty>
-    struct statechart_installer : public statechart_installer_helper<t_Ty, has_statechart<t_Ty>::value>
-    {
-
-    };
-
-    template<typename t_Ty, bool t_has_reflection, bool t_has_statechart>
-    struct module_installer_helper
-    {
-    };
-
-    template<typename t_Ty>
-    struct module_installer_helper<t_Ty, true, true>
-    {
-        static void apply(uint step)
-        {
-            reflection::Class* saved_class = reflection::g_PHANTOM_RESERVED_class;
-            reflection::TemplateSpecialization* saved_template_specialization = reflection::g_PHANTOM_RESERVED_template_specialization;
-            reflection::g_PHANTOM_RESERVED_class = phantom::typeOf<t_Ty>()->asClass();
-            reflection::g_PHANTOM_RESERVED_template_specialization = reflection::g_PHANTOM_RESERVED_class ? reflection::g_PHANTOM_RESERVED_class->getTemplateSpecialization() : nullptr;
-            switch(step)
-            {
-            case o_global_value_SetupStepIndex_Reflection:
-                {
-                    reflection_installer<t_Ty> m_reflection_module_installer;
-                    (void)m_reflection_module_installer;
-                }
-                break;
-            case o_global_value_SetupStepIndex_StateChart:
-                {
-                    statechart_installer<t_Ty> m_statechart_module_installer;
-                    (void)m_statechart_module_installer;
-                }
-                break;
-            }
-            reflection::g_PHANTOM_RESERVED_class = saved_class;
-            reflection::g_PHANTOM_RESERVED_template_specialization = saved_template_specialization;
-        }
-    };
-
-    template<typename t_Ty>
-    struct module_installer_helper<t_Ty, false, true>
-    {
-        static void apply(uint step)
-        {
-            reflection::Class* saved_class = reflection::g_PHANTOM_RESERVED_class;
-            reflection::TemplateSpecialization* saved_template_specialization = reflection::g_PHANTOM_RESERVED_template_specialization;
-            reflection::g_PHANTOM_RESERVED_class = phantom::typeOf<t_Ty>()->asClass();
-            reflection::g_PHANTOM_RESERVED_template_specialization = reflection::g_PHANTOM_RESERVED_class ? reflection::g_PHANTOM_RESERVED_class->getTemplateSpecialization() : nullptr;
-            switch(step)
-            {
-            case o_global_value_SetupStepIndex_StateChart:
-                {
-                    statechart_installer<t_Ty> m_statechart_module_installer;
-                    (void)m_statechart_module_installer;
-                }
-                break;
-            }
-            reflection::g_PHANTOM_RESERVED_class = saved_class;
-            reflection::g_PHANTOM_RESERVED_template_specialization = saved_template_specialization;
-        }
-    };
-
-    template<typename t_Ty>
-    struct module_installer_helper<t_Ty, true, false>
-    {
-        static void apply(uint step)
-        {
-            reflection::Class* saved_class = reflection::g_PHANTOM_RESERVED_class;
-            reflection::TemplateSpecialization* saved_template_specialization = reflection::g_PHANTOM_RESERVED_template_specialization;
-            reflection::g_PHANTOM_RESERVED_class = phantom::typeOf<t_Ty>()->asClass();
-            reflection::g_PHANTOM_RESERVED_template_specialization = reflection::g_PHANTOM_RESERVED_class ? reflection::g_PHANTOM_RESERVED_class->getTemplateSpecialization() : nullptr;
-            switch(step)
-            {
-            case o_global_value_SetupStepIndex_Reflection:
-                {
-                    reflection_installer<t_Ty> m_reflection_module_installer;
-                    (void)m_reflection_module_installer;
-                }
-                break;
-            }
-            reflection::g_PHANTOM_RESERVED_class = saved_class;
-            reflection::g_PHANTOM_RESERVED_template_specialization = saved_template_specialization;
-        }
-    };
-
-    template<typename t_Ty>
-    struct module_installer
-        : public module_installer_helper<t_Ty, has_reflection<t_Ty>::value, has_statechart<t_Ty>::value>
-    {
-    };
-
-    template<typename t_Ty, bool is_deferred>
-    struct dynamic_initializer_module_installer_registrer_helper
-    {
-        dynamic_initializer_module_installer_registrer_helper()
-        {
-            Phantom::dynamic_initializer()->setActive(true);
-            // Ensure the creation of the meta type
-            Phantom::dynamic_initializer()->setAutoRegistrationLocked(true);
-            o_assert(phantom::typeOf<t_Ty>()->getModule() == nullptr, "Type already registered in another module");
-            phantom::typeOf<t_Ty>();
-            Phantom::dynamic_initializer()->setAutoRegistrationLocked(false);
-            /// If you get an error : 'apply' : is not a member of 'phantom::detail::module_installer'
-            /// It's probably because you didn't declare a reflection scope (internal or external) for the given t_Ty class
-            Phantom::dynamic_initializer()->setActive(false);
-        }
-    };
-
-    template<typename t_Ty>
-    struct dynamic_initializer_module_installer_registrer_helper<t_Ty, true> 
-    {
-        dynamic_initializer_module_installer_registrer_helper()
-        {
-            Phantom::dynamic_initializer()->setActive(true);
-            // Ensure the creation of the meta type
-            Phantom::dynamic_initializer()->setAutoRegistrationLocked(true);
-            o_assert(phantom::typeOf<t_Ty>()->getModule() == nullptr, "Type already registered in another module");
-            phantom::typeOf<t_Ty>();
-            Phantom::dynamic_initializer()->registerModule(&phantom::detail::module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value);
-            Phantom::dynamic_initializer()->setAutoRegistrationLocked(false);
-            /// If you get an error : 'apply' : is not a member of 'phantom::detail::module_installer'
-            /// It's probably because you didn't declare a reflection scope (internal or external) for the given t_Ty class
-            Phantom::dynamic_initializer()->setActive(false);
-        }
-    };
-
-    template<typename t_Ty>
-    struct dynamic_initializer_module_installer_registrer 
-        : public dynamic_initializer_module_installer_registrer_helper<t_Ty, (phantom::meta_specifiers<t_Ty>::value & o_deferred) == o_deferred>
-    {
-
-    };
-
-    template<typename t_Ty, bool is_deferred>
-    struct module_installer_registrer_helper
-    {
-        module_installer_registrer_helper()
-        {
-            Phantom::dynamic_initializer()->registerModule(&phantom::detail::module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value);
-        }
-    };
-
-    template<typename t_Ty>
-    struct module_installer_registrer_helper<t_Ty, true> 
-    {
-        module_installer_registrer_helper()
-        {
-        }
-    };
-
-    template<typename t_Ty>
-    struct module_installer_registrer 
-        : public module_installer_registrer_helper<t_Ty, (phantom::meta_specifiers<t_Ty>::value & o_deferred) == o_deferred>
-    {
-
-    };
-
-    struct o_export dynamic_initializer_template_registrer
-    {
-        dynamic_initializer_template_registrer(const string& a_strNamespace, const string& a_strName);
-    };
-
-}
+#include "phantom/def_phantom_0_3.inl"
 
 // Some member_functions implementations which depends on phantom::Phantom
 
@@ -1307,6 +733,9 @@ enum
 {
     eInvalidMetaDataIndex = 0xffffffff,
 };
+
+
+o_export inline reflection::Type*                   stringType() { return Phantom::m_type_of_string; }
 
 o_export inline size_t                              metaDataIndex(const string& elementName)
 {
@@ -1349,7 +778,7 @@ inline reflection::template_specialization_registrer<t_Ty>::template_specializat
 }
 
 template<typename t_Ty>
-inline void reflection::detail::type_reflection_registrer<t_Ty>::apply(Type* a_pType)
+inline void reflection::type_reflection_registrer<t_Ty>::apply(Type* a_pType)
 {
     phantom::detail::dynamic_initializer_handle* pDynamicInitializer = Phantom::dynamic_initializer();
     pDynamicInitializer->registerType(phantom::namespaceNameOf<t_Ty>(), phantom::classScopeNameOf<t_Ty>(), a_pType);
@@ -1364,16 +793,20 @@ o_forceinline void*                                  staticPoolAllocateN(typenam
 template<size_t t_size>
 o_forceinline void                                   staticPoolDeallocateN(void* ptr, typename phantom::Phantom::static_size_allocator<t_size>::size_type n) { phantom::Phantom::static_size_allocator<t_size>::ordered_free(ptr,n); }
 
+o_export phantom::reflection::Signature*             createSignature(const char* a_pText, phantom::reflection::TemplateSpecialization* a_pTemplateSpecialization, phantom::reflection::LanguageElement* a_pScope);
+
 o_export inline void*                                baseOf(void const* in)
 {
     phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
     return (found != phantom::Phantom::m_rtti_data_map->end())?found->second.base:const_cast<void*>(in);
 }
+
 o_export inline phantom::reflection::Class*          classOf(void const* in)
 {
     phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
     return (found != phantom::Phantom::m_rtti_data_map->end())?found->second.object_class:NULL;
 }
+
 o_export inline phantom::reflection::Class*          classAt(void const* in)
 {
     phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
@@ -1406,7 +839,6 @@ o_export void                                        rttiLayoutOf(void const* in
     }
 }
 
-
 o_export inline void                                        addRttiData(void const* in, const rtti_data& data)
 {
     phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
@@ -1424,13 +856,6 @@ o_export inline void                                        removeRttiData(void 
     phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
     o_assert(found != phantom::Phantom::m_rtti_data_map->end());
     phantom::Phantom::m_rtti_data_map->erase(found);
-}
-
-
-template<typename t_OutTy, typename t_InTy>
-o_forceinline t_OutTy                                 polymorphic_cast(t_InTy  in)
-{
-    return as<t_OutTy>(in);
 }
 
 template<typename t_Ty, typename t_ITy>
@@ -1482,82 +907,14 @@ o_forceinline    phantom::reflection::PrimitiveType*        basicTypeOf()
     return NULL;
 }
 
-o_export inline void*                                       dynamicPoolAllocate(size_t s o_memory_stat_append_parameters)
-{
-    o_assert(s);
-#if o__bool__enable_allocation_statistics
-    phantom::memory::Statistics::RegisterBytes(s o_memory_stat_append_parameters_use);
-#endif
-    phantom::Phantom::dynamic_pool_type_map::iterator it = Phantom::m_DynamicPoolAllocators.find(s);
-    if(it != Phantom::m_DynamicPoolAllocators.end())
-    {
-        return it->second->ordered_malloc();
-    }
-    phantom::Phantom::dynamic_pool_type*    new_pool = o_allocate(phantom::Phantom::dynamic_pool_type);
-    new (new_pool) phantom::Phantom::dynamic_pool_type(s);
-    Phantom::m_DynamicPoolAllocators[s] = new_pool;
-    return new_pool->ordered_malloc();
-}
-o_export inline void                                        dynamicPoolDeallocate(size_t s, void* a_pAddress o_memory_stat_append_parameters)
-{
-    o_assert(s);
-#if o__bool__enable_allocation_statistics
-    phantom::memory::Statistics::UnregisterBytes(s o_memory_stat_append_parameters_use);
-#endif
-    phantom::Phantom::dynamic_pool_type_map::iterator it = Phantom::m_DynamicPoolAllocators.find(s);
-    if(it != Phantom::m_DynamicPoolAllocators.end())
-    {
-        return it->second->ordered_free(a_pAddress);
-    }
-    phantom::Phantom::dynamic_pool_type*    new_pool = o_allocate(phantom::Phantom::dynamic_pool_type);
-    new (new_pool) phantom::Phantom::dynamic_pool_type(s);
-    Phantom::m_DynamicPoolAllocators[s] = new_pool;
-    new_pool->ordered_free(a_pAddress);
-}
-o_export inline void*                                dynamicPoolAllocate(size_t s, size_t count o_memory_stat_append_parameters)
-{
-    o_assert(s);
-    o_assert(count);
-#if o__bool__enable_allocation_statistics
-    phantom::memory::Statistics::RegisterBytesN(s, count o_memory_stat_append_parameters_use);
-#endif
-    phantom::Phantom::dynamic_pool_type_map::iterator it = Phantom::m_DynamicPoolAllocators.find(s);
-    if(it != Phantom::m_DynamicPoolAllocators.end())
-    {
-        return it->second->ordered_malloc(count);
-    }
-    phantom::Phantom::dynamic_pool_type*    new_pool = o_allocate(phantom::Phantom::dynamic_pool_type);
-    new (new_pool) phantom::Phantom::dynamic_pool_type(s);
-    Phantom::m_DynamicPoolAllocators[s] = new_pool;
-    return new_pool->ordered_malloc(count);
-}
-o_export inline void                                dynamicPoolDeallocate(size_t s, void* a_pAddress, size_t count o_memory_stat_append_parameters)
-{
-    o_assert(s);
-    o_assert(count);
-#if o__bool__enable_allocation_statistics
-    phantom::memory::Statistics::UnregisterBytesN(s, count o_memory_stat_append_parameters_use);
-#endif
-    phantom::Phantom::dynamic_pool_type_map::iterator it = Phantom::m_DynamicPoolAllocators.find(s);
-    if(it != Phantom::m_DynamicPoolAllocators.end())
-    {
-        return it->second->ordered_free(a_pAddress, count);
-    }
-    phantom::Phantom::dynamic_pool_type*    new_pool = o_allocate(phantom::Phantom::dynamic_pool_type);
-    new (new_pool) phantom::Phantom::dynamic_pool_type(s);
-    Phantom::m_DynamicPoolAllocators[s] = new_pool;
-    new_pool->ordered_free(a_pAddress, count);
-}
+o_export void* dynamicPoolAllocate(size_t s o_memory_stat_append_parameters);
+o_export void  dynamicPoolDeallocate(size_t s, void* a_pAddress o_memory_stat_append_parameters);
+o_export void* dynamicPoolAllocate(size_t s, size_t count o_memory_stat_append_parameters);
+o_export void  dynamicPoolDeallocate(size_t s, void* a_pAddress, size_t count o_memory_stat_append_parameters);
 
-
-
-
-o_end_phantom_namespace()
-
-
+o_namespace_end(phantom)
 
 #include "phantom/def_memory.inl"
-#include "phantom/Object.h"
 #include "phantom/reflection/native/NativeVTableInspector.h"
 #include "phantom/Module.h"
 #include "phantom/reflection/LanguageElement.h"
@@ -1643,207 +1000,47 @@ o_forceinline void*   phantom::rtti_data::cast(phantom::reflection::Class* a_pTa
     return object_class->cast(a_pTargetClass, base);
 }
 
+
 #include "phantom/reflection/PODUnion.h"
 #include "phantom/reflection/Union.h"
 #include "phantom/reflection/PODStruct.h"
 
+
 #include "phantom/reflection/native/TConstant.h"
 
-// Implementing some member_functions which depend on TConstant
-
-o_begin_phantom_namespace()
-
-o_define_template_signature_parameter_phantom_element_impl(boolean)
-o_define_template_signature_parameter_phantom_element_impl(uchar)
-o_define_template_signature_parameter_phantom_element_impl(schar)
-o_define_template_signature_parameter_phantom_element_impl(ushort)
-o_define_template_signature_parameter_phantom_element_impl(sshort)
-o_define_template_signature_parameter_phantom_element_impl(uint)
-o_define_template_signature_parameter_phantom_element_impl(sint)
-o_define_template_signature_parameter_phantom_element_impl(size_t)
-o_define_template_signature_parameter_phantom_element_impl(ulong)
-o_define_template_signature_parameter_phantom_element_impl(slong)
-o_define_template_signature_parameter_phantom_element_impl(longlong)
-o_define_template_signature_parameter_phantom_element_impl(ulonglong)
-
-o_define_template_signature_parameter_element_impl(bool)
-o_define_template_signature_parameter_element_impl(char)
-o_define_template_signature_parameter_element_impl(short)
-o_define_template_signature_parameter_element_impl(int)
-o_define_template_signature_parameter_element_impl(long)
-o_define_template_signature_parameter_element_impl(size_t)
-o_define_template_signature_parameter_element_impl(uchar)
-o_define_template_signature_parameter_element_impl(schar)
-o_define_template_signature_parameter_element_impl(ushort)
-o_define_template_signature_parameter_element_impl(sshort)
-o_define_template_signature_parameter_element_impl(uint)
-o_define_template_signature_parameter_element_impl(sint)
-o_define_template_signature_parameter_element_impl(ulong)
-o_define_template_signature_parameter_element_impl(slong)
-o_define_template_signature_parameter_element_impl(longlong)
-o_define_template_signature_parameter_element_impl(ulonglong)
-o_define_template_signature_parameter_element_impl(unsigned)
-
-template<ulonglong value>
-phantom::reflection::TemplateElement*
-reflection::detail::template_signature_parameter_enum<value>::element()
-{
-    return o_new(phantom::reflection::native::TConstant<ulonglong>)("", value);
-}
-
-o_end_phantom_namespace()
+#include "phantom/def_phantom_0_2.inl"
 
 #include "phantom/reflection/Enum.h"
-
 #include "phantom/reflection/native/TType.h"
 
-o_namespace_begin(phantom, extension, detail)
 
-#define o_phantom_extension_fundamental_converter_case(d) \
-    if(a_pDestType == phantom::typeOf<d>())\
-    {\
-        *((d*)dest) = (d)*src;\
-    }
-
-#define o_phantom_extension_fundamental_converter_can_case(d) \
-    if(a_pDestType == phantom::typeOf<d>())\
-    {\
-        return true;\
-    }
-
-#define o_phantom_extension_fundamental_converter(s) \
-    template<>\
-    struct converter_<s>\
-    {\
-        static void convert(reflection::Type* a_pDestType, void* dest, const s* src)\
-    {\
-            o_phantom_extension_fundamental_converter_case(bool)\
-            else o_phantom_extension_fundamental_converter_case(char)\
-            else o_phantom_extension_fundamental_converter_case(unsigned char)\
-            else o_phantom_extension_fundamental_converter_case(short)\
-            else o_phantom_extension_fundamental_converter_case(unsigned short)\
-            else o_phantom_extension_fundamental_converter_case(int)\
-            else o_phantom_extension_fundamental_converter_case(unsigned int)\
-            else o_phantom_extension_fundamental_converter_case(long)\
-            else o_phantom_extension_fundamental_converter_case(unsigned long)\
-            else o_phantom_extension_fundamental_converter_case(long long)\
-            else o_phantom_extension_fundamental_converter_case(unsigned long long)\
-            else o_phantom_extension_fundamental_converter_case(long double)\
-            else o_phantom_extension_fundamental_converter_case(float)\
-            else o_phantom_extension_fundamental_converter_case(double)\
-            else if(a_pDestType->asEnum()) \
-            { \
-                switch(a_pDestType->getSize())\
-                {\
-                case 1:\
-                    convert(typeOf<unsigned char>(), dest, src);\
-                    break;\
-                case 2:\
-                    convert(typeOf<unsigned short>(), dest, src);\
-                    break;\
-                case 4:\
-                    convert(typeOf<unsigned int>(), dest, src);\
-                    break;\
-                case 8:\
-                    convert(typeOf<unsigned long long>(), dest, src);\
-                    break;\
-                default:\
-                    o_assert(false, "invalid size for enum type");\
-                }\
-            }\
-            else default_converter<s>::convert(a_pDestType, dest, src);\
-    }\
-    static bool isConvertibleTo(reflection::Type* a_pDestType)\
-{\
-            if(a_pDestType == typeOf<s>()) return true;\
-            else o_phantom_extension_fundamental_converter_can_case(bool)\
-            else o_phantom_extension_fundamental_converter_can_case(char)\
-            else o_phantom_extension_fundamental_converter_can_case(unsigned char)\
-            else o_phantom_extension_fundamental_converter_can_case(short)\
-            else o_phantom_extension_fundamental_converter_can_case(unsigned short)\
-            else o_phantom_extension_fundamental_converter_can_case(int)\
-            else o_phantom_extension_fundamental_converter_can_case(unsigned int)\
-            else o_phantom_extension_fundamental_converter_can_case(long)\
-            else o_phantom_extension_fundamental_converter_can_case(unsigned long)\
-            else o_phantom_extension_fundamental_converter_can_case(long long)\
-            else o_phantom_extension_fundamental_converter_can_case(unsigned long long)\
-            else o_phantom_extension_fundamental_converter_can_case(long double)\
-            else o_phantom_extension_fundamental_converter_can_case(float)\
-            else o_phantom_extension_fundamental_converter_can_case(double)\
-            else if(a_pDestType->asEnum()) { return true; }\
-            return default_converter<s>::isConvertibleTo(a_pDestType);\
-        }\
-        static bool isImplicitlyConvertibleTo(reflection::Type* a_pDestType)\
-        {\
-            if(a_pDestType == typeOf<s>()) return true;\
-            else o_phantom_extension_fundamental_converter_can_case(bool)\
-            else o_phantom_extension_fundamental_converter_can_case(char)\
-            else o_phantom_extension_fundamental_converter_can_case(unsigned char)\
-            else o_phantom_extension_fundamental_converter_can_case(short)\
-            else o_phantom_extension_fundamental_converter_can_case(unsigned short)\
-            else o_phantom_extension_fundamental_converter_can_case(int)\
-            else o_phantom_extension_fundamental_converter_can_case(unsigned int)\
-            else o_phantom_extension_fundamental_converter_can_case(long)\
-            else o_phantom_extension_fundamental_converter_can_case(unsigned long)\
-            else o_phantom_extension_fundamental_converter_can_case(long long)\
-            else o_phantom_extension_fundamental_converter_can_case(unsigned long long)\
-            else o_phantom_extension_fundamental_converter_can_case(long double)\
-            else o_phantom_extension_fundamental_converter_can_case(float)\
-            else o_phantom_extension_fundamental_converter_can_case(double)\
-            return default_converter<s>::isImplicitlyConvertibleTo(a_pDestType);\
-        }\
-    };
-
-#pragma warning(disable:4800)
-
-o_phantom_extension_fundamental_converter(bool)
-o_phantom_extension_fundamental_converter(char)
-o_phantom_extension_fundamental_converter(unsigned char)
-o_phantom_extension_fundamental_converter(short)
-o_phantom_extension_fundamental_converter(unsigned short)
-o_phantom_extension_fundamental_converter(int)
-o_phantom_extension_fundamental_converter(unsigned int)
-o_phantom_extension_fundamental_converter(long)
-o_phantom_extension_fundamental_converter(unsigned long)
-o_phantom_extension_fundamental_converter(long long)
-o_phantom_extension_fundamental_converter(unsigned long long)
-o_phantom_extension_fundamental_converter(long double)
-o_phantom_extension_fundamental_converter(float)
-o_phantom_extension_fundamental_converter(double)
+#include "phantom/def_phantom_0_1.inl"
 
 
-template<> struct safe_constructor_<bool>                  {    static void safeConstruct(void* a_pInstance) { *((bool*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<char>                  {    static void safeConstruct(void* a_pInstance) { *((char*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<unsigned char>         {    static void safeConstruct(void* a_pInstance) { *((unsigned char*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<short>                 {    static void safeConstruct(void* a_pInstance) { *((short*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<unsigned short>        {    static void safeConstruct(void* a_pInstance) { *((unsigned short*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<int>                   {    static void safeConstruct(void* a_pInstance) { *((int*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<unsigned int>          {    static void safeConstruct(void* a_pInstance) { *((unsigned int*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<long>                  {    static void safeConstruct(void* a_pInstance) { *((long*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<unsigned long>         {    static void safeConstruct(void* a_pInstance) { *((unsigned long*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<long long>             {    static void safeConstruct(void* a_pInstance) { *((long long*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<unsigned long long>    {    static void safeConstruct(void* a_pInstance) { *((unsigned long long*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<long double>           {    static void safeConstruct(void* a_pInstance) { *((long double*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<float>                 {    static void safeConstruct(void* a_pInstance) { *((float*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<double>                {    static void safeConstruct(void* a_pInstance) { *((double*)a_pInstance) = 0; } };
-
-
-
-#pragma warning(default:4800)
-
-o_namespace_end(phantom, extension, detail)
 
 #include "phantom/reflection/Member.h"
-
 #include "phantom/reflection/MemberFunction.h"
 #include "phantom/reflection/InstanceMemberFunction.h"
 #include "phantom/reflection/StaticMemberFunction.h"
+
+
 #include "phantom/reflection/native/TNativeStaticMemberFunctionBase.h"
 #include "phantom/reflection/native/TNativeStaticMemberFunction.h"
 #include "phantom/reflection/native/TNativeInstanceMemberFunctionBase.h"
 #include "phantom/reflection/native/TNativeInstanceMemberFunction.h"
 #include "phantom/reflection/native/TNativeInstanceMemberFunctionConst.h"
+
+
 #include "phantom/reflection/native/TNativeMemberFunctionProvider.h"
+
+
+#if o__int__reflection_template_use_level >= 2
+#include "phantom/reflection/native/TNativeSignatureProvider.h"
+#include "phantom/reflection/native/TNativePropertySignalProvider.h"
+#else 
+#include "phantom/reflection/native/DynamicNativeSignalProvider.h"
+#endif
+
 #include "phantom/reflection/native/TRange.h"
 
 #include "phantom/reflection/DataMember.h"
@@ -1885,270 +1082,23 @@ o_namespace_end(phantom, extension, detail)
 
 #include "phantom/reflection/Namespace.h"
 
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Class)
-o_reflection_in_cpp_deferred_setupN((phantom), Object)
-o_reflection_in_cpp_deferred_setupN((phantom, util), Comparator)
-o_reflection_in_cpp_deferred_setupN((phantom, util), Iterator)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), LanguageElement)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), TemplateElement)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Template)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Function)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Constant)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), ClassType)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Union)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Member)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), MemberFunction)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), InstanceDataMember)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), InstanceMemberFunction)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), ContainerClass)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), SequentialContainerClass)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), MapContainerClass)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), SetContainerClass)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Variable)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), StaticVariable)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), IteratorConstant)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), IteratorVariable)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), StaticDataMember)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), StaticMemberFunction)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Signal)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Signature)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), SourceFile)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Subroutine)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Constructor)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Type)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), PointerType)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), DataPointerType)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), ReferenceType)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), ConstDataPointerType)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), ConstReferenceType)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), PrimitiveType)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Property)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), ValueMember)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Namespace)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), DataMember)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), SubValueMember)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), TemplateSpecialization)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), ClassExtension)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), VirtualMemberFunctionTable)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), PureVirtualMemberFunction)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), PODUnion)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), PODStruct)
-o_reflection_in_cpp_deferred_setupN((phantom, reflection), Range)
-o_reflection_in_cpp_deferred_setupN((phantom, state), State)
-o_reflection_in_cpp_deferred_setupN((phantom, state), Event)
-o_reflection_in_cpp_deferred_setupN((phantom, state), Track)
-o_reflection_in_cpp_deferred_setupN((phantom, state), Reaction)
-o_reflection_in_cpp_deferred_setupN((phantom, state), StateMachine)
-o_reflection_in_cpp_deferred_setupN((phantom, state), StateMachineElement)
-o_reflection_in_cpp_deferred_setupN((phantom, serialization), DataBase)
 
-#include "phantom/reflection/Block.h"
-#include "phantom/reflection/LocalVariable.h"
-
-
-#define o_specialize_type_of_counter_for_primitive_type(_type_) \
-    o_namespace_begin(phantom,reflection,detail)\
-    template<int t_counter>\
-    class type_of_counter_<_type_,t_counter> : public type_of_<_type_>\
-    {\
-    };\
-    o_namespace_end(phantom,reflection,detail)
-
-
-o_specialize_type_of_counter_for_primitive_type(char);
-o_specialize_type_of_counter_for_primitive_type(phantom::signal_t);
-o_specialize_type_of_counter_for_primitive_type(unsigned char);
-o_specialize_type_of_counter_for_primitive_type(signed char);
-#if o_BUILT_IN_WCHAR_T
-o_specialize_type_of_counter_for_primitive_type(wchar_t);
+#if o__int__reflection_template_use_level == 3
+#   include "def_phantom_deferred_reflection.inl"
 #endif
-o_specialize_type_of_counter_for_primitive_type(short);
-o_specialize_type_of_counter_for_primitive_type(unsigned short);
-o_specialize_type_of_counter_for_primitive_type(int);
-o_specialize_type_of_counter_for_primitive_type(unsigned int);
-o_specialize_type_of_counter_for_primitive_type(long);
-o_specialize_type_of_counter_for_primitive_type(unsigned long);
-o_specialize_type_of_counter_for_primitive_type(long long);
-o_specialize_type_of_counter_for_primitive_type(unsigned long long);
-o_specialize_type_of_counter_for_primitive_type(float);
-o_specialize_type_of_counter_for_primitive_type(double);
-o_specialize_type_of_counter_for_primitive_type(long double);
-o_specialize_type_of_counter_for_primitive_type(bool);
-o_specialize_type_of_counter_for_primitive_type(void);
 
+#include "phantom/def_phantom_0_0.inl"
 
-// Data serializer
-namespace phantom
-{
-    namespace extension
-    {
-        template<>
-        class serializer<phantom::data>
-        {
-        public:
-            static void serialize(phantom::data const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                uint guid = a_pDataBase ? a_pDataBase->getGuid(*a_pInstance) : (uint)(a_pInstance->address());
-                serializer<uint>::serialize(&guid, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
-            }
-            static void deserialize(phantom::data* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                uint guid = 0;
-                serializer<size_t>::deserialize(&guid, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
-                *a_pInstance = a_pDataBase ? a_pDataBase->getData(guid) : phantom::data((void*)guid);
-            }
-            static void serialize(phantom::data const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
-                while(a_uiCount--)
-                {
-                    phantom::data const* pInstance = reinterpret_cast<phantom::data const*>(pChunk);
-                    serialize(pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
-                    pChunk += a_uiChunkSectionSize;
-                }
-            }
-            static void deserialize(phantom::data* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
-                while(a_uiCount--)
-                {
-                    phantom::data* pInstance = reinterpret_cast<phantom::data*>(pChunk);
-                    deserialize(pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
-                    pChunk += a_uiChunkSectionSize;
-                }
-            }
-            static void serialize(phantom::data const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                uint guid = a_pDataBase ? a_pDataBase->getGuid(*a_pInstance) : (uint)a_pInstance->address();
-                a_OutBranch.put_value(phantom::lexical_cast<string>(guid));
-            }
-            static void deserialize(phantom::data* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                boost::optional<string> opt = a_InBranch.get_value_optional<string>();
-                if(opt.is_initialized())
-                {
-                    uint guid = phantom::lexical_cast<uint>(*opt);
-                    *a_pInstance = a_pDataBase ? a_pDataBase->getData(guid) : phantom::data((void*)guid);
-                }
-                else *a_pInstance = phantom::data();
-            }
-            static void serialize(phantom::data const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
-                int i = 0;
-                while(a_uiCount--)
-                {
-                    phantom::data const* pInstance = reinterpret_cast<phantom::data const*>(pChunk);
-                    serialize(pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
-                    pChunk += a_uiChunkSectionSize;
-                }
-            }
-            static void deserialize(phantom::data* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
-                int i = 0;
-                while(a_uiCount--)
-                {
-                    phantom::data* pInstance = reinterpret_cast<phantom::data*>(pChunk);
-                    deserialize(pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
-                    pChunk += a_uiChunkSectionSize;
-                }
-            }
-            static void serializeLayout(phantom::data const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
-            }
-            static void deserializeLayout(phantom::data* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
-            }
-            static void serializeLayout(phantom::data const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
-            }
-            static void deserializeLayout(phantom::data* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
-            }
-            static void serializeLayout(phantom::data const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
-            }
-            static void deserializeLayout(phantom::data* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
-            }
-            static void serializeLayout(phantom::data const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
-            }
-            static void deserializeLayout(phantom::data* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-            {
-                deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
-            }
-        };
-    }
-}
+o_declareN(struct, (phantom, memory), malloc_free_allocator_for_boost);
+o_declareNT(struct, (phantom, memory), (typename, typename), (T, UserAllocator), malloc_free_allocator);
 
-o_classN((phantom), data)
-{
-    o_reflection
-    {
-        o_data_member(void*, m_address, o_no_range, o_public);
-        o_data_member(phantom::reflection::Type*, m_type, o_no_range, o_public);
-    };
-};
-o_exposeN((phantom), data);
-
-o_classN((phantom), object)
-{
-    o_reflection
-    {
-        o_data_member(void*, m_address, o_no_range, o_public);
-        o_data_member(phantom::reflection::ClassType*, m_class_type, o_no_range, o_public);
-    };
-};
-o_exposeN((phantom), object);
-
-//#if defined(o__bool__enable_bitfield_type)
-o_classN((phantom), bitfield)
-{
-    o_reflection
-    {
-        o_data_member(int, m_iContent, o_no_range, o_protected);
-    };
-};
-o_exposeN((phantom), bitfield);
-//#endif
-
-o_classN((phantom, reflection), CodePosition)
-{
-    o_reflection
-    {
-        o_data_member(int, line, (0, std::numeric_limits<int>::max()), o_public);
-        o_data_member(int, column, (0, std::numeric_limits<int>::max()), o_public);
-    };
-};
-o_exposeN((phantom, reflection), CodePosition);
-
-o_classN((phantom, reflection), CodeLocation)
-{
-    o_reflection
-    {
-        o_data_member(CodePosition, m_Start, o_no_range, o_protected);
-        o_data_member(CodePosition, m_End, o_no_range, o_protected);
-        o_property(const CodePosition&, start, setStart, getStart, o_no_signal, o_no_range, o_transient|o_public);
-        o_property(const CodePosition&, end, setEnd, getEnd, o_no_signal, o_no_range, o_transient|o_public);
-    };
-};
-o_exposeN((phantom, reflection), CodeLocation);
-
-// PARTIAL BOOST INTEGRATION
-#include "phantom/externals/boost/boost_thread.h"
-#include "phantom/externals/boost/boost_pool.h"
-
-// PARTIAL STL INTEGRATION (specific for each compiler)
-#include "phantom/externals/std/std.h"
 #include "phantom/variant.h"
+
+#if o__int__reflection_template_use_level == 3
+#   include "phantom/phantom.hxx"
+#endif
+
+o_declareN(class, (phantom), bitfield);
+o_declareNT(class, (phantom), (typename), (Enum), flags);
 
 #endif // __prerequisites_h__

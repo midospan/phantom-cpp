@@ -38,8 +38,8 @@
 
 /* ****************** Includes ******************* */
 /* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-//#include "TNativeDataMemberProvider.classdef.h"
+/* The *.hxx file must be the last #include */
+//#include "TNativeDataMemberProvider.hxx"
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
@@ -95,7 +95,7 @@ public:
         uint a_uiSerializationMask, 
         bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeStaticDataMember<t_Ty, t_ContentType>) (a_strName, a_pContentType, a_pDataMemberPtr, a_pRange, a_Modifiers|o_static);
+        return o_dynamic_proxy_new(phantom::reflection::StaticDataMember, phantom::reflection::StaticDataMember::metaType, TNativeStaticDataMember<t_Ty, t_ContentType>) (a_strName, a_pContentType, a_pDataMemberPtr, a_pRange, a_Modifiers|o_static);
     }
 };
 
@@ -110,7 +110,7 @@ public:
         uint a_uiSerializationMask, 
         bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeInstanceDataMember<t_Ty, t_ContentType>)(a_strName, a_pContentType, a_pDataMemberPtr, a_pRange, a_uiSerializationMask, a_Modifiers);
+        return o_dynamic_proxy_new(phantom::reflection::InstanceDataMember, phantom::reflection::InstanceDataMember::metaType, TNativeInstanceDataMember<t_Ty, t_ContentType>)(a_strName, a_pContentType, a_pDataMemberPtr, a_pRange, a_uiSerializationMask, a_Modifiers);
     }
     static DataMember* CreateDataMember(    const string& a_strName,
         Type*    a_pContentType,
@@ -119,7 +119,7 @@ public:
         uint a_uiSerializationMask, 
         bitfield a_Modifiers = 0)
     {
-        return o_new(TNativeStaticDataMember<t_Ty, t_ContentType>) (a_strName, a_pContentType, a_pDataMemberPtr, a_pRange, a_Modifiers|o_static);
+        return o_dynamic_proxy_new(phantom::reflection::StaticDataMember, phantom::reflection::StaticDataMember::metaType, TNativeStaticDataMember<t_Ty, t_ContentType>) (a_strName, a_pContentType, a_pDataMemberPtr, a_pRange, a_Modifiers|o_static);
     }
 };
 
@@ -132,6 +132,5 @@ class TNativeDataMemberProvider : public TNativeDataMemberProviderTagged<t_Ty, t
 o_namespace_end(phantom, reflection, native)
 
 
-#else // TNativeDataMemberProvider_h__
-#include "TNativeDataMemberProvider.classdef.h"
+
 #endif

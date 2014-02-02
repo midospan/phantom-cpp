@@ -9,7 +9,7 @@
 #include <QTreeWidget>
 #include <phantom/util/Message.h>
 /* **************** Declarations ***************** */
-o_declare(class, phantom, Module);
+o_declareN(class, (phantom, qt), ModuleExplorer);
 /* *********************************************** */
 namespace phantom { 
 
@@ -49,22 +49,8 @@ protected:
     QIcon m_UnloadedIcon;
     Message* m_pRootMessage;
     ModuleLoader* m_pModuleLoader;
-
 };
 
 }}
-
-
-o_classN((phantom, qt), ModuleExplorer, o_no_copy)
-{
-    o_reflection
-    {
-        o_slot(void, libraryLoaded, (const string&));
-        o_slot(void, libraryUnloaded, (const string&));
-        o_slot(void, moduleLoaded, (Module*, size_t, size_t));
-        o_slot(void, moduleUnloaded, (Module*, size_t, size_t));
-    };
-};
-o_exposeN((phantom, qt), ModuleExplorer);
 
 #endif

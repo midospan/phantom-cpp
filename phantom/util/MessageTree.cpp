@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include "MessageTree.h"
+#include "MessageTree.hxx"
 #include "Message.h"
 #include <stdarg.h>
 #include <stdio.h>

@@ -3,8 +3,9 @@
 
 
 /* ****************** Includes ******************* */
-#include "phantom/def_jit.h"
+#include <phantom/jit.h>
 /* **************** Declarations ***************** */
+o_declareN(class, (phantom, reflection, jit), JitDebugger);
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection, jit)
@@ -277,17 +278,5 @@ private:
 };
 
 o_namespace_end(phantom, reflection, jit)
-
-o_classN((phantom, reflection, jit), JitDebugger)
-{
-	o_reflection
-    {
-        o_signal(debuggerBroke, ());
-        o_signal(debuggerResumed, ());
-        o_slot(void, subroutineCreated, (void*));
-        o_slot(void, subroutineDestroyed, (void*));
-	};
-};
-o_exposeN((phantom, reflection, jit), JitDebugger);
-
+    
 #endif

@@ -38,14 +38,12 @@
 
 /* ****************** Includes ******************* */
 
-/* *********************************************** */
-/* The *.classdef.h file must be the last #include */
-#include "Track.classdef.h"
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-o_h_begin
+o_namespace_begin(phantom, state)
 
 class o_export Track : public StateMachineElement
 {
@@ -55,9 +53,8 @@ class o_export Track : public StateMachineElement
     typedef vector<State*>    StateVector;
 
 public:
+    static reflection::Class* const metaType;
 
-    Reflection_____________________________________________________________________________________
-    _____________________________________________________________________________________Reflection
 public:
 
     Track(const string& a_strName
@@ -121,9 +118,8 @@ protected:
     uint                    m_uiSerializationMask;
 };
 
-o_h_end
+o_namespace_end(phantom, state)
 
 
-#else // state_Track_h__
-#include "Track.classdef.h"
+
 #endif

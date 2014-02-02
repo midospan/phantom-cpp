@@ -3,10 +3,10 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/def_jit.h>
+#include <phantom/jit.h>
 #include <phantom/reflection/jit/JitSubroutine.h>
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, reflection, jit), JitStaticMemberFunction);
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection, jit)
@@ -45,14 +45,5 @@ protected:
 };
 
 o_namespace_end(phantom, reflection, jit)
-
-o_classNS((phantom, reflection, jit), JitStaticMemberFunction, (StaticMemberFunction, JitSubroutine))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, reflection, jit), JitStaticMemberFunction);
-
+    
 #endif

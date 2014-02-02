@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
 #include "EnumComboBoxEditor.h"
+#include "EnumComboBoxEditor.hxx"
 /* *********************************************** */
 o_registerN((phantom, qt), EnumComboBoxEditor);
 

@@ -1,11 +1,12 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-/* ** The Class Header must be the last #include * */
-#include "SetContainerClass.h"
+#include <phantom/reflection/SetContainerClass.h>
+#include <phantom/reflection/SetContainerClass.hxx>
 /* *********************************************** */
-o_cpp_begin
+o_registerN((phantom, reflection), SetContainerClass);
 
-    ReflectionCPP__________________________________________________________________________________
-    __________________________________________________________________________________ReflectionCPP
+o_namespace_begin(phantom, reflection)
 
-o_cpp_end
+o_define_meta_type(SetContainerClass);
+
+o_namespace_end(phantom, reflection)
