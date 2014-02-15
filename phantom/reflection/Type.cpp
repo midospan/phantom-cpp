@@ -124,17 +124,17 @@ void Type::removeFromNamespace()
 
 DataPointerType* Type::createDataPointerType() const
 {
-    return o_static_new(DataPointerType)(const_cast<Type*>(this));
+    return o_new(DataPointerType)(const_cast<Type*>(this));
 }
 
 ArrayType* Type::createArrayType(size_t a_uiCount) const
 {
-    return o_static_new(ArrayType)(const_cast<Type*>(this), a_uiCount);
+    return o_new(ArrayType)(const_cast<Type*>(this), a_uiCount);
 }
 
 ReferenceType* Type::createReferenceType() const 
 {
-    return o_static_new(ReferenceType)(const_cast<Type*>(this));
+    return o_new(ReferenceType)(const_cast<Type*>(this));
 }
 
 void* Type::newInstance() const

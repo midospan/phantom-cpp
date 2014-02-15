@@ -123,19 +123,26 @@ Namespace*        Namespace::findOrCreateNamespaceCascade(list<string>* a_Hierar
     if(a_HierarchyWords->empty()) return this;
     string str = a_HierarchyWords->front();
     a_HierarchyWords->pop_front();
-    Namespace* childNamespace = getNamespace(str);
-    if(NOT(childNamespace)) 
+    Namespace* pChildNamespace = getNamespace(str);
+    if(NOT(pChildNamespace)) 
     {
-        childNamespace = o_static_new(Namespace)(str);
-        addNamespace(childNamespace);
+        pChildNamespace = o_static_new_alloc_and_construct_part(Namespace)(str);
+        m_Namespaces.push_back(pChildNamespace); 
+        addElement(pChildNamespace);
+        typeOf<Namespace>()->install(pChildNamespace);
+        typeOf<Namespace>()->initialize(pChildNamespace);
+        if(Phantom::getState() == Phantom::eState_Installed)
+        {
+            o_emit namespaceAdded(pChildNamespace);
+        }
     }
     if(a_HierarchyWords->empty())
     {
-        return childNamespace;
+        return pChildNamespace;
     }
     else
     {
-        return childNamespace->findOrCreateNamespaceCascade(a_HierarchyWords);
+        return pChildNamespace->findOrCreateNamespaceCascade(a_HierarchyWords);
     }
     return NULL;
 }
@@ -604,7 +611,7 @@ Template* Namespace::findOrCreateTemplate( const string& a_strName )
     Template* pTemplate = getTemplate(a_strName);
     if(pTemplate == nullptr)
     {
-        pTemplate = o_static_new(Template)(a_strName);
+        pTemplate = o_new(Template)(a_strName);
         addTemplate(pTemplate);
     }
     return pTemplate;

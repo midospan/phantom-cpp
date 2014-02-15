@@ -98,6 +98,7 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
     m_instance = this;
 
     //o_assert(m_eState == eState_NotInstalled, "Phantom has already been installed and can only be installed once per application");
+    typeByName("phantom::reflection::Namespace")->install(Phantom::m_pRootNamespace);
 
 #if o_OPERATING_SYSTEM != o_OPERATING_SYSTEM_WINDOWS
     setState(eState_DynamicInitializerDone_StartingInitialization);
