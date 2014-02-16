@@ -17,6 +17,7 @@ o_registerN((phantom, qt), SequentialContainerItemInsertVariable);
 o_registerN((phantom, qt), MapInsertPairVariable);
 o_registerN((phantom, qt), SetInsertPairVariable);
 o_registerN((phantom, qt), BufferedVariable);
+o_registerN((phantom, qt), ArrayElementVariable);
  
 namespace phantom { 
 namespace qt {

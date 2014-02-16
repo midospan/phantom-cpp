@@ -110,22 +110,23 @@ public:
 
     void extractAllSuperIncludes(const std::string& code, std::string& out)
     {
-        std::string supers;
         size_t pos = 0;
         while(pos < code.length())
         {
             size_t braceCount = 3;
-            size_t cpos = code.find("o_classNS", pos);
-            if(cpos == std::string::npos) 
+            size_t nspos = code.find("o_classNS", pos);
+            size_t ntspos = code.find("o_classNTS", pos);
+            size_t cpos = nspos;
+            if(ntspos < nspos)
             {
+                cpos = ntspos;
                 braceCount = 5;
-                cpos = code.find("o_classNTS", pos);
             }
             pos = cpos;
             if(pos != std::string::npos)
             {
-                if(!supers.empty())
-                    supers.push_back(',');
+                if(!out.empty())
+                    out.push_back(',');
                 extractSuperIncludes(code, pos, braceCount, out);
                 pos++;
                 continue;
@@ -181,19 +182,22 @@ public:
                     code.insert(code.begin()+pos, toInsert.begin(), toInsert.end());
                 }
             }
-            std::ofstream outC(p.generic_string()+".c");
-            outC.write(code.c_str(), code.size());
+            std::ofstream outCPP(p.generic_string());
+            outCPP.write(code.c_str(), code.size());
         }
     }
 
     void filterFile(const boost::filesystem::path& p)
     {
-        std::ifstream in(p.generic_string().c_str());
         std::string code;
         code.reserve(boost::filesystem::file_size(p));
-        code.insert(code.end(), (std::istreambuf_iterator<char>(in)),
-            std::istreambuf_iterator<char>());
 
+        // Read the entire file in variable 'code'
+        {
+            std::ifstream in(p.generic_string().c_str());
+            code.insert(code.end(), (std::istreambuf_iterator<char>(in)),
+                std::istreambuf_iterator<char>());
+        }
 
         std::string originalCode;
         std::string vertexCode;
@@ -264,7 +268,7 @@ public:
         
         if(vertexCode.size())
         {
-            std::ofstream outH(p.generic_string()+".h");
+            std::ofstream outH(p.generic_string());
             std::ofstream outHXX(p.generic_string()+"xx");
             std::string supers;
             extractAllSuperIncludes(vertexCode, supers);

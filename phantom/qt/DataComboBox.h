@@ -8,7 +8,7 @@
 
 /* *********************************************** */
 
-namespace ghost { namespace gui {
+namespace phantom { namespace qt {
 
 class DataValueFilter;
 
@@ -20,10 +20,10 @@ class DataComboBox : public QComboBox
 
 public:
     DataComboBox( phantom::serialization::DataBase* a_pDataBase
-        , const phantom::vector<phantom::data>& currentData
-        , phantom::reflection::Type* a_pFilterType
-        , const phantom::vector<phantom::data>& editedData 
-        , DataValueFilter* a_pDataValueFilter = NULL);
+                , phantom::reflection::Type* a_pType
+                , const phantom::vector<phantom::data>& currentData
+                , const phantom::vector<phantom::data>& editedData 
+                , DataValueFilter* a_pDataValueFilter = NULL);
 	~DataComboBox(void) 
     {
     }
@@ -43,14 +43,20 @@ protected:
 public:
     const phantom::data&   getCurrentData() const 
     {
-        void* address = (void*)itemData(currentIndex()).toUInt();
+        void* address = (void*)itemData(currentIndex()).toULongLong();
         return m_pDataBase->getData(m_pDataBase->getGuid(address));
+    }
+
+    void setCurrentData(const phantom::data& a_Data)
+    {
+        int index = findData((unsigned long long)a_Data.address());
+        setCurrentIndex(index);
     }
 
     void*   getCurrentDataCastedAddress() const
     {
         const phantom::data& currentData = getCurrentData();
-        return currentData.type()->cast(m_pFilterType, currentData.address());
+        return currentData.type()->cast(m_pType, currentData.address());
     }
 
     void computeCommonParentNode();
@@ -62,7 +68,7 @@ protected slots:
         if(address)
         {
             const phantom::data& d = m_pDataBase->getData(m_pDataBase->getGuid(address));
-            phantom::data castedData(d.type()->cast(m_pFilterType, d.address()), m_pFilterType);
+            phantom::data castedData(d.type()->cast(m_pType, d.address()), m_pType);
             emit dataSelected(d);
             emit dataSelectedCasted(castedData);
         }
@@ -78,7 +84,7 @@ signals:
     void    dataSelectedCasted(const phantom::data& a_Data);
 
 protected:
-    phantom::reflection::Type*          m_pFilterType;
+    phantom::reflection::Type*          m_pType;
     phantom::serialization::DataBase*   m_pDataBase;
     phantom::serialization::Node*       m_pParentNode;
     phantom::vector<phantom::data>      m_EditedData;

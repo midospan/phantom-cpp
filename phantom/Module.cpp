@@ -36,6 +36,7 @@
 #include "Module.h"
 #include "Module.hxx"
 /* *********************************************** */
+o_registerN((phantom), Module);
 
 o_namespace_begin(phantom) 
 
@@ -76,6 +77,11 @@ Module::Module( const string& a_strName, const string& a_strFileName, size_t a_P
 
 Module::~Module() 
 {
+
+}
+
+o_terminate_cpp(Module)
+{
     vector<reflection::Class*> remaining_classes;
     auto languageElements = m_LanguageElements;
     std::sort(m_LanguageElements.begin(), m_LanguageElements.end(), ModuleLanguageElementSorter());
@@ -92,6 +98,7 @@ Module::~Module()
         if(it != end)
         {
             reflection::LanguageElement* pElement = *it;
+            o_emit elementRemoved(pElement);
             pElement->terminate();
             pElement->deleteNow();
         }
@@ -134,10 +141,12 @@ void Module::addLanguageElement(reflection::LanguageElement* a_pLanguageElement)
     o_assert(std::find(m_LanguageElements.begin(), m_LanguageElements.end(), a_pLanguageElement) == m_LanguageElements.end());
     m_LanguageElements.push_back(a_pLanguageElement);
     a_pLanguageElement->setModule(this);
+    o_emit elementAdded(a_pLanguageElement);
 }
 
 void Module::removeLanguageElement(reflection::LanguageElement* a_pLanguageElement) 
 {
+    o_emit elementRemoved(a_pLanguageElement);
     o_assert(a_pLanguageElement->m_pModule == this);
     m_LanguageElements.erase(std::find(m_LanguageElements.begin(), m_LanguageElements.end(), a_pLanguageElement));
     a_pLanguageElement->setModule(nullptr);
@@ -162,14 +171,55 @@ void Module::checkCompleteness()
     }
 }
 
+bool Module_derivedClassHasDifferentModule(Module* a_pModule, reflection::Class* a_pClass)
+{
+    if(a_pClass->getModule() != a_pModule) return true;
+    for(size_t i = 0; i<a_pClass->getDerivedClassCount();++i)
+    {
+        if(Module_derivedClassHasDifferentModule(a_pModule, a_pClass->getDerivedClass(i)))
+            return true;
+    }
+
+    return false;
+}
+
 bool Module::canBeUnloaded() const
 {
     for(auto it = m_LanguageElements.begin(); it != m_LanguageElements.end(); ++it)
     {
-        if(NOT((*it)->canBeDestroyed())) return false;
+        reflection::Class* pClass = (*it)->asClass();
+        if(pClass->getKindCount()) return false;
+        if(Module_derivedClassHasDifferentModule((Module*)this, pClass)) return false;
     }
     return true;
 }
 
+phantom::signal_t Module::elementAdded(reflection::LanguageElement* a_0) const
+{
+    phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_elementAdded.head();
+    while(pSlot)
+    {
+        phantom::connection::pair::push(this, pSlot);
+        void* args[] = { (void*)(&a_0) };
+        pSlot->subroutine()->call( pSlot->receiver(), args );
+        pSlot = pSlot->next();
+        phantom::connection::pair::pop();
+    }
+    return phantom::signal_t();
+}
+
+phantom::signal_t Module::elementRemoved(reflection::LanguageElement* a_0) const
+{
+    phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_elementRemoved.head();
+    while(pSlot)
+    {
+        phantom::connection::pair::push(this, pSlot);
+        void* args[] = { (void*)(&a_0) };
+        pSlot->subroutine()->call( pSlot->receiver(), args );
+        pSlot = pSlot->next();
+        phantom::connection::pair::pop();
+    }
+    return phantom::signal_t();
+}
 
 o_namespace_end(phantom)

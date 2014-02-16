@@ -655,5 +655,13 @@ void Namespace::elementRemoved(LanguageElement* a_pElement)
             break;
         }
     }
+    for(auto it = m_Templates.begin(); it != m_Templates.end(); ++it)
+    {
+        if(*it == a_pElement)
+        {
+            m_Templates.erase(it);
+            break;
+        }
+    }
 }
 o_namespace_end(phantom, reflection)

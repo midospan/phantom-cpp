@@ -6,7 +6,7 @@
 #include <QComboBox>
 #include <phantom/qt/VariableWidgetEditor.h>
 /* **************** Declarations ***************** */
-
+o_declareN(class, (phantom, qt), DataComboBoxEditor);
 /* *********************************************** */
 
 namespace phantom { namespace qt {
@@ -15,31 +15,16 @@ class o_qt_export DataComboBoxEditor : public VariableWidgetEditor
 {
 public:
     DataComboBoxEditor(phantom::serialization::DataBase* a_pDataBase
+        , phantom::reflection::Type* a_pType
         , const phantom::vector<phantom::data>& currentData
-        , phantom::reflection::Type* a_pFilterType
         , const phantom::vector<phantom::data>& editedData);
 
-    virtual void setValue(const void* a_pSrc) const 
-    {
-        ((DataComboBox*)m_pWidget)->setCurrentEnumValue(*((size_t*)a_pSrc));
-    }
-    virtual void getValue(void* a_pDest) const 
-    {
-        *((size_t*)a_pDest) = ((DataComboBox*)m_pWidget)->getCurrentEnumValue();
-    }
+    virtual void setValue(const void* a_pSrc) const;
+    virtual void getValue(void* a_pDest) const;
 };
 
 
 } // qt 
 } // phantom 
-
-o_classNS((phantom, qt), DataComboBoxEditor, (VariableWidgetEditor))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeN((phantom, qt), DataComboBoxEditor);
 
 #endif // phantom_qt_EnumComboBox_h__

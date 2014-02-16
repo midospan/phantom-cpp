@@ -1,32 +1,42 @@
 /* ******************* Includes ****************** */
-#include "ghost/gui/gui.h"
+#include "phantom/qt/qt.h"
+#include "phantom/serialization/Node.h"
 #include "DataComboBox.h"
-#include "ghost/gui/Application.h"
-#include "ghost/gui/DataValueFilter.h"
 /* *********************************************** */
 
  
-namespace ghost { 
-namespace gui {
+namespace phantom { 
+namespace qt {
 
 
     DataComboBox::DataComboBox( phantom::serialization::DataBase* a_pDataBase 
-        , const phantom::vector<phantom::data>& currentData 
-        , phantom::reflection::Type* a_pFilterType 
+        , phantom::reflection::Type* a_pType
+        , const phantom::vector<phantom::data>& currentData  
         , const phantom::vector<phantom::data>& editedData
         , DataValueFilter* a_pDataValueFilter /*= NULL*/) 
 
     : m_pDataBase(a_pDataBase)
-        , m_pFilterType(a_pFilterType)
+        , m_pType(a_pType)
         , m_EditedData(editedData)
         , m_pDataValueFilter(a_pDataValueFilter)
     {
         connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(currentDataIndexChanged(int)));
 
+        computeCommonParentNode();
         addNodeDataCascade(m_pParentNode);
 		addItem(QIcon("resources/icons/famfamfam/null.png"), "none", 0);
         
-		int currentIndex = findData((phantom::uint)currentData.address());
+        phantom::data commonData = currentData[0];
+        for(size_t i = 1; i<currentData.size(); ++i)
+        {
+            if(commonData != currentData[i])
+            {
+                commonData = phantom::data();
+                break;
+            }
+        }
+
+		int currentIndex = findData((phantom::ulonglong)commonData.address());
         if(currentIndex != -1)
         {
             setCurrentIndex(currentIndex);
@@ -35,7 +45,6 @@ namespace gui {
         {
             o_assert(m_EditedData.type()->isKindOf(m_pDataValueFilter->getTargetClassType()));
         }*/
-        computeCommonParentNode();
     }
 
     void DataComboBox::addData( const phantom::data& a_Data )
@@ -49,8 +58,8 @@ namespace gui {
         for(auto it = a_pNode->beginData(); it != a_pNode->endData(); ++it)
         {
             phantom::data d = *it;
-            if(std::find(m_EditedData.begin(), m_EditedData.end(), d) == m_EditedData.end() 
-                AND d.type()->isKindOf(m_pFilterType))
+            if(/*std::find(m_EditedData.begin(), m_EditedData.end(), d) == m_EditedData.end() 
+                AND */d.type()->isKindOf(m_pType))
                 //AND ((m_pDataValueFilter == NULL) OR (m_pDataValueFilter->accepts(m_EditedData.address(), d))) 
             {
                 addData(d);

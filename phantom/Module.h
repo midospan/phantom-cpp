@@ -48,6 +48,8 @@ public:
     Module(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle);
     ~Module();
 
+    o_terminate();
+
     const string& getName() const { return m_strName; }
     const string& getFileName() const { return m_strFileName; }
 
@@ -68,6 +70,12 @@ public:
     bool canBeUnloaded() const;
 
 protected:
+    inline phantom::signal_t elementAdded(reflection::LanguageElement*) const;
+    inline phantom::signal_t elementRemoved(reflection::LanguageElement*) const;
+
+protected:
+    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_elementAdded;
+    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_elementRemoved;
     Module*                                 m_pParentModule;
     string                                  m_strName;
     string                                  m_strFileName;

@@ -24,13 +24,13 @@ ModuleLoader::~ModuleLoader( void )
 o_initialize_cpp(ModuleLoader)
 {
     o_connect(o_type_of(Module), kindCreated(void*), this, moduleInstanciated(void*));
-    o_connect(o_type_of(Module), kindDestroyed(void*), this, moduleDestroyed(void*));
+    o_connect(o_type_of(Module), kindDestroyed(void*), this, moduleDeleted(void*));
 }
 
 o_terminate_cpp(ModuleLoader)
 {
     o_disconnect(o_type_of(Module), kindCreated(void*), this, moduleInstanciated(void*));
-    o_disconnect(o_type_of(Module), kindDestroyed(void*), this, moduleDestroyed(void*));
+    o_disconnect(o_type_of(Module), kindDestroyed(void*), this, moduleDeleted(void*));
 }
 
 bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMessage /*= nullptr*/ )
@@ -167,15 +167,17 @@ void ModuleLoader::moduleInstanciated( void* a_pModule )
     m_CurrentlyLoadedModules.push_back(pModule);
     m_LoadedModuleCounts[pModule] = 0;
     m_LoadedModules.push_back(pModule);
+    o_emit moduleCreated(pModule);
 }
 
-void ModuleLoader::moduleDestroyed( void* a_pModule )
+void ModuleLoader::moduleDeleted( void* a_pModule )
 {
     o_assert(m_OperationCounter, "DLL loader must be responsible for loading phantom modules, don't use platform specific function to load them such as LoadLibrary/FreeLibrary, use ModuleLoader::loadLibrary/unloadlibrary");
     phantom::Module* pModule = phantom::as<phantom::Module*>(a_pModule);
     o_emit moduleUnloaded(pModule, m_LoadedModuleCounts[pModule], 0);
     m_LoadedModuleCounts.erase(pModule);
     m_LoadedModules.erase(std::find(m_LoadedModules.begin(), m_LoadedModules.end(), pModule));// Remove dependencies reference of this module
+    o_emit moduleDestroyed(pModule);
 }
 
 void ModuleLoader::updateReferenceCounts(const string& a_strLibPath, bool a_bLoading)
@@ -246,37 +248,76 @@ map<Module*, size_t>::const_iterator ModuleLoader::endLoadedLibraryModules( cons
     return m_LibraryModules.find(a_strPath)->second.end();
 }
 
-bool ModuleLoader::libraryCanBeUnloaded( const string& a_strPath, phantom::Message* a_pMessage ) const
+bool Module_derivedClassHasDifferentModule(const string& moduleName, Module* a_pModule, const phantom::vector<Module*>& a_ModulesAboutToBeUnloaded, reflection::Class* a_pClass, Message*& a_pMessageUnloadFailed, Message* a_pMessage)
 {
+    bool bResult = false;
+    for(size_t i = 0; i<a_pClass->getDerivedClassCount();++i)
+    {
+        reflection::Class* pDerivedClass = a_pClass->getDerivedClass(i);
+        if(std::find(a_ModulesAboutToBeUnloaded.begin(), a_ModulesAboutToBeUnloaded.end(), pDerivedClass->getModule()) == a_ModulesAboutToBeUnloaded.end())
+        {
+            // We don't find the derived class module in the currently unloaded ones
+            if(a_pMessage)
+            {
+                string derivedClassModuleName = pDerivedClass->getModule()->getFileName().substr(pDerivedClass->getModule()->getFileName().find_last_of("/\\")+1) ;
+                bResult = true;
+                if(a_pMessageUnloadFailed == nullptr)
+                    a_pMessageUnloadFailed = a_pMessage->error("Cannot unload module : %s", moduleName.c_str());
+                a_pMessageUnloadFailed->error("Derived class '%s' of '%s' belongs to another loaded module '%s'", pDerivedClass->getQualifiedDecoratedName().c_str(), a_pClass->getQualifiedDecoratedName().c_str(), derivedClassModuleName.c_str());
+            }
+            else return true;
+        }
+        bool result = Module_derivedClassHasDifferentModule(moduleName, a_pModule, a_ModulesAboutToBeUnloaded, pDerivedClass, a_pMessageUnloadFailed, a_pMessage);
+        if(a_pMessage)
+        {
+            bResult = result;
+        }
+        else if(result) return true;
+    }
+
+    return bResult;
+}
+
+bool ModuleLoader::libraryCanBeUnloaded( const string& a_strPath, Message* a_pMessage ) const
+{
+    string moduleName = a_strPath.substr(a_strPath.find_last_of("/\\")+1);
     Message* pMessageUnloadFailed = nullptr;
     bool canUnload = true;
+    phantom::vector<Module*> modulesAboutToBeUnloaded;
+
     for(auto it = beginLoadedLibraryModules(a_strPath); it != endLoadedLibraryModules(a_strPath); ++it)
     {
         Module* pModule = it->first;
-        if(getModuleLoadCount(pModule) == it->second AND NOT(pModule->canBeUnloaded())) 
+        if(getModuleLoadCount(pModule) == it->second) 
         {
-            canUnload = false;
-            if(a_pMessage)
+            modulesAboutToBeUnloaded.push_back(pModule);
+        }
+    }
+    for(auto it = modulesAboutToBeUnloaded.begin(); it != modulesAboutToBeUnloaded.end(); ++it)
+    {
+        Module* pModule = *it;
+        for(auto it = pModule->beginLanguageElements(); it != pModule->endLanguageElements(); ++it)
+        {
+            reflection::Class* pClass = (*it)->asClass();
+            if(pClass) 
             {
-                string moduleName = pModule->getFileName().substr(pModule->getFileName().find_last_of("/\\")+1);
-                for(auto it = pModule->beginLanguageElements(); it != pModule->endLanguageElements(); ++it)
+                if(pClass->getInstanceCount())
                 {
-                    reflection::Class* pClass = (*it)->asClass();
-                    if(pClass)
+                    canUnload = false;
+                    if(a_pMessage)
                     {
-                        if(pClass->getInstanceCount() != 0)
-                        {
-                            if(a_pMessage)
-                            {
-                                if(pMessageUnloadFailed == nullptr) 
-                                    pMessageUnloadFailed = a_pMessage->error("Cannot unload module : %s", moduleName.c_str());
-                                pMessageUnloadFailed->error("Class still used : %s", pClass->getQualifiedDecoratedName().c_str());
-                            }
-                        }
-                    }
+                        if(pMessageUnloadFailed == nullptr) 
+                            pMessageUnloadFailed = a_pMessage->error("Cannot unload module : %s", moduleName.c_str());
+                        pMessageUnloadFailed->error("Class '%s' still have %d instances", pClass->getQualifiedDecoratedName().c_str(), pClass->getInstanceCount());
+                    } else return false;
+                }
+                if(Module_derivedClassHasDifferentModule(moduleName, pModule, modulesAboutToBeUnloaded, pClass, pMessageUnloadFailed, a_pMessage)) 
+                {
+                    if(a_pMessage)
+                        canUnload = false;
+                    else return false;
                 }
             }
-            else return false;
         }
     }
     return canUnload;

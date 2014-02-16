@@ -44,7 +44,7 @@ public:
 
 protected:
     void moduleInstanciated(void* a_pModule);
-    void moduleDestroyed(void* a_pModule);
+    void moduleDeleted(void* a_pModule);
     void updateReferenceCounts(const string& a_strLibPath, bool a_bLoading);
             
 protected:
@@ -54,6 +54,8 @@ protected:
     o_signal_data(libraryAboutToBeUnloaded, const string&);
     o_signal_data(libraryUnloaded, const string&);
     o_signal_data(libraryUnloadFailed, const string&);
+    o_signal_data(moduleCreated, Module*);
+    o_signal_data(moduleDestroyed, Module*);
     o_signal_data(moduleLoaded, Module*, size_t, size_t);
     o_signal_data(moduleUnloaded, Module*, size_t, size_t);
 

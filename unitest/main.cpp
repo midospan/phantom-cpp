@@ -428,6 +428,13 @@ int main(int argc, char **argv)
 
     phantom::installReflection("unitest", moduleFileName, (size_t)GetModuleHandle(NULL));
 
+    phantom::reflection::Type* pFloat4Type = phantom::typeByName("float[4]");
+    o_assert(pFloat4Type);
+    phantom::reflection::Type* pFloatTestGlobal0Type = phantom::typeByName("float[TestGlobal0]");
+    o_assert(pFloatTestGlobal0Type == nullptr);
+    phantom::reflection::Type* pFloatTestGlobal1Type = phantom::typeByName("float[TestGlobal1]");
+    o_assert(pFloatTestGlobal1Type)
+
     HMODULE plugin = 0;
 #if defined(_DEBUG)
     plugin = LoadLibrary("unitest_pluginD.dll");

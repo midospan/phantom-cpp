@@ -118,9 +118,10 @@ public:
 
     serialization::DataBase* getDataBase() const {return m_pDataBase;}
     void setDataBase(serialization::DataBase* a_pDataBase, size_t a_uiNameAttributeIndex = 0, size_t a_uiCategoryAttributeIndex = 0xffffffff);
+    
+    void setMessage(Message* a_pMessage) { m_pMessage = a_pMessage; }
 
     DataTreeViewItem* getItem(void* a_pContent) const;
-
     DataTreeViewItem* getItem(void* a_pContent, DataTreeViewItem* a_pParentItem) const;
 
 	void displayData(const phantom::data& d) { emit dataDisplayed(d); }
@@ -184,7 +185,7 @@ private:
 
 protected:
     phantom::serialization::DataBase*									m_pDataBase;
-    Message*                                                            m_pRootMessage;
+    Message*                                                            m_pMessage;
     size_t                                                              m_uiNameAttributeIndex;
     size_t                                                              m_uiCategoryAttributeIndex;
 	phantom::vector<phantom::serialization::Node*>						m_NodeLoaded;

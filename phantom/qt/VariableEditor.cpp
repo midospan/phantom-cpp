@@ -15,6 +15,7 @@
 #include "StringLineEditor.h"
 #include "CharLineEditor.h"
 #include "BitFieldEditor.h"
+#include "DataComboBoxEditor.h"
 #include "phantom/serialization/Node.h"
 #include "phantom/std/string.h"
 /* *********************************************** */
@@ -133,10 +134,23 @@ namespace phantom { namespace qt {
 
             pVariableWidgetEditor = o_new(EnumComboBoxEditor)(pEnum);
         }
-        /*else if(pVariableType->asDataPointerType() && m_pDataBase)
+        else if(pVariableType->asDataPointerType() && m_pDataBase)
         {
-            pVariableWidgetEditor = o_new(DataComboBox)(pVariableType, m_EditedData, m_pDataBase);
-        }*/
+            phantom::vector<void*> addresses;
+            addresses.resize(pVariable->getVariableCount());
+            for(size_t i = 0; i<addresses.size(); ++i)
+            {
+                pVariable->getVariable(i)->getValue(&addresses[i]);
+            }
+            phantom::vector<phantom::data> currentData;
+            currentData.resize(addresses.size());
+            for(size_t i = 0; i<addresses.size(); ++i)
+            {
+                currentData[i] = addresses[i];
+                currentData[i] = currentData[i].cast(pVariableType);
+            }
+            pVariableWidgetEditor = o_new(DataComboBoxEditor)(m_pDataBase, pVariableType->asDataPointerType()->getPointedType(), currentData, m_EditedData);
+        }
         if(pVariableWidgetEditor)
         {
             VariableWidget* pVariableWidget = new VariableWidget(pVariableWidgetEditor, this);

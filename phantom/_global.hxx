@@ -327,12 +327,6 @@ class type_name_of_counter< o_root_namespace::_type_ < o_PP_CAT o_PP_LEFT_PAREN 
 #define o_global_code_MaxSizeStaticAssert   BOOST_STATIC_ASSERT_MSG(sizeof(o_global_value_Type) < o__uint__max_class_size, o_PP_QUOTE(o_global_value_Type)" size exceeds the defined max size ("o_PP_QUOTE(o__uint__max_class_size)") (check o__uint__max_class_size in _custom.h)");  
 
 
-
-
-
-
-
-
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #    define o_signal_data_declaration(...) \
     o_PP_CAT(o_signal_data_declaration_, o_PP_NARG(__VA_ARGS__))o_PP_LEFT_PAREN __VA_ARGS__ o_PP_RIGHT_PAREN
@@ -383,16 +377,14 @@ class type_name_of_counter< o_root_namespace::_type_ < o_PP_CAT o_PP_LEFT_PAREN 
 
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #    define o_signal_data_definition(...) \
-    o_static_assert(phantom::has_reflection<o_global_value_Type>::value);\
     o_PP_CAT(o_signal_data_definition_, o_PP_NARG(__VA_ARGS__))o_PP_LEFT_PAREN __VA_ARGS__ o_PP_RIGHT_PAREN
 #else
 #    define o_signal_data_definition(...) \
-    o_static_assert(phantom::has_reflection<o_global_value_Type>::value);\
     o_PP_CAT(o_signal_data_definition_, o_PP_NARG(__VA_ARGS__))( __VA_ARGS__ )
 #endif
 
-#    define o_signal_data_definition_1(_signal_name_) \
-  phantom::signal_t o_global_value_Type::_signal_name_(void) const\
+#    define o_signal_data_definition_2(_class_, _signal_name_) \
+  phantom::signal_t _class_::_signal_name_(void) const\
 {\
   phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
   while(pSlot)\
@@ -405,8 +397,8 @@ class type_name_of_counter< o_root_namespace::_type_ < o_PP_CAT o_PP_LEFT_PAREN 
   return phantom::signal_t();\
 }
 
-#    define o_signal_data_definition_2(_signal_name_, _t0_) \
-  phantom::signal_t o_global_value_Type::_signal_name_(_t0_ a_0) const\
+#    define o_signal_data_definition_3(_class_, _signal_name_, _t0_) \
+  phantom::signal_t _class_::_signal_name_(_t0_ a_0) const\
 {\
   phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
   while(pSlot)\
@@ -420,8 +412,8 @@ class type_name_of_counter< o_root_namespace::_type_ < o_PP_CAT o_PP_LEFT_PAREN 
   return phantom::signal_t();\
 }
 
-#    define o_signal_data_definition_3(_signal_name_, _t0_, _t1_) \
-  phantom::signal_t o_global_value_Type::_signal_name_(_t0_ a_0, _t1_ a_1) const\
+#    define o_signal_data_definition_4(_class_, _signal_name_, _t0_, _t1_) \
+  phantom::signal_t _class_::_signal_name_(_t0_ a_0, _t1_ a_1) const\
 {\
   phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
   while(pSlot)\
@@ -435,8 +427,8 @@ class type_name_of_counter< o_root_namespace::_type_ < o_PP_CAT o_PP_LEFT_PAREN 
   return phantom::signal_t();\
 }
 
-#    define o_signal_data_definition_4(_signal_name_, _t0_, _t1_, _t2_) \
-  phantom::signal_t o_global_value_Type::_signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2) const\
+#    define o_signal_data_definition_5(_class_, _signal_name_, _t0_, _t1_, _t2_) \
+  phantom::signal_t _class_::_signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2) const\
 {\
   phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
   while(pSlot)\
@@ -450,8 +442,8 @@ class type_name_of_counter< o_root_namespace::_type_ < o_PP_CAT o_PP_LEFT_PAREN 
   return phantom::signal_t();\
 }
 
-#    define o_signal_data_definition_5(_signal_name_, _t0_, _t1_, _t2_, _t3_) \
-  phantom::signal_t o_global_value_Type::_signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3) const\
+#    define o_signal_data_definition_6(_class_, _signal_name_, _t0_, _t1_, _t2_, _t3_) \
+  phantom::signal_t _class_::_signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3) const\
 {\
   phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
   while(pSlot)\
@@ -465,8 +457,8 @@ class type_name_of_counter< o_root_namespace::_type_ < o_PP_CAT o_PP_LEFT_PAREN 
   return phantom::signal_t();\
 }
 
-#    define o_signal_data_definition_6(_signal_name_, _t0_, _t1_, _t2_, _t3_, _t4_) \
-  phantom::signal_t o_global_value_Type::_signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3, _t4_ a_4) const\
+#    define o_signal_data_definition_7(_class_, _signal_name_, _t0_, _t1_, _t2_, _t3_, _t4_) \
+  phantom::signal_t _class_::_signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3, _t4_ a_4) const\
 {\
   phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
   while(pSlot)\
@@ -480,8 +472,8 @@ class type_name_of_counter< o_root_namespace::_type_ < o_PP_CAT o_PP_LEFT_PAREN 
   return phantom::signal_t();\
 }
 
-#    define o_signal_data_definition_7(_signal_name_, _t0_, _t1_, _t2_, _t3_, _t4_, _t5_) \
-  phantom::signal_t o_global_value_Type::_signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3, _t4_ a_4, _t5_ a_5) const\
+#    define o_signal_data_definition_8(_class_, _signal_name_, _t0_, _t1_, _t2_, _t3_, _t4_, _t5_) \
+  phantom::signal_t _class_::_signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3, _t4_ a_4, _t5_ a_5) const\
 {\
   phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
   while(pSlot)\
@@ -495,8 +487,8 @@ class type_name_of_counter< o_root_namespace::_type_ < o_PP_CAT o_PP_LEFT_PAREN 
   return phantom::signal_t();\
 }
 
-#    define o_signal_data_definition_8(_signal_name_, _t0_, _t1_, _t2_, _t3_, _t4_, _t5_, _t6_) \
-  phantom::signal_t o_global_value_Type::_signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3, _t4_ a_4, _t5_ a_5, _t6_ a_6) const\
+#    define o_signal_data_definition_9(_class_, _signal_name_, _t0_, _t1_, _t2_, _t3_, _t4_, _t5_, _t6_) \
+  phantom::signal_t _class_::_signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3, _t4_ a_4, _t5_ a_5, _t6_ a_6) const\
 {\
   phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
   while(pSlot)\
@@ -509,8 +501,8 @@ class type_name_of_counter< o_root_namespace::_type_ < o_PP_CAT o_PP_LEFT_PAREN 
 }\
   return phantom::signal_t();\
 }
-#    define o_signal_data_definition_9(_signal_name_, _t0_, _t1_, _t2_, _t3_, _t4_, _t5_, _t6_, _t7_) \
-  phantom::signal_t o_global_value_Type::_signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3, _t4_ a_4, _t5_ a_5, _t6_ a_6, _t7_ a_7) const\
+#    define o_signal_data_definition_10(_class_, _signal_name_, _t0_, _t1_, _t2_, _t3_, _t4_, _t5_, _t6_, _t7_) \
+  phantom::signal_t _class_, ::_signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3, _t4_ a_4, _t5_ a_5, _t6_ a_6, _t7_ a_7) const\
 {\
   phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
   while(pSlot)\

@@ -60,7 +60,7 @@ protected:
 
 DataTreeView::DataTreeView( Message* a_pRootMessage ) 
     : m_pDataBase(NULL)
-    , m_pRootMessage(a_pRootMessage)
+    , m_pMessage(a_pRootMessage)
     , m_bHideInternal(true)
     , m_bHideSubData(true)
 	, m_bIsChangingSelection(false)
@@ -864,9 +864,9 @@ void DataTreeView::defaultLoadNodeActionDelegate( serialization::Node* a_pNode )
     {
         a_pNode->load();
     }
-    else if(m_pRootMessage)
+    else if(m_pMessage)
     {
-        Message* pMessage = m_pRootMessage->error("Cannot load node : %s", m_pDataBase->getNodeAttributeValue(a_pNode, m_uiNameAttributeIndex).c_str());
+        Message* pMessage = m_pMessage->error("Cannot load node : %s", m_pDataBase->getNodeAttributeValue(a_pNode, m_uiNameAttributeIndex).c_str());
         for(auto it = missingTypes.begin(); it != missingTypes.end(); ++it)
         {
             pMessage->error("Missing class : %s", (*it).c_str());
@@ -902,9 +902,9 @@ void DataTreeView::defaultRecursiveLoadNodeActionDelegate( serialization::Node* 
     }
     else 
     {
-        if(m_pRootMessage)
+        if(m_pMessage)
         {
-            Message* pMessage = m_pRootMessage->error("Cannot load node : %s", m_pDataBase->getNodeAttributeValue(a_pNode, m_uiNameAttributeIndex).c_str());
+            Message* pMessage = m_pMessage->error("Cannot load node : %s", m_pDataBase->getNodeAttributeValue(a_pNode, m_uiNameAttributeIndex).c_str());
             for(auto it = missingTypes.begin(); it != missingTypes.end(); ++it)
             {
                 pMessage->error("Missing class : %s", (*it).c_str());

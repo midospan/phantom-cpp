@@ -226,6 +226,8 @@ o_classNTS((std), (typename), (_Ty), _Vector_iterator, (_Vector_const_iterator<_
 o_exposeNT((std), (typename), (_Ty), _Vector_iterator);
 
 // vector
+o_traits_specializeNT(has_has_something, (static const bool value = false;), (std), (typename, typename), (t_Ty, t_Alloc), vector);
+
 o_classNTS((std), (typename, typename), (t_Ty, t_Alloc), vector, (_Vector_val<t_Ty, t_Alloc>))
 {
     o_reflection 
@@ -238,6 +240,8 @@ o_classNTS((std), (typename, typename), (t_Ty, t_Alloc), vector, (_Vector_val<t_
     };
 };
 o_exposeNT((std), (typename, typename), (t_Ty, t_Alloc), vector);
+
+o_traits_specializeNT(has_has_something, (static const bool value = false;), (phantom), (typename), (t_Ty), vector);
 
 o_classNTS((phantom), (typename), (t_Ty), vector, (std::vector<t_Ty, o__t1_class__contiguous_memory_allocator(t_Ty)>))
 {

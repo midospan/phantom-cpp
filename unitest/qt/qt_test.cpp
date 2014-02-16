@@ -48,6 +48,7 @@ public:
     typedef std::vector<phantom::vector<std::vector<int>>> nested_vectors;
     nested_vectors mNestedVectors;
     phantom::math::transform2<float> mTransform;
+    Test* m_pOtherTest;
 };
 
 o_class(Test, o_public)
@@ -70,6 +71,7 @@ o_class(Test, o_public)
         o_data_member(std::vector<float>, mFloats, o_no_range, o_public);
         o_data_member(map, mStrings, o_no_range, o_public);
         o_data_member(nested_vectors, mNestedVectors, o_no_range, o_public);
+        o_data_member(Test*, m_pOtherTest, o_no_range, o_public);
         o_property(const phantom::math::transform2<float>&, transform, setTransform, getTransform, o_no_signal, o_no_range, o_public);
     };
 };
