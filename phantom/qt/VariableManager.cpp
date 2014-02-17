@@ -272,7 +272,7 @@ void VariableManager::addMapContainerIteratorProperties( QtProperty* property, c
         for(size_t i = 0; i<count; ++i)
         {
             map_key key(a_pContainerClass->getKeyType());
-            as<reflection::MapValueIteratorVariable*>(vars[i])->getKeyValue(key.m_pBuffer);
+            static_cast<reflection::MapValueIteratorVariable*>(vars[i])->getKeyValue(key.m_pBuffer);
             groupedVariables[key].push_back(vars[i]);
         }
     }
