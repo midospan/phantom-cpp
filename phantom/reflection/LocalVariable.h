@@ -41,7 +41,7 @@ public:
 
     int getFrameOffset() const { return m_iFrameOffset; }
 
-    virtual LanguageElement* getElement( const char* a_strQualifiedName , template_specialization const* , function_signature const* , bitfield a_Modifiers /*= 0*/ ) const;
+    virtual LanguageElement* solveElement( const string& a_strName , const vector<TemplateElement*>* , const vector<LanguageElement*>* , bitfield a_Modifiers /*= 0*/ ) const;
 
 protected:
     Type*   m_pType;

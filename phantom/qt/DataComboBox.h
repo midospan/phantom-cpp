@@ -1,5 +1,5 @@
-#ifndef ghost_gui_DataComboBox_h__
-#define ghost_gui_DataComboBox_h__
+#ifndef o_qt_DataComboBox_h__
+#define o_qt_DataComboBox_h__
 
 
 /* ****************** Includes ******************* */
@@ -92,8 +92,8 @@ protected:
 };
 
 
-} // gui 
-} // ghost 
+} // qt 
+} // phantom 
 
 
 

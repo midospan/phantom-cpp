@@ -22,12 +22,13 @@ o_forceinline int select(unsigned condition, int valueIfConditionNonZero, int va
     unsigned testEqz = ~testNz; 
     return static_cast<int>((valueIfConditionNonZero & testNz) | (valueIfConditionZero & testEqz));
 }
+
 o_forceinline float select(unsigned condition, float valueIfConditionNonZero, float valueIfConditionZero)
 {
 #ifdef o_HAVE_NATIVE_FSEL
-    return (float)btFsel((btScalar)condition - btScalar(1.0f), valueIfConditionNonZero, valueIfConditionZero);
+    return (float)o_fsel((float)condition - 1.0f, valueIfConditionNonZero, valueIfConditionZero);
 #else
-    return (condition != 0) ? valueIfConditionNonZero : valueIfConditionZero; 
+    return ((condition >= 0) ? valueIfConditionNonZero : valueIfConditionZero);
 #endif
 }
 

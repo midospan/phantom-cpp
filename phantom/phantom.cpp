@@ -52,6 +52,9 @@
 #   include "phantom/phantom.hxx"
 #endif
 
+#include "phantom/ModuleLoader.h"
+#include "phantom/ModuleLoader.hxx"
+
 o_registerN((phantom, memory), malloc_free_allocator_for_boost)
 o_registerNT((phantom, memory), (typename, typename), (T, UserAllocator), malloc_free_allocator)
 
@@ -85,12 +88,15 @@ phantom::reflection::Namespace*                 Phantom::m_pRootNamespace;
 void*                                           Phantom::m_typeOf_cycling_address_workaround_ptr;
 phantom::Phantom::rtti_data_map*                Phantom::m_rtti_data_map = NULL;
 phantom::Phantom::element_container*		    Phantom::m_elements = NULL;
-phantom::Module*		            Phantom::m_module = NULL;
+phantom::Module*		                        Phantom::m_module = NULL;
+phantom::ModuleLoader*		                    Phantom::m_module_loader = NULL;
+phantom::serialization::DataBase*		        Phantom::m_current_data_base = NULL;
 phantom::map<phantom::string, phantom::Module*> Phantom::m_modules;
 phantom::Phantom*                               Phantom::m_instance = NULL;
 phantom::Phantom::dynamic_pool_type_map         Phantom::m_DynamicPoolAllocators;
 
 map<string, reflection::SourceFile*>            phantom::Phantom::m_SourceFiles;
+
 
 Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
 {
@@ -99,6 +105,9 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
 
     //o_assert(m_eState == eState_NotInstalled, "Phantom has already been installed and can only be installed once per application");
     typeByName("phantom::reflection::Namespace")->install(Phantom::m_pRootNamespace);
+
+    typeOf<ModuleLoader>()->install(m_module_loader); 
+    typeOf<ModuleLoader>()->initialize(m_module_loader);
 
 #if o_OPERATING_SYSTEM != o_OPERATING_SYSTEM_WINDOWS
     setState(eState_DynamicInitializerDone_StartingInitialization);
@@ -117,11 +126,15 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
 
     setState(eState_Installed);
 #endif
+    moduleLoader()->loadMain();
 }
-
 
 Phantom::~Phantom()
 {
+    moduleLoader()->unloadMain();
+    typeOf<ModuleLoader>()->terminate(m_module_loader);
+    typeOf<ModuleLoader>()->uninstall(m_module_loader); 
+    
     // delete SourceFiles
     for(auto it = m_SourceFiles.begin(); it != m_SourceFiles.end(); ++it)
     {
@@ -129,7 +142,7 @@ Phantom::~Phantom()
     }
     m_SourceFiles.clear();
 
-    //rootNamespace()->teardownMetaDataCascade(m_meta_data_names.size());
+    rootNamespace()->teardownMetaDataCascade(m_meta_data_names.size());
     // Deleting all the registered singletons
     /*{
         singleton_container::reverse_iterator it = m_singleton_container->rbegin();
@@ -189,6 +202,9 @@ detail::dynamic_initializer_handle::dynamic_initializer_handle()
     connection::slot_pool::m_allocation_controller_map= o_allocate(connection::slot_pool::allocation_controller_map);
     new (connection::slot_pool::m_allocation_controller_map) connection::slot_pool::allocation_controller_map; 
 
+    Phantom::m_module_loader = o_allocate(ModuleLoader);
+    new (Phantom::m_module_loader) ModuleLoader; 
+
     Phantom::m_eState = Phantom::eState_NotInstalled;
     Phantom::m_typeOf_cycling_address_workaround_ptr = &Phantom::m_typeOf_cycling_address_workaround_ptr;
     Phantom::m_pRootNamespace = o_static_new_alloc_and_construct_part(reflection::Namespace)(o_CS(o_root_namespace_name));
@@ -207,6 +223,8 @@ detail::dynamic_initializer_handle::dynamic_initializer_handle()
 
 detail::dynamic_initializer_handle::~dynamic_initializer_handle()
 {
+    Phantom::m_module_loader->~ModuleLoader();
+    o_deallocate(Phantom::m_module_loader, ModuleLoader) ;
 }
 
 void Phantom::setState(EState s) 
@@ -563,6 +581,31 @@ void default_log(int level, const char* file, uint line, const char* format, va_
     std::cout<<buffer<<std::endl<<console::fg_gray;
 }
 
+boolean canConnect( reflection::Signal* a_pSignal, reflection::InstanceMemberFunction* a_pMemberFunction )
+{
+    reflection::Signature* pMemberFunctionSignature = a_pMemberFunction->getSignature();
+    reflection::Signature* pSignalSignature = a_pSignal->getSignature();
+    if(pMemberFunctionSignature->getParameterCount() > pSignalSignature->getParameterCount())
+    {
+        return false;
+    }
+    else
+    {
+        uint i = 0;
+        uint count = pMemberFunctionSignature->getParameterCount();
+        for(;i<count;++i)
+        {
+            reflection::Type* pMemberFunctionParamType = pMemberFunctionSignature->getParameterType(i);
+            reflection::Type* pSignalParamType = pSignalSignature->getParameterType(i);
+            if(NOT(pSignalParamType->hasTrivialCastTo(pMemberFunctionParamType)))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 connection::slot const* Phantom::internalConnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction )
 {
     connection::slot::list* pSlotList = a_pSignal->getSlotList(a_Sender.cast(static_cast<reflection::Class*>(a_pSignal->getOwner())));
@@ -596,15 +639,50 @@ connection::slot const* Phantom::internalConnect( const rtti_data& a_Sender, ref
     return pSlot;
 }
 
-connection::slot const* connect( void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction )
+connection::slot const* Phantom::internalDisconnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction )
+{
+    connection::slot::list* pSlotList = a_pSignal->getSlotList(a_Sender.cast(static_cast<reflection::Class*>(a_pSignal->getOwner())));
+    connection::slot* pSlot = pSlotList->m_head;
+    while(pSlot)
+    {
+        if(pSlot->m_subroutine == a_pMemberFunction 
+            AND pSlot->m_receiver == a_Receiver.cast(static_cast<reflection::Class*>(a_pMemberFunction->getOwner())))
+        {
+            // Found -> Release the connection
+
+            a_Receiver.connection_slot_allocator->release(pSlot);
+            return pSlot;
+        }
+        pSlot = pSlot->m_next;
+    }
+    o_assert(false, "cannot find the connection");
+    return nullptr;
+}
+
+bool Phantom::areConnected( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction )
+{
+    connection::slot::list* pSlotList = a_pSignal->getSlotList(a_Sender.cast(static_cast<reflection::Class*>(a_pSignal->getOwner())));
+    connection::slot* pSlot = pSlotList->m_head;
+    while(pSlot)
+    {
+        if(pSlot->m_subroutine == a_pMemberFunction 
+            AND pSlot->m_receiver == a_Receiver.cast(static_cast<reflection::Class*>(a_pMemberFunction->getOwner())))
+        {
+            return true;
+        }
+        pSlot = pSlot->m_next;
+    }
+    return false;
+}
+
+connection::slot const* connect( const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction )
 {
     // EMISSION
-    const rtti_data& pSenderInfo = phantom::rttiDataOf(a_pSender);
-    if(pSenderInfo.isNull())
+    if(a_Sender.isNull())
     {
         o_exception(exception::reflection_runtime_exception, "the address passed as signal sender doesn't point to a phantom object");
     }
-    reflection::Signal* pSignal = pSenderInfo.object_class->getSignalCascade(a_pSignal);
+    reflection::Signal* pSignal = a_Sender.object_class->getSignalCascade(a_pSignal);
     if(pSignal == NULL) 
     {
         o_warning(false, (string("unknown signal : ")+a_pSignal).c_str());
@@ -612,12 +690,11 @@ connection::slot const* connect( void* a_pSender, const character* a_pSignal, vo
     }
 
     // RECEPTION
-    const rtti_data& pReceiverInfo = phantom::rttiDataOf(a_pReceiver);
-    if(pReceiverInfo.isNull())
+    if(a_Receiver.isNull())
     {
         o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
     }
-    reflection::InstanceMemberFunction* pInstanceMemberFunction = pReceiverInfo.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
+    reflection::InstanceMemberFunction* pInstanceMemberFunction = a_Receiver.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
     if(pInstanceMemberFunction == NULL) 
     {
         o_warning(false, (string("unknown slot : ")+a_pMemberFunction).c_str());
@@ -632,29 +709,27 @@ connection::slot const* connect( void* a_pSender, const character* a_pSignal, vo
         o_warning(false, "connection impossible due to signature incompatibility");
         return nullptr;
     }
-    return phantom::Phantom::internalConnect(pSenderInfo, pSignal, pReceiverInfo, pInstanceMemberFunction);
+    return phantom::Phantom::internalConnect(a_Sender, pSignal, a_Receiver, pInstanceMemberFunction);
 }
 
-connection::slot const* connect( void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction )
+connection::slot const* connect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction )
 {
     o_assert(a_pSignal != NULL AND a_pMemberFunction != NULL);
     // EMISSION
-    const rtti_data& pSenderInfo = phantom::rttiDataOf(a_pSender);
-    if(pSenderInfo.isNull())
+    if(a_Sender.isNull())
     {
         o_exception(exception::reflection_runtime_exception, "the address passed as signal sender doesn't point to a phantom object");
     }
-    if(NOT(pSenderInfo.object_class->isKindOf(static_cast<reflection::Class*>(a_pSignal->getOwner()))))
+    if(NOT(a_Sender.object_class->isKindOf(static_cast<reflection::Class*>(a_pSignal->getOwner()))))
     {
         o_exception(exception::reflection_runtime_exception, "the signal doesn't belong to the sender's class");
     }
     // RECEPTION
-    const rtti_data& pReceiverInfo = phantom::rttiDataOf(a_pReceiver);
-    if(pReceiverInfo.isNull())
+    if(a_Receiver.isNull())
     {
         o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
     }
-    if(NOT(pReceiverInfo.object_class->isKindOf(static_cast<reflection::Class*>(a_pMemberFunction->getOwner()))))
+    if(NOT(a_Receiver.object_class->isKindOf(static_cast<reflection::Class*>(a_pMemberFunction->getOwner()))))
     {
         o_exception(exception::reflection_runtime_exception, "the slot doesn't belong to the receiver's class");
     }
@@ -667,31 +742,29 @@ connection::slot const* connect( void* a_pSender, phantom::reflection::Signal* a
         o_warning(false, "connection impossible due to signature incompatibility");
         return nullptr;
     }
-    return phantom::Phantom::internalConnect(pSenderInfo, a_pSignal, pReceiverInfo, a_pMemberFunction);
+    return phantom::Phantom::internalConnect(a_Sender, a_pSignal, a_Receiver, a_pMemberFunction);
 }
 
 
-connection::slot const* tryConnect( void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction )
+connection::slot const* tryConnect( const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction )
 {
     // EMISSION
-    const rtti_data& pSenderInfo = phantom::rttiDataOf(a_pSender);
-    if(pSenderInfo.isNull())
+    if(a_Sender.isNull())
     {
         o_exception(exception::reflection_runtime_exception, "the address passed as signal sender doesn't point to a phantom object");
     }
-    reflection::Signal* pSignal = pSenderInfo.object_class->getSignalCascade(a_pSignal);
+    reflection::Signal* pSignal = a_Sender.object_class->getSignalCascade(a_pSignal);
     if(pSignal == NULL) 
     {
         return nullptr;
     }
 
     // RECEPTION
-    const rtti_data& pReceiverInfo = phantom::rttiDataOf(a_pReceiver);
-    if(pReceiverInfo.isNull())
+    if(a_Receiver.isNull())
     {
         o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
     }
-    reflection::InstanceMemberFunction* pInstanceMemberFunction = pReceiverInfo.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
+    reflection::InstanceMemberFunction* pInstanceMemberFunction = a_Receiver.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
     if(pInstanceMemberFunction == NULL) 
     {
         return nullptr;
@@ -704,28 +777,114 @@ connection::slot const* tryConnect( void* a_pSender, const character* a_pSignal,
     {
         return nullptr;
     }
-    return phantom::Phantom::internalConnect(pSenderInfo, pSignal, pReceiverInfo, pInstanceMemberFunction);
+    return phantom::Phantom::internalConnect(a_Sender, pSignal, a_Receiver, pInstanceMemberFunction);
 }
 
-
-connection::slot const* Phantom::internalDisconnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction )
+connection::slot const* disconnect( const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction )
 {
-    connection::slot::list* pSlotList = a_pSignal->getSlotList(a_Sender.cast(static_cast<reflection::Class*>(a_pSignal->getOwner())));
-    connection::slot* pSlot = pSlotList->m_head;
-    while(pSlot)
+    // EMISSION
+    if(a_Sender.isNull())
     {
-        if(pSlot->m_subroutine == a_pMemberFunction 
-            AND pSlot->m_receiver == a_Receiver.cast(static_cast<reflection::Class*>(a_pMemberFunction->getOwner())))
-        {
-            // Found -> Release the connection
-            
-            a_Receiver.connection_slot_allocator->release(pSlot);
-            return pSlot;
-        }
-        pSlot = pSlot->m_next;
+        o_exception(exception::reflection_runtime_exception, "the address passed as signal sender doesn't point to a phantom object");
     }
-    o_assert(false, "cannot find the connection");
-    return nullptr;
+    reflection::Signal* pSignal = a_Sender.object_class->getSignalCascade(a_pSignal);
+    if(pSignal == NULL) 
+    {
+        o_warning(false, (string("unknown signal : ")+a_pSignal).c_str());
+        return false;
+    }
+
+    // RECEPTION
+    if(a_Receiver.isNull())
+    {
+        o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
+    }
+    reflection::InstanceMemberFunction* pInstanceMemberFunction = a_Receiver.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
+    if(pInstanceMemberFunction == NULL) 
+    {
+        o_warning(false, (string("unknown slot : ")+a_pSignal).c_str());
+        return nullptr;
+    }
+    if(NOT(canConnect(pSignal, pInstanceMemberFunction)))
+    {
+        o_warning(false, "connection impossible due to signature incompatibility");
+        return nullptr;
+    }
+    return phantom::Phantom::internalDisconnect(a_Sender, pSignal, a_Receiver, pInstanceMemberFunction);
+}
+
+connection::slot const* disconnect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction )
+{
+    o_assert(a_pSignal != NULL AND a_pMemberFunction != NULL);
+    // EMISSION
+    if(a_Sender.isNull())
+    {
+        o_exception(exception::reflection_runtime_exception, "the address passed as signal sender doesn't point to a phantom object");
+    }
+    // RECEPTION
+    if(a_Receiver.isNull())
+    {
+        o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
+    }
+    if(NOT(canConnect(a_pSignal, a_pMemberFunction)))
+    {
+        o_warning(false, "connection impossible due to signature incompatibility");
+        return nullptr;
+    }
+    return phantom::Phantom::internalDisconnect(a_Sender, a_pSignal, a_Receiver, a_pMemberFunction);
+}
+
+connection::slot const* tryDisconnect( const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction )
+{
+    // EMISSION
+    if(a_Sender.isNull())
+    {
+        o_exception(exception::reflection_runtime_exception, "the address passed as signal sender doesn't point to a phantom object");
+    }
+    reflection::Signal* pSignal = a_Sender.object_class->getSignalCascade(a_pSignal);
+    if(pSignal == NULL) 
+    {
+        return nullptr;
+    }
+
+    // RECEPTION
+    if(a_Receiver.isNull())
+    {
+        o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
+    }
+    reflection::InstanceMemberFunction* pInstanceMemberFunction = a_Receiver.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
+    if(pInstanceMemberFunction == NULL) 
+    {
+        return nullptr;
+    }
+    if(NOT(canConnect(pSignal, pInstanceMemberFunction)))
+    {
+        return nullptr;
+    }
+    return phantom::Phantom::internalDisconnect(a_Sender, pSignal, a_Receiver, pInstanceMemberFunction);
+}
+
+bool areConnected( const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction )
+{
+    if(a_Sender.isNull() || a_Receiver.isNull())
+    {
+        return false;
+    }
+
+    // EMISSION
+    reflection::Signal* pSignal = a_Sender.object_class->getSignalCascade(a_pSignal);
+    if(pSignal == NULL) 
+    {
+        return false;
+    }
+
+    // RECEPTION
+    reflection::InstanceMemberFunction* pInstanceMemberFunction = a_Receiver.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
+    if(pInstanceMemberFunction == NULL) 
+    {
+        return false;
+    }
+    return Phantom::areConnected(a_Sender, pSignal, a_Receiver, pInstanceMemberFunction);
 }
 
 detail::dynamic_initializer_handle* Phantom::dynamic_initializer()
@@ -757,140 +916,6 @@ void Phantom::discardSourceFile( phantom::reflection::SourceFile* a_pSourceFile 
     o_delete(phantom::reflection::SourceFile) a_pSourceFile;
 }
 
-/*
-
-void Phantom::completeElement( const string& a_Prefix, const reflection::CodePosition& a_Position, vector<reflection::LanguageElement*>& a_Elements )
-{
-    reflection::LanguageElement* pElementAtCodePosition = a_Position.sourceFile->findLanguageElement(a_Position);
-    if(pElementAtCodePosition == nullptr)
-        pElementAtCodePosition = rootNamespace();
-
-    string normalizedPrefix = a_Prefix;
-    boost::replace_all(normalizedPrefix, ".", "::");
-
-
-    reflection::LanguageElement* pElement;
-    vector<reflection::LanguageElement*> subElements;
-    size_t pos = normalizedPrefix.rfind("::");
-    if(pos == string::npos)
-    {
-        pElement = pElementAtCodePosition;
-        o_assert(pElement);
-        while(pElement)
-        {
-            pElement->getElements(subElements);
-            pElement = pElement->getOwner();
-        }
-    }
-    else 
-    {
-        
-        pElement = elementByName(normalizedPrefix.substr(0, pos), pElementAtCodePosition);
-        normalizedPrefix = normalizedPrefix.substr(pos+2);
-        if(pElement == nullptr)
-        {
-            return;
-        }
-        pElement->getElements(subElements);
-    }
-    for(auto it = subElements.begin(); it != subElements.end(); ++it)
-    {
-        if((*it)->getName().find(normalizedPrefix) == 0)
-            a_Elements.push_back(*it);
-    }
-}*/
-
-connection::slot const* disconnect( void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction )
-{
-    // EMISSION
-    const rtti_data& pSenderInfo = phantom::rttiDataOf(a_pSender);
-    if(pSenderInfo.isNull())
-    {
-        o_exception(exception::reflection_runtime_exception, "the address passed as signal sender doesn't point to a phantom object");
-    }
-    reflection::Signal* pSignal = pSenderInfo.object_class->getSignalCascade(a_pSignal);
-    if(pSignal == NULL) 
-    {
-        o_warning(false, (string("unknown signal : ")+a_pSignal).c_str());
-        return false;
-    }
-
-    // RECEPTION
-    const rtti_data& pReceiverInfo = phantom::rttiDataOf(a_pReceiver);
-    if(pReceiverInfo.isNull())
-    {
-        o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
-    }
-    reflection::InstanceMemberFunction* pInstanceMemberFunction = pReceiverInfo.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
-    if(pInstanceMemberFunction == NULL) 
-    {
-        o_warning(false, (string("unknown slot : ")+a_pSignal).c_str());
-        return nullptr;
-    }
-    if(NOT(canConnect(pSignal, pInstanceMemberFunction)))
-    {
-        o_warning(false, "connection impossible due to signature incompatibility");
-        return nullptr;
-    }
-    return phantom::Phantom::internalDisconnect(pSenderInfo, pSignal, pReceiverInfo, pInstanceMemberFunction);
-}
-
-connection::slot const* disconnect( void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction )
-{
-    o_assert(a_pSignal != NULL AND a_pMemberFunction != NULL);
-    // EMISSION
-    const rtti_data& pSenderInfo = phantom::rttiDataOf(a_pSender);
-    if(pSenderInfo.isNull())
-    {
-        o_exception(exception::reflection_runtime_exception, "the address passed as signal sender doesn't point to a phantom object");
-    }
-    // RECEPTION
-    const rtti_data& pReceiverInfo = phantom::rttiDataOf(a_pReceiver);
-    if(pReceiverInfo.isNull())
-    {
-        o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
-    }
-    if(NOT(canConnect(a_pSignal, a_pMemberFunction)))
-    {
-        o_warning(false, "connection impossible due to signature incompatibility");
-        return nullptr;
-    }
-    return phantom::Phantom::internalDisconnect(pSenderInfo, a_pSignal, pReceiverInfo, a_pMemberFunction);
-}
-
-
-connection::slot const* tryDisconnect( void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction )
-{
-    // EMISSION
-    const rtti_data& pSenderInfo = phantom::rttiDataOf(a_pSender);
-    if(pSenderInfo.isNull())
-    {
-        o_exception(exception::reflection_runtime_exception, "the address passed as signal sender doesn't point to a phantom object");
-    }
-    reflection::Signal* pSignal = pSenderInfo.object_class->getSignalCascade(a_pSignal);
-    if(pSignal == NULL) 
-    {
-        return nullptr;
-    }
-
-    // RECEPTION
-    const rtti_data& pReceiverInfo = phantom::rttiDataOf(a_pReceiver);
-    if(pReceiverInfo.isNull())
-    {
-        o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
-    }
-    reflection::InstanceMemberFunction* pInstanceMemberFunction = pReceiverInfo.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
-    if(pInstanceMemberFunction == NULL) 
-    {
-        return nullptr;
-    }
-    if(NOT(canConnect(pSignal, pInstanceMemberFunction)))
-    {
-        return nullptr;
-    }
-    return phantom::Phantom::internalDisconnect(pSenderInfo, pSignal, pReceiverInfo, pInstanceMemberFunction);
-}
-
 bool Phantom::type_sorter_by_build_order::operator()( reflection::Type* one, reflection::Type* another )
 {
     if(one->isKindOf(another))
@@ -898,31 +923,6 @@ bool Phantom::type_sorter_by_build_order::operator()( reflection::Type* one, ref
     else if(another->isKindOf(one))
         return false; 
     return one->getBuildOrder() > another->getBuildOrder();
-}
-
-boolean canConnect( reflection::Signal* a_pSignal, reflection::InstanceMemberFunction* a_pMemberFunction )
-{
-    reflection::Signature* pMemberFunctionSignature = a_pMemberFunction->getSignature();
-    reflection::Signature* pSignalSignature = a_pSignal->getSignature();
-    if(pMemberFunctionSignature->getParameterCount() > pSignalSignature->getParameterCount())
-    {
-        return false;
-    }
-    else
-    {
-        uint i = 0;
-        uint count = pMemberFunctionSignature->getParameterCount();
-        for(;i<count;++i)
-        {
-            reflection::Type* pMemberFunctionParamType = pMemberFunctionSignature->getParameterType(i);
-            reflection::Type* pSignalParamType = pSignalSignature->getParameterType(i);
-            if(NOT(pSignalParamType->hasTrivialCastTo(pMemberFunctionParamType)))
-            {
-                return false;
-            }
-        }
-    }
-    return true;
 }
 
 o_export void        assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const character* e, const character* m , const char* f , uint l)
@@ -1131,6 +1131,12 @@ o_export Module*                           currentModule()
     return Phantom::m_module;
 }
 
+ 
+o_export ModuleLoader*                                 moduleLoader()
+{
+    return Phantom::m_module_loader;
+}
+
 o_export Module*                           moduleByName(const string& a_strName)
 {
     auto found = Phantom::m_modules.find(a_strName);
@@ -1278,6 +1284,17 @@ o_export void dynamicPoolDeallocate( size_t s, void* a_pAddress, size_t count o_
     new_pool->ordered_free(a_pAddress, count);
 }
 
+o_export void setCurrentDataBase( serialization::DataBase* a_pDataBase )
+{
+    Phantom::m_current_data_base = a_pDataBase;
+}
+o_export serialization::DataBase* getCurrentDataBase()
+{
+    return Phantom::m_current_data_base;
+}
+
+
 o_namespace_end(phantom)
 
-    o_module("")
+
+o_module("")

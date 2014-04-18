@@ -58,7 +58,7 @@ public:
 
 
 public:
-    Collection(const string& a_strName, Type* a_pElementType, bitfield a_Modifiers = 0);
+    Collection(const string& a_strName, Type* a_pElementType, uint a_uiSerializationMask, bitfield a_Modifiers = 0);
 
     o_destructor ~Collection(void) {}
 
@@ -82,17 +82,18 @@ public:
 
     virtual Collection*         asCollection() const { return (Collection*)this; }
         
-    virtual reflection::Class*  getSortingCategoryClass() const;
-
     virtual Iterator*           getIterator(void* a_pInstance) const;
+
+    virtual bool                referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
+    virtual void                fetchReferencedData(const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask) const;
 
 protected:
     virtual bool                canBeDestroyed() const;
     virtual void                referencedElementRemoved(LanguageElement* a_pElement);
 
-
 protected:
-    Type*   m_pElementType;
+    Type*                       m_pElementType;
+    uint                        m_uiSerializationMask;
 
 };
 

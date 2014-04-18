@@ -55,7 +55,7 @@ void VariableWidget::rebuildLayout()
     setFocusProxy(m_pVariableWidgetEditor->getWidget());
 }
 
-void VariableWidget::setVariable( BufferedVariable* a_pVariable )
+void VariableWidget::setVariable( VariableNode* a_pVariable )
 {
     if(m_pVariable == a_pVariable) 
         return; 

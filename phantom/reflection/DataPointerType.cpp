@@ -535,4 +535,21 @@ void DataPointerType::referencedElementRemoved( LanguageElement* a_pElement )
         m_pPointedType = nullptr;
 }
 
+bool DataPointerType::referencesData( const void* a_pInstance, const phantom::data& a_Data ) const
+{
+    const void* pointerValue = *((const void**)a_pInstance);
+    if(pointerValue == nullptr) 
+        return false;
+    return m_pPointedType->cast(a_Data.type(), (void*)pointerValue) == a_Data.address();
+}
+
+void DataPointerType::fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const
+{
+    const void* pointerValue = *((const void**)a_pInstance);
+    if(pointerValue == nullptr) 
+        return;
+    const phantom::rtti_data& rtti = phantom::rttiDataOf(pointerValue, m_pPointedType->asClass());
+    out.push_back(rtti.isNull() ? phantom::data((void*)pointerValue, m_pPointedType) : rtti.data());
+}
+
 o_namespace_end(phantom, reflection)

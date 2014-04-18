@@ -33,8 +33,9 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-#include <phantom/reflection/InstanceDataMember.h>
-#include <phantom/reflection/InstanceDataMember.hxx>
+#include "InstanceDataMember.h"
+#include "InstanceDataMember.hxx"
+#include "InstanceDataMemberAccess.h"
 /* *********************************************** */
 o_registerN((phantom, reflection), InstanceDataMember);
 
@@ -42,18 +43,33 @@ o_namespace_begin(phantom, reflection)
 
 Class* const InstanceDataMember::metaType = o_type_of(phantom::reflection::InstanceDataMember);
 
-InstanceDataMember::InstanceDataMember( const string& a_strName, Type* a_pContentType, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ )
-: ValueMember(a_strName, a_pRange, a_uiSerializationMask, a_Modifiers)
-, m_pContentType(a_pContentType)
+InstanceDataMember::InstanceDataMember( const string& a_strName, Type* a_pValueType, size_t  a_uiOffset, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ )
+    : ValueMember(a_strName, a_pValueType, a_pRange, a_uiSerializationMask, a_Modifiers)
+    , m_uiOffset(a_uiOffset)
 {
-    addReferencedElement(m_pContentType);
 }
 
 void InstanceDataMember::referencedElementRemoved( LanguageElement* a_pElement )
 {
     ValueMember::referencedElementRemoved(a_pElement);
-    if(m_pContentType == a_pElement)
-        m_pContentType = nullptr;
+}
+
+Expression* InstanceDataMember::createAccessExpression( Expression* a_pLeftExpression ) const
+{
+    return o_new(InstanceDataMemberAccess)(a_pLeftExpression->implicitCast(getOwnerClassType()), const_cast<InstanceDataMember*>(this));
+}
+
+bool InstanceDataMember::referencesData( const void* a_pInstance, const phantom::data& a_Data ) const
+{
+    return m_pValueType->referencesData(getAddress(a_pInstance), a_Data);
+}
+
+void InstanceDataMember::fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const
+{
+    if((m_uiSerializationMask & a_uiSerializationMask) != 0)
+    {
+        m_pValueType->fetchReferencedData(getAddress(a_pInstance), out, a_uiSerializationMask);
+    }
 }
 
 

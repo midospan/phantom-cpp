@@ -210,6 +210,7 @@ public:
 
     inline size_t size() const {return m_pType ? m_pType->getSize() : 0; }
     reflection::Type* type() const { return m_pType; }
+    const byte* buffer() const { return _buffer(); }
 
     inline bool isValid() const { return m_pType != nullptr; }
     inline bool isNull() const { return m_pType == nullptr; }
@@ -222,6 +223,21 @@ public:
         }
         m_pType->convertValueTo(a_pType, a_pDest, _buffer());
         return true;
+    }
+
+    inline phantom::variant as(reflection::Type* a_pType) const
+    {
+        if(a_pType == nullptr OR m_pType == nullptr OR !m_pType->isImplicitlyConvertibleTo(a_pType))
+        {
+            return phantom::variant();
+        }
+        variant result;
+        byte* pBuffer = (a_pType->getSize() > e_StaticBufferSize) 
+            ? (result.m_Buffer.dynamicBuffer = (byte*)o_malloc(a_pType->getSize())) 
+            : result.m_Buffer.staticBuffer;
+        result.m_pType = a_pType;
+        m_pType->convertValueTo(a_pType, pBuffer, _buffer());
+        return result;
     }
 
     template<typename t_Ty>

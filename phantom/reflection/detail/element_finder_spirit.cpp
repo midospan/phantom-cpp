@@ -4,149 +4,59 @@
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/adapted/struct.hpp>
 #include <boost/spirit/repository/include/qi_distinct.hpp>
+#include "phantom/reflection/AddressExpression.h"
 
 #include "element_finder_spirit.h"
 
 using boost::spirit::repository::qi::distinct;
 
+namespace phantom { namespace reflection { class LanguageElement; class TemplateElement; } }
+
 o_namespace_begin(phantom, reflection, detail)
 
 namespace ast {
 
-
-struct modifier
-{
-    modifier() : value(0) {}
-    modifier(uint v) : value(v) {}
-    operator uint()
-    {
-        return value;
-    }
-    uint value;
-};
-
-struct name;
+struct expression;
 struct element;
-struct type;
+struct name;
 
-typedef boost::variant<boost::recursive_wrapper<type>, long long> template_element;
+LanguageElement* solve_expression(expression& e, LanguageElement* a_pScope);
+LanguageElement* solve_element(LanguageElement* a_pLHS, element & e, LanguageElement* a_pScope);
+LanguageElement* solve_element_recursive(element & e, LanguageElement* a_pScope);
+
+
+typedef boost::recursive_wrapper<element> template_element;
 
 struct name
 {
     string                      m_identifier;
-    vector<template_element>    m_template_specialization;
+    boost::optional<vector<template_element>> m_template_signature;
 };
 
 typedef vector<name> qualified_name;
 
-typedef boost::variant<size_t, boost::optional<qualified_name>> type_extent;
-typedef boost::variant<char, type_extent> qualifier_or_extent;
-typedef std::vector<qualifier_or_extent> qualifier_or_extents;
-
-struct type
+struct extent_or_signature
 {
-    modifier                    m_const_modifier;
-    qualified_name              m_qualified_name;
-    qualifier_or_extents        m_qualifiers;
+    extent_or_signature() : m_opening('('), m_closing(')') {}
+    extent_or_signature(const phantom::vector<boost::recursive_wrapper<expression>>& list) : m_opening('('), m_list(list), m_closing(')') {}
+    extent_or_signature(const expression& exp)
+        : m_opening('[')
+        , m_closing(']') { m_list.push_back(exp); }
 
-    void* operator new(size_t size)
-    {
-        return o_allocate(type);
-    }
-    void operator delete(void* ptr)
-    {
-        o_deallocate(static_cast<type*>(ptr), type);
-    }
-    void* operator new(size_t size, void* ptr_)
-    {
-        return ptr_;
-    }
-    void operator delete(void* ptr, void* ptr_)
-    {
-    }
-};
-struct function_prototype
-{
-    vector<type>                m_function_signature;
-    modifier                    m_modifiers;
+    char m_opening;
+    phantom::vector<boost::recursive_wrapper<expression>> m_list;
+    char m_closing;
 };
 
-typedef boost::variant<qualifier_or_extents, function_prototype> function_or_type_qualifiers;
+typedef boost::variant<char, extent_or_signature> qualifier_or_extent_or_signature;
 
-struct element
-{
-    modifier                    m_const_modifier;
-    qualified_name              m_qualified_name;
-    function_or_type_qualifiers m_func_or_type;
-};
+typedef phantom::vector<qualifier_or_extent_or_signature> qualifier_or_extent_or_signatures;
 
-
-class common_visitor : public boost::static_visitor<>
-{
-protected:
-    common_visitor(LanguageElement* a_pScope)
-        : m_pScope(a_pScope)
-    {
-
-    }
-    LanguageElement* m_pScope;
-};
-
-LanguageElement*  solve_element(string const& str, reflection::LanguageElement* a_pScope, template_specialization const* ts)
-{
-    LanguageElement* pSolvedElement = a_pScope->getElement(
-        str.c_str()
-        , ts
-        , NULL
-        , 0
-        );
-    return pSolvedElement;
-}
-
-LanguageElement* solve_element_recursive( string const& str, LanguageElement* a_pRootScope, template_specialization const* ts = NULL)
-{
-    LanguageElement* pRootElement = a_pRootScope;
-    LanguageElement* pSolvedElement = NULL;
-    while(pRootElement)
-    {
-        pSolvedElement = solve_element(str, pRootElement, ts);
-        if(pSolvedElement != NULL) return pSolvedElement;
-        pRootElement = pRootElement->getOwner();
-    }
-    return pSolvedElement;
-}
-
-
-Type*   solve_type(LanguageElement* a_pScope, type& t);
-
-class function_or_qualifier_or_extents_visitor
+class qualifier_or_extent_or_signature_visitor
     : public boost::static_visitor<>
 {
 public:
-    function_or_qualifier_or_extents_visitor(function_prototype** a_ppFuncProto, qualifier_or_extents** a_ppstrQualifierOrExtents)
-        : m_ppstrQualifierOrExtents(a_ppstrQualifierOrExtents)
-        , m_ppFuncProto(a_ppFuncProto) {}
-
-    void operator()(qualifier_or_extents & str) const // if we go here, it's a type
-    {
-        *m_ppstrQualifierOrExtents = &str;
-    }
-
-    void operator()(function_prototype& fp) const // if we go here, it's a function
-    {
-        *m_ppFuncProto = &fp;
-    }
-
-    function_prototype**    m_ppFuncProto;
-    qualifier_or_extents**  m_ppstrQualifierOrExtents;
-};
-
-
-class qualifier_or_extent_visitor
-    : public boost::static_visitor<>
-{
-public:
-    qualifier_or_extent_visitor(char** a_ppQualifiers, type_extent** a_ppExtents)
+    qualifier_or_extent_or_signature_visitor(char** a_ppQualifiers, extent_or_signature** a_ppExtents)
         : m_ppQualifiers(a_ppQualifiers)
         , m_ppExtents(a_ppExtents) {}
 
@@ -155,272 +65,645 @@ public:
         *m_ppQualifiers = &str;
     }
 
-    void operator()(type_extent& fp) const // if we go here, it's an extent
+    void operator()(extent_or_signature& fp) const // if we go here, it's an extent
     {
         *m_ppExtents = &fp;
     }
 
-    type_extent**    m_ppExtents;
+    extent_or_signature**    m_ppExtents;
     char**  m_ppQualifiers;
 };
 
+struct function_prototype
+{
+    extent_or_signature         m_signature;
+    boost::optional<char>       m_const_modifier;
+};
 
-class type_extent_visitor
+struct qualifier_and_qualifier_or_extents
+{
+    char m_qualifier;
+    qualifier_or_extent_or_signatures m_qualifier_or_extents;
+};
+
+
+
+typedef phantom::vector<extent_or_signature> extent_or_signatures;
+
+typedef boost::variant<qualifier_and_qualifier_or_extents, extent_or_signatures>  qualifier_and_qualifier_or_extents_OR_extent_or_signatures;
+
+struct extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures 
+{
+    extent_or_signature m_extent;
+    qualifier_and_qualifier_or_extents_OR_extent_or_signatures m_qualifier_and_qualifier_or_extents_OR_extent_or_signatures;
+};
+
+class qualifier_and_qualifier_or_extents_OR_extent_or_signatures_visitor
     : public boost::static_visitor<>
 {
 public:
-    type_extent_visitor(size_t** a_pSize, qualified_name** a_pEnumName)
-        : m_pSize(a_pSize)
-        , m_pEnumName(a_pEnumName) {}
+    qualifier_and_qualifier_or_extents_OR_extent_or_signatures_visitor(qualifier_and_qualifier_or_extents** a_pp_qualifier_and_qualifier_or_extents
+        , extent_or_signatures** a_pp_extent_or_function_signatures)
+        : m_pp_qualifier_and_qualifier_or_extents(a_pp_qualifier_and_qualifier_or_extents)
+        , m_pp_extent_or_function_signatures(a_pp_extent_or_function_signatures) {}
 
-    void operator()(size_t & str) const // if we go here, it's a qualifier
+    void operator()(qualifier_and_qualifier_or_extents & arg) const
     {
-        *m_pSize = &str;
+        *m_pp_qualifier_and_qualifier_or_extents = &arg;
     }
 
-    void operator()(boost::optional<qualified_name>& fp) const // if we go here, it's an extent
+    void operator()(extent_or_signatures& arg) const
     {
-        qualified_name& q = *fp;
-        *m_pEnumName = &q;
-    }
-
-    size_t**    m_pSize;
-    qualified_name**  m_pEnumName;
-};
-
-class template_element_visitor : public common_visitor
-{
-public:
-    template_element_visitor(LanguageElement* a_pScope, TemplateElement** a_ppResultElement)
-        : common_visitor(a_pScope)
-        , m_ppResultElement(a_ppResultElement)
-    {
-    }
-
-    void operator()(type& t) const
-    {
-        Type* pType = solve_type(m_pScope, t);
-        *m_ppResultElement = pType;
-    }
-    void operator()(boost::recursive_wrapper<type>& t) const
-    {
-        Type* pType = solve_type(m_pScope, t.get());
-        *m_ppResultElement = pType;
-    }
-    void operator()(long long& ic) const
-    {
-        *m_ppResultElement = NULL;
+        *m_pp_extent_or_function_signatures = &arg;
     }
 
 protected:
-    TemplateElement** m_ppResultElement;
+    qualifier_and_qualifier_or_extents**      m_pp_qualifier_and_qualifier_or_extents;
+    extent_or_signatures**   m_pp_extent_or_function_signatures;
+};
 
+typedef boost::variant<qualifier_and_qualifier_or_extents
+                    , extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures
+                    , function_prototype> element_extension;
+
+class element_extension_visitor
+    : public boost::static_visitor<>
+{
+public:
+    element_extension_visitor(qualifier_and_qualifier_or_extents** a_pp_qualifier_and_qualifier_or_extents
+                            , extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures** a_pp_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures
+                            , function_prototype** a_pp_function_prototype)
+        : m_pp_qualifier_and_qualifier_or_extents(a_pp_qualifier_and_qualifier_or_extents)
+        , m_pp_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures(a_pp_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures)
+        , m_pp_function_prototype(a_pp_function_prototype) {}
+
+    void operator()(qualifier_and_qualifier_or_extents & arg) const
+    {
+        *m_pp_qualifier_and_qualifier_or_extents = &arg;
+    }
+
+    void operator()(extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures& arg) const
+    {
+        *m_pp_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures = &arg;
+    }
+
+    void operator()(function_prototype& arg) const 
+    {
+        *m_pp_function_prototype = &arg;
+    }
+
+protected:
+    qualifier_and_qualifier_or_extents**      m_pp_qualifier_and_qualifier_or_extents;
+    extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures**   m_pp_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures;
+    function_prototype**   m_pp_function_prototype;
 };
 
 
-
-Type*   solve_type_qualifiers(LanguageElement* a_pScope, Type* a_pType, const qualifier_or_extents& qoes)
+struct element
 {
-    for(auto it = qoes.begin(); it != qoes.end(); ++it)
+    boost::optional<char>               m_const_modifier;
+    qualified_name                      m_qualified_name;
+    boost::optional<element_extension>  m_element_extension;
+};
+
+struct data
+{
+    size_t m_guid;
+    extent_or_signatures m_extent_or_signatures;
+};
+struct address
+{
+    size_t m_value;
+    extent_or_signatures m_extent_or_signatures;
+};
+
+typedef boost::variant<element, data, address> data_or_address_or_element;
+
+struct expression
+{
+    data_or_address_or_element m_root;
+    phantom::vector<element> m_elements;
+};
+
+class data_or_address_or_element_visitor
+    : public boost::static_visitor<>
+{
+public:
+    data_or_address_or_element_visitor(element** a_ppElement, data** a_ppData, address** a_ppAddress)
+        : m_ppElement(a_ppElement)
+        , m_ppData(a_ppData)
+        , m_ppAddress(a_ppAddress) {}
+
+    void operator()(element & e) const // if we go here, it's an element
     {
-        qualifier_or_extent qe = *it;
-        char*  pQualifier = NULL;
-        type_extent* pTypeExtent = NULL;
-        qualifier_or_extent_visitor qoev(&pQualifier, &pTypeExtent);
-        qe.apply_visitor(qoev);
-        if(pQualifier)
+        *m_ppElement = &e;
+    }
+
+    void operator()(data& d) const // if we go here, it's a data
+    {
+        *m_ppData = &d;
+    }
+
+    void operator()(address& a) const // if we go here, it's an address
+    {
+        *m_ppAddress = &a;
+    }
+
+protected:
+    data**      m_ppData;
+    address**   m_ppAddress;
+    element**   m_ppElement;
+};
+
+LanguageElement*  solve_element(const string& a_strName, const vector<TemplateElement*>* a_pTemplateSignature, const vector<LanguageElement*>* a_pFunctionSignature, bool a_bConstSignature, reflection::LanguageElement* a_pScope)
+{
+    o_assert(!a_bConstSignature OR a_pFunctionSignature != nullptr);
+    LanguageElement* pSolvedElement = a_pScope->solveElement(
+        a_strName
+        , a_pTemplateSignature
+        , a_pFunctionSignature
+        , a_bConstSignature ? o_const : 0
+        );
+    return pSolvedElement;
+}
+/*
+
+LanguageElement* solve_element_recursive( const string& a_strName, LanguageElement* a_pRootScope, const vector<TemplateElement*>* a_TemplateSignature)
+{
+    LanguageElement* pRootElement = a_pRootScope;
+    LanguageElement* pSolvedElement = NULL;
+    while(pRootElement)
+    {
+        pSolvedElement = solve_element(str, pRootElement, a_TemplateSignature);
+        if(pSolvedElement != NULL) return pSolvedElement;
+        pRootElement = pRootElement->getOwner();
+    }
+    return pSolvedElement;
+}*/
+
+Type*   solve_type_qualifier(Type* a_pType, char qualifier)
+{
+    switch(qualifier)
+    {
+    case 'µ': // const
+        return a_pType->constType();
+    case '&': // ref
+        return a_pType->referenceType();
+    case '*': // pointer
+        return a_pType->pointerType();
+    }
+    return nullptr;
+}
+
+struct element_garbage
+{
+    void add(LanguageElement* a_pElement)
+    {
+        if(a_pElement)
+        m_elements.push_back(a_pElement);
+    }
+
+    ~element_garbage()
+    {
+        for(auto it = m_elements.begin(); it != m_elements.end(); ++it)
         {
-            switch(*pQualifier)
+            if((*it)->getModule() == nullptr && (*it)->getOwner() == nullptr) // if not in a module or not in another element we can delete it
             {
-            case 'µ': // const
-                a_pType = a_pType->constType();
-                break;
-            case '&': // ref
-                a_pType = a_pType->referenceType();
-                break;
-            case '*': // pointer
-                a_pType = a_pType->pointerType();
-                break;
+                (*it)->terminate();
+                (*it)->deleteNow();
+            }
+        }
+    }
+
+    void clear() { m_elements.clear(); }
+
+    vector<LanguageElement*> m_elements;
+};
+
+void solve_element_extension(element_extension & ee, qualifier_or_extent_or_signatures& extensions, bool* a_pConstSignature)
+{
+    *a_pConstSignature = false;
+    qualifier_and_qualifier_or_extents* p_qualifier_and_qualifier_or_extents = nullptr;
+    extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures* p_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures = nullptr;
+    function_prototype* p_function_prototype = nullptr;
+    element_extension_visitor eev(&p_qualifier_and_qualifier_or_extents
+        , &p_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures
+        , &p_function_prototype);
+    ee.apply_visitor(eev);
+    if(p_qualifier_and_qualifier_or_extents)
+    {
+        extensions.push_back(p_qualifier_and_qualifier_or_extents->m_qualifier);
+        auto& vec = p_qualifier_and_qualifier_or_extents->m_qualifier_or_extents;
+        for(auto it = vec.begin(); it != vec.end(); ++it)
+        {
+            qualifier_or_extent_or_signature& qoe = *it;
+            char* p_qualifier = nullptr;
+            extent_or_signature* p_extent_or_signature = nullptr;
+            qualifier_or_extent_or_signature_visitor qoev(&p_qualifier, &p_extent_or_signature);
+            qoe.apply_visitor(qoev);
+            if(p_qualifier)
+            {
+                extensions.push_back(*p_qualifier);
+            }
+            else 
+            {
+                o_assert(p_extent_or_signature);
+                extensions.push_back(*p_extent_or_signature);
+            }
+        }
+    }
+    else if(p_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures)
+    {
+
+        extensions.push_back(p_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures->m_extent);
+        qualifier_and_qualifier_or_extents_OR_extent_or_signatures& to_visit = p_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures->m_qualifier_and_qualifier_or_extents_OR_extent_or_signatures;
+        qualifier_and_qualifier_or_extents* p_qualifier_and_qualifier_or_extents = nullptr;
+        extent_or_signatures* p_extent_or_function_signatures = nullptr;
+        qualifier_and_qualifier_or_extents_OR_extent_or_signatures_visitor visitor(&p_qualifier_and_qualifier_or_extents, &p_extent_or_function_signatures);
+        to_visit.apply_visitor(visitor);
+        if(p_qualifier_and_qualifier_or_extents)
+        {
+            extensions.push_back(p_qualifier_and_qualifier_or_extents->m_qualifier);
+            for(auto it = p_qualifier_and_qualifier_or_extents->m_qualifier_or_extents.begin(); it != p_qualifier_and_qualifier_or_extents->m_qualifier_or_extents.end(); ++it)
+            {
+                qualifier_or_extent_or_signature& qoe = *it;
+                char* p_qualifier = nullptr;
+                extent_or_signature* p_extent_or_signature = nullptr;
+                qualifier_or_extent_or_signature_visitor qoev(&p_qualifier, &p_extent_or_signature);
+                qoe.apply_visitor(qoev);
+                if(p_qualifier)
+                {
+                    extensions.push_back(*p_qualifier);
+                }
+                else 
+                {
+                    o_assert(p_extent_or_signature);
+                    extensions.push_back(*p_extent_or_signature);
+                }
             }
         }
         else 
         {
-            o_assert(pTypeExtent);
-            size_t* pSize = 0;
-            qualified_name* pQualifiedName = 0;
-            type_extent_visitor tev(&pSize, &pQualifiedName);
-            pTypeExtent->apply_visitor(tev);
-            if(pSize)
+            o_assert(p_extent_or_function_signatures);
+            for(auto it = p_extent_or_function_signatures->begin(); it != p_extent_or_function_signatures->end(); ++it)
             {
-                if(*pSize == 0) return nullptr; // array cannot have 0 size
-                a_pType = a_pType->arrayType(*pSize);
-            }
-            else 
-            {
-                reflection::LanguageElement* pEnumScope = a_pScope;
-                o_assert(pQualifiedName);
-                auto it = pQualifiedName->begin();
-                auto end = pQualifiedName->end();
-                for(;it!=end;++it)
-                {
-                    pEnumScope = solve_element(it->m_identifier, pEnumScope, 0);
-                    if(pEnumScope == nullptr) return nullptr;
-                }
-                reflection::Constant* pConstant = pEnumScope->asConstant();
-                size_t size = 0;
-                pConstant->getValue(&size);
-                if(size == 0) return nullptr;
-                a_pType = a_pType->arrayType(size); 
+                extensions.push_back(*it);
             }
         }
     }
-    return a_pType;
+    else 
+    {
+        o_assert(p_function_prototype);
+        extensions.push_back(p_function_prototype->m_signature);
+        if(p_function_prototype->m_const_modifier.is_initialized())
+        {
+            *a_pConstSignature = (*p_function_prototype->m_const_modifier == 'µ');
+        }
+    }
 }
 
-
-Type*   solve_type(LanguageElement* a_pScope, type& t)
+bool solve_function_signature(extent_or_signature& fs, vector<LanguageElement*>& out, LanguageElement* a_pScope)
 {
-    Type* pType = NULL;
-    LanguageElement* pScope = a_pScope;
-    // Test first in local scope
-    qualified_name& q_name = t.m_qualified_name;
-    if(q_name.empty()) return NULL;
-
-    // We extract the most significant word
-    qualified_name::iterator it = q_name.begin();
-    qualified_name::iterator end = q_name.end();
+    element_garbage garbage;
+    LanguageElement* pFirstSignatureElement = nullptr;
+    auto it = fs.m_list.begin();
+    auto end = fs.m_list.end();
     for(;it!=end;++it)
     {
-        template_specialization ts;
-
-        vector<template_element>::iterator it2 = it->m_template_specialization.begin();
-        vector<template_element>::iterator end2 = it->m_template_specialization.end();
-        for(;it2!=end2;++it2)
+        LanguageElement* pElement = solve_expression(it->get(), a_pScope);
+        garbage.add(pElement);
+        if(pElement == nullptr)
         {
-            TemplateElement* pType = NULL;
-            template_element_visitor v(a_pScope, &pType);
-            (*it2).apply_visitor(v);
-            if(pType == NULL)
-            {
-                return NULL;
-            }
-            ts.push_back(pType);
+            return false;
         }
-
-        pScope = solve_element_recursive(it->m_identifier, pScope, &ts);
-
-        if(pScope != NULL AND pScope->asType())
-        {
-            pType = static_cast<Type*>(pScope);
-        }
+        out.push_back(pElement);
     }
-    if(pType == NULL) return NULL;
-    qualifier_or_extents qualifiers = t.m_qualifiers;
-    if(t.m_const_modifier)
-    {
-        // add const
-        qualifiers.insert(qualifiers.begin(), 'µ');
-    }
-    return solve_type_qualifiers(a_pScope, pType, qualifiers);
+    garbage.clear();
+    return true;
 }
 
-
-
-LanguageElement* solve_element(LanguageElement* a_pScope, element & e)
+bool solve_template_signature(vector<template_element>& ts, vector<TemplateElement*>& out, LanguageElement* a_pScope)
 {
+    element_garbage garbage;
+    auto it = ts.begin();
+    auto end = ts.end();
+    for(;it!=end;++it)
+    {
+        LanguageElement* pTemplateSignatureElement = solve_element_recursive(it->get(), a_pScope);
+        garbage.add(pTemplateSignatureElement);
+        if(pTemplateSignatureElement == nullptr) 
+            return false;
+        TemplateElement* pTemplateElement = pTemplateSignatureElement->asTemplateElement();
+        if(pTemplateElement == nullptr)
+        {
+            return false;
+        }
+        out.push_back(pTemplateElement);
+    }
+    garbage.clear();
+    return true;
+}
+
+LanguageElement* solve_name(LanguageElement* a_pLHS, name& n, const vector<LanguageElement*>* a_pFunctionSignature, bool a_bConst, LanguageElement* a_pScope)
+{
+    element_garbage garbage;
+    LanguageElement* pElement = nullptr;
+    if(n.m_template_signature.is_initialized()) // has template signature
+    {
+        vector<TemplateElement*> templateSignature;
+        if(NOT(solve_template_signature(*n.m_template_signature, templateSignature, a_pScope)))
+            return nullptr;
+        pElement = solve_element(n.m_identifier, &templateSignature, a_pFunctionSignature, a_bConst, a_pLHS);
+        garbage.add(pElement);
+    }
+    else
+    {
+        pElement = solve_element(n.m_identifier, nullptr, a_pFunctionSignature, a_bConst, a_pLHS);
+        garbage.add(pElement);
+    }
+    if(pElement == nullptr)
+        return nullptr;
+    garbage.clear();
+    return pElement;
+}
+
+LanguageElement* solve_element(LanguageElement* a_pLHS, element & e, LanguageElement* a_pScope)
+{
+    element_garbage garbage;
     // name
-    LanguageElement* pScope = a_pScope;
+    LanguageElement* pLHS = a_pLHS;
     bool bNameFullySolved = true;
 
     qualified_name& q_name = e.m_qualified_name;
     if(q_name.empty())
-        return NULL;
-
-    qualified_name::iterator it = q_name.begin();
-    qualified_name::iterator end = q_name.end();
+        return nullptr;
+    
+    auto it = q_name.begin();
+    auto end = it+q_name.size()-1;
     for(;it!=end;++it)
     {
         // Each name inside the qualified name is treated and has potentially
         // a template specialization if it's a class type
-        template_specialization ts;
 
-        vector<template_element>::iterator it2 = it->m_template_specialization.begin();
-        vector<template_element>::iterator end2 = it->m_template_specialization.end();
-        for(;it2!=end2;++it2)
+        LanguageElement* pElement = solve_name(pLHS, *it, nullptr, false, a_pScope);
+        garbage.add(pElement);
+        if(pElement == nullptr)
         {
-            TemplateElement* pType = NULL;
-            template_element_visitor v(a_pScope, &pType);
-            (*it2).apply_visitor(v);
-            if(pType == NULL)
+            return nullptr;
+        }
+        pLHS = pElement;
+    }
+
+    name& last_name = e.m_qualified_name.back();
+
+    qualifier_or_extent_or_signatures fseqs;
+    if(e.m_const_modifier.is_initialized())
+    {
+        fseqs.push_back('µ');
+    }
+
+    bool bConstSignature = false;
+
+    if(e.m_element_extension.is_initialized())
+    {
+        solve_element_extension(*e.m_element_extension, fseqs, &bConstSignature);
+    }
+
+    if(bConstSignature && fseqs.size() != 1) // if const function modifier is present, only the signature must be present
+        return nullptr;
+
+    if(fseqs.size())
+    {
+        // solve front and combine with name for the first solving
+        auto fseq_it = fseqs.begin();
+        auto last_fseq_it = fseq_it;
+        std::advance(last_fseq_it, fseqs.size()-1);
+        qualifier_or_extent_or_signature& fseq = *fseq_it++;
+
+        extent_or_signature* p_extent_or_signature = nullptr;
+        char* p_qualifier = nullptr;
+        qualifier_or_extent_or_signature_visitor fseqv(&p_qualifier, &p_extent_or_signature);
+        fseq.apply_visitor(fseqv);
+
+        if(p_qualifier)
+        {
+            LanguageElement* pElement = solve_name(pLHS, last_name, nullptr, false, a_pScope);
+            garbage.add(pElement);
+            if(pElement == nullptr)
+                return nullptr;
+            Type* pType = pElement->asType();
+            if(pType == nullptr)
+                return nullptr;
+            pType = solve_type_qualifier(pType, *p_qualifier);
+            garbage.add(pType);
+            if(pType == nullptr)
+                return nullptr;
+            pLHS = pType;
+        }
+        else if(p_extent_or_signature->m_opening == '(')
+        {
+            vector<LanguageElement*> functionSignature;
+            if(NOT(solve_function_signature(*p_extent_or_signature, functionSignature, a_pScope)))
             {
-                return NULL;
+                return nullptr;
             }
-            ts.push_back(pType);
+            LanguageElement* pElement = solve_name(pLHS, last_name, &functionSignature, bConstSignature, a_pScope);
+            if(pElement == nullptr)
+                return nullptr;
+            pLHS = pElement;
         }
-        LanguageElement* pChildScope = solve_element_recursive(it->m_identifier, pScope, &ts);
-        if(pChildScope == NULL)
+        else if(p_extent_or_signature->m_opening == '[')
         {
-            bNameFullySolved = false;
-            break;
+            if(p_extent_or_signature->m_list.size() != 1) 
+                return nullptr;
+            LanguageElement* pElement = solve_name(pLHS, last_name, nullptr, false, a_pScope);
+            garbage.add(pElement);
+            if(pElement == nullptr)
+                return nullptr;
+            LanguageElement* pExtentElement = solve_expression(p_extent_or_signature->m_list.back().get(), a_pScope);
+            garbage.add(pExtentElement);
+            if(pExtentElement == nullptr)
+                return nullptr;
+            Expression* pExtentExpression = pExtentElement->asExpression();
+            if(pExtentExpression == nullptr)
+                return nullptr;
+            pElement = pElement->solveBracketOperator(pExtentExpression);
+            garbage.add(pElement);
+            if(pElement == nullptr)
+                return nullptr;
+            pLHS = pElement;
         }
-        pScope = pChildScope;
+        else return nullptr;
+
+        for(; fseq_it != fseqs.end();)
+        {
+            qualifier_or_extent_or_signature& fseq = *fseq_it++;
+
+            extent_or_signature* p_extent_or_signature = nullptr;
+            char* p_qualifier = nullptr;
+            qualifier_or_extent_or_signature_visitor fseqv(&p_qualifier, &p_extent_or_signature);
+            fseq.apply_visitor(fseqv);
+            if(p_qualifier)
+            {
+                Type* pType = pLHS->asType();
+                if(pType == nullptr)
+                    return nullptr;
+                pType = solve_type_qualifier(pType, *p_qualifier);
+                garbage.add(pType);
+                if(pType == nullptr)
+                    return nullptr;
+                pLHS = pType;
+            }
+            else if(p_extent_or_signature->m_opening == '(')
+            {
+                vector<LanguageElement*> functionSignature;
+                if(NOT(solve_function_signature(*p_extent_or_signature, functionSignature, a_pScope)))
+                {
+                    return nullptr;
+                }
+                LanguageElement* pElement = pLHS->solveParenthesisOperator(functionSignature);
+                garbage.add(pElement);
+                if(pElement == nullptr)
+                    return nullptr;
+                pLHS = pElement;
+            }
+            else if(p_extent_or_signature->m_opening == '[')
+            {
+                if(p_extent_or_signature->m_list.size() != 1) 
+                    return nullptr;
+                LanguageElement* pExtentElement = solve_expression(p_extent_or_signature->m_list.back().get(), a_pScope);
+                garbage.add(pExtentElement);
+                if(pExtentElement == nullptr)
+                    return nullptr;
+                Expression* pExtentExpression = pExtentElement->asExpression();
+                if(pExtentExpression == nullptr)
+                    return nullptr;
+                LanguageElement* pElement = pLHS->solveBracketOperator(pExtentExpression);
+                garbage.add(pElement);
+                if(pElement == nullptr)
+                    return nullptr;
+                pLHS = pElement;
+            }
+        }
+    }
+    else 
+    {
+        o_assert(!bConstSignature);
+        LanguageElement* pElement = solve_name(pLHS, last_name, nullptr, false, a_pScope);
+        garbage.add(pElement);
+        if(pElement == nullptr)
+            return nullptr;
+        pLHS = pElement;
     }
 
-    function_prototype*  pFuncProto = NULL;
-    qualifier_or_extents* pQualifierOrExtents = NULL;
-    function_or_qualifier_or_extents_visitor fotv(&pFuncProto, &pQualifierOrExtents);
-    e.m_func_or_type.apply_visitor(fotv);
+    garbage.clear();
 
-    // name has been completely solved, which means that we have either a namespace/type/member
-    if(bNameFullySolved)
+    return pLHS;
+}
+
+LanguageElement* solve_element_recursive(element & e, LanguageElement* a_pScope)
+{
+    LanguageElement* pScope = a_pScope;
+    LanguageElement* pResult = nullptr;
+    while(pResult == nullptr && pScope)
     {
-        // we are supposed to have qualifiers in all cases (boost::variant mecanism)
-        o_assert(pQualifierOrExtents != NULL);
-        qualifier_or_extents qoes = *pQualifierOrExtents;
-        if(e.m_const_modifier)
-        {
-            qoes.insert(qoes.begin(), 'µ'); // insert the beginning const in the list
-        }
-        reflection::Type* pType = pScope->asType();
-        if(pType)
-        {
-            pType = solve_type_qualifiers(a_pScope, pType, qoes);
-            return pType;
-        }
-        else if(qoes.size())
-        {
-            // namespace or member should not have qualifiers
-            return NULL;
-        }
-        
+        pResult = solve_element(pScope, e, a_pScope);
+        pScope = pScope->getOwner();
     }
+    return pResult;
+}
 
-    // not fully solved, we try again with functions
-    // but only if only one name haven't been solved yet
-    // which means that it can be a function
-    // otherwise it's a type or namespace that couldn't have been solved in the previous step
-    if(e.m_qualified_name.end()-1 != it OR pFuncProto == NULL) return NULL;
+LanguageElement* solve_expression(expression& e, LanguageElement* a_pScope)
+{
+    element_garbage garbage;
+    element* pElement = nullptr;
+    data*   pData = nullptr;
+    address*pAddress = nullptr;
+    data_or_address_or_element_visitor dae(&pElement, &pData, &pAddress);
+    e.m_root.apply_visitor(dae);
 
-    function_signature fs;
+    LanguageElement* pLHS = nullptr;
+
+    if(pElement)
     {
-        vector<type>::iterator it = (*pFuncProto).m_function_signature.begin();
-        vector<type>::iterator end = (*pFuncProto).m_function_signature.end();
+        pLHS = solve_element_recursive(*pElement, a_pScope);
+        garbage.add(pLHS);
+        if(pLHS == nullptr) return nullptr;
+    }
+    else if(pData OR pAddress)
+    {
+        extent_or_signatures eos;
+        if(pData)
+        {
+            if(phantom::getCurrentDataBase() == nullptr) return nullptr;
+            phantom::data d = phantom::getCurrentDataBase()->getData(pData->m_guid);
+            if(d.isNull()) return nullptr;
+            pLHS = o_new(AddressExpression)(d.address(), d.type());
+            garbage.add(pLHS);
+            eos = pData->m_extent_or_signatures;
+        } 
+        else if(pAddress)
+        {
+            if(pAddress->m_value == 0)
+                return nullptr;
+            Class* pClass = classOf((void*)pAddress->m_value);
+            if(pClass == nullptr) 
+                return nullptr;
+            pLHS = o_new(AddressExpression)((void*)pAddress->m_value, pClass);
+            garbage.add(pLHS);
+            eos = pAddress->m_extent_or_signatures;
+        }
+
+        auto it = eos.begin();
+        auto end = eos.end();
         for(;it!=end;++it)
         {
-            Type* pType = solve_type(pScope, *it);
-            if(pType == NULL)
+            if(it->m_opening == '(')
             {
-                return NULL;
+                vector<LanguageElement*> functionSignature;
+                if(NOT(solve_function_signature(*it, functionSignature, a_pScope)))
+                {
+                    return nullptr;
+                }
+                LanguageElement* pElement = pLHS->solveParenthesisOperator(functionSignature);
+                if(pElement == nullptr)
+                    return nullptr;
+                pLHS = pElement;
             }
-            fs.push_back(pType);
+            else if(it->m_opening == '[')
+            {
+                if(it->m_list.size() != 1) 
+                    return nullptr;
+                LanguageElement* pExtentElement = solve_expression(it->m_list.back().get(), a_pScope);
+                garbage.add(pExtentElement);
+                if(pExtentElement == nullptr)
+                    return nullptr;
+                Expression* pExtentExpression = pExtentElement->asExpression();
+                if(pExtentExpression == nullptr)
+                    return nullptr;
+                LanguageElement* pElement = pLHS->solveBracketOperator(pExtentExpression);
+                garbage.add(pElement);
+                if(pElement == nullptr)
+                    return nullptr;
+                pLHS = pElement;
+            }
         }
     }
+    else return nullptr;
 
-    // we take the last element and try to solve it
-    return pScope->getElement(e.m_qualified_name.back().m_identifier.c_str()
-        , NULL // template member_function not supported ... yet ?
-        , &fs
-        , (*pFuncProto).m_modifiers.value);
+    auto it = e.m_elements.begin();
+    auto end = e.m_elements.end();
+    for(;it!=end;++it)
+    {
+        element& elem = *it;
+        LanguageElement* pElement = solve_element(pLHS, elem, a_pScope);
+        garbage.add(pElement);
+        if(pElement == nullptr) 
+            return nullptr;
+        pLHS = pElement;
+    }
+    garbage.clear();
+    return pLHS;
 }
 
 
@@ -438,32 +721,56 @@ phantom::reflection::detail::ast::compound_type,
 
 BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::detail::ast::name ,
 (phantom::string, m_identifier)
-(phantom::vector<phantom::reflection::detail::ast::template_element>, m_template_specialization)
-);
-
-BOOST_FUSION_ADAPT_STRUCT(
-phantom::reflection::detail::ast::modifier,
-(phantom::uint, value)
-);
-
-BOOST_FUSION_ADAPT_STRUCT(
-    phantom::reflection::detail::ast::type,
-    (phantom::reflection::detail::ast::modifier, m_const_modifier)
-(phantom::reflection::detail::ast::qualified_name, m_qualified_name)
-(phantom::reflection::detail::ast::qualifier_or_extents, m_qualifiers)
+(boost::optional<phantom::vector<phantom::reflection::detail::ast::template_element>>, m_template_signature)
 );
 
 BOOST_FUSION_ADAPT_STRUCT(
     phantom::reflection::detail::ast::element,
-(phantom::reflection::detail::ast::modifier, m_const_modifier)
+(boost::optional<char>, m_const_modifier)
 (phantom::reflection::detail::ast::qualified_name, m_qualified_name)
-(phantom::reflection::detail::ast::function_or_type_qualifiers, m_func_or_type)
+(boost::optional<phantom::reflection::detail::ast::element_extension>, m_element_extension)
 );
 
 BOOST_FUSION_ADAPT_STRUCT(
     phantom::reflection::detail::ast::function_prototype,
-    (phantom::vector<phantom::reflection::detail::ast::type>, m_function_signature)
-    (phantom::reflection::detail::ast::modifier, m_modifiers)
+    (phantom::reflection::detail::ast::extent_or_signature, m_signature)
+    (boost::optional<char>, m_const_modifier)
+);
+
+BOOST_FUSION_ADAPT_STRUCT(
+    phantom::reflection::detail::ast::extent_or_signature,
+    (char, m_opening)
+    (phantom::vector<boost::recursive_wrapper<phantom::reflection::detail::ast::expression>>, m_list)
+    (char, m_closing)
+);
+
+BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::detail::ast::expression ,
+    (phantom::reflection::detail::ast::data_or_address_or_element, m_root)
+    (phantom::vector<phantom::reflection::detail::ast::element>, m_elements)
+    );
+
+BOOST_FUSION_ADAPT_STRUCT(
+    phantom::reflection::detail::ast::data,
+    (size_t, m_guid)
+    (phantom::reflection::detail::ast::extent_or_signatures, m_extent_or_signatures)
+    );
+
+BOOST_FUSION_ADAPT_STRUCT(
+    phantom::reflection::detail::ast::address,
+    (size_t, m_value)
+    (phantom::reflection::detail::ast::extent_or_signatures, m_extent_or_signatures)
+    );
+
+BOOST_FUSION_ADAPT_STRUCT(
+    phantom::reflection::detail::ast::qualifier_and_qualifier_or_extents,
+    (char, m_qualifier)
+    (phantom::reflection::detail::ast::qualifier_or_extent_or_signatures, m_qualifier_or_extents)
+);
+
+BOOST_FUSION_ADAPT_STRUCT(
+    phantom::reflection::detail::ast::extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures ,
+    (phantom::reflection::detail::ast::extent_or_signature, m_extent)
+    (phantom::reflection::detail::ast::qualifier_and_qualifier_or_extents_OR_extent_or_signatures, m_qualifier_and_qualifier_or_extents_OR_extent_or_signatures)
 );
 
 o_namespace_begin(phantom, reflection, detail)
@@ -473,6 +780,7 @@ o_namespace_begin(phantom, reflection, detail)
 
 using namespace ::boost::spirit;
 
+/*
 
 void append_template_element(ast::template_element const& te) {}
 void append_type(ast::type const& te) {}
@@ -484,22 +792,22 @@ void function_signature_parsed(vector<ast::type> const& s) {}
 void template_element_is_a_type(ast::type const& t) {}
 void template_element_is_an_int_const(long long ic) {}
 void element_parsed(ast::element const& e) {}
-void compound_type_parsed (ast::type const& e) {}
+void compound_type_parsed (ast::type const& e) {}*/
 //template<typename t_Iterator>
 class element_spirit_parser : public boost::spirit::qi::grammar<
     phantom::string::const_iterator
-    , ast::element()
+    , ast::expression()
     , boost::spirit::ascii::space_type>
 {
 public:
     typedef phantom::string::const_iterator t_Iterator;
     typedef boost::spirit::qi::grammar<
         t_Iterator
-        , ast::element()
+        , ast::expression()
         , boost::spirit::ascii::space_type> super_type;
 
     element_spirit_parser()
-        : super_type(r_element)
+        : super_type(r_expression)
     {
 #define qi_keyword distinct(qi::char_("a-zA-Z_0-9"))
         r_identifier %= 
@@ -542,14 +850,6 @@ public:
 
         r_qualified_name %= -lexeme["::"] >> r_name % lexeme["::"] ;
 
-        r_type %= -(r_const_qualifier) >> r_qualified_name >> r_type_qualifier_or_extents_opt;
-
-        r_type_qualifier_or_extents_opt %= *r_type_qualifier_or_extent;
-        r_type_qualifier_or_extents %= +r_type_qualifier_or_extent;
-
-        r_type_extent %= '[' >> (qi::uint_|r_qualified_name) >> ']';
-
-        r_type_qualifier_or_extent %= r_type_qualifier|r_type_extent;
 
         r_type_qualifier %= (qi::char_('*')
                             |qi::char_('&')
@@ -559,20 +859,41 @@ public:
         r_template_element_list %= r_template_element //[ &append_template_element ]
                                     % ',';
 
-        r_template_element %= r_type [qi::_val = qi::_1] //[ &template_element_is_a_type ]
-            | r_integral_constant   //[ &template_element_is_an_int_const ]
+        r_template_element %= r_element   //[ &template_element_is_an_int_const ]
             ;
 
         r_template_specialization %= '<' >> r_template_element_list >> '>';
-        r_function_signature %= '(' >> -r_type_list >> ')' ;
-        r_const_qualifier %= qi_keyword["const"] [qi::_val = o_const];
-        r_type_list %= r_type //[ &append_type ]
-                        % ',';
 
-        r_function_prototype %= r_function_signature [&function_signature_parsed]
-            >> -r_const_qualifier;
+        r_function_signature %= '(' >> -r_expression_list >> ')' ;
+        r_const_qualifier %= qi_keyword["const"] [qi::_val = 'µ'];
 
-        r_element %= -(r_const_qualifier) >> r_qualified_name >> -(r_type_qualifier_or_extents | r_function_prototype);
+        r_function_prototype %= r_function_signature >> -r_const_qualifier;
+
+        r_qualifier_or_extent %= r_type_qualifier|r_extent;
+
+        r_qualifier_or_extents %= *r_qualifier_or_extent;
+
+        r_qualifier_and_qualifier_or_extents %= r_type_qualifier >> -r_qualifier_or_extents;
+
+        r_extent %= '[' >> r_expression >> ']';
+
+        r_extent_or_function_signature = r_extent|r_function_signature;
+
+        r_extent_or_function_signatures %= *r_extent_or_function_signature;
+
+        r_element_extension %= r_qualifier_and_qualifier_or_extents
+                             | ( r_extent >> -( r_qualifier_and_qualifier_or_extents | r_extent_or_function_signatures ) )
+                             | ( r_function_prototype );
+
+        r_element %= -(r_const_qualifier) >> r_qualified_name >> -r_element_extension;
+        
+        r_data %= '@' >> qi::hex >> -r_extent_or_function_signatures;
+
+        r_address %= '&' >> qi::hex >> -r_extent_or_function_signatures;
+
+        r_expression %= (r_data | r_address | r_element) >> *('.' >> r_element);
+
+        r_expression_list %= r_expression % ',';
 
     }
 
@@ -585,25 +906,29 @@ public:
     qi::rule<t_Iterator, phantom::string(), ascii::space_type >             r_operator_keyword;
     qi::rule<t_Iterator, phantom::string(), ascii::space_type >             r_operator;
     qi::rule<t_Iterator, phantom::string(), ascii::space_type >             r_unsigned_type;
-    qi::rule<t_Iterator, ast::qualifier_or_extents(), ascii::space_type >   r_type_qualifier_or_extents;
-    qi::rule<t_Iterator, ast::qualifier_or_extents(), ascii::space_type >   r_type_qualifier_or_extents_opt;
     qi::rule<t_Iterator, char(), ascii::space_type >                        r_type_qualifier;
-    qi::rule<t_Iterator, ast::type_extent(), ascii::space_type >            r_type_extent;
+    qi::rule<t_Iterator, char(), ascii::space_type >                        r_const_qualifier;
+    qi::rule<t_Iterator, ast::extent_or_signature(), ascii::space_type >                 r_extent;
+    qi::rule<t_Iterator, ast::qualifier_or_extent_or_signature(), ascii::space_type >    r_qualifier_or_extent;
+    qi::rule<t_Iterator, ast::qualifier_or_extent_or_signatures(), ascii::space_type >   r_qualifier_or_extents;
+    qi::rule<t_Iterator, ast::qualifier_and_qualifier_or_extents(), ascii::space_type >    r_qualifier_and_qualifier_or_extents;
+    qi::rule<t_Iterator, ast::extent_or_signature(), ascii::space_type >    r_extent_or_function_signature;
+    qi::rule<t_Iterator, ast::extent_or_signatures(), ascii::space_type >    r_extent_or_function_signatures;
     qi::rule<t_Iterator, char(), ascii::space_type >                        r_compound_id;
     qi::rule<t_Iterator, ast::element(), ascii::space_type >                r_element;
+    qi::rule<t_Iterator, ast::element_extension(), ascii::space_type >      r_element_extension;
+    qi::rule<t_Iterator, ast::expression(), ascii::space_type >             r_expression;
+    qi::rule<t_Iterator, ast::data(), ascii::space_type >                   r_data;
+    qi::rule<t_Iterator, ast::address(), ascii::space_type >                r_address;
     qi::rule<t_Iterator, phantom::string(), ascii::space_type >             r_identifier;
     qi::rule<t_Iterator, phantom::string(), ascii::space_type >             r_operator_name;
     qi::rule<t_Iterator, ast::template_element(),ascii::space_type>         r_template_element;
     qi::rule<t_Iterator, vector<ast::template_element>(),ascii::space_type> r_template_element_list;
     qi::rule<t_Iterator, long long(), ascii::space_type>                    r_integral_constant;
-    qi::rule<t_Iterator, ast::modifier(), ascii::space_type>                r_const_qualifier;
     qi::rule<t_Iterator, ast::name(), ascii::space_type>                    r_name;
     qi::rule<t_Iterator, ast::qualified_name(), ascii::space_type>          r_qualified_name;
-    qi::rule<t_Iterator, ast::type(), ascii::space_type>                    r_type;
-    //qi::rule<t_Iterator, ast::compound_type(), ascii::space_type>           r_compound_type;
-    qi::rule<t_Iterator, vector<ast::type>(), ascii::space_type>            r_type_list;
-    qi::rule<t_Iterator, vector<ast::type>(), ascii::space_type>            r_function_signature;
-    qi::rule<t_Iterator, ast::qualifier_or_extent(), ascii::space_type>     r_type_qualifier_or_extent;
+    qi::rule<t_Iterator, phantom::vector<boost::recursive_wrapper<ast::expression>>(), ascii::space_type>      r_expression_list;
+    qi::rule<t_Iterator, ast::extent_or_signature(), ascii::space_type>      r_function_signature;
     qi::rule<t_Iterator, ast::function_prototype(), ascii::space_type>      r_function_prototype;
     qi::rule<t_Iterator, vector<ast::template_element>(),ascii::space_type> r_template_specialization;
 
@@ -617,11 +942,31 @@ element_finder_spirit::element_finder_spirit()
 LanguageElement* element_finder_spirit::find( const string& a_strQualifiedName, LanguageElement* a_pRootScope /*= phantom::rootNamespace()*/ )
 {
     element_spirit_parser g;
-    ast::element    result;
+    ast::expression    result;
+    /*{
+        // unit test
+        string unitest_str[] = {
+            "phantom::vector",
+            "phantom::vector<caca>.test.bidule",
+            "phantom::vector&",
+            "phantom::vector<phantom::data>",
+            "phantom::vector<phantom::data>&",
+            "const phantom::vector<phantom::data>",
+            "const phantom::vector<phantom::data>&"
+        };
+        for(int i = 0; i<sizeof(unitest_str)/sizeof(string); ++i)
+        {
+            ast::expression    unitest;
+            boost::spirit::qi::phrase_parse(unitest_str[i].begin(), unitest_str[i].end(), g, boost::spirit::ascii::space, unitest);
+            LanguageElement* pResultElement = ast::solve_expression(unitest, a_pRootScope);
+            int j = 0;
+            ++j;
+        }
+    }*/
 
     bool r = boost::spirit::qi::phrase_parse(a_strQualifiedName.begin(), a_strQualifiedName.end(), g, boost::spirit::ascii::space, result);
 
-    LanguageElement* pResultElement = ast::solve_element(a_pRootScope, result);
+    LanguageElement* pResultElement = ast::solve_expression(result, a_pRootScope);
 
     return pResultElement;//result
 }

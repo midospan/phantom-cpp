@@ -35,6 +35,7 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/Enum.h>
 #include <phantom/reflection/Enum.hxx>
+#include <phantom/reflection/ConstantExpression.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), Enum);
 
@@ -43,19 +44,19 @@ o_namespace_begin(phantom, reflection)
 o_define_meta_type(Enum);
 
 Enum::Enum() 
-    : PrimitiveType("", 4, 4, 0)
+    : PrimitiveType(e_enum, "", 4, 4, 0)
 {
 
 }
 
 Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) 
-    : PrimitiveType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+    : PrimitiveType(e_enum, a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
 {
 
 }
 
 Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) 
-    : PrimitiveType(a_strName, a_uiSize, a_uiAlignment, a_uiGuid, a_Modifiers)
+    : PrimitiveType(e_enum, a_strName, a_uiSize, a_uiAlignment, a_uiGuid, a_Modifiers)
 {
 
 }
@@ -68,22 +69,22 @@ Enum::~Enum()
     }
 }
 
-LanguageElement* Enum::getElement( const char* a_strName , template_specialization const* ts , function_signature const* fs , bitfield a_Modifiers /*= 0*/ ) const
+LanguageElement* Enum::solveElement( const string& a_strName , const vector<TemplateElement*>* ts , const vector<LanguageElement*>* fs , bitfield a_Modifiers /*= 0*/ ) const
 {
     if(ts AND !ts->empty()) return NULL;
     if(fs AND !fs->empty()) return NULL;
-    return getConstant(a_strName);
+    Constant* pConstant = getConstant(a_strName);
+    return pConstant ? o_new(ConstantExpression)(pConstant) : nullptr;
 }
 
 boolean Enum::isConvertibleTo( Type* a_pType ) const
 {
-    return a_pType == this OR (a_pType->asIntegralType() != nullptr) OR (a_pType->asArithmeticType() != nullptr);
+    return (a_pType->getTypeId() >= e_char AND a_pType->getTypeId() <= e_enum);
 }
 
 boolean Enum::isImplicitlyConvertibleTo( Type* a_pType ) const
 {
-    return a_pType == this 
-        OR ((a_pType->asEnum() == nullptr) AND (a_pType->asIntegralType() != nullptr) OR (a_pType->asArithmeticType() != nullptr));
+    return a_pType == this OR (a_pType->getTypeId() >= e_char AND a_pType->getTypeId() <= e_wchar_t);
 }
 
 void Enum::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const
@@ -122,19 +123,19 @@ void Enum::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_
     }
 }
 
-void Enum::addConstant( Constant* a_pConstant )
+void Enum::addConstant( NumericConstant* a_pConstant )
 {
     o_assert(getConstant(a_pConstant->getName()) == nullptr);
     addElement(a_pConstant);
 }
 
-void Enum::removeConstant( Constant* a_pConstant )
+void Enum::removeConstant( NumericConstant* a_pConstant )
 {
     o_assert(getConstant(a_pConstant->getName()) != nullptr);
     removeElement(a_pConstant);
 }
 
-Constant* Enum::getConstant( const string& a_strKey ) const
+NumericConstant* Enum::getConstant( const string& a_strKey ) const
 {
     value_vector::const_iterator it = m_Constants.begin();
     value_vector::const_iterator end = m_Constants.end();
@@ -152,7 +153,7 @@ void Enum::valueFromString( const string& a_strIn, void* a_pDest ) const
     for(;i<count;++i)
     {
         size_t constantValue = 0;
-        reflection::Constant* pConstant = getConstant(i);
+        reflection::NumericConstant* pConstant = getConstant(i);
         if(pConstant->getName() == a_strIn)
         {
             pConstant->getValue(a_pDest);
@@ -168,7 +169,7 @@ void Enum::valueToString( string& a_strOut, const void* a_pSrc ) const
     for(;i<count;++i)
     {
         size_t constantValue = 0;
-        reflection::Constant* pConstant = getConstant(i);
+        reflection::NumericConstant* pConstant = getConstant(i);
         pConstant->getValue(&constantValue);
         if(constantValue == *((size_t*)a_pSrc))
         {
@@ -180,14 +181,14 @@ void Enum::valueToString( string& a_strOut, const void* a_pSrc ) const
 
 void Enum::elementAdded( LanguageElement* a_pElement )
 {
-    Constant* pConstant = a_pElement->asConstant();
+    NumericConstant* pConstant = a_pElement->asNumericConstant();
     o_assert(pConstant);
     m_Constants.push_back(pConstant);
 }
 
 void Enum::elementRemoved( LanguageElement* a_pElement )
 {
-    Constant* pConstant = a_pElement->asConstant();
+    NumericConstant* pConstant = a_pElement->asNumericConstant();
     o_assert(pConstant);
     m_Constants.erase(std::find(m_Constants.begin(), m_Constants.end(), pConstant));
 }

@@ -10,8 +10,6 @@ o_classN((unitest), RootClass)
         o_member_function(int, instance_member_function, (int));
         o_member_function(RootClass*, static_member_function, (), o_static);
         o_slot(void, mult, (phantom::real));
-        o_member_function(int, get_member_function, ());
-        o_member_function(void, set_member_function, (int));
         o_member_function(void, aVirtualMemberFunction, (), o_virtual);
         o_signal(signal, (phantom::real));
         o_property(int, property, set_member_function, get_member_function, o_no_signal, o_no_range, o_public);

@@ -13,8 +13,18 @@ o_namespace_begin(phantom)
 
 class Message;
 
+#define o_main static phantom::auto_dll_loader PHANTOM_RESERVED_auto_dll_loader; 
+
+struct o_export auto_dll_loader
+{
+    auto_dll_loader();
+    ~auto_dll_loader();
+};
+
 class o_export ModuleLoader
 {
+    friend struct auto_dll_loader;
+
 public:
     ModuleLoader(void);
     ~ModuleLoader(void);
@@ -24,6 +34,9 @@ public:
 
     bool loadLibrary(const string& a_strPath, Message* a_pMessage = nullptr);
     bool unloadLibrary(const string& a_strPath, Message* a_pMessage = nullptr);
+
+    void loadMain(Message* a_pMessage = nullptr);
+    void unloadMain(Message* a_pMessage = nullptr);
 
     vector<Module*>::const_iterator beginLoadedModules() const { return m_LoadedModules.begin(); }
     vector<Module*>::const_iterator endLoadedModules() const { return m_LoadedModules.end(); }
@@ -58,6 +71,8 @@ protected:
     o_signal_data(moduleDestroyed, Module*);
     o_signal_data(moduleLoaded, Module*, size_t, size_t);
     o_signal_data(moduleUnloaded, Module*, size_t, size_t);
+    o_signal_data(elementAdded, reflection::LanguageElement*);
+    o_signal_data(elementRemoved, reflection::LanguageElement*);
 
 protected:
     vector<Module*> m_LoadedModules;

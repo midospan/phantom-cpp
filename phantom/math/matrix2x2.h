@@ -1,139 +1,175 @@
-#ifndef phantom_math_matrix2x2_h__
-#define phantom_math_matrix2x2_h__
+#ifndef o_math_matrix2x2
+#define o_math_matrix2x2
 
+// Rotation matrices are of the form
+//   R = cos(t) -sin(t)
+//       sin(t)  cos(t)
+// where t > 0 indicates a counterclockwise rotation in the xy-plane.
+
+#include "vector2.h"
+
+o_declareNT(class, (phantom, math), (typename), (t_Ty), matrix2x2);
 
 o_namespace_begin(phantom, math)
-    
-/// A 2-by-2 matrix. Stored in column-major order.
-template<typename t_Ty>
-struct matrix2x2 
+
+template<class t_Ty>
+class matrix2x2
 {
+public:
     typedef matrix2x2<t_Ty> self_type;
-    typedef vector2<t_Ty>   vector2_type;
+    typedef vector2<t_Ty> vector2_type;
 
-    /// The default constructor does nothing (for performance).
-    matrix2x2() {}
+	// If makeZero is 'true', create the zero matrix; otherwise, create the
+	// identity matrix.
+	matrix2x2 (bool makeZero = true);
 
-    /// Construct this matrix using columns.
-    matrix2x2(const vector2_type& c1, const vector2_type& c2)
-    {
-        ex = c1;
-        ey = c2;
-    }
+	// Copy constructor.
+	matrix2x2 (const self_type& mat);
 
-    /// Construct this matrix using scalars.
-    matrix2x2(t_Ty a11, t_Ty a12, t_Ty a21, t_Ty a22)
-    {
-        ex.x = a11; ex.y = a21;
-        ey.x = a12; ey.y = a22;
-    }
+	// Input mrc is in row r, column c.
+	matrix2x2 (t_Ty m00, t_Ty m01, t_Ty m10, t_Ty m11);
 
-    /// Initialize this matrix using columns.
-    void set(const vector2_type& c1, const vector2_type& c2)
-    {
-        ex = c1;
-        ey = c2;
-    }
+	// Create a matrix from an array of numbers.  The input array is
+	// interpreted based on the bool input as
+	//   true:  entry[0..3] = {m00,m01,m10,m11}  [row major]
+	//   false: entry[0..3] = {m00,m10,m01,m11}  [column major]
+	matrix2x2 (const t_Ty entry[4], bool rowMajor);
 
-    /// Set this to the identity matrix.
-    void setIdentity()
-    {
-        ex.x = 1.0f; ey.x = 0.0f;
-        ex.y = 0.0f; ey.y = 1.0f;
-    }
+	// Create matrices based on vector input.  The bool is interpreted as
+	//   true: vectors are columns of the matrix
+	//   false: vectors are rows of the matrix
+	matrix2x2 (const vector2_type& u, const vector2_type& v, bool columns);
 
-    o_forceinline static self_type const&  Zero() 
-    { 
-        static self_type VALUE(t_Ty(0),t_Ty(0),t_Ty(0),t_Ty(0)); 
-        return VALUE; 
-    }
-    o_forceinline static self_type const&  Identity() 
-    { 
-        static self_type VALUE(t_Ty(1),t_Ty(0),t_Ty(0),t_Ty(1)); 
-        return VALUE; 
-    }
+	matrix2x2 (const vector2_type* vectors, bool columns);
 
-    /// Set this matrix to all zeros.
-    void setZero()
-    {
-        ex.x = 0.0f; ey.x = 0.0f;
-        ex.y = 0.0f; ey.y = 0.0f;
-    }
+	// Create a diagonal matrix, m01 = m10 = 0.
+	matrix2x2 (t_Ty m00, t_Ty m11);
 
-    self_type getInverse() const
-    {
-        t_Ty a = ex.x, b = ey.x, c = ex.y, d = ey.y;
-        self_type B;
-        t_Ty det = a * d - b * c;
-        if (det != 0.0f)
-        {
-            det = 1.0f / det;
-        }
-        B.ex.x =  det * d;	B.ey.x = -det * b;
-        B.ex.y = -det * c;	B.ey.y =  det * a;
-        return B;
-    }
+	// Create a rotation matrix (positive angle -> counterclockwise).
+	matrix2x2 (t_Ty angle);
 
-    /// Solve A * x = b, where b is a column vector. This is more efficient
-    /// than computing the inverse in one-shot cases.
-    vector2_type solve(const vector2_type& b) const
-    {
-        t_Ty a11 = ex.x, a12 = ey.x, a21 = ex.y, a22 = ey.y;
-        t_Ty det = a11 * a22 - a12 * a21;
-        if (det != 0.0f)
-        {
-            det = 1.0f / det;
-        }
-        vector2_type x;
-        x.x = det * (a22 * b.x - a12 * b.y);
-        x.y = det * (a11 * b.y - a21 * b.x);
-        return x;
-    }
+	// Create a tensor product U*V^t_Ty.
+	matrix2x2 (const vector2_type& u, const vector2_type& v);
 
-    vector2_type    operator*(const vector2_type& v) const
-    {
-        return vector2_type(ex.x * v.x + ey.x * v.y, ex.y * v.x + ey.y * v.y);
-    }
+	// Assignment.
+	matrix2x2& operator= (const self_type& mat);
 
-    o_forceinline bool operator == (const self_type& v)
-    {
-        return memcmp(v.a, a, sizeof(t_Ty)*4) == 0;
-    }
+	// Create various matrices.
+	void makeZero ();
+	void makeIdentity ();
+	void makeDiagonal (t_Ty m00, t_Ty m11);
+	void makeRotation (t_Ty angle);
+	void makeTensorProduct (const vector2_type& u, const vector2_type& v);
 
-    o_forceinline self_type operator + (const self_type& A)
-    {
-        return self_type(A.ex + ex, A.ey + ey);
-    }
+	// Arithmetic operations.
+	self_type operator+ (const self_type& mat) const;
+	self_type operator- (const self_type& mat) const;
+	self_type operator* (t_Ty scalar) const;
+	self_type operator/ (t_Ty scalar) const;
+	self_type operator- () const;
 
-    union
-    {
-        // Array version
-        t_Ty   a[4];
-        t_Ty   m[2][2];
+	// Arithmetic updates.
+	self_type& operator+= (const self_type& mat);
+	self_type& operator-= (const self_type& mat);
+	self_type& operator*= (t_Ty scalar);
+	self_type& operator/= (t_Ty scalar);
 
-        // 2 vector2 version
-        struct
+	// M*vec
+	vector2_type operator* (const vector2_type& vec) const;
+
+	// u^t_Ty*M*v
+	t_Ty qForm (const vector2_type& u, const vector2_type& v) const;
+
+	// M^t_Ty
+	self_type transpose () const;
+
+	// M*mat
+	self_type operator* (const self_type& mat) const;
+
+	// M^t_Ty*mat
+	self_type transposeTimes (const self_type& mat) const;
+
+	// M*mat^t_Ty
+	self_type timesTranspose (const self_type& mat) const;
+
+	// M^t_Ty*mat^t_Ty
+	self_type transposeTimesTranspose (const self_type& mat) const;
+
+	// Other operations.
+	self_type inverse (t_Ty epsilon = (t_Ty)0) const;
+	self_type adjoint () const;
+	t_Ty determinant () const;
+
+	// The matrix must be a rotation for these functions to be valid.  The
+	// last function uses Gram-Schmidt orthonormalization applied to the
+	// columns of the rotation matrix.  The angle must be in radians, not
+	// degrees.
+	void extractAngle (t_Ty& angle) const;
+	void orthonormalize ();
+
+	// The matrix must be symmetric.  factor M = R * D * R^t_Ty where
+	// R = [u0|u1] is a rotation matrix with columns u0 and u1 and
+	// D = diag(d0,d1) is a diagonal matrix whose diagonal entries are d0
+	// and d1.  The eigenvector u[i] corresponds to eigenvector d[i].  The
+	// eigenvalues are ordered as d0 <= d1.
+	void eigenDecomposition (self_type& rot, self_type& diag) const;
+
+	// Special matrices.
+	static const self_type ZERO;
+	static const self_type IDENTITY;
+
+	const vector2_type&    operator[](unsigned int i) const 
+	{
+		o_assert(i<2);
+		return (const vector2_type&)(m[i*2]);
+	}
+
+	vector2_type&    operator[](unsigned int i) 
+	{
+		o_assert(i<2);
+		return (vector2_type&)(m[i*2]);
+	}
+
+	const t_Ty&       operator()(unsigned int col, unsigned int row) const
+	{
+		o_assert(col<2 && row<2);
+		return m[col*2+row];
+	}
+
+	t_Ty&       operator()(unsigned int col, unsigned int row)
+	{
+		o_assert(col<2 && row<2);
+		return m[col*2+row];
+	}
+
+public:
+	union
+	{
+        t_Ty m[4];
+        t_Ty mm[2][2];
+        struct 
         {
             vector2_type ex;
             vector2_type ey;
         };
-    };
+	};
 };
 
+// c * M
+template<class t_Ty>
+inline matrix2x2<t_Ty> operator* (t_Ty scalar, const matrix2x2<t_Ty>& mat);
+
+// v^t_Ty * M
+template<class t_Ty>
+inline vector2<t_Ty> operator* (const vector2<t_Ty>& vec, const matrix2x2<t_Ty>& mat);
+	
+	
+/** Typedefs **/
+typedef matrix2x2<float32> Matrix2f;
+typedef matrix2x2<float64> Matrix2d;
+
+#include "matrix2x2.inl"
 
 o_namespace_end(phantom, math)
 
-o_namespace_begin(phantom, extension, detail)
-
-template<typename t_Ty>
-struct safe_constructor_ <math::matrix2x2<t_Ty>>
-{
-    static void safeConstruct(void* a_pInstance) 
-    { 
-        *((math::matrix2x2<t_Ty>*)a_pInstance) = math::matrix2x2<t_Ty>::Identity();
-    }
-};
-
-o_namespace_end(phantom, extension, detail)
-
-#endif // phantom_math_matrix2x2_h__
+#endif

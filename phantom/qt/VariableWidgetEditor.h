@@ -14,7 +14,7 @@ namespace phantom { namespace qt {
 
 class VariableAction;
 class VariableEditor;
-class BufferedVariable;
+class VariableNode;
 
 class o_qt_export VariableWidgetEditor : public QObject
 {
@@ -24,18 +24,21 @@ protected:
     VariableWidgetEditor(QWidget* a_pWidget, const char* signal, reflection::Type* a_pType);
 
 public:
-    virtual void setValue(const void* a_pSrc) const = 0;
+    virtual void setValue(void const* a_pSrc) const = 0;
     virtual void getValue(void* a_pDest) const = 0;
+
+    virtual void setValues(void const** a_ppMultipleSrc) const;
+    virtual void getValues(void** a_ppMultipleDest) const;
 
     QWidget* getWidget() const { return m_pWidget; }
 
-    BufferedVariable* getVariable() const { return m_pVariable; }
+    VariableNode* getVariable() const { return m_pVariableNode; }
     reflection::Type* getType() const { return m_pType; }
 
-    void setVariable(BufferedVariable* a_pVariable);
+    void setVariable(VariableNode* a_pVariable);
 
 protected:
-    virtual void variableChanged(BufferedVariable* a_pVariable);
+    virtual void variableChanged(VariableNode* a_pVariable);
 
 
 signals:
@@ -47,7 +50,7 @@ protected slots:
 protected:
     QWidget*                m_pWidget;
     reflection::Type*       m_pType; 
-    BufferedVariable*       m_pVariable;
+    VariableNode*       m_pVariableNode;
 };
 
 }}

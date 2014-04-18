@@ -44,21 +44,20 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Function : public Subroutine
 {
-
-
-protected:
+public:
     Function(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
         : Subroutine(a_strName, a_pSignature, a_Modifiers)
     {
 
     }
+
     virtual Function* asFunction() const { return (Function*)this; }
 
-    virtual void call(void** args) const = 0;
-    virtual void call(void** args, void* a_pReturnAddress) const = 0;
+    virtual void        call( void** a_pParams ) const = 0;
+    virtual void        call( void** a_pParams, void* a_pReturnAddress ) const;
 
-    virtual void    call( void* a_pCallerAddress, void** a_pArgs ) const { call(a_pArgs); }
-    virtual void    call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const { call(a_pArgs, a_pReturnAddress); }
+    virtual void        call( void* a_pCallerAddress, void** a_pParams ) const { call(a_pParams); }
+    virtual void        call( void* a_pCallerAddress, void** a_pParams, void* a_pReturnAddress ) const;
 
 protected:
 };

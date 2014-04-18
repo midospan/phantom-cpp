@@ -151,17 +151,16 @@ public:
     Type*               getConstType(Type* a_pPointedType) const;
     ArrayType*          getArrayType(Type* a_pPointedType, size_t a_uiCount) const;
     virtual
-    LanguageElement*    getElement(
-        const char* a_strQualifiedName
-        , template_specialization const*
-        , function_signature const*
+    LanguageElement*    solveElement(
+        const string& a_strName
+        , const vector<TemplateElement*>*
+        , const vector<LanguageElement*>*
         , bitfield a_Modifiers = 0) const;
 
     virtual void    getElements(vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
 
 protected:
     void                setParentNamespace(Namespace* a_pNamespace) { m_pOwner = a_pNamespace; }
-    virtual void        teardownMetaDataCascade(size_t count);
     virtual void        referencedElementRemoved(LanguageElement* a_pElement);
     virtual void        elementRemoved(LanguageElement* a_pElement);
 

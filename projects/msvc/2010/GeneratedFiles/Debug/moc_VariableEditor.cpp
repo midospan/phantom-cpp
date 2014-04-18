@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'VariableEditor.h'
 **
-** Created: Mon 17. Feb 21:56:11 2014
+** Created: Sun 2. Mar 18:40:23 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -51,14 +51,14 @@ static const uint qt_meta_data_phantom__qt__VariableEditor[] = {
 
 static const char qt_meta_stringdata_phantom__qt__VariableEditor[] = {
     "phantom::qt::VariableEditor\0\0a_pVariable\0"
-    "variableAboutToBeAccessed(BufferedVariable*)\0"
-    "variableAccessed(BufferedVariable*)\0"
-    "variableAboutToBeChanged(BufferedVariable*)\0"
-    "variableChanged(BufferedVariable*)\0"
+    "variableAboutToBeAccessed(VariableNode*)\0"
+    "variableAccessed(VariableNode*)\0"
+    "variableAboutToBeChanged(VariableNode*)\0"
+    "variableChanged(VariableNode*)\0"
     "refresh()\0reedit()\0a_Data\0"
     "edit(phantom::vector<phantom::data>)\0"
     "pos\0createPropertyPopupMenu(QPoint)\0"
-    "slotVariableChanged(BufferedVariable*)\0"
+    "slotVariableChanged(VariableNode*)\0"
     "slotEditorDestroyed()\0slotEditorValueChanged()\0"
 };
 
@@ -68,15 +68,15 @@ void phantom::qt::VariableEditor::qt_static_metacall(QObject *_o, QMetaObject::C
         Q_ASSERT(staticMetaObject.cast(_o));
         VariableEditor *_t = static_cast<VariableEditor *>(_o);
         switch (_id) {
-        case 0: _t->variableAboutToBeAccessed((*reinterpret_cast< BufferedVariable*(*)>(_a[1]))); break;
-        case 1: _t->variableAccessed((*reinterpret_cast< BufferedVariable*(*)>(_a[1]))); break;
-        case 2: _t->variableAboutToBeChanged((*reinterpret_cast< BufferedVariable*(*)>(_a[1]))); break;
-        case 3: _t->variableChanged((*reinterpret_cast< BufferedVariable*(*)>(_a[1]))); break;
+        case 0: _t->variableAboutToBeAccessed((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
+        case 1: _t->variableAccessed((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
+        case 2: _t->variableAboutToBeChanged((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
+        case 3: _t->variableChanged((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
         case 4: _t->refresh(); break;
         case 5: _t->reedit(); break;
         case 6: _t->edit((*reinterpret_cast< const phantom::vector<phantom::data>(*)>(_a[1]))); break;
         case 7: _t->createPropertyPopupMenu((*reinterpret_cast< const QPoint(*)>(_a[1]))); break;
-        case 8: _t->slotVariableChanged((*reinterpret_cast< BufferedVariable*(*)>(_a[1]))); break;
+        case 8: _t->slotVariableChanged((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
         case 9: _t->slotEditorDestroyed(); break;
         case 10: _t->slotEditorValueChanged(); break;
         default: ;
@@ -124,28 +124,28 @@ int phantom::qt::VariableEditor::qt_metacall(QMetaObject::Call _c, int _id, void
 }
 
 // SIGNAL 0
-void phantom::qt::VariableEditor::variableAboutToBeAccessed(BufferedVariable * _t1)
+void phantom::qt::VariableEditor::variableAboutToBeAccessed(VariableNode * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);
 }
 
 // SIGNAL 1
-void phantom::qt::VariableEditor::variableAccessed(BufferedVariable * _t1)
+void phantom::qt::VariableEditor::variableAccessed(VariableNode * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 1, _a);
 }
 
 // SIGNAL 2
-void phantom::qt::VariableEditor::variableAboutToBeChanged(BufferedVariable * _t1)
+void phantom::qt::VariableEditor::variableAboutToBeChanged(VariableNode * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 2, _a);
 }
 
 // SIGNAL 3
-void phantom::qt::VariableEditor::variableChanged(BufferedVariable * _t1)
+void phantom::qt::VariableEditor::variableChanged(VariableNode * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 3, _a);

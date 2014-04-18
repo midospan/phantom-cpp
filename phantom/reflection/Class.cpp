@@ -35,6 +35,7 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/Class.h>
 #include <phantom/reflection/Class.hxx>
+#include <phantom/reflection/Expression.h>
 o_registerN((phantom, reflection), Class);
 #include <phantom/variant.h>
 /* *********************************************** */
@@ -48,6 +49,7 @@ Class::Class(const string& a_strName, bitfield a_Modifiers)
 : ClassType(a_strName, a_Modifiers)
 , m_pStateMachine(NULL)
 , m_pSingleton(nullptr)
+, m_pSignals(nullptr)
 {
 }
 
@@ -55,12 +57,17 @@ Class::Class(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bit
 : ClassType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
 , m_pStateMachine(NULL)
 , m_pSingleton(nullptr)
+, m_pSignals(nullptr)
 {
 }
 
 Class::~Class()
 {
     m_VirtualMemberFunctionTables.clear();
+    if(m_pSignals)
+    {
+        delete m_pSignals;
+    }
 
     while(m_DerivedClasses.size())
     {
@@ -138,26 +145,19 @@ StaticDataMember* Class::getStaticDataMemberCascade( const string& a_strName ) c
     return pDataMember;
 }
 
-void Class::addExtension( ClassExtension* a_pExtension )
-{
-    addElement(a_pExtension);
-}
-
-ClassExtension* Class::getExtension( Class* a_pExtensionClass )
-{
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<ClassExtension>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<ClassExtension>());
-    for(; it != end; ++it)
-    {
-        if( phantom::is(a_pExtensionClass, it->second) ) 
-            return static_cast<ClassExtension*>(it->second);
-    }
-    return NULL;
-}
-
 void Class::addSignal( Signal* a_pSignal )
 {
-    addElement(a_pSignal);
+    if(m_pSignals == nullptr)
+    {
+        m_pSignals = new vector<Signal*>;
+    }
+    m_pSignals->push_back(a_pSignal);
+    addInstanceMemberFunction(a_pSignal);
+}
+
+void Class::removeSignal( Signal* a_pSignal )
+{
+    removeElement(a_pSignal);
 }
 
 Signal* Class::getSignal( const string& a_strIdentifierString ) const
@@ -223,13 +223,13 @@ boolean Class::doesInstanceDependOn( void* a_pInstance, void* a_pOther ) const
         if(pClass->doesInstanceDependOn(a_pInstance, a_pOther)) return true;
     }
 
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
+    auto it = m_ValueMembers.begin();
+    auto end = m_ValueMembers.end();
     for(; it != end; ++it)
     {
-        if(it->second->asInstanceDataMember())
+        if((*it)->asInstanceDataMember())
         {
-            InstanceDataMember* pInstanceDataMember = static_cast<InstanceDataMember*>(it->second);
+            InstanceDataMember* pInstanceDataMember = static_cast<InstanceDataMember*>(*it);
             Type*    pDataMemberType = pInstanceDataMember->getValueType();
             if(pDataMemberType->asClass())
             {
@@ -323,11 +323,11 @@ void Class::setupVirtualMemberFunctionTables() const
     if(m_SuperClasses.empty())
     {
         instance_member_function_list member_functions;
-        member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
-        member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
+        auto it = m_InstanceMemberFunctions.begin();
+        auto end = m_InstanceMemberFunctions.end();
         for(;it != end; ++it)
         {
-            InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+            InstanceMemberFunction* pMemberFunction = *it;
             if(pMemberFunction->isVirtual())
                 member_functions.push_back(pMemberFunction);
         }
@@ -369,12 +369,12 @@ void Class::setupVirtualMemberFunctionTables() const
 
 void Class::homonymousMemberFunctionSearch( member_function_search_data* a_pMemberFunctionRequest )
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
+    auto it = m_InstanceMemberFunctions.begin();
+    auto end = m_InstanceMemberFunctions.end();
 
     for(;it != end; ++it)
     {
-        InstanceMemberFunction*    pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+        InstanceMemberFunction*    pMemberFunction = *it;
         if(pMemberFunction->getName() == a_pMemberFunctionRequest->getMemberFunctionName())
         {
             if(pMemberFunction->getSignature()->getParameterCount() == a_pMemberFunctionRequest->getMemberFunctionSignature()->getParameterCount())
@@ -434,14 +434,14 @@ void Class::sortSuperAndRootMemberFunctions( VirtualMemberFunctionTable* a_pSupe
     for(; i<a_pSuperVMT->getSize(); ++i)
     {
         InstanceMemberFunction* pSuperMemberFunction = a_pSuperVMT->getMemberFunction(i);
-        member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
-        member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
+        auto it = m_InstanceMemberFunctions.begin();
+        auto end = m_InstanceMemberFunctions.end();
         for(;it != end; ++it)
         {
-            InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+            InstanceMemberFunction* pMemberFunction = *it;
             if(pMemberFunction->isVirtual())
             {
-                InstanceMemberFunction::EOverloadRelation eIR = (static_cast<InstanceMemberFunction*>(pMemberFunction))->getOverloadRelationWith(pSuperMemberFunction);
+                InstanceMemberFunction::EOverloadRelation eIR = pMemberFunction->getOverloadRelationWith(pSuperMemberFunction);
                 o_assert(        eIR != InstanceMemberFunction::e_OverloadRelation_Contravariant
                                     AND eIR != InstanceMemberFunction::e_OverloadRelation_Forbidden);
                 if(eIR == InstanceMemberFunction::e_OverloadRelation_None)
@@ -473,11 +473,11 @@ Class::ERelation Class::getRelationWith( Type* a_pType ) const
 
 void     Class::getInvokableMemberFunctionsCascade(const string& a_strName, const vector<Type*>& a_ArgumentTypeList, MemberFunction** a_pOutPerfectMatchMemberFunction, member_function_vector* a_pResultMemberFunctions)
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
+    auto it = m_InstanceMemberFunctions.begin();
+    auto end = m_InstanceMemberFunctions.end();
     for(;it != end; ++it)
     {
-        InstanceMemberFunction*    pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+        InstanceMemberFunction*    pMemberFunction = *it;
         Signature*    pSignature    = pMemberFunction->getSignature();
 
         // MemberFunction name incompatibility => we skip
@@ -534,7 +534,7 @@ void     Class::getInvokableMemberFunctionsCascade(const string& a_strName, cons
             }
         }
         if(NOT(bAlreadyAdded))
-            a_pResultMemberFunctions->push_back(static_cast<InstanceMemberFunction*>(it->second));
+            a_pResultMemberFunctions->push_back(*it);
     }
 
     // We browse the super types and treat recursively
@@ -548,12 +548,12 @@ void     Class::getInvokableMemberFunctionsCascade(const string& a_strName, cons
 
 void Class::findOverloadedMemberFunctions( InstanceMemberFunction* a_pOverloadCandidate, vector<InstanceMemberFunction*>& a_Result )
 {
-    member_collection::const_iterator it_member_function = m_Members.lower_bound(classOf<InstanceMemberFunction>());
-    member_collection::const_iterator it_member_function_end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
+    auto it_member_function = m_InstanceMemberFunctions.begin();
+    auto it_member_function_end = m_InstanceMemberFunctions.end();
     for(;it_member_function!=it_member_function_end;++it_member_function)
     {
-        if(it_member_function->second == a_pOverloadCandidate) continue;
-        if(a_pOverloadCandidate->canOverload(static_cast<InstanceMemberFunction*>(it_member_function->second)))
+        if(*it_member_function == a_pOverloadCandidate) continue;
+        if(a_pOverloadCandidate->canOverload(*it_member_function))
         {
             bool bOverloadedAlreadyAddedForCurrentVTable = false;
             vector<InstanceMemberFunction*>::const_iterator it_result = a_Result.begin();
@@ -563,7 +563,7 @@ void Class::findOverloadedMemberFunctions( InstanceMemberFunction* a_pOverloadCa
                 InstanceMemberFunction* pResult = (*it_result);
                 o_assert(pResult->getOwnerClass());
                 if( pResult->getOwnerClass()->getSuperClassOffsetCascade((Class*)this) == 0 // in the same vtable
-                    AND pResult->canOverload(static_cast<InstanceMemberFunction*>(it_member_function->second)))  // a result member_function can overload the current tested member_function, 
+                    AND pResult->canOverload(*it_member_function))  // a result member_function can overload the current tested member_function, 
                                                                                                 // which means that for the current VTable, 
                                                                                                 // we already have found an overloaded member_function
                 {
@@ -573,7 +573,7 @@ void Class::findOverloadedMemberFunctions( InstanceMemberFunction* a_pOverloadCa
             }
             if(NOT(bOverloadedAlreadyAddedForCurrentVTable))
             {
-                a_Result.push_back(static_cast<InstanceMemberFunction*>(it_member_function->second));
+                a_Result.push_back(*it_member_function);
             }
         }
     }
@@ -589,11 +589,11 @@ boolean Class::acceptMemberFunction( const string& a_strName, Signature* a_pSign
 {
     boolean bResult = true;
     {
-        member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
-        member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
+        auto it = m_InstanceMemberFunctions.begin();
+        auto end = m_InstanceMemberFunctions.end();
         for(; it != end; ++it)
         {
-            InstanceMemberFunction* pInstanceMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+            InstanceMemberFunction* pInstanceMemberFunction = *it;
             InstanceMemberFunction::EOverloadRelation eOR = pInstanceMemberFunction->getOverloadRelationWith(a_strName, a_pSignature);
             if(eOR != InstanceMemberFunction::e_OverloadRelation_None)
             {
@@ -637,11 +637,11 @@ boolean Class::acceptsOverloadedMemberFunction( const string& a_strName, Signatu
     }
 
     {
-        member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
-        member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
+        auto it = m_InstanceMemberFunctions.begin();
+        auto end = m_InstanceMemberFunctions.end();
         for(; it != end; ++it)
         {
-            InstanceMemberFunction* pInstanceMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+            InstanceMemberFunction* pInstanceMemberFunction = *it;
             InstanceMemberFunction::EOverloadRelation eOR = pInstanceMemberFunction->getOverloadRelationWith(a_strName, a_pSignature);
             if(eOR == InstanceMemberFunction::e_OverloadRelation_Forbidden
                 OR eOR == InstanceMemberFunction::e_OverloadRelation_Covariant)
@@ -675,11 +675,11 @@ void Class::filtersNonOverloadedPureVirtualMemberFunctionsCascade( instance_memb
     for(;it_abs != a_Result.end(); ++it_abs)
     {
         InstanceMemberFunction* pPureVirtualMemberFunction = *it_abs;
-        member_collection::const_iterator it_met = m_Members.lower_bound(classOf<InstanceMemberFunction>());
-        member_collection::const_iterator it_met_end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
+        auto it_met = m_InstanceMemberFunctions.begin();
+        auto it_met_end = m_InstanceMemberFunctions.end();
         for(; it_met != it_met_end; ++it_met)
         {
-            InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it_met->second);
+            InstanceMemberFunction* pMemberFunction = *it_met;
             if(pMemberFunction->isAbstract()) continue;
             InstanceMemberFunction::EOverloadRelation eOR = pMemberFunction->getOverloadRelationWith(pPureVirtualMemberFunction);
             o_assert(eOR != InstanceMemberFunction::e_OverloadRelation_Forbidden);
@@ -702,11 +702,11 @@ void Class::filtersNonOverloadedPureVirtualMemberFunctionsCascade( instance_memb
 
 void Class::findPureVirtualMemberFunctions( instance_member_function_vector& a_Result ) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
-    for(; it != m_Members.end(); ++it)
+    auto it = m_InstanceMemberFunctions.begin();
+    auto end = m_InstanceMemberFunctions.end();
+    for(; it != end; ++it)
     {
-        InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+        InstanceMemberFunction* pMemberFunction = *it;
         if(pMemberFunction->isAbstract())
         {
             a_Result.push_back(pMemberFunction);
@@ -736,6 +736,21 @@ StaticMemberFunction*    Class::getStaticMemberFunctionCascade( const string& a_
     for(;it != end; ++it)
     {
         pMemberFunction = it->m_pClass->getStaticMemberFunctionCascade(a_strIdentifierString);
+        if(pMemberFunction != NULL)
+            return pMemberFunction;
+    }
+    return NULL;
+}
+
+StaticMemberFunction* Class::getStaticMemberFunctionCascade( const char* a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/ ) const
+{
+    StaticMemberFunction* pMemberFunction = getStaticMemberFunction(a_strName, a_FunctionSignature, a_pPartialMatchesIndexes, a_Modifiers);
+    if(pMemberFunction != NULL) return pMemberFunction;
+    super_class_table::const_iterator it = m_SuperClasses.begin();
+    super_class_table::const_iterator end = m_SuperClasses.end();
+    for(;it != end; ++it)
+    {
+        pMemberFunction = it->m_pClass->getStaticMemberFunctionCascade(a_strName, a_FunctionSignature, a_pPartialMatchesIndexes, a_Modifiers);
         if(pMemberFunction != NULL)
             return pMemberFunction;
     }
@@ -772,30 +787,30 @@ MemberFunction* Class::getMemberFunctionCascade( const string& a_strIdentifierSt
     return NULL;
 }
 
-MemberFunction* Class::getMemberFunctionCascade(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/) const
+MemberFunction* Class::getMemberFunctionCascade(const string& a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/) const
 {
-    MemberFunction* pMemberFunction = getMemberFunction(a_strName, a_FunctionSignature, a_Modifiers);
+    MemberFunction* pMemberFunction = getMemberFunction(a_strName, a_FunctionSignature, a_pPartialMatchesIndexes, a_Modifiers);
     if(pMemberFunction != NULL) return pMemberFunction;
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        pMemberFunction = it->m_pClass->getMemberFunctionCascade(a_strName, a_FunctionSignature, a_Modifiers);
+        pMemberFunction = it->m_pClass->getMemberFunctionCascade(a_strName, a_FunctionSignature, a_pPartialMatchesIndexes, a_Modifiers);
         if(pMemberFunction != NULL)
             return pMemberFunction;
     }
     return NULL;
 }
 
-void Class::getAllMemberCascade( vector<LanguageElement*>& a_out ) const
+void Class::getMembersCascade( vector<LanguageElement*>& a_out ) const
 {
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        it->m_pClass->getAllMemberCascade(a_out);
+        it->m_pClass->getMembersCascade(a_out);
     }
-    getAllMember(a_out);
+    getMembers(a_out);
 
 }
 
@@ -875,36 +890,39 @@ Collection* Class::getCollectionCascade(const string& a_strCollectionName) const
 }
 
 
-void Class::getAllValueMemberCascade(vector<ValueMember*>& out) const
+void Class::getValueMembersCascade(vector<ValueMember*>& out) const
 {
-    getAllValueMember(out);
+    out.insert(out.end(), m_ValueMembers.begin(), m_ValueMembers.end());
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        it->m_pClass->getAllValueMemberCascade(out);
+        it->m_pClass->getValueMembersCascade(out);
     }
 }
 
-void Class::getAllCollectionCascade(vector<Collection*>& out) const
+void Class::getCollectionsCascade(vector<Collection*>& out) const
 {
-    getAllCollection(out);
+    if(m_pCollections)
+    {
+        out.insert(out.end(), m_pCollections->begin(), m_pCollections->end());
+    }
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        it->m_pClass->getAllCollectionCascade(out);
+        it->m_pClass->getCollectionsCascade(out);
     }
 }
 
 
 InstanceMemberFunction* Class::getInstanceMemberFunctionCascade( const string& a_strName, type_vector* a_pParameterTypes ) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
+    auto it = m_InstanceMemberFunctions.begin();
+    auto end = m_InstanceMemberFunctions.end();
     for(;it != end; ++it)
     {
-        InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+        InstanceMemberFunction* pMemberFunction = *it;
 
         Signature* pSignature = pMemberFunction->getSignature();
 
@@ -978,13 +996,15 @@ void Class::elementAdded(LanguageElement* a_pElement)
 
 void Class::elementRemoved(LanguageElement* a_pElement)
 {
-    state::StateMachine* pStateMachine = a_pElement->asStateMachine();
-    if(pStateMachine)
+    if(m_pStateMachine == a_pElement)
     {
-        o_assert(m_pStateMachine == pStateMachine);
         m_pStateMachine = nullptr;
     }
-    else ClassType::elementRemoved(a_pElement);
+    else if(m_pSignals)
+    {
+        m_pSignals->erase(std::find(m_pSignals->begin(), m_pSignals->end(), a_pElement->asSignal()));
+    }
+    ClassType::elementRemoved(a_pElement);
 }
 
 void* Class::cast( Class* a_pSuperClass, void* a_pBaseAddress ) const
@@ -994,6 +1014,12 @@ void* Class::cast( Class* a_pSuperClass, void* a_pBaseAddress ) const
     return (offset == -1) 
         ? NULL 
         : static_cast<byte*>(a_pBaseAddress)+offset;
+}
+
+void* Class::cast( Type* a_pTarget, void* a_pBase ) const
+{
+    if(a_pTarget->asClass()) return cast(static_cast<Class*>(a_pTarget), a_pBase);
+    return nullptr;
 }
 
 
@@ -1053,33 +1079,33 @@ void Class::safeDeleteInstance( void* a_pObject ) const
     deleteInstance(phantom::rttiDataOf(a_pObject).cast(const_cast<Class*>(this)));
 }
 
-InstanceMemberFunction*        Class::getInstanceMemberFunctionCascade(const char* a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/) const
+InstanceMemberFunction*        Class::getInstanceMemberFunctionCascade(const char* a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/) const
 {
-  InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strName, a_FunctionSignature, a_Modifiers);
-  if(pMemberFunction != NULL) return pMemberFunction;
-  super_class_table::const_iterator it = m_SuperClasses.begin();
-  super_class_table::const_iterator end = m_SuperClasses.end();
-  for(;it != end; ++it)
-  {
-    pMemberFunction = it->m_pClass->getInstanceMemberFunctionCascade(a_strName, a_FunctionSignature, a_Modifiers);
+    InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strName, a_FunctionSignature, a_pPartialMatchesIndexes, a_Modifiers);
     if(pMemberFunction != NULL) return pMemberFunction;
-  }
-  return NULL;
+    super_class_table::const_iterator it = m_SuperClasses.begin();
+    super_class_table::const_iterator end = m_SuperClasses.end();
+    for(;it != end; ++it)
+    {
+        pMemberFunction = it->m_pClass->getInstanceMemberFunctionCascade(a_strName, a_FunctionSignature, a_pPartialMatchesIndexes, a_Modifiers);
+        if(pMemberFunction != NULL) return pMemberFunction;
+    }
+    return NULL;
 }
 
-LanguageElement* Class::getElement(
-    const char* a_strName 
-    , template_specialization const* a_TemplateSpecialization
-    , function_signature const* a_FunctionSignature
+LanguageElement* Class::solveElement(
+    const string& a_strName 
+    , const vector<TemplateElement*>* a_TemplateSpecialization
+    , const vector<LanguageElement*>* a_FunctionSignature
     , bitfield a_Modifiers /*= 0*/) const 
 {
-    LanguageElement* pElement = ClassType::getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
+    LanguageElement* pElement = ClassType::solveElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
     if(pElement) return pElement;
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
     for(;it != end; ++it)
     {
-        if(pElement = it->m_pClass->getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers))
+        if(pElement = it->m_pClass->solveElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers))
             return pElement;
     }
     return NULL;
@@ -1102,11 +1128,11 @@ void Class::destroyContent()
     }
 }
 
-void Class::registerRtti( void* a_pThis, void* a_pBase, Class* a_pObjectClass, connection::slot_pool* a_pSlotPool, dynamic_delete_func_t a_dynamic_delete_func )
+void Class::registerRtti( void* a_pThis, void* a_pBase, Class* a_pObjectClass, connection::slot_pool* a_pSlotPool, dynamic_delete_func_t a_dynamic_delete_func, size_t a_uiLevel )
 {
     if(m_SuperClasses.empty()) // Root class
     {
-        registerRttiImpl(a_pThis, a_pBase, a_pObjectClass, a_pSlotPool, a_dynamic_delete_func);
+        registerRttiImpl(a_pThis, a_pBase, a_pObjectClass, a_pSlotPool, a_dynamic_delete_func, a_uiLevel);
     }
     else
     {
@@ -1114,12 +1140,12 @@ void Class::registerRtti( void* a_pThis, void* a_pBase, Class* a_pObjectClass, c
         super_class_table::const_iterator end = m_SuperClasses.end();
         for(;it != end; ++it)
         {
-            it->m_pClass->registerRtti(cast(it->m_pClass, a_pThis), a_pBase, a_pObjectClass, a_pSlotPool, a_dynamic_delete_func);
+            it->m_pClass->registerRtti(cast(it->m_pClass, a_pThis), a_pBase, a_pObjectClass, a_pSlotPool, a_dynamic_delete_func, a_uiLevel);
         }
     }
 }
 
-void Class::unregisterRtti( void* a_pThis )
+void Class::unregisterRtti( void* a_pThis, size_t a_uiLevel )
 {
     if(m_pSingleton == a_pThis)
     {
@@ -1127,7 +1153,7 @@ void Class::unregisterRtti( void* a_pThis )
     }
     if(m_SuperClasses.empty()) // Root class
     {
-        unregisterRttiImpl(a_pThis);
+        unregisterRttiImpl(a_pThis, a_uiLevel);
     }
     else
     {
@@ -1135,7 +1161,7 @@ void Class::unregisterRtti( void* a_pThis )
         super_class_table::const_iterator end = m_SuperClasses.end();
         for(;it != end; ++it)
         {
-            it->m_pClass->unregisterRtti(cast(it->m_pClass, a_pThis));
+            it->m_pClass->unregisterRtti(cast(it->m_pClass, a_pThis), a_uiLevel);
         }
     }
 }
@@ -1145,7 +1171,7 @@ void Class::smartCopy(void* a_pInstance, void const* a_pSource, reflection::Type
     Class* pSourceClass = a_pSourceType->asClass();
     o_assert(pSourceClass);
     vector<ValueMember*> valueMembers;
-    pSourceClass->getAllValueMemberCascade(valueMembers);
+    pSourceClass->getValueMembersCascade(valueMembers);
     auto it = valueMembers.begin();
     auto end = valueMembers.end();
     for(; it!=end; ++it)
@@ -1250,5 +1276,142 @@ size_t Class::getKindCount() const
     return count;
 }
 
+void Class::installInstanceDataMembers( void* a_pInstance, size_t a_uiLevel ) const
+{
+    for(auto it = m_InstanceDataMembers.begin(); it != m_InstanceDataMembers.end(); ++it)
+    {
+        (*it)->m_pValueType->install((byte*)a_pInstance+(*it)->m_uiOffset, a_uiLevel+1);
+    }
+}
+
+void Class::installInstanceDataMembersCascade( void* a_pInstance, size_t a_uiLevel ) const
+{
+    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    {
+        it->m_pClass->installInstanceDataMembersCascade((byte*)a_pInstance+it->m_uiOffset, a_uiLevel);
+    }
+    installInstanceDataMembers(a_pInstance, a_uiLevel);
+}
+
+void Class::uninstallInstanceDataMembers( void* a_pInstance, size_t a_uiLevel ) const
+{
+    for(auto it = m_InstanceDataMembers.begin(); it != m_InstanceDataMembers.end(); ++it)
+    {
+        (*it)->m_pValueType->uninstall((byte*)a_pInstance+(*it)->m_uiOffset, a_uiLevel+1);
+    }
+}
+
+void Class::uninstallInstanceDataMembersCascade( void* a_pInstance, size_t a_uiLevel ) const
+{
+    uninstallInstanceDataMembers(a_pInstance, a_uiLevel);
+    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    {
+        it->m_pClass->uninstallInstanceDataMembersCascade((byte*)a_pInstance+it->m_uiOffset, a_uiLevel);
+    }
+}
+
+void Class::initializeInstanceDataMembers( void* a_pInstance ) const
+{
+    for(auto it = m_InstanceDataMembers.begin(); it != m_InstanceDataMembers.end(); ++it)
+    {
+        (*it)->m_pValueType->initialize((byte*)a_pInstance+(*it)->m_uiOffset);
+    }
+}
+
+void Class::initializeInstanceDataMembersCascade( void* a_pInstance ) const
+{
+    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    {
+        it->m_pClass->initializeInstanceDataMembersCascade((byte*)a_pInstance+it->m_uiOffset);
+    }
+    initializeInstanceDataMembers(a_pInstance);
+}
+
+void Class::terminateInstanceDataMembers( void* a_pInstance ) const
+{
+    for(auto it = m_InstanceDataMembers.begin(); it != m_InstanceDataMembers.end(); ++it)
+    {
+        (*it)->m_pValueType->terminate((byte*)a_pInstance+(*it)->m_uiOffset);
+    }
+}
+
+void Class::terminateInstanceDataMembersCascade( void* a_pInstance ) const
+{
+    terminateInstanceDataMembers(a_pInstance);
+    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    {
+        it->m_pClass->terminateInstanceDataMembersCascade((byte*)a_pInstance+it->m_uiOffset);
+    }
+}
+
+restore_state Class::restoreInstanceDataMembers( void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass ) const
+{
+    restore_state result = restore_complete;
+    for(auto it = m_InstanceDataMembers.begin(); it != m_InstanceDataMembers.end(); ++it)
+    {
+        result = combine_restore_states(result, (*it)->m_pValueType->restore((byte*)a_pInstance+(*it)->m_uiOffset, a_uiSerializationFlag, a_uiPass));
+    }
+    return result;
+}
+
+restore_state Class::restoreInstanceDataMembersCascade( void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass ) const
+{
+    restore_state result = restore_complete;
+    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    {
+        result = combine_restore_states(result, it->m_pClass->restoreInstanceDataMembersCascade((byte*)a_pInstance+it->m_uiOffset, a_uiSerializationFlag, a_uiPass));
+    }
+    result = combine_restore_states(result, restoreInstanceDataMembers(a_pInstance, a_uiSerializationFlag, a_uiPass));
+    return result;
+}
+
+Expression* Class::solveExpression( Expression* a_pLeftExpression
+                                 , const char* a_strName 
+                                 , const vector<TemplateElement*>* a_pTemplateSpecialization
+                                 , const vector<LanguageElement*>* a_pFunctionSignature
+                                 , bitfield a_Modifiers /*= 0*/ ) const
+{
+    o_assert(a_pLeftExpression->getValueType() == this);
+    Expression* pExpression = ClassType::solveExpression(a_pLeftExpression, a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers);
+    if(pExpression) return pExpression;
+    auto it = m_SuperClasses.begin();
+    auto end = m_SuperClasses.end();
+    for(;it != end; ++it)
+    {
+        if(pExpression = it->m_pClass->solveExpression(a_pLeftExpression->implicitCast(it->m_pClass), a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers))
+            return pExpression;
+    }
+    return nullptr;
+}
+
+bool Class::referencesData(const void* a_pInstance, const phantom::data& a_Data) const
+{
+    if(ClassType::referencesData(a_pInstance, a_Data))
+        return true;
+    auto it = m_SuperClasses.begin();
+    auto end = m_SuperClasses.end();
+    for(;it != end; ++it)
+    {
+        if(it->m_pClass->referencesData((byte*)a_pInstance + it->m_uiOffset, a_Data))
+            return true;
+    }
+    return false;
+}
+
+void Class::fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const
+{
+    ClassType::fetchReferencedData(a_pInstance, out, a_uiSerializationMask);
+    auto it = m_SuperClasses.begin();
+    auto end = m_SuperClasses.end();
+    for(;it != end; ++it)
+    {
+        it->m_pClass->fetchReferencedData((byte*)a_pInstance + it->m_uiOffset, out, a_uiSerializationMask);
+    }
+}
+
+bool Class::isCopyable() const
+{
+    return m_pSignals == nullptr && m_pStateMachine == nullptr && isCopyConstructible() && !hasNoCopy();
+}
 
 o_namespace_end(phantom, reflection)

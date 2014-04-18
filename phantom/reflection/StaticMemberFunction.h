@@ -50,10 +50,9 @@ public:
     static Class* const metaType;
 
     StaticMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
-    
-    virtual void        call(void** args) const = 0;
-    virtual void        call(void** args, void* a_pReturnAddress) const = 0;
 
+    virtual void        call( void** a_pParams ) const = 0;
+    virtual void        call( void** a_pParams, void* a_pReturnAddress ) const { o_assert(getReturnType() == typeOf<void>()); call(a_pParams); }
     virtual void        call( void* a_pCallerAddress, void** a_pParams ) const { call(a_pParams); }
     virtual void        call( void* a_pCallerAddress, void** a_pParams, void* a_pReturnAddress ) const { call(a_pParams, a_pReturnAddress); }
 
@@ -62,8 +61,17 @@ public:
     virtual StaticMemberFunction*   asStaticMemberFunction() const { return const_cast<StaticMemberFunction*>(this); }
     virtual MemberFunction*         asMemberFunction() const { return const_cast<StaticMemberFunction*>(this); }
 
-    virtual Class*      getSortingCategoryClass() const;
     virtual void*       getClosurePointer() const = 0;
+
+    virtual void* getAddress(void** a_pParams) const 
+    {
+        return Function::getAddress(a_pParams);
+    }
+
+    virtual void* getAddress(void* a_pObject, void** a_pParams) const 
+    { 
+        return getAddress(a_pParams); 
+    }
 
 protected:
 

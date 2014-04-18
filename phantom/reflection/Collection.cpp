@@ -39,9 +39,10 @@
 o_registerN((phantom, reflection), Collection);
 o_namespace_begin(phantom, reflection) 
 
-Collection::Collection( const string& a_strName, Type* a_pElementType, bitfield a_Modifiers /*= 0*/ ) 
+Collection::Collection( const string& a_strName, Type* a_pElementType, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ ) 
     : LanguageElement(a_strName, a_Modifiers) 
     , m_pElementType(a_pElementType)
+    , m_uiSerializationMask(a_uiSerializationMask)
 {
     addReferencedElement(m_pElementType);
 }
@@ -158,10 +159,52 @@ void Collection::referencedElementRemoved( LanguageElement* a_pElement )
     m_pElementType = nullptr;
 }
 
-reflection::Class* Collection::getSortingCategoryClass() const
+bool Collection::referencesData(const void* a_pInstance, const phantom::data& a_Data) const
 {
-    return classOf<Collection>();
+    size_t count = safeGetSize(a_pInstance);
+    if(count) 
+    {
+        void* pBuffer = m_pElementType->allocate();
+        m_pElementType->construct(pBuffer);
+        m_pElementType->initialize(pBuffer);
+        for(size_t i = 0; i<count; ++i)
+        {
+            safeGetElement(a_pInstance, i, pBuffer);
+            if(m_pElementType->referencesData(pBuffer, a_Data))
+            {
+                m_pElementType->terminate(pBuffer);
+                m_pElementType->destroy(pBuffer);
+                m_pElementType->deallocate(pBuffer);
+                return true;
+            }
+        }
+        m_pElementType->terminate(pBuffer);
+        m_pElementType->destroy(pBuffer);
+        m_pElementType->deallocate(pBuffer);
+    }
+    return false;
 }
 
+void Collection::fetchReferencedData(const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask) const
+{
+    if((a_uiSerializationMask & m_uiSerializationMask) != 0)
+    {
+        size_t count = safeGetSize(a_pInstance);
+        if(count) 
+        {
+            void* pBuffer = m_pElementType->allocate();
+            m_pElementType->construct(pBuffer);
+            m_pElementType->initialize(pBuffer);
+            for(size_t i = 0; i<count; ++i)
+            {
+                safeGetElement(a_pInstance, i, pBuffer);
+                m_pElementType->fetchReferencedData(pBuffer, out, a_uiSerializationMask);
+            }
+            m_pElementType->terminate(pBuffer);
+            m_pElementType->destroy(pBuffer);
+            m_pElementType->deallocate(pBuffer);
+        }
+    }
+}
 
 o_namespace_end(phantom, reflection)

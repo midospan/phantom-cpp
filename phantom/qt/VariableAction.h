@@ -16,17 +16,17 @@ namespace phantom { namespace qt {
 class VariableWidget;
 class VariableEditor;
 class CollectionElementVariable;
-class BufferedVariable;
+class VariableNode;
 
 class o_qt_export VariableAction : public QAction
 {
     Q_OBJECT
 
 public:
-    VariableAction(const QIcon& a_Icon, const QString& a_Name, BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget);
+    VariableAction(const QIcon& a_Icon, const QString& a_Name, VariableNode* a_pVariable, VariableWidget* a_pVariableWidget);
     ~VariableAction();
     VariableEditor* getVariableEditor() const;
-    BufferedVariable* getVariable() const { return m_pVariable; }
+    VariableNode* getVariable() const { return m_pVariable; }
 
 protected slots:
     void slotActionDone();
@@ -42,7 +42,7 @@ protected:
     void valueAboutToBeChanged();
 
 protected:
-    BufferedVariable*       m_pVariable;
+    VariableNode*       m_pVariable;
     VariableWidget* m_pVariableWidget;
 
 };
@@ -50,7 +50,7 @@ protected:
 class o_qt_export ResetAction : public VariableAction
 {
 public:
-    ResetAction(BufferedVariable* a_pVariable, VariableWidget* a_pEditor);
+    ResetAction(VariableNode* a_pVariable, VariableWidget* a_pEditor);
 
 protected:
     virtual void actionDone();
@@ -60,7 +60,7 @@ protected:
 class o_qt_export ContainerMoveUpAction : public VariableAction
 {
 public:
-    ContainerMoveUpAction(BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget);
+    ContainerMoveUpAction(VariableNode* a_pVariable, VariableWidget* a_pVariableWidget);
 
     virtual void actionDone();
 
@@ -70,7 +70,7 @@ protected:
 class o_qt_export ContainerMoveDownAction : public VariableAction
 {
 public:
-    ContainerMoveDownAction(BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget);
+    ContainerMoveDownAction(VariableNode* a_pVariable, VariableWidget* a_pVariableWidget);
 
     virtual void actionDone();
 
@@ -80,7 +80,7 @@ protected:
 class o_qt_export EraseContainerIteratorAction : public VariableAction
 {
 public:
-    EraseContainerIteratorAction(BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget);
+    EraseContainerIteratorAction(VariableNode* a_pVariable, VariableWidget* a_pVariableWidget);
 
     void actionDone();
 

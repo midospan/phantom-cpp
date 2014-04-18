@@ -1213,6 +1213,15 @@ struct _trait_< o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) < o_PP_IDENTITY 
 };\
     }
 
+#define o_traits_specializeNPT(_trait_,_value_,_namespaces_,_template_types_,_template_params_,_template_spec_,_name_)\
+    namespace phantom { \
+    template<o_PP_MIX(_template_types_,_template_params_)>\
+struct _trait_< o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) < o_PP_IDENTITY _template_spec_ > >\
+{\
+    o_PP_IDENTITY _value_;\
+};\
+    }
+
 #define o_traits_specializeT(_trait_,_value_,_template_types_,_template_params_,_name_)\
     namespace phantom { \
     template<o_PP_MIX(_template_types_,_template_params_)>\
@@ -2099,12 +2108,21 @@ struct track_count_cascade_of
     enum { value = track_count_of<t_Ty>::value + super_total_track_count_of<t_Ty>::value };
 };
 
-template<typename t_Ty>
-struct has_copy_disabled 
+template<typename t_Ty, bool no_copy_meta_specifier_defined>
+struct has_copy_disabled_helper 
 {
-    static const bool value = ((phantom::meta_specifiers<t_Ty>::value & o_no_copy) == o_no_copy) 
-        OR (boost::is_const<t_Ty>::value)
-        OR (boost::is_void<t_Ty>::value);
+    static const bool value = true;
+};
+template<typename t_Ty>
+struct has_copy_disabled_helper <t_Ty, false>
+{
+    static const bool value = (boost::is_void<t_Ty>::value) 
+        OR (boost::is_class<t_Ty>::value AND NOT(boost::is_copy_constructible<t_Ty>::value));
+};
+
+template<typename t_Ty>
+struct has_copy_disabled : public has_copy_disabled_helper<t_Ty, (phantom::meta_specifiers<t_Ty>::value & o_no_copy) == o_no_copy>
+{
 };
 
 template<typename t_Ty>

@@ -4,7 +4,7 @@
          H igh-level 
          A llocator 
          N ested state-machines and 
-         T emplate 
+         t_Ty emplate 
          O riented 
          M eta-programming
 
@@ -31,16 +31,48 @@
     THE SOFTWARE
 */
 
-#ifndef o_phantom_math_h__
-#define o_phantom_math_h__
+#ifndef o_math_math_h__
+#define o_math_math_h__
 
 #include "phantom/phantom.h"
 
 #include "phantom/math/scalar_funcs.h"
-#include "phantom/math/vector_types.h"
+
+#include "phantom/math/vector2.h"
+#include "phantom/math/vector2b.h"
+#include "phantom/math/vector2i.h"
+#include "phantom/math/vector2ui.h"
+#include "phantom/math/vector3.h"
+#include "phantom/math/vector3b.h"
+#include "phantom/math/vector3i.h"
+#include "phantom/math/vector3ui.h"
+#include "phantom/math/vector4.h"
+#include "phantom/math/vector4b.h"
+#include "phantom/math/vector4i.h"
+#include "phantom/math/vector4ui.h"
+#include "phantom/math/matrix2x2.h"
+#include "phantom/math/matrix2x3.h"
+#include "phantom/math/matrix2x4.h"
+#include "phantom/math/matrix3x2.h"
+#include "phantom/math/matrix3x3.h"
+#include "phantom/math/matrix3x4.h"
+#include "phantom/math/matrix4x2.h"
+#include "phantom/math/matrix4x3.h"
+#include "phantom/math/matrix4x4.h"
+#include "phantom/math/angle.h"
+#include "phantom/math/transform2.h"
+#include "phantom/math/quaternion.h"
+#include "phantom/math/transform3.h"
+#include "phantom/math/aabb2.h"
+#include "phantom/math/aabb3.h"
+#include "phantom/math/line2.h"
+#include "phantom/math/line3.h"
+#include "phantom/math/segment2.h"
+#include "phantom/math/plane3.h"
+#include "phantom/math/rect.h"
+
 #include "phantom/math/vector_funcs.h"
+
 #include "phantom/math/utils.h"
 
-#include "phantom/math/vector_reflection.h"
-
-#endif // _maths_h__
+#endif // o_math_math_h__

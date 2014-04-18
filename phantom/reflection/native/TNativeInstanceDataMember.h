@@ -103,20 +103,17 @@ public:
 
 public:
     TNativeInstanceDataMember(const string& a_strName, Type* a_pContentType, member_field_pointer a_member_field_pointer, Range* a_pRange, uint a_uiSerializationMask, bitfield a_uiModifiers = 0 )
-     : InstanceDataMember(a_strName, a_pContentType, a_pRange, a_uiSerializationMask, a_uiModifiers)
+        : InstanceDataMember(a_strName
+                            , a_pContentType
+                            , (size_t)const_cast<t_ContentTypeNoConst*>(&(((t_Ty const*)nullptr)->*a_member_field_pointer))
+                            , a_pRange
+                            , a_uiSerializationMask
+                            , a_uiModifiers)
      , m_member_field_pointer(a_member_field_pointer)
     {}
 
     virtual boolean      isNative() const { return true; }
 
-    virtual size_t          getOffset() const 
-    {
-        return (size_t)
-            const_cast<t_ContentTypeNoConst*>
-            (
-            &(((t_Ty const*)nullptr)->*m_member_field_pointer)
-            );
-    }
     virtual void*        getAddress( void const* a_pObject ) const
     {
         return
@@ -181,7 +178,7 @@ public:
     {
         property_tree value_tree;
         
-        m_pContentType->serialize(
+        m_pValueType->serialize(
             &(static_cast<t_Ty const*>(a_pInstance)->*m_member_field_pointer)
             , value_tree
             , a_uiSerializationMask, a_pDataBase);
@@ -195,7 +192,7 @@ public:
         {
             // TODO : correct this
             property_tree value_tree;
-            m_pContentType->serialize(
+            m_pValueType->serialize(
                 &(reinterpret_cast<t_Ty const*>(pChunk)->*m_member_field_pointer)
                 , value_tree
                 , a_uiSerializationMask, a_pDataBase);
@@ -209,7 +206,7 @@ public:
         boost::optional<const property_tree&> value_tree_opt = a_InBranch.get_child_optional(m_strName);
         if(value_tree_opt.is_initialized())
         {
-            m_pContentType->deserialize(
+            m_pValueType->deserialize(
                 &(static_cast<t_Ty*>(a_pInstance)->*m_member_field_pointer)
                 , *value_tree_opt
                 , a_uiSerializationMask, a_pDataBase);
@@ -225,7 +222,7 @@ public:
             boost::optional<const property_tree&> value_tree_opt = a_InBranch.get_child_optional(m_strName);
             if(value_tree_opt.is_initialized())
             {
-                m_pContentType->deserialize(
+                m_pValueType->deserialize(
                     &(reinterpret_cast<t_Ty*>(pChunk)->*m_member_field_pointer)
                     , *value_tree_opt
                     , a_uiSerializationMask, a_pDataBase);

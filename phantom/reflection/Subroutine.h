@@ -139,7 +139,7 @@ public:
     Subroutine(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
     o_destructor ~Subroutine();
 
-    virtual void terminate();
+    virtual void        terminate();
 
     virtual Subroutine* asSubroutine() const { return const_cast<Subroutine*>(this); }
 
@@ -155,53 +155,61 @@ public:
 
     Type*               getReturnType() const    {        return m_pSignature->getReturnType();    }
     
-    boolean             matches( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/ ) const
-    {
-        return m_strName == a_strName
-          AND m_pSignature->matches(a_FunctionSignature)
-          AND testModifiers(a_Modifiers);
-    }
+    bool                matches( const string& a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatches, bitfield a_Modifiers /*= 0*/ ) const;
 
-    virtual void  call( void** a_pArgs ) const = 0;
-    virtual void  call( void** a_pArgs, void* a_pReturnAddress ) const = 0;
-    virtual void  call( void* a_pCallerAddress, void** a_pArgs ) const = 0;
-    virtual void  call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const = 0;
+    virtual void        call( void** a_pArgs ) const = 0;
+    virtual void        call( void** a_pArgs, void* a_pReturnAddress ) const;
+    virtual void        call( void* a_pCallerAddress, void** a_pArgs ) const = 0;
+    virtual void        call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const;
 
-    void setMemoryLocation(const MemoryLocation& a_MemoryLocation ) { m_MemoryLocation = a_MemoryLocation; }
+    void                setMemoryLocation(const MemoryLocation& a_MemoryLocation ) { m_MemoryLocation = a_MemoryLocation; }
     const MemoryLocation& getMemoryLocation() const { return m_MemoryLocation; }
-    byte* getMemoryStart() const { return m_MemoryLocation.getStart(); }
-    byte* getMemoryEnd() const { return m_MemoryLocation.getEnd(); }
-    void setMemoryStart(byte* b) 
+    byte*               getMemoryStart() const { return m_MemoryLocation.getStart(); }
+    byte*               getMemoryEnd() const { return m_MemoryLocation.getEnd(); }
+    void                setMemoryStart(byte* b) 
     {
         m_MemoryLocation.setStart(b);
     }
-    void setMemoryEnd(byte* b) 
+    void                setMemoryEnd(byte* b) 
     {
         m_MemoryLocation.setEnd(b);
     }
 
-    void addInstruction(Instruction* a_pInstruction);
+    void                addInstruction(Instruction* a_pInstruction);
 
-    Instruction* getInstruction(size_t i) const 
+    Instruction*        getInstruction(size_t i) const 
     { 
         o_assert(m_pInstructions && m_pInstructions->size() > i);
         return (*m_pInstructions)[i]; 
     }
 
-    size_t getInstructionCount() const { return m_pInstructions ? m_pInstructions->size() : 0; }
+    size_t              getInstructionCount() const { return m_pInstructions ? m_pInstructions->size() : 0; }
 
-    Instruction* findInstructionAtCodePosition(const CodePosition& position) const;
-    Instruction* findInstructionAtMemoryAddress(byte* a_pAddress) const;
-    Instruction* findInstructionStartingAtMemoryAddress(byte* a_pAddress) const;
+    Instruction*        findInstructionAtCodePosition(const CodePosition& position) const;
+    Instruction*        findInstructionAtMemoryAddress(byte* a_pAddress) const;
+    Instruction*        findInstructionStartingAtMemoryAddress(byte* a_pAddress) const;
 
-    Block* findBlockAtCodePosition(const CodePosition& a_Position) const;
+    Block*              findBlockAtCodePosition(const CodePosition& a_Position) const;
 
-    Block*  getBlock() const { return m_pBlock; }
-    void    setBlock(Block* a_pBlock);
+    Block*              getBlock() const { return m_pBlock; }
+    void                setBlock(Block* a_pBlock);
 
-    virtual LanguageElement* getElement( const char* a_strQualifiedName , template_specialization const* a_pTS, function_signature const* a_pFS, bitfield a_Modifiers /* = bitfield */ ) const;
+    virtual 
+    LanguageElement*    solveElement( const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, bitfield a_Modifiers /* = bitfield */ ) const;
     
-    bool containsMemoryAddress(const byte* a_pAddress);
+    bool                containsMemoryAddress(const byte* a_pAddress);
+
+    virtual void*       getAddress(void* a_pObject, void** a_pParams) const
+    {
+        return nullptr;
+    }
+
+    virtual void*       getAddress(void** a_pParams) const
+    {
+        return nullptr;
+    }
+
+    virtual bool        isAddressable() const { return getReturnType()->removeConst()->asReferenceType() != nullptr; }
 
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);

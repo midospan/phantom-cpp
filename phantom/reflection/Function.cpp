@@ -35,10 +35,22 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/Function.h>
 #include <phantom/reflection/Function.hxx>
+#include <phantom/reflection/CallExpression.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), Function);
 
 
 o_namespace_begin(phantom, reflection) 
+    
+void Function::call( void** a_pParams, void* a_pReturnAddress ) const
+{
+    o_assert(getReturnType() == typeOf<void>()); call(a_pParams);
+}
+
+void Function::call( void* a_pCallerAddress, void** a_pParams, void* a_pReturnAddress ) const
+{
+    o_assert(getReturnType() == typeOf<void>()); call(a_pParams, a_pReturnAddress);
+}
+
 
 o_namespace_end(phantom, reflection)

@@ -164,11 +164,6 @@ phantom::string LanguageElement::getQualifiedDecoratedName() const
     return m_pTemplateSpecialization?getQualifiedName()+m_pTemplateSpecialization->getQualifiedDecoratedName():getQualifiedName();
 }
 
-Class* LanguageElement::getSortingCategoryClass() const
-{
-    return classOf<LanguageElement>();
-}
-
 void LanguageElement::addCodeLocation( const CodeLocation& location )
 {
     if(m_CodeLocations == nullptr)
@@ -272,11 +267,11 @@ LanguageElement* LanguageElement::getLeafElementAt( const CodePosition& a_Positi
     return nullptr;
 }
 
-LanguageElement* LanguageElement::getElement( const char* a_strQualifiedName , template_specialization const* , function_signature const* , bitfield a_Modifiers /*= 0*/ ) const
+LanguageElement* LanguageElement::solveElement( const string& a_strName , const vector<TemplateElement*>* , const vector<LanguageElement*>* , bitfield a_Modifiers /*= 0*/ ) const
 {
     if(m_pTemplateSpecialization)
     {
-        LanguageElement* pElement = m_pTemplateSpecialization->getType(a_strQualifiedName);
+        LanguageElement* pElement = m_pTemplateSpecialization->getType(a_strName);
         if(pElement) return pElement;
     }
     return nullptr;
@@ -414,6 +409,11 @@ void LanguageElement::teardownMetaDataCascade( size_t count )
         o_delete_n(count, string) m_pMetaData;
         m_pMetaData = nullptr;
     }
+    if(m_pElements)
+    for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+    {
+        (*it)->teardownMetaDataCascade(count);
+    }
 }
 
 void LanguageElement::setupMetaData( size_t count )
@@ -463,7 +463,7 @@ void LanguageElement::setModifiers( bitfield a_Modifiers )
     o_assert(NOT(isPublic() AND isProtected()), "o_public and o_protected cannot co-exist");
 }
 
-bool LanguageElement::matches( const char* a_strName, template_specialization const* a_TemplateSpecialization /*= NULL*/, bitfield a_Modifiers /*= 0*/ ) const
+bool LanguageElement::matches( const string& a_strName, const vector<TemplateElement*>* a_TemplateSpecialization /*= NULL*/, bitfield a_Modifiers /*= 0*/ ) const
 {
     if(m_strName != a_strName) 
         return false;
@@ -477,7 +477,7 @@ bool LanguageElement::matches( const char* a_strName, template_specialization co
     return false;
 }
 
-bool LanguageElement::matches( template_specialization const* a_pElements ) const
+bool LanguageElement::matches( const vector<TemplateElement*>* a_pElements ) const
 {
     return m_pTemplateSpecialization
         ? m_pTemplateSpecialization->matches(a_pElements)

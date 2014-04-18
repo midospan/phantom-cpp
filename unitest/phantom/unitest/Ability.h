@@ -48,6 +48,14 @@ public:
     Ability(void)  { }
     o_destructor ~Ability(void) {}
 
+    Unit* getUnit() const { return m_pUnit; }
+
+protected:
+    void setUnit(Unit* a_pUnit)
+    {
+        m_pUnit = a_pUnit;
+    }
+
 protected:
     Unit* m_pUnit;
 };

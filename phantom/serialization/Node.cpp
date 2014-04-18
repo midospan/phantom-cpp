@@ -406,6 +406,7 @@ void Node::load()
     {
         o_exception(std::exception, "The parent node should be loaded before loading a child node");
     }
+    loadTypes();
     cache(); 
     m_eState = e_Cached;
     build(); 
@@ -450,6 +451,7 @@ void Node::save()
 {
     // Be sure all components are added before saving
     addDataComponents();
+    saveTypes();
     saveIndex(); 
     saveAttributes(); 
     saveData(); 
@@ -603,7 +605,7 @@ void Node::saveDataState( const phantom::data& a_Data, uint a_uiStateId )
 
 void Node::fetchContainerComponents(reflection::ContainerClass* a_pContainerClass, void* a_pContainer, vector<phantom::data>& out)
 {
-    reflection::IteratorVariable* pIterator = a_pContainerClass->begin(a_pContainer);
+    reflection::Iterator* pIterator = a_pContainerClass->begin(a_pContainer);
     bool needAnotherPass = false;
     reflection::Type* pType = a_pContainerClass->getValueType();
     if(pType->asDataPointerType())
@@ -611,7 +613,7 @@ void Node::fetchContainerComponents(reflection::ContainerClass* a_pContainerClas
         void* ptr = nullptr; 
         while(pIterator->hasNext())
         {
-            ((Iterator*)pIterator)->getValue(&ptr);
+            ((reflection::Iterator*)pIterator)->getValue(&ptr);
             phantom::data d(ptr);
             if(NOT(d.isNull()))
             {
@@ -654,7 +656,7 @@ void Node::fetchDataComponents(const phantom::data& a_Data, vector<phantom::data
     reflection::Class* pClass = a_Data.type()->asClass();
     if(pClass == nullptr) return;
     vector<reflection::ValueMember*> valueMembers;
-    pClass->getAllValueMemberCascade(valueMembers);
+    pClass->getValueMembersCascade(valueMembers);
 
     struct PropertyThenAttributeSorter
     {
@@ -745,13 +747,13 @@ void Node::clearDataReference( const vector<void*>& layout ) const
                 vector<reflection::Collection*> collections;
                 if(pClass)
                 {
-                    pClass->getAllValueMemberCascade(valueMembers);
-                    pClass->getAllCollectionCascade(collections);
+                    pClass->getValueMembersCascade(valueMembers);
+                    pClass->getCollectionsCascade(collections);
                 }
                 else
                 {
-                    pClassType->getAllValueMember(valueMembers);
-                    pClassType->getAllCollection(collections);
+                    valueMembers.insert(valueMembers.end(), pClassType->beginValueMembers(), pClassType->endValueMembers());
+                    collections.insert(collections.end(), pClassType->beginCollections(), pClassType->endCollections());
                 }
                 struct PropertyThenAttributeSorter
                 {
@@ -873,11 +875,11 @@ bool Node::replaceDataReference( const vector<void*>& a_OldLayout, const phantom
                 vector<reflection::ValueMember*> valueMembers;
                 if(pClass)
                 {
-                    pClass->getAllValueMemberCascade(valueMembers);
+                    pClass->getValueMembersCascade(valueMembers);
                 }
                 else
                 {
-                    pClassType->getAllValueMember(valueMembers);
+                    valueMembers.insert(valueMembers.end(), pClassType->beginValueMembers(), pClassType->endValueMembers());
                 }
                 o_foreach(reflection::ValueMember* pValueMember, valueMembers)
                 {
@@ -1332,6 +1334,46 @@ void Node::unloadCascade()
         }
     }
     unload();
+}
+
+void Node::addType( reflection::Type* a_pType )
+{
+    o_assert(getType(a_pType->getQualifiedDecoratedName()) == nullptr);
+    m_Types[a_pType->getQualifiedDecoratedName()];
+    saveTypes();
+}
+
+void Node::removeType( reflection::Type* a_pType )
+{
+    o_assert(getType(a_pType->getQualifiedDecoratedName()) == a_pType);
+    o_assert(a_pType->asClass() == nullptr || a_pType->asClass()->getInstanceCount() == 0);
+    m_Types.erase(a_pType->getQualifiedDecoratedName());
+    saveTypes();
+}
+
+reflection::Type* Node::getType( const string& a_strQualifiedDecoratedName ) const
+{
+    auto found = m_Types.find(a_strQualifiedDecoratedName);
+    return found != m_Types.end() ? found->second : nullptr;
+}
+
+void Node::replaceTypes( const map<reflection::Type*, reflection::Type*>& replacedTypes )
+{
+    for(auto it = replacedTypes.begin(); it != replacedTypes.end(); ++it)
+    {
+        reflection::Type* pOld = it->first;
+        reflection::Type* pNew = it->second;
+
+        for(auto it = m_Types.begin(); it != m_Types.end(); ++it)
+        {
+            if(it->second == pOld)
+            {
+                it->second = pNew;
+                break;
+            }
+        }
+    }
+    saveTypes();
 }
 
 o_namespace_end(phantom, serialization)

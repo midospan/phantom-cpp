@@ -139,12 +139,17 @@ public:
         phantom::extension::resetter<void*>::reset((void**)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
     }
 
-    virtual Type*                   removePointer() const { return m_pPointedType; }
+    virtual Type*      removePointer() const { return m_pPointedType; }
 
-    Type*                           createConstType() const;
+    Type*              createConstType() const;
 
-    virtual string          getDecoratedName() const { return m_pPointedType->getDecoratedName()+'*'; }
-    virtual string          getQualifiedDecoratedName() const { return m_pPointedType->getQualifiedDecoratedName()+'*'; }
+    virtual string     getDecoratedName() const { return m_pPointedType->getDecoratedName()+'*'; }
+    virtual string     getQualifiedDecoratedName() const { return m_pPointedType->getQualifiedDecoratedName()+'*'; }
+
+    virtual bool       referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
+
+    virtual void       fetchReferencedData(const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask) const;
+    virtual bool       isCopyable() const { return true; }
 
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);

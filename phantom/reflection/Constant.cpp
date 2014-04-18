@@ -35,9 +35,9 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/Constant.h>
 #include <phantom/reflection/Constant.hxx>
+#include "CastExpression.h"
 /* *********************************************** */
 o_registerN((phantom, reflection), Constant);
-
 
 o_namespace_begin(phantom, reflection) 
 

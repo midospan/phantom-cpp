@@ -23,7 +23,7 @@ struct o_export dynamic_new_helper
     template<typename t_Ty>
     o_forceinline t_Ty*    operator>>(t_Ty* instance)
     {
-        m_pType->install(instance);
+        m_pType->install(instance, 0);
         m_pType->initialize(instance);
         return instance;
     }
@@ -153,7 +153,7 @@ struct o_export new_helper
     template<typename t_Ty>
     o_forceinline t_Ty*    operator>>(t_Ty* instance)
     {
-        phantom::extension::installer<t_Ty>::install(instance);
+        phantom::extension::installer<t_Ty>::install(instance, 0);
         phantom::extension::initializer<t_Ty>::initialize(instance);
         return instance;
     }
@@ -173,7 +173,7 @@ struct o_export new_n_helper
         while(count--)
         {
             phantom::extension::constructor<t_Ty>::construct(pChunk);
-            phantom::extension::installer<t_Ty>::install(pChunk);
+            phantom::extension::installer<t_Ty>::install(pChunk, 0);
             phantom::extension::initializer<t_Ty>::initialize(pChunk);
             ++pChunk;
         }
@@ -219,7 +219,7 @@ struct delete_helper
     o_forceinline void    operator>>(_Tyy* instance)
     {
         phantom::extension::initializer<t_Ty>::terminate(static_cast<t_Ty*>(instance));
-        phantom::extension::installer<t_Ty>::uninstall(static_cast<t_Ty*>(instance));
+        phantom::extension::installer<t_Ty>::uninstall(static_cast<t_Ty*>(instance), 0);
         phantom::extension::constructor<t_Ty>::destroy(static_cast<t_Ty*>(instance));
         phantom::extension::allocator<t_Ty>::deallocate(static_cast<t_Ty*>(instance) o_memory_stat_append_parameters_use);
     }
@@ -250,7 +250,7 @@ public:
         while(i--)
         {
             phantom::extension::initializer<t_Ty>::terminate(pChunk);
-            phantom::extension::installer<t_Ty>::uninstall(pChunk);
+            phantom::extension::installer<t_Ty>::uninstall(pChunk, 0);
             phantom::extension::constructor<t_Ty>::destroy(pChunk);
             ++pChunk;
         }
@@ -293,7 +293,7 @@ struct proxy_new_helper
     template<typename t_Ty>
     o_forceinline t_Ty*    operator>>(t_Ty* instance)
     {
-        m_pType->install(instance);
+        m_pType->install(instance, 0);
         m_pType->initialize(instance);
         return instance;
     }
@@ -319,7 +319,7 @@ struct proxy_delete_helper
     {
         ((t_Ty*)instance)->~t_Ty();
         m_pType->terminate(instance);
-        m_pType->uninstall(instance);
+        m_pType->uninstall(instance, 0);
         o__t1_class__default_class_allocator(t_Ty)::deallocate(((t_Ty*)instance));
     }
 #if o__bool__enable_allocation_statistics

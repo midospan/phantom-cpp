@@ -61,6 +61,9 @@ public:
     void                copyValue(void* dest, void const* src) const;
     size_t              getOffset() const { return m_uiOffset; }
 
+    void                compileSetFunction(JitInstanceMemberFunction* a_pMemberFunction, bool a_bReturnIfEquals = false);
+    void                compileGetFunction(JitInstanceMemberFunction* a_pMemberFunction);
+
 protected:
     void                setOffset(size_t a_uiOffset) { m_uiOffset = a_uiOffset; }
 

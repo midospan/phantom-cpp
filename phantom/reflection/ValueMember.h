@@ -48,7 +48,7 @@ class o_export ValueMember : public LanguageElement
 {
 
 public:
-    ValueMember(const string& a_strName, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers = 0);
+    ValueMember(const string& a_strName, Type* a_pValueType, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers = 0);
     o_destructor ~ValueMember(void) {}
 
     virtual ValueMember*    asValueMember() const { return (ValueMember*)this; }
@@ -72,11 +72,7 @@ public:
     virtual void            deserializeValue(void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
     virtual void            deserializeValue(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
 
-    virtual    Type*        getValueType() const = 0;
-
-    inline SubValueMember*  getSubValueMember(uint i) const { return m_SubValueMembers[i]; }
-    SubValueMember*         getSubValueMember(const string& a_strName) const;
-    inline size_t           getSubValueMemberCount() const { return m_SubValueMembers.size(); }
+    Type*                   getValueType() const { return m_pValueType; }
 
     inline uint             getSerializationMask() const { return m_uiSerializationMask; }
                             
@@ -88,19 +84,26 @@ public:
         getValueType()->deleteInstance(sourceBuffer);
     }
 
-    virtual Class*           getSortingCategoryClass() const;
-
-    inline ClassType*        getOwnerClassType() const { return m_pOwner->asClassType(); } 
+    inline ClassType*       getOwnerClassType() const { return m_pOwner->asClassType(); } 
     inline Class*           getOwnerClass() const { return m_pOwner->asClass(); }                  
 
-    o_forceinline boolean    isSaved(uint a_uiSerializationFlag) const { return NOT(((m_Modifiers & o_transient) == o_transient)) AND ((m_uiSerializationMask & a_uiSerializationFlag) == a_uiSerializationFlag); }
-    o_forceinline boolean    isReset() const { return ((m_Modifiers & o_reset) == o_reset); }
-    o_forceinline boolean    isTransient() const { return ((m_Modifiers & o_transient) == o_transient); }
+    o_forceinline boolean   isSaved(uint a_uiSerializationFlag) const { return NOT(((m_Modifiers & o_transient) == o_transient)) AND ((m_uiSerializationMask & a_uiSerializationFlag) == a_uiSerializationFlag); }
+    o_forceinline boolean   isReset() const { return ((m_Modifiers & o_reset) == o_reset); }
+    o_forceinline boolean   isTransient() const { return ((m_Modifiers & o_transient) == o_transient); }
 
     virtual void*           getAddress(void const* a_pInstance) const { return NULL; }
 
+    virtual Expression*     createAccessExpression(Expression* a_pLeftExpression) const = 0;
+
+    virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const = 0;
+
+    virtual void            fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const = 0;
+
 protected:
-    phantom::vector<SubValueMember*>    m_SubValueMembers;
+    void                    referencedElementRemoved( LanguageElement* a_pElement );
+
+protected:
+    Type*                               m_pValueType;
     Range*                              m_pRange;
     uint                                m_uiSerializationMask;
     

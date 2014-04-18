@@ -85,8 +85,8 @@ public:
     TemplateSpecialization*             getTemplateSpecialization() const { return m_pTemplateSpecialization; }
     Template*                           getTemplate() const;
 
-    virtual bool                        matches(const char* a_strName, template_specialization const* a_TemplateSpecialization = NULL, bitfield a_Modifiers = 0) const;
-    virtual bool                        matches(template_specialization const* a_pElements) const;
+    virtual bool                        matches(const string& a_strName, const vector<TemplateElement*>* a_TemplateSpecialization = NULL, bitfield a_Modifiers = 0) const;
+    virtual bool                        matches(const vector<TemplateElement*>* a_pElements) const;
 
     o_forceinline void                  setShared()            { m_Modifiers |= o_shared; }
     o_forceinline boolean               isShared() const    { return ((m_Modifiers & o_shared) == o_shared); }
@@ -112,6 +112,7 @@ public:
     virtual DataPointerType*            asDataPointerType() const { return nullptr; }
     virtual Enum*                       asEnum() const { return nullptr; }
     virtual state::Event*               asEvent() const { return nullptr; }
+    virtual Expression*                 asExpression() const { return nullptr; }
     virtual ClassExtension*             asClassExtension() const { return nullptr; }
     virtual PrimitiveType*              asFloatingPointType() const { return nullptr; }
     virtual Function*                   asFunction() const { return nullptr; }
@@ -120,13 +121,17 @@ public:
     virtual InstanceMemberFunction*     asInstanceMemberFunction() const { return nullptr; }
     virtual PrimitiveType*              asIntegralType() const { return nullptr; }
     virtual LocalVariable*              asLocalVariable() const { return nullptr; }
+    virtual MapContainerClass*          asMapContainerClass() const { return nullptr; }
     virtual MemberFunction*             asMemberFunction() const { return nullptr; }
     virtual Namespace*                  asNamespace() const { return nullptr; }
+    virtual NumericConstant*            asNumericConstant() const { return nullptr; }
     virtual Type*                       asPOD() const { return nullptr; }
     virtual PointerType*                asPointerType() const { return nullptr; }
     virtual PrimitiveType*              asPrimitiveType() const { return nullptr; }
     virtual Property*                   asProperty() const { return nullptr; }
     virtual ReferenceType*              asReferenceType() const { return nullptr; }
+    virtual SequentialContainerClass*   asSequentialContainerClass() const { return nullptr; }
+    virtual SetContainerClass*          asSetContainerClass() const { return nullptr; }
     virtual Signal*                     asSignal() const  { return nullptr; }
     virtual PrimitiveType*              asSignalType() const { return nullptr; }
     virtual Signature*                  asSignature() const { return nullptr; }
@@ -145,39 +150,49 @@ public:
     virtual Type*                       asType() const { return nullptr; }
     virtual ValueMember*                asValueMember() const { return nullptr; }
     virtual Variable*                   asVariable() const  { return nullptr; }
+    virtual AddressableVariable*                asAddressableVariable() const  { return nullptr; }
 
-    virtual boolean                     isMemberPointerType() const { return false; }
-    virtual boolean                     isFunctionPointerType() const { return false; }
-    virtual boolean                     isDataMemberPointerType() const { return false; }
-    virtual boolean                     isMemberFunctionPointerType() const { return false; }
-    virtual boolean                     isTemplateInstance() const { return m_pTemplateSpecialization != NULL; }
-    virtual boolean                     isPOD() const { return false; }
-    o_forceinline boolean               isStatic() const  { return ((m_Modifiers & o_static) == o_static); }
-    o_forceinline boolean               isProtected() const { return ((m_Modifiers & o_protected) == o_protected) ; }
-    o_forceinline boolean               isPrivate() const { return (m_Modifiers & (o_protected|o_public)) == 0; }
-    o_forceinline boolean               isPublic() const { return ((m_Modifiers & o_public) == o_public); }
-    o_forceinline boolean               isUnionAlternative() const { return ((m_Modifiers & o_union_alternative) == o_union_alternative) ; }
-    o_forceinline boolean               isComponent() const { return ((m_Modifiers & o_component) == o_component) ; }
-    o_forceinline boolean               isOwner() const { return ((m_Modifiers & o_owner) == o_owner) ; }
-    o_forceinline boolean               isAbstract() const { return ((m_Modifiers & o_abstract) == o_abstract); }
-    o_forceinline boolean               isSingleton() const { return ((m_Modifiers & o_singleton) == o_singleton); }    
-    o_forceinline boolean               isVirtual() const { return ((m_Modifiers & o_virtual) == o_virtual); }
-    o_forceinline boolean               isConst() const { return ((m_Modifiers & o_const) == o_const); }
+    virtual bool                        isMemberPointerType() const { return false; }
+    virtual bool                        isFunctionPointerType() const { return false; }
+    virtual bool                        isDataMemberPointerType() const { return false; }
+    virtual bool                        isMemberFunctionPointerType() const { return false; }
+    virtual bool                        isTemplateInstance() const { return m_pTemplateSpecialization != NULL; }
+    virtual bool                        isPOD() const { return false; }
+    o_forceinline bool                  isStatic() const  { return ((m_Modifiers & o_static) == o_static); }
+    o_forceinline bool                  isProtected() const { return ((m_Modifiers & o_protected) == o_protected) ; }
+    o_forceinline bool                  isPrivate() const { return (m_Modifiers & (o_protected|o_public)) == 0; }
+    o_forceinline bool                  isPublic() const { return ((m_Modifiers & o_public) == o_public); }
+    o_forceinline bool                  isUnionAlternative() const { return ((m_Modifiers & o_union_alternative) == o_union_alternative) ; }
+    o_forceinline bool                  isComponent() const { return ((m_Modifiers & o_component) == o_component) ; }
+    o_forceinline bool                  isOwner() const { return ((m_Modifiers & o_owner) == o_owner) ; }
+    o_forceinline bool                  isAbstract() const { return ((m_Modifiers & o_abstract) == o_abstract); }
+    o_forceinline bool                  isSingleton() const { return ((m_Modifiers & o_singleton) == o_singleton); }    
+    o_forceinline bool                  isVirtual() const { return ((m_Modifiers & o_virtual) == o_virtual); }
+    o_forceinline bool                  isConst() const { return ((m_Modifiers & o_const) == o_const); }
 
     virtual boolean                     isNative() const { return false ; }
     virtual boolean                     isRuntime() const { return false; }
-    
+   
+
     virtual boolean                     isCustom() const { return false; }
 
     o_forceinline LanguageElement*      getOwner() const { return m_pOwner; }
 	
-    virtual Class*                      getSortingCategoryClass() const;
-
-    virtual LanguageElement*            getElement(
-                                            const char* a_strQualifiedName
-                                            , template_specialization const*
-                                            , function_signature const*
+    virtual LanguageElement*            solveElement(
+                                            const string& a_strName
+                                            , const vector<TemplateElement*>*
+                                            , const vector<LanguageElement*>*
                                             , bitfield a_Modifiers = 0) const;
+
+    virtual LanguageElement*            solveBracketOperator(Expression* a_pExpression) const
+    {
+        return nullptr;
+    }
+
+    virtual LanguageElement*            solveParenthesisOperator(const vector<LanguageElement*>& a_Signature) const
+    {
+        return nullptr;
+    }
 
     void getElementsCascade(vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
     void getElements(vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
@@ -207,7 +222,7 @@ public:
 
     const string&   getMetaDataValue(size_t index) const;
 
-    virtual void    teardownMetaDataCascade(size_t count);
+    void            teardownMetaDataCascade(size_t count);
 
     LanguageElement*getElement(size_t a_uiIndex) const 
     { 
@@ -229,6 +244,7 @@ public:
 
 protected:
     void setGuid(uint a_uiGuid);
+    void setName(const string& a_strName) { m_strName = a_strName; }
     
 protected:
     void setModule(Module* a_pModule);

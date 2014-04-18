@@ -43,23 +43,18 @@ o_namespace_begin(phantom, reflection)
 Class* const StaticDataMember::metaType = o_type_of(phantom::reflection::StaticDataMember);
 
 StaticDataMember::StaticDataMember( const string& a_strName, Type* a_pContentType, void* a_pStaticDataMemberAddress, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) 
-: StaticVariable(a_strName, a_pContentType, a_pStaticDataMemberAddress, a_pRange, a_Modifiers)
+    : StaticVariable( a_pStaticDataMemberAddress, a_pContentType, a_strName, a_pRange, a_Modifiers)
 {
 }
 
 void StaticDataMember::getValue( void const* a_pObject, void* dest ) const
 {
-    m_pContentType->copy(dest, m_pAddress);
+    m_pValueType->copy(dest, m_pAddress);
 }
 
 void StaticDataMember::setValue( void* a_pObject, void const* src ) const
 {
-    m_pContentType->copy(m_pAddress, src);
-}
-
-Class* StaticDataMember::getSortingCategoryClass() const
-{
-    return classOf<StaticDataMember>();
+    m_pValueType->copy(m_pAddress, src);
 }
 
 o_namespace_end(phantom, reflection)

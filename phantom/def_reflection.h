@@ -16,6 +16,34 @@ private:\
 #define o_define_meta_type(_type_)\
     native::TType<_type_>* _type_::metaType
 
+enum ETypeId
+{
+    e_void,
+    e_char,
+    e_unsigned_char,
+    e_signed_char,
+    e_short,
+    e_unsigned_short,
+    e_int,
+    e_unsigned_int,
+    e_long,
+    e_unsigned_long,
+    e_long_long,
+    e_unsigned_long_long,
+    e_float,
+    e_double,
+    e_long_double,
+    e_bool,
+    e_wchar_t,
+    e_enum,
+    e_signal_t,
+    e_pointer,
+    e_reference,
+    e_array,
+    e_struct,
+    e_other,
+};
+
 struct o_export Types
 {
 private:
@@ -141,11 +169,6 @@ struct meta_class_type_of;
 
 
 namespace native { template<typename t_Ty> class TType; }
-
-
-typedef vector<Type*>               function_signature;
-typedef vector<TemplateElement*>    template_specialization;
-
 
 template<typename t_Ty>
 struct template_specialization_registrer
@@ -463,7 +486,7 @@ struct custom_setup
                             o_assert((boost::is_same<meta_type, o_NESTED_TYPE meta_class_type_of<Class>::type>::value));
                             meta_type::metaType = (decltype(meta_type::metaType))(s_pType); /// meta meta type (the meta type of the meta type of 'Class' is the meta type of class itself)
                         }
-                        meta_type::metaType->install(s_pType);
+                        meta_type::metaType->install(s_pType, 0);
                         meta_type::metaType->initialize(s_pType);
                         *built = s_pType;
                         return true;
@@ -496,7 +519,7 @@ struct custom_setup
         template<typename t_Ty, int t_counter>
         struct type_of_counter
         {
-            typedef o_NESTED_TYPE phantom::reflection::default_meta_class_type_of<t_Ty>::type meta_type;
+            typedef o_NESTED_TYPE phantom::reflection::base_meta_class_type_of<t_Ty>::type meta_type;
             static meta_type* object()
             {
                 const string& qualifiedDecoratedName = type_name_of_counter<t_Ty, t_counter, t_counter>::qualifiedDecoratedName();
@@ -509,7 +532,7 @@ struct custom_setup
         template<typename t_Ty, int t_counter>
         struct type_of_counter<t_Ty*, t_counter>
         {
-            typedef o_NESTED_TYPE phantom::reflection::default_meta_class_type_of<t_Ty*>::type meta_type;
+            typedef o_NESTED_TYPE phantom::reflection::base_meta_class_type_of<t_Ty*>::type meta_type;
             static DataPointerType* object()
             {
                 return type_of_counter<t_Ty, t_counter>::object()->pointerType();
@@ -654,11 +677,11 @@ struct custom_setup
 
 
         template<typename t_Ty, int t_id>
-        struct default_meta_class_type_of_helper;
+        struct base_meta_class_type_of_helper;
 
 #define x_specialize____meta_type_super_class_solver(_meta_type_id_,...)\
     template<typename t_Ty>\
-        struct default_meta_class_type_of_helper<t_Ty, _meta_type_id_>\
+        struct base_meta_class_type_of_helper<t_Ty, _meta_type_id_>\
         {\
         typedef __VA_ARGS__ type;\
         };
@@ -702,13 +725,13 @@ struct custom_setup
             x_specialize____meta_type_super_class_solver(meta_attribute_pointer_type,phantom::reflection::Type)
             x_specialize____meta_type_super_class_solver(meta_member_function_pointer_type,phantom::reflection::Type)
             x_specialize____meta_type_super_class_solver(meta_reference_type,phantom::reflection::ReferenceType)
-            x_specialize____meta_type_super_class_solver(meta_fundamental_type,phantom::reflection::PrimitiveType)
-            x_specialize____meta_type_super_class_solver(meta_arithmetic_type,phantom::reflection::PrimitiveType)
-            x_specialize____meta_type_super_class_solver(meta_floating_point_type,phantom::reflection::PrimitiveType)
-            x_specialize____meta_type_super_class_solver(meta_integral_type,phantom::reflection::PrimitiveType)
+            x_specialize____meta_type_super_class_solver(meta_fundamental_type,phantom::reflection::native::TPrimitiveType<t_Ty>)
+            x_specialize____meta_type_super_class_solver(meta_arithmetic_type,phantom::reflection::native::TPrimitiveType<t_Ty>)
+            x_specialize____meta_type_super_class_solver(meta_floating_point_type,phantom::reflection::native::TPrimitiveType<t_Ty>)
+            x_specialize____meta_type_super_class_solver(meta_integral_type,phantom::reflection::native::TPrimitiveType<t_Ty>)
             x_specialize____meta_type_super_class_solver(meta_pod_struct,phantom::reflection::PODStruct)
             x_specialize____meta_type_super_class_solver(meta_class,phantom::reflection::Class)
-            x_specialize____meta_type_super_class_solver(meta_special,phantom::reflection::PrimitiveType)
+            x_specialize____meta_type_super_class_solver(meta_special,phantom::reflection::native::TPrimitiveType<t_Ty>)
             x_specialize____meta_type_super_class_solver(meta_enum,phantom::reflection::Enum)
             x_specialize____meta_type_super_class_solver(meta_todo,phantom::reflection::Type)
             x_specialize____meta_type_super_class_solver(meta_array,phantom::reflection::ArrayType)
@@ -725,8 +748,8 @@ struct custom_setup
     };
 
     template<typename t_Ty>
-    struct default_meta_class_type_of 
-        : public detail::default_meta_class_type_of_helper<t_Ty, detail::meta_class_type_id_of<t_Ty>::value>
+    struct base_meta_class_type_of 
+        : public detail::base_meta_class_type_of_helper<t_Ty, detail::meta_class_type_id_of<t_Ty>::value>
     {
     };
 
@@ -895,7 +918,7 @@ struct super_class_adder
     reflection::TemplateElement* \
     reflection::detail::template_signature_parameter_phantom::_type_<value>::element()\
     {\
-        return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TConstant<_type_>)("",value);\
+        return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<_type_>)("",value);\
     }
 
 #define o_define_template_signature_parameter_phantom(_type_) \
@@ -943,7 +966,7 @@ struct template_signature_parameter_phantom
     reflection::TemplateElement* \
     reflection::detail::template_signature_parameter_##_type_<value>::element()\
     {\
-        return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TConstant<_type_>)("",value);\
+        return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<_type_>)("",value);\
     }
 
 #define o_define_template_signature_parameter(_type_) \
@@ -1056,7 +1079,7 @@ class template_signature_parameter_class : public template_signature_parameter_t
     reflection::TemplateElement* \
     reflection::detail::template_signature_parameter_counter_phantom::_type_<value, t_counter>::object()\
 {\
-    return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TConstant<_type_>)(value);\
+    return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<_type_>)(value);\
 }
 
 #define o_define_template_signature_parameter_counter_phantom(_type_) \
@@ -1128,7 +1151,7 @@ struct template_signature_parameter_counter_phantom
     reflection::TemplateElement* \
     reflection::detail::template_signature_parameter_counter_##_type_<value, t_counter>::object()\
 {\
-    return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TConstant<_type_>)("",value);\
+    return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<_type_>)("",value);\
     }
 
 #define o_define_template_signature_parameter_counter(_type_) \
@@ -1747,6 +1770,41 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
         } \
         static const char*  classScopeName()         {             return "";        }
 
+
+#define o_reflection_specialize_type_name_static_member_counter_functionsNPT(_namespaces_, _template_types_, _template_params_, _template_spec_, _name_, _counter_) \
+    static const char* name() { return o_PP_QUOTE(_name_); } \
+    static const phantom::string&    decoratedName() \
+        { \
+        static phantom::string n;\
+        if(n.empty())\
+            {\
+            n = o_PP_QUOTE(_name_)"<";\
+            n += o_reflection_create_template_parameters_list_string_counter_NP(_template_types_,_template_params_,_template_spec_,decoratedName, _counter_); \
+            n += '>';\
+            }\
+            return n;\
+        } \
+        static const phantom::string&    qualifiedDecoratedName() \
+        { \
+        static phantom::string n;\
+        if(n.empty())\
+            {\
+            n = o_PP_QUOTE_SCOPE(_namespaces_)  "::"o_PP_QUOTE(_name_)"<";\
+            n += o_reflection_create_template_parameters_list_string_counter_N(_template_types_,_template_params_,qualifiedDecoratedName, _counter_); \
+            n += '>';\
+            }\
+            return n;\
+        } \
+        static const char*    qualifiedName() \
+        { \
+        return o_PP_QUOTE_SCOPE(_namespaces_) "::"o_PP_QUOTE(_name_); \
+        } \
+        static const char* namespaceName() \
+        { \
+        return o_PP_QUOTE_SCOPE(_namespaces_) ;\
+        } \
+        static const char*  classScopeName()         {             return "";        }
+
 #define o_reflection_specialize_type_name_static_member_counter_functionsT(_template_types_, _template_params_, _name_, _counter_) \
     static const char* name() { return o_PP_QUOTE(_name_); } \
     static const phantom::string&    decoratedName() \
@@ -2049,6 +2107,16 @@ class type_name_of_counter<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)< o_PP
     };\
     o_namespace_end(phantom, reflection, detail)
 
+#define o_reflection_specialize_type_name_of_implNPT(_namespaces_, _template_types_, _template_params_, _template_spec_, _name_) \
+    o_namespace_begin(phantom, reflection, detail) \
+    template<o_PP_MIX(_template_types_, _template_params_), int t_init_counter, int t_counter> \
+class type_name_of_counter<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)< o_PP_IDENTITY _template_params_, o_PP_IDENTITY _template_spec_ >, t_init_counter, t_counter> \
+    { \
+    public: \
+    o_reflection_specialize_type_name_static_member_counter_functionsNPT(_namespaces_, _template_types_, _template_params_, _template_spec_, _name_, o_read_compilation_counter) \
+    };\
+    o_namespace_end(phantom, reflection, detail)
+
 #define o_reflection_specialize_type_name_of_implCT(_classes_, _template_types_, _template_params_, _name_) \
     o_namespace_begin(phantom, reflection, detail) \
     template<o_PP_MIX(_template_types_, _template_params_), int t_init_counter, int t_counter> \
@@ -2187,7 +2255,7 @@ class o_PP_CAT(parameter,__LINE__) \
         friend class enclosed_reflection;\
         o_PP_CAT(parameter,__LINE__)() \
             {\
-            phantom::reflection::Types::currentInstalledTemplateSpecialization->setDefaultArgument(#parameter, o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TConstant<decltype(parameter)>)(parameter));\
+            phantom::reflection::Types::currentInstalledTemplateSpecialization->setDefaultArgument(#parameter, o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<decltype(parameter)>)(parameter));\
             }\
         } o_PP_CAT(parameter,__LINE__);
 
@@ -2207,7 +2275,7 @@ class o_PP_CAT(parameter,__LINE__) \
     o_data_member_5(_type_, _name_, _range_, 0, 0xffffffff)
 
 #    define o_data_member_4(_type_, _name_, _range_, _modifiers_) \
-    o_data_member_5(_type_, _name_, _range_, _modifiers_, 0xffffffff)
+    o_data_member_5(_type_, _name_, _range_, _modifiers_, (((_modifiers_&o_transient)==0)?0xffffffff:0))
 
 #define o_property_4(_type_, _name_, _set_member_function_, _get_member_function_)\
     o_property_8(_type_, _name_, _set_member_function_, _get_member_function_, m_PHANTOM_RESERVED_no_signal, (phantom::reflection::native::null_range), 0, 0xffffffff)
@@ -2219,7 +2287,7 @@ class o_PP_CAT(parameter,__LINE__) \
     o_property_8(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _range_, 0, 0xffffffff)
 
 #define o_property_7(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _range_, _modifiers_)\
-    o_property_8(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _range_, _modifiers_, 0xffffffff)
+    o_property_8(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _range_, _modifiers_, (((_modifiers_&o_transient)==0)?0xffffffff:0))
 
 #define o_collection_8(_type_, _name_, _add_member_function_, _remove_member_function_, _move_member_function_, _set_member_function_, _get_member_function_, _size_member_function_)\
     o_collection_9(_type_, _name_, _add_member_function_, _remove_member_function_, _move_member_function_, _set_member_function_, _get_member_function_, _size_member_function_, 0)
@@ -2508,7 +2576,7 @@ struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnTyp
 #define o_enum_add_values( ... ) o_PP_CAT(o_enum_add_values_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
 #endif
 
-#define o_enum_add_values_1( v0) pEnum->addConstant(o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TConstant<enum_value_type>)(o_PP_QUOTE(v0), v0));
+#define o_enum_add_values_1( v0) pEnum->addConstant(o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<enum_value_type>)(o_PP_QUOTE(v0), v0));
 #define o_enum_add_values_2( v0,v1) o_enum_add_values_1( v0) o_enum_add_values_1(v1)
 #define o_enum_add_values_3( v0,v1,v2)  o_enum_add_values_2( v0,v1) o_enum_add_values_1(v2)
 #define o_enum_add_values_4( v0,v1,v2,v3) o_enum_add_values_3( v0,v1,v2) o_enum_add_values_1(v3)
@@ -2528,14 +2596,35 @@ struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnTyp
 #define o_enum_add_values_18(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17) o_enum_add_values_17(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16) o_enum_add_values_1(v17)
 #define o_enum_add_values_19(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18) o_enum_add_values_18(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17)  o_enum_add_values_1(v18)
 #define o_enum_add_values_20(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19) o_enum_add_values_19(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18)  o_enum_add_values_1(v19)
-
-#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
+#define o_enum_add_values_21(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20) o_enum_add_values_20(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19)  o_enum_add_values_1(v20)
+#define o_enum_add_values_22(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21) o_enum_add_values_21(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20)  o_enum_add_values_1(v21)
+#define o_enum_add_values_23(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22) o_enum_add_values_22(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21)  o_enum_add_values_1(v22)
+#define o_enum_add_values_24(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23) o_enum_add_values_23(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22)  o_enum_add_values_1(v23)
+#define o_enum_add_values_25(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24) o_enum_add_values_24(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23)  o_enum_add_values_1(v24)
+#define o_enum_add_values_26(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25) o_enum_add_values_25(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24)  o_enum_add_values_1(v25)
+#define o_enum_add_values_27(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26) o_enum_add_values_26(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25)  o_enum_add_values_1(v26)
+#define o_enum_add_values_28(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27) o_enum_add_values_27(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26)  o_enum_add_values_1(v27)
+#define o_enum_add_values_29(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28) o_enum_add_values_28(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27)  o_enum_add_values_1(v28)
+#define o_enum_add_values_30(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29) o_enum_add_values_29(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28)  o_enum_add_values_1(v29)
+#define o_enum_add_values_31(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30) o_enum_add_values_30(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29)  o_enum_add_values_1(v30)
+#define o_enum_add_values_32(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31) o_enum_add_values_31(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30)  o_enum_add_values_1(v31)
+#define o_enum_add_values_33(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32) o_enum_add_values_32(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31)  o_enum_add_values_1(v32)
+#define o_enum_add_values_34(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33) o_enum_add_values_33(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32)  o_enum_add_values_1(v33)
+#define o_enum_add_values_35(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34) o_enum_add_values_34(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33)  o_enum_add_values_1(v34)
+#define o_enum_add_values_36(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35) o_enum_add_values_35(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34)  o_enum_add_values_1(v35)
+#define o_enum_add_values_37(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36) o_enum_add_values_36(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35)  o_enum_add_values_1(v36)
+#define o_enum_add_values_38(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37) o_enum_add_values_37(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36)  o_enum_add_values_1(v37)
+#define o_enum_add_values_39(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38) o_enum_add_values_38(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37)  o_enum_add_values_1(v38)
+#define o_enum_add_values_40(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39) o_enum_add_values_39(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38)  o_enum_add_values_1(v39)
+                                                                                                                                                                      
+                                                                                                                                                                      
+#if o_COMPILER == o_COMPILER_VISUAL_STUDIO                                                                                                                            
 #define o_enum_add_valuesN( ... ) o_PP_CAT(o_PP_CAT(o_enum_add_valuesN_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__) )
 #else
 #define o_enum_add_valuesN( ... ) o_PP_CAT(o_enum_add_valuesN_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #endif
 
-#define o_enum_add_valuesN_2( n, v0) pEnum->addConstant(o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TConstant<enum_value_type>)(o_PP_QUOTE(v0), ::o_PP_CREATE_SCOPE n::v0));
+#define o_enum_add_valuesN_2( n, v0) pEnum->addConstant(o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<enum_value_type>)(o_PP_QUOTE(v0), ::o_PP_CREATE_SCOPE n::v0));
 #define o_enum_add_valuesN_3( n, v0,v1) o_enum_add_valuesN_2(n, v0) o_enum_add_valuesN_2(n,v1)
 #define o_enum_add_valuesN_4( n, v0,v1,v2)  o_enum_add_valuesN_3(n, v0,v1) o_enum_add_valuesN_2(n,v2)
 #define o_enum_add_valuesN_5( n, v0,v1,v2,v3) o_enum_add_valuesN_4(n, v0,v1,v2) o_enum_add_valuesN_2(n,v3)
@@ -2559,6 +2648,21 @@ struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnTyp
 #define o_enum_add_valuesN_23(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21) o_enum_add_valuesN_22(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20)  o_enum_add_valuesN_2(n,v21)
 #define o_enum_add_valuesN_24(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22) o_enum_add_valuesN_23(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21)  o_enum_add_valuesN_2(n,v22)
 #define o_enum_add_valuesN_25(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23) o_enum_add_valuesN_24(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22)  o_enum_add_valuesN_2(n,v23)
+#define o_enum_add_valuesN_26(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25) o_enum_add_valuesN_25(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24)  o_enum_add_valuesN_2(n, v25)
+#define o_enum_add_valuesN_27(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26) o_enum_add_valuesN_26(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25)  o_enum_add_valuesN_2(n, v26)
+#define o_enum_add_valuesN_28(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27) o_enum_add_valuesN_27(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26)  o_enum_add_valuesN_2(n, v27)
+#define o_enum_add_valuesN_29(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28) o_enum_add_valuesN_28(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27)  o_enum_add_valuesN_2(n, v28)
+#define o_enum_add_valuesN_30(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29) o_enum_add_valuesN_29(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28)  o_enum_add_valuesN_2(n, v29)
+#define o_enum_add_valuesN_31(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30) o_enum_add_valuesN_30(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29)  o_enum_add_valuesN_2(n, v30)
+#define o_enum_add_valuesN_32(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31) o_enum_add_valuesN_31(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30)  o_enum_add_valuesN_2(n, v31)
+#define o_enum_add_valuesN_33(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32) o_enum_add_valuesN_32(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31)  o_enum_add_valuesN_2(n, v32)
+#define o_enum_add_valuesN_34(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33) o_enum_add_valuesN_33(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32)  o_enum_add_valuesN_2(n, v33)
+#define o_enum_add_valuesN_35(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34) o_enum_add_valuesN_34(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33)  o_enum_add_valuesN_2(n, v34)
+#define o_enum_add_valuesN_36(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35) o_enum_add_valuesN_35(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34)  o_enum_add_valuesN_2(n, v35)
+#define o_enum_add_valuesN_37(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36) o_enum_add_valuesN_36(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35)  o_enum_add_valuesN_2(n, v36)
+#define o_enum_add_valuesN_38(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37) o_enum_add_valuesN_37(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36)  o_enum_add_valuesN_2(n, v37)
+#define o_enum_add_valuesN_39(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38) o_enum_add_valuesN_38(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37)  o_enum_add_valuesN_2(n, v38)
+#define o_enum_add_valuesN_40(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39) o_enum_add_valuesN_39(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38)  o_enum_add_valuesN_2(n, v39)
 
 
 

@@ -39,26 +39,24 @@
 o_registerN((phantom, reflection), ValueMember);
 o_namespace_begin(phantom, reflection) 
 
-ValueMember::ValueMember( const string& a_strName, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ ) 
+ValueMember::ValueMember( const string& a_strName, Type* a_pValueType, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ ) 
 : LanguageElement(a_strName, a_Modifiers)
+, m_pValueType(a_pValueType)
 , m_uiSerializationMask(a_uiSerializationMask)
 , m_pRange(a_pRange)
 {
+    addReferencedElement(m_pValueType);
+    o_assert(!a_Modifiers.matchesMask(o_transient) OR m_uiSerializationMask == 0);
     if(a_pRange)
     {
         addElement(a_pRange);
     }
 }
 
-SubValueMember* ValueMember::getSubValueMember( const string& a_strName ) const
+void ValueMember::referencedElementRemoved( LanguageElement* a_pElement )
 {
-    phantom::vector<SubValueMember*>::const_iterator it = m_SubValueMembers.begin();
-    for(;it != m_SubValueMembers.end();++it)
-    {
-        if((*it)->getName() == a_strName)
-            return (*it);
-    }
-    return NULL;
+    if(m_pValueType == a_pElement)
+        m_pValueType = nullptr;
 }
 
 
@@ -184,11 +182,6 @@ void ValueMember::deserializeValue( void* a_pChunk, size_t a_uiCount, size_t a_u
         deserializeValue(pChunk, a_InBranch, a_uiSerializationMask, a_pDataBase);
         pChunk += a_uiChunkSectionSize;
     }
-}
-
-Class* ValueMember::getSortingCategoryClass() const
-{
-    return classOf<ValueMember>();
 }
 
 o_namespace_end(phantom, reflection)

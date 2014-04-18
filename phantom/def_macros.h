@@ -1201,6 +1201,10 @@ struct o_PP_CAT(static_warning,__LINE__) { \
 #    define o_exception_2(_exception_class_, _what_) o_error( false, phantom::to_astring(#_exception_class_) + phantom::to_astring(" : ") + phantom::to_astring(_exception_class_(phantom::to_string(_what_).c_str()).what()) )
 #endif
 
+#define o_message(type, ...) // TODO : define
+#define o_push_message(type, ...) 
+#define o_pop_message(type, ...) 
+
 #if (defined(_DEBUG) || defined(DEBUG))
 
 #   define o_warning_1(_Expression)    \

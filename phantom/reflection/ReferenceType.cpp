@@ -42,7 +42,7 @@ o_namespace_begin(phantom, reflection)
 
 o_define_meta_type(ReferenceType);
 
-ReferenceType::ReferenceType( Type* a_pType ) : Type(a_pType->getName()+'&'
+ReferenceType::ReferenceType( Type* a_pType ) : Type(e_reference, a_pType->getName()+'&'
 , sizeof(void*)
 , boost::alignment_of<void*>::value
 , 0xFFFFFFFF

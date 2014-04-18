@@ -1,5 +1,7 @@
-#ifndef scalar_funcs_h__
-#define scalar_funcs_h__
+#ifndef o_math_scalar_funcs_h__
+#define o_math_scalar_funcs_h__
+
+#include "phantom/phantom.h"
 
 o_namespace_begin(phantom, math)
 
@@ -99,6 +101,11 @@ o_forceinline float invSqrt(float x)
     return x;
 }
 
+o_forceinline double invSqrt(double x)
+{
+    return 1.0/math::sqrt(x);
+}
+
 template <typename t_Ty>
 inline t_Ty    epsilon();
 
@@ -115,7 +122,7 @@ inline double    epsilon<double>()
 }
 
 template <typename t_Ty>
-bool            equalsEpsilon(t_Ty a, t_Ty b, t_Ty tolerance = epsilon<t_Ty>())
+bool            equals(t_Ty a, t_Ty b, t_Ty tolerance = epsilon<t_Ty>())
 {
     return (abs(b-a) <= tolerance);
 }

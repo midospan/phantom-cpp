@@ -50,7 +50,7 @@ class o_export Signature : public LanguageElement
 public:
     static Signature* Create( void );
     static Signature* Create( const char* a_pText, TemplateSpecialization* a_pTemplateSpecialization, LanguageElement* a_pScope );
-
+    
     enum EState
     {
         eState_Virgin = 0,
@@ -106,19 +106,19 @@ public:
     virtual string  getDecoratedName() const;
     virtual string  getQualifiedDecoratedName() const;
 
-    boolean         matches(function_signature const* a_FunctionSignature) const;
-    boolean         compareParameterList( Signature* a_pOther ) const { return matches(&a_pOther->m_ParametersTypes); }
+    bool            matches(const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes = nullptr) const;
+    bool            compareParameterList( Signature* a_pOther ) const { return matches(a_pOther->m_ParametersTypes); }
     
 protected:
-    static boolean  SeparateParameterTypes(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, function_signature& a_OutParameterTypes, LanguageElement* a_pScope);
-    static boolean  ParseParameterTypeList(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, function_signature& a_OutParameterTypes, LanguageElement* a_pScope);
+    static boolean  SeparateParameterTypes(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<Type*>& a_OutParameterTypes, LanguageElement* a_pScope);
+    static boolean  ParseParameterTypeList(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<Type*>& a_OutParameterTypes, LanguageElement* a_pScope);
 
     void updateName();
     void referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
     Type*               m_pReturnType;
-    function_signature  m_ParametersTypes;
+    vector<Type*>       m_ParametersTypes;
     size_t              m_uiArgumentStorageSize;
 };
 

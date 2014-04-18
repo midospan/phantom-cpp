@@ -26,8 +26,18 @@ public:
 
     }
 
-    virtual void append(void* a_pContainer, void const* a_pValue) const = 0;
+    virtual SequentialContainerClass* asSequentialContainerClass() const { return const_cast<SequentialContainerClass*>(this); }
+/*
 
+    virtual void add(void* a_pContainer, void const* a_pValue) const = 0;
+
+    virtual void insert(void* a_pContainer, size_t a_uiIndex, const void* a_pSrc) const = 0;
+
+    virtual void remove(void* a_pContainer, size_t a_uiIndex) const = 0;
+
+    virtual void get(const void* a_pContainer, size_t a_uiIndex, void* a_pDest) const = 0;
+
+    virtual void set(void* a_pComposition, size_t a_uiIndex, const void* a_pSrc) const = 0;*/
 };
 
 o_namespace_end(phantom, reflection)

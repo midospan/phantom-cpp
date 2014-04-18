@@ -22,9 +22,9 @@ namespace qt {
     {
         connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(currentDataIndexChanged(int)));
 
+        addItem(QIcon("resources/icons/famfamfam/null.png"), "none", 0);
         computeCommonParentNode();
         addNodeDataCascade(m_pParentNode);
-		addItem(QIcon("resources/icons/famfamfam/null.png"), "none", 0);
         
         phantom::data commonData = currentData[0];
         for(size_t i = 1; i<currentData.size(); ++i)

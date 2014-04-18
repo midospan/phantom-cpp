@@ -109,6 +109,7 @@ public:
     void            load();
     void            loadData(const phantom::data& a_Data);
     void            loadDataState(const phantom::data& a_Data, uint a_uiStateId);
+    virtual void    loadTypes() = 0;
     virtual void    loadAttributes() = 0;
     virtual void    loadDataAttributes() = 0;
     void            loadDataAttributes(const phantom::data& a_Data);
@@ -118,6 +119,7 @@ public:
     void            saveData(const phantom::data& a_Data);
     void            saveData();
     void            saveDataState(const phantom::data& a_Data, uint a_uiStateId);
+    virtual void    saveTypes() = 0;
     virtual void    saveDataAttributes() = 0;
     virtual void    saveIndex() = 0;
     virtual void    saveAttributes() = 0;
@@ -232,6 +234,14 @@ public:
     void            addDataComponentsCascade(vector<data_pair>* opt_out_to_add = nullptr, vector<data_pair>* opt_out_to_remove = nullptr);
     void            addDataComponents(vector<std::pair<phantom::data,phantom::data>>* opt_out_to_add = nullptr, vector<std::pair<phantom::data,phantom::data>>* opt_out_to_remove = nullptr);
 
+    reflection::Type* getType(const string& a_strQualifiedDecoratedName) const;
+
+    void            addType(reflection::Type* a_pType);
+
+    void            removeType(reflection::Type* a_pType);
+
+    void            replaceTypes(const map<reflection::Type*, reflection::Type*>& replacedTypes);
+
 protected:
     void            addDataComponents( const phantom::data& a_Data, size_t a_uiCurrentSize, vector<std::pair<phantom::data,phantom::data>>* opt_out_to_add /*= nullptr*/,vector<std::pair<phantom::data,phantom::data>>* opt_out_to_remove /*= nullptr*/);
     void            addDataComponents(const phantom::data& a_Data, vector<std::pair<phantom::data,phantom::data>>* opt_out_to_add = nullptr, vector<std::pair<phantom::data,phantom::data>>* opt_out_to_remove = nullptr);
@@ -293,7 +303,9 @@ protected:
 
 protected:
     typedef vector<phantom::data> data_vector;
+    typedef map<string, reflection::Type*> type_map;
     data_vector             m_Data;
+    type_map                m_Types;
     data_filter_delegate    m_data_filter_delegate;
     uint                    m_Guid;
     node_vector             m_ChildNodes;

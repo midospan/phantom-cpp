@@ -54,18 +54,18 @@ public:
     Enum(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers = 0);
     o_destructor ~Enum();
 
-    inline Constant*    getConstant(size_t i) const  { return m_Constants[i]; }
-    inline size_t       getConstantCount() const     { return m_Constants.size(); }
+    inline NumericConstant* getConstant(size_t i) const  { return m_Constants[i]; }
+    inline size_t           getConstantCount() const     { return m_Constants.size(); }
 
-    Constant*           getConstant(const string& a_strKey) const;
+    NumericConstant*        getConstant(const string& a_strKey) const;
 
-    void                addConstant(Constant* a_pConstant);
-    void                removeConstant(Constant* a_pConstant);
+    void                addConstant(NumericConstant* a_pConstant);
+    void                removeConstant(NumericConstant* a_pConstant);
 
-    virtual LanguageElement* getElement(
-        const char* a_strName
-        , template_specialization const* ts
-        , function_signature const* fs
+    virtual LanguageElement* solveElement(
+        const string& a_strName
+        , const vector<TemplateElement*>* ts
+        , const vector<LanguageElement*>* fs
         , bitfield a_Modifiers = 0) const;
 
     virtual Enum*           asEnum() const { return const_cast<Enum*>(this); }
@@ -78,13 +78,15 @@ public:
     virtual void            valueFromString(const string& a_strIn, void* a_pDest) const;
     virtual void            valueToString(string& a_strOut, const void* a_pSrc) const;
 
+    virtual bool            isCopyable() const { return true; }
+
 protected:
     virtual void            elementAdded(LanguageElement* a_pElement);
     virtual void            elementRemoved(LanguageElement* a_pElement);
 
 protected:
-    typedef phantom::vector<Constant*>     value_vector;
-    value_vector                           m_Constants;
+    typedef phantom::vector<NumericConstant*>   value_vector;
+    value_vector                                m_Constants;
 };
 
 o_namespace_end(phantom, reflection)

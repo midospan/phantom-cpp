@@ -580,10 +580,10 @@ jit_value   JitSubroutine::convert(jit_value value, phantom::reflection::Type* a
     return jit_value(jit_insn_convert((jit_function_t)m_jit_function.function, (jit_value_t)(jit_value_t)value.value, toJitType(a_pDestType), 0), a_pDestType);
 }
 
-jit_value   JitSubroutine::callSubroutine (JitSubroutine* a_pJitSubroutine, jit_value *args, uint a_uiArgCount, int flags) 
+jit_value   JitSubroutine::callSubroutine (Subroutine* a_pSubroutine, jit_value *args, uint a_uiArgCount, int flags) 
 {
-    Subroutine* pCalledSubroutine = a_pJitSubroutine->asSubroutine();
-	Type* pReturnType =  pCalledSubroutine->getSignature()->getReturnType();
+    Subroutine* pCalledSubroutine = a_pSubroutine;
+    Type* pReturnType =  pCalledSubroutine->getSignature()->getReturnType();
 
     jit_value_t * vargs = (jit_value_t*)o_malloc(a_uiArgCount*sizeof(jit_value_t));
     for(uint i = 0; i<a_uiArgCount; ++i)
@@ -734,7 +734,7 @@ int         JitSubroutine::pushPtr (jit_value value, Type* type)
 
 int         JitSubroutine::setParam (jit_value value, int offset) 
 {
-	return jit_insn_set_param((jit_function_t)m_jit_function.function, (jit_value_t)(jit_value_t)value.value, offset);
+    return jit_insn_set_param((jit_function_t)m_jit_function.function, (jit_value_t)(jit_value_t)value.value, offset);
 }
 
 int         JitSubroutine::setParamPtr (jit_value value, Type* type, int offset) 
@@ -774,7 +774,7 @@ int         JitSubroutine::returnPtr (jit_value value, Type* type)
 
 int         JitSubroutine::defaultReturn () 
 {
-	return jit_insn_default_return((jit_function_t)m_jit_function.function);
+    return jit_insn_default_return((jit_function_t)m_jit_function.function);
 }
 
 int         JitSubroutine::throwValue(jit_value value) 
@@ -864,7 +864,7 @@ jit_value   JitSubroutine::alloca BOOST_PREVENT_MACRO_SUBSTITUTION (jit_value si
 
 int         JitSubroutine::moveBlocksToEnd (jit_label from_label, jit_label to_label) 
 {
-	return jit_insn_move_blocks_to_end((jit_function_t)m_jit_function.function, from_label.label, to_label.label);
+    return jit_insn_move_blocks_to_end((jit_function_t)m_jit_function.function, from_label.label, to_label.label);
 }
 
 int         JitSubroutine::moveBlocksToStart (jit_label from_label, jit_label to_label) 
@@ -880,22 +880,22 @@ int         JitSubroutine::markOffset (int offset)
 
 void        JitSubroutine::iterInit (iter_t *iter, jit_block block) 
 {
-	o_assert(false);
+    o_assert(false);
 }
 
 void        JitSubroutine::iterInitLast (iter_t *iter, jit_block block) 
 {
-	o_assert(false);
+    o_assert(false);
 }
 
 jit_insn    JitSubroutine::iterNext (iter_t *iter) 
 {
-	o_assert(false);
+    o_assert(false);
 }
 
 jit_insn    JitSubroutine::iterPrevious (iter_t *iter) 
 {
-	o_assert(false);
+    o_assert(false);
 }*/
 
 

@@ -27,7 +27,7 @@ o_registerNTI((std), map, (phantom::string, phantom::string));
 class Test
 {
 public:
-    Test(): mBool(true) {}
+    Test(): mBool(true), m_pComponentTest(0), m_pOtherTest(nullptr) {}
     const phantom::math::transform2<float>& getTransform() const { return mTransform; }
     void setTransform(const phantom::math::transform2<float>& transform) { mTransform = transform; }
 
@@ -49,6 +49,7 @@ public:
     nested_vectors mNestedVectors;
     phantom::math::transform2<float> mTransform;
     Test* m_pOtherTest;
+    Test* m_pComponentTest;
 };
 
 o_class(Test, o_public)
@@ -57,6 +58,8 @@ o_class(Test, o_public)
     {
         o_typedef(nested_vectors);
         o_typedef(map);
+        o_data_member(Test*, m_pOtherTest, o_no_range, o_public);
+        o_data_member(Test*, m_pComponentTest, o_no_range, o_public|o_component);
         o_data_member(bool, mBool, o_no_range, o_public);
         o_data_member(char, mChar, o_no_range, o_public);
         o_data_member(unsigned char, mUChar, o_no_range, o_public);
@@ -71,7 +74,6 @@ o_class(Test, o_public)
         o_data_member(std::vector<float>, mFloats, o_no_range, o_public);
         o_data_member(map, mStrings, o_no_range, o_public);
         o_data_member(nested_vectors, mNestedVectors, o_no_range, o_public);
-        o_data_member(Test*, m_pOtherTest, o_no_range, o_public);
         o_property(const phantom::math::transform2<float>&, transform, setTransform, getTransform, o_no_signal, o_no_range, o_public);
     };
 };
@@ -186,12 +188,12 @@ qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
     pVLayout1->addWidget(pModuleExplorer);
 /*
 
-    connect(pEditor1, SIGNAL(variableChanged(BufferedVariable*)), pEditor0, SLOT(reedit()));
-    connect(pEditor2, SIGNAL(variableChanged(BufferedVariable*)), pEditor0, SLOT(reedit()));
-    connect(pEditor3, SIGNAL(variableChanged(BufferedVariable*)), pEditor0, SLOT(reedit()));
-    connect(pEditor0, SIGNAL(variableChanged(BufferedVariable*)), pEditor1, SLOT(reedit()));
-    connect(pEditor0, SIGNAL(variableChanged(BufferedVariable*)), pEditor2, SLOT(reedit()));
-    connect(pEditor0, SIGNAL(variableChanged(BufferedVariable*)), pEditor3, SLOT(reedit()));*/
+    connect(pEditor1, SIGNAL(variableChanged(VariableNode*)), pEditor0, SLOT(reedit()));
+    connect(pEditor2, SIGNAL(variableChanged(VariableNode*)), pEditor0, SLOT(reedit()));
+    connect(pEditor3, SIGNAL(variableChanged(VariableNode*)), pEditor0, SLOT(reedit()));
+    connect(pEditor0, SIGNAL(variableChanged(VariableNode*)), pEditor1, SLOT(reedit()));
+    connect(pEditor0, SIGNAL(variableChanged(VariableNode*)), pEditor2, SLOT(reedit()));
+    connect(pEditor0, SIGNAL(variableChanged(VariableNode*)), pEditor3, SLOT(reedit()));*/
 
     QWidget* widget = new QWidget;
     widget->setLayout(pHLayout);

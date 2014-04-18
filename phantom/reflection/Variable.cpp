@@ -45,19 +45,34 @@ Variable::Variable() : m_pRange(nullptr)
 
 }
 
-Variable::Variable( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) : Constant(a_strName, a_Modifiers)
+Variable::Variable( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
+    : Constant(a_strName, a_Modifiers)
     , m_pRange(nullptr)
 {
 
 }
 
-Variable::Variable( const string& a_strName, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) : Constant(a_strName, a_Modifiers)
+Variable::Variable( const string& a_strName, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) 
+    : Constant(a_strName, a_Modifiers)
     , m_pRange(a_pRange)
 {
     if(m_pRange)
     {
         addElement(m_pRange);
     }
+}
+
+phantom::signal_t Variable::valueChanged() const
+{
+    phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_valueChanged.head();
+    while(pSlot)
+    {
+        phantom::connection::pair::push(this, pSlot);
+        pSlot->subroutine()->call( pSlot->receiver(), nullptr );
+        pSlot = pSlot->next();
+        phantom::connection::pair::pop();
+    }
+    return phantom::signal_t();
 }
 
 o_namespace_end(phantom, reflection)

@@ -167,29 +167,71 @@
     o_reflection_specialize_type_name_of_impl(_name_) \
     o_reflection_specialize_type_of(_name_)
 
-#define o_declareN(_type_, _namespaces_, _name_) \
+
+#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
+#define o_declare( ... ) o_PP_CAT(o_PP_CAT(o_declare_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__) )
+#define o_declareN( ... ) o_PP_CAT(o_PP_CAT(o_declareN_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__) )
+#define o_declareC( ... ) o_PP_CAT(o_PP_CAT(o_declareC_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__) )
+#define o_declareNC( ... ) o_PP_CAT(o_PP_CAT(o_declareNC_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__) )
+#define o_declareT( ... ) o_PP_CAT(o_PP_CAT(o_declareT_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__) )
+#define o_declareNT( ... ) o_PP_CAT(o_PP_CAT(o_declareNT_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__) )
+#else
+#define o_declare( ... ) o_PP_CAT(o_declare_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
+#define o_declareN( ... ) o_PP_CAT(o_declareN_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
+#define o_declareC( ... ) o_PP_CAT(o_declareC_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
+#define o_declareNC( ... ) o_PP_CAT(o_declareNC_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
+#define o_declareT( ... ) o_PP_CAT(o_declareT_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
+#define o_declareNT( ... ) o_PP_CAT(o_declareNT_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
+#endif
+
+#define o_declare_1(_name_) \
+    o_inc_compilation_counter\
+    o_reflection_specialize_type_name_of_counter(_name_)
+
+#define o_declare_2(_type_, _name_) \
+    o_inc_compilation_counter\
+    _type_ _name_;\
+    o_reflection_specialize_type_name_of_counter(_name_)
+
+#define o_declareN_2(_namespaces_, _name_) \
+    o_inc_compilation_counter\
+    o_reflection_specialize_type_name_of_counterN(_namespaces_, _name_)
+
+#define o_declareN_3(_type_, _namespaces_, _name_) \
     o_inc_compilation_counter\
     o_namespace_begin _namespaces_\
         _type_ _name_;\
     o_namespace_end _namespaces_\
     o_reflection_specialize_type_name_of_counterN(_namespaces_, _name_)
 
-#define o_declare(_type_, _name_) \
+#define o_declareC_2(_classes_, _name_) \
     o_inc_compilation_counter\
-    _type_ _name_;\
-    o_reflection_specialize_type_name_of_counter(_name_)
+    o_reflection_specialize_type_name_of_counterC(_classes_, _name_)
 
-#define o_declareNT(_type_, _namespaces_, _template_types_,_template_params_, _name_) \
+#define o_declareNC_3(_namespaces_, _classes_, _name_) \
+    o_inc_compilation_counter\
+    o_reflection_specialize_type_name_of_counterNC(_namespaces_, _classes_, _name_)
+
+#define o_declareT_4(_type_, _namespaces_, _template_types_,_template_params_, _name_) \
+    o_inc_compilation_counter\
+    o_reflection_specialize_type_name_of_counterT(_template_types_,_template_params_, _name_)
+
+#define o_declareT_5(_type_, _namespaces_, _template_types_,_template_params_, _name_) \
+    o_inc_compilation_counter\
+    template<o_PP_MIX(_template_types_,_template_params_)> _type_ _name_;\
+    o_reflection_specialize_type_name_of_counterT(_template_types_,_template_params_, _name_)
+
+#define o_declareNT_4(_namespaces_, _template_types_,_template_params_, _name_) \
+    o_inc_compilation_counter\
+    o_reflection_specialize_type_name_of_counterNT(_namespaces_, _template_types_,_template_params_, _name_)
+
+#define o_declareNT_5(_type_, _namespaces_, _template_types_,_template_params_, _name_) \
     o_inc_compilation_counter\
     o_namespace_begin _namespaces_\
     template<o_PP_MIX(_template_types_,_template_params_)> _type_ _name_;\
     o_namespace_end _namespaces_\
         o_reflection_specialize_type_name_of_counterNT(_namespaces_, _template_types_,_template_params_, _name_)
 
-#define o_declareT(_type_, _namespaces_, _template_types_,_template_params_, _name_) \
-    o_inc_compilation_counter\
-        template<o_PP_MIX(_template_types_,_template_params_)> _type_ _name_;\
-        o_reflection_specialize_type_name_of_counterT(_template_types_,_template_params_, _name_)
 
 #define o_class(_name_,...) \
     o_inc_compilation_counter\

@@ -68,23 +68,6 @@ public:
         e_ActionOnMissingType_Exception,
     };
 
-    typedef fastdelegate::FastDelegate< boolean (const data&,const data&) > dependency_tester_delegate;
-    typedef fastdelegate::FastDelegate< void (const data&,vector<data>&) >  dependency_getter_delegate;
-
-    static boolean defaultDependencyCheckerClassType(void* a_SrcAddress, phantom::reflection::ClassType* a_pClassType, const phantom::data& a_Dep);
-    static boolean defaultDependencyCheckerInContainer( reflection::ContainerClass* a_pContainerClass, void* a_pContainer, const phantom::data& a_Dep );
-    static boolean defaultDependencyChecker(const phantom::data& a_Src, const phantom::data& a_Dep)
-    {
-        return (a_Src.type()->asClassType() != nullptr)
-            AND defaultDependencyCheckerClassType(a_Src.address()
-            , static_cast<reflection::ClassType*>(a_Src.type())
-            , a_Dep);
-    }
-
-    static void         defaultDependencyGetterClassType(void* a_SrcAddress, phantom::reflection::ClassType* a_pClassType, vector<phantom::data>& a_Dependencies);
-
-    static void         defaultDependencyGetter(const phantom::data& a_Src, vector<phantom::data>& a_Dependencies);
-
 protected:
     struct data_sorter_sub_data_first
     {
@@ -209,8 +192,11 @@ public:
 
     virtual void    clearDataReference(const phantom::data& a_data);
     virtual void    replaceDataReference(const phantom::data& a_old, const phantom::data& a_New);
-    
-    void replaceDataTypes(const map<reflection::Type*, reflection::Type*>& replacedTypes, uint a_uiCurrentState = 0xffffffff);
+
+    void            addType(reflection::Type* a_pType);
+    void            removeType(reflection::Type* a_pType);
+    void            replaceType(reflection::Type* a_pOld, reflection::Type* a_pNew, uint a_uiCurrentState = 0xffffffff);
+    void            replaceTypes(const map<reflection::Type*, reflection::Type*>& replacedTypes, uint a_uiCurrentState = 0xffffffff);
 
     virtual boolean canMoveNode(Node* a_pNode, Node* a_pNewParent) const;
     virtual boolean canMoveData(const phantom::data& a_Data, Node* a_pNewParent) const;
@@ -227,14 +213,14 @@ public:
 
     Node*           getNode( void* a_pAddress ) const
     {
-        data_node_map::const_iterator found = m_DataNodeMap.find(phantom::baseOf(a_pAddress));
+        data_node_map::const_iterator found = m_DataNodeMap.find(phantom::baseOf(a_pAddress, 0));
         return found == m_DataNodeMap.end() ? NULL : found->second;
     }
 
     const phantom::data&  getSubDataOwner( void* a_pAddress ) const
     {
         static phantom::data null_data;
-        sub_data_owner_map::const_iterator found = m_SubDataOwnerMap.find(phantom::baseOf(a_pAddress));
+        sub_data_owner_map::const_iterator found = m_SubDataOwnerMap.find(phantom::baseOf(a_pAddress, 0));
         return found == m_SubDataOwnerMap.end() ? null_data : found->second;
     }
 
@@ -284,7 +270,7 @@ public:
 
     boolean         dataHasDependency(const data& a_Data, const data& a_CandidateDependency) const
     {
-        return m_dependency_tester_delegate(a_Data, a_CandidateDependency);
+        return a_Data.type()->referencesData(a_Data.address(), a_CandidateDependency);
     }
 
 	void            addDataToTrashbin(const phantom::data& a_Data);
@@ -343,11 +329,6 @@ public:
     const string&   getUrl() const { return m_strUrl; }
     boolean         isDataCompatibleWithNode(const phantom::data& a_Data, Node* a_pOwnerNode) const;
 
-    void            setDependencyTesterDelegate(dependency_tester_delegate a_dependency_tester_delegate)
-    {
-        m_dependency_tester_delegate = a_dependency_tester_delegate;
-    }
-
     void            setActionOnMissingType(EActionOnMissingType a_eAction)
     {
         m_eActionOnMissingType = a_eAction;
@@ -360,6 +341,7 @@ public:
 
     reflection::Type* solveTypeByName(const string& a_strName) const;
     reflection::Type* solveTypeById(uint id) const;
+
 
 protected:
     o_signal_data(dataAdded, const phantom::data&, Node*);
@@ -414,8 +396,6 @@ protected:
     data_guid_base                  m_GuidBase;
     data_node_map                   m_DataNodeMap;
     sub_data_owner_map              m_SubDataOwnerMap;
-    dependency_tester_delegate      m_dependency_tester_delegate;
-    dependency_getter_delegate      m_dependency_getter_delegate;
     attribute_map                   m_AttributeValues;
     attribute_name_container        m_AttributeNames;
     DataTypeManager*                m_pDataTypeManager;

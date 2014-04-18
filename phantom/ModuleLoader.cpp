@@ -3,8 +3,10 @@
 #include "ModuleLoader.h"
 #include "ModuleLoader.hxx"
 #include "phantom/util/Message.h"
+#if o_PLATFORM == o_PLATFORM_WINDOWS_PC
 #include <windows.h>
 #include <TlHelp32.h>
+#endif
 /* ** The Class Header must be the last #include * */
 /* *********************************************** */
 o_registerN((phantom), ModuleLoader);
@@ -167,11 +169,17 @@ void ModuleLoader::moduleInstanciated( void* a_pModule )
     m_CurrentlyLoadedModules.push_back(pModule);
     m_LoadedModuleCounts[pModule] = 0;
     m_LoadedModules.push_back(pModule);
+    o_connect(a_pModule, elementAdded(reflection::LanguageElement*), this, elementAdded(reflection::LanguageElement*));
+    o_connect(a_pModule, elementRemoved(reflection::LanguageElement*), this, elementRemoved(reflection::LanguageElement*));
+    o_connect(a_pModule, elementReplaced(reflection::LanguageElement*, reflection::LanguageElement*), this, elementReplaced(reflection::LanguageElement*, reflection::LanguageElement*));
     o_emit moduleCreated(pModule);
 }
 
 void ModuleLoader::moduleDeleted( void* a_pModule )
 {
+    o_disconnect(a_pModule, elementAdded(reflection::LanguageElement*), this, elementAdded(reflection::LanguageElement*));
+    o_disconnect(a_pModule, elementRemoved(reflection::LanguageElement*), this, elementRemoved(reflection::LanguageElement*));
+    o_disconnect(a_pModule, elementReplaced(reflection::LanguageElement*, reflection::LanguageElement*), this, elementReplaced(reflection::LanguageElement*, reflection::LanguageElement*));
     o_assert(m_OperationCounter, "DLL loader must be responsible for loading phantom modules, don't use platform specific function to load them such as LoadLibrary/FreeLibrary, use ModuleLoader::loadLibrary/unloadlibrary");
     phantom::Module* pModule = phantom::as<phantom::Module*>(a_pModule);
     o_emit moduleUnloaded(pModule, m_LoadedModuleCounts[pModule], 0);
@@ -331,5 +339,30 @@ size_t ModuleLoader::getLibraryModuleLoadCount( const string& a_strPath, Module*
     if(foundModule == foundLib->second.end()) return 0;
     return foundModule->second;
 }
+
+void ModuleLoader::loadMain( Message* a_pMessage /*= nullptr*/ )
+{
+    m_OperationCounter++;
+    phantom::installReflection("main", "", 0);
+    m_OperationCounter--;
+}
+
+void ModuleLoader::unloadMain( Message* a_pMessage /*= nullptr*/ )
+{
+    m_OperationCounter++;
+    phantom::uninstallReflection("main");
+    m_OperationCounter--;
+}
+
+auto_dll_loader::auto_dll_loader()
+{
+    phantom::moduleLoader()->m_OperationCounter++;
+}
+
+auto_dll_loader::~auto_dll_loader()
+{
+    phantom::moduleLoader()->m_OperationCounter--;
+}
+
 
 o_namespace_end(phantom)

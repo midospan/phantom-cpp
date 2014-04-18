@@ -47,7 +47,7 @@ Type* ConstArrayType::createConstType() const
 }
 
 ConstArrayType::ConstArrayType( ArrayType* a_pArrayType ) 
-    : ArrayType(a_pArrayType->getStoredType(), a_pArrayType->getCount())
+    : ArrayType(a_pArrayType->getElementType(), a_pArrayType->getElementCount())
 {
 
 }

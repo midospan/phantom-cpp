@@ -140,6 +140,34 @@ void XmlFileTreeNode::saveIndex()
     
 }
 
+void XmlFileTreeNode::saveTypes()
+{
+    property_tree types_tree;
+
+    auto it = m_Types.begin();
+    auto end = m_Types.end();
+
+    types_tree.add_child("types", property_tree());
+
+    XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
+    for(;it != end; ++it)
+    {
+        const string& qualifiedDecoratedName = it->first;
+        property_tree typeTree;
+        typeTree.put<string>("typename", encodeQualifiedDecoratedNameToIdentifierName(qualifiedDecoratedName));
+        reflection::Class* pClass = classOf(it->second);
+        o_assert(pClass);
+        typeTree.put<string>("typeClassName", encodeQualifiedDecoratedNameToIdentifierName(pClass->getQualifiedDecoratedName()));
+        property_tree dataTree;
+        pClass->serialize(it->second, dataTree, 0xffffffff, nullptr);
+        typeTree.add_child("data", dataTree);
+        types_tree.add_child("types.type", typeTree);
+    }
+
+    const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
+    boost::property_tree_custom::write_xml(self_path+'/'+"types", types_tree);
+}
+
 void XmlFileTreeNode::saveAttributes()
 {
     property_tree attribute_tree;
@@ -252,11 +280,30 @@ void XmlFileTreeNode::loadDataAttributes(const phantom::data& a_Data, uint guid)
 
 bool XmlFileTreeNode::canLoad(vector<string>* missing_types) const
 {
+    XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
+    const string& self_path = pDB->nodePath(const_cast<XmlFileTreeNode*>(this), getGuid(), getParentNode());
+    
+    property_tree types_root_tree;
+
+    boost::property_tree_custom::read_xml(self_path+'/'+"types", types_root_tree);
+
+    std::set<string> types;
+
+    property_tree& types_tree = types_root_tree.get_child("types");
+    {
+        property_tree::const_iterator it = types_tree.begin();
+        property_tree::const_iterator end = types_tree.end();
+        for(;it != end; ++it)
+        {
+            const property_tree& sub_tree = it->second;
+            string typeName = decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("typename"));
+            o_assert(typeName.size());
+            types.insert(typeName);
+        }
+    }
+
     property_tree index_tree;
     
-    XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
-    
-    const string& self_path = pDB->nodePath(const_cast<XmlFileTreeNode*>(this), getGuid(), getParentNode());
     boost::property_tree_custom::read_xml(self_path+'/'+"index", index_tree);
     
     if(index_tree.empty()) return true;
@@ -271,11 +318,15 @@ bool XmlFileTreeNode::canLoad(vector<string>* missing_types) const
     {
         const property_tree& sub_tree = it->second;
         string typeName = decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("typename"));
-        reflection::Type* pType = m_pOwnerDataBase->solveTypeByName(typeName);
-        if(pType == NULL)
+        if(types.find(typeName) == types.end()) // Not found in local serialized types 
         {
-            if(missing_types) missing_types->push_back(typeName);
-            result = false;
+            reflection::Type* pType = m_pOwnerDataBase->solveTypeByName(typeName);
+            if(pType == NULL)
+            {
+                if(missing_types) 
+                    missing_types->push_back(typeName);
+                result = false;
+            }
         }
     }
     return result;
@@ -622,6 +673,39 @@ bool XmlFileTreeNode::restoreOne(const phantom::data& a_Data, uint a_uiSerializa
 	XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
 	restore_state state = a_Data.type()->restore(a_Data.address(), a_uiSerializationFlag, a_uiPass);
 	return state == restore_complete;
+}
+
+void XmlFileTreeNode::loadTypes()
+{
+    XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
+    const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
+    property_tree types_root_tree;
+
+    boost::property_tree_custom::read_xml(self_path+'/'+"types", types_root_tree);
+
+    std::set<string> types;
+
+    property_tree& types_tree = types_root_tree.get_child("types");
+    property_tree::const_iterator it = types_tree.begin();
+    property_tree::const_iterator end = types_tree.end();
+    for(;it != end; ++it)
+    {
+        const property_tree& sub_tree = it->second;
+        const string& className = decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("typeClassName"));
+        reflection::Type* pTypeType = getOwnerDataBase()->solveTypeByName(className);
+        o_assert(pTypeType);
+        reflection::Class* pTypeClass = pTypeType->asClass();
+        o_assert(pTypeClass);
+        void* pType = pTypeClass->allocate();
+        pTypeClass->construct(pType);
+        pTypeClass->install(pType);
+        const property_tree& dataTree = sub_tree.get_child("data");
+        pTypeClass->deserialize(pType, dataTree, 0xffffffff, nullptr);
+        uint pass = 0;
+        restore_state state;  
+        while((state = pTypeClass->restore(pType, 0xffffffff, pass++)) == restore_incomplete);
+        addType(as<reflection::Type*>(pType));
+    }
 }
 
 o_namespace_end(phantom, serialization)

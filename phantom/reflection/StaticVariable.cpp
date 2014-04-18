@@ -39,19 +39,47 @@
 o_registerN((phantom, reflection), StaticVariable);
 o_namespace_begin(phantom, reflection) 
 
-StaticVariable::StaticVariable( const string& a_strName, Type* a_pContentType, void* a_pStaticVariableAddress, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) 
-: Variable(a_strName, a_pRange, a_Modifiers)
-, m_pContentType(a_pContentType)
-, m_pAddress(a_pStaticVariableAddress)
+StaticVariable::StaticVariable(void* a_pAddress, Range* a_pRange, bitfield a_Modifiers /*= 0*/)
+    : LanguageElement(phantom::lexical_cast<string>(a_pAddress), a_Modifiers)
+    , m_pRange(a_pRange)
+    , m_pValueType(classOf(a_pAddress))
+    , m_pAddress(a_pAddress)
 {
-    addReferencedElement(m_pContentType);
+    if(m_pValueType)
+    {
+        addReferencedElement(m_pValueType);
+    }
+    else 
+    {
+        o_exception(exception::reflection_runtime_exception, "No rtti at given static variable address");
+    }
+}
+
+StaticVariable::StaticVariable(void* a_pAddress, Type* a_pValueType, Range* a_pRange, bitfield a_Modifiers /*= 0*/)
+    : LanguageElement(phantom::lexical_cast<string>(a_pAddress), a_Modifiers)
+    , m_pRange(a_pRange)
+    , m_pValueType(a_pValueType)
+    , m_pAddress(a_pAddress)
+{
+    o_assert(m_pValueType);
+    addReferencedElement(m_pValueType);
+}
+
+StaticVariable::StaticVariable( void* a_pAddress, Type* a_pValueType, const string& a_strName, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) 
+    : LanguageElement(a_strName, a_Modifiers)
+    , m_pRange(a_pRange)
+    , m_pValueType(a_pValueType)
+    , m_pAddress(a_pAddress)
+{
+    o_assert(m_pValueType);
+    addReferencedElement(m_pValueType);
 }
 
 void StaticVariable::referencedElementRemoved( LanguageElement* a_pElement )
 {
-    Variable::referencedElementRemoved(a_pElement);
-    if(m_pContentType == a_pElement)
-        m_pContentType = nullptr;
+    LanguageElement::referencedElementRemoved(a_pElement);
+    if(m_pValueType == a_pElement)
+        m_pValueType = nullptr;
 }
 
 o_namespace_end(phantom, reflection)

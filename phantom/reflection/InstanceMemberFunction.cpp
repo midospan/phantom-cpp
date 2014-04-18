@@ -43,7 +43,7 @@ o_namespace_begin(phantom, reflection)
 Class* const InstanceMemberFunction::metaType = o_type_of(InstanceMemberFunction);
 
 InstanceMemberFunction::InstanceMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers /*= 0*/ )
-: Subroutine(a_strName, a_pSignature, a_Modifiers )
+: Subroutine(a_strName, a_pSignature, ((a_Modifiers & o_const) != 0) ? a_Modifiers : (a_Modifiers | o_noconst) )
 , m_iVirtualTableIndex(-1)
 {
 
@@ -116,11 +116,6 @@ void InstanceMemberFunction::findOverloadedMemberFunctions(vector<InstanceMember
         static_cast<Class*>(m_pOwner)->findOverloadedMemberFunctions(const_cast<InstanceMemberFunction*>(this), a_Result);
 }
 
-Class* InstanceMemberFunction::getSortingCategoryClass() const
-{
-    return classOf<InstanceMemberFunction>();
-}
-
 bool InstanceMemberFunction::canOverload( InstanceMemberFunction* a_pInstanceMemberFunction ) const
 {
     EOverloadRelation r = getOverloadRelationWith(a_pInstanceMemberFunction);
@@ -142,7 +137,7 @@ void InstanceMemberFunction::call( void** a_pArgs ) const
 void InstanceMemberFunction::call( void** a_pArgs, void* a_pReturnAddress ) const
 {
     void* caller = *a_pArgs++;
-    call( caller, a_pArgs);
+    call( caller, a_pArgs, a_pReturnAddress);
 }
 
 void InstanceMemberFunction::safeInvoke( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const
@@ -172,11 +167,5 @@ void InstanceMemberFunction::safeInvoke( void* a_pCallerAddress, void** a_pArgs 
         call( a_pCallerAddress, a_pArgs);
     }
 }
-
-
-
-
-
-
 
 o_namespace_end(phantom, reflection) 

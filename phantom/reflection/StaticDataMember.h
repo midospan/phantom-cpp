@@ -60,22 +60,20 @@ public:
 
     virtual        void         getValue(void* dest) const
     {
-        m_pContentType->copy(dest, m_pAddress);
+        m_pValueType->copy(dest, m_pAddress);
     }
     virtual        void         setValue(void const* src) const
     {
-        m_pContentType->copy(m_pAddress, src);
+        m_pValueType->copy(m_pAddress, src);
     }
     virtual        void         getValue(void const* a_pObject, void* dest) const;
     virtual        void         setValue(void* a_pObject, void const* src) const;
-    virtual        Type*        getValueType() const { return m_pContentType; }
+    virtual        Type*        getValueType() const { return m_pValueType; }
 
     virtual LanguageElement*    asLanguageElement() const  { return const_cast<StaticDataMember*>(this); }
     virtual InstanceDataMember* asInstanceDataMember() const { return nullptr; }
     virtual StaticDataMember*   asStaticDataMember() const  { return const_cast<StaticDataMember*>(this); }
     virtual DataMember*         asDataMember() const { return const_cast<StaticDataMember*>(this); }
-
-    virtual Class*              getSortingCategoryClass() const;
 
     Range*                      getRange() const { return StaticVariable::getRange(); }
 };

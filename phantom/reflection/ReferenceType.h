@@ -189,6 +189,8 @@ public:
     virtual string  getDecoratedName() const { return m_pReferencedType->getDecoratedName()+'&'; }
     virtual string  getQualifiedDecoratedName() const { return m_pReferencedType->getQualifiedDecoratedName()+'&'; }
 
+    virtual bool    isCopyable() const { return true; }
+
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);
 

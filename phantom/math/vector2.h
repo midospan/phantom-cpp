@@ -1,131 +1,180 @@
-#ifndef phantom_math_vector2_h__
-#define phantom_math_vector2_h__
+#ifndef o_math_vector2_h__
+#define o_math_vector2_h__
+
+#include "phantom/math/scalar_funcs.h"
+
+o_declareNT(class, (phantom, math), (typename), (t_Ty), vector2);
 
 o_namespace_begin(phantom, math)
 
-template<typename t_Ty>
-struct vector2_default_base
+template<class t_Ty>
+class vector2
 {
-    o_forceinline vector2_default_base() {}
-    o_forceinline vector2_default_base(t_Ty a_x, t_Ty a_y)
-        : x(a_x), y(a_y) {}
-    
-};
-
-
-template<typename t_Ty>
-struct vector2 
-{
+public:
     typedef vector2<t_Ty> self_type;
+	// Construction.
+	vector2 ();  // uninitialized
+	vector2 (const self_type& vec);
+	vector2 (t_Ty x, t_Ty y);
+		
+	// Assignment.
+	o_forceinline self_type& operator= (const self_type& vec);
+		
+	// Arithmetic operations.
+	o_forceinline self_type operator+ (const self_type& vec) const;
+	o_forceinline self_type operator- (const self_type& vec) const;
+	o_forceinline self_type operator* ( const self_type& vec ) const;
+    o_forceinline self_type operator/ ( const self_type& vec ) const;
+    o_forceinline self_type operator+ (t_Ty scalar) const;
+    o_forceinline self_type operator- (t_Ty scalar) const;
+    o_forceinline self_type operator* (t_Ty scalar) const;
+    o_forceinline self_type operator/ (t_Ty scalar) const;
+	o_forceinline self_type operator- () const;
+		
+	// Arithmetic updates.
+	o_forceinline self_type& operator+= (const self_type& vec);
+	o_forceinline self_type& operator-= (const self_type& vec);
+    o_forceinline self_type& operator*= (const self_type& vec);
+    o_forceinline self_type& operator/= (const self_type& vec);
+	o_forceinline self_type& operator*= (t_Ty scalar);
+	o_forceinline self_type& operator/= (t_Ty scalar);
+		
+    o_forceinline void setZero() { x = 0; y = 0; }
+    o_forceinline bool isZero() const { return (x == 0) && (y == 0); }
+    o_forceinline void set (t_Ty a_x, t_Ty a_y) {x = a_x; y = a_y; }
 
-
-    o_forceinline vector2() {}
-    o_forceinline explicit vector2(t_Ty a_Value) : x(a_Value), y(a_Value) {}
-    o_forceinline vector2(t_Ty a_x, t_Ty a_y)
-        : x(a_x), y(a_y) {}
-
-
-    o_forceinline void set(t_Ty a_x, t_Ty a_y) { x = a_x; y = a_y; }
-    o_forceinline void setZero() { x = t_Ty(0); y = t_Ty(0); }
-
-    o_forceinline static self_type const&  Zero() { static self_type VALUE(t_Ty(0),t_Ty(0)); return VALUE; }
+    /// Get a skew vector such that dot(skew_vec, other) == cross(vec, other)
+    o_forceinline self_type skewed() const
+    {
+        return self_type(-y, x);
+    }
 
     o_forceinline bool isValid() const { return isNumberValid(x) AND isNumberValid(y); }
 
-    o_forceinline t_Ty          length() const
-    {
-        // Standard Squared Root
-        return phantom::math::sqrt(lengthSquared());
-    }
-    o_forceinline t_Ty          lengthApproximated() const
-    {
-       return phantom::math::approximatedSqrt(lengthSquared());
-    }
-    o_forceinline t_Ty       lengthSquared() const
-    {
-        return x*x+y*y;
-    }
-    o_forceinline t_Ty          normalize() 
-    {
-        t_Ty len = length();
-        if(len == 0) 
-        {
-            x = 0;
-            y = 0;
-            return 0;
-        }
-        o_NESTED_TYPE make_float<t_Ty>::type invLen = make_float<t_Ty>::type(1.)/len;
-        x *= invLen;
-        y *= invLen;
-        return len;
-    }
-    o_forceinline t_Ty          normalizeApproximated() 
-    {
-        t_Ty len = lengthApproximated();
-        if(len == 0) 
-        {
-            x = 0;
-            y = 0;
-            return 0;
-        }
-        o_NESTED_TYPE make_float<t_Ty>::type invLen = make_float<t_Ty>::type(1.)/len;
-        x *= invLen;
-        y *= invLen;
-        return len;
-    }
-    o_forceinline self_type       normalized() const
-    {
-        t_Ty len = length();
-        if(len == 0) 
-        {
-            return self_type(0,0);
-        }
-        t_Ty invLen = t_Ty(1.)/len;
-        return self_type(x * invLen, y*invLen);
-    }
-    o_forceinline self_type       normalizedApproximated() const
-    {
-        t_Ty len = lengthApproximated();
-        if(len == 0) 
-        {
-            return self_type(0,0);
-        }
-        t_Ty invLen = t_Ty(1.)/len;
-        return self_type(x * invLen, y*invLen);
-    }
+	// Vector operations.
+    inline t_Ty length () const;
+    inline t_Ty lengthApproximated() const;
+	inline t_Ty lengthSquared () const;
+	inline t_Ty dot (const self_type& vec) const;
+    inline t_Ty normalize ();
+    inline t_Ty normalizeApproximated();
+    inline self_type normalized () const;
+    inline self_type normalizedApproximated() const;
 
-    o_forceinline t_Ty          distance(const self_type& other) const 
+    inline self_type lerp(const self_type& v, const t_Ty& t) const 
     {
-        return (other-*this).length();
+        return self_type(m[0] + (v.m[0] - m[0]) * t,
+            m[1] + (v.m[1] - m[1]) * t);
     }
+		
+	self_type rotated(t_Ty angle) const
+	{
+		t_Ty c = cosf(angle);
+		t_Ty s = sinf(angle);
+		return self_type(c*x - s*y, s*x + c*y);
+	}
+		
+	void rotate(t_Ty angle)
+	{
+		*this = rotated(angle);
+	}
+		
+	// Returns (y,-x).
+	inline self_type orthogonalCW() const;
+	inline self_type orthogonalCCW() const;
+		
+	// Returns (y,-x)/sqrt(x*x+y*y).
+	inline self_type normalizedOrthogonalCW () const;
+	inline self_type normalizedOrthogonalCCW () const;
+		
+	// Returns cross((x,y),(V.x,V.y)) = x*V.y - y*V.x.
+    inline t_Ty cross (const self_type& vec) const;
 
-    o_forceinline t_Ty          distanceApproximated(const self_type& other) const 
+    inline self_type cross(t_Ty s) const
     {
-        return (other-*this).lengthApproximated();
+        return self_type(s * y, -s * x);
     }
-
-    o_forceinline t_Ty          distanceSquared(const self_type& other) const 
+		
+	// Compute the axis-aligned bounding box of the points.
+	static void computeExtremes (int numVectors, const self_type* vectors,
+									self_type& vmin, self_type& vmax);
+		
+	// Gram-Schmidt orthonormalization.  Take linearly independent vectors U
+	// and V and compute an orthonormal set (unit length, mutually
+	// perpendicular).
+	static void orthonormalize (self_type& u, self_type& v);
+		
+	// Input V must be a nonzero vector.  The output is an orthonormal basis
+	// {U,V}.  The input V is normalized by this function.  If you know V is
+	// already unit length, use U = V.perp().
+	static void generateOrthonormalBasis (self_type& u, self_type& v);
+		
+	/**
+		* @brief Compute the barycentric coordinates of the point V with respect to the
+		*	triangle <V0,V1,V2>, V = b0*V0 + b1*V1 + b2*V2, where b0 + b1 + b2 = 1.
+		*	The return value is 'true' iff {V0,V1,V2} is a linearly independent
+		*	set.  Numerically, this is measured by |det[V0 V1 V2]| <= epsilon.
+		*	The values bary[...] are valid only when the return value is 'true'
+		*	but set to zero when the return value is 'false'.
+		*/
+	bool barycentrics (const self_type& v0, const self_type& v1,
+						const self_type& v2, t_Ty bary[3], t_Ty epsilon = (t_Ty)0) const;
+		
+	// return True if this vector is between begin and end, false if not.
+	inline bool isBetweenPoints(const self_type& begin, const self_type& end
+								,t_Ty epsilon = epsilon<t_Ty>()) const;
+		
+	const t_Ty&  operator[](unsigned int i) const
+	{
+		o_assert(i<2);
+		return m[i];
+	}
+		
+	t_Ty&  operator[](unsigned int i)
+	{
+		o_assert(i<2);
+		return m[i];
+	}
+		
+	bool equals(const self_type& other, t_Ty epsilon = epsilon<t_Ty>()) const
+	{
+		return math::equals<t_Ty>(x, other.x, epsilon) && math::equals(y, other.y, epsilon);
+	}
+		
+	bool operator==(const self_type& other) const { return other.x == x && other.y == y  ; }
+	bool operator!=(const self_type& other) const { return other.x != x || other.y != y  ; }
+		
+	//! sort in order x, y. Equality with rounding tolerance.
+	bool operator<=(const self_type&other) const
     {
-        return (other-*this).lengthSquared();
-    }
+        return (*this == other) || (*this < other);
+	}
+		
+	//! sort in order x, y. Equality with rounding tolerance.
+	bool operator>=(const self_type&other) const
+	{
+		return (*this == other) || (*this > other);
+	}
+		
+	//! sort in order x, y. Difference must be above rounding tolerance.
+	bool operator<(const self_type&other) const
+	{
+		if (fabs(x - other.x) < std::numeric_limits<float32>::epsilon())
+			return y < other.y;
+		else
+			return x < other.x;
+	}
+		
+	//! sort in order x, y. Difference must be above rounding tolerance.
+	bool operator>(const self_type&other) const
+	{
+		return 	!operator<(other) && operator !=(other);
+	}
 
-    o_forceinline self_type       to(const self_type& other) const 
+
+    inline t_Ty  fromPiToMinusPiAngleTo(const self_type& other) const 
     {
-        return (other-*this);
-    }
-
-    inline t_Ty                 angle(const self_type& other) const 
-    {
-        t_Ty theta1,theta2;
-
-        theta1 = atan2(y,x);
-        theta2 = atan2(other.y,other.x);
-        return theta2 - theta1;
-    }
-
-    inline t_Ty                 clampedAngle(const self_type& other) const 
-    {
-        t_Ty a = angle(other);
+        t_Ty a = angleTo(other);
         while (a > o_math_Pi)
             a -= o_math_Pi*2;
         while (a < -o_math_Pi)
@@ -133,158 +182,148 @@ struct vector2
         return(a);
     }
 
-    /**@brief Return the linear interpolation between this and another vector 
-   * @param v The other vector 
-   * @param t The ration of this to v (t = 0 => return this, t=1 => return other) */
-	o_forceinline self_type lerp(const self_type& v, const t_Ty& t) const 
+	t_Ty angleTo(const self_type& other) const
 	{
-		return self_type(a[0] + (v.a[0] - a[0]) * t,
-			a[1] + (v.a[1] - a[1]) * t);
+        t_Ty dotResult = normalized().dot(other.normalized());
+        o_assert(*((int*)&dotResult) != 0xffc00000);
+        t_Ty angle = 0;
+        if(dotResult >= t_Ty(1)-epsilon<t_Ty>())
+        {
+            angle = t_Ty(0);
+        }
+        else if(dotResult <= t_Ty(-1)+epsilon<t_Ty>())
+        {
+            angle = t_Ty(o_math_Pi);
+        }
+        else 
+        {
+            angle = acos(dotResult);
+        }
+        o_assert(*((int*)&angle) != 0xffc00000);
+        t_Ty crossResult = cross(other);
+        if(crossResult < 0)
+        {
+            angle = -angle;
+        }
+		return angle;
 	}
 
-    o_forceinline bool isZero() const 
+    t_Ty positiveAngleTo(const self_type& other) const
     {
-        return x == t_Ty(0) AND y == t_Ty(0);
+        t_Ty angle = angleTo(other);
+
+        if(angle < 0) 
+            angle += 2.0f*(float)o_math_Pi;
+        return angle;
+    }
+		
+	inline t_Ty distance(const self_type& other) const 
+	{
+		return ((*this)-other).length();
     }
 
-    /// Get the skew vector such that dot(skew_vec, other) == cross(vec, other)
-    o_forceinline self_type skewed() const
+    inline t_Ty distanceApproximated(const self_type& other) const 
     {
-        return self_type(-y, x);
+        return (other-*this).lengthApproximated();
     }
+		
+	inline t_Ty distanceSquared(const self_type& other) const 
+	{
+		return ((*this)-other).lengthSquared();
+	}
 
-    // vector2/vector2 operation
-    o_forceinline self_type   operator+(self_type const& other) const
-    {
-        return self_type(x+other.x, y+other.y);
-    }
-    o_forceinline self_type   operator-(self_type const& other) const
-    {
-        return self_type(x-other.x, y-other.y);
-    }
-    o_forceinline self_type   operator*(self_type const& other) const
-    {
-        return self_type(x*other.x, y*other.y);
-    }
-    o_forceinline self_type   operator/(self_type const& other) const
-    {
-        return self_type(x/other.x, y/other.y);
-    }
-
-    /// Add a vector to this vector.
-    o_forceinline  self_type const& operator += (const self_type& v)
-    {
-        x += v.x; y += v.y; 
-        return *this;
-    }
-
-    /// Subtract a vector from this vector.
-    o_forceinline  self_type const& operator -= (const self_type& v)
-    {
-        x -= v.x; y -= v.y;
-        return *this;
-    }
-
-    o_forceinline t_Ty   dot(self_type const& other) const
-    {
-        return other.x*x + other.y*y;
-    }
-
-    o_forceinline t_Ty   cross(self_type const& other) const
-    {
-        return x * other.y - y * other.x;
-    }
-
-    o_forceinline self_type cross(t_Ty s) const
-    {
-        return self_type(s * y, -s * x);
-    }
-
-    // vector2/floating point operation
-    o_forceinline self_type   operator+(t_Ty otherTy) const
-    {
-        return self_type(x+otherTy, y+otherTy);
-    }
-    o_forceinline self_type   operator-(t_Ty otherTy) const
-    {
-        return self_type(x-otherTy, y-otherTy);
-    }
-    o_forceinline self_type   operator*(t_Ty otherTy) const
-    {
-        return self_type(x*otherTy, y*otherTy);
-    }
-    o_forceinline self_type   operator/(t_Ty otherTy) const
-    {
-        otherTy = t_Ty(1)/otherTy;
-        return self_type(x*otherTy, y*otherTy);
-    }
-
-    /// Multiply this vector by a scalar.
-    o_forceinline self_type const& operator *= (t_Ty s)
-    {
-        x *= s; y *= s;
-        return *this;
-    }
-
-    /// Divide this vector by a scalar.
-    o_forceinline self_type const& operator /= (t_Ty s)
-    {
-        x /= s; y /= s;
-        return *this;
-    }
-
-    o_forceinline t_Ty&          operator[](uint i)
-    {
-        o_assert(i < 2);
-        return a[i];
-    }
-
-    o_forceinline t_Ty const&          operator[](uint i) const
-    {
-        o_assert(i < 2);
-        return a[i];
-    }
-
-    /// Negate this vector.
-    o_forceinline self_type operator -() const {  return self_type(-x, -y); }
-
-
-    o_forceinline bool operator == (const self_type& v) const
-    {
-        return x == v.x AND y == v.y;
-    }
-    o_forceinline bool operator != (const self_type& v) const
-    {
-        return x != v.x OR y != v.y;
-    }
-
-    union
-    {
-        struct 
-        {
-            t_Ty x;
-            t_Ty y;
-        };
-        t_Ty    a[2];
-    };
-
+    inline self_type to(const self_type& other) const { return other-(*this); }
+		
+	inline t_Ty angleTrigDegree() const
+	{
+		if (y == 0)
+			return x < 0 ? 180.f : 0;
+		else
+			if (x == 0)
+				return y < 0 ? 270.f : 90.f;
+			
+		if ( y > 0)
+			if (x > 0)
+				return atan(y/x) * o_math_to_degree;
+			else
+				return 180.f-atan(y/-x) * o_math_to_degree;
+			else
+				if (x > 0)
+					return 360.f-atan(-y/x) * o_math_to_degree;
+				else
+					return 180.f+atan(-y/-x) * o_math_to_degree;
+	}
+		
+	inline t_Ty angleTrig() const 
+	{
+		return angleTrigDegree() * o_math_to_radian;
+	}
+		
+	inline bool isCollinearTo(const self_type& other, t_Ty epsilon = epsilon<t_Ty>()) const
+	{
+		return fabs(other.normalized().dot(normalized())) >= (1.0f - epsilon);
+	}
+		
+	inline bool isOrthogonalTo(const self_type& other, t_Ty epsilon = epsilon<t_Ty>()) const
+	{
+		return fabs(dot(other)) <= (0.f + epsilon); 
+	}
+		
+	// Special vectors.
+	o_export static const self_type ZERO;    // (0,0)
+	o_export static const self_type UNIT_X;  // (1,0)
+	o_export static const self_type UNIT_Y;  // (0,1)
+	o_export static const self_type ONE;     // (1,1)
+	o_export static const self_type INFINITE_VALUE;// (inf,inf)
+	o_export static const self_type IDENTITY;// (inf,inf)
+				
+public:
+	union
+	{
+		t_Ty m[2];
+		struct
+		{
+			t_Ty x;
+			t_Ty y;
+		};
+	};
 };
+	
+// Arithmetic operations.
+template<class t_Ty>
+inline vector2<t_Ty> operator* (t_Ty scalar, const vector2<t_Ty>& vec);
+	
+// Debugging output.
+template<class t_Ty>
+std::ostream& operator<< (std::ostream& outFile, const vector2<t_Ty>& vec);
+	
+/** Typedefs **/
+typedef vector2<float32> vector2f;
+typedef vector2<float64> vector2d;
 
-
+#include "vector2.inl"
+	
+template<class t_Ty>
+inline void getOrderingComponents( const vector2<t_Ty>& p1, const vector2<t_Ty>& p2, vector2<t_Ty>& scalarPoint )
+{
+	t_Ty scalar_p2, scalar_p1;
+	if ( p1.x == p2.x )
+	{
+		scalar_p1 = p1.y;
+		scalar_p2 = p2.y;
+	}
+	else
+	{
+		scalar_p1 = p1.x;
+		scalar_p2 = p2.x;
+	}
+	scalarPoint = vector2<t_Ty>( scalar_p1, scalar_p2 ); 
+}
+	
 o_namespace_end(phantom, math)
 
-o_namespace_begin(phantom, extension, detail)
+#include "vector2i.h"
+#include "vector2ui.h"
+#include "vector2b.h"
 
-template<typename t_Ty>
-struct safe_constructor_ <math::vector2<t_Ty>>
-{
-    static void safeConstruct(void* a_pInstance) 
-    { 
-        ((math::vector2<t_Ty>*)a_pInstance)->x = 0;
-        ((math::vector2<t_Ty>*)a_pInstance)->y = 0;
-    }
-};
-
-o_namespace_end(phantom, extension, detail)
-
-#endif // phantom_math_vector2_h__
+#endif // o_math_vector2_h__

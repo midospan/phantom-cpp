@@ -77,7 +77,7 @@ void Types::Install()
 
 #define o_build_fundamental_meta_type(_var_, _type_)\
     _var_ = new (o__t1_class__default_class_allocator(meta_class_type_of<_type_>::type)::allocate()) meta_class_type_of<_type_>::type;\
-    meta_class_type_of<_type_>::type::metaType->install(_var_);\
+    meta_class_type_of<_type_>::type::metaType->install(_var_, 0);\
     meta_class_type_of<_type_>::type::metaType->initialize(_var_);\
 
     Phantom::dynamic_initializer()->setActive(true);

@@ -152,6 +152,15 @@ void Module::removeLanguageElement(reflection::LanguageElement* a_pLanguageEleme
     a_pLanguageElement->setModule(nullptr);
 }
 
+void Module::replaceLanguageElement( reflection::LanguageElement* a_pOldLanguageElement, reflection::LanguageElement* a_pNewLanguageElement )
+{
+    auto found = std::find(m_LanguageElements.begin(), m_LanguageElements.end(), a_pOldLanguageElement);
+    *found = a_pNewLanguageElement;
+    a_pOldLanguageElement->setModule(nullptr);
+    a_pNewLanguageElement->setModule(this);
+    o_emit elementReplaced(a_pOldLanguageElement, a_pNewLanguageElement);
+}
+
 void Module::setParentModule( Module* a_pModule )
 {
     o_assert(m_pParentModule == nullptr);
@@ -215,6 +224,20 @@ phantom::signal_t Module::elementRemoved(reflection::LanguageElement* a_0) const
     {
         phantom::connection::pair::push(this, pSlot);
         void* args[] = { (void*)(&a_0) };
+        pSlot->subroutine()->call( pSlot->receiver(), args );
+        pSlot = pSlot->next();
+        phantom::connection::pair::pop();
+    }
+    return phantom::signal_t();
+}
+
+phantom::signal_t Module::elementReplaced(reflection::LanguageElement* a_0, reflection::LanguageElement* a_1) const
+{
+    phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_elementReplaced.head();
+    while(pSlot)
+    {
+        phantom::connection::pair::push(this, pSlot);
+        void* args[] = { (void*)(&a_0), (void*)(&a_1) };
         pSlot->subroutine()->call( pSlot->receiver(), args );
         pSlot = pSlot->next();
         phantom::connection::pair::pop();

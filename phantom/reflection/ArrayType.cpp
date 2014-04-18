@@ -43,12 +43,14 @@ o_namespace_begin(phantom, reflection)
 
 o_define_meta_type(ArrayType);
 
-ArrayType::ArrayType( Type* a_pStoredType, size_t a_uiCount ) : Type(a_pStoredType->getName()+'['+phantom::lexical_cast<string>(m_uiCount)+']'
-, a_uiCount*a_pStoredType->getSize(), a_pStoredType->getAlignment())    
-, m_pStoredType(a_pStoredType)
+ArrayType::ArrayType( Type* a_pElementType, size_t a_uiCount ) 
+    : Type(e_array, a_pElementType->getName()+'['+phantom::lexical_cast<string>(m_uiCount)+']'
+, a_uiCount*a_pElementType->getSize(), a_pElementType->getAlignment())    
+, m_pElementType(a_pElementType)
 , m_uiCount(a_uiCount)
 {
-    addReferencedElement(m_pStoredType);
+    o_assert(a_uiCount);
+    addReferencedElement(m_pElementType);
 }
 
 boolean ArrayType::isConvertibleTo( Type* a_pType ) const
@@ -56,20 +58,20 @@ boolean ArrayType::isConvertibleTo( Type* a_pType ) const
     if(a_pType == this) return true;
     if(a_pType->asArrayType() == nullptr) return false;
     if(a_pType == phantom::typeOf<void*>()) return true;
-    Type*    pStoredType = static_cast<ArrayType*>(a_pType)->getStoredType();
-    if((pStoredType->asClass() == nullptr) OR (m_pStoredType->asClass() == nullptr)) return false;
-    return static_cast<Class*>(pStoredType)->isKindOf(static_cast<Class*>(m_pStoredType));
+    Type*    pElementType = static_cast<ArrayType*>(a_pType)->getElementType();
+    if((pElementType->asClass() == nullptr) OR (m_pElementType->asClass() == nullptr)) return false;
+    return static_cast<Class*>(pElementType)->isKindOf(static_cast<Class*>(m_pElementType));
 }
 
 
 void ArrayType::serialize( void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
 {
-    m_pStoredType->serialize(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+    m_pElementType->serialize(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_OutBranch, a_uiSerializationMask, a_pDataBase);
 }
 
 void ArrayType::deserialize( void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
 {
-    m_pStoredType->deserialize(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_InBranch, a_uiSerializationMask, a_pDataBase);
+    m_pElementType->deserialize(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_InBranch, a_uiSerializationMask, a_pDataBase);
 }
 
 Type* ArrayType::createConstType() const
@@ -80,18 +82,18 @@ Type* ArrayType::createConstType() const
 void ArrayType::copy( void* a_pDest, void const* a_pSrc ) const
 {
     size_t i = 0;
-    size_t storedTypeSize = m_pStoredType->getSize();
+    size_t storedTypeSize = m_pElementType->getSize();
     for(;i<m_uiCount;++i)
     {
-        m_pStoredType->copy((byte*)a_pDest + i*storedTypeSize, (byte*)a_pSrc + i*storedTypeSize);
+        m_pElementType->copy((byte*)a_pDest + i*storedTypeSize, (byte*)a_pSrc + i*storedTypeSize);
     }
 }
 
 void ArrayType::referencedElementRemoved( LanguageElement* a_pElement )
 {
     Type::referencedElementRemoved(a_pElement);
-    if(m_pStoredType == a_pElement)
-        m_pStoredType = nullptr;
+    if(m_pElementType == a_pElement)
+        m_pElementType = nullptr;
 }
 
 

@@ -177,7 +177,7 @@ namespace reflection
 {
     template<typename> struct type_of;
     template<typename> struct meta_class_type_of;
-    template<typename> struct default_meta_class_type_of;
+    template<typename> struct base_meta_class_type_of;
     template<typename, int t_counter> struct template_specialization_adder;
     template<typename> struct template_specialization_of;
     template<typename> struct typedef_registrer;
@@ -185,12 +185,12 @@ namespace reflection
 }
 
 template <typename t_Ty>
-o_forceinline o_NESTED_TYPE phantom::reflection::default_meta_class_type_of<t_Ty>::type* typeOf()
+o_forceinline o_NESTED_TYPE phantom::reflection::base_meta_class_type_of<t_Ty>::type* typeOf()
 {
-    static o_NESTED_TYPE phantom::reflection::default_meta_class_type_of<t_Ty>::type* s_pInstance = nullptr;
+    static o_NESTED_TYPE phantom::reflection::base_meta_class_type_of<t_Ty>::type* s_pInstance = nullptr;
     if(s_pInstance == nullptr)
     {
-        s_pInstance = static_cast<phantom::reflection::default_meta_class_type_of<t_Ty>::type*>(phantom::reflection::Types::get<t_Ty>());
+        s_pInstance = static_cast<phantom::reflection::base_meta_class_type_of<t_Ty>::type*>(phantom::reflection::Types::get<t_Ty>());
     }
     return s_pInstance;
 }
@@ -205,10 +205,10 @@ o_forceinline o_NESTED_TYPE phantom::reflection::default_meta_class_type_of<t_Ty
 #define o_nesting_class_of(...) phantom::classByName(phantom::reflection::detail::type_name_of_counter<__VA_ARGS__, o_read_compilation_counter>::classScopeName())
 
 template<typename t_Ty>
-typename o_NESTED_TYPE phantom::reflection::default_meta_class_type_of<t_Ty>::type*  classOf()
+typename reflection::Class*  classOf()
 {
-    o_static_assert(boost::is_class<t_Ty>::value);
-    return typeOf<t_Ty>(); 
+    auto pType = typeOf<t_Ty>();
+    return pType ? pType->asClass() : nullptr; 
 }
 
 // function forwarding
@@ -231,54 +231,60 @@ template<typename t_Ty>
 template<typename t_Ty>
  phantom::reflection::DataPointerType*                  pointerTypeOf();
 
-o_export inline phantom::reflection::Namespace*        rootNamespace();
-o_export phantom::reflection::Namespace*               namespaceByList( list<string>* a_pNamespaceNameAsStringList );
-o_export phantom::reflection::Namespace*               namespaceByName( const string& a_strNamespaceName, reflection::Namespace* a_pNamespaceScope = rootNamespace() );
-o_export inline phantom::reflection::SourceFile*       sourceFile(const string& a_strAbsoluteName);
-o_export inline void                                   discardSourceFile(phantom::reflection::SourceFile* a_pSourceFile);
-o_export phantom::reflection::Type*                    typeByName(const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
-o_export phantom::reflection::Type*					typeByNameCascade(const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ; 
-o_export string                                        encodeQualifiedDecoratedNameToIdentifierName(const string& a_strTypeName) ;
-o_export string                                        decodeQualifiedDecoratedNameFromIdentifierName(const string& a_strTypeName) ;
-o_export phantom::reflection::LanguageElement*         elementByName(const string& a_strName, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
-o_export void                                          elementsByClass(reflection::Class* a_pClass, vector<reflection::LanguageElement*>& out, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
-o_export phantom::reflection::LanguageElement*			elementByNameCascade(const string& a_strName, phantom::reflection::Namespace* a_pNamespace = rootNamespace());
-o_export phantom::reflection::Type*                    typeByGuid(uint guid) ;
-o_export phantom::reflection::LanguageElement*         elementByGuid(uint guid) ;
+o_export inline phantom::reflection::Namespace*         rootNamespace();
+o_export phantom::reflection::Namespace*                namespaceByList( list<string>* a_pNamespaceNameAsStringList );
+o_export phantom::reflection::Namespace*                namespaceByName( const string& a_strNamespaceName, reflection::Namespace* a_pNamespaceScope = rootNamespace() );
+o_export inline phantom::reflection::SourceFile*        sourceFile(const string& a_strAbsoluteName);
+o_export inline void                                    discardSourceFile(phantom::reflection::SourceFile* a_pSourceFile);
+o_export phantom::reflection::Type*                     typeByName(const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
+o_export phantom::reflection::Type*					    typeByNameCascade(const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ; 
+o_export string                                         encodeQualifiedDecoratedNameToIdentifierName(const string& a_strTypeName) ;
+o_export string                                         decodeQualifiedDecoratedNameFromIdentifierName(const string& a_strTypeName) ;
+o_export phantom::reflection::LanguageElement*          elementByName(const string& a_strName, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
+o_export void                                           elementsByClass(reflection::Class* a_pClass, vector<reflection::LanguageElement*>& out, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
+o_export phantom::reflection::LanguageElement*		    elementByNameCascade(const string& a_strName, phantom::reflection::Namespace* a_pNamespace = rootNamespace());
+o_export phantom::reflection::Type*                     typeByGuid(uint guid) ;
+o_export phantom::reflection::LanguageElement*          elementByGuid(uint guid) ;
+
 template<typename t_Ty>
-o_forceinline    t_Ty*                                 elementByNameAs(const string& a_strName, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) { return as<t_Ty*>(elementByName(a_strName, a_pRootElement)); }
-o_export phantom::reflection::Class*                   classByName(const string& a_strQualifiedName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
+o_forceinline    t_Ty*                                  elementByNameAs(const string& a_strName, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) { return as<t_Ty*>(elementByName(a_strName, a_pRootElement)); }
+o_export phantom::reflection::Class*                    classByName(const string& a_strQualifiedName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
 
-o_export void*                                         baseOf(void const* in);
-o_export phantom::reflection::Class*                   classOf(void const* in);
-o_export phantom::reflection::Class*                   classAt(void const* in);
-o_export const phantom::rtti_data&                     rttiDataOf(void const* in);
-o_export void                                          rttiLayoutOf(void const* in, vector<void*>& out);
-o_export void                                          dynamicDelete(void* in o_memory_stat_append_parameters);
-o_export inline void                                   addRttiData(void const* in, const rtti_data& data);
-o_export inline void                                   replaceRttiData(void const* in, const rtti_data& data);
-o_export inline void                                   removeRttiData(void const* in);
+o_export void*                                          baseOf(void const* a_pThis, size_t a_uiLevel);
+o_export phantom::reflection::Class*                    classOf(void const* a_pThis, size_t a_uiLevel);
+o_export phantom::reflection::Class*                    classAt(void const* a_pThis, size_t a_uiLevel);
+o_export const phantom::rtti_data&                      rttiDataOf(void const* a_pThis, size_t a_uiLevel);
+o_export const phantom::rtti_data&                      rttiDataOf(void const* a_pThis, reflection::Class* a_pLayoutClass);
+o_export void                                           rttiLayoutOf(void const* a_pThis, vector<void*>& out, size_t a_uiLevel);
+o_export void                                           dynamicDelete(void* a_pThis o_memory_stat_append_parameters);
+o_export inline void                                    addRttiData(void const* a_pThis, const rtti_data& data);
+o_export inline void                                    replaceRttiData(void const* a_pThis, const rtti_data& data);
+o_export inline void                                    removeRttiData(void const* a_pThis, size_t a_uiLevel);
 
-o_export void                                          assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const character* e, const character* m , const char* f , uint l);
-o_export void                                          warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
-o_export void                                          error BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
+o_export void                                           assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const character* e, const character* m , const char* f , uint l);
+o_export void                                           warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
+o_export void                                           error BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
 
-o_export size_t                                        currentThreadId();
-o_export void                                          yieldCurrentThread();
+o_export size_t                                         currentThreadId();
+o_export void                                           yieldCurrentThread();
 
-o_export void                                          installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle);
-o_export void                                          uninstallReflection(const string& a_strName);
+o_export void                                           installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle);
+o_export void                                           uninstallReflection(const string& a_strName);
 
-o_export void                                          pushModule(Module* a_pModule);
-o_export Module*                                       popModule();
-o_export Module*                                       currentModule();
-o_export Module*                                       moduleByName(const string& a_strName);
-o_export Module*                                       moduleByFileName(const string& a_strFileName);
-o_export map<string, Module*>::const_iterator          beginModules();
-o_export map<string, Module*>::const_iterator          endModules();
-o_export void                                          release();
+o_export void                                           pushModule(Module* a_pModule);
+o_export Module*                                        popModule();
+o_export Module*                                        currentModule();
+o_export ModuleLoader*                                  moduleLoader();
+o_export Module*                                        moduleByName(const string& a_strName);
+o_export Module*                                        moduleByFileName(const string& a_strFileName);
+o_export map<string, Module*>::const_iterator           beginModules();
+o_export map<string, Module*>::const_iterator           endModules();
+o_export void                                           release();
 
-o_export phantom::reflection::Type*                    backupType(phantom::reflection::Type* a_pType = (phantom::reflection::Type*)0xffffffff);
+o_export phantom::reflection::Type*                     backupType(phantom::reflection::Type* a_pType = (phantom::reflection::Type*)0xffffffff);
+
+o_export void                                           setCurrentDataBase(serialization::DataBase* a_pDataBase);
+o_export serialization::DataBase*                       getCurrentDataBase();
 
 o_namespace_end(phantom)
 
@@ -348,17 +354,28 @@ o_namespace_begin(phantom)
 
 struct rtti_data
 {
-    rtti_data() {}
+    rtti_data() 
+        : object_class(0)
+        , layout_class(0)
+        , base(0)
+        , connection_slot_allocator(0)
+        , dynamic_delete_func(0)
+        , level(0)
+    {
+    
+    }
     rtti_data(phantom::reflection::Class* bc
                 , phantom::reflection::Class*    tc
                 , void*    b
                 , connection::slot_pool* csa
-                , dynamic_delete_func_t a_dynamic_delete_func)
+                , dynamic_delete_func_t a_dynamic_delete_func
+                , size_t a_level)
         : object_class(bc)
         , layout_class(tc)
         , base(b)
         , connection_slot_allocator(csa)
         , dynamic_delete_func(a_dynamic_delete_func)
+        , level(a_level)
     {
         o_assert((bc == nullptr AND b == nullptr) OR dynamic_delete_func);
     }
@@ -375,13 +392,15 @@ struct rtti_data
     void*                           base;
     connection::slot_pool*          connection_slot_allocator;
     dynamic_delete_func_t           dynamic_delete_func;
+    size_t                          level;
 };
 
 #include "data.inl"
 #include "object.inl"
 
- o_export inline const phantom::rtti_data&            rttiDataOf(void const* in);
- o_export inline void                                 rttiLayoutOf(void const* in, vector<void*>& out);
+o_export inline const phantom::rtti_data&               rttiDataOf(void const* a_pThis, size_t a_uiLevel);
+o_export inline const phantom::rtti_data&               rttiDataOf(void const* a_pThis, reflection::Class* a_pLayoutClass);
+ o_export inline void                                   rttiLayoutOf(void const* a_pThis, vector<void*>& out, size_t a_uiLevel);
 
 o_export void default_assert(const character* expression, const character* message, const char* file, uint line);
 o_export void default_warning(const character* expression, const character* message, const char* file, uint line);
@@ -463,13 +482,78 @@ o_forceinline void                              registerTypedef(const char* a_st
     phantom::reflection::typedef_registrer<t_Ty>(a_strTypedef);
 }
 
-o_export boolean           canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
-o_export connection::slot const* connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
-o_export connection::slot const* disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
-o_export connection::slot const* connect(void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction);
-o_export connection::slot const* disconnect(void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction);
-o_export connection::slot const* tryConnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
-o_export connection::slot const* tryDisconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
+o_export boolean                 canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
+
+o_export connection::slot const*    connect(const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction);
+o_export connection::slot const*    disconnect(const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction);
+o_export connection::slot const*    connect(const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction);
+o_export connection::slot const*    disconnect(const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction);
+o_export connection::slot const*    tryConnect(const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction);
+o_export connection::slot const*    tryDisconnect(const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction);
+o_export boolean                    areConnected( const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction );
+
+template<typename t_Sender, typename t_Receiver>
+connection::slot const*             connect(t_Sender* a_pSender, const character* a_pSignal, t_Receiver* a_pReceiver, const character* a_pMemberFunction)
+{
+    reflection::Type* pSenderType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    reflection::Type* pReceiverType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    return connect(rttiDataOf(a_pSender, pSenderType ? pSenderType->asClass() : nullptr), a_pSignal
+                 , rttiDataOf(a_pReceiver, pReceiverType ? pReceiverType->asClass() : nullptr), a_pMemberFunction);
+}
+
+template<typename t_Sender, typename t_Receiver>
+connection::slot const*             disconnect(t_Sender* a_pSender, const character* a_pSignal, t_Receiver* a_pReceiver, const character* a_pMemberFunction)
+{
+    reflection::Type* pSenderType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    reflection::Type* pReceiverType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    return disconnect(rttiDataOf(a_pSender, pSenderType ? pSenderType->asClass() : nullptr), a_pSignal
+                    , rttiDataOf(a_pReceiver, pReceiverType ? pReceiverType->asClass() : nullptr), a_pMemberFunction);
+}
+
+template<typename t_Sender, typename t_Receiver>
+connection::slot const*             connect(t_Sender* a_pSender, phantom::reflection::Signal* a_pSignal, t_Receiver* a_pReceiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction)
+{
+    reflection::Type* pSenderType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    reflection::Type* pReceiverType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    return connect(rttiDataOf(a_pSender, pSenderType ? pSenderType->asClass() : nullptr), a_pSignal
+                 , rttiDataOf(a_pReceiver, pReceiverType ? pReceiverType->asClass() : nullptr), a_pMemberFunction);
+}
+
+template<typename t_Sender, typename t_Receiver>
+connection::slot const*             disconnect(t_Sender* a_pSender, phantom::reflection::Signal* a_pSignal, t_Receiver* a_pReceiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction)
+{
+    reflection::Type* pSenderType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    reflection::Type* pReceiverType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    return disconnect(rttiDataOf(a_pSender, pSenderType ? pSenderType->asClass() : nullptr), a_pSignal
+                    , rttiDataOf(a_pReceiver, pReceiverType ? pReceiverType->asClass() : nullptr), a_pMemberFunction);
+}
+
+template<typename t_Sender, typename t_Receiver>
+connection::slot const*             tryConnect(t_Sender* a_pSender, const character* a_pSignal, t_Receiver* a_pReceiver, const character* a_pMemberFunction)
+{
+    reflection::Type* pSenderType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    reflection::Type* pReceiverType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    return tryConnect(rttiDataOf(a_pSender, pSenderType ? pSenderType->asClass() : nullptr), a_pSignal
+                    , rttiDataOf(a_pReceiver, pReceiverType ? pReceiverType->asClass() : nullptr), a_pMemberFunction);
+}
+
+template<typename t_Sender, typename t_Receiver>
+connection::slot const*             tryDisconnect(t_Sender* a_pSender, const character* a_pSignal, t_Receiver* a_pReceiver, const character* a_pMemberFunction)
+{
+    reflection::Type* pSenderType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    reflection::Type* pReceiverType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    return tryDisconnect(rttiDataOf(a_pSender, pSenderType ? pSenderType->asClass() : nullptr), a_pSignal
+                       , rttiDataOf(a_pReceiver, pReceiverType ? pReceiverType->asClass() : nullptr), a_pMemberFunction);
+}
+
+template<typename t_Sender, typename t_Receiver>
+boolean                             areConnected(t_Sender* a_pSender, const character* a_pSignal, t_Receiver* a_pReceiver, const character* a_pMemberFunction )
+{
+    reflection::Type* pSenderType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    reflection::Type* pReceiverType = phantom::typeOf<typename boost::remove_const<t_Sender>::type>();
+    return areConnected(rttiDataOf(a_pSender, pSenderType ? pSenderType->asClass() : nullptr), a_pSignal
+                      , rttiDataOf(a_pReceiver, pReceiverType ? pReceiverType->asClass() : nullptr), a_pMemberFunction);
+}
 
 o_export void       assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const character* e, const character* m , const char* f , uint l);
 o_export void       warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
@@ -561,7 +645,7 @@ public:
     typedef void (*message_report_func)(const character*, const character*, const char*, uint);
     typedef void (*log_func)(int level, const char* file, uint line, const char* message, va_list arglist);
 
-    typedef phantom::unordered_map<void const*, phantom::rtti_data>		rtti_data_map;
+    typedef phantom::unordered_map<void const*, phantom::vector<rtti_data>>		rtti_data_map;
 	typedef phantom::unordered_map<string, size_t>						element_map;
 	typedef phantom::vector<phantom::reflection::LanguageElement*>		element_container;
     typedef phantom::vector<string>										meta_data_container;
@@ -586,12 +670,13 @@ public:
     friend o_export void        dynamicPoolDeallocate(size_t s, void* a_pAddress o_memory_stat_append_parameters);
     friend o_export void*       dynamicPoolAllocate(size_t s, size_t count o_memory_stat_append_parameters);
     friend o_export void        dynamicPoolDeallocate(size_t s, void* a_pAddress, size_t count o_memory_stat_append_parameters);
-    friend o_export connection::slot const* connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
-    friend o_export connection::slot const* connect(void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction);
-    friend o_export connection::slot const* disconnect(void* a_pSender, phantom::reflection::Signal* a_pSignal, void* a_pReceiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction);
-    friend o_export connection::slot const* disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
-    friend o_export connection::slot const* tryConnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
-    friend o_export connection::slot const* tryDisconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
+    friend o_export connection::slot const* connect(const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction);
+    friend o_export connection::slot const* connect(const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction);
+    friend o_export connection::slot const* disconnect(const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction);
+    friend o_export connection::slot const* disconnect(const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction);
+    friend o_export connection::slot const* tryConnect(const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction);
+    friend o_export connection::slot const* tryDisconnect(const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction);
+    friend o_export boolean                 areConnected(const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction);
     friend o_export void assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const character* e, const character* m , const char* f , uint l);
     friend o_export void warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
     friend o_export void error BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
@@ -600,6 +685,9 @@ public:
     friend o_export void pushModule(Module* a_pModule);
     friend o_export Module* popModule();
     friend o_export Module* currentModule();
+    friend o_export void setCurrentDataBase(serialization::DataBase*);
+    friend o_export serialization::DataBase* getCurrentDataBase();
+    friend o_export ModuleLoader* moduleLoader();
     friend o_export Module* moduleByName(const string& a_strName);
     friend o_export Module* moduleByFileName(const string& a_strFileName);
     friend o_export map<string, Module*>::const_iterator beginModules();
@@ -648,15 +736,16 @@ public:
     friend phantom::reflection::DataPointerType*                pointerTypeOf();
 
 
-    friend o_export void*                                       baseOf(void const* in);
-    friend o_export phantom::reflection::Class*                 classOf(void const* in);
-    friend o_export phantom::reflection::Class*                 classAt(void const* in);
-    friend o_export const phantom::rtti_data&                   rttiDataOf(void const* in);
-    friend o_export void                                        rttiLayoutOf(void const* in, vector<void*>& out);
-    friend o_export void                                        dynamicDelete(void* in o_memory_stat_append_parameters);
+    friend o_export void*                                       baseOf(void const* a_pThis, size_t a_uiLevel);
+    friend o_export phantom::reflection::Class*                 classOf(void const* a_pThis, size_t a_uiLevel);
+    friend o_export phantom::reflection::Class*                 classAt(void const* a_pThis, size_t a_uiLevel);
+    friend o_export const phantom::rtti_data&                   rttiDataOf(void const* a_pThis, size_t a_uiLevel);
+    friend o_export const phantom::rtti_data&                   rttiDataOf(void const* a_pThis, reflection::Class* a_pLayoutClass);
+    friend o_export void                                        rttiLayoutOf(void const* a_pThis, vector<void*>& out, size_t a_uiLevel);
+    friend o_export void                                        dynamicDelete(void* a_pThis o_memory_stat_append_parameters);
     friend o_export void                                        replaceRttiData(void const* ptr, const rtti_data& data);
     friend o_export void                                        addRttiData(void const* ptr, const rtti_data& data);
-    friend o_export void                                        removeRttiData(void const* ptr);
+    friend o_export void                                        removeRttiData(void const* ptr, size_t a_uiLevel);
 
 
     template<typename t_OutTy>
@@ -670,7 +759,7 @@ private:
     static void    setState(EState s) ;
     static connection::slot const*    internalConnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction );
     static connection::slot const*    internalDisconnect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
-
+    static boolean                    areConnected( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
     struct type_sorter_by_build_order
     {
         bool        operator()(reflection::Type* one, reflection::Type* another);
@@ -690,8 +779,10 @@ private:
     static log_func		            m_log_func;
     static Phantom*					m_instance;
 	static element_container*		m_elements;
-    static Module*      m_module;
-    static map<string, Module*> m_modules;
+    static Module*                  m_module;
+    static ModuleLoader*            m_module_loader;
+    static serialization::DataBase* m_current_data_base;
+    static map<string, Module*>     m_modules;
 
     vector<string>                  m_meta_data_names;
     static map<string, reflection::SourceFile*> m_SourceFiles;
@@ -795,43 +886,54 @@ o_forceinline void                                   staticPoolDeallocateN(void*
 
 o_export phantom::reflection::Signature*             createSignature(const char* a_pText, phantom::reflection::TemplateSpecialization* a_pTemplateSpecialization, phantom::reflection::LanguageElement* a_pScope);
 
-o_export inline void*                                baseOf(void const* in)
+o_export inline void*                                baseOf(void const* a_pThis, size_t a_uiLevel = 0)
 {
-    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
-    return (found != phantom::Phantom::m_rtti_data_map->end())?found->second.base:const_cast<void*>(in);
+    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(a_pThis);
+    return (found != phantom::Phantom::m_rtti_data_map->end())
+        ? found->second[a_uiLevel].base
+        : const_cast<void*>(a_pThis);
+    
 }
 
-o_export inline phantom::reflection::Class*          classOf(void const* in)
+o_export inline phantom::reflection::Class*          classOf(void const* a_pThis, size_t a_uiLevel)
 {
-    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
-    return (found != phantom::Phantom::m_rtti_data_map->end())?found->second.object_class:NULL;
+    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(a_pThis);
+    return (found != phantom::Phantom::m_rtti_data_map->end())
+                ? found->second[a_uiLevel].object_class
+                : nullptr;
 }
 
-o_export inline phantom::reflection::Class*          classAt(void const* in)
+o_export inline phantom::reflection::Class*          classAt(void const* a_pThis, size_t a_uiLevel)
 {
-    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
-    return (found != phantom::Phantom::m_rtti_data_map->end())?found->second.layout_class:NULL;
+    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(a_pThis);
+    return (found != phantom::Phantom::m_rtti_data_map->end())
+                ? found->second[a_uiLevel].layout_class
+                : nullptr;
 }
 
-o_export inline const phantom::rtti_data&            rttiDataOf(void const* in)
+o_export inline const phantom::rtti_data&            rttiDataOf(void const* a_pThis, size_t a_uiLevel)
 {
-    static phantom::rtti_data null_info(0,0,0,0,0);
-    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
-    return (found != phantom::Phantom::m_rtti_data_map->end())?found->second:null_info;
+    static phantom::rtti_data null_info(0,0,0,0,0,0);
+    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(a_pThis);
+    return (found != phantom::Phantom::m_rtti_data_map->end())
+                ? (a_uiLevel < found->second.size())
+                    ? found->second[a_uiLevel]
+                    : null_info
+                : null_info;
 }
 
-o_export void                                        rttiLayoutOf(void const* in, vector<void*>& out)
+o_export void                                        rttiLayoutOf(void const* a_pThis, vector<void*>& out, size_t a_uiLevel)
 {
-    static phantom::rtti_data null_info(0,0,0,0,0);
-    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
+    static phantom::rtti_data null_info(0,0,0,0,0,0);
+    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(a_pThis);
     if(found != phantom::Phantom::m_rtti_data_map->end())
     {
-        void* base_address = found->second.base;
+        void* base_address = found->second[a_uiLevel].base;
         auto it = phantom::Phantom::m_rtti_data_map->begin();
         auto end = phantom::Phantom::m_rtti_data_map->end();
         for(;it!=end;++it)
         {
-            if(it->second.base == base_address)
+            if(it->second[a_uiLevel].base == base_address)
             {
                 out.push_back((void*)it->first);
             }
@@ -839,23 +941,36 @@ o_export void                                        rttiLayoutOf(void const* in
     }
 }
 
-o_export inline void                                        addRttiData(void const* in, const rtti_data& data)
+o_export inline void                                        addRttiData(void const* a_pThis, const rtti_data& a_RttiData)
 {
-    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
-    o_assert(found == phantom::Phantom::m_rtti_data_map->end());
-    (*phantom::Phantom::m_rtti_data_map)[in] = data;
+    auto& rtti_datas = (*Phantom::m_rtti_data_map)[a_pThis];
+    o_assert(a_RttiData.level >= rtti_datas.size());
+    rtti_datas.resize(a_RttiData.level+1);
+    rtti_datas[a_RttiData.level] = a_RttiData;
 }
-o_export inline void                                        replaceRttiData(void const* in, const rtti_data& data)
+
+o_export inline void                                        replaceRttiData(void const* a_pThis, const rtti_data& a_RttiData)
 {
-    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
+    phantom::Phantom::rtti_data_map::iterator found = phantom::Phantom::m_rtti_data_map->find(a_pThis);
     o_assert(found != phantom::Phantom::m_rtti_data_map->end());
-    (*phantom::Phantom::m_rtti_data_map)[in] = data;
+    auto& levels = found->second;
+    o_assert(a_RttiData.level < levels.size());
+    levels[a_RttiData.level] = a_RttiData;
 }
-o_export inline void                                        removeRttiData(void const* in)
+
+o_export inline void                                        removeRttiData(void const* a_pThis, size_t a_uiLevel)
 {
-    phantom::Phantom::rtti_data_map::const_iterator found = phantom::Phantom::m_rtti_data_map->find(in);
-    o_assert(found != phantom::Phantom::m_rtti_data_map->end());
-    phantom::Phantom::m_rtti_data_map->erase(found);
+    phantom::Phantom::rtti_data_map::iterator found = phantom::Phantom::m_rtti_data_map->find(a_pThis);
+    o_assert((found != phantom::Phantom::m_rtti_data_map->end() 
+                && (found->second.size()-1) == a_uiLevel), "remove order must be reversed of add order (LIFO/Stack)");
+    found->second.pop_back();
+    while(!found->second.empty() && found->second.back().isNull())
+        found->second.pop_back();
+
+    if(found->second.empty())
+    {
+        phantom::Phantom::m_rtti_data_map->erase(found);
+    }
 }
 
 template<typename t_Ty, typename t_ITy>
@@ -960,11 +1075,12 @@ inline void        phantom::data::destroy()
 #include "phantom/reflection/ConstArrayType.h"
 #include "phantom/reflection/ValueMember.h"
 #include "phantom/reflection/Constant.h"
+#include "phantom/reflection/NumericConstant.h"
 #include "phantom/reflection/Variable.h"
-#include "phantom/util/Iterator.h"
-#include "phantom/reflection/IteratorConstant.h"
-#include "phantom/reflection/IteratorVariable.h"
-#include "phantom/reflection/ValueMemberBinding.h"
+#include "phantom/reflection/Addressable.h"
+#include "phantom/reflection/Constant.h"
+#include "phantom/reflection/Iterator.h"
+#include "phantom/reflection/ConstIterator.h"
 #include "phantom/reflection/Subroutine.h"
 #include "phantom/reflection/Constructor.h"
 #include "phantom/reflection/Function.h"
@@ -1006,7 +1122,7 @@ o_forceinline void*   phantom::rtti_data::cast(phantom::reflection::Class* a_pTa
 #include "phantom/reflection/PODStruct.h"
 
 
-#include "phantom/reflection/native/TConstant.h"
+#include "phantom/reflection/native/TNumericConstant.h"
 
 #include "phantom/def_phantom_0_2.inl"
 
@@ -1023,6 +1139,31 @@ o_forceinline void*   phantom::rtti_data::cast(phantom::reflection::Class* a_pTa
 #include "phantom/reflection/InstanceMemberFunction.h"
 #include "phantom/reflection/StaticMemberFunction.h"
 
+
+o_namespace_begin(phantom, reflection, native)
+
+template<typename t_Ty>
+struct addressable_wrapper
+{
+    static void*   address(t_Ty call) { return nullptr; }
+    enum { value = false };
+};
+
+template<typename t_Ty>
+struct addressable_wrapper<t_Ty&>
+{
+    static void*   address(t_Ty& call) { return (void*)&call; }
+    enum { value = true };
+};
+
+template<typename t_Ty>
+struct addressable_wrapper<t_Ty const&>
+{
+    static void*   address(t_Ty const& call) { return nullptr; }
+    enum { value = false };
+};
+
+o_namespace_end(phantom, reflection, native)
 
 #include "phantom/reflection/native/TNativeStaticMemberFunctionBase.h"
 #include "phantom/reflection/native/TNativeStaticMemberFunction.h"
@@ -1055,7 +1196,6 @@ o_forceinline void*   phantom::rtti_data::cast(phantom::reflection::Class* a_pTa
 #include "phantom/reflection/native/TNativeDataMemberProvider.h"
 #include "phantom/util/Comparator.h"
 
-#include "phantom/reflection/SubValueMember.h"
 #include "phantom/reflection/TemplateSpecialization.h"
 #include "phantom/reflection/Signal.h"
 #include "phantom/reflection/native/TNativeSignalBase.h"

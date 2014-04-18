@@ -55,6 +55,7 @@ public:
 
     void addLanguageElement(reflection::LanguageElement* a_pLanguageElement) ;
     void removeLanguageElement(reflection::LanguageElement* a_pLanguageElement) ;
+    void replaceLanguageElement(reflection::LanguageElement* a_pOldLanguageElement, reflection::LanguageElement* a_pNewLanguageElement) ;
     bool hasLanguageElement(reflection::LanguageElement* a_pLanguageElement) const;
 
     vector<reflection::LanguageElement*>::const_iterator beginLanguageElements() { return m_LanguageElements.begin(); }
@@ -72,10 +73,12 @@ public:
 protected:
     inline phantom::signal_t elementAdded(reflection::LanguageElement*) const;
     inline phantom::signal_t elementRemoved(reflection::LanguageElement*) const;
+    inline phantom::signal_t elementReplaced(reflection::LanguageElement* a_pOld, reflection::LanguageElement* a_pNew) const;
 
 protected:
     mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_elementAdded;
     mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_elementRemoved;
+    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_elementReplaced;
     Module*                                 m_pParentModule;
     string                                  m_strName;
     string                                  m_strFileName;

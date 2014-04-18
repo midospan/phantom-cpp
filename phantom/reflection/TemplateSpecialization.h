@@ -73,7 +73,7 @@ public:
 
     string              getQualifiedName() const;
 
-    boolean             matches(template_specialization const* a_TemplateSpecialization) const;
+    boolean             matches(const vector<TemplateElement*>* a_TemplateSpecialization) const;
   
     Template*           getTemplate() const { return m_pTemplate; }
 

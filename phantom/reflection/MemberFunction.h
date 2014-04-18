@@ -43,11 +43,16 @@ o_namespace_begin(phantom, reflection)
 
 class o_export MemberFunction : public Member
 {
-    
 
 public:
-    virtual void    call( void* a_pCallerAddress, void** a_pParams) const = 0;
-    virtual void    call( void* a_pCallerAddress, void** a_pParams, void* a_pReturnAddress) const = 0;
+    virtual void    call( void* a_pCallerAddress, void** a_pParams) const 
+    {
+        asSubroutine()->call(a_pCallerAddress, a_pParams);
+    }
+    virtual void    call( void* a_pCallerAddress, void** a_pParams, void* a_pReturnAddress) const 
+    {
+        asSubroutine()->call(a_pCallerAddress, a_pParams, a_pReturnAddress);
+    }
 
     virtual InstanceMemberFunction* asInstanceMemberFunction() const { return nullptr; }
     virtual StaticMemberFunction*   asStaticMemberFunction() const { return nullptr; }

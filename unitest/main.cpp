@@ -32,6 +32,7 @@
 */
 
 #include "phantom/phantom.h"
+#include "phantom/ModuleLoader.h"
 #include "phantom/math/math.h"
 #include <gtest/gtest.h>
 #include <phantom/unitest/RootClass.h>
@@ -41,12 +42,14 @@
 #include <phantom/serialization/XmlFileTreeDataBase.h>
 #include <phantom/serialization/Node.h>
 #include <boost/property_tree_custom/xml_parser.hpp>
-#include <phantom/reflection/detail/element_finder_spirit.h>
+#include <phantom/reflection/Expression.h>
 #include <phantom/variant.h>
 #include <phantom/std/map.h>
 #include <phantom/std/string.h>
 #include <phantom/std/vector.h>
 #include <phantom/std/vector.hxx>
+#include <phantom/util/composition.h>
+#include <phantom/util/composition.hxx>
 #include <windows.h>
 
 using namespace sc2;
@@ -417,6 +420,54 @@ o_static_assert(phantom::has_module<phantom::map<phantom::string, int>>::value);
 
 phantom::reflection::Type* type_with_hxx = phantom::typeOf<phantom::map<phantom::string, int>>();
 
+class OwnerTest;
+class ComponentTest 
+{
+    friend class OwnerTest;
+public:
+    ComponentTest()
+        : m_pOwnerTest(nullptr) 
+    {
+    }
+
+protected:
+    void setOwnerTest(OwnerTest* a_pO) { m_pOwnerTest = a_pO; }
+    OwnerTest* getOwnerTest() const { return m_pOwnerTest; }
+    OwnerTest* m_pOwnerTest;
+};
+
+class OwnerTest 
+{
+public:
+    OwnerTest() 
+        : m_ComponentTests(this, &ComponentTest::setOwnerTest, &ComponentTest::getOwnerTest)
+    {
+
+    }
+
+    phantom::composition<ComponentTest> m_ComponentTests;
+};
+
+o_class(ComponentTest)
+{
+    o_reflection
+    {
+    };
+};
+o_register(ComponentTest);
+
+o_class(OwnerTest)
+{
+    o_reflection
+    {
+        o_data_member(phantom::composition<ComponentTest>, m_ComponentTests, o_no_range, o_public);
+    };
+};
+o_register(OwnerTest);
+o_registerNTI((phantom), composition, (ComponentTest));
+
+o_main;
+
 int main(int argc, char **argv) 
 {
     //o_assert(type_with_hxx == type_without_hxx);
@@ -426,7 +477,7 @@ int main(int argc, char **argv)
     char moduleFileName[512];
     GetModuleFileName(GetModuleHandle(NULL), moduleFileName, 512);
 
-    phantom::installReflection("unitest", moduleFileName, (size_t)GetModuleHandle(NULL));
+    //phantom::installReflection("unitest", moduleFileName, (size_t)GetModuleHandle(NULL));
 
     phantom::reflection::Type* pFloat4Type = phantom::typeByName("float[4]");
     o_assert(pFloat4Type);
@@ -446,6 +497,39 @@ int main(int argc, char **argv)
     FreeLibrary(plugin);
 
     // StateMachineTest
+
+    OwnerTest* pOwnerTest0 = o_new(OwnerTest);
+    
+    OwnerTest* pOwnerTest1 = o_new(OwnerTest);
+    
+    phantom::reflection::CompositionClass* pCompositionClass = phantom::as<phantom::reflection::CompositionClass*>(phantom::classOf(&pOwnerTest0->m_ComponentTests));
+    o_assert(pCompositionClass->getAboutToBeInsertedSignal());
+    o_assert(pCompositionClass->getInsertedSignal() );
+    o_assert(pCompositionClass->getAboutToBeRemovedSignal() );
+    o_assert(pCompositionClass->getRemovedSignal() );          
+    o_assert(pCompositionClass->getAboutToBeReplacedSignal());
+    o_assert(pCompositionClass->getReplacedSignal());
+    o_assert(pCompositionClass->getAboutToBeMovedSignal() );   
+    o_assert(pCompositionClass->getMovedSignal() );            
+    o_assert(pCompositionClass->getAboutToBeSwappedSignal() ); 
+    o_assert(pCompositionClass->getSwappedSignal() );          
+
+
+    o_assert(pCompositionClass);
+
+    o_connect(&pOwnerTest0->m_ComponentTests, removed(size_t, ComponentTest*), &pOwnerTest1->m_ComponentTests, insert(size_t, ComponentTest*));
+
+    ComponentTest* pComponentTest = o_new(ComponentTest);
+
+    pCompositionClass->add(&pOwnerTest0->m_ComponentTests, &pComponentTest);
+
+    pOwnerTest0->m_ComponentTests.remove((size_t)0);
+
+    o_delete(ComponentTest) pOwnerTest1->m_ComponentTests.remove((size_t)0);
+
+    o_delete(OwnerTest) pOwnerTest0;
+
+    o_delete(OwnerTest) pOwnerTest1;
 
     unitest::StateMachineTest* pStateMachineTest = o_new(StateMachineTest);
     o_statemachine_post(pStateMachineTest, AtoA);
@@ -471,7 +555,7 @@ int main(int argc, char **argv)
 
     phantom::math::vector3<float> vec3_0(1.,2.,3.);
     phantom::math::vector3<float> vec3_1(3.,2.,1.);
-    float vec3_2 = phantom::math::angle(vec3_0, vec3_1);
+    float vec3_2 = phantom::math::angleTo(vec3_0, vec3_1);
     float flt_eps = phantom::math::epsilon<float>();
     double dbl_eps = phantom::math::epsilon<double>();
 
@@ -500,12 +584,24 @@ int main(int argc, char **argv)
     phantom::reflection::LanguageElement* pEnumValueN = phantom::elementByName("phantom::prout::TestNamespace2");
     phantom::reflection::LanguageElement* pEnumValueC = phantom::elementByName("GlobalEmbedded::TestGlobalEmbedded0");
 
+    phantom::math::vector2<float>* vector2_float = o_new(phantom::math::vector2<float>);
+
+    phantom::string ptr_hex = phantom::lexical_cast<phantom::string>((void*)vector2_float);
+
+    auto vector2_float_expression = phantom::elementByName("&"+ptr_hex+"[TestGlobal1]")->asExpression();
+
+    float* ref_float_value = 0;
+
+    vector2_float_expression->getValue(&ref_float_value);
+
+    o_assert(ref_float_value == &(vector2_float->y));
+
     o_static_assert(phantom::has_initializer_member_functions_cascade<Marine>::value);
   
 //     phantom::reflection::LanguageElement* pTypeAddedSignal 
 //         = phantom::reflection::detail::element_finder_spirit::find("phantom::reflection::Namespace::typeAdded(phantom::reflection::Type*)");
     phantom::reflection::LanguageElement* pPhantomVector 
-        = phantom::reflection::detail::element_finder_spirit::find("std::vector<int, std::allocator<int>>");
+        = phantom::elementByName("std::vector<int, std::allocator<int>>");
 
 
     //phantom::reflection::Type* pType = phantom::typeOf<phantom::string>();
@@ -681,7 +777,7 @@ int main(int argc, char **argv)
 
     int result = RUN_ALL_TESTS();
 
-    phantom::uninstallReflection("unitest");
+    //phantom::uninstallReflection("unitest");
 
     return result;
 }

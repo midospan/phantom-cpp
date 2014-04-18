@@ -100,7 +100,7 @@ public:
 
 
 #define o_declare_flags(FlagsName, Enum)\
-    typedef util::flags<Enum> FlagsName;
+    typedef phantom::flags<Enum> FlagsName;
 
 #define o_declare_incompatible_flags(flags) \
     inline incompatible_flag operator|(flags::enum_type f1, int f2) \

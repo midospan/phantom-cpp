@@ -1,5 +1,5 @@
 
-// Implementing some member_functions which depend on TConstant
+// Implementing some member_functions which depend on TNumericConstant
 
 o_namespace_begin(phantom)
 
@@ -38,7 +38,7 @@ template<ulonglong value, int t_counter>
 phantom::reflection::TemplateElement*
     reflection::detail::template_signature_parameter_counter_enum<value, t_counter>::object()
 {
-    return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TConstant<ulonglong>)("", value);
+    return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<ulonglong>)("", value);
 }
 
 o_namespace_end(phantom)

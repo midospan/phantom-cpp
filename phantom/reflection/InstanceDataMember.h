@@ -45,27 +45,25 @@ o_namespace_begin(phantom, reflection)
 
 class o_export InstanceDataMember : public ValueMember, public DataMember
 {
-
+    friend class Class;
 public:
     static Class* const metaType;
 
 public:
-    InstanceDataMember(const string& a_strName, Type* a_pContentType, Range* a_pRange, uint a_uiSerializationMask, bitfield a_uiModifiers = 0);
+    InstanceDataMember(const string& a_strName, Type* a_pValueType, size_t  a_uiOffset, Range* a_pRange, uint a_uiSerializationMask, bitfield a_uiModifiers = 0);
     o_destructor ~InstanceDataMember()
     {
 
     }
 
     Range*                  getRange() const { return ValueMember::getRange(); }
-    virtual size_t          getOffset() const = 0;
-    virtual void*           getAddress( void const* a_pObject ) const = 0;
+    inline size_t           getOffset() const { return m_uiOffset; }
+    virtual void*           getAddress( void const* a_pObject ) const { return (byte*)a_pObject + m_uiOffset; }
 
     // fast content type access
-    inline Type*            getContentType() const { return m_pContentType; }
+    Type*                   getValueType() const { return ValueMember::getValueType(); }
 
     // overloadings
-    virtual Type*           getValueType() const { return m_pContentType; }
-
     virtual    void         getValue(void const* a_pObject, void* dest) const = 0;
     virtual    void         setValue(void* a_pObject, void const* src) const = 0;
 
@@ -74,11 +72,17 @@ public:
     virtual StaticDataMember*   asStaticDataMember() const  { return nullptr; }
     virtual DataMember*         asDataMember() const { return const_cast<InstanceDataMember*>(this); }
 
+    virtual Expression*       createAccessExpression(Expression* a_pLeftExpression) const;
+
+    virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
+    
+    virtual void            fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const;
+
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
-    Type*    m_pContentType;
+    size_t  m_uiOffset;
 
 };
 o_namespace_end(phantom, reflection)

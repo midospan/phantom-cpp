@@ -138,7 +138,7 @@ struct TNumberLineEditorValidorCreator<float>
 {
     static QValidator* create(QObject* a_pParent, reflection::Range* a_pRange = nullptr)
     {
-        float min = std::numeric_limits<float>::min();
+        float min = std::numeric_limits<float>::lowest();
         float max = std::numeric_limits<float>::max();
         if(a_pRange)
         {
@@ -154,7 +154,7 @@ struct TNumberLineEditorValidorCreator<double>
 {
     static QValidator* create(QObject* a_pParent, reflection::Range* a_pRange = nullptr)
     {
-        double min = std::numeric_limits<double>::min();
+        double min = std::numeric_limits<double>::lowest();
         double max = std::numeric_limits<double>::max();
         if(a_pRange)
         {

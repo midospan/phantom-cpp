@@ -64,4 +64,33 @@ void JitInstanceDataMember::setValue( void* a_pObject, void const* src ) const
     m_pContentType->copy(reinterpret_cast<byte*>(a_pObject)+m_uiOffset, src);
 }
 
+void JitInstanceDataMember::compileSetFunction( JitInstanceMemberFunction* a_pMemberFunction, bool a_bReturnIfEquals )
+{
+    phantom::reflection::jit::jit_label label;
+
+    auto pThis = a_pMemberFunction->getThis();
+
+    auto newValue = a_pMemberFunction->getParameter(0);
+
+    if(a_bReturnIfEquals)
+    {
+        auto oldValue = a_pMemberFunction->loadRelative(pThis, getOffset());
+        auto testEquals = a_pMemberFunction->eq(oldValue, newValue);
+        a_pMemberFunction->branchIfNot(testEquals, &label);
+
+        a_pMemberFunction->defaultReturn();
+        // If destination
+        a_pMemberFunction->label(&label);
+    }
+
+    a_pMemberFunction->storeRelative(pThis, getOffset(), newValue);
+
+
+}
+
+void JitInstanceDataMember::compileGetFunction( JitInstanceMemberFunction* a_pMemberFunction )
+{
+    a_pMemberFunction->returnValue(a_pMemberFunction->loadRelative(a_pMemberFunction->getThis(), getOffset()));
+}
+
 o_namespace_end(phantom, reflection, jit)

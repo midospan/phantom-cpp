@@ -129,7 +129,7 @@ Namespace*        Namespace::findOrCreateNamespaceCascade(list<string>* a_Hierar
         pChildNamespace = o_static_new_alloc_and_construct_part(Namespace)(str);
         m_Namespaces.push_back(pChildNamespace); 
         addElement(pChildNamespace);
-        typeOf<Namespace>()->install(pChildNamespace);
+        typeOf<Namespace>()->install(pChildNamespace, 0);
         typeOf<Namespace>()->initialize(pChildNamespace);
         if(Phantom::getState() == Phantom::eState_Installed)
         {
@@ -481,10 +481,10 @@ Type* Namespace::getTypeByGuidCascade( uint a_uiGuid ) const
 	return NULL;
 }
 
-LanguageElement* Namespace::getElement(
-    const char* a_strName 
-    , template_specialization const* a_TemplateSpecialization
-    , function_signature const* a_FunctionSignature
+LanguageElement* Namespace::solveElement(
+    const string& a_strName 
+    , const vector<TemplateElement*>* a_TemplateSpecialization
+    , const vector<LanguageElement*>* a_FunctionSignature
     , bitfield a_Modifiers /*= 0*/) const 
 {
     if(a_TemplateSpecialization == nullptr OR a_TemplateSpecialization->empty())
@@ -502,7 +502,7 @@ LanguageElement* Namespace::getElement(
         }
         else if(pType->asEnum())
         {
-            LanguageElement* pEnumConstant = pType->getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
+            LanguageElement* pEnumConstant = pType->solveElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
             if(pEnumConstant) return pEnumConstant;
         }
     }
@@ -575,35 +575,6 @@ Namespace* Namespace::getNamespaceCascade( const string& a_strQualifiedName ) co
     words.erase( std::remove_if( words.begin(), words.end(), 
         boost::bind( &string::empty, _1 ) ), words.end() );
     return getNamespaceCascade(&words);
-}
-
-void Namespace::teardownMetaDataCascade( size_t count )
-{
-    {
-        type_container::const_iterator it = m_Types.begin();
-        type_container::const_iterator end = m_Types.end();
-        for(;it != end; ++it)
-        {
-            (*it)->teardownMetaDataCascade(count);
-        }
-    }
-    {
-        namespace_container::const_iterator it = m_Namespaces.begin();
-        namespace_container::const_iterator end = m_Namespaces.end();
-        for(;it != end; ++it)
-        {
-            (*it)->teardownMetaDataCascade(count);
-        }
-    }
-    {
-        function_container::const_iterator it = m_Functions.begin();
-        function_container::const_iterator end = m_Functions.end();
-        for(;it != end; ++it)
-        {
-            (*it)->teardownMetaDataCascade(count);
-        }
-    }
-    LanguageElement::teardownMetaDataCascade(count);
 }
 
 Template* Namespace::findOrCreateTemplate( const string& a_strName )

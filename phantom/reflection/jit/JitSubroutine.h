@@ -28,10 +28,10 @@ public:
     void endCompilation();
 
     virtual void    call( void* a_pThis, void** a_ppArgs ) const = 0;
-    virtual void	call( void* a_pThis, void** a_ppArgs, void* a_pReturnArea ) const = 0;
+    virtual void    call( void* a_pThis, void** a_ppArgs, void* a_pReturnArea ) const = 0;
 
-    virtual void	call( void** args, void* a_pReturnArea ) const = 0;
-    virtual void	call( void** args ) const = 0;
+    virtual void    call( void** args, void* a_pReturnArea ) const = 0;
+    virtual void    call( void** args ) const = 0;
     
     virtual void*   getClosurePointer() const;
 
@@ -126,7 +126,7 @@ public:
     jit_value   implicitCast(jit_value value, Type* dest );
     jit_value   cast(jit_value value, Type* dest );
     jit_value   convert(jit_value value, Type* dest);
-    jit_value   callSubroutine (JitSubroutine* a_pJitSubroutine, jit_value *args, uint a_uiArgCount, int flags);
+    jit_value   callSubroutine (Subroutine* a_pSubroutine, jit_value *args, uint a_uiArgCount, int flags);
     void        callSignal (JitSignal* a_pJitSignal, jit_value *args, uint a_uiArgCount, int flags);
     jit_value   callIndirect (jit_value value, Signature* signature, jit_value *args, uint a_uiArgCount, int flags);
     jit_value   callIndirectVtable (jit_value value, Signature* signature, jit_value *args, uint a_uiArgCount, int flags);

@@ -140,7 +140,14 @@ inline phantom::string lexical_cast<phantom::string, msvc_bug_lexical_cast_void_
 {
     char buffer[32] = "";
 #pragma warning(disable:4996)
+
+#if o_ARCHITECTURE == o_ARCHITECTURE_X86
     sprintf(buffer, "%08X", (size_t)arg);
+#elif o_ARCHITECTURE == o_ARCHITECTURE_X64
+    sprintf(buffer, "%016X", (size_t)arg);
+#else
+    sprintf(buffer, "%016X", (size_t)arg);
+#endif
 #pragma warning(default:4996)
     return buffer;
 }
@@ -372,7 +379,6 @@ enum default_installer_id
 {
     default_installer_none,
     default_installer_static_rtti_registration,
-    default_installer_dynamic_rtti_registration,
     default_installer_static_rtti_registration_and_statechart,
     no_installer,
 };
@@ -384,80 +390,51 @@ template<typename t_Ty>
 struct default_installer_helper<t_Ty, default_installer_static_rtti_registration>
 {
 public:
-    o_forceinline static void install(t_Ty* a_pInstance)
+    o_forceinline static void install(t_Ty* a_pInstance, size_t a_uiLevel)
     {
-        o_assert(!connection::slot_pool::hasAllocationController(a_pInstance));
-        connection::slot_pool& ac = connection::slot_pool::allocationController(a_pInstance);
         reflection::Class* pBaseClass = classOf<t_Ty>();
+        o_assert(!connection::slot_pool::hasAllocationController(a_pInstance, pBaseClass));
+        connection::slot_pool& ac = connection::slot_pool::allocationController(a_pInstance, pBaseClass);
+        phantom::addRttiData(a_pInstance, phantom::rtti_data(pBaseClass, pBaseClass, a_pInstance, &ac, &phantom::extension::dynamic_deleter<t_Ty>::dynamicDelete, a_uiLevel));
+        phantom::extension::rtti_data_registrer<t_Ty>::registerInfo(a_pInstance, a_pInstance, pBaseClass, &ac, &phantom::extension::dynamic_deleter<t_Ty>::dynamicDelete, a_uiLevel);
+        pBaseClass->installInstanceDataMembersCascade(a_pInstance, a_uiLevel);
         pBaseClass->registerInstance(a_pInstance);
-        (*phantom::Phantom::m_rtti_data_map)[a_pInstance] = phantom::rtti_data(pBaseClass, pBaseClass, a_pInstance, &ac, &phantom::extension::dynamic_deleter<t_Ty>::dynamicDelete);
-        phantom::extension::rtti_data_registrer<t_Ty>::registerInfo(a_pInstance, a_pInstance, classOf<t_Ty>(), &ac, &phantom::extension::dynamic_deleter<t_Ty>::dynamicDelete);
     }
      
-    o_forceinline static void uninstall(t_Ty* a_pInstance)
+    o_forceinline static void uninstall(t_Ty* a_pInstance, size_t a_uiLevel)
     {
-        phantom::Phantom::rtti_data_map::iterator found = phantom::Phantom::m_rtti_data_map->find(a_pInstance);
-        o_assert(found != phantom::Phantom::m_rtti_data_map->end());
         reflection::Class* pBaseClass = classOf<t_Ty>();
         pBaseClass->unregisterInstance(a_pInstance);
-        phantom::Phantom::m_rtti_data_map->erase(found);
-        phantom::extension::rtti_data_registrer<t_Ty>::unregisterInfo(a_pInstance);
-        connection::slot_pool::eraseAllocationController(a_pInstance);
+        pBaseClass->uninstallInstanceDataMembersCascade(a_pInstance, a_uiLevel);
+        removeRttiData(a_pInstance, a_uiLevel);
+        phantom::extension::rtti_data_registrer<t_Ty>::unregisterInfo(a_pInstance, a_uiLevel);
+        connection::slot_pool::eraseAllocationController(a_pInstance, pBaseClass);
     }
-    o_forceinline static void install(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize)
+    o_forceinline static void install(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel)
     {
+        reflection::Class* pBaseClass = classOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            o_assert(!connection::slot_pool::hasAllocationController(pChunk));
-            connection::slot_pool& ac = connection::slot_pool::allocationController(pChunk);
-            phantom::extension::rtti_data_registrer<t_Ty>::registerInfo(reinterpret_cast<t_Ty*>(pChunk), pChunk, classOf<t_Ty>(), &ac, &phantom::extension::dynamic_deleter<t_Ty>::dynamicDelete) ;
+            o_assert(!connection::slot_pool::hasAllocationController(pChunk, pBaseClass));
+            connection::slot_pool& ac = connection::slot_pool::allocationController(pChunk, pBaseClass);
+            phantom::addRttiData(pChunk, phantom::rtti_data(pBaseClass, pBaseClass, pChunk, &ac, &phantom::extension::dynamic_deleter<t_Ty>::dynamicDelete, a_uiLevel));
+            phantom::extension::rtti_data_registrer<t_Ty>::registerInfo(reinterpret_cast<t_Ty*>(pChunk), pChunk, pBaseClass, &ac, &phantom::extension::dynamic_deleter<t_Ty>::dynamicDelete, a_uiLevel) ;
+            pBaseClass->installInstanceDataMembersCascade(pChunk, a_uiLevel);
+            pBaseClass->registerInstance(pChunk);
         }
     }
-    o_forceinline static void uninstall(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize)
+    o_forceinline static void uninstall(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel)
     {
+        reflection::Class* pBaseClass = classOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            phantom::extension::rtti_data_registrer<t_Ty>::unregisterInfo(reinterpret_cast<t_Ty*>(pChunk)) ;
-            connection::slot_pool::eraseAllocationController(pChunk);
-        }
-    }
-};
-
-template<typename t_Ty>
-struct default_installer_helper<t_Ty, default_installer_dynamic_rtti_registration>
-{
-public:
-    o_forceinline static void install(t_Ty* a_pInstance)
-    {
-        o_assert(!connection::slot_pool::hasAllocationController(a_pInstance));
-        connection::slot_pool& ac = connection::slot_pool::allocationController(a_pInstance);
-        classOf<t_Ty>()->registerRtti(a_pInstance, a_pInstance, classOf<t_Ty>(), &ac, &phantom::extension::dynamic_deleter<t_Ty>::dynamicDelete);
-    }
-
-    o_forceinline static void uninstall(t_Ty* a_pInstance)
-    {
-        classOf<t_Ty>()->unregisterRtti(a_pInstance);
-        connection::slot_pool::eraseAllocationController(a_pInstance);
-    }
-    o_forceinline static void install(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize)
-    {
-        byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
-        for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
-        {
-            o_assert(!connection::slot_pool::hasAllocationController(pChunk));
-            connection::slot_pool& ac = connection::slot_pool::allocationController(pChunk);
-            classOf<t_Ty>()->registerRtti(reinterpret_cast<t_Ty*>(pChunk), pChunk, classOf<t_Ty>(), &ac, &phantom::extension::dynamic_deleter<t_Ty>::dynamicDelete) ;
-        }
-    }
-    o_forceinline static void uninstall(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize)
-    {
-        byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
-        for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
-        {
-            classOf<t_Ty>()->unregisterRtti(reinterpret_cast<t_Ty*>(pChunk));
-            connection::slot_pool::eraseAllocationController(pChunk);
+            pBaseClass->unregisterInstance(pChunk);
+            pBaseClass->uninstallInstanceDataMembersCascade(pChunk, a_uiLevel);
+            removeRttiData(pChunk, a_uiLevel);
+            phantom::extension::rtti_data_registrer<t_Ty>::unregisterInfo(reinterpret_cast<t_Ty*>(pChunk), a_uiLevel) ;
+            connection::slot_pool::eraseAllocationController(pChunk, pBaseClass);
         }
     }
 };
@@ -537,29 +514,29 @@ struct default_installer_helper<t_Ty, default_installer_static_rtti_registration
 {
     typedef phantom::state::native::state_machine_data<t_Ty> state_machine_data;
 public:
-    inline static void        install( t_Ty* a_pInstance )
+    inline static void        install( t_Ty* a_pInstance, size_t a_uiLevel )
     {
-        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::install(a_pInstance);
+        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::install(a_pInstance, a_uiLevel);
         phantom::state::base_state_machine_data* smdataptr = new (phantom::extension::allocator<state_machine_data>::allocate(o_memory_stat_insert_arguments)) state_machine_data(a_pInstance);
         smdata_installer_of<t_Ty>::install(a_pInstance, smdataptr);
     }
-    inline static void        uninstall( t_Ty* a_pInstance )
+    inline static void        uninstall( t_Ty* a_pInstance, size_t a_uiLevel )
     {
         phantom::extension::allocator<state_machine_data>::deallocate(
             (state_machine_data*)(
                 static_cast<o_NESTED_TYPE first_super_statechart_class_of<t_Ty>::type*>(a_pInstance)->PHANTOM_CODEGEN_m_smdataptr
             ) o_memory_stat_append_arguments
         );
-        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::uninstall(a_pInstance);
+        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::uninstall(a_pInstance, a_uiLevel);
 
     }
-    inline static void        install( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
+    inline static void        install( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel )
     {
-        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::install(a_pChunk, a_uiCount, a_uiChunkSectionSize);
+        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::install(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_uiLevel);
         // new (phantom::allocate<state_machine_data>(a_uiCount)) state_machine_data[a_uiCount];
         o_assert(false, "TODO : implement smdataptr installation for chunks");
     }
-    inline static void        uninstall( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
+    inline static void        uninstall( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel )
     {
         phantom::deallocate<state_machine_data>(
             (state_machine_data*)(
@@ -567,7 +544,7 @@ public:
             )
             , a_uiCount o_memory_stat_append_arguments
         );
-        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::uninstall(a_pChunk, a_uiCount, a_uiChunkSectionSize);
+        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::uninstall(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_uiLevel);
     }
 };
 
@@ -575,10 +552,10 @@ template<typename t_Ty>
 struct default_installer_helper<t_Ty, default_installer_none>
 {
 public:
-    o_forceinline static void install(t_Ty* a_pInstance) {  }
-    o_forceinline static void uninstall(t_Ty* a_pInstance) {  }
-    o_forceinline static void install(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize) {  }
-    o_forceinline static void uninstall(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize) {  }
+    o_forceinline static void install(t_Ty* a_pInstance, size_t a_uiLevel) {  }
+    o_forceinline static void uninstall(t_Ty* a_pInstance, size_t a_uiLevel) {  }
+    o_forceinline static void install(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel) {  }
+    o_forceinline static void uninstall(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel) {  }
 };
 
 /* initialization */
@@ -623,26 +600,34 @@ struct destroyed_signal_emitter;
 template<typename t_Ty, int t_super_class_count_of, bool t_declared>
 struct initialize_member_function_caller_super_
 {
-    static void apply(t_Ty* a_pInstance)
+    typedef typename super_class_of<t_Ty,t_super_class_count_of-1>::type super_class;
+    static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance)
     {
         // Call super first
-        initialize_member_function_caller<typename super_class_of<t_Ty,t_super_class_count_of-1>::type>::apply(a_pInstance);
+        initialize_member_function_caller<super_class>::apply(a_pClass->getSuperClass(t_super_class_count_of-1), a_pInstance);
 
         // Then the current class
-        initialize_member_function_caller_super_<t_Ty, t_super_class_count_of-1, t_declared>::apply(a_pInstance);
+        initialize_member_function_caller_super_<t_Ty, t_super_class_count_of-1, t_declared>::apply(a_pClass, a_pInstance);
     }
 };
 
 template<typename t_Ty>
 struct initialize_member_function_caller_super_<t_Ty, 0, false>
 {
-    inline static void apply(t_Ty* a_pInstance) {}
+    inline static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance) 
+    { 
+        a_pClass->initializeInstanceDataMembers(a_pInstance); 
+    }
 };
 
 template<typename t_Ty>
 struct initialize_member_function_caller_super_<t_Ty, 0, true>
 {
-    inline static void apply(t_Ty* a_pInstance) { static_cast<initialize_member_function_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_initialize(); }
+    inline static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance) 
+    { 
+        a_pClass->initializeInstanceDataMembers(a_pInstance);
+        static_cast<initialize_member_function_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_initialize(); 
+    }
 };
 
 template<typename t_Ty>
@@ -654,12 +639,18 @@ struct initialize_member_function_caller_friend_breaker : public t_Ty
 
 template<typename t_Ty, int t_super_class_count_of, bool t_has_initialize_member_function, bool t_declared>
 struct initialize_member_function_caller_helper_ 
-    : public initialize_member_function_caller_super_<t_Ty, t_super_class_count_of, t_declared> {};
+    : public initialize_member_function_caller_super_<t_Ty, t_super_class_count_of, t_declared> 
+{
+
+};
 
 template<typename t_Ty, int t_super_class_count_of, bool t_declared>
 struct initialize_member_function_caller_helper_<t_Ty, t_super_class_count_of, false, t_declared>
 {
-    inline static void apply(t_Ty* a_pInstance) {}
+    inline static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance) 
+    {
+        a_pClass->initializeInstanceDataMembers(a_pInstance);
+    }
 };
 
 template<typename t_Ty>
@@ -676,30 +667,34 @@ struct initialize_member_function_caller
 template<typename t_Ty, int t_super_class_count_of, bool t_declared>
 struct restore_member_function_caller_super_
 {
-    static restore_state apply(t_Ty* a_pInstance, uint filter, uint pass)
+    typedef typename super_class_of<t_Ty,t_super_class_count_of-1>::type super_class;
+
+    static restore_state apply(reflection::Class* a_pClass, t_Ty* a_pInstance, uint filter, uint pass)
     {
         // Call super first
-        restore_state restored = restore_member_function_caller<typename super_class_of<t_Ty,t_super_class_count_of-1>::type>::apply(a_pInstance, filter, pass);
-
+        restore_state result = restore_member_function_caller<super_class>::apply(a_pClass->getSuperClass(t_super_class_count_of-1), a_pInstance, filter, pass);
         // Then the current class
-        return combine_restore_states(restore_member_function_caller_super_<t_Ty, t_super_class_count_of-1, t_declared>::apply(a_pInstance, filter, pass) 
-            , restored);
+        return combine_restore_states(result, restore_member_function_caller_super_<t_Ty, t_super_class_count_of-1, t_declared>::apply(a_pClass, a_pInstance, filter, pass)); 
     }
 };
 
 template<typename t_Ty>
 struct restore_member_function_caller_super_<t_Ty, 0, true>
 {
-    inline static restore_state apply(t_Ty* a_pInstance, uint filter, uint pass) 
-    {
-        return static_cast<restore_member_function_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_restore(filter, pass); 
+    inline static restore_state apply(reflection::Class* a_pClass, t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass) 
+    {        
+        restore_state result = a_pClass->restoreInstanceDataMembers(a_pInstance, a_uiSerializationFlag, a_uiPass);
+        return combine_restore_states(result, static_cast<restore_member_function_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_restore(a_uiSerializationFlag, a_uiPass)); 
     }
 };
 
 template<typename t_Ty>
 struct restore_member_function_caller_super_<t_Ty, 0, false>
 {
-    inline static restore_state apply(t_Ty* a_pInstance, uint filter, uint pass) { return restore_complete; }
+    inline static restore_state apply(reflection::Class* a_pClass, t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass) 
+    { 
+        return a_pClass->restoreInstanceDataMembers(a_pInstance, a_uiSerializationFlag, a_uiPass); 
+    }
 };
 
 template<typename t_Ty>
@@ -710,12 +705,18 @@ struct restore_member_function_caller_friend_breaker : public t_Ty
 };
 
 template<typename t_Ty, int t_super_class_count_of, bool t_has_restore_member_function, bool t_declared>
-struct restore_member_function_caller_helper_ : public restore_member_function_caller_super_<t_Ty, t_super_class_count_of, t_declared> {};
+struct restore_member_function_caller_helper_ : public restore_member_function_caller_super_<t_Ty, t_super_class_count_of, t_declared> 
+{
+
+};
 
 template<typename t_Ty, int t_super_class_count_of, bool t_declared>
 struct restore_member_function_caller_helper_<t_Ty, t_super_class_count_of, false, t_declared>
 {
-    inline static restore_state apply(t_Ty* a_pInstance, uint filter, uint pass) { return restore_complete; }
+    inline static restore_state apply(reflection::Class* a_pClass, t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass) 
+    { 
+        return a_pClass->restoreInstanceDataMembers(a_pInstance, a_uiSerializationFlag, a_uiPass); 
+    }
 };
 
 template<typename t_Ty>
@@ -725,6 +726,7 @@ struct restore_member_function_caller
         , has_initializer_member_function_restore<t_Ty>::value
         , has_initializer_member_function_restore_declared<t_Ty>::value>
 {
+
 };
 
 // TERMINATE CALLER
@@ -732,23 +734,30 @@ struct restore_member_function_caller
 template<typename t_Ty, int t_super_class_count_of, bool t_declared>
 struct terminate_member_function_caller_super_
 {
-    static void apply(t_Ty* a_pInstance)
+    typedef typename super_class_of<t_Ty,t_super_class_count_of-1>::type super_class;
+    static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance)
     {
-        terminate_member_function_caller_super_<t_Ty, t_super_class_count_of-1, t_declared>::apply(a_pInstance);
-        terminate_member_function_caller<typename super_class_of<t_Ty,t_super_class_count_of-1>::type>::apply(a_pInstance);
+        // Current class first
+        terminate_member_function_caller_super_<t_Ty, t_super_class_count_of-1, t_declared>::apply(a_pClass, a_pInstance);
+        // Then super classes
+        terminate_member_function_caller<super_class>::apply(a_pClass->getSuperClass(t_super_class_count_of-1), a_pInstance);
     }
 };
 
 template<typename t_Ty>
 struct terminate_member_function_caller_super_<t_Ty, 0, true>
 {
-    inline static void apply(t_Ty* a_pInstance) { static_cast<terminate_member_function_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_terminate(); }
+    inline static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance) 
+    {
+        static_cast<terminate_member_function_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_terminate(); 
+        a_pClass->terminateInstanceDataMembers(a_pInstance); 
+    }
 };
 
 template<typename t_Ty>
 struct terminate_member_function_caller_super_<t_Ty, 0, false>
 {
-    inline static void apply(t_Ty* a_pInstance) {}
+    inline static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance) { a_pClass->terminateInstanceDataMembers(a_pInstance); }
 };
 
 template<typename t_Ty>
@@ -759,12 +768,15 @@ struct terminate_member_function_caller_friend_breaker : public t_Ty
 };
 
 template<typename t_Ty, int t_super_class_count_of, bool t_has_terminate_member_function, bool t_declared>
-struct terminate_member_function_caller_helper_ : public terminate_member_function_caller_super_<t_Ty, t_super_class_count_of, t_declared> {};
+struct terminate_member_function_caller_helper_ : public terminate_member_function_caller_super_<t_Ty, t_super_class_count_of, t_declared> 
+{
+
+};
 
 template<typename t_Ty, int t_super_class_count_of, bool t_declared>
 struct terminate_member_function_caller_helper_<t_Ty, t_super_class_count_of, false, t_declared>
 {
-    inline static void apply(t_Ty* a_pInstance) {}
+    inline static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance) { a_pClass->terminateInstanceDataMembers(a_pInstance); }
 };
 
 template<typename t_Ty>
@@ -794,7 +806,10 @@ struct destroyed_signal_emitter_super_
 template<typename t_Ty>
 struct destroyed_signal_emitter_super_<t_Ty, 0, true>
 {
-    inline static void apply(t_Ty* a_pInstance) { static_cast<destroyed_signal_emitter_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_destroyed(); }
+    inline static void apply(t_Ty* a_pInstance) 
+    { 
+        static_cast<destroyed_signal_emitter_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_destroyed(); 
+    }
 };
 
 template<typename t_Ty>
@@ -836,63 +851,69 @@ struct default_initializer_helper<t_Ty, default_initializer_member_function_and_
 {
     inline static void      initialize( t_Ty* a_pInstance )
     {
-        initialize_member_function_caller<t_Ty>::apply(a_pInstance);
+        auto pType = typeOf<t_Ty>();
+        initialize_member_function_caller<t_Ty>::apply(pType, a_pInstance);
 #if o__bool__use_kind_creation_signal
-        typeOf<t_Ty>()->fireKindCreated(a_pInstance);
+        pType->fireKindCreated(a_pInstance);
 #endif
     }
     inline static restore_state   restore( t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass )
     {
-        restore_state result = restore_member_function_caller<t_Ty>::apply(a_pInstance, a_uiSerializationFlag, a_uiPass); 
+        auto pType = typeOf<t_Ty>();
+        restore_state result = restore_member_function_caller<t_Ty>::apply(pType, a_pInstance, a_uiSerializationFlag, a_uiPass); 
 #if o__bool__use_kind_creation_signal
-        typeOf<t_Ty>()->fireKindCreated(a_pInstance);
+        pType->fireKindCreated(a_pInstance);
 #endif
         return result;
     }
     inline static void      terminate( t_Ty* a_pInstance )
     {
+        auto pClass = typeOf<t_Ty>();
 #if o__bool__use_kind_destruction_signal
-        typeOf<t_Ty>()->fireKindDestroyed(static_cast<t_Ty*>(a_pInstance));
+        pClass->fireKindDestroyed(static_cast<t_Ty*>(a_pInstance));
 #endif
 #if o__bool__use_destroyed_signal
         destroyed_signal_emitter<t_Ty>::apply(a_pInstance);
 #endif
-        terminate_member_function_caller<t_Ty>::apply(a_pInstance);
+        terminate_member_function_caller<t_Ty>::apply(pClass, a_pInstance);
     }
     inline static void        initialize( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
+        auto pClass = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            initialize_member_function_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
+            initialize_member_function_caller<t_Ty>::apply(pClass, reinterpret_cast<t_Ty*>(pChunk));
 #if o__bool__use_kind_creation_signal
-            typeOf<t_Ty>()->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
+            pClass->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
 #endif
         }
     }
     inline static void        terminate( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
+        auto pClass = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
 #if o__bool__use_kind_destruction_signal
-            typeOf<t_Ty>()->fireKindDestroyed(reinterpret_cast<t_Ty*>(pChunk));
+            pClass->fireKindDestroyed(reinterpret_cast<t_Ty*>(pChunk));
 #endif
 #if o__bool__use_destroyed_signal
             destroyed_signal_emitter<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
 #endif
-            terminate_member_function_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
+            terminate_member_function_caller<t_Ty>::apply(pClass, reinterpret_cast<t_Ty*>(pChunk));
         }
     }
     inline static restore_state   restore( t_Ty* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize  )
     {
+        auto pClass = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         restore_state result = restore_complete;
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            result = combine_restore_states(result, restore_member_function_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk), a_uiSerializationFlag, a_uiPass)); 
+            result = combine_restore_states(result, restore_member_function_caller<t_Ty>::apply(pClass, reinterpret_cast<t_Ty*>(pChunk), a_uiSerializationFlag, a_uiPass)); 
 #if o__bool__use_kind_creation_signal
-            typeOf<t_Ty>()->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
+            pClass->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
 #endif
         }
         return result;
@@ -905,45 +926,48 @@ struct default_initializer_helper<t_Ty, default_initializer_member_function_only
 {
     inline static void        initialize( t_Ty* a_pInstance )
     {
-        initialize_member_function_caller<t_Ty>::apply(a_pInstance);
+        initialize_member_function_caller<t_Ty>::apply(typeOf<t_Ty>(), a_pInstance);
     }
     inline static void        terminate( t_Ty* a_pInstance )
     {
 #if o__bool__use_destroyed_signal
         destroyed_signal_emitter<t_Ty>::apply(a_pInstance);
 #endif
-        terminate_member_function_caller<t_Ty>::apply(a_pInstance);
+        terminate_member_function_caller<t_Ty>::apply(typeOf<t_Ty>(), a_pInstance);
     }
     inline static restore_state   restore( t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass )
     {
-        return restore_member_function_caller<t_Ty>::apply(a_pInstance, a_uiSerializationFlag, a_uiPass); 
+        return restore_member_function_caller<t_Ty>::apply(typeOf<t_Ty>(), a_pInstance, a_uiSerializationFlag, a_uiPass); 
     }
     inline static void        initialize( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
+        auto pClass = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            initialize_member_function_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
+            initialize_member_function_caller<t_Ty>::apply(pClass, reinterpret_cast<t_Ty*>(pChunk));
         }
     }
     inline static void        terminate( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
+        auto pClass = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
 #if o__bool__use_destroyed_signal
             destroyed_signal_emitter<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
 #endif
-            terminate_member_function_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
+            terminate_member_function_caller<t_Ty>::apply(pClass, reinterpret_cast<t_Ty*>(pChunk));
         }
     }
     inline static restore_state   restore( t_Ty* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize  )
     {
+        auto pClass = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
-        restore_state result = true;
+        restore_state result = restore_complete;
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            result = combine_restore_states(result, restore_member_function_caller<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk), a_uiSerializationFlag, a_uiPass)); 
+            result = combine_restore_states(result, restore_member_function_caller<t_Ty>::apply(pClass, reinterpret_cast<t_Ty*>(pChunk), a_uiSerializationFlag, a_uiPass)); 
         }
         return result;
     }
@@ -968,32 +992,47 @@ struct default_initializer_helper<t_Ty, default_initializer_instanciation_notifi
     inline static void        terminate( t_Ty* a_pInstance )
     {
 #if o__bool__use_kind_destruction_signal
-        typeOf<t_Ty>()->fireKindDestroyed(static_cast<t_Ty*>(a_pInstance));
+        typeOf<t_Ty>()->fireKindDestroyed(a_pInstance);
+#endif
+#if o__bool__use_destroyed_signal
+        destroyed_signal_emitter<t_Ty>::apply(a_pInstance);
 #endif
     }
     inline static void        initialize( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
+        auto pType = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
 #if o__bool__use_kind_creation_signal
-            typeOf<t_Ty>()->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
+            pType->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
 #endif
         }
     }
     inline static void        terminate( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
+        auto pType = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
 #if o__bool__use_kind_destruction_signal
-            typeOf<t_Ty>()->fireKindDestroyed(reinterpret_cast<t_Ty*>(pChunk));
+            pType->fireKindDestroyed(reinterpret_cast<t_Ty*>(pChunk));
+#endif
+#if o__bool__use_destroyed_signal
+            destroyed_signal_emitter<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
 #endif
         }
     }
     inline static restore_state   restore( t_Ty* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize  )
     {
-        initialize(a_pChunk, a_uiCount, a_uiChunkSectionSize);
+        auto pType = typeOf<t_Ty>();
+        byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
+        for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
+        {
+#if o__bool__use_kind_creation_signal
+            pType->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
+#endif
+        }
         return restore_complete;
     }
 
@@ -2936,8 +2975,8 @@ template<typename t_Ty, uint t_superclasscount>
 struct rtti_data_registrer_helper_
 {
     template <typename> friend struct rtti_data_registrer;
-    static void registerInfo(t_Ty* a_pThis, void* a_pBase, phantom::reflection::Class* a_pBaseClass, connection::slot_pool* a_csac, dynamic_delete_func_t a_dynamic_delete_func) {}
-    static void unregisterInfo(t_Ty* a_pThis) {}
+    static void registerInfo(t_Ty* a_pThis, void* a_pBase, phantom::reflection::Class* a_pBaseClass, connection::slot_pool* a_csac, dynamic_delete_func_t a_dynamic_delete_func, size_t a_uiLevel) {}
+    static void unregisterInfo(t_Ty* a_pThis, size_t a_uiLevel) {}
 };
 
 template<typename t_Ty>
@@ -2945,33 +2984,33 @@ struct rtti_data_registrer_helper_<t_Ty, 0>
 {
     template <typename, uint > friend struct rtti_data_registrer_helper_;
     template <typename > friend struct rtti_data_registrer;
-    inline static void registerInfo(t_Ty* a_pThis, void* a_pBase, phantom::reflection::Class* a_pBaseClass, connection::slot_pool* a_csac, dynamic_delete_func_t a_dynamic_delete_func);
-    inline static void unregisterInfo(t_Ty* a_pThis);
+    inline static void registerInfo(t_Ty* a_pThis, void* a_pBase, phantom::reflection::Class* a_pBaseClass, connection::slot_pool* a_csac, dynamic_delete_func_t a_dynamic_delete_func, size_t a_uiLevel);
+    inline static void unregisterInfo(t_Ty* a_pThis, size_t a_uiLevel);
 };
 
 #define o_rtti_data_registrer_helper_register_0() 
-#define o_rtti_data_registrer_helper_register_1()  o_rtti_data_registrer_helper_register_0() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(0), phantom::super_class_count_of<o_traits_t_Ty_super_class(0)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
-#define o_rtti_data_registrer_helper_register_2()  o_rtti_data_registrer_helper_register_1() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(1), phantom::super_class_count_of<o_traits_t_Ty_super_class(1)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
-#define o_rtti_data_registrer_helper_register_3()  o_rtti_data_registrer_helper_register_2() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(2), phantom::super_class_count_of<o_traits_t_Ty_super_class(2)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
-#define o_rtti_data_registrer_helper_register_4()  o_rtti_data_registrer_helper_register_3() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(3), phantom::super_class_count_of<o_traits_t_Ty_super_class(3)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
-#define o_rtti_data_registrer_helper_register_5()  o_rtti_data_registrer_helper_register_4() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(4), phantom::super_class_count_of<o_traits_t_Ty_super_class(4)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
-#define o_rtti_data_registrer_helper_register_6()  o_rtti_data_registrer_helper_register_5() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(5), phantom::super_class_count_of<o_traits_t_Ty_super_class(5)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
-#define o_rtti_data_registrer_helper_register_7()  o_rtti_data_registrer_helper_register_6() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(6), phantom::super_class_count_of<o_traits_t_Ty_super_class(6)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
-#define o_rtti_data_registrer_helper_register_8()  o_rtti_data_registrer_helper_register_7() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(7), phantom::super_class_count_of<o_traits_t_Ty_super_class(7)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
-#define o_rtti_data_registrer_helper_register_9()  o_rtti_data_registrer_helper_register_8() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(8), phantom::super_class_count_of<o_traits_t_Ty_super_class(8)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
-#define o_rtti_data_registrer_helper_register_10() o_rtti_data_registrer_helper_register_9() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(9), phantom::super_class_count_of<o_traits_t_Ty_super_class(9)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
+#define o_rtti_data_registrer_helper_register_1()  o_rtti_data_registrer_helper_register_0() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(0), phantom::super_class_count_of<o_traits_t_Ty_super_class(0)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func, a_uiLevel);
+#define o_rtti_data_registrer_helper_register_2()  o_rtti_data_registrer_helper_register_1() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(1), phantom::super_class_count_of<o_traits_t_Ty_super_class(1)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func, a_uiLevel);
+#define o_rtti_data_registrer_helper_register_3()  o_rtti_data_registrer_helper_register_2() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(2), phantom::super_class_count_of<o_traits_t_Ty_super_class(2)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func, a_uiLevel);
+#define o_rtti_data_registrer_helper_register_4()  o_rtti_data_registrer_helper_register_3() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(3), phantom::super_class_count_of<o_traits_t_Ty_super_class(3)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func, a_uiLevel);
+#define o_rtti_data_registrer_helper_register_5()  o_rtti_data_registrer_helper_register_4() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(4), phantom::super_class_count_of<o_traits_t_Ty_super_class(4)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func, a_uiLevel);
+#define o_rtti_data_registrer_helper_register_6()  o_rtti_data_registrer_helper_register_5() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(5), phantom::super_class_count_of<o_traits_t_Ty_super_class(5)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func, a_uiLevel);
+#define o_rtti_data_registrer_helper_register_7()  o_rtti_data_registrer_helper_register_6() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(6), phantom::super_class_count_of<o_traits_t_Ty_super_class(6)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func, a_uiLevel);
+#define o_rtti_data_registrer_helper_register_8()  o_rtti_data_registrer_helper_register_7() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(7), phantom::super_class_count_of<o_traits_t_Ty_super_class(7)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func, a_uiLevel);
+#define o_rtti_data_registrer_helper_register_9()  o_rtti_data_registrer_helper_register_8() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(8), phantom::super_class_count_of<o_traits_t_Ty_super_class(8)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func, a_uiLevel);
+#define o_rtti_data_registrer_helper_register_10() o_rtti_data_registrer_helper_register_9() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(9), phantom::super_class_count_of<o_traits_t_Ty_super_class(9)>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func, a_uiLevel);
 
 #define o_rtti_data_registrer_helper_unregister_0() 
-#define o_rtti_data_registrer_helper_unregister_1()  o_rtti_data_registrer_helper_unregister_0() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(0), phantom::super_class_count_of<o_traits_t_Ty_super_class(0)>::value>::unregisterInfo(a_pThis);
-#define o_rtti_data_registrer_helper_unregister_2()  o_rtti_data_registrer_helper_unregister_1() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(1), phantom::super_class_count_of<o_traits_t_Ty_super_class(1)>::value>::unregisterInfo(a_pThis);
-#define o_rtti_data_registrer_helper_unregister_3()  o_rtti_data_registrer_helper_unregister_2() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(2), phantom::super_class_count_of<o_traits_t_Ty_super_class(2)>::value>::unregisterInfo(a_pThis);
-#define o_rtti_data_registrer_helper_unregister_4()  o_rtti_data_registrer_helper_unregister_3() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(3), phantom::super_class_count_of<o_traits_t_Ty_super_class(3)>::value>::unregisterInfo(a_pThis);
-#define o_rtti_data_registrer_helper_unregister_5()  o_rtti_data_registrer_helper_unregister_4() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(4), phantom::super_class_count_of<o_traits_t_Ty_super_class(4)>::value>::unregisterInfo(a_pThis);
-#define o_rtti_data_registrer_helper_unregister_6()  o_rtti_data_registrer_helper_unregister_5() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(5), phantom::super_class_count_of<o_traits_t_Ty_super_class(5)>::value>::unregisterInfo(a_pThis);
-#define o_rtti_data_registrer_helper_unregister_7()  o_rtti_data_registrer_helper_unregister_6() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(6), phantom::super_class_count_of<o_traits_t_Ty_super_class(6)>::value>::unregisterInfo(a_pThis);
-#define o_rtti_data_registrer_helper_unregister_8()  o_rtti_data_registrer_helper_unregister_7() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(7), phantom::super_class_count_of<o_traits_t_Ty_super_class(7)>::value>::unregisterInfo(a_pThis);
-#define o_rtti_data_registrer_helper_unregister_9()  o_rtti_data_registrer_helper_unregister_8() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(8), phantom::super_class_count_of<o_traits_t_Ty_super_class(8)>::value>::unregisterInfo(a_pThis);
-#define o_rtti_data_registrer_helper_unregister_10() o_rtti_data_registrer_helper_unregister_9() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(9), phantom::super_class_count_of<o_traits_t_Ty_super_class(9)>::value>::unregisterInfo(a_pThis);
+#define o_rtti_data_registrer_helper_unregister_1()  o_rtti_data_registrer_helper_unregister_0() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(0), phantom::super_class_count_of<o_traits_t_Ty_super_class(0)>::value>::unregisterInfo(a_pThis, a_uiLevel);
+#define o_rtti_data_registrer_helper_unregister_2()  o_rtti_data_registrer_helper_unregister_1() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(1), phantom::super_class_count_of<o_traits_t_Ty_super_class(1)>::value>::unregisterInfo(a_pThis, a_uiLevel);
+#define o_rtti_data_registrer_helper_unregister_3()  o_rtti_data_registrer_helper_unregister_2() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(2), phantom::super_class_count_of<o_traits_t_Ty_super_class(2)>::value>::unregisterInfo(a_pThis, a_uiLevel);
+#define o_rtti_data_registrer_helper_unregister_4()  o_rtti_data_registrer_helper_unregister_3() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(3), phantom::super_class_count_of<o_traits_t_Ty_super_class(3)>::value>::unregisterInfo(a_pThis, a_uiLevel);
+#define o_rtti_data_registrer_helper_unregister_5()  o_rtti_data_registrer_helper_unregister_4() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(4), phantom::super_class_count_of<o_traits_t_Ty_super_class(4)>::value>::unregisterInfo(a_pThis, a_uiLevel);
+#define o_rtti_data_registrer_helper_unregister_6()  o_rtti_data_registrer_helper_unregister_5() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(5), phantom::super_class_count_of<o_traits_t_Ty_super_class(5)>::value>::unregisterInfo(a_pThis, a_uiLevel);
+#define o_rtti_data_registrer_helper_unregister_7()  o_rtti_data_registrer_helper_unregister_6() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(6), phantom::super_class_count_of<o_traits_t_Ty_super_class(6)>::value>::unregisterInfo(a_pThis, a_uiLevel);
+#define o_rtti_data_registrer_helper_unregister_8()  o_rtti_data_registrer_helper_unregister_7() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(7), phantom::super_class_count_of<o_traits_t_Ty_super_class(7)>::value>::unregisterInfo(a_pThis, a_uiLevel);
+#define o_rtti_data_registrer_helper_unregister_9()  o_rtti_data_registrer_helper_unregister_8() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(8), phantom::super_class_count_of<o_traits_t_Ty_super_class(8)>::value>::unregisterInfo(a_pThis, a_uiLevel);
+#define o_rtti_data_registrer_helper_unregister_10() o_rtti_data_registrer_helper_unregister_9() phantom::extension::detail::rtti_data_registrer_helper_<o_traits_t_Ty_super_class(9), phantom::super_class_count_of<o_traits_t_Ty_super_class(9)>::value>::unregisterInfo(a_pThis, a_uiLevel);
 
 #define o_specialize_rtti_data_registrer_helper(_super_class_count_of_) \
     template<typename t_Ty>\
@@ -2979,11 +3018,11 @@ struct rtti_data_registrer_helper_<t_Ty, _super_class_count_of_>\
 {\
     template <typename, phantom::uint > friend struct rtti_data_registrer_helper_;\
     template <typename > friend struct rtti_data_registrer;\
-    static void registerInfo(t_Ty* a_pThis, void* a_pBase, phantom::reflection::Class* a_pBaseClass, connection::slot_pool* a_csac, dynamic_delete_func_t a_dynamic_delete_func) \
+    static void registerInfo(t_Ty* a_pThis, void* a_pBase, phantom::reflection::Class* a_pBaseClass, connection::slot_pool* a_csac, dynamic_delete_func_t a_dynamic_delete_func, size_t a_uiLevel) \
 {\
     o_rtti_data_registrer_helper_register_##_super_class_count_of_() \
 }\
-    static void unregisterInfo(t_Ty* a_pThis) \
+    static void unregisterInfo(t_Ty* a_pThis, size_t a_uiLevel) \
 {\
     o_rtti_data_registrer_helper_unregister_##_super_class_count_of_() \
 }\
@@ -3179,9 +3218,9 @@ struct rtti_data_registrer
     /// \param [in,out] a_csac       If non-null, the slot allocator.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static void registerInfo(t_Ty* a_pThis, void* a_pBase, phantom::reflection::Class* a_pBaseClass, connection::slot_pool* a_csac, dynamic_delete_func_t a_dynamic_delete_func)
+    static void registerInfo(t_Ty* a_pThis, void* a_pBase, phantom::reflection::Class* a_pBaseClass, connection::slot_pool* a_csac, dynamic_delete_func_t a_dynamic_delete_func, size_t a_uiLevel)
     {
-        detail::rtti_data_registrer_helper_<t_Ty, phantom::super_class_count_of<t_Ty>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func);
+        detail::rtti_data_registrer_helper_<t_Ty, phantom::super_class_count_of<t_Ty>::value>::registerInfo(a_pThis, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func, a_uiLevel);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3195,9 +3234,9 @@ struct rtti_data_registrer
     /// \param [in,out] a_pThis If non-null, instance pointer.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static void unregisterInfo(t_Ty* a_pThis)
+    static void unregisterInfo(t_Ty* a_pThis, size_t a_uiLevel)
     {
-        detail::rtti_data_registrer_helper_<t_Ty, phantom::super_class_count_of<t_Ty>::value>::unregisterInfo(a_pThis);
+        detail::rtti_data_registrer_helper_<t_Ty, phantom::super_class_count_of<t_Ty>::value>::unregisterInfo(a_pThis, a_uiLevel);
     }
 };
 

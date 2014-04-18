@@ -54,12 +54,14 @@ public:
     XmlFileTreeNode(XmlFileTreeDataBase* a_pOwnerDataBase, uint guid, XmlFileTreeNode* a_pParentNode);
     
 protected:
-    virtual void    saveIndex() ;
-    virtual void    saveAttributes() ;
+    virtual void    saveIndex();
+    virtual void    saveTypes();
+    virtual void    saveAttributes();
     virtual void    saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) ;
     virtual void    saveDataAttributes();
     virtual void    saveDataAttributes(const phantom::data& a_Data, uint guid);
 
+    virtual void    loadTypes();
     virtual void    loadAttributes();
     virtual void    loadDataAttributes();
     virtual void    loadDataAttributes(const phantom::data& a_Data, uint guid);

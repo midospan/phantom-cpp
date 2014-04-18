@@ -56,28 +56,32 @@ public:
         , Type* a_pValueType
         , InstanceMemberFunction* a_pSetMemberFunction
         , InstanceMemberFunction* a_pGetMemberFunction
-        , Signal* a_pChangeNotificationSignal
+        , Signal* a_pSignal
         , Range* a_pRange
     , uint a_uiSerializationMask
     , bitfield a_Modifiers = 0);
 
     o_destructor ~Property(void) {}
 
-    virtual void getValue(void const* a_pObject, void* dest) const = 0;
-    virtual void setValue(void* a_pObject, void const* src) const = 0;
-    Type*        getValueType() const { return m_pValueType; }
-    virtual Property*      asProperty() const { return (Property*)this; }
+    virtual void            getValue(void const* a_pObject, void* dest) const = 0;
+    virtual void            setValue(void* a_pObject, void const* src) const = 0;
+    Type*                   getValueType() const { return m_pValueType; }
+    virtual Property*       asProperty() const { return (Property*)this; }
         
     InstanceMemberFunction* getSetMemberFunction() const { return m_pSetMemberFunction; }
     InstanceMemberFunction* getGetMemberFunction() const { return m_pGetMemberFunction; }
-    Signal* getChangeNotificationSignal() const { return m_pChangeNotificationSignal; }
+    Signal*                 getSignal() const { return m_pSignal; }
+
+    virtual Expression*     createAccessExpression(Expression* a_pLeftExpression) const;
+
+    virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
+    virtual void            fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const;
 
 protected:
-    virtual void referencedElementRemoved(LanguageElement* a_pElement);
+    virtual void            referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
-    Type*   m_pValueType;
-    Signal* m_pChangeNotificationSignal;
+    Signal* m_pSignal;
     InstanceMemberFunction* m_pSetMemberFunction;
     InstanceMemberFunction* m_pGetMemberFunction;
 };

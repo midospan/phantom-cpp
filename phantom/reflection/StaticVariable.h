@@ -44,18 +44,30 @@
 
 o_namespace_begin(phantom, reflection)
 
-class o_export StaticVariable : public Variable
+class o_export StaticVariable : public LanguageElement
 {
 
 public:
-    StaticVariable(const string& a_strName, Type* a_pContentType, void* a_pStaticVariableAddress, Range* a_pRange, bitfield a_Modifiers = 0);
+    StaticVariable(void* a_pAddress, Range* a_pRange = nullptr, bitfield a_Modifiers = 0);
+    StaticVariable(void* a_pAddress, Type* a_pValueType, Range* a_pRange = nullptr, bitfield a_Modifiers = 0);
+    StaticVariable(void* a_pAddress, Type* a_pValueType, const string& a_strName, Range* a_pRange = nullptr, bitfield a_Modifiers = 0);
     o_destructor ~StaticVariable(void)     {}
     
     virtual StaticVariable* asStaticVariable() const  { return (StaticVariable*)this; }
 
     void*           getAddress() const { return m_pAddress; }
-    Type*           getContentType() const { return m_pContentType; }
-    virtual Type*   getType() const { return m_pContentType; }
+    Type*           getValueType() const { return m_pValueType; }
+    Range*          getRange() const { return m_pRange; }
+
+    void            setValue(void const* a_pSrc) const 
+    {
+        m_pValueType->copy(m_pAddress, a_pSrc);
+    }
+
+    void            getValue(void* a_pDest) const 
+    {
+        m_pValueType->copy(a_pDest, m_pAddress);
+    }
 
 protected:
     void            setAddress(void* a_pAddress) { m_pAddress = a_pAddress; }
@@ -64,8 +76,9 @@ protected:
     virtual void    referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
-    Type*    m_pContentType;
-    void*    m_pAddress;
+    Type*       m_pValueType;
+    Range*      m_pRange;
+    void*       m_pAddress;
     
 };
 

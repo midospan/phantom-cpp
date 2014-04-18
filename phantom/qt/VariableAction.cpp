@@ -18,7 +18,7 @@ o_registerN((phantom, qt), ContainerMoveUpAction);
 namespace phantom {
 namespace qt {
 
-VariableAction::VariableAction(const QIcon& a_Icon, const QString& a_Name, BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget)
+VariableAction::VariableAction(const QIcon& a_Icon, const QString& a_Name, VariableNode* a_pVariable, VariableWidget* a_pVariableWidget)
     : QAction(a_Icon, a_Name, a_pVariableWidget)
     , m_pVariable(a_pVariable)
     , m_pVariableWidget(a_pVariableWidget)
@@ -53,7 +53,7 @@ void VariableAction::valueAboutToBeChanged()
     getVariableEditor()->variableChanged(m_pVariable);
 }
 
-ContainerMoveUpAction::ContainerMoveUpAction(BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget)
+ContainerMoveUpAction::ContainerMoveUpAction(VariableNode* a_pVariable, VariableWidget* a_pVariableWidget)
     : VariableAction(QIcon(":/../../bin/resources/icons/arrow_up.png"), "Up", a_pVariable, a_pVariableWidget) 
 {
     o_assert(a_pVariable->getVariableClass()->isKindOf(typeOf<CollectionElementVariable>()));
@@ -80,7 +80,7 @@ void ContainerMoveUpAction::actionDone()
     valueChanged();
 }
 
-ContainerMoveDownAction::ContainerMoveDownAction(BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget)
+ContainerMoveDownAction::ContainerMoveDownAction(VariableNode* a_pVariable, VariableWidget* a_pVariableWidget)
     : VariableAction(QIcon(":/../../bin/resources/icons/arrow_down.png"), "Down", a_pVariable, a_pVariableWidget) 
 {
     o_assert(a_pVariable->getVariableClass()->isKindOf(typeOf<CollectionElementVariable>()));
@@ -107,7 +107,7 @@ void ContainerMoveDownAction::actionDone()
     valueChanged();
 }
 
-ResetAction::ResetAction( BufferedVariable* a_pVariable, VariableWidget* a_pEditor ) 
+ResetAction::ResetAction( VariableNode* a_pVariable, VariableWidget* a_pEditor ) 
     : VariableAction(QIcon(":/../../bin/resources/icons/arrow_refresh.png"), "Reset", a_pVariable, a_pEditor)
 {
 
@@ -126,7 +126,7 @@ void ResetAction::actionDone()
         pLineEdit->selectAll();
 }
 
-EraseContainerIteratorAction::EraseContainerIteratorAction( BufferedVariable* a_pVariable, VariableWidget* a_pVariableWidget ) 
+EraseContainerIteratorAction::EraseContainerIteratorAction( VariableNode* a_pVariable, VariableWidget* a_pVariableWidget ) 
     : VariableAction(QIcon(":/../../bin/resources/icons/delete.png"), "Erase", a_pVariable, a_pVariableWidget)
 {
 

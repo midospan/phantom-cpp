@@ -27,7 +27,7 @@ Block* LocalVariable::getBlock() const
     return static_cast<Block*>(m_pOwner);
 }
 
-LanguageElement* LocalVariable::getElement( const char* a_strQualifiedName , template_specialization const* a_pTS, function_signature const* a_pFS, bitfield a_Modifiers /*= 0*/ ) const
+LanguageElement* LocalVariable::solveElement( const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, bitfield a_Modifiers /*= 0*/ ) const
 {
     return nullptr;
 }

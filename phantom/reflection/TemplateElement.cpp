@@ -37,27 +37,7 @@
 #include <phantom/reflection/TemplateElement.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), TemplateElement);
+
 o_namespace_begin(phantom, reflection)
-
-TemplateElement::TemplateElement() 
-{
-
-}
-
-TemplateElement::TemplateElement( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
-    : LanguageElement(a_strName, a_Modifiers)
-{
-
-}
-
-TemplateElement::TemplateElement( const string& a_strName, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) 
-    : LanguageElement(a_strName, a_uiGuid, a_Modifiers)
-{
-
-}
-
-TemplateElement::~TemplateElement()
-{
-}
 
 o_namespace_end(phantom, reflection)

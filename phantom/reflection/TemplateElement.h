@@ -42,18 +42,14 @@
 
 o_namespace_begin(phantom, reflection)
 
-class o_export TemplateElement : public LanguageElement
+class o_export TemplateElement 
 {
     friend class TemplateSpecialization;
 
-public:
-    TemplateElement();
-    TemplateElement(const string& a_strName, bitfield a_Modifiers = 0);
-    TemplateElement(const string& a_strName, uint a_uiGuid, bitfield a_Modifiers = 0);
-    ~TemplateElement();
+    virtual TemplateElement* asTemplateElement() const = 0;
 
-    virtual TemplateElement* asTemplateElement() const { return (TemplateElement*)this; }
-
+    virtual LanguageElement* asLanguageElement() const = 0;
+    virtual NumericConstant* asNumericConstant() const { return asLanguageElement()->asNumericConstant(); }
 };
 
 o_namespace_end(phantom, reflection)

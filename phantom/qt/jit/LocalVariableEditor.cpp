@@ -1,7 +1,7 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/jit/qt_jit.h"
 #include "LocalVariableEditor.h"
-#include "LocalVariableManager.h"
+#include "LocalVariableModel.h"
 /* *********************************************** */
 o_registerN((phantom, qt, jit), LocalVariableEditor);
 
@@ -11,14 +11,14 @@ namespace phantom {
         namespace jit {
 
     LocalVariableEditor::LocalVariableEditor( void ) 
-        : VariableEditor(o_new(LocalVariableManager), "Expression")
+        : VariableEditor(o_new(LocalVariableModel), "Expression")
     {
         setEnabled(false);
     }
 
     void LocalVariableEditor::setCallStackIndex( int index )
     {
-        static_cast<LocalVariableManager*>(m_pManager)->setCallStackIndex(index);
+        static_cast<LocalVariableModel*>(m_pManager)->setCallStackIndex(index);
     }
 
     void LocalVariableEditor::updateItemLook( QtBrowserItem *item )
@@ -38,7 +38,7 @@ namespace phantom {
         pTreeItem->setFont(0, font);
         if(pVariable == nullptr 
             AND NOT(item->property()->propertyName().isEmpty()) 
-            AND getLocalVariableManager()->isWatchProperty(item->property()))
+            AND getLocalVariableModel()->isWatchProperty(item->property()))
         {
             setBackgroundColor(item, QColor(255,0,0,64));
         }
@@ -48,9 +48,9 @@ namespace phantom {
         }
     }
 
-    LocalVariableManager* LocalVariableEditor::getLocalVariableManager() const
+    LocalVariableModel* LocalVariableEditor::getLocalVariableModel() const
     {
-        return static_cast<LocalVariableManager*>(m_pManager);
+        return static_cast<LocalVariableModel*>(m_pManager);
     }
 
 }}}

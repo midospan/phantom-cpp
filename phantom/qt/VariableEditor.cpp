@@ -2,7 +2,7 @@
 #include "phantom/qt/qt.h"
 #include "VariableEditor.h"
 #include "VariableEditor.hxx"
-#include "VariableManager.h"
+#include "VariableModel.h"
 #include "VariableWidget.h"
 #include <QAction>
 #include <QMenu>
@@ -16,6 +16,7 @@
 #include "CharLineEditor.h"
 #include "BitFieldEditor.h"
 #include "DataComboBoxEditor.h"
+#include "ComponentDataComboBoxEditor.h"
 #include "phantom/serialization/Node.h"
 #include "phantom/std/string.h"
 /* *********************************************** */
@@ -23,27 +24,27 @@ o_registerN((phantom, qt), VariableEditor);
  
 namespace phantom { namespace qt {
 
-    class VariableEditorFactory : public QtAbstractEditorFactory<VariableManager>
+    class VariableEditorFactory : public QtAbstractEditorFactory<VariableEditor>
     {
         
     public:
         VariableEditorFactory(VariableEditor* a_pEditor)
-            : QtAbstractEditorFactory<VariableManager>(a_pEditor)
+            : QtAbstractEditorFactory<VariableModel>(a_pEditor)
             , m_pVariableEditor(a_pEditor)
         {
 
         }
-        QWidget* createEditor(VariableManager*a_pManager, QtProperty *property, QWidget *parent)
+        QWidget* createEditor(VariableModel*a_pManager, QtProperty *property, QWidget *parent)
         {
             return m_pVariableEditor->createEditor(a_pManager, property, parent);
         }
 
-        void connectPropertyManager(VariableManager *manager)
+        void connectPropertyManager(VariableEditor *manager)
         {
 
         }
 
-        void disconnectPropertyManager(VariableManager *manager)
+        void disconnectPropertyManager(VariableEditor *manager)
         {
 
         }
@@ -52,8 +53,8 @@ namespace phantom { namespace qt {
 
     };
 
-    VariableEditor::VariableEditor( VariableManager* a_pManager, const QString& a_VariableColumnName )
-        : m_pManager(a_pManager)
+    VariableEditor::VariableEditor( const QString& a_VariableColumnName )
+        : m_pVariableModel(a_pManager)
         , m_pDataBase(nullptr)
         , m_bChangingPropertyValue(false)
         , m_bAutoSaveEnabled(true)
@@ -61,11 +62,9 @@ namespace phantom { namespace qt {
         , m_variable_value_set_delegate(&VariableEditor::defaultVariableValueSetDelegate)
         , m_pOpenedEditor(nullptr)
     {
-        Q_ASSERT(m_pManager->m_pVariableEditor == nullptr);
-        m_pManager->m_pVariableEditor = this;
-        setFactoryForManager(m_pManager, new VariableEditorFactory(this));
-        QObject::connect(this, SIGNAL(variableChanged(BufferedVariable*)), this, SLOT(slotVariableChanged(BufferedVariable*)));
-        QObject::connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(createPropertyPopupMenu(QPoint)));
+        Q_ASSERT(m_pVariableModel->m_pVariableEditor == nullptr);
+        m_pVariableModel->m_pVariableEditor = this;
+        setFactoryForManager(m_pVariableModel, new VariableEditorFactory(this));
         setContextMenuPolicy(Qt::CustomContextMenu);
         treeWidget()->setEditTriggers(treeWidget()->editTriggers()|QTreeWidget::AnyKeyPressed);
         setPropertiesWithoutValueMarked(true);
@@ -75,7 +74,7 @@ namespace phantom { namespace qt {
         labels.append(QApplication::translate("VariableEditor", "Value", 0, QApplication::UnicodeUTF8));
         labels.append(QApplication::translate("VariableEditor", "Type", 0, QApplication::UnicodeUTF8));
         m_treeWidget->setHeaderLabels(labels);
-        m_pManager->initialize();
+        m_pVariableModel->initialize();
         registerVariableTypeEditorClass(typeOf<bool>(), typeOf<BoolCheckBoxEditor>());
         registerVariableTypeEditorClass(typeOf<char>(), typeOf<CharLineEditor>());
         registerVariableTypeEditorClass(typeOf<uchar>(), typeOf<TNumberLineEditor<uchar>>());
@@ -91,32 +90,31 @@ namespace phantom { namespace qt {
         registerVariableTypeEditorClass(typeOf<double>(), typeOf<TNumberLineEditor<double>>());
         registerVariableTypeEditorClass(typeOf<string>(), typeOf<StringLineEditor>());
         registerVariableTypeEditorClass(typeOf<bitfield>(), typeOf<BitFieldEditor>());
-        /*connect(m_pManager, SIGNAL(propertyChanged(QtProperty*)),
-            this, SLOT(slotPropertyChanged(QtProperty*)));*/
     }
 
     VariableEditor::~VariableEditor( void )
     {
-     /*   disconnect(m_pManager, SIGNAL(propertyChanged(QtProperty*)),
-            this, SLOT(slotPropertyChanged(QtProperty*)));*/
         if(m_pOpenedEditor)
         {
             disconnect(m_pOpenedEditor, SIGNAL(destroyed()), this, SLOT(slotEditorDestroyed()));
             emit variableAccessed(m_pOpenedEditor->getVariable());
             delete m_pOpenedEditor;
         }
-        o_dynamic_delete m_pManager;
+        o_dynamic_delete m_pVariableModel;
     }
 
-    QWidget* VariableEditor::createEditor(VariableManager*a_pManager, QtProperty *property, QWidget *parent)
+    QWidget* VariableEditor::createEditor(VariableEditor* a_pThis, QtProperty *property, QWidget *parent)
     {
-        BufferedVariable* pVariable = a_pManager->getVariable(property);
-        if(pVariable == NULL) return NULL;
-        if(pVariable->testModifiers(o_readonly)) return NULL;
+        o_assert(this == a_pThis);
+        VariableNode* pVariableNode = getVariableNode(property);
+        if(pVariableNode == NULL) 
+            return nullptr;
+        if(pVariableNode->hasModifier(o_readonly)) 
+            return nullptr;
 
-        emit variableAboutToBeAccessed(pVariable);
+        emit variableAboutToBeAccessed(pVariableNode);
 
-        phantom::reflection::Type* pVariableType = pVariable->getValueType();
+        phantom::reflection::Type* pVariableType = pVariableNode->getValueType();
 
         o_assert(pVariableType);
 
@@ -134,50 +132,84 @@ namespace phantom { namespace qt {
 
             pVariableWidgetEditor = o_new(EnumComboBoxEditor)(pEnum);
         }
-        else if(pVariableType->asDataPointerType() && m_pDataBase)
+        else if(pVariableType->asDataPointerType())
         {
-            phantom::vector<void*> addresses;
-            addresses.resize(pVariable->getVariableCount());
+            vector<void*> addresses;
+            addresses.resize(pVariableNode->getVariableCount());
+            
             for(size_t i = 0; i<addresses.size(); ++i)
             {
-                pVariable->getVariable(i)->getValue(&addresses[i]);
+                pVariableNode->getVariable(i)->getValue(&addresses[i]);
+                if(std::find(m_EditedData.begin(), m_EditedData.end(), addresses[i]) != m_EditedData.end())
+                {
+
+                }
             }
-            phantom::vector<phantom::data> currentData;
-            currentData.resize(addresses.size());
-            for(size_t i = 0; i<addresses.size(); ++i)
+            if(m_pDataBase)
             {
-                currentData[i] = addresses[i];
-                currentData[i] = currentData[i].cast(pVariableType);
+                if(pVariableNode->isComponent())
+                {
+                    for(size_t i = 0; i<addresses.size(); ++i)
+                    {
+                        pVariableNode->getVariable(i)->getValue(&addresses[i]);
+                        if(std::find(m_EditedData.begin(), m_EditedData.end(), addresses[i]) != m_EditedData.end())
+                        {
+                            emit variableAccessed(pVariableNode);
+                            return nullptr;
+                        }
+                    }
+                    pVariableWidgetEditor = o_new(ComponentDataComboBoxEditor)(pVariableType->asDataPointerType()->getPointedType()->asClass(), addresses);
+                }
+                else
+                {
+                    phantom::vector<phantom::data> currentData;
+                    currentData.resize(addresses.size());
+                    for(size_t i = 0; i<addresses.size(); ++i)
+                    {
+                        currentData[i] = addresses[i];
+                        currentData[i] = currentData[i].cast(pVariableType);
+                    }
+                    pVariableWidgetEditor = o_new(DataComboBoxEditor)(m_pDataBase, pVariableType->asDataPointerType()->getPointedType(), currentData, m_EditedData);
+                }
+                
             }
-            pVariableWidgetEditor = o_new(DataComboBoxEditor)(m_pDataBase, pVariableType->asDataPointerType()->getPointedType(), currentData, m_EditedData);
         }
         if(pVariableWidgetEditor)
         {
             VariableWidget* pVariableWidget = new VariableWidget(pVariableWidgetEditor, this);
             //o_assert(m_pOpenedEditor == nullptr);
             m_pOpenedEditor = pVariableWidget;
-            pVariableWidget->setVariable(pVariable);
+            pVariableWidget->setVariable(pVariableNode);
             pVariableWidget->setParent(parent);
-            void* pBuffer = pVariableType->allocate();
-            pVariableType->safeSetup(pBuffer);
-            pVariable->getValue(pBuffer);
-            pVariableWidgetEditor->setValue(pBuffer);
-            pVariableType->deleteInstance(pBuffer); 
+
+            vector<void*> buffers(pVariableNode->getVariableCount());
+            for(size_t i = 0; i<buffers.size(); ++i)
+            {
+                buffers[i] = pVariableType->allocate();
+                pVariableType->safeSetup(buffers[i]);
+            }
+            pVariableNode->getValues(buffers.data());
+            pVariableWidgetEditor->setValues(const_cast<const void**>(buffers.data()));
+            for(size_t i = 0; i<buffers.size(); ++i)
+            {
+                pVariableType->deleteInstance(buffers[i]);
+            }
+
             connect(pVariableWidget, SIGNAL(destroyed()), this, SLOT(slotEditorDestroyed()));
             connect(pVariableWidgetEditor, SIGNAL(valueChanged()), this, SLOT(slotEditorValueChanged()));
             return pVariableWidget;
         }
         else 
         {
-            emit variableAccessed(pVariable);
+            emit variableAccessed(pVariableNode);
             return nullptr;
         }
         return nullptr;
     }
 
-    QtBrowserItem* VariableEditor::getBrowserItem(BufferedVariable* a_pVariable) const 
+    QtBrowserItem* VariableEditor::getBrowserItem(VariableNode* a_pVariable) const 
     {
-        const QtProperty* property = m_pManager->getProperty(a_pVariable);
+        const QtProperty* property = m_pVariableModel->getProperty(a_pVariable);
         if(property == nullptr) return nullptr;
         return propertyToBrowserItem(property);
     }
@@ -190,11 +222,11 @@ namespace phantom { namespace qt {
         {
             QtBrowserItem* pBrowserItem = m_itemToIndex.value(pItem);
             QtProperty* property = pBrowserItem->property();
-            phantom::reflection::Variable* pVariable = m_pManager->getVariable(property);
+            phantom::reflection::Variable* pVariable = m_pVariableModel->getVariable(property);
             phantom::reflection::IteratorVariable* pIteratorVariable = phantom::as<phantom::reflection::IteratorVariable*>(pVariable);
             if(pIteratorVariable == NULL) continue;
             QtProperty* parentProperty = *(property->parentProperties().begin());
-            phantom::reflection::Variable* pParentVariable = m_pManager->getVariable(parentProperty);
+            phantom::reflection::Variable* pParentVariable = m_pVariableModel->getVariable(parentProperty);
             if(pParentVariable->testModifiers(o_readonly)) continue;
             QMenu menu(this);
             QAction* pAction = new EraseContainerIteratorAction(pIteratorVariable, this);
@@ -207,7 +239,7 @@ namespace phantom { namespace qt {
 
     void VariableEditor::updateCustomExtraColumns( QTreeWidgetItem * item, QtProperty * property )
     {
-        BufferedVariable* pVariable = m_pManager->getVariable(property);
+        VariableNode* pVariable = m_pVariableModel->getVariable(property);
         if(pVariable == nullptr) 
         {
             item->setText(2, "");
@@ -247,26 +279,6 @@ namespace phantom { namespace qt {
 
     void VariableEditor::updateItemLook( QtBrowserItem* item )
     {
-        /*if(isEnabled())
-        {
-            phantom::reflection::Variable* pVariable = m_pManager->getVariable(item->property());
-            if(pVariable && pVariable->getModifiers().matchesMask(o_readonly))
-            {
-                browserItemToItem(item)->setForeground(1, QColor(128,128,128));
-            }
-            else 
-            {
-                browserItemToItem(item)->setForeground(0, QColor(0,0,0));
-                browserItemToItem(item)->setForeground(1, QColor(0,0,0));
-                browserItemToItem(item)->setForeground(2, QColor(0,0,0));
-            }
-        }
-        else 
-        {
-            browserItemToItem(item)->setForeground(0, QColor(128,128,128));
-            browserItemToItem(item)->setForeground(1, QColor(128,128,128));
-            browserItemToItem(item)->setForeground(2, QColor(128,128,128));
-        }*/
     }
 
     void VariableEditor::slotEditorDestroyed()
@@ -281,12 +293,19 @@ namespace phantom { namespace qt {
     {
         VariableWidgetEditor* pEditor = as<VariableWidgetEditor*>(sender());
         Q_ASSERT(pEditor);
-        void* pBuffer = pEditor->getType()->newInstance();
-        pEditor->getValue(pBuffer);
+        VariableNode* pVariable = pEditor->getVariable();
+        reflection::Type* pVariableType = pVariable->getValueType();
+        vector<void*> buffers(pVariable->getVariableCount());
+        for(size_t i = 0; i<buffers.size(); ++i)
+        {
+            buffers[i] = pVariableType->allocate();
+            pVariableType->safeSetup(buffers[i]);
+        }
+        pEditor->getValues(buffers.data());
         m_bChangingPropertyValue = true;
-        emit variableAboutToBeChanged(pEditor->getVariable());
-        m_variable_value_set_delegate(pEditor->getVariable(), pBuffer);
-        m_pManager->emitPropertyChanged((QtProperty*)m_pManager->getProperty(pEditor->getVariable()));
+        emit variableAboutToBeChanged(pVariable);
+        m_variable_value_set_delegate(pVariable, const_cast<const void**>(buffers.data()));
+        m_pVariableModel->emitPropertyChanged((QtProperty*)m_pVariableModel->getProperty(pVariable));
         if(m_pDataBase && isAutoSaveEnabled())
         {
             m_pDataBase->rootNode()->addDataComponentsCascade();
@@ -302,9 +321,12 @@ namespace phantom { namespace qt {
                 m_pDataBase->getNode(*it)->saveDataState(*it, 0);
             }
         }
-        emit variableChanged(pEditor->getVariable());
+        emit variableChanged(pVariable);
         m_bChangingPropertyValue = false;
-        pEditor->getType()->deleteInstance(pBuffer);
+        for(size_t i = 0; i<buffers.size(); ++i)
+        {
+            pVariableType->deleteInstance(buffers[i]);
+        }
     }
 
     void VariableEditor::edit(const vector<phantom::data>& a_Data)
@@ -315,6 +337,10 @@ namespace phantom { namespace qt {
             m_EditedData.clear();
         }
         m_EditedData = a_Data;
+        if(m_pDataBase)
+        {
+            m_pDataBase->sortSubDataFirst(m_EditedData.begin(), m_EditedData.end());
+        }
         if(!m_EditedData.empty())
         {
             m_pEditedType = m_EditedData.front().type();
@@ -336,7 +362,7 @@ namespace phantom { namespace qt {
                 }
                 
                 QVector<QtProperty*> properties;
-                m_pManager->createProperties(editedAddresses, m_pEditedType, properties);
+                m_pVariableModel->createProperties(editedAddresses, m_pEditedType, properties);
                 for(auto it = properties.begin(); it != properties.end(); ++it)
                 {
                     addProperty(*it);
@@ -346,9 +372,9 @@ namespace phantom { namespace qt {
         setResizeMode(Interactive);
     }
 
-    void VariableEditor::slotVariableChanged( BufferedVariable* a_pVariable )
+    void VariableEditor::slotVariableChanged( VariableNode* a_pVariable )
     {
-        BufferedVariable* pParentVariable = a_pVariable->getParentVariable();
+        VariableNode* pParentVariable = a_pVariable->getParentVariable();
         while(pParentVariable)
         {
             updateBrowserItem(getBrowserItem(pParentVariable));
@@ -360,11 +386,11 @@ namespace phantom { namespace qt {
             void * pBufferDefault = a_pVariable->getValueType()->newInstance();
             a_pVariable->getValue(pBufferCurrent);
             a_pVariable->getRange()->getDefault(pBufferDefault);
-            m_pManager->getProperty(a_pVariable)->setModified(!a_pVariable->getValueType()->areValueEqual(pBufferCurrent, pBufferDefault));
+            m_pVariableModel->getProperty(a_pVariable)->setModified(!a_pVariable->getValueType()->areValueEqual(pBufferCurrent, pBufferDefault));
         }
 
-        BufferedVariable* pBufferedVariable = as<BufferedVariable*>(a_pVariable);
-        reflection::Class* pVariableClass = pBufferedVariable ? pBufferedVariable->getVariableClass() : classOf(a_pVariable);
+        VariableNode* pVariableNode = as<VariableNode*>(a_pVariable);
+        reflection::Class* pVariableClass = pVariableNode ? pVariableNode->getVariableClass() : classOf(a_pVariable);
         bool pContainerVariable = pVariableClass->isKindOf(typeOf<ContainerInsertVariable>());
         bool pCollectionInsertVariable = pVariableClass->isKindOf(typeOf<CollectionInsertVariable>());
         bool pCollectionElementVariable = pVariableClass->isKindOf(typeOf<CollectionElementVariable>());
@@ -385,9 +411,9 @@ namespace phantom { namespace qt {
         m_pDataBase = a_pDataBase;
     }
 
-    void VariableEditor::defaultVariableValueSetDelegate( phantom::reflection::Variable* a_pVariable, void const* valueSource )
+    void VariableEditor::defaultVariableValueSetDelegate( VariableNode* a_pVariable, void const** a_ppValueSources )
     {
-        a_pVariable->setValue(valueSource);
+        a_pVariable->setValues(a_ppValueSources);
     }
 
     void VariableEditor::setVariableValueSetDelegate( variable_value_set_delegate d )
@@ -395,5 +421,279 @@ namespace phantom { namespace qt {
         m_variable_value_set_delegate = d;
     }
 
+    void VariableEditor::registerProperty( QtProperty* property, VariableNode* a_pVariable )
+    {
+        o_assert(getVariable(property) == NULL);
+        m_Variables[property] = a_pVariable;
+        m_Properties[a_pVariable] = property;
+    }
+
+    QtProperty* VariableEditor::unregisterProperty( VariableNode* a_pVariable )
+    {
+        auto found = m_Properties.find(a_pVariable);
+        o_assert(found != m_Properties.end());
+        QtProperty* property = found->second;
+        m_Variables.erase(property);
+        m_Properties.erase(found);
+        return property;
+    }
+
+    QtProperty* VariableEditor::getProperty( VariableNode* a_pVariable ) const
+    {
+        auto found = m_Properties.find(a_pVariable);
+        return (found == m_Properties.end()) ? NULL : found->second;
+    }
+
+    VariableNode* VariableEditor::getVariableNode( QtProperty* property ) const
+    {
+        auto found = m_Variables.find(property);
+        return (found == m_Variables.end()) ? NULL : found->second;
+    }
+
+    QString VariableEditor::valueText( const QtProperty *property ) const
+    {
+        if(property == nullptr) return "";
+        VariableNode* pVariable = getVariable((QtProperty*)property);
+
+        o_assert(pVariable);
+
+        emit variableAboutToBeAccessed(pVariable);
+
+        QString text = valueText(pVariable);
+
+        emit variableAccessed(pVariable);
+
+        return text;
+    }
+
+    QString VariableEditor::valueText( VariableNode*  pVariable ) const
+    {
+        VariableNode*  pVariable = getVariableNode((QtProperty*)property);
+        o_assert(pVariable);
+        if(!pVariable->hasVariables()) 
+        {
+            reflection::Class* pVariableClass = pVariable->getVariableClass() ;
+            // Insert variables have empty text
+            if(pVariableClass->isKindOf(typeOf<ContainerInsertVariable>())
+                || pVariableClass->isKindOf(typeOf<ComponentInsertVariable>()))
+            {
+                return "";
+            }
+
+            if(pVariable->hasMultipleValues() && !pVariable->isComponent())
+            {
+                return "<multiple values>";
+            }
+
+            reflection::Type*  type = pVariable->getValueType();
+
+            reflection::ContainerClass* pContainerClass = type->asContainerClass();
+            string qualifiedName = type->getQualifiedName();
+            if(pContainerClass && qualifiedName != "::std::basic_string")
+            {
+                void* pContainer = pVariable->getAddress();
+                if(pContainer)
+                {
+                    size_t count = pContainerClass->getCount(pVariable->getAddress());
+                    return QString("[")+QString::number(count)+"]";
+                }
+            }
+            else if((type->asDataPointerType() != nullptr) && m_pVariableEditor->m_pDataBase)
+            {
+                void* value = NULL;
+                pVariable->getValue(&value);
+                if(value == NULL)
+                {
+                    return "none";
+                }
+                uint guid = m_pVariableEditor->m_pDataBase->getGuid(value);
+                if(guid == 0xFFFFFFFF ) 
+                {
+                    if(pVariable->isComponent())
+                    {
+                        vector<void*> addresses;
+                        addresses.resize(pVariable->getVariableCount());
+                        for(size_t i = 0; i<addresses.size(); ++i)
+                        {
+                            pVariable->getVariable(i)->getValue(&addresses[i]);
+                        }
+                        reflection::Class* pCommonClass = classOf(addresses[0]);
+                        for(size_t i = 1; i<addresses.size(); ++i)
+                        {
+                            if(classOf(addresses[i]) != pCommonClass)
+                            {
+                                return "<multiple values>";
+                            }
+                        }
+                        if(pCommonClass)
+                        {
+                            string name = pCommonClass->getMetaDataValue(getNameMetaDataIndex());
+                            return name.empty() ? pCommonClass->getName().c_str() : name.c_str();
+                        }
+                        return "none";
+                    }
+                    return "internal";
+                }
+                else 
+                {
+                    data d = m_pVariableEditor->m_pDataBase->getData(guid);
+                    return QString(m_pVariableEditor->m_pDataBase->getDataAttributeValue(d, m_pVariableEditor->m_pDataBase->getAttributeIndex("name")).c_str());
+                }
+            }
+
+            // Construct a temporary buffer to receive the value (don't install rtti to improve performance)
+
+            void* pBufferCurrent = pVariable->getValueType()->removeReference()->removeConst()->allocate();
+            pVariable->getValueType()->removeReference()->removeConst()->safeConstruct(pBufferCurrent);
+            pVariable->getValueType()->removeReference()->removeConst()->initialize(pBufferCurrent);
+            pVariable->getValue(pBufferCurrent);
+
+            string result;
+
+            type->valueToString(result, pBufferCurrent);
+
+            pVariable->getValueType()->removeReference()->removeConst()->terminate(pBufferCurrent);
+            pVariable->getValueType()->removeReference()->removeConst()->destroy(pBufferCurrent);
+            pVariable->getValueType()->removeReference()->removeConst()->deallocate(pBufferCurrent);
+
+            return result.c_str();
+        }
+        else 
+        {
+            QString compound;
+            if(pVariable->beginChildNodes() != pVariable->endChildNodes())
+            {
+                compound = "[";
+                int c = 0;
+                for(auto it = pVariable->beginChildNodes(); it != pVariable->endChildNodes(); ++it)
+                {
+                    QString vt = valueText(*it);
+                    if(vt.isEmpty()) continue;
+
+                    if(c++ > 0)
+                    {
+                        compound += " | ";
+                    }
+                    compound += *it->getName();
+                    compound += "=";
+                    compound += vt;
+                }
+                compound += "]";
+            }
+            return compound;
+        }
+        return "";
+    }
+
+    QIcon VariableEditor::valueIcon( const QtProperty *property ) const
+    {
+        VariableNode*  pVariable = getVariable((QtProperty*)property);
+        if(pVariable != NULL ) 
+        {
+            return valueIcon(pVariable); 
+        }
+        return QIcon();
+
+    }
+
+    QIcon VariableEditor::valueIcon( VariableNode* a_pVariable ) const
+    {
+        reflection::Type* type = a_pVariable->getValueType();
+        if(type->asEnum())
+        {
+            reflection::Enum* pEnum = type->asEnum();
+            size_t value = 0;
+            a_pVariable->getValue(&value);
+            size_t i = 0;
+            size_t count = pEnum->getConstantCount();
+            for(;i<count;++i)
+            {
+                size_t constantValue = 0;
+                reflection::Constant* pConstant = pEnum->getConstant(i);
+                pConstant->getValue(&constantValue);
+                if(constantValue == value)
+                {
+                    return QIcon(pConstant->getMetaDataValue(getIconMetaDataIndex()).c_str());
+                }
+            }
+        }
+        else if(type == typeOf<bool>())
+        {
+            bool value = false;
+            a_pVariable->getValue(&value);
+            return value ? QIcon(":/../../bin/resources/icons/accept.png") : QIcon(":/../../bin/resources/icons/exclamation.png");
+        }
+        reflection::ValueMemberBinding* pValueMemberBinding = as<reflection::ValueMemberBinding*>(a_pVariable->getVariable(0));
+        if(pValueMemberBinding)
+        {
+            return QIcon(pValueMemberBinding->getValueMember()->getMetaDataValue(getIconMetaDataIndex()).c_str());
+        }
+        return QIcon(a_pVariable->getValueType()->getMetaDataValue(getIconMetaDataIndex()).c_str());
+    }
+
+    void VariableEditor::variableChildNodeAdded( VariableNode* a_pVariableNode )
+    {
+        o_connect(a_pVariableNode, childNodeAdded(VariableNode*), this, variableChildNodeAdded(VariableNode*));
+        o_connect(a_pVariableNode, childNodeAboutToBeRemoved(VariableNode*), this, variableChildNodeAboutToBeRemoved(VariableNode*));
+        if(a_pVariableNode->getParentNode()) // not Root
+        {
+            if(a_pVariableNode->getParentNode() == m_pVariableModel->getRootNode()) // First level
+            {
+                QtProperty* property = addProperty(a_pVariableNode->getName().c_str());
+                registerProperty(addProperty(property), a_pVariableNode);
+            }
+            else 
+            {
+                registerProperty(getProperty(a_pVariableNode->getParentNode())->addSubProperty(addProperty(a_pVariableNode->getName().c_str())));
+            }
+        }
+        for(auto it = a_pVariableNode->beginChildNodes(); it != a_pVariableNode->endChildNodes(); ++it)
+        {
+            variableChildNodeAdded(*it);
+        }
+    }
+
+    void VariableEditor::variableChildNodeAboutToBeRemoved( VariableNode* a_pVariableNode )
+    {
+        if(a_pVariableNode->getParentNode()) // not Root
+        {
+            if(a_pVariableNode->getParentNode() == m_pVariableModel->getRootNode()) // First level
+            {
+                delete unregisterProperty(a_pVariableNode);
+            }
+        }
+        for(auto it = a_pVariableNode->beginChildNodes(); it != a_pVariableNode->endChildNodes(); ++it)
+        {
+            variableChildNodeAboutToBeRemoved(*it);
+        }
+        o_disconnect(a_pVariableNode, childNodeAdded(VariableNode*), this, variableChildNodeAdded(VariableNode*));
+        o_disconnect(a_pVariableNode, childNodeAboutToBeRemoved(VariableNode*), this, variableChildNodeAboutToBeRemoved(VariableNode*));
+    }
+
+    void VariableEditor::setVariableModel( VariableModel* a_pVariableModel )
+    {
+        if(m_pVariableModel == a_pVariableModel) return; 
+        if(m_pVariableModel)
+        {
+            variableChildNodeAboutToBeRemoved(a_pVariableModel->getRootNode());
+        }
+        m_pVariableModel = a_pVariableModel;
+        if(m_pVariableModel)
+        {
+            variableChildNodeAdded(a_pVariableModel->getRootNode());
+        }
+    }
+
+    void VariableEditor::variableValueChanged(VariableNode* a_pVariableNode)
+    {
+        if(a_pVariableNode->getRange() && !a_pVariableNode->hasMultipleValues())
+        {
+            void * pBufferCurrent = a_pVariableNode->getValueType()->removeReference()->removeConst()->newInstance();
+            void * pBufferDefault = a_pVariableNode->getValueType()->removeReference()->removeConst()->newInstance();
+            a_pVariableNode->getValue(pBufferCurrent);
+            a_pVariableNode->getRange()->getDefault(pBufferDefault);
+            getProperty(property)->setModified(!a_pVariableNode->getValueType()->areValueEqual(pBufferCurrent, pBufferDefault));
+        }
+    }
 
 }}

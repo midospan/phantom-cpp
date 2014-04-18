@@ -35,6 +35,7 @@
 #include "phantom/phantom.h"
 /* ** The Class Header must be the last #include * */
 #include "Unit.h"
+#include "phantom/util/composition.hxx"
 #include "Ability.h"
 #include "phantom/std/vector.hxx"
 /* *********************************************** */
@@ -42,11 +43,19 @@
 #include "Unit.hxx"
 #endif
 
-o_registerN((sc2), Unit)
-o_registerNTI((phantom), vector, (sc2::Ability*));
-
+o_registerN((sc2), Unit);
+o_registerNT((phantom), (typename), (t_Component), composition);
+o_registerNTI((phantom), composition, (sc2::Ability));
 
 o_namespace_begin(sc2)
 
+Unit::Unit( void ) 
+    : m_Abilities(this, &Ability::setUnit, &Ability::getUnit) 
+    , m_bPatrolWay(false)
+    , m_iLifePoints(-1)
+    , m_iInitialLifePoints(-1)
+{
+
+}
 
 o_namespace_end(sc2)

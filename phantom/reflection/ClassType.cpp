@@ -35,25 +35,38 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/ClassType.h>
 #include <phantom/reflection/ClassType.hxx>
+#include <phantom/reflection/Expression.h>
 #include <phantom/variant.h>
 #include <phantom/reflection/ValueMember.hxx>
+#include <phantom/reflection/CallExpression.h>
+#include <phantom/reflection/AddressExpression.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), ClassType);
 
 o_namespace_begin(phantom, reflection) 
 
+static vector<StaticDataMember*>      m_EmptyStaticDataMembers;
+static vector<StaticMemberFunction*>  m_EmptyStaticMemberFunctions;
+static vector<Collection*>            m_EmptyCollections;
+
 o_define_meta_type(ClassType);
 
 ClassType::ClassType( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
-    : Type(a_strName, a_Modifiers)
+    : Type(e_struct, a_strName, a_Modifiers)
     , m_pAttributes(nullptr)
+    , m_pStaticMemberFunctions(nullptr)
+    , m_pCollections(nullptr)
+    , m_pStaticDataMembers(nullptr)
 {
     m_uiSerializedSize = m_uiResetSize = 0;
 }
 
 ClassType::ClassType( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) 
-    : Type(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+    : Type(e_struct, a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
     , m_pAttributes(nullptr)
+    , m_pStaticMemberFunctions(nullptr)
+    , m_pCollections(nullptr)
+    , m_pStaticDataMembers(nullptr)
 {
     m_uiSerializedSize = m_uiResetSize = 0;
 }
@@ -82,32 +95,73 @@ DataMember* ClassType::getDataMember( const string& a_strName) const
 void ClassType::elementAdded(LanguageElement* a_pElement)
 {
     Type::elementAdded(a_pElement);
-    m_Members.insert(member_pair(a_pElement->getSortingCategoryClass(), a_pElement));
 }
 
 void ClassType::elementRemoved(LanguageElement* a_pElement)
 {
     Type::elementRemoved(a_pElement);
-    member_collection::const_iterator it = m_Members.lower_bound(a_pElement->getSortingCategoryClass());
-    member_collection::const_iterator end = m_Members.upper_bound(a_pElement->getSortingCategoryClass());
-    for(; it != end; ++it)
+    if(a_pElement->asInstanceDataMember())
     {
-        if(it->second == a_pElement)
+        m_InstanceDataMembers.erase(std::find(m_InstanceDataMembers.begin(), m_InstanceDataMembers.end(), a_pElement->asInstanceDataMember()));
+        m_ValueMembers.erase(std::find(m_ValueMembers.begin(), m_ValueMembers.end(), a_pElement->asValueMember()));
+    }
+    else if(a_pElement->asProperty())
+    {
+        m_Properties.erase(std::find(m_Properties.begin(), m_Properties.end(), a_pElement->asProperty()));
+        m_ValueMembers.erase(std::find(m_ValueMembers.begin(), m_ValueMembers.end(), a_pElement->asValueMember()));
+    } 
+    else if(a_pElement->asInstanceMemberFunction())
+    {
+        m_InstanceMemberFunctions.erase(std::find(m_InstanceMemberFunctions.begin(), m_InstanceMemberFunctions.end(), a_pElement->asInstanceMemberFunction()));
+    }
+    else if(a_pElement->asStaticMemberFunction())
+    {
+        o_assert(m_pStaticMemberFunctions);
+        m_pStaticMemberFunctions->erase(std::find(m_pStaticMemberFunctions->begin(), m_pStaticMemberFunctions->end(), a_pElement->asStaticMemberFunction()));
+        if(m_pStaticMemberFunctions->empty())
         {
-            m_Members.erase(it);
-            return;
+            delete m_pStaticMemberFunctions;
+            m_pStaticMemberFunctions = nullptr;
         }
     }
-    o_assert(false);
+    else if(a_pElement->asStaticDataMember())
+    {
+        o_assert(m_pStaticDataMembers);
+        m_pStaticDataMembers->erase(std::find(m_pStaticDataMembers->begin(), m_pStaticDataMembers->end(), a_pElement->asStaticDataMember()));
+        if(m_pStaticDataMembers->empty())
+        {
+            delete m_pStaticDataMembers;
+            m_pStaticDataMembers = nullptr;
+        }
+    }
+    else if(a_pElement->asCollection())
+    {
+        o_assert(m_pCollections);
+        m_pCollections->erase(std::find(m_pCollections->begin(), m_pCollections->end(), a_pElement->asCollection()));
+        if(m_pCollections->empty())
+        {
+            delete m_pCollections;
+            m_pCollections = nullptr;
+        }
+    }
+    else if(a_pElement->asValueMember())
+    {
+        m_ValueMembers.erase(std::find(m_ValueMembers.begin(), m_ValueMembers.end(), a_pElement->asValueMember()));
+    } 
+}
+Property*           ClassType::getProperty(const string& a_strName) const
+{
+    ValueMember* pValueMember = getValueMember(a_strName);
+    return pValueMember ? pValueMember->asProperty() : nullptr;
 }
 
 InstanceDataMember* ClassType::getInstanceDataMember( const string& a_strName) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
+    auto it = m_ValueMembers.begin();
+    auto end = m_ValueMembers.end();
     for(; it != end; ++it)
     {
-        InstanceDataMember* pDataMember = it->second->asInstanceDataMember();
+        InstanceDataMember* pDataMember = (*it)->asInstanceDataMember();
         if(pDataMember && pDataMember->getName() == a_strName)
             return pDataMember;
     }
@@ -117,23 +171,23 @@ InstanceDataMember* ClassType::getInstanceDataMember( const string& a_strName) c
 Constructor* ClassType::getConstructor( const string& a_strIdentifierString ) const
 {
     //deprecated
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<Constructor>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<Constructor>());
+   /* auto it = m_Constructors.begin();
+    auto end = m_Constructors.end();
     for(; it != end; ++it)
     {
-        Constructor* pCtor = static_cast<Constructor*>(it->second);
+        Constructor* pCtor = static_cast<Constructor*>((*it));
     //    if(pCtor->getIdentifierString() == a_strIdentifierString)
         {
             return pCtor;
         }
-    }    
+    }    */
     return NULL;
 }
 
 void ClassType::valueToString( string& s, const void* src ) const
 {
-    member_const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
-    member_const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
+    auto it = m_ValueMembers.begin();
+    auto end = m_ValueMembers.end();
     if(it == end) 
         return;
     s += '{';
@@ -145,7 +199,7 @@ void ClassType::valueToString( string& s, const void* src ) const
             s += ';';
             s += ' ';
         }
-        ValueMember* pValueMember = static_cast<ValueMember*>(it->second);
+        ValueMember* pValueMember = static_cast<ValueMember*>((*it));
         s += pValueMember->getName();
         s += '=';
         void* buffer = pValueMember->getValueType()->newInstance();
@@ -168,16 +222,16 @@ InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_st
     return pElement ? pElement->asInstanceMemberFunction() : nullptr; 
 }
 
-LanguageElement*            ClassType::getElement(
-    const char* a_strName 
-    , template_specialization const* a_TemplateSpecialization
-    , function_signature const* a_FunctionSignature
+LanguageElement*            ClassType::solveElement(
+    const string& a_strName 
+    , const vector<TemplateElement*>* a_pTemplateSignature
+    , const vector<LanguageElement*>* a_pFunctionSignature
     , bitfield a_Modifiers /*= 0*/) const 
 {
     LanguageElement* pElement = nullptr;
-    pElement = Type::getElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
+    pElement = Type::solveElement(a_strName, a_pTemplateSignature, a_pFunctionSignature, a_Modifiers);
     if(pElement) return pElement;
-    if(a_FunctionSignature == NULL)
+    if(a_pFunctionSignature == nullptr AND a_pTemplateSignature == nullptr)
     {
         StaticDataMember* pStaticDataMember = getStaticDataMember(a_strName);
         if(pStaticDataMember)
@@ -186,34 +240,247 @@ LanguageElement*            ClassType::getElement(
         }
         return getValueMember(a_strName);
     }
-    MemberFunction* pMemberFunction = getMemberFunction(a_strName, a_FunctionSignature, a_Modifiers);
-    return pMemberFunction ? pMemberFunction->asLanguageElement() : NULL;
-}
-
-InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/ ) const
-{
-  member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
-  member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
-  for(; it != end; ++it)
-  {
-    InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
-    if(pMemberFunction->matches(a_strName, a_FunctionSignature, a_Modifiers))
-          return pMemberFunction;
-  }
-  return NULL;
-}
-
-StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/ ) const
-{
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<StaticMemberFunction>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<StaticMemberFunction>());
-    for(; it != end; ++it)
+    if(a_pFunctionSignature)
     {
-        StaticMemberFunction* pMemberFunction = static_cast<StaticMemberFunction*>(it->second);
-        if(pMemberFunction->matches(a_strName, a_FunctionSignature, a_Modifiers))
-            return pMemberFunction;
+        vector<Type*> types;
+        if(a_pFunctionSignature->empty())
+        {
+            MemberFunction* pMemberFunction = getMemberFunction(a_strName, types, nullptr, a_Modifiers);
+            return pMemberFunction ? pMemberFunction->asLanguageElement() : nullptr;
+        }
+        else 
+        {
+            Type* pType = a_pFunctionSignature->front()->asType();
+            Expression* pExpression;
+            if(pType)
+            {
+                types.push_back(pType);
+                for(auto it = a_pFunctionSignature->begin()+1; it != a_pFunctionSignature->end(); ++it)
+                {
+                    pType = (*it)->asType();
+                    if(pType == nullptr) return nullptr;
+                    types.push_back(pType);
+                }
+                // Don't accept member function with partial matches
+                MemberFunction* pMemberFunction = getMemberFunction(a_strName, types, nullptr, a_Modifiers);
+                return pMemberFunction ? pMemberFunction->asLanguageElement() : nullptr;
+            }
+            else if((pExpression = a_pFunctionSignature->front()->asExpression()))
+            {
+                vector<Expression*> expressions;
+                vector<Expression*> arguments;
+                expressions.push_back(pExpression);
+                types.push_back(pExpression->getValueType());
+                for(auto it = a_pFunctionSignature->begin()+1; it != a_pFunctionSignature->end(); ++it)
+                {
+                    pExpression = (*it)->asExpression();
+                    if(pExpression == nullptr) 
+                        return nullptr;
+                    expressions.push_back(pExpression);
+                    types.push_back(pExpression->getValueType());
+                }
+                // Accepts member function with partial matches
+                vector<size_t> partialMatches;
+                StaticMemberFunction* pStaticMemberFunction = getStaticMemberFunction(a_strName, types, &partialMatches, a_Modifiers);
+                if(pStaticMemberFunction)
+                {
+                    for(size_t i = 0; i<expressions.size(); ++i)
+                    {
+                        arguments.push_back(expressions[i]->implicitCast(pStaticMemberFunction->getParameterType(i)));
+                    }
+
+                    return o_new(CallExpression)(pStaticMemberFunction, arguments);
+                }
+            }
+        }
     }
-    return NULL;
+    return Type::solveElement(a_strName, a_pTemplateSignature, a_pFunctionSignature, a_Modifiers);
+}
+
+Expression* ClassType::solveExpression( Expression* a_pLeftExpression
+    , const string& a_strName 
+    , const vector<TemplateElement*>* a_pTemplateSignature
+    , const vector<LanguageElement*>* a_pFunctionSignature
+    , bitfield a_Modifiers /*= 0*/ ) const
+{
+    if(a_pLeftExpression->getValueType() != this) 
+        return nullptr;
+
+    if(a_pTemplateSignature == nullptr && a_pFunctionSignature == nullptr)
+    {
+        StaticDataMember* pStaticDataMember = getStaticDataMember(a_strName);
+        if(pStaticDataMember)
+        {
+            return o_new(AddressExpression)(pStaticDataMember->getAddress(nullptr), pStaticDataMember->getValueType(), a_pLeftExpression);
+        }
+        ValueMember* pValueMember = getValueMember(a_strName);
+        if(pValueMember) 
+        {
+            return pValueMember->createAccessExpression(a_pLeftExpression);
+        }
+    }
+    else if(a_pFunctionSignature)
+    {
+        vector<Type*> types;
+        if(a_pFunctionSignature->empty())
+        {
+            MemberFunction* pMemberFunction = nullptr;
+            if(a_pLeftExpression->isConstExpression()) 
+            {
+                pMemberFunction = getMemberFunction(a_strName, types, nullptr, a_Modifiers|o_const);
+            }
+            else 
+            {
+                pMemberFunction = getMemberFunction(a_strName, types, nullptr, a_Modifiers|o_noconst);
+                if(pMemberFunction == nullptr)
+                {
+                    pMemberFunction = getMemberFunction(a_strName, types, nullptr, a_Modifiers|o_const);
+                }
+            }
+            vector<Expression*> arguments;
+            if(pMemberFunction->asInstanceMemberFunction())
+            {
+                arguments.push_back(a_pLeftExpression);
+            }
+            return o_new(CallExpression)(pMemberFunction->asSubroutine(), arguments);
+        }
+        else 
+        {
+            Type* pType = a_pFunctionSignature->front()->asType();
+            Expression* pExpression = a_pFunctionSignature->front()->asExpression();
+            if(pExpression == nullptr)
+            {
+                return nullptr;
+            }
+            else
+            {
+                vector<Expression*> expressions;
+                vector<Expression*> arguments;
+                types.push_back(pExpression->getValueType());
+                expressions.push_back(pExpression);
+                for(auto it = a_pFunctionSignature->begin()+1; it != a_pFunctionSignature->end(); ++it)
+                {
+                    pExpression = (*it)->asExpression();
+                    if(pExpression == nullptr OR NOT(pExpression->isAddressable())) 
+                        return nullptr;
+                    expressions.push_back(pExpression);
+                    types.push_back(pExpression->getValueType());
+                }
+                // Accepts member function with partial matches
+                vector<size_t> partialMatches;
+                MemberFunction* pMemberFunction = nullptr;
+                if(a_pLeftExpression->isConstExpression())
+                {
+                    pMemberFunction = getMemberFunction(a_strName, types, &partialMatches, a_Modifiers|o_const);
+                }
+                else 
+                {
+                    pMemberFunction = getMemberFunction(a_strName, types, &partialMatches, a_Modifiers|o_noconst);
+                    if(pMemberFunction == nullptr)
+                    {
+                        pMemberFunction = getMemberFunction(a_strName, types, &partialMatches, a_Modifiers|o_const);
+                    }
+                }
+                if(pMemberFunction) 
+                {
+                    for(size_t i = 0; i<expressions.size(); ++i)
+                    {
+                        arguments.push_back(expressions[i]->implicitCast(pMemberFunction->asSubroutine()->getParameterType(i)));
+                    }
+                    if(pMemberFunction->asInstanceMemberFunction())
+                    {
+                        arguments.insert(arguments.begin(), a_pLeftExpression);
+                    }
+                    return o_new(CallExpression)(pMemberFunction->asSubroutine(), arguments);
+                }
+                return nullptr;
+            }
+        }
+    }
+    return Type::solveExpression(a_pLeftExpression, a_strName, a_pTemplateSignature, a_pFunctionSignature, a_Modifiers);
+}
+
+InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/ ) const
+{
+    if(a_pPartialMatchesIndexes)
+    {
+        vector<std::pair<InstanceMemberFunction*, vector<size_t>>> matching;
+        vector<size_t> partialMatches;
+        partialMatches.reserve(a_Types.size());
+        auto it = m_InstanceMemberFunctions.begin();
+        auto end = m_InstanceMemberFunctions.end();
+        for(; it != end; ++it)
+        {
+            partialMatches.clear();
+            InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>((*it));
+            if(pMemberFunction->matches(a_strName, a_Types, &partialMatches, a_Modifiers))
+            {
+                matching.push_back(std::pair<InstanceMemberFunction*, vector<size_t>>(pMemberFunction, partialMatches));
+            }
+        }
+        if(matching.size() == 1)
+        {
+            a_pPartialMatchesIndexes->insert(a_pPartialMatchesIndexes->end(), matching.back().second.begin(), matching.back().second.end());
+            return matching.back().first;
+        }
+    }
+    else 
+    {
+        auto it = m_InstanceMemberFunctions.begin();
+        auto end = m_InstanceMemberFunctions.end();
+        for(; it != end; ++it)
+        {
+            InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>((*it));
+            if(pMemberFunction->matches(a_strName, a_Types, nullptr, a_Modifiers))
+            {
+                return pMemberFunction;
+            }
+        }
+    }
+    return nullptr;
+}
+
+StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/  ) const
+{
+    if(m_pStaticMemberFunctions == nullptr) 
+        return nullptr;
+    if(a_pPartialMatchesIndexes)
+    {
+        vector<std::pair<StaticMemberFunction*, vector<size_t>>> matching;
+        vector<size_t> partialMatches;
+        partialMatches.reserve(a_Types.size());
+        auto it = m_pStaticMemberFunctions->begin();
+        auto end = m_pStaticMemberFunctions->end();
+        for(; it != end; ++it)
+        {
+            partialMatches.clear();
+            StaticMemberFunction* pMemberFunction = static_cast<StaticMemberFunction*>((*it));
+            if(pMemberFunction->matches(a_strName, a_Types, &partialMatches, a_Modifiers))
+            {
+                matching.push_back(std::pair<StaticMemberFunction*, vector<size_t>>(pMemberFunction, partialMatches));
+            }
+        }
+        if(matching.size() == 1)
+        {
+            a_pPartialMatchesIndexes->insert(a_pPartialMatchesIndexes->end(), matching.back().second.begin(), matching.back().second.end());
+            return matching.back().first;
+        }
+        o_message(error, "ambiguity");
+    }
+    else 
+    {
+        auto it = m_pStaticMemberFunctions->begin();
+        auto end = m_pStaticMemberFunctions->end();
+        for(; it != end; ++it)
+        {
+            StaticMemberFunction* pMemberFunction = static_cast<StaticMemberFunction*>((*it));
+            if(pMemberFunction->matches(a_strName, a_Types, nullptr, a_Modifiers))
+            {
+                return pMemberFunction;
+            }
+        }
+    }
+    return nullptr;
 }
 
 StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strIdentifierString ) const
@@ -224,16 +491,52 @@ StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strIde
 
 MemberFunction* ClassType::getMemberFunction(const string& a_strIdentifierString) const
 {
-    MemberFunction* pMemberFunction = getInstanceMemberFunction(a_strIdentifierString);
+    InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strIdentifierString);
     if(pMemberFunction != NULL) return pMemberFunction;
     return getStaticMemberFunction(a_strIdentifierString);
 }
 
-MemberFunction* ClassType::getMemberFunction(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/) const
+MemberFunction* ClassType::getMemberFunction(const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/ ) const
 {
-    MemberFunction* pMemberFunction = getInstanceMemberFunction(a_strName, a_FunctionSignature, a_Modifiers);
-    if(pMemberFunction != NULL) return pMemberFunction;
-    return getStaticMemberFunction(a_strName, a_FunctionSignature, a_Modifiers);
+    bitfield staticModifiers = a_Modifiers;
+    staticModifiers &= ~o_noconst;
+    staticModifiers &= ~o_const;
+    if(a_pPartialMatchesIndexes)
+    {
+        vector<size_t> instancePartialMatches;
+        InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strName, a_Types, &instancePartialMatches, a_Modifiers);
+        if(pMemberFunction == NULL) 
+        {
+            return getStaticMemberFunction(a_strName, a_Types, a_pPartialMatchesIndexes, staticModifiers);
+        }
+        else if(a_pPartialMatchesIndexes->size() == 0)
+        {
+            a_pPartialMatchesIndexes->insert(a_pPartialMatchesIndexes->end(), instancePartialMatches.begin(), instancePartialMatches.end());
+            return pMemberFunction;
+        } 
+        else 
+        {
+            vector<size_t> staticPartialMatches;
+            StaticMemberFunction* pStaticMemberFunction = getStaticMemberFunction(a_strName, a_Types, &staticPartialMatches, staticModifiers);
+            if(pStaticMemberFunction)
+            {
+                if(staticPartialMatches.size() == 0)
+                {
+                    a_pPartialMatchesIndexes->insert(a_pPartialMatchesIndexes->end(), staticPartialMatches.begin(), staticPartialMatches.end());
+                    return pStaticMemberFunction;
+                }
+                o_message(error, "ambiguity");
+                return nullptr;
+            }
+        }
+    }
+    else 
+    {
+        InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strName, a_Types, nullptr, a_Modifiers);
+        if(pMemberFunction != NULL) return pMemberFunction;
+        return getStaticMemberFunction(a_strName, a_Types, nullptr, staticModifiers);
+    }
+    return nullptr;
 }
 /*
 
@@ -253,48 +556,36 @@ phantom::string ClassType::getQualifiedName() const
 
 StaticDataMember* ClassType::getStaticDataMember( const string& a_strName) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<StaticDataMember>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<StaticDataMember>());
-    for(; it != end; ++it)
+    if(m_pStaticDataMembers) 
     {
-        StaticDataMember* pDataMember = static_cast<StaticDataMember*>(it->second);
-        if(pDataMember->getName() == a_strName)
-            return pDataMember;
+        auto it = m_pStaticDataMembers->begin();
+        auto end = m_pStaticDataMembers->end();
+        for(; it != end; ++it)
+        {
+            StaticDataMember* pDataMember = static_cast<StaticDataMember*>((*it));
+            if(pDataMember->getName() == a_strName)
+                return pDataMember;
+        }
     }
-    return NULL;
+    return nullptr;
 }
 
-void ClassType::addInstanceMemberFunction( InstanceMemberFunction* a_pMemberFunction )
+void ClassType::getMembers( vector<LanguageElement*>& out ) const
 {
-    addElement(a_pMemberFunction);
-}
-
-void ClassType::addStaticMemberFunction( StaticMemberFunction* a_pMemberFunction )
-{
-    addElement(a_pMemberFunction);
-}
-
-void ClassType::addMemberFunction( MemberFunction* a_pMemberFunction )
-{
-    addElement(a_pMemberFunction->asLanguageElement());
-}
-
-void ClassType::getAllMember( vector<LanguageElement*>& out ) const
-{
-    member_collection::const_iterator it = m_Members.begin();
-    for(;it != m_Members.end(); ++it)
-    {
-        out.push_back(it->second);
-    }
+    out.insert(out.end(), m_ValueMembers.begin(), m_ValueMembers.end());
+    out.insert(out.end(), m_InstanceMemberFunctions.begin(), m_InstanceMemberFunctions.end());
+    if(m_pStaticDataMembers) out.insert(out.end(), m_pStaticDataMembers->begin(), m_pStaticDataMembers->end());
+    if(m_pStaticMemberFunctions) out.insert(out.end(), m_pStaticMemberFunctions->begin(), m_pStaticMemberFunctions->end());
+    if(m_pCollections) out.insert(out.end(), m_pCollections->begin(), m_pCollections->end());
 }
 
 ValueMember* ClassType::getValueMember( const string& a_strName ) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
+    auto it = m_ValueMembers.begin();
+    auto end = m_ValueMembers.end();
     for(; it != end; ++it)
     {
-        ValueMember* pValueMember = static_cast<ValueMember*>(it->second);
+        ValueMember* pValueMember = static_cast<ValueMember*>((*it));
         if(pValueMember->getName() == a_strName)
             return pValueMember;
     }
@@ -303,25 +594,15 @@ ValueMember* ClassType::getValueMember( const string& a_strName ) const
 
 Collection* ClassType::getCollection( const string& a_strName ) const
 {
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<Collection>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<Collection>());
+    if(m_pCollections == nullptr) return nullptr;
+    auto it = m_pCollections->begin();
+    auto end = m_pCollections->end();
     for(; it != end; ++it)
     {
-        if(it->second->getName() == a_strName)
-            return (Collection*)it->second;
+        if((*it)->getName() == a_strName)
+            return (Collection*)(*it);
     }
     return nullptr;
-}
-
-
-ClassType::member_const_iterator ClassType::valueMembersBegin() const
-{
-    return m_Members.lower_bound(classOf<ValueMember>());
-}
-
-ClassType::member_const_iterator ClassType::valueMembersEnd() const
-{
-    return m_Members.upper_bound(classOf<ValueMember>());
 }
 
 void                    ClassType::addConstructor( Constructor* a_pConstructor )
@@ -333,43 +614,157 @@ void                    ClassType::addConstructor( Constructor* a_pConstructor )
 void                ClassType::addValueMember(ValueMember* a_pValueMember)
 {
     o_assert(getValueMember(a_pValueMember->getName()) == NULL);
-    if(a_pValueMember->isReset())
+    if(a_pValueMember->asInstanceDataMember())
     {
-        m_uiResetSize += a_pValueMember->getValueType()->getResetSize(); 
+        addInstanceDataMember(a_pValueMember->asInstanceDataMember());
     }
-    addElement(a_pValueMember);
+    else 
+    {
+        o_assert(a_pValueMember->asProperty());
+        addProperty(a_pValueMember->asProperty());
+    }
 }
+
 void                ClassType::addProperty( Property* a_pProperty )
 {
+    o_assert(getValueMember(a_pProperty->getName()) == nullptr);
+    if(a_pProperty->isReset())
+    {
+        m_uiResetSize += a_pProperty->getValueType()->getResetSize(); 
+    }
+    m_Properties.push_back(a_pProperty);
+    m_ValueMembers.insert(m_ValueMembers.begin()+(m_Properties.size()-1), a_pProperty);
     addElement(a_pProperty);
 }
-void                ClassType::addCollection( Collection* a_pCollection)
-{
-    addElement(a_pCollection);
-}
-void                ClassType::addDataMember(DataMember* a_pDataMember)
-{
-    addElement(a_pDataMember->asLanguageElement());
-}
+
 void                ClassType::addInstanceDataMember(InstanceDataMember* a_pDataMember)
 {
+    o_assert(getValueMember(a_pDataMember->getName()) == nullptr);
+    if(a_pDataMember->isReset())
+    {
+        m_uiResetSize += a_pDataMember->getValueType()->getResetSize(); 
+    }
+    m_InstanceDataMembers.push_back(a_pDataMember);
+    m_ValueMembers.push_back(a_pDataMember);
     addElement(a_pDataMember);
 }
+
 void                ClassType::addStaticDataMember(StaticDataMember* a_pDataMember)
 {
+    if(m_pStaticDataMembers == nullptr) m_pStaticDataMembers = new vector<StaticDataMember*>;
+    m_pStaticDataMembers->push_back(a_pDataMember);
     addElement(a_pDataMember);
+}
+
+void                ClassType::addDataMember(DataMember* a_pDataMember)
+{
+    if(a_pDataMember->asInstanceDataMember())
+    {
+        addInstanceDataMember(a_pDataMember->asInstanceDataMember());
+    }
+    else 
+    {
+        o_assert(a_pDataMember->asStaticDataMember());
+        addStaticDataMember(a_pDataMember->asStaticDataMember());
+    }
+}
+
+void                ClassType::addCollection( Collection* a_pCollection)
+{
+    if(m_pCollections == nullptr) m_pCollections = new vector<Collection*>;
+    m_pCollections->push_back(a_pCollection);
+    addElement(a_pCollection);
+}
+
+void                ClassType::addInstanceMemberFunction(InstanceMemberFunction* a_pInstanceMemberFunction)
+{
+    o_assert(phantom::elementByName(a_pInstanceMemberFunction->getDecoratedName(), const_cast<ClassType*>(this)) == nullptr);
+    m_InstanceMemberFunctions.push_back(a_pInstanceMemberFunction);
+    addElement(a_pInstanceMemberFunction);
+}
+
+void                ClassType::addStaticMemberFunction(StaticMemberFunction* a_pStaticMemberFunction)
+{
+    o_assert(phantom::elementByName(a_pStaticMemberFunction->getDecoratedName(), const_cast<ClassType*>(this)) == nullptr);
+    if(m_pStaticMemberFunctions == nullptr) m_pStaticMemberFunctions = new vector<StaticMemberFunction*>;
+    m_pStaticMemberFunctions->push_back(a_pStaticMemberFunction);
+    addElement(a_pStaticMemberFunction);
+}
+
+void ClassType::addMemberFunction( MemberFunction* a_pMemberFunction )
+{
+    if(a_pMemberFunction->asInstanceMemberFunction())
+    {
+        addInstanceMemberFunction(a_pMemberFunction->asInstanceMemberFunction());
+    }
+    else 
+    {
+        o_assert(a_pMemberFunction->asStaticMemberFunction());
+        addStaticMemberFunction(a_pMemberFunction->asStaticMemberFunction());
+    }
+}
+
+void                    ClassType::removeConstructor( Constructor* a_pConstructor )
+{
+    o_assert(getConstructor(""));
+    removeElement(a_pConstructor);
+}
+
+void                ClassType::removeValueMember(ValueMember* a_pValueMember)
+{
+    removeElement(a_pValueMember);
+}
+
+void                ClassType::removeProperty( Property* a_pProperty )
+{
+    removeElement(a_pProperty);
+}
+
+void                ClassType::removeCollection( Collection* a_pCollection)
+{
+    removeElement(a_pCollection);
+}
+
+void                ClassType::removeDataMember(DataMember* a_pDataMember)
+{
+    removeElement(a_pDataMember->asLanguageElement());
+}
+
+void                ClassType::removeInstanceDataMember(InstanceDataMember* a_pDataMember)
+{
+    removeElement(a_pDataMember);
+}
+
+void                ClassType::removeStaticDataMember(StaticDataMember* a_pDataMember)
+{
+    removeElement(a_pDataMember);
+}
+
+void                ClassType::removeInstanceMemberFunction(InstanceMemberFunction* a_pInstanceMemberFunction)
+{
+    removeElement(a_pInstanceMemberFunction);
+}
+
+void                ClassType::removeStaticMemberFunction(StaticMemberFunction* a_pStaticMemberFunction)
+{
+    removeElement(a_pStaticMemberFunction);
+}
+
+void ClassType::removeMemberFunction( MemberFunction* a_pMemberFunction )
+{
+    removeElement(a_pMemberFunction->asLanguageElement());
 }
 
 void ClassType::interpolate( void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode /*= 0*/ ) const
 {
-    member_const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
-    member_const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
+    auto it = m_ValueMembers.begin();
+    auto end = m_ValueMembers.end();
     byte scratch_start[phantom::max_type_size];
     byte scratch_end[phantom::max_type_size];
     byte scratch_result[phantom::max_type_size];
     for(; it != end; ++it)
     {
-        ValueMember* pValueMember = static_cast<ValueMember*>(it->second);
+        ValueMember* pValueMember = static_cast<ValueMember*>((*it));
         pValueMember->getValue(a_src_start, scratch_start);
         pValueMember->getValue(a_src_end, scratch_end);
         pValueMember->getValueType()->interpolate(scratch_start, scratch_end, a_fPercent, scratch_result);
@@ -400,31 +795,31 @@ void* ClassType::newInstance() const
 
 size_t ClassType::getValueMemberCount() const
 {
-    return m_Members.count(classOf<ValueMember>());
+    return m_ValueMembers.size();
 }
 
 size_t ClassType::getCollectionCount() const
 {
-    return m_Members.count(classOf<Collection>());
+    return m_pCollections ? m_pCollections->size() : 0;
 }
 
 size_t ClassType::getInstanceMemberFunctionCount() const
 {
-    return m_Members.count(classOf<InstanceMemberFunction>());
+    return m_InstanceMemberFunctions.size();
 }
 
 size_t ClassType::getStaticMemberFunctionCount() const
 {
-    return m_Members.count(classOf<StaticMemberFunction>());
+    return m_pStaticMemberFunctions ? m_pStaticMemberFunctions->size() : 0;
 }
 
-void ClassType::findPublicPropertiesPointingValueType( Type* a_pType, vector<ValueMember*>& out ) const
+void ClassType::findPublicValueMembersPointingValueType( Type* a_pType, vector<ValueMember*>& out ) const
 {
-    member_const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
-    member_const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
+    auto it = m_ValueMembers.begin();
+    auto end = m_ValueMembers.end();
     for(; it != end; ++it)
     {
-        ValueMember* pValueMember = static_cast<ValueMember*>(it->second);
+        ValueMember* pValueMember = static_cast<ValueMember*>((*it));
         DataPointerType* pPointerType = pValueMember->getValueType()->asDataPointerType();
         if(pPointerType AND pValueMember->isPublic() AND a_pType->isKindOf(pPointerType->getPointedType()))
         {
@@ -433,35 +828,15 @@ void ClassType::findPublicPropertiesPointingValueType( Type* a_pType, vector<Val
     }
 }
 
-void ClassType::getAllValueMember(vector<ValueMember*>& out) const
-{
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<ValueMember>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<ValueMember>());
-    for(;it != end; ++it)
-    {
-        out.push_back(static_cast<ValueMember*>(it->second));
-    }
-}
-
-void ClassType::getAllCollection(vector<Collection*>& out) const
-{
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<Collection>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<Collection>());
-    for(;it != end; ++it)
-    {
-        out.push_back(static_cast<Collection*>(it->second));
-    }
-}
-
 void        ClassType::smartCopy(void* a_pInstance, void const* a_pSource, reflection::Type* a_pSourceType) const
 {
     ClassType* pSourceClassType = a_pSourceType->asClassType();
     o_assert(pSourceClassType);
-    auto it = pSourceClassType->valueMembersBegin();
-    auto end = pSourceClassType->valueMembersEnd();
+    auto it = pSourceClassType->beginValueMembers();
+    auto end = pSourceClassType->endValueMembers();
     for(; it!=end; ++it)
     {
-        reflection::ValueMember* pOldValueMember = (ValueMember*)it->second;
+        reflection::ValueMember* pOldValueMember = (ValueMember*)(*it);
         reflection::ValueMember* pNewValueMember = getValueMember(pOldValueMember->getName());
         reflection::Type* pOldValueMemberType = pOldValueMember->getValueType();
         reflection::Type* pNewValueMemberType = nullptr;
@@ -482,14 +857,14 @@ void        ClassType::smartCopy(void* a_pInstance, void const* a_pSource, refle
 InstanceMemberFunction* ClassType::getUniqueInstanceMemberFunctionWithName( const string& a_strName ) const
 {
     InstanceMemberFunction* pInstanceMemberFunction = nullptr;
-    member_collection::const_iterator it = m_Members.lower_bound(classOf<InstanceMemberFunction>());
-    member_collection::const_iterator end = m_Members.upper_bound(classOf<InstanceMemberFunction>());
+    auto it = m_InstanceMemberFunctions.begin();
+    auto end = m_InstanceMemberFunctions.end();
     for(;it != end; ++it)
     {
-        if(static_cast<InstanceMemberFunction*>(it->second)->getName() == a_strName)
+        if(static_cast<InstanceMemberFunction*>((*it))->getName() == a_strName)
         {
             if(pInstanceMemberFunction) return nullptr;
-            pInstanceMemberFunction = static_cast<InstanceMemberFunction*>(it->second);
+            pInstanceMemberFunction = static_cast<InstanceMemberFunction*>((*it));
         }
     }
     return pInstanceMemberFunction;
@@ -498,13 +873,14 @@ InstanceMemberFunction* ClassType::getUniqueInstanceMemberFunctionWithName( cons
 void ClassType::getElements( vector<LanguageElement*>& out, Class* a_pClass ) const
 {
     Type::getElements(out, a_pClass);
-    auto it = m_Members.begin();
+    o_assert(false, "deprecated");
+    /*auto it = m_Members.begin();
     auto end = m_Members.end();
     if(a_pClass == nullptr)
     {
         for(;it != end; ++it)
         {
-            out.push_back(it->second);
+            out.push_back((*it));
         }
     }
     else 
@@ -520,11 +896,11 @@ void ClassType::getElements( vector<LanguageElement*>& out, Class* a_pClass ) co
             }
             if(bCurrentClassAccepted)
             {
-                out.push_back(it->second);
+                out.push_back((*it));
             }
-            it->second->getElements(out, a_pClass);
+            (*it)->getElements(out, a_pClass);
         }
-    }
+    }*/
 }
 
 void ClassType::addAttribute( const string& a_strName, const variant& a_Variant )
@@ -564,17 +940,81 @@ bool ClassType::canBeDestroyed() const
     return Type::canBeDestroyed();
 }
 
-void ClassType::teardownMetaDataCascade( size_t count )
+vector<StaticDataMember*>::const_iterator ClassType::beginStaticDataMembers() const
 {
-    member_collection::const_iterator it = m_Members.begin();
-    member_collection::const_iterator end = m_Members.end();
-    for(;it != end; ++it)
-    {
-        it->second->teardownMetaDataCascade(count);
-    }
-    Type::teardownMetaDataCascade(count);
+    return m_pStaticDataMembers ? m_pStaticDataMembers->begin() : m_EmptyStaticDataMembers.begin();
 }
 
+vector<StaticDataMember*>::const_iterator ClassType::endStaticDataMembers() const
+{
+    return m_pStaticDataMembers ? m_pStaticDataMembers->end() : m_EmptyStaticDataMembers.end();
+}
 
+vector<StaticMemberFunction*>::const_iterator ClassType::beginStaticMemberFunctions() const
+{
+    return m_pStaticMemberFunctions ? m_pStaticMemberFunctions->begin() : m_EmptyStaticMemberFunctions.begin();
+}
+
+vector<StaticMemberFunction*>::const_iterator ClassType::endStaticMemberFunctions() const
+{
+    return m_pStaticMemberFunctions ? m_pStaticMemberFunctions->end() : m_EmptyStaticMemberFunctions.end();
+}
+
+vector<Collection*>::const_iterator ClassType::beginCollections() const
+{
+    return m_pCollections ? m_pCollections->begin() : m_EmptyCollections.begin();
+}
+
+vector<Collection*>::const_iterator ClassType::endCollections() const
+{
+    return m_pCollections ? m_pCollections->end() : m_EmptyCollections.end();
+}
+
+bool ClassType::referencesData(const void* a_pInstance, const phantom::data& a_Data) const
+{
+    {
+        auto it = m_ValueMembers.rbegin();
+        auto end = m_ValueMembers.rend();
+        for(; it != end; ++it)
+        {
+            ValueMember* pValueMember = *it;
+            if(pValueMember->referencesData(a_pInstance, a_Data))
+                return true;
+        }
+    }
+    {
+        auto it = beginCollections();
+        auto end = endCollections();
+        for(; it != end; ++it)
+        {
+            Collection* pCollection = *it;
+            if(pCollection->referencesData(a_pInstance, a_Data))
+                return true;
+        }
+    }
+    return false;
+}
+
+void ClassType::fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const
+{
+    {
+        auto it = m_ValueMembers.rbegin();
+        auto end = m_ValueMembers.rend();
+        for(; it != end; ++it)
+        {
+            ValueMember* pValueMember = *it;
+            pValueMember->fetchReferencedData(a_pInstance, out, a_uiSerializationMask);
+        }
+    }
+    {
+        auto it = beginCollections();
+        auto end = endCollections();
+        for(; it != end; ++it)
+        {
+            Collection* pCollection = *it;
+            pCollection->fetchReferencedData(a_pInstance, out, a_uiSerializationMask);
+        }
+    }
+}
 
 o_namespace_end(phantom, reflection)

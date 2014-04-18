@@ -66,8 +66,7 @@ public:
     void                                safeInvoke( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const;
 
     virtual void                        call( void* a_pCallerAddress, void** a_pArgs ) const = 0;
-    virtual void                        call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const = 0;
-    
+    virtual void                        call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const { o_assert(getReturnType() == typeOf<void>()); call(a_pCallerAddress, a_pArgs); }
     virtual void                        call( void** a_pArgs ) const;
     virtual void                        call( void** a_pArgs, void* a_pReturnAddress ) const;
 
@@ -85,7 +84,6 @@ public:
     int                                 getVirtualTableIndex() const { return m_iVirtualTableIndex; }
     
     virtual void                        findOverloadedMemberFunctions(vector<InstanceMemberFunction*>& a_Result) const;
-    virtual Class*                      getSortingCategoryClass() const;
     
     virtual generic_member_func_ptr     getGenericMemberFunctionPointer() const = 0;
 

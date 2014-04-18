@@ -41,6 +41,9 @@ o_namespace_begin(phantom)
 
     enum { max_type_size = 1024 };
 
+typedef float            float32;
+typedef double           float64;
+
 #if (o_COMPILER == o_COMPILER_GCC) || (o_COMPILER == o_COMPILER_CLANG)
 typedef int8_t           int8;
 typedef int16_t          int16;
@@ -73,30 +76,31 @@ typedef signed __int64   sint64;
 #   error Int types must be defined for this compiler
 #endif
 
-typedef long long                      longlong;
+typedef long long               longlong;
 
-typedef unsigned char              uchar;
+typedef unsigned char           uchar;
 typedef unsigned short          ushort;
-typedef unsigned int              uint;
-typedef unsigned long              ulong;
-typedef unsigned long long    ulonglong;
+typedef unsigned int            uint;
+typedef unsigned long           ulong;
+typedef unsigned long long      ulonglong;
 
-typedef signed char                  schar;
-typedef signed short              sshort;
-typedef signed int                  sint;
-typedef signed long                  slong;
-typedef signed long long      slonglong;
+typedef signed char             schar;
+typedef signed short            sshort;
+typedef signed int              sint;
+typedef signed long             slong;
+typedef signed long long        slonglong;
 
 #if defined(_M_IA64) || defined(_M_X64) || defined(_M_AMD64)
-typedef __int128                    int128;
-typedef unsigned __int128        uint128;
+typedef __int128                int128;
+typedef unsigned __int128       uint128;
 typedef signed  __int128        sint128;
+typedef unsigned __int128       double_size_t;            
 #else
-
+typedef unsigned long long      double_size_t;
 #endif
 
 #if defined(_UNICODE)
-typedef wchar_t                    character;
+typedef wchar_t                 character;
 #else
 typedef char                    character;
 
@@ -832,6 +836,15 @@ inline string to_string(const wstring& astr)
 }
 
 o_namespace_end(phantom)
+
+namespace boost 
+{
+    template<typename t_Key, typename t_Value>
+    struct is_copy_constructible<std::pair<t_Key, t_Value>>
+    {
+        const static bool value = false;
+    };
+}
 
 #include <phantom/bitfield.h>
 #include <phantom/flags.h>

@@ -176,9 +176,6 @@ public:
     }
 };
 
-
-
-
 template<typename t_Ty, typename t_ReturnType>
 class TNativeMemberFunctionProviderTagged0<t_Ty, TNativeMemberFunctionProviderTag<eNativeMemberFunctionProviderTagId_Instance>, t_ReturnType>
 {
@@ -320,10 +317,10 @@ public:
 
     static MemberFunction* CreateMemberFunction(const string& a_strName, 
         Signature* a_pSignature, 
-        t_ReturnType (t_Ty::*a_pFunc)() const, 
+        t_ReturnType (t_Ty::*a_pFunc)(), 
         bitfield a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInstanceMemberFunctionConst0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInstanceMemberFunction0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -336,7 +333,7 @@ public:
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0), 
         bitfield a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInstanceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInstanceMemberFunction1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -349,7 +346,7 @@ public:
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1),
         bitfield a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInstanceMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -362,89 +359,7 @@ public:
         t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1, t_Param2),
         bitfield a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
-    }
-};
-
-
-template<typename t_Ty, typename t_ReturnType>
-class TNativeMemberFunctionProviderTagged0<t_Ty, TNativeMemberFunctionProviderTag<eNativeMemberFunctionProviderTagId_Interface>, t_ReturnType>
-{
-public:
-    static MemberFunction* CreateMemberFunction(const string& a_strName, 
-        Signature* a_pSignature, 
-        t_ReturnType (t_Ty::*a_pFunc)(), 
-        bitfield a_Modifiers = 0)
-    {
-        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInterfaceMemberFunction0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
-    }
-
-    static MemberFunction* CreateMemberFunction(const string& a_strName, 
-        Signature* a_pSignature, 
-        t_ReturnType (t_Ty::*a_pFunc)() const, 
-        bitfield a_Modifiers = 0)
-    {
-        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInterfaceMemberFunctionConst0<t_Ty, t_ReturnType>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
-    }
-};
-
-template<typename t_Ty, typename t_ReturnType, typename t_Param0>
-class TNativeMemberFunctionProviderTagged1<t_Ty, TNativeMemberFunctionProviderTag<eNativeMemberFunctionProviderTagId_Interface>, t_ReturnType, t_Param0>
-{
-public:
-    static MemberFunction* CreateMemberFunction(const string& a_strName, 
-        Signature* a_pSignature, 
-        t_ReturnType (t_Ty::*a_pFunc)(t_Param0), 
-        bitfield a_Modifiers = 0)
-    {
-        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInterfaceMemberFunction1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
-    }
-    static MemberFunction* CreateMemberFunction(const string& a_strName, 
-        Signature* a_pSignature, 
-        t_ReturnType (t_Ty::*a_pFunc)(t_Param0) const, 
-        bitfield a_Modifiers = 0)
-    {
-        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInterfaceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
-    }
-};
-
-template<typename t_Ty, typename t_ReturnType, typename t_Param0, typename t_Param1>
-class TNativeMemberFunctionProviderTagged2<t_Ty, TNativeMemberFunctionProviderTag<eNativeMemberFunctionProviderTagId_Interface>, t_ReturnType, t_Param0, t_Param1>
-{
-public:
-    static MemberFunction* CreateMemberFunction(const string& a_strName, 
-        Signature* a_pSignature, 
-        t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1),
-        bitfield a_Modifiers = 0)
-    {
-        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInterfaceMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
-    }
-    static MemberFunction* CreateMemberFunction(const string& a_strName, 
-        Signature* a_pSignature, 
-        t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1) const,
-        bitfield a_Modifiers = 0)
-    {
-        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInterfaceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
-    }
-};
-
-template<typename t_Ty, typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2>
-class TNativeMemberFunctionProviderTagged3<t_Ty, TNativeMemberFunctionProviderTag<eNativeMemberFunctionProviderTagId_Interface>, t_ReturnType, t_Param0, t_Param1, t_Param2>
-{
-public:
-    static MemberFunction* CreateMemberFunction(const string& a_strName, 
-        Signature* a_pSignature, 
-        t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1, t_Param2),
-        bitfield a_Modifiers = 0)
-    {
-        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInterfaceMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
-    }
-    static MemberFunction* CreateMemberFunction(const string& a_strName, 
-        Signature* a_pSignature, 
-        t_ReturnType (t_Ty::*a_pFunc)(t_Param0, t_Param1, t_Param2) const,
-        bitfield a_Modifiers = 0)
-    {
-        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInterfaceMemberFunctionConst3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeInstanceMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1, t_Param2>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 

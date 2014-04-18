@@ -1,17 +1,17 @@
 #include <phantom/reflection/Type.h>
 
-
 o_namespace_begin(phantom, reflection)
 
 
-class MapValueIteratorVariable : public IteratorVariable
+class MapValueIterator : public Iterator
 {
-protected:
-    MapValueIteratorVariable(void* a_pContainer, MapContainerClass* a_pContainerClass, const string& a_strName)
-        : IteratorVariable(a_pContainer, a_pContainerClass, a_strName)
-    {
+public:
+    virtual void getKeyValue(void* a_pDest) const = 0;
 
-    }
+};
+
+class MapValueConstIterator : public ConstIterator
+{
 public:
     virtual void getKeyValue(void* a_pDest) const = 0;
 
@@ -44,35 +44,40 @@ o_declare_binary_operator_caller(less, <);
 template<typename t_Ty>
 class TSequentialContainerClass;
 
-template<typename t_It, typename t_ValueType>
-class TSequentialIteratorConstant : public IteratorConstant
+template<typename t_Container>
+class TSequentialConstIterator : public ConstIterator
 {
     template<typename t_Ty> friend class TSequentialContainerClass;
 
-    typedef TSequentialIteratorConstant<t_It, t_ValueType> self_type;
+    typedef TSequentialConstIterator<t_Container> self_type;
+    typedef t_Container container_type;
+    typedef o_NESTED_TYPE container_type::const_iterator iterator_type;
+    typedef o_NESTED_TYPE container_type::value_type value_type;
 
-    virtual void deleteNow() { o_proxy_delete(phantom::reflection::IteratorConstant, self_type) this; }
+    virtual void deleteNow() { o_proxy_delete(phantom::reflection::ConstIterator, self_type) this; }
+
 public:
-
-    TSequentialIteratorConstant(void const* a_pContainer, ContainerClass* a_pContainerClass, t_It iterator) 
-        : IteratorConstant(a_pContainer, a_pContainerClass)
-        , m_Iterator(iterator) 
+    TSequentialConstIterator(const container_type& a_Container, iterator_type a_Iterator) 
+        : m_Container(a_Container)
+        , m_Iterator(a_Iterator) 
     {
 
     }
     virtual void getValue(void* dest) const 
     {
-        *static_cast<t_ValueType*>(dest) = *m_Iterator;
+        *static_cast<value_type*>(dest) = *m_Iterator;
     }
+
+    virtual const void* pointer() const { return &(*m_Iterator); }
 
     virtual Type*       getValueType() const 
     {
-        return typeOf<t_ValueType>();
+        return typeOf<value_type>();
     }
 
     virtual void                next(void* dest) 
     {
-        *static_cast<t_ValueType*>(dest) = *m_Iterator++;
+        *static_cast<value_type*>(dest) = *m_Iterator++;
     }
     
     virtual void    advance(size_t offset)
@@ -80,85 +85,111 @@ public:
         std::advance(m_Iterator, offset);
     }
 
+
+    virtual bool hasNext() const { return m_Container.end() != m_Iterator; }
+
 protected:
-    t_It    m_Iterator;
+    const container_type& m_Container;
+    iterator_type m_Iterator;
 };
 
-template<typename t_It, typename t_ValueType>
-class TSequentialIteratorVariable : public IteratorVariable
+template<typename t_Container>
+class TSequentialIterator : public Iterator
 {
     template<typename t_Ty> friend class TSequentialContainerClass;
+    typedef TSequentialIterator<t_Container> self_type;
+    typedef t_Container container_type;
+    typedef o_NESTED_TYPE container_type::iterator iterator_type;
+    typedef o_NESTED_TYPE container_type::value_type value_type;
 
-    typedef TSequentialIteratorVariable<t_It, t_ValueType> self_type;
+    typedef TSequentialIterator<t_Container> self_type;
 
-    virtual void deleteNow() { o_proxy_delete(phantom::reflection::IteratorVariable, self_type) this; }
+    virtual void deleteNow() { o_proxy_delete(phantom::reflection::Iterator, self_type) this; }
 public:
-    TSequentialIteratorVariable(void* a_pContainer, ContainerClass* a_pContainerClass, t_It iterator) 
-        : IteratorVariable(a_pContainer, a_pContainerClass)
-        , m_Iterator(iterator) 
+    TSequentialIterator(container_type& a_Container, iterator_type a_Iterator) 
+        : m_Container(a_Container)
+        , m_Iterator(a_Iterator) 
     {
 
     }
 
     virtual void getValue(void* dest) const 
     {
-        *static_cast<t_ValueType*>(dest) = *m_Iterator;
+        *static_cast<value_type*>(dest) = *m_Iterator;
     }
 
     virtual void setValue(void const* src) const 
     {
-        *m_Iterator = *static_cast<t_ValueType const*>(src);
+        *m_Iterator = *static_cast<value_type const*>(src);
     }
+
+    virtual void* pointer() const { return &(*m_Iterator); }
 
     virtual void advance(size_t offset) { std::advance(m_Iterator, offset); } 
 
     virtual Type*       getValueType() const 
     {
-        return typeOf<t_ValueType>();
+        return typeOf<value_type>();
     }
 
     virtual void                next(void* dest) 
     {
-        *static_cast<t_ValueType*>(dest) = *m_Iterator++;
+        *static_cast<value_type*>(dest) = *m_Iterator++;
     }
 
+
+    virtual bool hasNext() const { return m_Container.end() != m_Iterator; }
+
 protected:
-    t_It    m_Iterator;
+    container_type& m_Container;
+    iterator_type m_Iterator;
 };
 
 // Specialization for maps
 template<typename t_Ty> 
 class TMapContainerClass;
 
-template<typename t_It, typename t_ValueType>
-class TMapValueIteratorConstant : public IteratorConstant
+template<typename t_Container>
+class TMapValueConstIterator : public MapValueConstIterator
 {
     //o_static_assert(sizeof(t_It) != sizeof(t_It));
-    typedef TMapValueIteratorConstant<t_It, t_ValueType> self_type;
+    typedef TMapValueConstIterator<t_Container> self_type;
+    typedef t_Container container_type;
+    typedef o_NESTED_TYPE container_type::const_iterator iterator_type;
+    typedef o_NESTED_TYPE container_type::mapped_type value_type;
+    typedef o_NESTED_TYPE container_type::key_type key_type;
+
     template<typename t_Ty> friend class TMapContainerClass;
 
-    virtual void deleteNow() { o_proxy_delete(phantom::reflection::IteratorConstant, self_type) this; }
+    virtual void deleteNow() { o_proxy_delete(phantom::reflection::ConstIterator, self_type) this; }
 
 public:
-    TMapValueIteratorConstant(void const* a_pContainer, MapContainerClass* a_pContainerClass, t_It iterator) 
-        : IteratorConstant(a_pContainer, a_pContainerClass, phantom::lexical_cast<string>(iterator->first))
-        , m_Iterator(iterator) 
+    TMapValueConstIterator(const container_type& a_Container, iterator_type a_Iterator) 
+        : m_Container(a_Container)
+        , m_Iterator(a_Iterator) 
     {
 
     }
     virtual void getValue(void* dest) const 
     {
-        *static_cast<t_ValueType*>(dest) = m_Iterator->second;
+        *static_cast<value_type*>(dest) = m_Iterator->second;
     }
+
+    virtual void getKeyValue(void* dest) const 
+    {
+        *static_cast<key_type*>(dest) = m_Iterator->first;
+    }
+
+    virtual const void* pointer() const { return &m_Iterator->second; }
 
     virtual Type*       getValueType() const 
     {
-        return typeOf<t_ValueType>();
+        return typeOf<value_type>();
     }
 
     virtual void next(void* dest) 
     {
-        *static_cast<t_ValueType*>(dest) = m_Iterator->second;
+        *static_cast<value_type*>(dest) = m_Iterator->second;
         ++m_Iterator;
     }
 
@@ -166,85 +197,105 @@ public:
     {
         std::advance(m_Iterator, offset);
     }
+
+    virtual bool hasNext() const { return m_Container.end() != m_Iterator; }
+
 protected:
-    t_It    m_Iterator;
+    const container_type& m_Container;
+    iterator_type m_Iterator;
 };
 
-template<typename t_It, typename t_KeyType, typename t_ValueType>
-class TMapValueIteratorVariable : public MapValueIteratorVariable
+template<typename t_Container>
+class TMapValueIterator : public MapValueIterator
 {
     //o_static_assert(sizeof(t_It) != sizeof(t_It));
-    typedef TMapValueIteratorVariable<t_It, t_KeyType, t_ValueType> self_type;
+    typedef TMapValueIterator<t_Container> self_type;
+    typedef t_Container container_type;
+    typedef o_NESTED_TYPE container_type::iterator iterator_type;
+    typedef o_NESTED_TYPE container_type::mapped_type value_type;
+    typedef o_NESTED_TYPE container_type::key_type key_type;
+
     template<typename t_Ty> friend class TMapContainerClass;    
     
-    virtual void deleteNow() { o_proxy_delete(phantom::reflection::IteratorVariable, self_type) this; }
+    virtual void deleteNow() { o_proxy_delete(phantom::reflection::Iterator, self_type) this; }
 
 public:
-    TMapValueIteratorVariable(void* a_pContainer, MapContainerClass* a_pContainerClass, t_It iterator) 
-        : MapValueIteratorVariable(a_pContainer, a_pContainerClass, phantom::lexical_cast<string>(iterator->first))
-        , m_Iterator(iterator) 
+    TMapValueIterator(container_type& a_Container, iterator_type a_Iterator) 
+        : m_Container(a_Container)
+        , m_Iterator(a_Iterator) 
     {
 
     }
     virtual void getValue(void* dest) const 
     {
-        *static_cast<t_ValueType*>(dest) = m_Iterator->second;
+        *static_cast<value_type*>(dest) = m_Iterator->second;
     }
+
+    virtual void* pointer() const { return &m_Iterator->second; }
 
     virtual void getKeyValue(void* a_pDest) const 
     {
-        *static_cast<t_KeyType*>(a_pDest) = m_Iterator->first;
+        *static_cast<key_type*>(a_pDest) = m_Iterator->first;
     }
 
     virtual void setValue(void const* src) const 
     {
-        m_Iterator->second = *static_cast<t_ValueType const*>(src);
+        m_Iterator->second = *static_cast<value_type const*>(src);
     }
 
     virtual void advance(size_t offset) { std::advance(m_Iterator, offset); } 
 
     virtual Type* getValueType() const 
     {
-        return typeOf<t_ValueType>();
+        return typeOf<value_type>();
     }
 
     virtual void next(void* dest) 
     {
-        *static_cast<t_ValueType*>(dest) = m_Iterator->second;
+        *static_cast<value_type*>(dest) = m_Iterator->second;
         ++m_Iterator;
     }
+
+    virtual bool hasNext() const { return m_Container.end() != m_Iterator; }
     
 protected:
-    t_It    m_Iterator;
+    container_type& m_Container;
+    iterator_type m_Iterator;
 };
 
-template<typename t_It, typename t_ValueType>
-class TSetIteratorConstant : public IteratorConstant
+template<typename t_Container>
+class TSetConstIterator : public ConstIterator
 {
     //o_static_assert(sizeof(t_It) != sizeof(t_It));
-    typedef TSetIteratorConstant<t_It, t_ValueType> self_type;
+    typedef TSetConstIterator<t_Container> self_type;
+    typedef t_Container container_type;
+    typedef o_NESTED_TYPE container_type::const_iterator iterator_type;
+    typedef o_NESTED_TYPE container_type::value_type value_type;
+
     template<typename t_Ty> friend class TSetContainerClass;
 
-    virtual void deleteNow() { o_proxy_delete(phantom::reflection::IteratorConstant, self_type) this; }
+    virtual void deleteNow() { o_proxy_delete(phantom::reflection::ConstIterator, self_type) this; }
 
 public:
-    TSetIteratorConstant(void const* a_pContainer, SetContainerClass* a_pContainerClass, t_It iterator) 
-        : IteratorConstant(a_pContainer, a_pContainerClass, phantom::lexical_cast<string>(*iterator))
-        , m_Iterator(iterator) 
+    TSetConstIterator(const container_type& a_Container, iterator_type a_Iterator) 
+        : m_Container(a_Container)
+        , m_Iterator(a_Iterator) 
     {
 
     }
     virtual void getValue(void* dest) const 
     {
-        *static_cast<t_ValueType*>(dest) = *m_Iterator;
+        *static_cast<value_type*>(dest) = *m_Iterator;
     }
+
+    virtual const void* pointer() const { return &(*m_Iterator); }
 
     virtual Type*       getValueType() const 
     {
-        return typeOf<t_ValueType>();
+        return typeOf<value_type>();
     }
 
-    virtual void                next(void* dest) 
+    virtual void        next(void* dest) 
     {
         *static_cast<t_ValueType*>(dest) = *m_Iterator++;
     }
@@ -253,30 +304,36 @@ public:
     {
         std::advance(m_Iterator, offset);
     }
+
 protected:
-    t_It    m_Iterator;
+    const container_type&   m_Container;
+    iterator_type      m_Iterator;
 };
 
 
-template<typename t_It, typename t_ValueType>
-class TSetIteratorVariable : public IteratorVariable
+template<typename t_Container>
+class TSetIterator : public Iterator
 {
     //o_static_assert(sizeof(t_It) != sizeof(t_It));
-    typedef TSetIteratorVariable<t_It, t_ValueType> self_type;
+    typedef TSetIterator<t_Container> self_type;
+    typedef t_Container container_type;
+    typedef o_NESTED_TYPE container_type::iterator iterator_type;
+    typedef o_NESTED_TYPE container_type::value_type value_type;
+    
     template<typename t_Ty> friend class TSetContainerClass;
 
-    virtual void deleteNow() { o_proxy_delete(phantom::reflection::IteratorVariable, self_type) this; }
+    virtual void deleteNow() { o_proxy_delete(phantom::reflection::Iterator, self_type) this; }
 
 public:
-    TSetIteratorVariable(void* a_pContainer, SetContainerClass* a_pContainerClass, t_It iterator) 
-        : IteratorVariable(a_pContainer, a_pContainerClass, phantom::lexical_cast<string>(*iterator), bitfield()|o_readonly)
-        , m_Iterator(iterator) 
+    TSetIterator(container_type& a_Container, SetContainerClass* a_pContainerClass, iterator_type a_Iterator) 
+        : m_Container(a_Container)
+        , m_Iterator(a_Iterator) 
     {
 
     }
     virtual void getValue(void* dest) const 
     {
-        *static_cast<t_ValueType*>(dest) = *m_Iterator;
+        *static_cast<value_type*>(dest) = *m_Iterator;
     }
 
     virtual void setValue(void const* src) const 
@@ -284,21 +341,27 @@ public:
         o_exception(exception::unsupported_member_function_exception, "Set iterators are readonly because modifying a value should modify also the key");
     }
 
+    virtual void* pointer() const { return &(*m_Iterator); }
+
     virtual void advance(size_t offset) { std::advance(m_Iterator, offset); } 
 
     virtual Type*       getValueType() const 
     {
-        return typeOf<t_ValueType>();
+        return typeOf<value_type>();
     }
 
-    virtual bool             hasNext() const { return NOT(m_pContainerClass->isEndIterator(m_pContainer, const_cast<self_type*>(this))); }
+    virtual bool             hasNext() const 
+    { 
+        return m_Container.end() != m_Iterator; 
+    }
     virtual void                next(void* dest) 
     {
-        *static_cast<t_ValueType*>(dest) = *m_Iterator++;
+        *static_cast<value_type*>(dest) = *m_Iterator++;
     }
 
 protected:
-    t_It    m_Iterator;
+    container_type&     m_Container;
+    iterator_type  m_Iterator;
 };
 
 template<typename t_Ty>
@@ -307,13 +370,16 @@ class TSequentialContainerClass : public SequentialContainerClass
     o_static_assert(is_container<t_Ty>::value);
     o_static_assert_msg(NOT(is_map_container<t_Ty>::value), "map container should use TMapContainerClass");
 
+    typedef TSequentialContainerClass<t_Ty>     self_type;
+
+    typedef t_Ty                                container_type;
     typedef o_NESTED_TYPE t_Ty::value_type      container_value_type;
     typedef o_NESTED_TYPE t_Ty::size_type       container_size_type;
     typedef o_NESTED_TYPE t_Ty::const_iterator  container_const_iterator;
-    typedef o_NESTED_TYPE t_Ty::iterator        container_iterator;
+    typedef o_NESTED_TYPE t_Ty::iterator        iterator_type;
 
-    typedef TSequentialIteratorConstant<container_const_iterator, container_value_type>   iterator_constant;
-    typedef TSequentialIteratorVariable<container_iterator, container_value_type>         iterator_variable;
+    typedef TSequentialConstIterator<container_type>    const_iterator;
+    typedef TSequentialIterator<container_type>         iterator;
 
 public:
     TSequentialContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
@@ -321,7 +387,7 @@ public:
     {
     }
 
-    virtual size_t     getCount(void const* a_pContainer) const 
+    virtual size_t     count(void const* a_pContainer) const 
     { 
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
         return container->size();
@@ -337,17 +403,19 @@ public:
     virtual bool isDequeClass() const { return container::is_deque<t_Ty>::value; }
     virtual bool isStackClass() const { return container::is_stack<t_Ty>::value; }
 
-    virtual IteratorVariable*       begin(void* a_pContainer) const
+    virtual Iterator*       begin(void* a_pContainer) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        return o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TSequentialContainerClass<t_Ty>*>(this), container->begin());
+        return o_proxy_new(phantom::reflection::Iterator, iterator)(*container, container->begin());
     }
 
-    virtual IteratorConstant*       begin(void const* a_pContainer) const
+    virtual ConstIterator*       begin(void const* a_pContainer) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
-        return o_proxy_new(phantom::reflection::IteratorConstant, iterator_constant)(a_pContainer, const_cast<TSequentialContainerClass<t_Ty>*>(this), container->begin());
+        return o_proxy_new(phantom::reflection::ConstIterator, const_iterator)(*container, container->begin());
     }
+
+    virtual void                    release(Iterator* a_pIterator) { o_proxy_delete(phantom::reflection::Iterator, iterator) static_cast<phantom::reflection::Iterator*>(a_pIterator); }
 
     virtual void append(void* a_pContainer, void const* a_pValue) const 
     {
@@ -356,59 +424,49 @@ public:
         phantom::container::adder<t_Ty>::apply(pContainer, *pValue);
     }
 
-    virtual void createIteratorVariables(void* a_pContainer, vector<IteratorVariable*>& out) const
+    virtual void createIterators(void* a_pContainer, vector<Iterator*>& out) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        container_iterator it = container->begin();
-        container_iterator end = container->end();
+        iterator_type it = container->begin();
+        iterator_type end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TSequentialContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::Iterator, iterator)(*container, it));
         }
     }
 
-    virtual void createIteratorConstants(void const* a_pContainer, vector<IteratorConstant*>& out) const
+    virtual void createConstIterators(void const* a_pContainer, vector<ConstIterator*>& out) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
         container_const_iterator it = container->begin();
         container_const_iterator end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::IteratorConstant, iterator_constant)(a_pContainer, const_cast<TSequentialContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::ConstIterator, const_iterator)(*container, it));
         }
     }
 
-    virtual void        erase(void* a_pContainer, IteratorVariable* it) const
+    virtual void        erase(void* a_pContainer, Iterator* it) const
     {
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
-        iterator_variable* pIt = static_cast<iterator_variable*>(it);
+        iterator* pIt = static_cast<iterator*>(it);
         pContainer->erase(pIt->m_Iterator);
     }
 
     virtual void        erase(void* a_pContainer, void* a_pFirstIterator, void* a_pLastIterator) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        container_iterator* pFirstIt = static_cast<container_iterator*>(a_pFirstIterator);
-        container_iterator* pLastIt = static_cast<container_iterator*>(a_pLastIterator);
+        iterator_type* pFirstIt = static_cast<iterator_type*>(a_pFirstIterator);
+        iterator_type* pLastIt = static_cast<iterator_type*>(a_pLastIterator);
         container->erase(*pFirstIt,*pLastIt);
     }
 
-    virtual void        erase(void* a_pContainer, IteratorVariable* first, IteratorVariable* last) const 
+    virtual void        erase(void* a_pContainer, Iterator* first, Iterator* last) const 
     {
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
-        iterator_variable* pFirst = static_cast<iterator_variable*>(first);
-        iterator_variable* pLast = static_cast<iterator_variable*>(last);
+        iterator* pFirst = static_cast<iterator*>(first);
+        iterator* pLast = static_cast<iterator*>(last);
         pContainer->erase(pFirst->m_Iterator,pLast->m_Iterator);
-    }
-
-    virtual bool        isEndIterator(void* a_pContainer, IteratorVariable* a_pIterator) const 
-    {
-        return static_cast<iterator_variable*>(a_pIterator)->m_Iterator == static_cast<t_Ty*>(a_pContainer)->end();
-    }
-
-    virtual bool        isEndIterator(void const* a_pContainer, IteratorConstant* a_pIterator) const 
-    {
-        return static_cast<iterator_constant*>(a_pIterator)->m_Iterator == static_cast<t_Ty const*>(a_pContainer)->end();
     }
 
     virtual size_t     eraseAll(void* a_pContainer, const void* a_pOld) const
@@ -417,7 +475,7 @@ public:
         container_value_type pOldValue = *((const container_value_type*)a_pOld);
 
         size_t erasedCount = 0;
-        container_iterator it;
+        iterator_type it;
         while((it = std::find(container->begin(), container->end(), pOldValue)) != container->end())
         {
             container->erase(it);
@@ -433,8 +491,8 @@ public:
         container_value_type pNewValue = *((const container_value_type*)a_pNew);
         
         size_t replacedCount = 0;
-        container_iterator it = container->begin();
-        container_iterator end = container->end();
+        iterator_type it = container->begin();
+        iterator_type end = container->end();
         for(;it!=end;++it)
         {
             if(*it == pOldValue)
@@ -451,15 +509,17 @@ template<typename t_Ty>
 class TMapContainerClass : public MapContainerClass
 {
     o_static_assert(is_map_container<t_Ty>::value);
+    typedef TMapContainerClass<t_Ty>            self_type;
+    typedef t_Ty                                container_type;
     typedef o_NESTED_TYPE t_Ty::key_type        container_key_type;
     typedef o_NESTED_TYPE t_Ty::mapped_type     container_mapped_type;
     typedef o_NESTED_TYPE t_Ty::value_type      container_value_type;
     typedef o_NESTED_TYPE t_Ty::size_type       container_size_type;
     typedef o_NESTED_TYPE t_Ty::const_iterator  container_const_iterator;
-    typedef o_NESTED_TYPE t_Ty::iterator        container_iterator;
+    typedef o_NESTED_TYPE t_Ty::iterator        iterator_type;
 
-    typedef TMapValueIteratorConstant<container_const_iterator, container_mapped_type>   iterator_constant;
-    typedef TMapValueIteratorVariable<container_iterator, container_key_type, container_mapped_type>         iterator_variable;
+    typedef TMapValueConstIterator<container_type>   const_iterator;
+    typedef TMapValueIterator<container_type>        iterator;
 
 public:
     TMapContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
@@ -469,7 +529,7 @@ public:
     {
 
     }
-    virtual size_t     getCount(void const* a_pContainer) const 
+    virtual size_t     count(void const* a_pContainer) const 
     { 
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
         return container->size();
@@ -485,73 +545,75 @@ public:
     virtual bool       isDequeClass() const { return container::is_deque<t_Ty>::value; }
     virtual bool       isStackClass() const { return container::is_stack<t_Ty>::value; }
 
-    virtual IteratorVariable*       begin(void* a_pContainer) const
+    virtual Iterator*       begin(void* a_pContainer) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        return o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), container->begin());
+        return o_proxy_new(phantom::reflection::Iterator, iterator)(*container, container->begin());
     }
 
-    virtual IteratorConstant*       begin(void const* a_pContainer) const
+    virtual ConstIterator*       begin(void const* a_pContainer) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
-        return o_proxy_new(phantom::reflection::IteratorConstant, iterator_constant)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), container->begin());
+        return o_proxy_new(phantom::reflection::ConstIterator, const_iterator)(*container, container->begin());
     }
 
-    virtual void           createIteratorVariables(void* a_pContainer, vector<IteratorVariable*>& out) const
+    virtual void                    release(Iterator* a_pIterator) { o_proxy_delete(phantom::reflection::Iterator, iterator) static_cast<phantom::reflection::Iterator*>(a_pIterator); }
+
+    virtual void           createIterators(void* a_pContainer, vector<Iterator*>& out) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        container_iterator it = container->begin();
-        container_iterator end = container->end();
+        iterator_type it = container->begin();
+        iterator_type end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::Iterator, iterator)(*container, it));
         }
     }
     
-    virtual void           createIteratorConstants(void const* a_pContainer, vector<IteratorConstant*>& out) const
+    virtual void           createConstIterators(void const* a_pContainer, vector<ConstIterator*>& out) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
         container_const_iterator it = container->begin();
         container_const_iterator end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::IteratorConstant, iterator_constant)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::ConstIterator, const_iterator)(*container, it));
         }
     }
 
-    virtual void           createKeyIteratorVariables(void* a_pContainer, void const* a_pFirstKey, void const* a_pLastKey, vector<Variable*>& out) const
+    virtual void           createKeyIterators(void* a_pContainer, void const* a_pFirstKey, void const* a_pLastKey, vector<Iterator*>& out) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
         container_key_type const* pFirstKey = static_cast<container_key_type const*>(a_pFirstKey);
         container_key_type const* pLastKey = static_cast<container_key_type const*>(a_pLastKey);
-        container_iterator it = container->lower_bound(*pFirstKey);
-        container_iterator end = container->upper_bound(*pLastKey);
+        iterator_type it = container->lower_bound(*pFirstKey);
+        iterator_type end = container->upper_bound(*pLastKey);
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TMapContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::Iterator, iterator)(*container, it));
         }
     }
 
-    virtual void        erase(void* a_pContainer, IteratorVariable* it) const
+    virtual void        erase(void* a_pContainer, Iterator* it) const
     {
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
-        iterator_variable* pIt = static_cast<iterator_variable*>(it);
+        iterator* pIt = static_cast<iterator*>(it);
         pContainer->erase(pIt->m_Iterator);
     }
 
     virtual void        erase(void* a_pContainer, void* a_pFirstIterator, void* a_pLastIterator) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        container_iterator* pFirstIt = static_cast<container_iterator*>(a_pFirstIterator);
-        container_iterator* pLastIt = static_cast<container_iterator*>(a_pLastIterator);
+        iterator_type* pFirstIt = static_cast<iterator_type*>(a_pFirstIterator);
+        iterator_type* pLastIt = static_cast<iterator_type*>(a_pLastIterator);
         container->erase(*pFirstIt,*pLastIt);
     }
 
-    virtual void        erase(void* a_pContainer, IteratorVariable* first, IteratorVariable* last) const 
+    virtual void        erase(void* a_pContainer, Iterator* first, Iterator* last) const 
     {
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
-        iterator_variable* pFirst = static_cast<iterator_variable*>(first);
-        iterator_variable* pLast = static_cast<iterator_variable*>(last);
+        iterator* pFirst = static_cast<iterator*>(first);
+        iterator* pLast = static_cast<iterator*>(last);
         pContainer->erase(pFirst->m_Iterator,pLast->m_Iterator);
     }
 
@@ -560,8 +622,8 @@ public:
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
         container_key_type const* pFirstKey = static_cast<container_key_type const*>(a_pFirstKey);
         container_key_type const* pLastKey = static_cast<container_key_type const*>(a_pLastKey);
-        container_iterator it = container->lower_bound(*pFirstKey);
-        container_iterator end = container->upper_bound(*pLastKey);
+        iterator_type it = container->lower_bound(*pFirstKey);
+        iterator_type end = container->upper_bound(*pLastKey);
         container->erase(it,end);
     }
 
@@ -605,16 +667,6 @@ public:
         pContainer->erase(pContainer->find(*pKey));
     }
 
-    virtual bool        isEndIterator(void* a_pContainer, IteratorVariable* a_pIterator) const 
-    {
-        return static_cast<iterator_variable*>(a_pIterator)->m_Iterator == static_cast<t_Ty*>(a_pContainer)->end();
-    }
-
-    virtual bool        isEndIterator(void const* a_pContainer, IteratorConstant* a_pIterator) const 
-    {
-        return static_cast<iterator_constant*>(a_pIterator)->m_Iterator == static_cast<t_Ty const*>(a_pContainer)->end();
-    }
-
     virtual size_t     eraseAll(void* a_pContainer, const void* a_pOld) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
@@ -622,8 +674,8 @@ public:
         
         vector<container_key_type> keys;
         size_t erasedCount = 0;
-        container_iterator it = container->begin();
-        container_iterator end = container->end();
+        iterator_type it = container->begin();
+        iterator_type end = container->end();
         for(;it!=end;++it)
         {
             if(it->second == pOldValue)
@@ -652,8 +704,8 @@ public:
         container_mapped_type pNewValue = *((const container_mapped_type*)a_pNew);
 
         size_t replacedCount = 0;
-        container_iterator it = container->begin();
-        container_iterator end = container->end();
+        iterator_type it = container->begin();
+        iterator_type end = container->end();
         for(;it!=end;++it)
         {
             if(it->second == pOldValue)
@@ -671,14 +723,16 @@ template<typename t_Ty>
 class TSetContainerClass : public SetContainerClass
 {
     o_static_assert(is_set_container<t_Ty>::value);
+    typedef TSetContainerClass<t_Ty>                            self_type;
+    typedef t_Ty                                                container_type;
     typedef o_NESTED_TYPE t_Ty::key_type                        container_key_type;
     typedef o_NESTED_TYPE t_Ty::value_type                      container_value_type;
     typedef o_NESTED_TYPE t_Ty::size_type                       container_size_type;
     typedef o_NESTED_TYPE t_Ty::const_iterator                  container_const_iterator;
-    typedef o_NESTED_TYPE t_Ty::iterator                        container_iterator;
+    typedef o_NESTED_TYPE t_Ty::iterator                        iterator_type;
 
-    typedef TSetIteratorConstant<container_const_iterator, container_key_type>  iterator_constant;
-    typedef TSetIteratorVariable<container_iterator, container_key_type>        iterator_variable;
+    typedef TSetConstIterator<container_type>  const_iterator;
+    typedef TSetIterator<container_type>        iterator;
 
 public:
     TSetContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
@@ -686,7 +740,7 @@ public:
     {
     }
 
-    virtual size_t     getCount(void const* a_pContainer) const 
+    virtual size_t     count(void const* a_pContainer) const 
     { 
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
         return container->size();
@@ -702,73 +756,78 @@ public:
     virtual bool       isDequeClass() const { return container::is_deque<t_Ty>::value; }
     virtual bool       isStackClass() const { return container::is_stack<t_Ty>::value; }
 
-    virtual IteratorVariable*       begin(void* a_pContainer) const
+    virtual Iterator*       begin(void* a_pContainer) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        return o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), container->begin());
+        return o_proxy_new(phantom::reflection::Iterator, iterator)(*container, container->begin());
     }
 
-    virtual IteratorConstant*       begin(void const* a_pContainer) const
+    virtual ConstIterator*       begin(void const* a_pContainer) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
-        return o_proxy_new(phantom::reflection::IteratorConstant, iterator_constant)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), container->begin());
+        return o_proxy_new(phantom::reflection::ConstIterator, const_iterator)(*container, container->begin());
     }
 
-    virtual void       createIteratorVariables(void* a_pContainer, vector<IteratorVariable*>& out) const
+    virtual void                    release(Iterator* a_pIterator) const
+    {
+        o_proxy_delete(phantom::reflection::Iterator, iterator) static_cast<phantom::reflection::Iterator*>(a_pIterator);
+    }
+
+    virtual void       createIterators(void* a_pContainer, vector<Iterator*>& out) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        container_iterator it = container->begin();
-        container_iterator end = container->end();
+        iterator_type it = container->begin();
+        iterator_type end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::Iterator, iterator)(*container, it));
         }
     }
 
-    virtual void       createIteratorConstants(void const* a_pContainer, vector<IteratorConstant*>& out) const
+    virtual void       createConstIterators(void const* a_pContainer, vector<ConstIterator*>& out) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
         container_const_iterator it = container->begin();
         container_const_iterator end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::IteratorConstant, iterator_constant)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::ConstIterator, const_iterator)(*container, it));
         }
     }
 
-    virtual void           createKeyIteratorVariables(void* a_pContainer, void const* a_pFirstKey, void const* a_pLastKey, vector<Variable*>& out) const
+    virtual void           createKeyIterators(void* a_pContainer, void const* a_pFirstKey, void const* a_pLastKey, vector<Iterator*>& out) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
         container_key_type const* pFirstKey = static_cast<container_key_type const*>(a_pFirstKey);
         container_key_type const* pLastKey = static_cast<container_key_type const*>(a_pLastKey);
-        container_iterator it = container->lower_bound(*pFirstKey);
-        container_iterator end = container->upper_bound(*pLastKey);
+        iterator_type it = container->lower_bound(*pFirstKey);
+        iterator_type end = container->upper_bound(*pLastKey);
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::IteratorVariable, iterator_variable)(a_pContainer, const_cast<TSetContainerClass<t_Ty>*>(this), it));
+            out.push_back(o_proxy_new(phantom::reflection::Iterator, iterator)(*container, it));
         }
     }
 
-    virtual void        erase(void* a_pContainer, IteratorVariable* it) const
+    virtual void        erase(void* a_pContainer, Iterator* it) const
     {
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
-        iterator_variable* pIt = static_cast<iterator_variable*>(it);
+        iterator* pIt = static_cast<iterator*>(it);
         pContainer->erase(pIt->m_Iterator);
     }
 
     virtual void        erase(void* a_pContainer, void* a_pFirstIterator, void* a_pLastIterator) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        container_iterator* pFirstIt = static_cast<container_iterator*>(a_pFirstIterator);
-        container_iterator* pLastIt = static_cast<container_iterator*>(a_pLastIterator);
+        iterator_type* pFirstIt = static_cast<iterator_type*>(a_pFirstIterator);
+        iterator_type* pLastIt = static_cast<iterator_type*>(a_pLastIterator);
         container->erase(*pFirstIt,*pLastIt);
     }
 
-    virtual void        erase(void* a_pContainer, IteratorVariable* first, IteratorVariable* last) const 
+    virtual void        erase(void* a_pContainer, Iterator* first, Iterator* last) const 
     {
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
-        iterator_variable* pFirst = static_cast<iterator_variable*>(first);
-        iterator_variable* pLast = static_cast<iterator_variable*>(last);
+        iterator* pFirst = static_cast<iterator*>(first);
+        iterator* pLast = static_cast<iterator*>(last);
         pContainer->erase(pFirst->m_Iterator,pLast->m_Iterator);
     }
 
@@ -777,8 +836,8 @@ public:
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
         container_key_type const* pFirstKey = static_cast<container_key_type const*>(a_pFirstKey);
         container_key_type const* pLastKey = static_cast<container_key_type const*>(a_pLastKey);
-        container_iterator it = container->lower_bound(*pFirstKey);
-        container_iterator end = container->upper_bound(*pLastKey);
+        iterator_type it = container->lower_bound(*pFirstKey);
+        iterator_type end = container->upper_bound(*pLastKey);
         container->erase(it,end);
     }
 
@@ -814,22 +873,12 @@ public:
         pContainer->erase(pContainer->find(*pKey));
     }
 
-    virtual bool        isEndIterator(void* a_pContainer, IteratorVariable* a_pIterator) const 
-    {
-        return static_cast<iterator_variable*>(a_pIterator)->m_Iterator == static_cast<t_Ty*>(a_pContainer)->end();
-    }
-
-    virtual bool        isEndIterator(void const* a_pContainer, IteratorConstant* a_pIterator) const 
-    {
-        return static_cast<iterator_constant*>(a_pIterator)->m_Iterator == static_cast<t_Ty const*>(a_pContainer)->end();
-    }
-
     virtual size_t     eraseAll(void* a_pContainer, const void* a_pOld) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
         container_key_type pOldValue = *((const container_key_type*)a_pOld);
 
-        container_iterator it = container->find(pOldValue);
+        iterator_type it = container->find(pOldValue);
         if(it != container->end())
         {
             // erase old
@@ -845,7 +894,7 @@ public:
         container_key_type pOldValue = *((const container_key_type*)a_pOld);
         container_key_type pNewValue = *((const container_key_type*)a_pNew);
 
-        container_iterator it = container->find(pOldValue);
+        iterator_type it = container->find(pOldValue);
         if(it != container->end())
         {
             // erase old
@@ -862,13 +911,45 @@ template<typename t_Ty>
 class TType_;
 
 template<typename t_Ty>
+struct primitive_type_id_helper;
+
+
+template<> struct primitive_type_id_helper<void> { const static ETypeId value = e_void; };
+template<> struct primitive_type_id_helper<char> { const static ETypeId value = e_char; };
+template<> struct primitive_type_id_helper<unsigned char> { const static ETypeId value = e_unsigned_char ; };
+template<> struct primitive_type_id_helper<signed char> { const static ETypeId value = e_signed_char ; };
+template<> struct primitive_type_id_helper<short> { const static ETypeId value = e_short ; };
+template<> struct primitive_type_id_helper<unsigned short> { const static ETypeId value = e_unsigned_short ; };
+template<> struct primitive_type_id_helper<int> { const static ETypeId value = e_int ; };
+template<> struct primitive_type_id_helper<unsigned int> { const static ETypeId value = e_unsigned_int ; };
+template<> struct primitive_type_id_helper<long> { const static ETypeId value = e_long ; };
+template<> struct primitive_type_id_helper<unsigned long> { const static ETypeId value = e_unsigned_long ; };
+template<> struct primitive_type_id_helper<long long> { const static ETypeId value = e_long_long ; };
+template<> struct primitive_type_id_helper<unsigned long long> { const static ETypeId value = e_unsigned_long_long ; };
+template<> struct primitive_type_id_helper<float> { const static ETypeId value = e_float ; };
+template<> struct primitive_type_id_helper<double> { const static ETypeId value = e_double ; };
+template<> struct primitive_type_id_helper<long double> { const static ETypeId value = e_long_double ; };
+template<> struct primitive_type_id_helper<bool> { const static ETypeId value = e_bool ; };
+template<> struct primitive_type_id_helper<signal_t> { const static ETypeId value = e_signal_t ; };
+template<> struct primitive_type_id_helper<wchar_t> { const static ETypeId value = e_wchar_t ; };
+
+
+template<typename t_Ty>
+class TPrimitiveType : public PrimitiveType
+{
+public:
+    TPrimitiveType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
+        : PrimitiveType(primitive_type_id_helper<t_Ty>::value, a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
+};
+
+template<typename t_Ty>
 class TType_
-    : public default_meta_class_type_of<t_Ty>::type
+    : public base_meta_class_type_of<t_Ty>::type
 {
 public:
     typedef int oversized_type[safe_size_of<t_Ty>::value <= o__uint__max_class_size ? 1 : -1];
     typedef TType_<t_Ty> self_type;
-    typedef o_NESTED_TYPE default_meta_class_type_of<t_Ty>::type super_type;
+    typedef o_NESTED_TYPE base_meta_class_type_of<t_Ty>::type super_type;
 
     typedef super_type proxy_type;
 
@@ -887,7 +968,7 @@ public:
     virtual void deleteNow()
     {
         metaType->terminate(this);
-        metaType->uninstall(this);
+        metaType->uninstall(this, 0);
         o__t1_class__default_class_allocator(self_type)::deallocate(this);
     }
 
@@ -937,6 +1018,7 @@ public:
     }
 #endif
 
+    // Construction
     virtual void construct(void* a_pInstance ) const
     {
         phantom::extension::constructor<t_Ty>::construct(static_cast<t_Ty*>(a_pInstance));
@@ -957,22 +1039,26 @@ public:
     {
         phantom::extension::constructor<t_Ty>::destroy(static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize);
     }
-    virtual void install(void* a_pInstance ) const
+
+    // Installation
+    virtual void install(void* a_pInstance, size_t a_uiLevel ) const
     {
-        phantom::extension::installer<t_Ty>::install(static_cast<t_Ty*>(a_pInstance));
+        phantom::extension::installer<t_Ty>::install(static_cast<t_Ty*>(a_pInstance), a_uiLevel);
     }
-    virtual void uninstall(void* a_pInstance ) const
+    virtual void uninstall(void* a_pInstance, size_t a_uiLevel ) const
     {
-        phantom::extension::installer<t_Ty>::uninstall(static_cast<t_Ty*>(a_pInstance));
+        phantom::extension::installer<t_Ty>::uninstall(static_cast<t_Ty*>(a_pInstance), a_uiLevel);
     }
-    virtual void install(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const
+    virtual void install(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel ) const
     {
-        phantom::extension::installer<t_Ty>::install(static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize);
+        phantom::extension::installer<t_Ty>::install(static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize, a_uiLevel);
     }
-    virtual void uninstall(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const
+    virtual void uninstall(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel ) const
     {
-        phantom::extension::installer<t_Ty>::uninstall(static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize);
+        phantom::extension::installer<t_Ty>::uninstall(static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize, a_uiLevel);
     }
+
+    // Initialization
     virtual void initialize(void* a_pInstance ) const
     {
         phantom::extension::initializer<t_Ty>::initialize(static_cast<t_Ty*>(a_pInstance));
@@ -1083,7 +1169,7 @@ public:
     {
         t_Ty* ptr = o_allocate(t_Ty);
         phantom::extension::constructor<t_Ty>::construct(ptr);
-        phantom::extension::installer<t_Ty>::install(ptr);
+        phantom::extension::installer<t_Ty>::install(ptr, 0);
         phantom::extension::initializer<t_Ty>::initialize(ptr);
         return ptr;
     }
@@ -1092,7 +1178,7 @@ public:
         o_assert(a_pConstructor->getOwner() == this);
         t_Ty* ptr = o_allocate(t_Ty);
         a_pConstructor->construct(ptr, a_pArgs);
-        phantom::extension::installer<t_Ty>::install(ptr);
+        phantom::extension::installer<t_Ty>::install(ptr, 0);
         phantom::extension::initializer<t_Ty>::initialize(ptr);
         return ptr;
     }
@@ -1101,7 +1187,7 @@ public:
         o_assert(a_pConstructor->getOwner() == this);
         t_Ty* ptr = o_allocate(t_Ty);
         a_pConstructor->construct(ptr, a_pArgs);
-        phantom::extension::installer<t_Ty>::install(ptr);
+        phantom::extension::installer<t_Ty>::install(ptr, 0);
         phantom::extension::initializer<t_Ty>::initialize(ptr);
         return ptr;
     }
@@ -1109,7 +1195,7 @@ public:
     {
         t_Ty* ptr = static_cast<t_Ty*>(a_pObject);
         phantom::extension::initializer<t_Ty>::terminate(ptr);
-        phantom::extension::installer<t_Ty>::uninstall(ptr);
+        phantom::extension::installer<t_Ty>::uninstall(ptr, 0);
         phantom::extension::constructor<t_Ty>::destroy(ptr);
         o_deallocate(ptr, t_Ty);
     }
@@ -1117,7 +1203,7 @@ public:
     {
         t_Ty* ptr = phantom::as<t_Ty*>(a_pObject);
         phantom::extension::initializer<t_Ty>::terminate(ptr);
-        phantom::extension::installer<t_Ty>::uninstall(ptr);
+        phantom::extension::installer<t_Ty>::uninstall(ptr, 0);
         phantom::extension::constructor<t_Ty>::destroy(ptr);
         o_deallocate(ptr, t_Ty);
     }
@@ -1136,9 +1222,8 @@ public:
     {
         phantom::vtable_info_extractor<t_Ty>::apply(a_pInstance, vtables);
     }
-    virtual bool            isPolymorphic() const { return boost::is_polymorphic<t_Ty>::value; }
-    virtual bool            isDefaultConstructible() const { return std::is_default_constructible<t_Ty>::value; }
-
+    virtual bool            isDefaultConstructible() const { return std::is_default_constructible<t_Ty>::value && ((m_Modifiers & o_no_default_constructor) == 0); }
+    virtual bool            isCopyConstructible() const { return boost::is_copy_constructible<t_Ty>::value; }
     virtual bool            hasNoCopy() const { return has_meta_specifier<t_Ty, o_no_copy>::value; }
     virtual bool            hasBitAnd() const { return phantom::has_bit_and<t_Ty>::value; }
     virtual bool            hasBitAndAssign() const { return phantom::has_bit_and_assign<t_Ty>::value; }
@@ -1200,7 +1285,7 @@ public:
     virtual Type*   createConstType() const
     {
         TConstType<self_type>* pType = new (o__t1_class__default_class_allocator(TConstType<self_type>)::allocate()) TConstType<self_type>(const_cast<self_type*>(this));
-        metaType->install(pType);
+        metaType->install(pType, 0);
         metaType->initialize(pType);
         return pType;
     }
@@ -1281,7 +1366,7 @@ public:
     virtual void deleteNow()
     {
         metaType->terminate(this);
-        metaType->uninstall(this);
+        metaType->uninstall(this, 0);
         o__t1_class__default_class_allocator(self_type)::deallocate(this);
     }
     
@@ -1360,23 +1445,23 @@ o_namespace_end(phantom, reflection)
 
     /*
 o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_MetaType),TConstType,(t_MetaType))
-o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TType_,(o_NESTED_TYPE default_meta_class_type_of<t_Ty,meta_class_type_id_of<t_Ty>::value>::type))
+o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TType_,(o_NESTED_TYPE base_meta_class_type_of<t_Ty,meta_class_type_id_of<t_Ty>::value>::type))
 o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TType,(TType_<t_Ty>))
 o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TSequentialContainerClass,(SequentialContainerClass))
 o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TMapContainerClass,(MapContainerClass))
 o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TSetContainerClass,(SetContainerClass))
 *//*
 
-o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty, t_ValueType), TMapValueIteratorConstant);
+o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty, t_ValueType), TMapValueConstIterator);
 
-o_declareN(class, (phantom,reflection), MapValueIteratorVariable);
+o_declareN(class, (phantom,reflection), MapValueIterator);
 
-o_declareNT(class, (phantom,reflection,native),(typename,typename,typename),(t_Ty, t_KeyType, t_ValueType), TMapValueIteratorVariable);
+o_declareNT(class, (phantom,reflection,native),(typename,typename,typename),(t_Ty, t_KeyType, t_ValueType), TMapValueIterator);
 
-o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialIteratorConstant);
+o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialConstIterator);
 
-o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialIteratorVariable);
+o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialIterator);
 
-o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSetIteratorConstant);
+o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSetConstIterator);
 
-o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSetIteratorVariable);*/
+o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSetIterator);*/

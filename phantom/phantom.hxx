@@ -30,5 +30,4 @@ o_exposeN((phantom), object);
 
 
 #include "phantom\util\Comparator.hxx"
-#include "phantom\util\Iterator.hxx"
 #include "phantom\Module.hxx"

@@ -20,10 +20,10 @@ public:
     ~JitInstanceMemberFunction(void);
 
     virtual void    call( void* a_pThis, void** a_ppArgs ) const;
-    virtual void	call( void* a_pThis, void** a_ppArgs, void* a_pReturnArea ) const;
+    virtual void    call( void* a_pThis, void** a_ppArgs, void* a_pReturnArea ) const;
 
-    virtual void	call( void** args, void* a_pReturnArea ) const;
-    virtual void	call( void** args ) const;
+    virtual void    call( void** args, void* a_pReturnArea ) const;
+    virtual void    call( void** args ) const;
 
     jit_function getJitVirtualIndirectionFunction() const { return m_jit_virtual_indirection_function; }
 

@@ -46,8 +46,6 @@ o_namespace_begin(phantom, serialization)
 DataBase::DataBase( const string& url, uint a_uiSerializationFlag ) 
 : m_strUrl(url)
 , m_pRootNode(nullptr)
-, m_dependency_tester_delegate(&DataBase::defaultDependencyChecker)
-, m_dependency_getter_delegate(&DataBase::defaultDependencyGetter)
 , m_uiLoadedDataSize(0)
 , m_uiLoadedDataResetSize(0)
 , m_uiLoadedDataSerializedSize(0)
@@ -115,132 +113,6 @@ void            DataBase::moveData(const phantom::data& a_Data, Node* a_pNewOwne
     m_DataNodeMap[pAddress] = a_pNewOwnerNode;
     a_pNewOwnerNode->storeData(a_Data);
     o_emit dataMoved(a_Data, pOldOwnerNode, a_pNewOwnerNode);
-}
-
-boolean DataBase::defaultDependencyCheckerInContainer( reflection::ContainerClass* a_pContainerClass, void* a_pContainer, const phantom::data& a_Dep )
-{
-    Iterator* pIterator = a_pContainerClass->begin(a_pContainer);
-
-    bool result = false;
-
-    reflection::Type* pType = a_pContainerClass->getValueType();
-    if(pType->asDataPointerType())
-    {
-        void* ptr = nullptr; 
-        while(pIterator->hasNext())
-        {
-            pIterator->next(&ptr);
-            phantom::data d(ptr);
-            if(NOT(d.isNull()) && d.address() == a_Dep.address())
-            {
-                result = true;
-                break;
-            }
-        }
-    }
-    else 
-    {
-        reflection::ContainerClass* pSubContainerClass = pType->asContainerClass();
-        o_assert(pSubContainerClass);
-        void* pSubContainer = pSubContainerClass->newInstance();
-        while(pIterator->hasNext())
-        {
-            pIterator->next(pSubContainer);
-            if(defaultDependencyCheckerInContainer(pSubContainerClass, pSubContainer, a_Dep))
-            {
-                result = true;
-                break;
-            }
-        }
-        pSubContainerClass->deleteInstance(pSubContainer);
-    }
-
-    o_dynamic_delete pIterator;
-
-    return result;
-}
-
-boolean DataBase::defaultDependencyCheckerClassType( void* a_SrcAddress, phantom::reflection::ClassType* a_pClassType, const phantom::data& a_Dep )
-{
-    reflection::Class::member_const_iterator it = a_pClassType->valueMembersBegin();
-    reflection::Class::member_const_iterator end = a_pClassType->valueMembersEnd();
-    for(; it != end; ++it)
-    {
-        reflection::ValueMember* pValueMember = static_cast<reflection::ValueMember*>(it->second);
-        reflection::Type* pType = pValueMember->getValueType();
-        if(pType->asDataPointerType())
-        {
-            void* ptr = nullptr;
-            pValueMember->getValue(a_pClassType->cast(pValueMember->getOwnerClassType(), a_SrcAddress), &ptr);
-            phantom::data d(ptr);
-            if(NOT(d.isNull()) && d.address() == a_Dep.address())
-            {
-                return true;
-            }
-        }
-        else 
-        {
-            reflection::ContainerClass* pContainerClass = pType->asContainerClass();
-            if(pContainerClass)
-            {
-                void* pContainer = pContainerClass->newInstance();
-                pValueMember->getValue(a_pClassType->cast(pValueMember->getOwnerClassType(), a_SrcAddress), pContainer);
-                boolean result = defaultDependencyCheckerInContainer(pContainerClass, pContainer, a_Dep);
-                pContainerClass->deleteInstance(pContainer);
-                if(result) return true;
-            }
-        }
-    }
-    if(a_pClassType->asClass())
-    {
-        reflection::Class* pClass = static_cast<reflection::Class*>(a_pClassType);
-        size_t i = 0;
-        size_t count = pClass->getSuperClassCount();
-        for(;i<count;++i)
-        {
-            byte* pAddress = (byte*)a_SrcAddress + pClass->getSuperClassOffset(i);
-            if(defaultDependencyCheckerClassType(pAddress, pClass->getSuperClass(i), a_Dep))
-                return true;
-        }
-    }
-    return false;
-}
-
-void DataBase::defaultDependencyGetterClassType( void* a_SrcAddress, phantom::reflection::ClassType* a_pClassType, vector<phantom::data>& a_Dependencies )
-{
-    reflection::Class::member_const_iterator it = a_pClassType->valueMembersBegin();
-    reflection::Class::member_const_iterator end = a_pClassType->valueMembersEnd();
-    for(; it != end; ++it)
-    {
-        reflection::ValueMember* pValueMember = static_cast<reflection::ValueMember*>(it->second);
-        if(NOT(pValueMember->isTransient()) AND pValueMember->getValueType()->asDataPointerType() != nullptr)
-        {
-            void* value = NULL;
-            pValueMember->getValue(a_SrcAddress, &value);
-            if(value != NULL) 
-            {
-                reflection::Type* pPointedType = static_cast<reflection::DataPointerType*>(pValueMember->getValueType())->getPointedType();
-                const phantom::rtti_data& rtti = phantom::rttiDataOf(value);
-                a_Dependencies.push_back(rtti.isNull()
-                    ? phantom::data(value, pPointedType)
-                    : rtti.data());
-            }
-        }
-    }
-    if(a_pClassType->asClass())
-    {
-        reflection::Class* pClass = static_cast<reflection::Class*>(a_pClassType);
-        size_t i = 0;
-        size_t count = pClass->getSuperClassCount();
-        for(;i<count;++i)
-        {
-            defaultDependencyGetterClassType(
-                (byte*)a_SrcAddress + pClass->getSuperClassOffset(i)
-                , pClass->getSuperClass(i)
-                , a_Dependencies
-            );
-        }
-    }
 }
 
 void DataBase::addDataToTrashbin(const phantom::data& a_Data)
@@ -498,7 +370,7 @@ reflection::Type* DataBase::solveTypeById(uint id) const
 void DataBase::clearDataReference( const phantom::data& a_data )
 {
     vector<void*> layout;
-    phantom::rttiLayoutOf(a_data.address(), layout);
+    phantom::rttiLayoutOf(a_data.address(), layout, 0);
     if(layout.empty()) layout.push_back(a_data.address());
     rootNode()->clearDataReferenceCascade(layout);
 }
@@ -506,7 +378,7 @@ void DataBase::clearDataReference( const phantom::data& a_data )
 void DataBase::replaceDataReference( const phantom::data& a_old, const phantom::data& a_New ) 
 {
     vector<void*> layout;
-    phantom::rttiLayoutOf(a_old.address(), layout);
+    phantom::rttiLayoutOf(a_old.address(), layout, 0);
     if(layout.empty()) layout.push_back(a_old.address());
     rootNode()->replaceDataReferenceCascade(layout, a_New);
 }
@@ -624,9 +496,12 @@ void DataBase::rebuildAllData( reflection::Type* a_pOld, reflection::Type* a_pNe
 
 }
 */
-void DataBase::replaceDataTypes( const map<reflection::Type*, reflection::Type*>& replacedTypes, uint a_uiCurrentState /*= 0xffffffff*/ )
+void DataBase::replaceTypes( const map<reflection::Type*, reflection::Type*>& replacedTypes, uint a_uiCurrentState /*= 0xffffffff*/ )
 {
     if(replacedTypes.empty()) return;
+
+    rootNode()->replaceTypes(replacedTypes);
+
     // rebuild and list all replaced data
     vector<data> oldData;
     vector<data> newData;
@@ -833,7 +708,7 @@ reflection::Collection* DataBase::getCollectionContainingSubData( const phantom:
 
     vector<reflection::Collection*> collections;
     if(ownerData.type()->asClass() == nullptr) return nullptr;
-    ownerData.type()->asClass()->getAllCollectionCascade(collections);
+    ownerData.type()->asClass()->getCollectionsCascade(collections);
     auto it = collections.begin();
     auto end = collections.end();
     for(;it!=end;++it)
@@ -1050,14 +925,6 @@ void DataBase::saveDataState( const phantom::data& a_Data, uint a_uiState )
     getNode(a_Data)->saveDataState(a_Data, a_uiState);
 }
 
-void DataBase::defaultDependencyGetter( const phantom::data& a_Src, vector<phantom::data>& a_Dependencies )
-{
-    if(a_Src.type()->asClassType())
-        defaultDependencyGetterClassType(a_Src.address()
-        , static_cast<reflection::ClassType*>(a_Src.type())
-        , a_Dependencies);
-}
-
 uint DataBase::getGuid( const phantom::data& a_Data ) const
 {
     return m_GuidBase.getGuid(a_Data.address());
@@ -1081,6 +948,23 @@ boolean DataBase::isDataRegistered( void* a_pData ) const
 boolean DataBase::isNodeRegistered( Node* a_pNode ) const
 {
     return m_GuidBase.getGuid(a_pNode) != 0xFFFFFFFF;
+}
+
+void DataBase::addType( reflection::Type* a_pType )
+{
+    rootNode()->addType(a_pType);
+}
+
+void DataBase::removeType( reflection::Type* a_pType )
+{
+    rootNode()->removeType(a_pType);
+}
+
+void DataBase::replaceType( reflection::Type* a_pOld, reflection::Type* a_pNew, uint a_uiCurrentState /*= 0xffffffff*/ )
+{
+    map<reflection::Type*, reflection::Type*> pair;
+    pair[a_pOld] = a_pNew;
+    replaceTypes(pair, a_uiCurrentState);
 }
 
 o_namespace_end(phantom, serialization)

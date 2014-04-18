@@ -16,9 +16,11 @@ struct default_copier_helper;
 template<typename t_Ty>
 struct default_copier_helper <t_Ty, default_copier_default>
 {
+    typedef o_NESTED_TYPE boost::remove_const<t_Ty>::type t_Ty_no_const;
+
     static void copy(t_Ty* a_pDest, t_Ty const* a_pSrc)
     {
-        *a_pDest = *a_pSrc;
+        *((t_Ty_no_const*)a_pDest) = *((t_Ty_no_const const*)a_pSrc);
     }
 };
 

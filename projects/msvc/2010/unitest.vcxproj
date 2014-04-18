@@ -39,7 +39,6 @@
     <ClInclude Include="..\..\..\unitest\phantom\unitest\Ability.h" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\ActorPlatform.hxx" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\ActorPlatform.h" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\Unit.inl" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\Unit.h" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\Marine.hxx" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\Marine.h" />

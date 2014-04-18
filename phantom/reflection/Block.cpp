@@ -86,12 +86,12 @@ LocalVariable* Block::getAccessibleLocalVariable( const string& a_strName, const
     return getParentBlock() ? getParentBlock()->getAccessibleLocalVariable(a_strName, a_Position) : nullptr;
 }
 
-reflection::LanguageElement* Block::getElement( const char* a_strName, template_specialization const* a_pTS, function_signature const* a_pFS, bitfield a_Modifiers /* = bitfield */ ) const
+reflection::LanguageElement* Block::solveElement( const string& a_strName, const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, bitfield a_Modifiers /* = bitfield */ ) const
 {
     LocalVariable* pLocal = getLocalVariable(a_strName);
     if(pLocal) return pLocal;
     int blockIndex = -1;
-    sscanf(a_strName, "%d", &blockIndex);
+    sscanf(a_strName.c_str(), "%d", &blockIndex);
     if(blockIndex >= 0 AND blockIndex < (int)m_ChildBlocks.size())
     {
         return getChildBlock(blockIndex);

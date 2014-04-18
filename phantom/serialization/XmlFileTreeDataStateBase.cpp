@@ -111,7 +111,7 @@ void XmlFileTreeDataStateBase::saveDataState(const phantom::data& a_Data, uint g
 {
 	bool bHasStateValueMember = false;
 	vector<reflection::ValueMember*> valueMembers;
-	a_Data.type()->asClass()->getAllValueMemberCascade(valueMembers);
+	a_Data.type()->asClass()->getValueMembersCascade(valueMembers);
 	vector<reflection::ValueMember*>::iterator it = valueMembers.begin();
 	vector<reflection::ValueMember*>::iterator end = valueMembers.end();
 	for (; it != end; it++)

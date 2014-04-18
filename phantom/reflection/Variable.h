@@ -50,12 +50,18 @@ public:
     Variable();
     Variable(const string& a_strName, bitfield a_Modifiers = 0);
     Variable(const string& a_strName, Range* a_pRange, bitfield a_Modifiers = 0);
-    // To be set is the main goal of a variable
-    virtual void        setValue(void const* src) const = 0;
-    virtual void*       getAddress() const { return NULL; }
-    Range*              getRange() const { return m_pRange; }
 
-    virtual Variable*   asVariable() const  { return (Variable*)this; }
+    virtual void            getValue(void* a_pDest) const = 0;
+
+    virtual void            setValue(void const* a_pSrc) const = 0;
+
+    Range*                  getRange() const { return m_pRange; }
+
+    virtual Variable*       asVariable() const  { return (Variable*)this; }
+
+protected:
+    mutable connection::slot::list        PHANTOM_CODEGEN_m_slot_list_of_valueChanged;
+    phantom::signal_t valueChanged() const;
 
 protected:
     Range* m_pRange;

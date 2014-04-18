@@ -21,7 +21,6 @@
     <ClInclude Include="..\..\..\unitest\phantom\unitest\Ability.h" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\StateMachineTest.h" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\Bench.h" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\Unit.inl" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\RootClass.hxx" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\Marine.hxx" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\GameEntity.hxx" />

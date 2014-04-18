@@ -13,6 +13,7 @@ o_registerNT((std), (class, class, class, class, bool), (t_Kty, t_Ty, t_Pr, t_Al
 
 #endif
 
+
 o_registerNT((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr, t_Alloc), map);
 o_registerNT((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr, t_Alloc), multimap);
 o_registerNT((phantom), (typename,typename,typename), (t_Key,t_Value,t_Pred), map);

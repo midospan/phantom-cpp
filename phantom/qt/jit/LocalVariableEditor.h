@@ -15,7 +15,7 @@ namespace qt {
 
 namespace jit {
 
-class LocalVariableManager;
+class LocalVariableModel;
 class o_qt_jit_export LocalVariableEditor : public VariableEditor
 {
     Q_OBJECT
@@ -24,7 +24,7 @@ public:
 	LocalVariableEditor(void);
 	~LocalVariableEditor(void) {}
 
-    LocalVariableManager* getLocalVariableManager() const;
+    LocalVariableModel* getLocalVariableModel() const;
 
 protected:
     virtual void updateItemLook(QtBrowserItem *item);

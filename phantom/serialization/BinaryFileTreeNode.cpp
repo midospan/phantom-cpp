@@ -569,4 +569,76 @@ bool BinaryFileTreeNode::restoreOne(const phantom::data& a_Data, uint a_uiSerial
 	return state == restore_complete;
 }
 
+void BinaryFileTreeNode::saveTypes()
+{ 
+    byte buffer[1000000];
+    byte* pBuffer = &(buffer[0]);
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+    uint count = m_Types.size();
+
+    extension::serializer<uint>::serialize(&count, pBuffer, 0xffffffff, nullptr);
+
+    auto it = m_Types.begin();
+    auto end = m_Types.end();
+    for(;it != end; ++it)
+    {
+        reflection::Class* pClass = classOf(it->second);
+        uint classGuid = pClass->getGuid();
+
+        // Add type guid to buffer
+        extension::serializer<uint>::serialize(&classGuid, pBuffer, 0xffffffff, 0);
+
+        // Add guid to buffer
+        const string & typeName = it->first;
+        typeOf<string>()->serialize(&typeName, pBuffer, 0xffffffff, nullptr);
+
+        pClass->serialize(it->second, pBuffer, 0xffffffff, nullptr);
+    }
+
+    uint uiBufferSize = pBuffer - &(buffer[0]);
+    const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
+    writeBinary(self_path+'/'+"types", &(buffer[0]), uiBufferSize);
+}
+
+void BinaryFileTreeNode::loadTypes()
+{
+    byte* pBaseBuffer = (byte*)malloc(1000000 * sizeof(byte));
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+    const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
+    size_t bufferSize = 0;
+    readBinary(self_path+'/'+"types", pBaseBuffer, bufferSize);
+
+    const byte* pBuffer = pBaseBuffer;
+    const byte*& pBufferRef = pBuffer;
+    m_uiBufferSize = 0;
+    uint count;
+    extension::serializer<uint>::deserialize(&count, pBufferRef, 0xffffffff, nullptr);
+
+    for(size_t i = 0; i<count; ++i)
+    {
+        uint classGuid;
+
+        // Add type guid to buffer
+
+        // Add type guid to buffer
+        extension::serializer<uint>::deserialize(&classGuid, pBufferRef, 0xffffffff, 0);
+
+        reflection::Class* pClass = pDB->solveTypeById(classGuid)->asClass();
+
+        // Add guid to buffer
+        string typeName;
+        typeOf<string>()->deserialize(&typeName, pBufferRef, 0xffffffff, nullptr);
+
+        void* pType = pClass->allocate();
+        pClass->construct(pType);
+        pClass->install(pType, 0);
+        pClass->deserialize(pType, pBufferRef, 0xffffffff, nullptr);
+        uint pass = 0;
+        restore_state state;  
+        while((state = pClass->restore(pType, 0xffffffff, pass++)) == restore_incomplete);
+        addType(as<reflection::Type*>(pType));
+    }
+    free(pBaseBuffer);
+}
+
 o_namespace_end(phantom, serialization)

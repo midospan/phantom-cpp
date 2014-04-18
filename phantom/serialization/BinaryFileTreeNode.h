@@ -56,12 +56,14 @@ public:
     BinaryFileTreeNode(BinaryFileTreeDataBase* a_pOwnerDataBase, uint guid, BinaryFileTreeNode* a_pParentNode);
 
     virtual void    saveIndex() ;
+    virtual void    saveTypes() ;
     virtual void    saveAttributes() ;
     virtual void    saveData(uint a_uiSerializationFlag) ;
     virtual void    saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) ;
     virtual void    saveDataAttributes();
     virtual void    saveDataAttributes(const phantom::data& a_Data, uint guid);
 
+    virtual void    loadTypes();
     virtual void    loadAttributes();
     virtual void    loadDataAttributes();
     virtual void    loadDataAttributes(const phantom::data& a_Data, uint guid);

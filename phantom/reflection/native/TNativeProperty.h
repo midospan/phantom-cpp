@@ -108,8 +108,8 @@ public:
 
     
 public:
-    TNativeProperty(const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pChangeNotificationSignal, Range* a_pRange, setter a_setter, getter a_getter, uint a_uiSerializationMask, bitfield a_uiModifiers = 0)
-     : Property(a_strName, a_pValueType, a_pSetMemberFunction, a_pGetMemberFunction, a_pChangeNotificationSignal, a_pRange, a_uiSerializationMask, a_uiModifiers)
+    TNativeProperty(const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pSignal, Range* a_pRange, setter a_setter, getter a_getter, uint a_uiSerializationMask, bitfield a_uiModifiers = 0)
+     : Property(a_strName, a_pValueType, a_pSetMemberFunction, a_pGetMemberFunction, a_pSignal, a_pRange, a_uiSerializationMask, a_uiModifiers)
      , m_setter(a_setter)
      , m_getter(a_getter)
     {

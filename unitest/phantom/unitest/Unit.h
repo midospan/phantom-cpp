@@ -39,7 +39,7 @@
 /* ****************** Includes ******************* */
 #include "GameEntity.h"
 #include "Ability.h"
-#include "phantom/util/TComposition.h"
+#include "phantom/util/composition.h"
 /* **************** Declarations ***************** */
 o_declareN(class, (sc2), RallyPoint)
 o_declareN(class, (sc2), Ability)
@@ -49,15 +49,10 @@ o_namespace_begin(sc2)
 
 class Unit : public GameEntity
 {
-
 public:
-    Unit(void) 
-        : m_bPatrolWay(false)
-        , m_iLifePoints(-1)
-        , m_iInitialLifePoints(-1)
-    {
-
-    }
+    typedef phantom::composition<Ability> Abilities;
+public:
+    Unit(void);
 
     o_destructor ~Unit(void) {}
 
@@ -111,64 +106,12 @@ public:
 
     void showControlMarkers() { /*code to show control markers such as rounding selection circle ...*/ }
     void hideControlMarkers() { /*code to hide control markers*/ }
-
-    void removeAbility(Ability* a_pAbility) 
-    {
-        o_assert(containsAbility(a_pAbility));
-        o_emit abilityRemoved(a_pAbility);
-        a_pAbility->m_pUnit = nullptr;
-        m_Abilities.erase(std::find(m_Abilities.begin(), m_Abilities.end(), a_pAbility));
-    }
-
-    void addAbility(Ability* a_pAbility)
-    {
-        o_assert(NOT(containsAbility(a_pAbility)));
-        a_pAbility->m_pUnit = this;
-        m_Abilities.push_back(a_pAbility);
-        o_emit abilityAdded(a_pAbility);
-    }
-
-    virtual void        setAbility(size_t a_uiIndex, Ability* a_pAbility)
-    {
-        if(m_Abilities[a_uiIndex] == a_pAbility) return;
-        if(m_Abilities[a_uiIndex] != nullptr)
-        {
-            if(a_pAbility == nullptr) 
-            {
-                removeAbility(m_Abilities[a_uiIndex]);
-                return;
-            }
-            o_emit abilityRemoved(m_Abilities[a_uiIndex]);
-            m_Abilities[a_uiIndex]->m_pUnit = nullptr;
-            m_Abilities[a_uiIndex] = a_pAbility;
-            a_pAbility->m_pUnit = this; 
-            o_emit abilityAdded(a_pAbility);
-        }
-    }
-
-    bool containsAbility(Ability* a_pAbility) const 
-    {
-        return std::find(m_Abilities.begin(), m_Abilities.end(), a_pAbility) != m_Abilities.end();
-    }
-
-    void moveAbility(Ability* a_pAbility, size_t a_uiNewIndex)
-    {
-        phantom::container::move_unique(m_Abilities, a_pAbility, a_uiNewIndex);
-    }
-
-    Ability* getAbility(size_t a_uiIndex) const { return m_Abilities[a_uiIndex]; }
-
-    size_t getAbilityCount() const { return m_Abilities.size(); }
-
+    
 protected:
-    o_signal_data(abilityAdded, Ability*);
-    o_signal_data(abilityRemoved, Ability*);
-
-protected:
-    phantom::vector<Ability*>           m_Abilities;
-    int                                 m_iLifePoints;
-    int                                 m_iInitialLifePoints;
-    bool                                m_bPatrolWay;
+    Abilities m_Abilities;
+    int       m_iLifePoints;
+    int       m_iInitialLifePoints;
+    bool      m_bPatrolWay;
 
 };
 

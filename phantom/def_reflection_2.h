@@ -10,6 +10,7 @@
     } o_PP_CAT(o_PP_CAT(attribute,__LINE__), _instance);
 
 #define o_property_8(_type_, _name_, _set_member_function_, _get_member_function_, _signal_, _range_, _modifiers_, _serialization_mask_)\
+    o_static_assert_msg( (((_modifiers_&o_transient) == 0) OR (_serialization_mask_ == 0)), "if transient, property must have a null serialization mask" );\
 class o_PP_CAT(_name_,__LINE__) \
     {\
     friend class enclosed_reflection;\
@@ -122,6 +123,7 @@ class o_PP_CAT(_name_,__LINE__) \
 
 
 #    define o_data_member_5(_type_, _name_, _range_, _modifiers_, _serialization_mask_) \
+    o_static_assert_msg( (((_modifiers_&o_transient) == 0) OR (_serialization_mask_ == 0)), "if transient, data member must have a null serialization mask" );\
 class o_PP_CAT(_name_,__LINE__)\
         {\
         friend class enclosed_reflection;\

@@ -34,40 +34,35 @@
 #ifndef o_phantom_reflection_Constant_h__
 #define o_phantom_reflection_Constant_h__
 
-
-
 /* ****************** Includes ******************* */
-
-
 /* **************** Declarations ***************** */
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection)
 
-class o_export Constant : public TemplateElement
+class o_export Constant : public LanguageElement
 {
 public:
     static Class* const metaType;
 
-protected:
+public:
     Constant()
     {
 
     }
     Constant(const string& a_strName, bitfield modifiers = 0)
-        : TemplateElement(a_strName,modifiers)
+        : LanguageElement(a_strName, modifiers)
     {
 
     }
 
-public:
-    virtual Type*       getValueType() const = 0;
-    virtual void        getValue(void* dest) const = 0;
-    virtual Constant*   asConstant() const { return const_cast<Constant*>(this); }
+    virtual Type*                   getValueType() const = 0;
+    virtual void                    getValue(void* dest) const = 0;
+    virtual Constant*               asConstant() const { return const_cast<Constant*>(this); }
 
-    virtual string      getQualifiedName() const { return m_strName; }
-    virtual string      getQualifiedDecoratedName() const { return m_strName; }
-    virtual string      getDecoratedName() const { return m_strName; }
+    virtual string                  getQualifiedName() const { return m_strName; }
+    virtual string                  getQualifiedDecoratedName() const { return m_strName; }
+    virtual string                  getDecoratedName() const { return m_strName; }
 
 protected:
 };

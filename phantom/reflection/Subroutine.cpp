@@ -83,12 +83,12 @@ phantom::string Subroutine::getQualifiedName() const
 
 phantom::string Subroutine::getQualifiedDecoratedName() const
 {
-    return getOwner()->getQualifiedDecoratedName() + "::" + getName() + m_pSignature->getQualifiedDecoratedName();
+    return getOwner()->getQualifiedDecoratedName() + "::" + getName() + m_pSignature->getQualifiedDecoratedName() + (isConst() ? " const" : "");
 }
 
 phantom::string Subroutine::getDecoratedName() const
 {
-    return getName() + m_pSignature->getDecoratedName();
+    return getName() + m_pSignature->getDecoratedName() + (isConst() ? " const" : "");
 }
 
 void Subroutine::addInstruction( Instruction* a_pInstruction )
@@ -109,10 +109,10 @@ void Subroutine::addInstruction( Instruction* a_pInstruction )
     std::sort(m_pInstructions->begin(), m_pInstructions->end(), InstructionSorter());
 }
 
-LanguageElement* Subroutine::getElement( const char* a_strQualifiedName , template_specialization const* a_pTS, function_signature const* a_pFS, bitfield a_Modifiers /* = bitfield */ ) const
+LanguageElement* Subroutine::solveElement( const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, bitfield a_Modifiers /* = bitfield */ ) const
 {
     if(m_pBlock) 
-        return m_pBlock->getElement(a_strQualifiedName, a_pTS, a_pFS, a_Modifiers);
+        return m_pBlock->solveElement(a_strName, a_pTS, a_pFS, a_Modifiers);
     return nullptr;
 }
 
@@ -185,6 +185,25 @@ void Subroutine::referencedElementRemoved( LanguageElement* a_pElement )
         m_pBlock = nullptr;
     else if(m_pSignature == a_pElement)
         m_pSignature = nullptr;
+}
+
+bool Subroutine::matches( const string& a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatches, bitfield a_Modifiers /*= 0*/ ) const
+{
+    return m_strName == a_strName
+        AND m_pSignature->matches(a_FunctionSignature, a_pPartialMatches)
+        AND testModifiers(a_Modifiers);
+}
+
+void Subroutine::call( void** a_pArgs, void* a_pReturnAddress ) const
+{
+    o_assert(getReturnType() == typeOf<void>());
+    call(a_pArgs);
+}
+
+void Subroutine::call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const
+{
+    o_assert(getReturnType() == typeOf<void>());
+    call(a_pCallerAddress, a_pArgs);
 }
 
 void MemoryLocation::setStart( byte* a_pAddress )

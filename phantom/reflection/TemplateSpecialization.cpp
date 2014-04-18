@@ -63,7 +63,7 @@ void TemplateSpecialization::_updateName()
     {
         TemplateElement*  pElement = m_Arguments[i].element;
         if(i != 0) m_strName += o_CC(',');
-        m_strName += pElement->getDecoratedName();
+        m_strName += pElement->asLanguageElement()->getDecoratedName();
     }
     m_strName += o_CC('>');
 }
@@ -76,12 +76,13 @@ phantom::string TemplateSpecialization::getQualifiedName() const
     for(;i<count;++i)
     {
         TemplateElement*  pElement = m_Arguments[i].element;
+        LanguageElement*  pLanguageElement = pElement->asLanguageElement();
         if(i != 0) strQualifiedName += o_CC(',');
-        if(pElement->asConstant())
+        if(pLanguageElement->asNumericConstant())
         {
-            strQualifiedName += pElement->asConstant()->getName();
+            strQualifiedName += pLanguageElement->getName();
         }
-        else strQualifiedName += pElement->getQualifiedName();
+        else strQualifiedName += pLanguageElement->getQualifiedName();
     }
     strQualifiedName += o_CC('>');
     return strQualifiedName;
@@ -100,7 +101,7 @@ TemplateElement* TemplateSpecialization::getArgumentElement( const string& a_str
 Type* TemplateSpecialization::getType(const string& a_strParameterName) const
 {
     TemplateElement* pTemplateElement = getArgumentElement(a_strParameterName);
-    if(pTemplateElement) return pTemplateElement->asType();
+    if(pTemplateElement) return pTemplateElement->asLanguageElement()->asType();
     return NULL;
 }
 
@@ -109,16 +110,16 @@ void TemplateSpecialization::setArgument( const string& a_strTemplateTypeName, T
     o_assert(a_pElement);
     o_assert(getArgumentElement(a_strTemplateTypeName) == nullptr);
     m_Arguments.push_back(Argument(a_strTemplateTypeName, a_pElement));
-    if(a_pElement->asConstant() == nullptr)
+    if(a_pElement->asLanguageElement()->asNumericConstant() == nullptr)
     {
-        addReferencedElement(a_pElement);
+        addReferencedElement(a_pElement->asLanguageElement());
     }
     _updateName();
 }
 
 void TemplateSpecialization::removeArgument( TemplateElement* a_pElement )
 {
-    removeReferencedElement(a_pElement);
+    removeReferencedElement(a_pElement->asLanguageElement());
 }
 
 void TemplateSpecialization::referencedElementAdded(LanguageElement* a_pElement)
@@ -129,9 +130,9 @@ void TemplateSpecialization::referencedElementRemoved(LanguageElement* a_pElemen
 {
     for(auto it = m_Arguments.begin(); it != m_Arguments.end(); )
     {
-        if(it->defaultElement == a_pElement)
+        if(it->defaultElement->asLanguageElement() == a_pElement)
             it->defaultElement = nullptr;
-        if(it->element == a_pElement)
+        if(it->element->asLanguageElement() == a_pElement)
         {
             it = m_Arguments.erase(it);
         }
@@ -139,7 +140,7 @@ void TemplateSpecialization::referencedElementRemoved(LanguageElement* a_pElemen
     }
 }
 
-boolean TemplateSpecialization::matches( template_specialization const* a_TemplateSpecialization ) const
+boolean TemplateSpecialization::matches( const vector<TemplateElement*>* a_TemplateSpecialization ) const
 {
     size_t s0 = a_TemplateSpecialization->size();
     if((s0 < m_Arguments.size()-m_DefaultArgumentsCount) || (s0 > m_Arguments.size())) 
@@ -150,7 +151,7 @@ boolean TemplateSpecialization::matches( template_specialization const* a_Templa
         if(i<s0)
         {
             if((*a_TemplateSpecialization)[i] == NULL) return false;
-            if(NOT( (*a_TemplateSpecialization)[i]->equals(m_Arguments[i].element) )) return false;
+            if(NOT( (*a_TemplateSpecialization)[i]->asLanguageElement()->equals(m_Arguments[i].element->asLanguageElement()) )) return false;
         }
         else 
         {
@@ -180,18 +181,18 @@ void TemplateSpecialization::terminate()
     size_t i = 0;
     for(auto it = m_Arguments.begin(); it != m_Arguments.end();)
     {
-        if(it->element->asConstant() || (it->defaultElement && it->defaultElement->asConstant()))
+        if(it->element->asNumericConstant() || (it->defaultElement && it->defaultElement->asNumericConstant()))
         {
-            if(it->defaultElement && it->defaultElement->asConstant())
+            if(it->defaultElement && it->defaultElement->asNumericConstant())
             {
-                it->defaultElement->terminate();
-                it->defaultElement->deleteNow();
+                it->defaultElement->asLanguageElement()->terminate();
+                it->defaultElement->asLanguageElement()->deleteNow();
                 it->defaultElement = nullptr;
             }
-            if(it->element->asConstant())
+            if(it->element->asNumericConstant())
             {
-                it->element->terminate();
-                it->element->deleteNow();
+                it->element->asLanguageElement()->terminate();
+                it->element->asLanguageElement()->deleteNow();
                 it = m_Arguments.erase(it);
             }
             else ++it;
@@ -223,9 +224,9 @@ void TemplateSpecialization::setDefaultArgument( const string& a_strParameterNam
     }
     m_Arguments[index].defaultElement = a_pElement;
     m_DefaultArgumentsCount++;
-    if(a_pElement->asConstant() == nullptr)
+    if(a_pElement->asLanguageElement()->asNumericConstant() == nullptr)
     {
-        addReferencedElement(a_pElement);
+        addReferencedElement(a_pElement->asLanguageElement());
     }
 }
 

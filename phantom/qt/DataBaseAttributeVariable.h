@@ -1,14 +1,14 @@
-#ifndef ghost_gui_DataBaseAttributePropertyManager_h__
-#define ghost_gui_DataBaseAttributePropertyManager_h__
+#ifndef o_qt_DataBaseAttributeVariable_h__
+#define o_qt_DataBaseAttributeVariable_h__
 
 
 /* ****************** Includes ******************* */
-#include "ghost/gui/gui.h"
+#include "phantom/qt/qt.h"
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
-namespace ghost { namespace gui {
+namespace phantom { namespace qt {
 
 class DataBaseAttributeVariable : public phantom::reflection::Variable
 {
@@ -104,18 +104,8 @@ protected:
 };
 
 
-} // gui 
-} // ghost 
+} // qt 
+} // phantom 
 
 
-o_classN((ghost, gui), DataBaseAttributeVariable, o_no_copy)
-{
-	o_reflection
-	{
-		
-	};
-};
-o_exposeN((ghost, gui), DataBaseAttributeVariable);
-
-
-#endif // ghost_gui_DataBaseAttributePropertyManager_h__
+#endif // o_qt_DataBaseAttributeVariable_h__

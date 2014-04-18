@@ -120,17 +120,17 @@ Signature::~Signature( void )
 {
 }
 
-void Signature::addParameterType( Type* a_pParameterType )
+void Signature::addParameterType( Type* a_pType )
 {
-    o_assert(a_pParameterType);
-    m_ParametersTypes.push_back(a_pParameterType);
-    addReferencedElement(a_pParameterType);
+    o_assert(a_pType && a_pType->isCopyable() );
+    m_ParametersTypes.push_back(a_pType);
+    addReferencedElement(a_pType);
     updateName();
 }
 
 void Signature::setReturnType( Type* a_pType )
 {
-    o_assert(a_pType);
+    o_assert(a_pType && a_pType->isCopyable());
     m_pReturnType = a_pType;
     addReferencedElement(a_pType);
     updateName();
@@ -174,7 +174,7 @@ Type* Signature::getReturnType() const
     return m_pReturnType;
 }
 
-boolean Signature::SeparateParameterTypes( const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, function_signature& a_OutParameterTypes, LanguageElement* a_pScope )
+boolean Signature::SeparateParameterTypes( const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<Type*>& a_OutParameterTypes, LanguageElement* a_pScope )
 {
     string parameterType;
     size_t length = a_strText.length();
@@ -227,7 +227,7 @@ boolean Signature::SeparateParameterTypes( const string& a_strText, TemplateSpec
     return false;
 }
 
-boolean Signature::ParseParameterTypeList( const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, function_signature& a_OutParameterTypes, LanguageElement* a_pScope )
+boolean Signature::ParseParameterTypeList( const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<Type*>& a_OutParameterTypes, LanguageElement* a_pScope )
 {
     if(a_strText.empty()) return false;
     list<string> words;
@@ -244,17 +244,32 @@ boolean Signature::ParseParameterTypeList( const string& a_strText, TemplateSpec
     return SeparateParameterTypes(words.front(), a_pTemplateSpecialization, a_OutParameterTypes, a_pScope);
 }
 
-boolean Signature::matches( function_signature const* a_FunctionSignature ) const
+bool Signature::matches( const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes ) const
 {
-    size_t count = a_FunctionSignature->size();
+    size_t count = a_FunctionSignature.size();
     if(count != m_ParametersTypes.size()) return false;
     size_t i = 0;
+    bool result = true;
     for(;i<count;++i)
     {
-        if((*a_FunctionSignature)[i] != m_ParametersTypes[i]) 
-            return false;
+        if(NOT(a_FunctionSignature[i]->isImplicitlyConvertibleTo(m_ParametersTypes[i]))) 
+        {
+            if(a_pPartialMatchesIndexes) 
+            {
+                result = false;
+            } 
+            else return false;
+        }
+        else if((a_FunctionSignature[i] != m_ParametersTypes[i]))
+        {
+            if(a_pPartialMatchesIndexes)
+            {
+                a_pPartialMatchesIndexes->push_back(i);
+            }
+            else return false;
+        }
     }
-    return true;
+    return result;
 }
 
 void Signature::updateName()

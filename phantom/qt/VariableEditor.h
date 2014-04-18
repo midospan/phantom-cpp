@@ -5,6 +5,7 @@
 /* ****************** Includes ******************* */
 #include "phantom/qt/qt.h"
 #include "QtTreePropertyBrowser.h"
+#include "qtpropertymanager.h"
 /* **************** Declarations ***************** */
 class QPushButton;
 o_declareN(class, (phantom, qt), VariableEditor);
@@ -12,29 +13,29 @@ o_declareN(class, (phantom, qt), VariableEditor);
 
 namespace phantom { namespace qt {
 
-class BufferedVariable;
+class VariableNode;
 class VariableWidget;
 class VariableEditor;
-class VariableManager;
+class VariableModel;
 class VariableEditorFactory;
 class CollectionElementVariable;
 class VariableWidgetEditor;
 
-class o_qt_export VariableEditor : public QtTreePropertyBrowser
+class o_qt_export VariableEditor : public QtTreePropertyBrowser, public QtAbstractPropertyManager 
 {
     Q_OBJECT
 
     friend class VariableEditorFactory;
     friend class VariableAction;
-    friend class VariableManager;
+    friend class VariableModel;
 
 public:
-    typedef fastdelegate::FastDelegate< void ( phantom::reflection::Variable* a_pVariable, void const* valueSource ) > variable_value_set_delegate;
+    typedef fastdelegate::FastDelegate< void ( VariableNode* a_pVariable, void const** a_ppValueSources ) > variable_value_set_delegate;
 
-    static void     defaultVariableValueSetDelegate(phantom::reflection::Variable* a_pVariable, void const* valueSource);
+    static void     defaultVariableValueSetDelegate(VariableNode* a_pVariable, void const** a_ppValueSources);
 
 public:
-    VariableEditor(VariableManager* a_pManager, const QString& variableColumnName);
+    VariableEditor(VariableModel* a_pManager, const QString& variableColumnName);
     ~VariableEditor(void);
 
 	o_initialize() {};
@@ -43,15 +44,15 @@ public:
 
     void    registerVariableTypeEditorClass(reflection::Type* a_pType, reflection::Class* a_pClass);
 
-    VariableManager* getVariableManager() const { return m_pManager; }
+    VariableModel* getVariableModel() const { return m_pVariableModel; }
+    void setVariableModel(VariableModel* a_pVariableModel);
 
-    QtBrowserItem* getBrowserItem(BufferedVariable* a_pVariable) const ;
+    QtBrowserItem* getBrowserItem(VariableNode* a_pVariable) const ;
 
     void updateBrowserItem(QtBrowserItem* bitem)
     {
         updateItem(browserItemToItem(bitem));
     }
-
 
     bool isAutoSaveEnabled() const { return m_bAutoSaveEnabled; }
     void setAutoSaveEnabled(bool a_bEnabled) { m_bAutoSaveEnabled = a_bEnabled; }
@@ -62,6 +63,25 @@ public:
     void setDataBase(serialization::DataBase* a_pDataBase);
     serialization::DataBase* getDataBase() const { return m_pDataBase; }
 
+    void initializeProperty(QtProperty *property) {}
+    void uninitializeProperty(QtProperty *property) 
+    {
+        o_assert(getVariable(property) == nullptr);
+    }
+
+    void registerProperty(QtProperty* property, VariableNode* a_pVariable);
+
+    QtProperty* unregisterProperty(VariableNode* a_pVariable);
+
+    QString valueText(const QtProperty *property) const;
+    QString valueText( VariableNode* a_pVariable ) const;
+    QIcon   valueIcon(const QtProperty *property) const;
+    QIcon   valueIcon( VariableNode* a_pVariable ) const;
+
+    VariableNode*  getVariableNode(QtProperty* property) const;
+
+    QtProperty* getProperty(VariableNode* a_pVariable) const;
+
 public slots:
     void refresh();
     void reedit();
@@ -71,28 +91,32 @@ protected:
     void init();
     virtual void updateCustomExtraColumns( QTreeWidgetItem * item, QtProperty * property );
     virtual void updateItemLook(QtBrowserItem* item);
-    QWidget* createEditor(VariableManager*a_pManager, QtProperty *property, QWidget *parent);
+    QWidget* createEditor(VariableModel*a_pManager, QtProperty *property, QWidget *parent);
 
 protected slots:
     void createPropertyPopupMenu(const QPoint& pos);
-    virtual void slotVariableChanged(BufferedVariable* a_pVariable);
+    virtual void slotVariableChanged(VariableNode* a_pVariable);
     virtual void slotEditorDestroyed();
     virtual void slotEditorValueChanged();
+    void variableChildNodeAdded( VariableNode* a_pVariableNode );
+    void variableChildNodeAboutToBeRemoved( VariableNode* a_pVariableNode );
 
 signals:
-    void variableAboutToBeAccessed(BufferedVariable* a_pVariable) ;
-    void variableAccessed(BufferedVariable* a_pVariable);
-    void variableAboutToBeChanged(BufferedVariable* a_pVariable);
-    void variableChanged(BufferedVariable* a_pVariable);
+    void variableAboutToBeAccessed(VariableNode* a_pVariable) ;
+    void variableAccessed(VariableNode* a_pVariable);
+    void variableAboutToBeChanged(VariableNode* a_pVariable);
+    void variableChanged(VariableNode* a_pVariable);
 
 protected:
-    VariableManager*        m_pManager;
-    VariableWidget*         m_pOpenedEditor;
-    vector<phantom::data>   m_EditedData;
-    reflection::Type*       m_pEditedType;
-    QMap<reflection::Type*, reflection::Class*>             m_VariableTypeToEditorClass;
-    variable_value_set_delegate                             m_variable_value_set_delegate;
-    serialization::DataBase*                                m_pDataBase;
+    VariableModel*                    m_pVariableModel;
+    VariableWidget*                   m_pOpenedEditor;
+    map<QtProperty*, VariableNode*> m_Variables;
+    map<VariableNode*, QtProperty*> m_Properties;
+    vector<phantom::data>               m_EditedData;
+    reflection::Type*                   m_pEditedType;
+
+    QMap<reflection::Type*, reflection::Class*> m_VariableTypeToEditorClass;
+    variable_value_set_delegate                 m_variable_value_set_delegate;
     bool m_bChangingPropertyValue;
     bool m_bAutoSaveEnabled;
     bool m_bAutoSaveStateEnabled;

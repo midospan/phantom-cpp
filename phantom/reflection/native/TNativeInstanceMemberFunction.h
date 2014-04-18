@@ -95,6 +95,13 @@ public:
             = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)();
     }
 
+    virtual void* getAddress(void* a_pObject, void** a_pParams) const
+    {
+        return addressable_wrapper<t_ReturnType>::address((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)());
+    }
+
+    virtual bool        isAddressable() const { return addressable_wrapper<t_ReturnType>::value; }
+
 protected:
     member_function_pointer m_member_function_pointer;
 
@@ -127,20 +134,11 @@ public:
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)();
     }
 
-    virtual void        call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
-    }
-
     virtual void        call(void* a_pObject, void** a_pParams) const
     {
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)();
     }
 
-    virtual void        call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
-    }
 protected:
     member_function_pointer m_member_function_pointer;
 
@@ -174,9 +172,6 @@ public:
         return FastDelegate1<t_ReturnType, t_Param0>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-
-
-
     virtual void call(void* a_pObject, argument::list* a_pParams) const
     {
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -201,6 +196,14 @@ public:
             = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             (*static_cast<t_Param0_noref*>(a_pParams[0]));
     }
+
+    virtual void* getAddress(void* a_pObject, void** a_pParams) const
+    {
+        return addressable_wrapper<t_ReturnType>::address((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+            (*static_cast<t_Param0_noref*>(a_pParams[0])));
+    }
+
+    virtual bool        isAddressable() const { return addressable_wrapper<t_ReturnType>::value; }
 
 protected:
     member_function_pointer m_member_function_pointer;
@@ -238,20 +241,10 @@ public:
             (static_cast<argument::list_1<t_Param0>*>(a_pParams)->p0);
     }
 
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
-    }
-
     virtual void        call(void* a_pObject, void** a_pParams) const
     {
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             (*static_cast<t_Param0_noref*>(a_pParams[0]));
-    }
-
-    virtual void        call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -286,9 +279,6 @@ public:
         return FastDelegate2<t_ReturnType, t_Param0,t_Param1>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-
-
-
     virtual void call(void* a_pObject, argument::list* a_pParams) const
     {
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -314,6 +304,15 @@ public:
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param0_noref*>(a_pParams[1]) );
     }
+
+    virtual void* getAddress(void* a_pObject, void** a_pParams) const
+    {
+        return addressable_wrapper<t_ReturnType>::address((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1]) ));
+    }
+
+    virtual bool        isAddressable() const { return addressable_wrapper<t_ReturnType>::value; }
 
 protected:
     member_function_pointer m_member_function_pointer;
@@ -349,20 +348,12 @@ public:
             ( static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p0
             , static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p1 );
     }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
-    }
 
     virtual void call(void* a_pObject, void** a_pParams) const
     {
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1]) );
-    }
-    virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -430,6 +421,16 @@ public:
             , *static_cast<t_Param2_noref*>(a_pParams[2]) );
     }
 
+    virtual void* getAddress(void* a_pObject, void** a_pParams) const
+    {
+        return addressable_wrapper<t_ReturnType>::address((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2]) ));
+    }
+
+    virtual bool        isAddressable() const { return addressable_wrapper<t_ReturnType>::value; }
+
 protected:
     member_function_pointer m_member_function_pointer;
 
@@ -466,10 +467,6 @@ public:
             , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p1
             , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p2 );
     }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
-    }
 
     virtual void call(void* a_pObject, void** a_pParams) const
     {
@@ -477,10 +474,6 @@ public:
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2]) );
-    }
-    virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -558,6 +551,17 @@ public:
             , *static_cast<t_Param3_noref*>(a_pParams[3]) );
     }
 
+    virtual void* getAddress(void* a_pObject, void** a_pParams) const
+    {
+        return addressable_wrapper<t_ReturnType>::address((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3]) ));
+    }
+
+    virtual bool        isAddressable() const { return addressable_wrapper<t_ReturnType>::value; }
+
 protected:
     member_function_pointer m_member_function_pointer;
 
@@ -600,10 +604,6 @@ public:
             , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p2
             , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p3 );
     }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
-    }
 
     virtual void call(void* a_pObject, void** a_pParams) const
     {
@@ -612,10 +612,6 @@ public:
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2])
             , *static_cast<t_Param3_noref*>(a_pParams[3]) );
-    }
-    virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -698,6 +694,18 @@ public:
             , *static_cast<t_Param4_noref*>(a_pParams[4]) );
     }
 
+    virtual void* getAddress(void* a_pObject, void** a_pParams) const
+    {
+        return addressable_wrapper<t_ReturnType>::address((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            , *static_cast<t_Param4_noref*>(a_pParams[4]) ));
+    }
+
+    virtual bool        isAddressable() const { return addressable_wrapper<t_ReturnType>::value; }
+
 protected:
     member_function_pointer m_member_function_pointer;
 
@@ -744,10 +752,6 @@ public:
             , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p3
             , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p4 );
     }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
-    }
 
     virtual void call(void* a_pObject, void** a_pParams) const
     {
@@ -757,10 +761,6 @@ public:
             , *static_cast<t_Param2_noref*>(a_pParams[2])
             , *static_cast<t_Param3_noref*>(a_pParams[3])
             , *static_cast<t_Param4_noref*>(a_pParams[4]) );
-    }
-    virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -848,6 +848,20 @@ public:
             , *static_cast<t_Param4_noref*>(a_pParams[4])
             , *static_cast<t_Param5_noref*>(a_pParams[5]) );
     }
+
+    virtual void* getAddress(void* a_pObject, void** a_pParams) const
+    {
+        return addressable_wrapper<t_ReturnType>::address((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            , *static_cast<t_Param4_noref*>(a_pParams[4])
+            , *static_cast<t_Param5_noref*>(a_pParams[5])  ));
+    }
+
+    virtual bool        isAddressable() const { return addressable_wrapper<t_ReturnType>::value; }
+
 protected:
     member_function_pointer m_member_function_pointer;
 
@@ -896,10 +910,6 @@ public:
             , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p4
             , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p5 );
     }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
-    }
 
     virtual void call(void* a_pObject, void** a_pParams) const
     {
@@ -910,10 +920,6 @@ public:
             , *static_cast<t_Param3_noref*>(a_pParams[3])
             , *static_cast<t_Param4_noref*>(a_pParams[4])
             , *static_cast<t_Param5_noref*>(a_pParams[5]) );
-    }
-    virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -1011,6 +1017,20 @@ public:
             , *static_cast<t_Param6_noref*>(a_pParams[6]) );
     }
 
+    virtual void* getAddress(void* a_pObject, void** a_pParams) const
+    {
+        return addressable_wrapper<t_ReturnType>::address((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            , *static_cast<t_Param4_noref*>(a_pParams[4])
+            , *static_cast<t_Param5_noref*>(a_pParams[5])
+            , *static_cast<t_Param6_noref*>(a_pParams[6])  ));
+    }
+
+    virtual bool        isAddressable() const { return addressable_wrapper<t_ReturnType>::value; }
+
 protected:
     member_function_pointer m_member_function_pointer;
 
@@ -1062,10 +1082,6 @@ public:
             , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p5
             , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p6 );
     }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
-    }
 
     virtual void call(void* a_pObject, void** a_pParams) const
     {
@@ -1077,10 +1093,6 @@ public:
             , *static_cast<t_Param4_noref*>(a_pParams[4])
             , *static_cast<t_Param5_noref*>(a_pParams[5])
             , *static_cast<t_Param6_noref*>(a_pParams[6]) );
-    }
-    virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:
@@ -1181,6 +1193,22 @@ public:
             , *static_cast<t_Param6_noref*>(a_pParams[6])
             , *static_cast<t_Param7_noref*>(a_pParams[7]) );
     }
+
+    virtual void* getAddress(void* a_pObject, void** a_pParams) const
+    {
+        return addressable_wrapper<t_ReturnType>::address((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3]) 
+            , *static_cast<t_Param4_noref*>(a_pParams[4])
+            , *static_cast<t_Param5_noref*>(a_pParams[5])
+            , *static_cast<t_Param6_noref*>(a_pParams[6])
+            , *static_cast<t_Param7_noref*>(a_pParams[7])));
+    }
+
+    virtual bool        isAddressable() const { return addressable_wrapper<t_ReturnType>::value; }
+
 protected:
     member_function_pointer m_member_function_pointer;
 
@@ -1236,10 +1264,6 @@ public:
             , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p6
             , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p7 );
     }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
-    }
 
     virtual void call(void* a_pObject, void** a_pParams) const
     {
@@ -1252,10 +1276,6 @@ public:
             , *static_cast<t_Param5_noref*>(a_pParams[5])
             , *static_cast<t_Param6_noref*>(a_pParams[6])
             , *static_cast<t_Param7_noref*>(a_pParams[7]) );
-    }
-    virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const
-    {
-        throw exception::reflection_runtime_exception("void member_function called with expected return result");
     }
 
 protected:

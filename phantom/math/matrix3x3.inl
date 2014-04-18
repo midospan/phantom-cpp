@@ -1,889 +1,618 @@
 
-o_namespace_begin(phantom, math)
+template<class t_Ty>
+inline matrix3x3<t_Ty>::matrix3x3 (bool doMakeZero)
+{
+    if (doMakeZero)
+    {
+        makeZero();
+    }
+    else
+    {
+        makeIdentity();
+    }
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>::matrix3x3 (const matrix3x3<t_Ty>& mat)
+{
+    m[0] = mat.m[0];
+    m[1] = mat.m[1];
+    m[2] = mat.m[2];
+    m[3] = mat.m[3];
+    m[4] = mat.m[4];
+    m[5] = mat.m[5];
+    m[6] = mat.m[6];
+    m[7] = mat.m[7];
+    m[8] = mat.m[8];
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>::matrix3x3 (t_Ty m00, t_Ty m01, t_Ty m02, t_Ty m10, t_Ty m11,
+    t_Ty m12, t_Ty m20, t_Ty m21, t_Ty m22)
+{
+    m[0] = m00;
+    m[1] = m01;
+    m[2] = m02;
+    m[3] = m10;
+    m[4] = m11;
+    m[5] = m12;
+    m[6] = m20;
+    m[7] = m21;
+    m[8] = m22;
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>::matrix3x3 (const t_Ty entry[9], bool colMajor)
+{
+    if (colMajor)
+    {
+        m[0] = entry[0];
+        m[1] = entry[1];
+        m[2] = entry[2];
+        m[3] = entry[3];
+        m[4] = entry[4];
+        m[5] = entry[5];
+        m[6] = entry[6];
+        m[7] = entry[7];
+        m[8] = entry[8];
+    }
+    else
+    {
+        m[0] = entry[0];
+        m[1] = entry[3];
+        m[2] = entry[6];
+        m[3] = entry[1];
+        m[4] = entry[4];
+        m[5] = entry[7];
+        m[6] = entry[2];
+        m[7] = entry[5];
+        m[8] = entry[8];
+    }
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>::matrix3x3 (const vector3<t_Ty>& u, const vector3<t_Ty>& v,
+    const vector3<t_Ty>& w, bool columns)
+{
+    if (columns)
+    {
+        m[0] = u[0];
+        m[1] = u[1];
+        m[2] = u[2];
+        m[3] = v[0];
+        m[4] = v[1];
+        m[5] = v[2];
+        m[6] = w[0];
+        m[7] = w[1];
+        m[8] = w[2];
+    }
+    else
+    {
+        m[0] = u[0];
+        m[1] = v[0];
+        m[2] = w[0];
+        m[3] = u[1];
+        m[4] = v[1];
+        m[5] = w[1];
+        m[6] = u[2];
+        m[7] = v[2];
+        m[8] = w[2];
+    }
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>::matrix3x3 (const vector3<t_Ty>* v, bool columns)
+{
+    if (columns)
+    {
+        m[0] = v[0][0];
+        m[1] = v[0][1];
+        m[2] = v[0][2];
+        m[3] = v[1][0];
+        m[4] = v[1][1];
+        m[5] = v[1][2];
+        m[6] = v[2][0];
+        m[7] = v[2][1];
+        m[8] = v[2][2];
+    }
+    else
+    {
+        m[0] = v[0][0];
+        m[1] = v[1][0];
+        m[2] = v[2][0];
+        m[3] = v[0][1];
+        m[4] = v[1][1];
+        m[5] = v[2][1];
+        m[6] = v[0][2];
+        m[7] = v[1][2];
+        m[8] = v[2][2];
+    }
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>::matrix3x3 (t_Ty m00, t_Ty m11, t_Ty m22)
+{
+    makeDiagonal(m00, m11, m22);
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>::matrix3x3 (const vector3<t_Ty>& axis, t_Ty angle)
+{
+    makeRotation(axis, angle);
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>::matrix3x3 (const vector3<t_Ty>& u, const vector3<t_Ty>& v)
+{
+    makeTensorProduct(u, v);
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>& matrix3x3<t_Ty>::operator= (const matrix3x3<t_Ty>& mat)
+{
+    m[0] = mat.m[0];
+    m[1] = mat.m[1];
+    m[2] = mat.m[2];
+    m[3] = mat.m[3];
+    m[4] = mat.m[4];
+    m[5] = mat.m[5];
+    m[6] = mat.m[6];
+    m[7] = mat.m[7];
+    m[8] = mat.m[8];
+    return *this;
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>& matrix3x3<t_Ty>::makeZero ()
+{
+    m[0] = (t_Ty)0;
+    m[1] = (t_Ty)0;
+    m[2] = (t_Ty)0;
+    m[3] = (t_Ty)0;
+    m[4] = (t_Ty)0;
+    m[5] = (t_Ty)0;
+    m[6] = (t_Ty)0;
+    m[7] = (t_Ty)0;
+    m[8] = (t_Ty)0;
+    return *this;
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>& matrix3x3<t_Ty>::makeIdentity ()
+{
+    m[0] = (t_Ty)1;
+    m[1] = (t_Ty)0;
+    m[2] = (t_Ty)0;
+    m[3] = (t_Ty)0;
+    m[4] = (t_Ty)1;
+    m[5] = (t_Ty)0;
+    m[6] = (t_Ty)0;
+    m[7] = (t_Ty)0;
+    m[8] = (t_Ty)1;
+    return *this;
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>& matrix3x3<t_Ty>::makeDiagonal (t_Ty m00, t_Ty m11, t_Ty m22)
+{
+    m[0] = m00;
+    m[1] = (t_Ty)0;
+    m[2] = (t_Ty)0;
+    m[3] = (t_Ty)0;
+    m[4] = m11;
+    m[5] = (t_Ty)0;
+    m[6] = (t_Ty)0;
+    m[7] = (t_Ty)0;
+    m[8] = m22;
+    return *this;
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>& matrix3x3<t_Ty>::makeRotation (const vector3<t_Ty>& axis,
+    t_Ty angle)
+{
+    t_Ty cs = cosf(angle);
+    t_Ty sn = sinf(angle);
+    t_Ty oneMinusCos = ((t_Ty)1) - cs;
+    t_Ty x2 = axis[0]*axis[0];
+    t_Ty y2 = axis[1]*axis[1];
+    t_Ty z2 = axis[2]*axis[2];
+    t_Ty xym = axis[0]*axis[1]*oneMinusCos;
+    t_Ty xzm = axis[0]*axis[2]*oneMinusCos;
+    t_Ty yzm = axis[1]*axis[2]*oneMinusCos;
+    t_Ty xSin = axis[0]*sn;
+    t_Ty ySin = axis[1]*sn;
+    t_Ty zSin = axis[2]*sn;
     
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-typename matrix3x3<t_Ty>::vector3_type matrix3x3<t_Ty>::getColumn (size_t iCol) const
-{
-    assert( 0 <= iCol && iCol < 3 );
-    return vector3_type(m[0][iCol],m[1][iCol],
-        m[2][iCol]);
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::setColumn(size_t iCol, const typename matrix3x3<t_Ty>::vector3_type& vec)
-{
-    assert( 0 <= iCol && iCol < 3 );
-    m[0][iCol] = vec.x;
-    m[1][iCol] = vec.y;
-    m[2][iCol] = vec.z;
-
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::fromAxes(const typename matrix3x3<t_Ty>::vector3_type& xAxis, const typename matrix3x3<t_Ty>::vector3_type& yAxis, const typename matrix3x3<t_Ty>::vector3_type& zAxis)
-{
-    SetColumn(0,xAxis);
-    SetColumn(1,yAxis);
-    SetColumn(2,zAxis);
-
+    m[0] = x2*oneMinusCos + cs;
+    m[3] = xym - zSin;
+    m[6] = xzm + ySin;
+    m[1] = xym + zSin;
+    m[4] = y2*oneMinusCos + cs;
+    m[7] = yzm - xSin;
+    m[2] = xzm - ySin;
+    m[5] = yzm + xSin;
+    m[8] = z2*oneMinusCos + cs;
+    return *this;
 }
 
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-bool matrix3x3<t_Ty>::operator== (const matrix3x3<t_Ty>& rkMatrix) const
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>& matrix3x3<t_Ty>::makeTensorProduct (const vector3<t_Ty>& u,
+    const vector3<t_Ty>& v)
 {
-    for (size_t iRow = 0; iRow < 3; iRow++)
+    m[0] = u[0]*v[0];
+    m[3] = u[0]*v[1];
+    m[6] = u[0]*v[2];
+    m[1] = u[1]*v[0];
+    m[4] = u[1]*v[1];
+    m[7] = u[1]*v[2];
+    m[2] = u[2]*v[0];
+    m[5] = u[2]*v[1];
+    m[8] = u[2]*v[2];
+    return *this;
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty> matrix3x3<t_Ty>::operator+ (const matrix3x3<t_Ty>& mat) const
+{
+    return matrix3x3<t_Ty>
+    (
+        m[0] + mat.m[0],
+        m[1] + mat.m[1],
+        m[2] + mat.m[2],
+        m[3] + mat.m[3],
+        m[4] + mat.m[4],
+        m[5] + mat.m[5],
+        m[6] + mat.m[6],
+        m[7] + mat.m[7],
+        m[8] + mat.m[8]
+    );
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty> matrix3x3<t_Ty>::operator- (const matrix3x3<t_Ty>& mat) const
+{
+    return matrix3x3<t_Ty>
+    (
+        m[0] - mat.m[0],
+        m[1] - mat.m[1],
+        m[2] - mat.m[2],
+        m[3] - mat.m[3],
+        m[4] - mat.m[4],
+        m[5] - mat.m[5],
+        m[6] - mat.m[6],
+        m[7] - mat.m[7],
+        m[8] - mat.m[8]
+    );
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty> matrix3x3<t_Ty>::operator* (t_Ty scalar) const
+{
+    return matrix3x3<t_Ty>
+    (
+        scalar*m[0],
+        scalar*m[1],
+        scalar*m[2],
+        scalar*m[3],
+        scalar*m[4],
+        scalar*m[5],
+        scalar*m[6],
+        scalar*m[7],
+        scalar*m[8]
+    );
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty> matrix3x3<t_Ty>::operator/ (t_Ty scalar) const
+{
+    if (scalar != (t_Ty)0)
     {
-        for (size_t iCol = 0; iCol < 3; iCol++)
-        {
-            if ( m[iRow][iCol] != rkMatrix.m[iRow][iCol] )
-                return false;
-        }
-    }
-
-    return true;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-matrix3x3<t_Ty> matrix3x3<t_Ty>::operator+ (const matrix3x3<t_Ty>& rkMatrix) const
-{
-    matrix3x3<t_Ty> kSum;
-    for (size_t iRow = 0; iRow < 3; iRow++)
-    {
-        for (size_t iCol = 0; iCol < 3; iCol++)
-        {
-            kSum.m[iRow][iCol] = m[iRow][iCol] +
-                rkMatrix.m[iRow][iCol];
-        }
-    }
-    return kSum;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-matrix3x3<t_Ty> matrix3x3<t_Ty>::operator- (const matrix3x3<t_Ty>& rkMatrix) const
-{
-    matrix3x3<t_Ty> kDiff;
-    for (size_t iRow = 0; iRow < 3; iRow++)
-    {
-        for (size_t iCol = 0; iCol < 3; iCol++)
-        {
-            kDiff.m[iRow][iCol] = m[iRow][iCol] -
-                rkMatrix.m[iRow][iCol];
-        }
-    }
-    return kDiff;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-matrix3x3<t_Ty> matrix3x3<t_Ty>::operator* (const matrix3x3<t_Ty>& rkMatrix) const
-{
-    matrix3x3<t_Ty> kProd;
-    for (size_t iRow = 0; iRow < 3; iRow++)
-    {
-        for (size_t iCol = 0; iCol < 3; iCol++)
-        {
-            kProd.m[iRow][iCol] =
-                m[iRow][0]*rkMatrix.m[0][iCol] +
-                m[iRow][1]*rkMatrix.m[1][iCol] +
-                m[iRow][2]*rkMatrix.m[2][iCol];
-        }
-    }
-    return kProd;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-typename matrix3x3<t_Ty>::vector2_type matrix3x3<t_Ty>::operator* (const typename matrix3x3<t_Ty>::vector2_type& rkPoint) const
-{
-    vector2_type kProd;
-    vector3_type rkPoint3 ( rkPoint.x, rkPoint.y, t_Ty(1) );
-    for (size_t iRow = 0; iRow < 2; ++iRow)
-    {
-        kProd[iRow] =
-            m[iRow][0]*rkPoint3[0] +
-            m[iRow][1]*rkPoint3[1] +
-            m[iRow][2]*rkPoint3[2];
-    }
-    return kProd;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-typename matrix3x3<t_Ty>::vector3_type matrix3x3<t_Ty>::operator* (const typename matrix3x3<t_Ty>::vector3_type& rkPoint) const
-{
-    vector3_type kProd;
-    for (size_t iRow = 0; iRow < 3; ++iRow)
-    {
-        kProd[iRow] =
-            m[iRow][0]*rkPoint[0] +
-            m[iRow][1]*rkPoint[1] +
-            m[iRow][2]*rkPoint[2];
-    }
-    return kProd;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-typename matrix3x3<t_Ty>::vector3_type operator* (const typename matrix3x3<t_Ty>::vector3_type& rkPoint, const matrix3x3<t_Ty>& rkMatrix)
-{
-    vector3_type kProd;
-    for (size_t iRow = 0; iRow < 3; iRow++)
-    {
-        kProd[iRow] =
-            rkPoint[0]*rkMatrix.m[0][iRow] +
-            rkPoint[1]*rkMatrix.m[1][iRow] +
-            rkPoint[2]*rkMatrix.m[2][iRow];
-    }
-    return kProd;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-matrix3x3<t_Ty> matrix3x3<t_Ty>::operator- () const
-{
-    matrix3x3<t_Ty> kNeg;
-    for (size_t iRow = 0; iRow < 3; iRow++)
-    {
-        for (size_t iCol = 0; iCol < 3; iCol++)
-            kNeg[iRow][iCol] = -m[iRow][iCol];
-    }
-    return kNeg;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-matrix3x3<t_Ty> matrix3x3<t_Ty>::operator* (t_Ty fScalar) const
-{
-    matrix3x3<t_Ty> kProd;
-    for (size_t iRow = 0; iRow < 3; iRow++)
-    {
-        for (size_t iCol = 0; iCol < 3; iCol++)
-            kProd[iRow][iCol] = fScalar*m[iRow][iCol];
-    }
-    return kProd;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-matrix3x3<t_Ty> operator* (t_Ty fScalar, const matrix3x3<t_Ty>& rkMatrix)
-{
-    matrix3x3<t_Ty> kProd;
-    for (size_t iRow = 0; iRow < 3; iRow++)
-    {
-        for (size_t iCol = 0; iCol < 3; iCol++)
-            kProd[iRow][iCol] = fScalar*rkMatrix.m[iRow][iCol];
-    }
-    return kProd;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-matrix3x3<t_Ty> matrix3x3<t_Ty>::transpose () const
-{
-    matrix3x3<t_Ty> kTranspose;
-    for (size_t iRow = 0; iRow < 3; iRow++)
-    {
-        for (size_t iCol = 0; iCol < 3; iCol++)
-            kTranspose[iRow][iCol] = m[iCol][iRow];
-    }
-    return kTranspose;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-bool matrix3x3<t_Ty>::inverse (matrix3x3<t_Ty>& rkInverse, t_Ty fTolerance) const
-{
-    // Invert a 3x3 using cofactors.  This is about 8 times faster than
-    // the Numerical Recipes code which uses Gaussian elimination.
-
-    rkInverse[0][0] = m[1][1]*m[2][2] -
-        m[1][2]*m[2][1];
-    rkInverse[0][1] = m[0][2]*m[2][1] -
-        m[0][1]*m[2][2];
-    rkInverse[0][2] = m[0][1]*m[1][2] -
-        m[0][2]*m[1][1];
-    rkInverse[1][0] = m[1][2]*m[2][0] -
-        m[1][0]*m[2][2];
-    rkInverse[1][1] = m[0][0]*m[2][2] -
-        m[0][2]*m[2][0];
-    rkInverse[1][2] = m[0][2]*m[1][0] -
-        m[0][0]*m[1][2];
-    rkInverse[2][0] = m[1][0]*m[2][1] -
-        m[1][1]*m[2][0];
-    rkInverse[2][1] = m[0][1]*m[2][0] -
-        m[0][0]*m[2][1];
-    rkInverse[2][2] = m[0][0]*m[1][1] -
-        m[0][1]*m[1][0];
-
-    t_Ty fDet =
-        m[0][0]*rkInverse[0][0] +
-        m[0][1]*rkInverse[1][0]+
-        m[0][2]*rkInverse[2][0];
-
-    if ( abs(fDet) <= fTolerance )
-        return false;
-
-    t_Ty fInvDet = 1.0f/fDet;
-    for (size_t iRow = 0; iRow < 3; iRow++)
-    {
-        for (size_t iCol = 0; iCol < 3; iCol++)
-            rkInverse[iRow][iCol] *= fInvDet;
-    }
-
-    return true;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-matrix3x3<t_Ty> matrix3x3<t_Ty>::inverse (t_Ty fTolerance) const
-{
-    matrix3x3<t_Ty> kInverse = matrix3x3<t_Ty>::Zero();
-    inverse(kInverse,fTolerance);
-    return kInverse;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-t_Ty matrix3x3<t_Ty>::determinant () const
-{
-    t_Ty fCofactor00 = m[1][1]*m[2][2] -
-        m[1][2]*m[2][1];
-    t_Ty fCofactor10 = m[1][2]*m[2][0] -
-        m[1][0]*m[2][2];
-    t_Ty fCofactor20 = m[1][0]*m[2][1] -
-        m[1][1]*m[2][0];
-
-    t_Ty fDet =
-        m[0][0]*fCofactor00 +
-        m[0][1]*fCofactor10 +
-        m[0][2]*fCofactor20;
-
-    return fDet;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::bidiagonalize (matrix3x3<t_Ty>& kA, matrix3x3<t_Ty>& kL,
-    matrix3x3<t_Ty>& kR)
-{
-    t_Ty afV[3], afW[3];
-    t_Ty fLength, fSign, fT1, fInvT1, fT2;
-    bool bIdentity;
-
-    // map first column to (*,0,0)
-    fLength = sqrt(kA[0][0]*kA[0][0] + kA[1][0]*kA[1][0] +
-        kA[2][0]*kA[2][0]);
-    if ( fLength > 0.0 )
-    {
-        fSign = (kA[0][0] > 0.0f ? 1.0f : -1.0f);
-        fT1 = kA[0][0] + fSign*fLength;
-        fInvT1 = 1.0f/fT1;
-        afV[1] = kA[1][0]*fInvT1;
-        afV[2] = kA[2][0]*fInvT1;
-
-        fT2 = -2.0f/(1.0f+afV[1]*afV[1]+afV[2]*afV[2]);
-        afW[0] = fT2*(kA[0][0]+kA[1][0]*afV[1]+kA[2][0]*afV[2]);
-        afW[1] = fT2*(kA[0][1]+kA[1][1]*afV[1]+kA[2][1]*afV[2]);
-        afW[2] = fT2*(kA[0][2]+kA[1][2]*afV[1]+kA[2][2]*afV[2]);
-        kA[0][0] += afW[0];
-        kA[0][1] += afW[1];
-        kA[0][2] += afW[2];
-        kA[1][1] += afV[1]*afW[1];
-        kA[1][2] += afV[1]*afW[2];
-        kA[2][1] += afV[2]*afW[1];
-        kA[2][2] += afV[2]*afW[2];
-
-        kL[0][0] = 1.0f+fT2;
-        kL[0][1] = kL[1][0] = fT2*afV[1];
-        kL[0][2] = kL[2][0] = fT2*afV[2];
-        kL[1][1] = 1.0f+fT2*afV[1]*afV[1];
-        kL[1][2] = kL[2][1] = fT2*afV[1]*afV[2];
-        kL[2][2] = 1.0f+fT2*afV[2]*afV[2];
-        bIdentity = false;
+        t_Ty invScalar = ((t_Ty)1)/scalar;
+        return matrix3x3<t_Ty>
+        (
+            invScalar*m[0],
+            invScalar*m[1],
+            invScalar*m[2],
+            invScalar*m[3],
+            invScalar*m[4],
+            invScalar*m[5],
+            invScalar*m[6],
+            invScalar*m[7],
+            invScalar*m[8]
+        );
     }
     else
     {
-        kL = matrix3x3<t_Ty>::IDENTITY;
-        bIdentity = true;
+        t_Ty max = std::numeric_limits<t_Ty>::max();
+        return matrix3x3<t_Ty>
+        (
+            max,
+            max,
+            max,
+            max,
+            max,
+            max,
+            max,
+            max,
+            max
+        );
     }
+}
 
-    // map first row to (*,*,0)
-    fLength = sqrt(kA[0][1]*kA[0][1]+kA[0][2]*kA[0][2]);
-    if ( fLength > 0.0 )
+
+template<class t_Ty>
+inline matrix3x3<t_Ty> matrix3x3<t_Ty>::operator- () const
+{
+    return matrix3x3<t_Ty>
+    (
+        -m[0],
+        -m[1],
+        -m[2],
+        -m[3],
+        -m[4],
+        -m[5],
+        -m[6],
+        -m[7],
+        -m[8]
+    );
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>& matrix3x3<t_Ty>::operator+= (const matrix3x3<t_Ty>& mat)
+{
+    m[0] += mat.m[0];
+    m[1] += mat.m[1];
+    m[2] += mat.m[2];
+    m[3] += mat.m[3];
+    m[4] += mat.m[4];
+    m[5] += mat.m[5];
+    m[6] += mat.m[6];
+    m[7] += mat.m[7];
+    m[8] += mat.m[8];
+    return *this;
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>& matrix3x3<t_Ty>::operator-= (const matrix3x3<t_Ty>& mat)
+{
+    m[0] -= mat.m[0];
+    m[1] -= mat.m[1];
+    m[2] -= mat.m[2];
+    m[3] -= mat.m[3];
+    m[4] -= mat.m[4];
+    m[5] -= mat.m[5];
+    m[6] -= mat.m[6];
+    m[7] -= mat.m[7];
+    m[8] -= mat.m[8];
+    return *this;
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>& matrix3x3<t_Ty>::operator*= (t_Ty scalar)
+{
+    m[0] *= scalar;
+    m[1] *= scalar;
+    m[2] *= scalar;
+    m[3] *= scalar;
+    m[4] *= scalar;
+    m[5] *= scalar;
+    m[6] *= scalar;
+    m[7] *= scalar;
+    m[8] *= scalar;
+    return *this;
+}
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>& matrix3x3<t_Ty>::operator/= (t_Ty scalar)
+{
+    if (scalar != (t_Ty)0)
     {
-        fSign = (kA[0][1] > 0.0f ? 1.0f : -1.0f);
-        fT1 = kA[0][1] + fSign*fLength;
-        afV[2] = kA[0][2]/fT1;
-
-        fT2 = -2.0f/(1.0f+afV[2]*afV[2]);
-        afW[0] = fT2*(kA[0][1]+kA[0][2]*afV[2]);
-        afW[1] = fT2*(kA[1][1]+kA[1][2]*afV[2]);
-        afW[2] = fT2*(kA[2][1]+kA[2][2]*afV[2]);
-        kA[0][1] += afW[0];
-        kA[1][1] += afW[1];
-        kA[1][2] += afW[1]*afV[2];
-        kA[2][1] += afW[2];
-        kA[2][2] += afW[2]*afV[2];
-
-        kR[0][0] = 1.0;
-        kR[0][1] = kR[1][0] = 0.0;
-        kR[0][2] = kR[2][0] = 0.0;
-        kR[1][1] = 1.0f+fT2;
-        kR[1][2] = kR[2][1] = fT2*afV[2];
-        kR[2][2] = 1.0f+fT2*afV[2]*afV[2];
+        t_Ty invScalar = ((t_Ty)1)/scalar;
+        m[0] *= invScalar;
+        m[1] *= invScalar;
+        m[2] *= invScalar;
+        m[3] *= invScalar;
+        m[4] *= invScalar;
+        m[5] *= invScalar;
+        m[6] *= invScalar;
+        m[7] *= invScalar;
+        m[8] *= invScalar;
     }
     else
     {
-        kR = matrix3x3<t_Ty>::IDENTITY;
+        t_Ty max = std::numeric_limits<t_Ty>::max();
+        m[0] = max;
+        m[1] = max;
+        m[2] = max;
+        m[3] = max;
+        m[4] = max;
+        m[5] = max;
+        m[6] = max;
+        m[7] = max;
+        m[8] = max;
     }
 
-    // map second column to (*,*,0)
-    fLength = sqrt(kA[1][1]*kA[1][1]+kA[2][1]*kA[2][1]);
-    if ( fLength > 0.0 )
-    {
-        fSign = (kA[1][1] > 0.0f ? 1.0f : -1.0f);
-        fT1 = kA[1][1] + fSign*fLength;
-        afV[2] = kA[2][1]/fT1;
-
-        fT2 = -2.0f/(1.0f+afV[2]*afV[2]);
-        afW[1] = fT2*(kA[1][1]+kA[2][1]*afV[2]);
-        afW[2] = fT2*(kA[1][2]+kA[2][2]*afV[2]);
-        kA[1][1] += afW[1];
-        kA[1][2] += afW[2];
-        kA[2][2] += afV[2]*afW[2];
-
-        t_Ty fA = 1.0f+fT2;
-        t_Ty fB = fT2*afV[2];
-        t_Ty fC = 1.0f+fB*afV[2];
-
-        if ( bIdentity )
-        {
-            kL[0][0] = 1.0;
-            kL[0][1] = kL[1][0] = 0.0;
-            kL[0][2] = kL[2][0] = 0.0;
-            kL[1][1] = fA;
-            kL[1][2] = kL[2][1] = fB;
-            kL[2][2] = fC;
-        }
-        else
-        {
-            for (int iRow = 0; iRow < 3; iRow++)
-            {
-                t_Ty fTmp0 = kL[iRow][1];
-                t_Ty fTmp1 = kL[iRow][2];
-                kL[iRow][1] = fA*fTmp0+fB*fTmp1;
-                kL[iRow][2] = fB*fTmp0+fC*fTmp1;
-            }
-        }
-    }
+    return *this;
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::golubKahanStep (matrix3x3<t_Ty>& kA, matrix3x3<t_Ty>& kL,
-    matrix3x3<t_Ty>& kR)
+
+
+template<class t_Ty>
+inline vector3<t_Ty> matrix3x3<t_Ty>::operator* (const vector3<t_Ty>& vec) const
 {
-    t_Ty fT11 = kA[0][1]*kA[0][1]+kA[1][1]*kA[1][1];
-    t_Ty fT22 = kA[1][2]*kA[1][2]+kA[2][2]*kA[2][2];
-    t_Ty fT12 = kA[1][1]*kA[1][2];
-    t_Ty fTrace = fT11+fT22;
-    t_Ty fDiff = fT11-fT22;
-    t_Ty fDiscr = sqrt(fDiff*fDiff+4.0f*fT12*fT12);
-    t_Ty fRoot1 = 0.5f*(fTrace+fDiscr);
-    t_Ty fRoot2 = 0.5f*(fTrace-fDiscr);
-
-    // adjust right
-    t_Ty fY = kA[0][0] - (abs(fRoot1-fT22) <=
-        abs(fRoot2-fT22) ? fRoot1 : fRoot2);
-    t_Ty fZ = kA[0][1];
-    t_Ty fInvLength = invSqrt(fY*fY+fZ*fZ);
-    t_Ty fSin = fZ*fInvLength;
-    t_Ty fCos = -fY*fInvLength;
-
-    t_Ty fTmp0 = kA[0][0];
-    t_Ty fTmp1 = kA[0][1];
-    kA[0][0] = fCos*fTmp0-fSin*fTmp1;
-    kA[0][1] = fSin*fTmp0+fCos*fTmp1;
-    kA[1][0] = -fSin*kA[1][1];
-    kA[1][1] *= fCos;
-
-    size_t iRow;
-    for (iRow = 0; iRow < 3; iRow++)
-    {
-        fTmp0 = kR[0][iRow];
-        fTmp1 = kR[1][iRow];
-        kR[0][iRow] = fCos*fTmp0-fSin*fTmp1;
-        kR[1][iRow] = fSin*fTmp0+fCos*fTmp1;
-    }
-
-    // adjust left
-    fY = kA[0][0];
-    fZ = kA[1][0];
-    fInvLength = invSqrt(fY*fY+fZ*fZ);
-    fSin = fZ*fInvLength;
-    fCos = -fY*fInvLength;
-
-    kA[0][0] = fCos*kA[0][0]-fSin*kA[1][0];
-    fTmp0 = kA[0][1];
-    fTmp1 = kA[1][1];
-    kA[0][1] = fCos*fTmp0-fSin*fTmp1;
-    kA[1][1] = fSin*fTmp0+fCos*fTmp1;
-    kA[0][2] = -fSin*kA[1][2];
-    kA[1][2] *= fCos;
-
-    size_t iCol;
-    for (iCol = 0; iCol < 3; iCol++)
-    {
-        fTmp0 = kL[iCol][0];
-        fTmp1 = kL[iCol][1];
-        kL[iCol][0] = fCos*fTmp0-fSin*fTmp1;
-        kL[iCol][1] = fSin*fTmp0+fCos*fTmp1;
-    }
-
-    // adjust right
-    fY = kA[0][1];
-    fZ = kA[0][2];
-    fInvLength = invSqrt(fY*fY+fZ*fZ);
-    fSin = fZ*fInvLength;
-    fCos = -fY*fInvLength;
-
-    kA[0][1] = fCos*kA[0][1]-fSin*kA[0][2];
-    fTmp0 = kA[1][1];
-    fTmp1 = kA[1][2];
-    kA[1][1] = fCos*fTmp0-fSin*fTmp1;
-    kA[1][2] = fSin*fTmp0+fCos*fTmp1;
-    kA[2][1] = -fSin*kA[2][2];
-    kA[2][2] *= fCos;
-
-    for (iRow = 0; iRow < 3; iRow++)
-    {
-        fTmp0 = kR[1][iRow];
-        fTmp1 = kR[2][iRow];
-        kR[1][iRow] = fCos*fTmp0-fSin*fTmp1;
-        kR[2][iRow] = fSin*fTmp0+fCos*fTmp1;
-    }
-
-    // adjust left
-    fY = kA[1][1];
-    fZ = kA[2][1];
-    fInvLength = invSqrt(fY*fY+fZ*fZ);
-    fSin = fZ*fInvLength;
-    fCos = -fY*fInvLength;
-
-    kA[1][1] = fCos*kA[1][1]-fSin*kA[2][1];
-    fTmp0 = kA[1][2];
-    fTmp1 = kA[2][2];
-    kA[1][2] = fCos*fTmp0-fSin*fTmp1;
-    kA[2][2] = fSin*fTmp0+fCos*fTmp1;
-
-    for (iCol = 0; iCol < 3; iCol++)
-    {
-        fTmp0 = kL[iCol][1];
-        fTmp1 = kL[iCol][2];
-        kL[iCol][1] = fCos*fTmp0-fSin*fTmp1;
-        kL[iCol][2] = fSin*fTmp0+fCos*fTmp1;
-    }
+    return vector3<t_Ty>
+    (
+        m[0]*vec[0] + m[3]*vec[1] + m[6]*vec[2],
+        m[1]*vec[0] + m[4]*vec[1] + m[7]*vec[2],
+        m[2]*vec[0] + m[5]*vec[1] + m[8]*vec[2]
+    );
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::singularValueDecomposition (matrix3x3<t_Ty>& kL, vector3_type& kS,
-    matrix3x3<t_Ty>& kR) const
+
+
+template<class t_Ty>
+inline t_Ty matrix3x3<t_Ty>::qForm (const vector3<t_Ty>& u, const vector3<t_Ty>& v)
+    const
 {
-    // temas: currently unused
-    //const int iMax = 16;
-    size_t iRow, iCol;
-
-    matrix3x3<t_Ty> kA = *this;
-    bidiagonalize(kA,kL,kR);
-
-    for (unsigned int i = 0; i < msSvdMaxIterations; i++)
-    {
-        t_Ty fTmp, fTmp0, fTmp1;
-        t_Ty fSin0, fCos0, fTan0;
-        t_Ty fSin1, fCos1, fTan1;
-
-        bool bTest1 = (abs(kA[0][1]) <=
-            msSvdEpsilon*(abs(kA[0][0])+abs(kA[1][1])));
-        bool bTest2 = (abs(kA[1][2]) <=
-            msSvdEpsilon*(abs(kA[1][1])+abs(kA[2][2])));
-        if ( bTest1 )
-        {
-            if ( bTest2 )
-            {
-                kS[0] = kA[0][0];
-                kS[1] = kA[1][1];
-                kS[2] = kA[2][2];
-                break;
-            }
-            else
-            {
-                // 2x2 closed form factorization
-                fTmp = (kA[1][1]*kA[1][1] - kA[2][2]*kA[2][2] +
-                    kA[1][2]*kA[1][2])/(kA[1][2]*kA[2][2]);
-                fTan0 = 0.5f*(fTmp+sqrt(fTmp*fTmp + 4.0f));
-                fCos0 = invSqrt(1.0f+fTan0*fTan0);
-                fSin0 = fTan0*fCos0;
-
-                for (iCol = 0; iCol < 3; iCol++)
-                {
-                    fTmp0 = kL[iCol][1];
-                    fTmp1 = kL[iCol][2];
-                    kL[iCol][1] = fCos0*fTmp0-fSin0*fTmp1;
-                    kL[iCol][2] = fSin0*fTmp0+fCos0*fTmp1;
-                }
-
-                fTan1 = (kA[1][2]-kA[2][2]*fTan0)/kA[1][1];
-                fCos1 = invSqrt(1.0f+fTan1*fTan1);
-                fSin1 = -fTan1*fCos1;
-
-                for (iRow = 0; iRow < 3; iRow++)
-                {
-                    fTmp0 = kR[1][iRow];
-                    fTmp1 = kR[2][iRow];
-                    kR[1][iRow] = fCos1*fTmp0-fSin1*fTmp1;
-                    kR[2][iRow] = fSin1*fTmp0+fCos1*fTmp1;
-                }
-
-                kS[0] = kA[0][0];
-                kS[1] = fCos0*fCos1*kA[1][1] -
-                    fSin1*(fCos0*kA[1][2]-fSin0*kA[2][2]);
-                kS[2] = fSin0*fSin1*kA[1][1] +
-                    fCos1*(fSin0*kA[1][2]+fCos0*kA[2][2]);
-                break;
-            }
-        }
-        else
-        {
-            if ( bTest2 )
-            {
-                // 2x2 closed form factorization
-                fTmp = (kA[0][0]*kA[0][0] + kA[1][1]*kA[1][1] -
-                    kA[0][1]*kA[0][1])/(kA[0][1]*kA[1][1]);
-                fTan0 = 0.5f*(-fTmp+sqrt(fTmp*fTmp + 4.0f));
-                fCos0 = invSqrt(1.0f+fTan0*fTan0);
-                fSin0 = fTan0*fCos0;
-
-                for (iCol = 0; iCol < 3; iCol++)
-                {
-                    fTmp0 = kL[iCol][0];
-                    fTmp1 = kL[iCol][1];
-                    kL[iCol][0] = fCos0*fTmp0-fSin0*fTmp1;
-                    kL[iCol][1] = fSin0*fTmp0+fCos0*fTmp1;
-                }
-
-                fTan1 = (kA[0][1]-kA[1][1]*fTan0)/kA[0][0];
-                fCos1 = invSqrt(1.0f+fTan1*fTan1);
-                fSin1 = -fTan1*fCos1;
-
-                for (iRow = 0; iRow < 3; iRow++)
-                {
-                    fTmp0 = kR[0][iRow];
-                    fTmp1 = kR[1][iRow];
-                    kR[0][iRow] = fCos1*fTmp0-fSin1*fTmp1;
-                    kR[1][iRow] = fSin1*fTmp0+fCos1*fTmp1;
-                }
-
-                kS[0] = fCos0*fCos1*kA[0][0] -
-                    fSin1*(fCos0*kA[0][1]-fSin0*kA[1][1]);
-                kS[1] = fSin0*fSin1*kA[0][0] +
-                    fCos1*(fSin0*kA[0][1]+fCos0*kA[1][1]);
-                kS[2] = kA[2][2];
-                break;
-            }
-            else
-            {
-                golubKahanStep(kA,kL,kR);
-            }
-        }
-    }
-
-    // positize diagonal
-    for (iRow = 0; iRow < 3; iRow++)
-    {
-        if ( kS[iRow] < 0.0 )
-        {
-            kS[iRow] = -kS[iRow];
-            for (iCol = 0; iCol < 3; iCol++)
-                kR[iRow][iCol] = -kR[iRow][iCol];
-        }
-    }
+    return u.dot((*this)*v);
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::singularValueComposition (const matrix3x3<t_Ty>& kL,
-    const typename matrix3x3<t_Ty>::vector3_type& kS, const matrix3x3<t_Ty>& kR)
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty> matrix3x3<t_Ty>::transpose () const
 {
-    size_t iRow, iCol;
-    matrix3x3<t_Ty> kTmp;
-
-    // product S*R
-    for (iRow = 0; iRow < 3; iRow++)
-    {
-        for (iCol = 0; iCol < 3; iCol++)
-            kTmp[iRow][iCol] = kS[iRow]*kR[iRow][iCol];
-    }
-
-    // product L*S*R
-    for (iRow = 0; iRow < 3; iRow++)
-    {
-        for (iCol = 0; iCol < 3; iCol++)
-        {
-            m[iRow][iCol] = 0.0;
-            for (int iMid = 0; iMid < 3; iMid++)
-                m[iRow][iCol] += kL[iRow][iMid]*kTmp[iMid][iCol];
-        }
-    }
+    return matrix3x3
+    (
+        m[0],
+        m[3],
+        m[6],
+        m[1],
+        m[4],
+        m[7],
+        m[2],
+        m[5],
+        m[8]
+    );
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::orthonormalize ()
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty> matrix3x3<t_Ty>::operator* (const matrix3x3<t_Ty>& mat) const
 {
-    // Algorithm uses Gram-Schmidt orthogonalization.  If 'this' matrix is
-    // M = [m0|m1|m2], then orthonormal output matrix is Q = [q0|q1|q2],
-    //
-    //   q0 = m0/|m0|
-    //   q1 = (m1-(q0*m1)q0)/|m1-(q0*m1)q0|
-    //   q2 = (m2-(q0*m2)q0-(q1*m2)q1)/|m2-(q0*m2)q0-(q1*m2)q1|
-    //
-    // where |V| indicates length of vector V and A*B indicates dot
-    // product of vectors A and B.
+    // A*B
+    return matrix3x3
+    (
+        m[0]*mat.m[0] +
+        m[3]*mat.m[1] +
+        m[6]*mat.m[2],
 
-    // compute q0
-    t_Ty fInvLength = invSqrt(m[0][0]*m[0][0]
-    + m[1][0]*m[1][0] +
-        m[2][0]*m[2][0]);
+        m[1]*mat.m[0] +
+        m[4]*mat.m[1] +
+        m[7]*mat.m[2],
 
-    m[0][0] *= fInvLength;
-    m[1][0] *= fInvLength;
-    m[2][0] *= fInvLength;
+        m[2]*mat.m[0] +
+        m[5]*mat.m[1] +
+        m[8]*mat.m[2],
 
-    // compute q1
-    t_Ty fDot0 =
-        m[0][0]*m[0][1] +
-        m[1][0]*m[1][1] +
-        m[2][0]*m[2][1];
+        m[0]*mat.m[3] +
+        m[3]*mat.m[4] +
+        m[6]*mat.m[5],
 
-    m[0][1] -= fDot0*m[0][0];
-    m[1][1] -= fDot0*m[1][0];
-    m[2][1] -= fDot0*m[2][0];
+        m[1]*mat.m[3] +
+        m[4]*mat.m[4] +
+        m[7]*mat.m[5],
 
-    fInvLength = invSqrt(m[0][1]*m[0][1] +
-        m[1][1]*m[1][1] +
-        m[2][1]*m[2][1]);
+        m[2]*mat.m[3] +
+        m[6]*mat.m[4] +
+        m[8]*mat.m[5],
 
-    m[0][1] *= fInvLength;
-    m[1][1] *= fInvLength;
-    m[2][1] *= fInvLength;
+        m[0]*mat.m[6] +
+        m[3]*mat.m[7] +
+        m[6]*mat.m[8],
 
-    // compute q2
-    t_Ty fDot1 =
-        m[0][1]*m[0][2] +
-        m[1][1]*m[1][2] +
-        m[2][1]*m[2][2];
+        m[1]*mat.m[6] +
+        m[4]*mat.m[7] +
+        m[7]*mat.m[8],
 
-    fDot0 =
-        m[0][0]*m[0][2] +
-        m[1][0]*m[1][2] +
-        m[2][0]*m[2][2];
-
-    m[0][2] -= fDot0*m[0][0] + fDot1*m[0][1];
-    m[1][2] -= fDot0*m[1][0] + fDot1*m[1][1];
-    m[2][2] -= fDot0*m[2][0] + fDot1*m[2][1];
-
-    fInvLength = invSqrt(m[0][2]*m[0][2] +
-        m[1][2]*m[1][2] +
-        m[2][2]*m[2][2]);
-
-    m[0][2] *= fInvLength;
-    m[1][2] *= fInvLength;
-    m[2][2] *= fInvLength;
+        m[2]*mat.m[6] +
+        m[6]*mat.m[7] +
+        m[8]*mat.m[8]
+    );
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::qduDecomposition (matrix3x3<t_Ty>& kQ,
-    vector3_type& kD, vector3_type& kU) const
+
+template<class t_Ty>
+inline matrix3x3<t_Ty> matrix3x3<t_Ty>::inverse (t_Ty epsilon) const
 {
-    // Factor M = QR = QDU where Q is orthogonal, D is diagonal,
-    // and U is upper triangular with ones on its diagonal.  Algorithm uses
-    // Gram-Schmidt orthogonalization (the QR algorithm).
-    //
-    // If M = [ m0 | m1 | m2 ] and Q = [ q0 | q1 | q2 ], then
-    //
-    //   q0 = m0/|m0|
-    //   q1 = (m1-(q0*m1)q0)/|m1-(q0*m1)q0|
-    //   q2 = (m2-(q0*m2)q0-(q1*m2)q1)/|m2-(q0*m2)q0-(q1*m2)q1|
-    //
-    // where |V| indicates length of vector V and A*B indicates dot
-    // product of vectors A and B.  The matrix R has entries
-    //
-    //   r00 = q0*m0  r01 = q0*m1  r02 = q0*m2
-    //   r10 = 0      r11 = q1*m1  r12 = q1*m2
-    //   r20 = 0      r21 = 0      r22 = q2*m2
-    //
-    // so D = diag(r00,r11,r22) and U has entries u01 = r01/r00,
-    // u02 = r02/r00, and u12 = r12/r11.
+    // Invert a 3x3 using cofactors.  This is faster than using a generic
+    // Gaussian elimination because of the loop overhead of such a method.
 
-    // Q = rotation
-    // D = scaling
-    // U = shear
+    matrix3x3 inverse;
 
-    // D stores the three diagonal entries r00, r11, r22
-    // U stores the entries U[0] = u01, U[1] = u02, U[2] = u12
+    // Compute the adjoint.
+    inverse.m[0] = m[4]*m[8] - m[5]*m[7];
+    inverse.m[3] = m[6]*m[5] - m[3]*m[8];
+    inverse.m[6] = m[3]*m[7] - m[6]*m[4];
+    inverse.m[1] = m[7]*m[2] - m[1]*m[8];
+    inverse.m[4] = m[0]*m[8] - m[6]*m[2];
+    inverse.m[7] = m[6]*m[1] - m[0]*m[7];
+    inverse.m[2] = m[1]*m[5] - m[4]*m[2];
+    inverse.m[5] = m[3]*m[2] - m[0]*m[5];
+    inverse.m[8] = m[0]*m[4] - m[3]*m[1];
 
-    // build orthogonal matrix Q
-    t_Ty fInvLength = m[0][0]*m[0][0] + m[1][0]*m[1][0] + m[2][0]*m[2][0];
-    if (!equalsEpsilon(fInvLength,0)) fInvLength = invSqrt(fInvLength);
+    t_Ty det = m[0]*inverse.m[0] + m[1]*inverse.m[3] +
+        m[2]*inverse.m[6];
 
-    kQ[0][0] = m[0][0]*fInvLength;
-    kQ[1][0] = m[1][0]*fInvLength;
-    kQ[2][0] = m[2][0]*fInvLength;
-
-    t_Ty fDot = kQ[0][0]*m[0][1] + kQ[1][0]*m[1][1] +
-        kQ[2][0]*m[2][1];
-    kQ[0][1] = m[0][1]-fDot*kQ[0][0];
-    kQ[1][1] = m[1][1]-fDot*kQ[1][0];
-    kQ[2][1] = m[2][1]-fDot*kQ[2][0];
-    fInvLength = kQ[0][1]*kQ[0][1] + kQ[1][1]*kQ[1][1] + kQ[2][1]*kQ[2][1];
-    if (!equalsEpsilon(fInvLength,0)) fInvLength = invSqrt(fInvLength);
-
-    kQ[0][1] *= fInvLength;
-    kQ[1][1] *= fInvLength;
-    kQ[2][1] *= fInvLength;
-
-    fDot = kQ[0][0]*m[0][2] + kQ[1][0]*m[1][2] +
-        kQ[2][0]*m[2][2];
-    kQ[0][2] = m[0][2]-fDot*kQ[0][0];
-    kQ[1][2] = m[1][2]-fDot*kQ[1][0];
-    kQ[2][2] = m[2][2]-fDot*kQ[2][0];
-    fDot = kQ[0][1]*m[0][2] + kQ[1][1]*m[1][2] +
-        kQ[2][1]*m[2][2];
-    kQ[0][2] -= fDot*kQ[0][1];
-    kQ[1][2] -= fDot*kQ[1][1];
-    kQ[2][2] -= fDot*kQ[2][1];
-    fInvLength = kQ[0][2]*kQ[0][2] + kQ[1][2]*kQ[1][2] + kQ[2][2]*kQ[2][2];
-    if (!equalsEpsilon(fInvLength,0)) fInvLength = invSqrt(fInvLength);
-
-    kQ[0][2] *= fInvLength;
-    kQ[1][2] *= fInvLength;
-    kQ[2][2] *= fInvLength;
-
-    // guarantee that orthogonal matrix has determinant 1 (no reflections)
-    t_Ty fDet = kQ[0][0]*kQ[1][1]*kQ[2][2] + kQ[0][1]*kQ[1][2]*kQ[2][0] +
-        kQ[0][2]*kQ[1][0]*kQ[2][1] - kQ[0][2]*kQ[1][1]*kQ[2][0] -
-        kQ[0][1]*kQ[1][0]*kQ[2][2] - kQ[0][0]*kQ[1][2]*kQ[2][1];
-
-    if ( fDet < 0.0 )
+    if (fabs(det) > epsilon)
     {
-        for (size_t iRow = 0; iRow < 3; iRow++)
-            for (size_t iCol = 0; iCol < 3; iCol++)
-                kQ[iRow][iCol] = -kQ[iRow][iCol];
+        t_Ty invDet = ((t_Ty)1)/det;
+        inverse.m[0] *= invDet;
+        inverse.m[1] *= invDet;
+        inverse.m[2] *= invDet;
+        inverse.m[3] *= invDet;
+        inverse.m[4] *= invDet;
+        inverse.m[5] *= invDet;
+        inverse.m[6] *= invDet;
+        inverse.m[7] *= invDet;
+        inverse.m[8] *= invDet;
+        return inverse;
     }
 
-    // build "right" matrix R
-    matrix3x3<t_Ty> kR;
-    kR[0][0] = kQ[0][0]*m[0][0] + kQ[1][0]*m[1][0] +
-        kQ[2][0]*m[2][0];
-    kR[0][1] = kQ[0][0]*m[0][1] + kQ[1][0]*m[1][1] +
-        kQ[2][0]*m[2][1];
-    kR[1][1] = kQ[0][1]*m[0][1] + kQ[1][1]*m[1][1] +
-        kQ[2][1]*m[2][1];
-    kR[0][2] = kQ[0][0]*m[0][2] + kQ[1][0]*m[1][2] +
-        kQ[2][0]*m[2][2];
-    kR[1][2] = kQ[0][1]*m[0][2] + kQ[1][1]*m[1][2] +
-        kQ[2][1]*m[2][2];
-    kR[2][2] = kQ[0][2]*m[0][2] + kQ[1][2]*m[1][2] +
-        kQ[2][2]*m[2][2];
-
-    // the scaling component
-    kD[0] = kR[0][0];
-    kD[1] = kR[1][1];
-    kD[2] = kR[2][2];
-
-    // the shear component
-    t_Ty fInvD0 = 1.0f/kD[0];
-    kU[0] = kR[0][1]*fInvD0;
-    kU[1] = kR[0][2]*fInvD0;
-    kU[2] = kR[1][2]/kD[1];
+    return ZERO;
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-t_Ty matrix3x3<t_Ty>::maxCubicRoot (t_Ty afCoeff[3])
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty> matrix3x3<t_Ty>::adjoint () const
 {
-    // Spectral norm is for A^T*A, so characteristic polynomial
-    // P(x) = c[0]+c[1]*x+c[2]*x^2+x^3 has three positive real roots.
-    // This yields the assertions c[0] < 0 and c[2]*c[2] >= 3*c[1].
-
-    // quick out for uniform scale (triple root)
-    const t_Ty fOneThird = 1.0/3.0;
-    const t_Ty fEpsilon = 1e-06;
-    t_Ty fDiscr = afCoeff[2]*afCoeff[2] - 3.0f*afCoeff[1];
-    if ( fDiscr <= fEpsilon )
-        return -fOneThird*afCoeff[2];
-
-    // Compute an upper bound on roots of P(x).  This assumes that A^T*A
-    // has been scaled by its largest entry.
-    t_Ty fX = 1.0;
-    t_Ty fPoly = afCoeff[0]+fX*(afCoeff[1]+fX*(afCoeff[2]+fX));
-    if ( fPoly < 0.0 )
-    {
-        // uses a matrix norm to find an upper bound on maximum root
-        fX = abs(afCoeff[0]);
-        t_Ty fTmp = 1.0f+abs(afCoeff[1]);
-        if ( fTmp > fX )
-            fX = fTmp;
-        fTmp = 1.0f+abs(afCoeff[2]);
-        if ( fTmp > fX )
-            fX = fTmp;
-    }
-
-    // Newton's member_function to find root
-    t_Ty fTwoC2 = 2.0f*afCoeff[2];
-    for (int i = 0; i < 16; i++)
-    {
-        fPoly = afCoeff[0]+fX*(afCoeff[1]+fX*(afCoeff[2]+fX));
-        if ( abs(fPoly) <= fEpsilon )
-            return fX;
-
-        t_Ty fDeriv = afCoeff[1]+fX*(fTwoC2+3.0f*fX);
-        fX -= fPoly/fDeriv;
-    }
-
-    return fX;
+    return matrix3x3
+    (
+        m[4]*m[8] - m[5]*m[7],
+        m[6]*m[5] - m[3]*m[8],
+        m[3]*m[7] - m[6]*m[4],
+        m[7]*m[2] - m[1]*m[8],
+        m[0]*m[8] - m[6]*m[2],
+        m[6]*m[1] - m[0]*m[7],
+        m[1]*m[5] - m[4]*m[2],
+        m[1]*m[2] - m[0]*m[5],
+        m[0]*m[4] - m[1]*m[1]
+    );
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-t_Ty matrix3x3<t_Ty>::spectralNorm () const
+
+
+template<class t_Ty>
+inline t_Ty matrix3x3<t_Ty>::determinant () const
 {
-    matrix3x3<t_Ty> kP;
-    size_t iRow, iCol;
-    t_Ty fPmax = 0.0;
-    for (iRow = 0; iRow < 3; iRow++)
-    {
-        for (iCol = 0; iCol < 3; iCol++)
-        {
-            kP[iRow][iCol] = 0.0;
-            for (int iMid = 0; iMid < 3; iMid++)
-            {
-                kP[iRow][iCol] +=
-                    m[iMid][iRow]*m[iMid][iCol];
-            }
-            if ( kP[iRow][iCol] > fPmax )
-                fPmax = kP[iRow][iCol];
-        }
-    }
-
-    t_Ty fInvPmax = 1.0f/fPmax;
-    for (iRow = 0; iRow < 3; iRow++)
-    {
-        for (iCol = 0; iCol < 3; iCol++)
-            kP[iRow][iCol] *= fInvPmax;
-    }
-
-    t_Ty afCoeff[3];
-    afCoeff[0] = -(kP[0][0]*(kP[1][1]*kP[2][2]-kP[1][2]*kP[2][1]) +
-        kP[0][1]*(kP[2][0]*kP[1][2]-kP[1][0]*kP[2][2]) +
-        kP[0][2]*(kP[1][0]*kP[2][1]-kP[2][0]*kP[1][1]));
-    afCoeff[1] = kP[0][0]*kP[1][1]-kP[0][1]*kP[1][0] +
-        kP[0][0]*kP[2][2]-kP[0][2]*kP[2][0] +
-        kP[1][1]*kP[2][2]-kP[1][2]*kP[2][1];
-    afCoeff[2] = -(kP[0][0]+kP[1][1]+kP[2][2]);
-
-    t_Ty fRoot = MaxCubicRoot(afCoeff);
-    t_Ty fNorm = sqrt(fPmax*fRoot);
-    return fNorm;
+    t_Ty co00 = m[4]*m[8] - m[5]*m[7];
+    t_Ty co10 = m[7]*m[2] - m[1]*m[8];
+    t_Ty co20 = m[1]*m[5] - m[4]*m[2];
+    t_Ty det = m[0]*co00 + m[3]*co10 + m[6]*co20;
+    return det;
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::toAngleAxis (vector3_type& rkAxis, t_Ty& rfRadians) const
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::extractAxisAngle (vector3<t_Ty>& axis, t_Ty& angle) const
 {
     // Let (x,y,z) be the unit-length axis and let A be an angle of rotation.
     // The rotation matrix is R = I + sin(A)*P + (1-cos(A))*P^2 where
@@ -907,65 +636,65 @@ void matrix3x3<t_Ty>::toAngleAxis (vector3_type& rkAxis, t_Ty& rfRadians) const
     // z^2-1.  We can solve these for axis (x,y,z).  Because the angle is pi,
     // it does not matter which sign you choose on the square roots.
 
-    t_Ty fTrace = m[0][0] + m[1][1] + m[2][2];
-    t_Ty fCos = 0.5f*(fTrace-1.0f);
-    rfRadians = acos(fCos);  // in [0,PI]
+    t_Ty trace = m[0] + m[4] + m[8];
+    t_Ty cs = ((t_Ty)0.5)*(trace - (t_Ty)1);
+    angle = acosf(cs);  // in [0,PI]
 
-    if ( rfRadians > t_Ty(0.0) )
+    if (angle > (t_Ty)0)
     {
-        if ( rfRadians < t_Ty(o_math_Pi) )
+        if (angle < PI)
         {
-            rkAxis.x = m[2][1]-m[1][2];
-            rkAxis.y = m[0][2]-m[2][0];
-            rkAxis.z = m[1][0]-m[0][1];
-            rkAxis.normalise();
+            axis[0] = m[5] - m[7];
+            axis[1] = m[6] - m[2];
+            axis[2] = m[1] - m[3];
+            axis.normalize();
         }
         else
         {
             // angle is PI
-            float fHalfInverse;
-            if ( m[0][0] >= m[1][1] )
+            t_Ty halfInverse;
+            if (m[0] >= m[4])
             {
                 // r00 >= r11
-                if ( m[0][0] >= m[2][2] )
+                if (m[0] >= m[8])
                 {
                     // r00 is maximum diagonal term
-                    rkAxis.x = 0.5f*sqrt(m[0][0] -
-                        m[1][1] - m[2][2] + 1.0f);
-                    fHalfInverse = 0.5f/rkAxis.x;
-                    rkAxis.y = fHalfInverse*m[0][1];
-                    rkAxis.z = fHalfInverse*m[0][2];
+                    axis[0] = ((t_Ty)0.5)*sqrt((t_Ty)1
+                        + m[0] - m[4] - m[8]);
+                    halfInverse = ((t_Ty)0.5)/axis[0];
+                    axis[1] = halfInverse*m[3];
+                    axis[2] = halfInverse*m[6];
                 }
                 else
                 {
                     // r22 is maximum diagonal term
-                    rkAxis.z = 0.5f*sqrt(m[2][2] -
-                        m[0][0] - m[1][1] + 1.0f);
-                    fHalfInverse = 0.5f/rkAxis.z;
-                    rkAxis.x = fHalfInverse*m[0][2];
-                    rkAxis.y = fHalfInverse*m[1][2];
+                    axis[2] = ((t_Ty)0.5)*sqrt((t_Ty)1
+                        + m[8] - m[0] - m[4]);
+                    halfInverse = ((t_Ty)0.5)/axis[2];
+                    axis[0] = halfInverse*m[6];
+                    axis[1] = halfInverse*m[7];
                 }
             }
             else
             {
                 // r11 > r00
-                if ( m[1][1] >= m[2][2] )
+                if (m[4] >= m[8])
                 {
                     // r11 is maximum diagonal term
-                    rkAxis.y = 0.5f*sqrt(m[1][1] -
-                        m[0][0] - m[2][2] + 1.0f);
-                    fHalfInverse  = 0.5f/rkAxis.y;
-                    rkAxis.x = fHalfInverse*m[0][1];
-                    rkAxis.z = fHalfInverse*m[1][2];
+                    axis[1] = ((t_Ty)0.5)*sqrt((t_Ty)1
+                        + m[4] - m[0] - m[8]);
+                    halfInverse  = ((t_Ty)0.5)/axis[1];
+                    axis[0] = halfInverse*m[3];
+                    axis[2] = halfInverse*m[7];
                 }
                 else
                 {
                     // r22 is maximum diagonal term
-                    rkAxis.z = 0.5f*sqrt(m[2][2] -
-                        m[0][0] - m[1][1] + 1.0f);
-                    fHalfInverse = 0.5f/rkAxis.z;
-                    rkAxis.x = fHalfInverse*m[0][2];
-                    rkAxis.y = fHalfInverse*m[1][2];
+                    axis[2] = ((t_Ty)0.5)*sqrt((t_Ty)1
+                        + m[8] - m[0] - m[4]);
+                    halfInverse = ((t_Ty)0.5)/axis[2];
+                    axis[0] = halfInverse*m[6];
+                    axis[1] = halfInverse*m[7];
                 }
             }
         }
@@ -974,559 +703,1514 @@ void matrix3x3<t_Ty>::toAngleAxis (vector3_type& rkAxis, t_Ty& rfRadians) const
     {
         // The angle is 0 and the matrix is the identity.  Any axis will
         // work, so just use the x-axis.
-        rkAxis.x = 1.0;
-        rkAxis.y = 0.0;
-        rkAxis.z = 0.0;
+        axis[0] = (t_Ty)1;
+        axis[1] = (t_Ty)0;
+        axis[2] = (t_Ty)0;
     }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::fromAngleAxis (const typename matrix3x3<t_Ty>::vector3_type& rkAxis, const t_Ty& fRadians)
-{
-    t_Ty fCos = cos(fRadians);
-    t_Ty fSin = sin(fRadians);
-    t_Ty fOneMinusCos = 1.0f-fCos;
-    t_Ty fX2 = rkAxis.x*rkAxis.x;
-    t_Ty fY2 = rkAxis.y*rkAxis.y;
-    t_Ty fZ2 = rkAxis.z*rkAxis.z;
-    t_Ty fXYM = rkAxis.x*rkAxis.y*fOneMinusCos;
-    t_Ty fXZM = rkAxis.x*rkAxis.z*fOneMinusCos;
-    t_Ty fYZM = rkAxis.y*rkAxis.z*fOneMinusCos;
-    t_Ty fXSin = rkAxis.x*fSin;
-    t_Ty fYSin = rkAxis.y*fSin;
-    t_Ty fZSin = rkAxis.z*fSin;
 
-    m[0][0] = fX2*fOneMinusCos+fCos;
-    m[0][1] = fXYM-fZSin;
-    m[0][2] = fXZM+fYSin;
-    m[1][0] = fXYM+fZSin;
-    m[1][1] = fY2*fOneMinusCos+fCos;
-    m[1][2] = fYZM-fXSin;
-    m[2][0] = fXZM-fYSin;
-    m[2][1] = fYZM+fXSin;
-    m[2][2] = fZ2*fOneMinusCos+fCos;
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::orthonormalize ()
+{
+    // Algorithm uses Gram-Schmidt orthogonalization.  If 'this' matrix is
+    // M = [m0|m1|m2], then orthonormal output matrix is Q = [q0|q1|q2],
+    //
+    //   q0 = m0/|m0|
+    //   q1 = (m1-(q0*m1)q0)/|m1-(q0*m1)q0|
+    //   q2 = (m2-(q0*m2)q0-(q1*m2)q1)/|m2-(q0*m2)q0-(q1*m2)q1|
+    //
+    // where |V| indicates length of vector V and A*B indicates dot
+    // product of vectors A and B.
+
+    // Compute q0.
+    t_Ty invLength = invSqrt(m[0]*m[0] +
+        m[1]*m[1] + m[2]*m[2]);
+
+    m[0] *= invLength;
+    m[1] *= invLength;
+    m[2] *= invLength;
+
+    // Compute q1.
+    t_Ty dot0 = m[0]*m[3] + m[1]*m[4] +
+        m[2]*m[5];
+
+    m[3] -= dot0*m[0];
+    m[4] -= dot0*m[1];
+    m[5] -= dot0*m[2];
+
+    invLength = invSqrt(m[3]*m[3] +
+        m[4]*m[4] + m[5]*m[5]);
+
+    m[3] *= invLength;
+    m[4] *= invLength;
+    m[5] *= invLength;
+
+    // compute q2
+    t_Ty dot1 = m[3]*m[6] + m[4]*m[7] +
+        m[5]*m[8];
+
+    dot0 = m[0]*m[6] + m[1]*m[7] +
+        m[2]*m[8];
+
+    m[6] -= dot0*m[0] + dot1*m[3];
+    m[7] -= dot0*m[1] + dot1*m[4];
+    m[8] -= dot0*m[2] + dot1*m[5];
+
+    invLength = invSqrt(m[6]*m[6] +
+        m[7]*m[7] + m[8]*m[8]);
+
+    m[6] *= invLength;
+    m[7] *= invLength;
+    m[8] *= invLength;
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-bool matrix3x3<t_Ty>::toEulerAnglesXYZ (t_Ty& rfYAngle, t_Ty& rfPAngle,
-    t_Ty& rfRAngle) const
-{
-    // rot =  cy*cz          -cy*sz           sy
-    //        cz*sx*sy+cx*sz  cx*cz-sx*sy*sz -cy*sx
-    //       -cx*cz*sy+sx*sz  cz*sx+cx*sy*sz  cx*cy
 
-    rfPAngle = t_Ty(asin(m[0][2]));
-    if ( rfPAngle < t_Ty(o_math_Pi_by_2) )
+/*
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::eigenDecomposition (matrix3x3<t_Ty>& rot, matrix3x3<t_Ty>& diag) const
+{
+    // factor M = R*D*R^t_Ty.  The columns of R are the eigenvectors.  The
+    // diagonal entries of D are the corresponding eigenvalues.
+    t_Ty diagonal[3], subdiagonal[2];
+    rot = *this;
+    bool reflection = rot.tridiagonalize(diagonal, subdiagonal);
+    bool converged = rot.qlAlgorithm(diagonal, subdiagonal);
+    o_assert(converged, "qlAlgorithm failed to converge\n");
+    //BOOST_UNUSED(converged);
+
+    // Sort the eigenvalues in increasing order, d0 <= d1 <= d2.  This is an
+    // insertion sort.
+    int i;
+    t_Ty save;
+
+    if (diagonal[1] < diagonal[0])
     {
-        if ( rfPAngle > t_Ty(-o_math_Pi_by_2) )
+        // Swap d0 and d1.
+        save = diagonal[0];
+        diagonal[0] = diagonal[1];
+        diagonal[1] = save;
+
+        // Swap V0 and V1.
+        for (i = 0; i < 3; ++i)
         {
-            rfYAngle = atan2(-m[1][2],m[2][2]);
-            rfRAngle = atan2(-m[0][1],m[0][0]);
-            return true;
+            save = rot[0][i];
+            rot[0][i] = rot[1][i];
+            rot[1][i] = save;
+        }
+        reflection = !reflection;
+    }
+
+    if (diagonal[2] < diagonal[1])
+    {
+        // Swap d1 and d2.
+        save = diagonal[1];
+        diagonal[1] = diagonal[2];
+        diagonal[2] = save;
+
+        // Swap V1 and V2.
+        for (i = 0; i < 3; ++i)
+        {
+            save = rot[1][i];
+            rot[1][i] = rot[2][i];
+            rot[2][i] = save;
+        }
+        reflection = !reflection;
+    }
+
+    if (diagonal[1] < diagonal[0])
+    {
+        // Swap d0 and d1.
+        save = diagonal[0];
+        diagonal[0] = diagonal[1];
+        diagonal[1] = save;
+
+        // Swap V0 and V1.
+        for (i = 0; i < 3; ++i)
+        {
+            save = rot[0][i];
+            rot[0][i] = rot[1][i];
+            rot[1][i] = save;
+        }
+        reflection = !reflection;
+    }
+
+    diag.makeDiagonal(diagonal[0], diagonal[1], diagonal[2]);
+
+    if (reflection)
+    {
+        // The orthogonal transformation that diagonalizes M is a reflection.
+        // Make the eigenvectors a right-handed system by changing sign on
+        // the last column.
+        rot[2][0] = -rot[2][0];
+        rot[2][1] = -rot[2][1];
+        rot[2][2] = -rot[2][2];
+    }
+}*/
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::makeEulerXYZ (t_Ty xAngle, t_Ty yAngle, t_Ty zAngle)
+{
+    t_Ty cs, sn;
+
+    cs = cosf(xAngle);
+    sn = sinf(xAngle);
+    matrix3x3 xMat(
+        (t_Ty)1, (t_Ty)0, (t_Ty)0,
+        (t_Ty)0, cs,      sn,
+        (t_Ty)0, -sn,      cs);
+
+    cs = cosf(yAngle);
+    sn = sinf(yAngle);
+    matrix3x3 yMat(
+        cs,      (t_Ty)0, -sn,
+        (t_Ty)0, (t_Ty)1, (t_Ty)0,
+        sn,     (t_Ty)0, cs);
+
+    cs = cosf(zAngle);
+    sn = sinf(zAngle);
+    matrix3x3 zMat(
+        cs,      sn,     (t_Ty)0,
+        -sn,      cs,      (t_Ty)0,
+        (t_Ty)0, (t_Ty)0, (t_Ty)1);
+
+    *this = xMat*(yMat*zMat);
+}
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::makeEulerXZY (t_Ty xAngle, t_Ty zAngle, t_Ty yAngle)
+{
+    t_Ty cs, sn;
+
+    cs = cosf(xAngle);
+    sn = sinf(xAngle);
+    matrix3x3 xMat(
+        (t_Ty)1, (t_Ty)0, (t_Ty)0,
+        (t_Ty)0, cs,      sn,
+        (t_Ty)0, -sn,      cs);
+
+    cs = cosf(zAngle);
+    sn = sinf(zAngle);
+    matrix3x3 zMat(
+        cs,      sn,     (t_Ty)0,
+        -sn,      cs,      (t_Ty)0,
+        (t_Ty)0, (t_Ty)0, (t_Ty)1);
+
+    cs = cosf(yAngle);
+    sn = sinf(yAngle);
+    matrix3x3 yMat(
+        cs,      (t_Ty)0, -sn,
+        (t_Ty)0, (t_Ty)1, (t_Ty)0,
+        sn,     (t_Ty)0, cs);
+
+    *this = xMat*(zMat*yMat);
+}
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::makeEulerYXZ (t_Ty yAngle, t_Ty xAngle, t_Ty zAngle)
+{
+    t_Ty cs, sn;
+
+    cs = cosf(yAngle);
+    sn = sinf(yAngle);
+    matrix3x3 yMat(
+        cs,      (t_Ty)0, -sn,
+        (t_Ty)0, (t_Ty)1, (t_Ty)0,
+        sn,     (t_Ty)0, cs);
+
+    cs = cosf(xAngle);
+    sn = sinf(xAngle);
+    matrix3x3 xMat(
+        (t_Ty)1, (t_Ty)0, (t_Ty)0,
+        (t_Ty)0, cs,      sn,
+        (t_Ty)0, -sn,      cs);
+
+    cs = cosf(zAngle);
+    sn = sinf(zAngle);
+    matrix3x3 zMat(
+        cs,      sn,     (t_Ty)0,
+        -sn,      cs,      (t_Ty)0,
+        (t_Ty)0, (t_Ty)0, (t_Ty)1);
+
+    *this = yMat*(xMat*zMat);
+}
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::makeEulerYZX (t_Ty yAngle, t_Ty zAngle, t_Ty xAngle)
+{
+    t_Ty cs, sn;
+
+    cs = cosf(yAngle);
+    sn = sinf(yAngle);
+    matrix3x3 yMat(
+        cs,      (t_Ty)0, -sn,
+        (t_Ty)0, (t_Ty)1, (t_Ty)0,
+        sn,     (t_Ty)0, cs);
+
+    cs = cosf(zAngle);
+    sn = sinf(zAngle);
+    matrix3x3 zMat(
+        cs,      sn,     (t_Ty)0,
+        -sn,      cs,      (t_Ty)0,
+        (t_Ty)0, (t_Ty)0, (t_Ty)1);
+
+    cs = cosf(xAngle);
+    sn = sinf(xAngle);
+    matrix3x3 xMat(
+        (t_Ty)1,(t_Ty)0,(t_Ty)0,
+        (t_Ty)0,cs,sn,
+        (t_Ty)0,-sn,cs);
+
+    *this = yMat*(zMat*xMat);
+}
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::makeEulerZXY (t_Ty zAngle, t_Ty xAngle, t_Ty yAngle)
+{
+    t_Ty cs, sn;
+
+    cs = cosf(zAngle);
+    sn = sinf(zAngle);
+    matrix3x3 zMat(
+        cs,      sn,     (t_Ty)0,
+        -sn,      cs,      (t_Ty)0,
+        (t_Ty)0, (t_Ty)0, (t_Ty)1);
+
+    cs = cosf(xAngle);
+    sn = sinf(xAngle);
+    matrix3x3 xMat(
+        (t_Ty)1, (t_Ty)0, (t_Ty)0,
+        (t_Ty)0, cs,      sn,
+        (t_Ty)0, -sn,      cs);
+
+    cs = cosf(yAngle);
+    sn = sinf(yAngle);
+    matrix3x3 yMat(
+        cs,      (t_Ty)0, -sn,
+        (t_Ty)0, (t_Ty)1, (t_Ty)0,
+        sn,     (t_Ty)0, cs);
+
+    *this = zMat*(xMat*yMat);
+}
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::makeEulerZYX (t_Ty zAngle, t_Ty yAngle, t_Ty xAngle)
+{
+    t_Ty cs, sn;
+
+    cs = cosf(zAngle);
+    sn = sinf(zAngle);
+    matrix3x3 zMat(
+        cs,      sn,     (t_Ty)0,
+        -sn,      cs,      (t_Ty)0,
+        (t_Ty)0, (t_Ty)0, (t_Ty)1);
+
+    cs = cosf(yAngle);
+    sn = sinf(yAngle);
+    matrix3x3 yMat(
+        cs,      (t_Ty)0, -sn,
+        (t_Ty)0, (t_Ty)1, (t_Ty)0,
+        sn,     (t_Ty)0, cs);
+
+    cs = cosf(xAngle);
+    sn = sinf(xAngle);
+    matrix3x3 xMat(
+        (t_Ty)1, (t_Ty)0, (t_Ty)0,
+        (t_Ty)0, cs,      sn,
+        (t_Ty)0, -sn,      cs);
+
+    *this = zMat*(yMat*xMat);
+}
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::makeEulerXYX (t_Ty x0Angle, t_Ty yAngle, t_Ty x1Angle)
+{
+    t_Ty cs, sn;
+
+    cs = cosf(x0Angle);
+    sn = sinf(x0Angle);
+    matrix3x3 x0Mat(
+        (t_Ty)1, (t_Ty)0, (t_Ty)0,
+        (t_Ty)0, cs,      sn,
+        (t_Ty)0, -sn,      cs);
+
+    cs = cosf(yAngle);
+    sn = sinf(yAngle);
+    matrix3x3 yMat(
+        cs,      (t_Ty)0, -sn,
+        (t_Ty)0, (t_Ty)1, (t_Ty)0,
+        sn,     (t_Ty)0, cs);
+
+    cs = cosf(x1Angle);
+    sn = sinf(x1Angle);
+    matrix3x3 x1Mat(
+        (t_Ty)1, (t_Ty)0, (t_Ty)0,
+        (t_Ty)0, cs,      sn,
+        (t_Ty)0, -sn,      cs);
+
+    *this = x0Mat*(yMat*x1Mat);
+}
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::makeEulerXZX (t_Ty x0Angle, t_Ty zAngle, t_Ty x1Angle)
+{
+    t_Ty cs, sn;
+
+    cs = cosf(x0Angle);
+    sn = sinf(x0Angle);
+    matrix3x3 x0Mat(
+        (t_Ty)1, (t_Ty)0, (t_Ty)0,
+        (t_Ty)0, cs,      sn,
+        (t_Ty)0, -sn,      cs);
+
+    cs = cosf(zAngle);
+    sn = sinf(zAngle);
+    matrix3x3 zMat(
+        cs,      sn,     (t_Ty)0,
+        -sn,      cs,      (t_Ty)0,
+        (t_Ty)0, (t_Ty)0, (t_Ty)1);
+
+    cs = cosf(x1Angle);
+    sn = sinf(x1Angle);
+    matrix3x3 x1Mat(
+        (t_Ty)1, (t_Ty)0, (t_Ty)0,
+        (t_Ty)0, cs,      sn,
+        (t_Ty)0, -sn,      cs);
+
+    *this = x0Mat*(zMat*x1Mat);
+}
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::makeEulerYXY (t_Ty y0Angle, t_Ty xAngle, t_Ty y1Angle)
+{
+    t_Ty cs, sn;
+
+    cs = cosf(y0Angle);
+    sn = sinf(y0Angle);
+    matrix3x3 y0Mat(
+        cs,      (t_Ty)0, -sn,
+        (t_Ty)0, (t_Ty)1, (t_Ty)0,
+        sn,     (t_Ty)0, cs);
+
+    cs = cosf(xAngle);
+    sn = sinf(xAngle);
+    matrix3x3 xMat(
+        (t_Ty)1, (t_Ty)0, (t_Ty)0,
+        (t_Ty)0, cs,      sn,
+        (t_Ty)0, -sn,      cs);
+
+    cs = cosf(y1Angle);
+    sn = sinf(y1Angle);
+    matrix3x3 y1Mat(
+        cs,      (t_Ty)0, -sn,
+        (t_Ty)0, (t_Ty)1, (t_Ty)0,
+        sn,     (t_Ty)0, cs);
+
+    *this = y0Mat*(xMat*y1Mat);
+}
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::makeEulerYZY (t_Ty y0Angle, t_Ty zAngle, t_Ty y1Angle)
+{
+    t_Ty cs, sn;
+
+    cs = cosf(y0Angle);
+    sn = sinf(y0Angle);
+    matrix3x3 y0Mat(
+        cs,      (t_Ty)0, -sn,
+        (t_Ty)0, (t_Ty)1, (t_Ty)0,
+        sn,     (t_Ty)0, cs);
+
+    cs = cosf(zAngle);
+    sn = sinf(zAngle);
+    matrix3x3 zMat(
+        cs,      sn,     (t_Ty)0,
+        -sn,      cs,      (t_Ty)0,
+        (t_Ty)0, (t_Ty)0, (t_Ty)1);
+
+    cs = cosf(y1Angle);
+    sn = sinf(y1Angle);
+    matrix3x3 y1Mat(
+        cs,      (t_Ty)0, -sn,
+        (t_Ty)0, (t_Ty)1, (t_Ty)0,
+        sn,     (t_Ty)0, cs);
+
+    *this = y0Mat*(zMat*y1Mat);
+}
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::makeEulerZXZ (t_Ty z0Angle, t_Ty xAngle, t_Ty z1Angle)
+{
+    t_Ty cs, sn;
+
+    cs = cosf(z0Angle);
+    sn = sinf(z0Angle);
+    matrix3x3 z0Mat(
+        cs,      sn,     (t_Ty)0,
+        -sn,      cs,      (t_Ty)0,
+        (t_Ty)0, (t_Ty)0, (t_Ty)1);
+
+    cs = cosf(xAngle);
+    sn = sinf(xAngle);
+    matrix3x3 xMat(
+        (t_Ty)1, (t_Ty)0, (t_Ty)0,
+        (t_Ty)0, cs,      sn,
+        (t_Ty)0, -sn,      cs);
+
+    cs = cosf(z1Angle);
+    sn = sinf(z1Angle);
+    matrix3x3 z1Mat(
+        cs,      sn,     (t_Ty)0,
+        -sn,      cs,      (t_Ty)0,
+        (t_Ty)0, (t_Ty)0, (t_Ty)1);
+
+    *this = z0Mat*(xMat*z1Mat);
+}
+
+
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::makeEulerZYZ (t_Ty z0Angle, t_Ty yAngle, t_Ty z1Angle)
+{
+    t_Ty cs, sn;
+
+    cs = cosf(z0Angle);
+    sn = sinf(z0Angle);
+    matrix3x3 z0Mat(
+        cs,      sn,     (t_Ty)0,
+        -sn,      cs,      (t_Ty)0,
+        (t_Ty)0, (t_Ty)0, (t_Ty)1);
+
+    cs = cosf(yAngle);
+    sn = sinf(yAngle);
+    matrix3x3 yMat(
+        cs,      (t_Ty)0, -sn,
+        (t_Ty)0, (t_Ty)1, (t_Ty)0,
+        sn,     (t_Ty)0, cs);
+
+    cs = cosf(z1Angle);
+    sn = sinf(z1Angle);
+    matrix3x3 z1Mat(
+        cs,      sn,     (t_Ty)0,
+        -sn,      cs,      (t_Ty)0,
+        (t_Ty)0, (t_Ty)0, (t_Ty)1);
+
+    *this = z0Mat*(yMat*z1Mat);
+}
+
+
+template<class t_Ty>
+inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerXYZ (
+    t_Ty& xAngle, t_Ty& yAngle, t_Ty& zAngle) const
+{
+    // +-           -+   +-                                        -+
+    // | r00 r01 r02 |   |  cy*cz           -cy*sz            sy    |
+    // | r10 r11 r12 | = |  cz*sx*sy+cx*sz   cx*cz-sx*sy*sz  -cy*sx |
+    // | r20 r21 r22 |   | -cx*cz*sy+sx*sz   cz*sx+cx*sy*sz   cx*cy |
+    // +-           -+   +-                                        -+
+
+    if (m[6] < (t_Ty)1)
+    {
+        if (m[6] > -(t_Ty)1)
+        {
+            // yAngle = asin(r02)
+            // xAngle = atan2(-r12,r22)
+            // zAngle = atan2(-r01,r00)
+            yAngle = (t_Ty)asin((double)m[6]);
+            xAngle = atan2f(-m[7], m[8]);
+            zAngle = atan2f(-m[3], m[0]);
+            return EA_UNIQUE;
         }
         else
         {
-            // WARNING.  Not a unique solution.
-            t_Ty fRmY = atan2(m[1][0],m[1][1]);
-            rfRAngle = t_Ty(0.0);  // any angle works
-            rfYAngle = rfRAngle - fRmY;
-            return false;
+            // yAngle = -pi/2
+            // zAngle - xAngle = atan2(r10,r11)
+            // WARNING.  The solution is not unique.  Choosing zAngle = 0.
+            yAngle = -HALF_PI;
+            xAngle = -atan2f(m[1], m[4]);
+            zAngle = (t_Ty)0;
+            return EA_NOT_UNIQUE_DIF;
         }
     }
     else
     {
-        // WARNING.  Not a unique solution.
-        t_Ty fRpY = atan2(m[1][0],m[1][1]);
-        rfRAngle = t_Ty(0.0);  // any angle works
-        rfYAngle = fRpY - rfRAngle;
-        return false;
+        // yAngle = +pi/2
+        // zAngle + xAngle = atan2(r10,r11)
+        // WARNING.  The solutions is not unique.  Choosing zAngle = 0.
+        yAngle = HALF_PI;
+        xAngle = atan2f(m[1], m[4]);
+        zAngle = (t_Ty)0;
+        return EA_NOT_UNIQUE_SUM;
     }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-bool matrix3x3<t_Ty>::toEulerAnglesXZY (t_Ty& rfYAngle, t_Ty& rfPAngle,
-    t_Ty& rfRAngle) const
-{
-    // rot =  cy*cz          -sz              cz*sy
-    //        sx*sy+cx*cy*sz  cx*cz          -cy*sx+cx*sy*sz
-    //       -cx*sy+cy*sx*sz  cz*sx           cx*cy+sx*sy*sz
 
-    rfPAngle = asin(-m[0][1]);
-    if ( rfPAngle < t_Ty(o_math_Pi_by_2) )
+
+template<class t_Ty>
+inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerXZY (
+    t_Ty& xAngle, t_Ty& zAngle, t_Ty& yAngle) const
+{
+    // +-           -+   +-                                        -+
+    // | r00 r01 r02 |   |  cy*cz           -sz      cz*sy          |
+    // | r10 r11 r12 | = |  sx*sy+cx*cy*sz   cx*cz  -cy*sx+cx*sy*sz |
+    // | r20 r21 r22 |   | -cx*sy+cy*sx*sz   cz*sx   cx*cy+sx*sy*sz |
+    // +-           -+   +-                                        -+
+
+    if (m[3] < (t_Ty)1)
     {
-        if ( rfPAngle > t_Ty(-o_math_Pi_by_2) )
+        if (m[3] > -(t_Ty)1)
         {
-            rfYAngle = atan2(m[2][1],m[1][1]);
-            rfRAngle = atan2(m[0][2],m[0][0]);
-            return true;
+            // zAngle = asin(-r01)
+            // xAngle = atan2(r21,r11)
+            // yAngle = atan2(r02,r00)
+            zAngle = (t_Ty)asin(-(double)m[3]);
+            xAngle = atan2f(m[5], m[4]);
+            yAngle = atan2f(m[6], m[0]);
+            return EA_UNIQUE;
         }
         else
         {
-            // WARNING.  Not a unique solution.
-            t_Ty fRmY = atan2(-m[2][0],m[2][2]);
-            rfRAngle = t_Ty(0.0);  // any angle works
-            rfYAngle = rfRAngle - fRmY;
-            return false;
+            // zAngle = +pi/2
+            // yAngle - xAngle = atan2(-r20,r22)
+            // WARNING.  The solution is not unique.  Choosing yAngle = 0.
+            zAngle = HALF_PI;
+            xAngle = -atan2f(-m[2] ,m[8]);
+            yAngle = (t_Ty)0;
+            return EA_NOT_UNIQUE_DIF;
         }
     }
     else
     {
-        // WARNING.  Not a unique solution.
-        t_Ty fRpY = atan2(-m[2][0],m[2][2]);
-        rfRAngle = t_Ty(0.0);  // any angle works
-        rfYAngle = fRpY - rfRAngle;
-        return false;
+        // zAngle = -pi/2
+        // yAngle + xAngle = atan2(-r20,r22)
+        // WARNING.  The solution is not unique.  Choosing yAngle = 0.
+        zAngle = -HALF_PI;
+        xAngle = atan2f(-m[2], m[8]);
+        yAngle = (t_Ty)0;
+        return EA_NOT_UNIQUE_SUM;
     }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-bool matrix3x3<t_Ty>::toEulerAnglesYXZ (t_Ty& rfYAngle, t_Ty& rfPAngle,
-    t_Ty& rfRAngle) const
-{
-    // rot =  cy*cz+sx*sy*sz  cz*sx*sy-cy*sz  cx*sy
-    //        cx*sz           cx*cz          -sx
-    //       -cz*sy+cy*sx*sz  cy*cz*sx+sy*sz  cx*cy
 
-    rfPAngle = asin(-m[1][2]);
-    if ( rfPAngle < t_Ty(o_math_Pi_by_2) )
+
+template<class t_Ty>
+inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerYXZ (
+    t_Ty& yAngle, t_Ty& xAngle, t_Ty& zAngle) const
+{
+    // +-           -+   +-                                       -+
+    // | r00 r01 r02 |   |  cy*cz+sx*sy*sz  cz*sx*sy-cy*sz   cx*sy |
+    // | r10 r11 r12 | = |  cx*sz           cx*cz           -sx    |
+    // | r20 r21 r22 |   | -cz*sy+cy*sx*sz  cy*cz*sx+sy*sz   cx*cy |
+    // +-           -+   +-                                       -+
+
+    if (m[7] < (t_Ty)1)
     {
-        if ( rfPAngle > t_Ty(-o_math_Pi_by_2) )
+        if (m[7] > -(t_Ty)1)
         {
-            rfYAngle = atan2(m[0][2],m[2][2]);
-            rfRAngle = atan2(m[1][0],m[1][1]);
-            return true;
+            // xAngle = asin(-r12)
+            // yAngle = atan2(r02,r22)
+            // zAngle = atan2(r10,r11)
+            xAngle = (t_Ty)asin(-(double)m[7]);
+            yAngle = atan2f(m[6], m[8]);
+            zAngle = atan2f(m[1], m[4]);
+            return EA_UNIQUE;
         }
         else
         {
-            // WARNING.  Not a unique solution.
-            t_Ty fRmY = atan2(-m[0][1],m[0][0]);
-            rfRAngle = t_Ty(0.0);  // any angle works
-            rfYAngle = rfRAngle - fRmY;
-            return false;
+            // xAngle = +pi/2
+            // zAngle - yAngle = atan2(-r01,r00)
+            // WARNING.  The solution is not unique.  Choosing zAngle = 0.
+            xAngle = HALF_PI;
+            yAngle = -atan2f(-m[3], m[0]);
+            zAngle = (t_Ty)0;
+            return EA_NOT_UNIQUE_DIF;
         }
     }
     else
     {
-        // WARNING.  Not a unique solution.
-        t_Ty fRpY = atan2(-m[0][1],m[0][0]);
-        rfRAngle = t_Ty(0.0);  // any angle works
-        rfYAngle = fRpY - rfRAngle;
-        return false;
+        // xAngle = -pi/2
+        // zAngle + yAngle = atan2(-r01,r00)
+        // WARNING.  The solution is not unique.  Choosing zAngle = 0.
+        xAngle = -HALF_PI;
+        yAngle = atan2f(-m[3], m[0]);
+        zAngle = (t_Ty)0;
+        return EA_NOT_UNIQUE_SUM;
     }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-bool matrix3x3<t_Ty>::toEulerAnglesYZX (t_Ty& rfYAngle, t_Ty& rfPAngle,
-    t_Ty& rfRAngle) const
-{
-    // rot =  cy*cz           sx*sy-cx*cy*sz  cx*sy+cy*sx*sz
-    //        sz              cx*cz          -cz*sx
-    //       -cz*sy           cy*sx+cx*sy*sz  cx*cy-sx*sy*sz
 
-    rfPAngle = asin(m[1][0]);
-    if ( rfPAngle < t_Ty(o_math_Pi_by_2) )
+
+template<class t_Ty>
+inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerYZX (
+    t_Ty& yAngle, t_Ty& zAngle, t_Ty& xAngle) const
+{
+    // +-           -+   +-                                       -+
+    // | r00 r01 r02 |   |  cy*cz  sx*sy-cx*cy*sz   cx*sy+cy*sx*sz |
+    // | r10 r11 r12 | = |  sz     cx*cz           -cz*sx          |
+    // | r20 r21 r22 |   | -cz*sy  cy*sx+cx*sy*sz   cx*cy-sx*sy*sz |
+    // +-           -+   +-                                       -+
+
+    if (m[1] < (t_Ty)1)
     {
-        if ( rfPAngle > t_Ty(-o_math_Pi_by_2) )
+        if (m[1] > -(t_Ty)1)
         {
-            rfYAngle = atan2(-m[2][0],m[0][0]);
-            rfRAngle = atan2(-m[1][2],m[1][1]);
-            return true;
+            // zAngle = asin(r10)
+            // yAngle = atan2(-r20,r00)
+            // xAngle = atan2(-r12,r11)
+            zAngle = (t_Ty)asin((double)m[1]);
+            yAngle = atan2f(-m[2], m[0]);
+            xAngle = atan2f(-m[7], m[4]);
+            return EA_UNIQUE;
         }
         else
         {
-            // WARNING.  Not a unique solution.
-            t_Ty fRmY = atan2(m[2][1],m[2][2]);
-            rfRAngle = t_Ty(0.0);  // any angle works
-            rfYAngle = rfRAngle - fRmY;
-            return false;
+            // zAngle = -pi/2
+            // xAngle - yAngle = atan2(r21,r22)
+            // WARNING.  The solution is not unique.  Choosing xAngle = 0.
+            zAngle = -HALF_PI;
+            yAngle = -atan2f(m[5], m[8]);
+            xAngle = (t_Ty)0;
+            return EA_NOT_UNIQUE_DIF;
         }
     }
     else
     {
-        // WARNING.  Not a unique solution.
-        t_Ty fRpY = atan2(m[2][1],m[2][2]);
-        rfRAngle = t_Ty(0.0);  // any angle works
-        rfYAngle = fRpY - rfRAngle;
-        return false;
+        // zAngle = +pi/2
+        // xAngle + yAngle = atan2(r21,r22)
+        // WARNING.  The solution is not unique.  Choosing xAngle = 0.
+        zAngle = HALF_PI;
+        yAngle = atan2f(m[5], m[8]);
+        xAngle = (t_Ty)0;
+        return EA_NOT_UNIQUE_SUM;
     }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-bool matrix3x3<t_Ty>::toEulerAnglesZXY (t_Ty& rfYAngle, t_Ty& rfPAngle,
-    t_Ty& rfRAngle) const
-{
-    // rot =  cy*cz-sx*sy*sz -cx*sz           cz*sy+cy*sx*sz
-    //        cz*sx*sy+cy*sz  cx*cz          -cy*cz*sx+sy*sz
-    //       -cx*sy           sx              cx*cy
 
-    rfPAngle = asin(m[2][1]);
-    if ( rfPAngle < t_Ty(o_math_Pi_by_2) )
+
+template<class t_Ty>
+inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerZXY (
+    t_Ty& zAngle, t_Ty& xAngle, t_Ty& yAngle) const
+{
+    // +-           -+   +-                                        -+
+    // | r00 r01 r02 |   |  cy*cz-sx*sy*sz  -cx*sz   cz*sy+cy*sx*sz |
+    // | r10 r11 r12 | = |  cz*sx*sy+cy*sz   cx*cz  -cy*cz*sx+sy*sz |
+    // | r20 r21 r22 |   | -cx*sy            sx      cx*cy          |
+    // +-           -+   +-                                        -+
+
+    if (m[5] < (t_Ty)1)
     {
-        if ( rfPAngle > t_Ty(-o_math_Pi_by_2) )
+        if (m[5] > -(t_Ty)1)
         {
-            rfYAngle = atan2(-m[0][1],m[1][1]);
-            rfRAngle = atan2(-m[2][0],m[2][2]);
-            return true;
+            // xAngle = asin(r21)
+            // zAngle = atan2(-r01,r11)
+            // yAngle = atan2(-r20,r22)
+            xAngle = (t_Ty)asin((double)m[5]);
+            zAngle = atan2f(-m[3], m[4]);
+            yAngle = atan2f(-m[2], m[8]);
+            return EA_UNIQUE;
         }
         else
         {
-            // WARNING.  Not a unique solution.
-            t_Ty fRmY = atan2(m[0][2],m[0][0]);
-            rfRAngle = t_Ty(0.0);  // any angle works
-            rfYAngle = rfRAngle - fRmY;
-            return false;
+            // xAngle = -pi/2
+            // yAngle - zAngle = atan2(r02,r00)
+            // WARNING.  The solution is not unique.  Choosing yAngle = 0.
+            xAngle = -HALF_PI;
+            zAngle = -atan2f(m[6], m[0]);
+            yAngle = (t_Ty)0;
+            return EA_NOT_UNIQUE_DIF;
         }
     }
     else
     {
-        // WARNING.  Not a unique solution.
-        t_Ty fRpY = atan2(m[0][2],m[0][0]);
-        rfRAngle = t_Ty(0.0);  // any angle works
-        rfYAngle = fRpY - rfRAngle;
-        return false;
+        // xAngle = +pi/2
+        // yAngle + zAngle = atan2(r02,r00)
+        // WARNING.  The solution is not unique.  Choosing yAngle = 0.
+        xAngle = HALF_PI;
+        zAngle = atan2f(m[6], m[0]);
+        yAngle = (t_Ty)0;
+        return EA_NOT_UNIQUE_SUM;
     }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-bool matrix3x3<t_Ty>::toEulerAnglesZYX (t_Ty& rfYAngle, t_Ty& rfPAngle,
-    t_Ty& rfRAngle) const
-{
-    // rot =  cy*cz           cz*sx*sy-cx*sz  cx*cz*sy+sx*sz
-    //        cy*sz           cx*cz+sx*sy*sz -cz*sx+cx*sy*sz
-    //       -sy              cy*sx           cx*cy
 
-    rfPAngle = asin(-m[2][0]);
-    if ( rfPAngle < t_Ty(o_math_Pi_by_2) )
+
+template<class t_Ty>
+inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerZYX (
+    t_Ty& zAngle, t_Ty& yAngle, t_Ty& xAngle) const
+{
+    // +-           -+   +-                                      -+
+    // | r00 r01 r02 |   |  cy*cz  cz*sx*sy-cx*sz  cx*cz*sy+sx*sz |
+    // | r10 r11 r12 | = |  cy*sz  cx*cz+sx*sy*sz -cz*sx+cx*sy*sz |
+    // | r20 r21 r22 |   | -sy     cy*sx           cx*cy          |
+    // +-           -+   +-                                      -+
+
+    if (m[2] < (t_Ty)1)
     {
-        if ( rfPAngle > t_Ty(-o_math_Pi_by_2) )
+        if (m[2] > -(t_Ty)1)
         {
-            rfYAngle = atan2(m[1][0],m[0][0]);
-            rfRAngle = atan2(m[2][1],m[2][2]);
-            return true;
+            // yAngle = asin(-r20)
+            // zAngle = atan2(r10,r00)
+            // xAngle = atan2(r21,r22)
+            yAngle = (t_Ty)asin(-(double)m[2]);
+            zAngle = atan2f(m[1], m[0]);
+            xAngle = atan2f(m[5], m[8]);
+            return EA_UNIQUE;
         }
         else
         {
-            // WARNING.  Not a unique solution.
-            t_Ty fRmY = atan2(-m[0][1],m[0][2]);
-            rfRAngle = t_Ty(0.0);  // any angle works
-            rfYAngle = rfRAngle - fRmY;
-            return false;
+            // yAngle = +pi/2
+            // xAngle - zAngle = atan2(r01,r02)
+            // WARNING.  The solution is not unique.  Choosing xAngle = 0.
+            yAngle = HALF_PI;
+            zAngle = -atan2f(m[3], m[6]);
+            xAngle = (t_Ty)0;
+            return EA_NOT_UNIQUE_DIF;
         }
     }
     else
     {
-        // WARNING.  Not a unique solution.
-        t_Ty fRpY = atan2(-m[0][1],m[0][2]);
-        rfRAngle = t_Ty(0.0);  // any angle works
-        rfYAngle = fRpY - rfRAngle;
-        return false;
+        // yAngle = -pi/2
+        // xAngle + zAngle = atan2(-r01,-r02)
+        // WARNING.  The solution is not unique.  Choosing xAngle = 0;
+        yAngle = -HALF_PI;
+        zAngle = atan2f(-m[3], -m[6]);
+        xAngle = (t_Ty)0;
+        return EA_NOT_UNIQUE_SUM;
     }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::fromEulerAnglesXYZ (const t_Ty& fYAngle, const t_Ty& fPAngle,
-    const t_Ty& fRAngle)
+
+
+template<class t_Ty>
+inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerXYX (
+    t_Ty& x0Angle, t_Ty& yAngle, t_Ty& x1Angle) const
 {
-    t_Ty fCos, fSin;
+    // +-           -+   +-                                                -+
+    // | r00 r01 r02 |   |  cy      sy*sx1               sy*cx1             |
+    // | r10 r11 r12 | = |  sy*sx0  cx0*cx1-cy*sx0*sx1  -cy*cx1*sx0-cx0*sx1 |
+    // | r20 r21 r22 |   | -sy*cx0  cx1*sx0+cy*cx0*sx1   cy*cx0*cx1-sx0*sx1 |
+    // +-           -+   +-                                                -+
 
-    fCos = cos(fYAngle);
-    fSin = sin(fYAngle);
-    matrix3x3<t_Ty> kXMat(1.0,0.0,0.0,0.0,fCos,-fSin,0.0,fSin,fCos);
-
-    fCos = cos(fPAngle);
-    fSin = sin(fPAngle);
-    matrix3x3<t_Ty> kYMat(fCos,0.0,fSin,0.0,1.0,0.0,-fSin,0.0,fCos);
-
-    fCos = cos(fRAngle);
-    fSin = sin(fRAngle);
-    matrix3x3<t_Ty> kZMat(fCos,-fSin,0.0,fSin,fCos,0.0,0.0,0.0,1.0);
-
-    *this = kXMat*(kYMat*kZMat);
+    if (m[0] < (t_Ty)1)
+    {
+        if (m[0] > -(t_Ty)1)
+        {
+            // yAngle  = acos(r00)
+            // x0Angle = atan2(r10,-r20)
+            // x1Angle = atan2(r01,r02)
+            yAngle = (t_Ty)acos((double)m[0]);
+            x0Angle = atan2f(m[1], -m[2]);
+            x1Angle = atan2f(m[3], m[6]);
+            return EA_UNIQUE;
+        }
+        else
+        {
+            // Not a unique solution:  x1Angle - x0Angle = atan2(-r12,r11)
+            yAngle = PI;
+            x0Angle = -atan2f(-m[7], m[4]);
+            x1Angle = (t_Ty)0;
+            return EA_NOT_UNIQUE_DIF;
+        }
+    }
+    else
+    {
+        // Not a unique solution:  x1Angle + x0Angle = atan2(-r12,r11)
+        yAngle = (t_Ty)0;
+        x0Angle = atan2f(-m[7], m[4]);
+        x1Angle = (t_Ty)0;
+        return EA_NOT_UNIQUE_SUM;
+    }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::fromEulerAnglesXZY (const t_Ty& fYAngle, const t_Ty& fPAngle,
-    const t_Ty& fRAngle)
+
+
+template<class t_Ty>
+inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerXZX (
+    t_Ty& x0Angle, t_Ty& zAngle, t_Ty& x1Angle) const
 {
-    t_Ty fCos, fSin;
+    // +-           -+   +-                                                -+
+    // | r00 r01 r02 |   | cz      -sz*cx1               sz*sx1             |
+    // | r10 r11 r12 | = | sz*cx0   cz*cx0*cx1-sx0*sx1  -cx1*sx0-cz*cx0*sx1 |
+    // | r20 r21 r22 |   | sz*sx0   cz*cx1*sx0+cx0*sx1   cx0*cx1-cz*sx0*sx1 |
+    // +-           -+   +-                                                -+
 
-    fCos = cos(fYAngle);
-    fSin = sin(fYAngle);
-    matrix3x3<t_Ty> kXMat(1.0,0.0,0.0,0.0,fCos,-fSin,0.0,fSin,fCos);
-
-    fCos = cos(fPAngle);
-    fSin = sin(fPAngle);
-    matrix3x3<t_Ty> kZMat(fCos,-fSin,0.0,fSin,fCos,0.0,0.0,0.0,1.0);
-
-    fCos = cos(fRAngle);
-    fSin = sin(fRAngle);
-    matrix3x3<t_Ty> kYMat(fCos,0.0,fSin,0.0,1.0,0.0,-fSin,0.0,fCos);
-
-    *this = kXMat*(kZMat*kYMat);
+    if (m[0] < (t_Ty)1)
+    {
+        if (m[0] > -(t_Ty)1)
+        {
+            // zAngle  = acos(r00)
+            // x0Angle = atan2(r20,r10)
+            // x1Angle = atan2(r02,-r01)
+            zAngle = (t_Ty)acos((double)m[0]);
+            x0Angle = atan2f(m[2], m[1]);
+            x1Angle = atan2f(m[6], -m[3]);
+            return EA_UNIQUE;
+        }
+        else
+        {
+            // Not a unique solution:  x1Angle - x0Angle = atan2(r21,r22)
+            zAngle = PI;
+            x0Angle = -atan2f(m[5], m[8]);
+            x1Angle = (t_Ty)0;
+            return EA_NOT_UNIQUE_DIF;
+        }
+    }
+    else
+    {
+        // Not a unique solution:  x1Angle + x0Angle = atan2(r21,r22)
+        zAngle = (t_Ty)0;
+        x0Angle = atan2f(m[5], m[8]);
+        x1Angle = (t_Ty)0;
+        return EA_NOT_UNIQUE_SUM;
+    }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::fromEulerAnglesYXZ (const t_Ty& fYAngle, const t_Ty& fPAngle,
-    const t_Ty& fRAngle)
+
+
+template<class t_Ty>
+inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerYXY (
+    t_Ty& y0Angle, t_Ty& xAngle, t_Ty& y1Angle) const
 {
-    t_Ty fCos, fSin;
+    // +-           -+   +-                                                -+
+    // | r00 r01 r02 |   |  cy0*cy1-cx*sy0*sy1  sx*sy0   cx*cy1*sy0+cy0*sy1 |
+    // | r10 r11 r12 | = |  sx*sy1              cx      -sx*cy1             |
+    // | r20 r21 r22 |   | -cy1*sy0-cx*cy0*sy1  sx*cy0   cx*cy0*cy1-sy0*sy1 |
+    // +-           -+   +-                                                -+
 
-    fCos = cos(fYAngle);
-    fSin = sin(fYAngle);
-    matrix3x3<t_Ty> kYMat(fCos,0.0,fSin,0.0,1.0,0.0,-fSin,0.0,fCos);
-
-    fCos = cos(fPAngle);
-    fSin = sin(fPAngle);
-    matrix3x3<t_Ty> kXMat(1.0,0.0,0.0,0.0,fCos,-fSin,0.0,fSin,fCos);
-
-    fCos = cos(fRAngle);
-    fSin = sin(fRAngle);
-    matrix3x3<t_Ty> kZMat(fCos,-fSin,0.0,fSin,fCos,0.0,0.0,0.0,1.0);
-
-    *this = kYMat*(kXMat*kZMat);
+    if (m[4] < (t_Ty)1)
+    {
+        if (m[4] > -(t_Ty)1)
+        {
+            // xAngle  = acos(r11)
+            // y0Angle = atan2(r01,r21)
+            // y1Angle = atan2(r10,-r12)
+            xAngle = (t_Ty)acos((double)m[4]);
+            y0Angle = atan2f(m[3], m[5]);
+            y1Angle = atan2f(m[1], -m[7]);
+            return EA_UNIQUE;
+        }
+        else
+        {
+            // Not a unique solution:  y1Angle - y0Angle = atan2(r02,r00)
+            xAngle = PI;
+            y0Angle = -atan2f(m[6], m[0]);
+            y1Angle = (t_Ty)0;
+            return EA_NOT_UNIQUE_DIF;
+        }
+    }
+    else
+    {
+        // Not a unique solution:  y1Angle + y0Angle = atan2(r02,r00)
+        xAngle = (t_Ty)0;
+        y0Angle = atan2f(m[6], m[0]);
+        y1Angle = (t_Ty)0;
+        return EA_NOT_UNIQUE_SUM;
+    }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::fromEulerAnglesYZX (const t_Ty& fYAngle, const t_Ty& fPAngle,
-    const t_Ty& fRAngle)
+
+
+template<class t_Ty>
+inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerYZY (
+    t_Ty& y0Angle, t_Ty& zAngle, t_Ty& y1Angle) const
 {
-    t_Ty fCos, fSin;
+    // +-           -+   +-                                                -+
+    // | r00 r01 r02 |   |  cz*cy0*cy1-sy0*sy1  -sz*cy0  cy1*sy0+cz*cy0*sy1 |
+    // | r10 r11 r12 | = |  sz*cy1               cz      sz*sy1             |
+    // | r20 r21 r22 |   | -cz*cy1*sy0-cy0*sy1   sz*sy0  cy0*cy1-cz*sy0*sy1 |
+    // +-           -+   +-                                                -+
 
-    fCos = cos(fYAngle);
-    fSin = sin(fYAngle);
-    matrix3x3<t_Ty> kYMat(fCos,0.0,fSin,0.0,1.0,0.0,-fSin,0.0,fCos);
-
-    fCos = cos(fPAngle);
-    fSin = sin(fPAngle);
-    matrix3x3<t_Ty> kZMat(fCos,-fSin,0.0,fSin,fCos,0.0,0.0,0.0,1.0);
-
-    fCos = cos(fRAngle);
-    fSin = sin(fRAngle);
-    matrix3x3<t_Ty> kXMat(1.0,0.0,0.0,0.0,fCos,-fSin,0.0,fSin,fCos);
-
-    *this = kYMat*(kZMat*kXMat);
+    if (m[4] < (t_Ty)1)
+    {
+        if (m[4] > -(t_Ty)1)
+        {
+            // zAngle  = acos(r11)
+            // y0Angle = atan2(r21,-r01)
+            // y1Angle = atan2(r12,r10)
+            zAngle = (t_Ty)acos((double)m[4]);
+            y0Angle = atan2f(m[5], -m[3]);
+            y1Angle = atan2f(m[7], m[1]);
+            return EA_UNIQUE;
+        }
+        else
+        {
+            // Not a unique solution:  y1Angle - y0Angle = atan2(-r20,r22)
+            zAngle = PI;
+            y0Angle = -atan2f(-m[2], m[8]);
+            y1Angle = (t_Ty)0;
+            return EA_NOT_UNIQUE_DIF;
+        }
+    }
+    else
+    {
+        // Not a unique solution:  y1Angle + y0Angle = atan2(-r20,r22)
+        zAngle = (t_Ty)0;
+        y0Angle = atan2f(-m[2], m[8]);
+        y1Angle = (t_Ty)0;
+        return EA_NOT_UNIQUE_SUM;
+    }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::fromEulerAnglesZXY (const t_Ty& fYAngle, const t_Ty& fPAngle,
-    const t_Ty& fRAngle)
+
+
+template<class t_Ty>
+inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerZXZ (
+    t_Ty& z0Angle, t_Ty& xAngle, t_Ty& z1Angle) const
 {
-    t_Ty fCos, fSin;
+    // +-           -+   +-                                                -+
+    // | r00 r01 r02 |   | cz0*cz1-cx*sz0*sz1  -cx*cz1*sz0-cz0*sz1   sx*sz0 |
+    // | r10 r11 r12 | = | cz1*sz0+cx*cz0*sz1   cx*cz0*cz1-sz0*sz1  -sz*cz0 |
+    // | r20 r21 r22 |   | sx*sz1               sx*cz1               cx     |
+    // +-           -+   +-                                                -+
 
-    fCos = cos(fYAngle);
-    fSin = sin(fYAngle);
-    matrix3x3<t_Ty> kZMat(fCos,-fSin,0.0,fSin,fCos,0.0,0.0,0.0,1.0);
-
-    fCos = cos(fPAngle);
-    fSin = sin(fPAngle);
-    matrix3x3<t_Ty> kXMat(1.0,0.0,0.0,0.0,fCos,-fSin,0.0,fSin,fCos);
-
-    fCos = cos(fRAngle);
-    fSin = sin(fRAngle);
-    matrix3x3<t_Ty> kYMat(fCos,0.0,fSin,0.0,1.0,0.0,-fSin,0.0,fCos);
-
-    *this = kZMat*(kXMat*kYMat);
+    if (m[8] < (t_Ty)1)
+    {
+        if (m[8] > -(t_Ty)1)
+        {
+            // xAngle  = acos(r22)
+            // z0Angle = atan2(r02,-r12)
+            // z1Angle = atan2(r20,r21)
+            xAngle = (t_Ty)acos((double)m[8]);
+            z0Angle = atan2f(m[6], -m[7]);
+            z1Angle = atan2f(m[2], m[5]);
+            return EA_UNIQUE;
+        }
+        else
+        {
+            // Not a unique solution:  z1Angle - z0Angle = atan2(-r01,r00)
+            xAngle = PI;
+            z0Angle = -atan2f(-m[3], m[0]);
+            z1Angle = (t_Ty)0;
+            return EA_NOT_UNIQUE_DIF;
+        }
+    }
+    else
+    {
+        // Not a unique solution:  z1Angle + z0Angle = atan2(-r01,r00)
+        xAngle = (t_Ty)0;
+        z0Angle = atan2f(-m[3], m[0]);
+        z1Angle = (t_Ty)0;
+        return EA_NOT_UNIQUE_SUM;
+    }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::fromEulerAnglesZYX (const t_Ty& fYAngle, const t_Ty& fPAngle,
-    const t_Ty& fRAngle)
+
+
+template<class t_Ty>
+inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerZYZ (
+    t_Ty& z0Angle, t_Ty& yAngle, t_Ty& z1Angle) const
 {
-    t_Ty fCos, fSin;
+    // +-           -+   +-                                                -+
+    // | r00 r01 r02 |   |  cy*cz0*cz1-sz0*sz1  -cz1*sz0-cy*cz0*sz1  sy*cz0 |
+    // | r10 r11 r12 | = |  cy*cz1*sz0+cz0*sz1   cz0*cz1-cy*sz0*sz1  sy*sz0 |
+    // | r20 r21 r22 |   | -sy*cz1               sy*sz1              cy     |
+    // +-           -+   +-                                                -+
 
-    fCos = cos(fYAngle);
-    fSin = sin(fYAngle);
-    matrix3x3<t_Ty> kZMat(fCos,-fSin,0.0,fSin,fCos,0.0,0.0,0.0,1.0);
-
-    fCos = cos(fPAngle);
-    fSin = sin(fPAngle);
-    matrix3x3<t_Ty> kYMat(fCos,0.0,fSin,0.0,1.0,0.0,-fSin,0.0,fCos);
-
-    fCos = cos(fRAngle);
-    fSin = sin(fRAngle);
-    matrix3x3<t_Ty> kXMat(1.0,0.0,0.0,0.0,fCos,-fSin,0.0,fSin,fCos);
-
-    *this = kZMat*(kYMat*kXMat);
+    if (m[8] < (t_Ty)1)
+    {
+        if (m[8] > -(t_Ty)1)
+        {
+            // yAngle  = acos(r22)
+            // z0Angle = atan2(r12,r02)
+            // z1Angle = atan2(r21,-r20)
+            yAngle = (t_Ty)acos((double)m[8]);
+            z0Angle = atan2f(m[7], m[6]);
+            z1Angle = atan2f(m[5], -m[2]);
+            return EA_UNIQUE;
+        }
+        else // r22 = -1
+        {
+            // Not a unique solution:  z1Angle - z0Angle = atan2(r10,r11)
+            yAngle = PI;
+            z0Angle = -atan2f(m[1], m[4]);
+            z1Angle = (t_Ty)0;
+            return EA_NOT_UNIQUE_DIF;
+        }
+    }
+    else // r22 = +1
+    {
+        // Not a unique solution:  z1Angle + z0Angle = atan2(r10,r11)
+        yAngle = (t_Ty)0;
+        z0Angle = atan2f(m[1], m[4]);
+        z1Angle = (t_Ty)0;
+        return EA_NOT_UNIQUE_SUM;
+    }
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::tridiagonal (t_Ty afDiag[3], t_Ty afSubDiag[3])
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty>& matrix3x3<t_Ty>::slerp (t_Ty t, const matrix3x3<t_Ty>& rot0,
+    const matrix3x3<t_Ty>& rot1)
 {
-    // Householder reduction T = Q^t M Q
-    //   Input:
+    vector3<t_Ty> axis;
+    t_Ty angle;
+    matrix3x3 prod = rot0.transposeTimes(rot1);
+    prod.extractAxisAngle(axis, angle);
+    makeRotation(axis, t*angle);
+    *this = rot0*(*this);
+    return *this;
+}
+
+/*
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::singularValueDecomposition (matrix3x3<t_Ty>& left,
+    matrix3x3<t_Ty>& diag, matrix3x3<t_Ty>& rightTranspose) const
+{
+    // TODO.  Replace by a call to eigenDecomposition and a QR factorization
+    // that is specialized for 3x3.  The qduDecomposition appears to assume
+    // the input matrix is invertible, but a general QR factorization has to
+    // deal with non-full rank.
+
+    Gmatrix M(3, 3);
+    memcpy((t_Ty*)M, m, 9*sizeof(double));
+
+    Gmatrix tmpL(3, 3), tmpD(3, 3), tmpRTranspose(3, 3);
+    Wm5::singularValueDecomposition(M, tmpL, tmpD, tmpRTranspose);
+
+    memcpy(left.m, (t_Ty*)tmpL, 9*sizeof(t_Ty));
+    memcpy(diag.m,(t_Ty*)tmpD, 9*sizeof(t_Ty));
+    memcpy(rightTranspose.m, (t_Ty*)tmpRTranspose, 9*sizeof(t_Ty));
+}*/
+
+
+/*template<class t_Ty>
+inline void matrix3x3<t_Ty>::polarDecomposition (matrix3x3<t_Ty>& qMat, matrix3x3<t_Ty>& sMat)
+{
+    // Decompose M = L*D*R^t_Ty.
+    matrix3x3 left, diag, rightTranspose;
+    singularValueDecomposition(left, diag, rightTranspose);
+
+    // Compute Q = L*R^t_Ty.
+    qMat = left*rightTranspose;
+
+    // Compute S = R*D*R^t_Ty.
+    sMat = rightTranspose.transposeTimes(diag*rightTranspose);
+
+    // Numerical round-off errors can cause S not to be symmetric in the
+    // sense that S[i][j] and S[j][i] are slightly different for i != j.
+    // Correct this by averaging S = (S + S^t_Ty)/2.
+    sMat[0][1] = ((t_Ty)0.5)*(sMat[0][1] + sMat[1][0]);
+    sMat[1][0] = sMat[0][1];
+    sMat[0][2] = ((t_Ty)0.5)*(sMat[0][2] + sMat[2][0]);
+    sMat[2][0] = sMat[0][2];
+    sMat[1][2] = ((t_Ty)0.5)*(sMat[1][2] + sMat[2][1]);
+    sMat[2][1] = sMat[1][2];
+}*/
+
+/*
+template<class t_Ty>
+inline void matrix3x3<t_Ty>::qduDecomposition (matrix3x3<t_Ty>& qMat, matrix3x3<t_Ty>& diag,
+    matrix3x3<t_Ty>& uMat) const
+{
+    // factor M = QR = QDU where Q is orthogonal (rotation), D is diagonal
+    // (scaling),  and U is upper triangular with ones on its diagonal
+    // (shear).  Algorithm uses Gram-Schmidt orthogonalization (the QR
+    // algorithm).
+    //
+    // If M = [ m0 | m1 | m2 ] and Q = [ q0 | q1 | q2 ], then
+    //
+    //   q0 = m0/|m0|
+    //   q1 = (m1-(q0*m1)q0)/|m1-(q0*m1)q0|
+    //   q2 = (m2-(q0*m2)q0-(q1*m2)q1)/|m2-(q0*m2)q0-(q1*m2)q1|
+    //
+    // where |V| indicates length of vector V and A*B indicates dot
+    // product of vectors A and B.  The matrix R has entries
+    //
+    //   r00 = q0*m0  r01 = q0*m1  r02 = q0*m2
+    //   r10 = 0      r11 = q1*m1  r12 = q1*m2
+    //   r20 = 0      r21 = 0      r22 = q2*m2
+    //
+    // so D = diag(r00,r11,r22) and U has entries u01 = r01/r00,
+    // u02 = r02/r00, and u12 = r12/r11.
+
+    // Build orthogonal matrix Q.
+    t_Ty invLength = invSqrt(m[0]*m[0] +
+        m[3]*m[3] + m[6]*m[6]);
+    qMat[0][0] = m[0]*invLength;
+    qMat[1][0] = m[3]*invLength;
+    qMat[2][0] = m[6]*invLength;
+
+    t_Ty fDot = qMat[0][0]*m[1] + qMat[1][0]*m[4] +
+        qMat[2][0]*m[7];
+    qMat[0][1] = m[1]-fDot*qMat[0][0];
+    qMat[1][1] = m[4]-fDot*qMat[1][0];
+    qMat[2][1] = m[7]-fDot*qMat[2][0];
+    invLength = invSqrt(qMat[0][1]*qMat[0][1] +
+        qMat[1][1]*qMat[1][1] + qMat[2][1]*qMat[2][1]);
+    qMat[0][1] *= invLength;
+    qMat[1][1] *= invLength;
+    qMat[2][1] *= invLength;
+
+    fDot = qMat[0][0]*m[2] + qMat[1][0]*m[5] +
+        qMat[2][0]*m[8];
+    qMat[0][2] = m[2]-fDot*qMat[0][0];
+    qMat[1][2] = m[5]-fDot*qMat[1][0];
+    qMat[2][2] = m[8]-fDot*qMat[2][0];
+    fDot = qMat[0][1]*m[2] + qMat[1][1]*m[5] +
+        qMat[2][1]*m[8];
+    qMat[0][2] -= fDot*qMat[0][1];
+    qMat[1][2] -= fDot*qMat[1][1];
+    qMat[2][2] -= fDot*qMat[2][1];
+    invLength = invSqrt(qMat[0][2]*qMat[0][2] +
+        qMat[1][2]*qMat[1][2] + qMat[2][2]*qMat[2][2]);
+    qMat[0][2] *= invLength;
+    qMat[1][2] *= invLength;
+    qMat[2][2] *= invLength;
+
+    // Guarantee that orthogonal matrix has determinant 1 (no reflections).
+    t_Ty det =
+        qMat[0][0]*qMat[1][1]*qMat[2][2] + qMat[0][1]*qMat[1][2]*qMat[2][0] +
+        qMat[0][2]*qMat[1][0]*qMat[2][1] - qMat[0][2]*qMat[1][1]*qMat[2][0] -
+        qMat[0][1]*qMat[1][0]*qMat[2][2] - qMat[0][0]*qMat[1][2]*qMat[2][1];
+
+    if (det < (t_Ty)0)
+    {
+        for (int row = 0; row < 3; ++row)
+        {
+            for (int col = 0; col < 3; ++col)
+            {
+                qMat[row][col] = -qMat[row][col];
+            }
+        }
+    }
+
+    // Build "right" matrix R.
+    matrix3x3 right;
+    right[0][0] = qMat[0][0]*m[0] + qMat[1][0]*m[3] +
+        qMat[2][0]*m[6];
+    right[0][1] = qMat[0][0]*m[1] + qMat[1][0]*m[4] +
+        qMat[2][0]*m[7];
+    right[1][1] = qMat[0][1]*m[1] + qMat[1][1]*m[4] +
+        qMat[2][1]*m[7];
+    right[0][2] = qMat[0][0]*m[2] + qMat[1][0]*m[5] +
+        qMat[2][0]*m[8];
+    right[1][2] = qMat[0][1]*m[2] + qMat[1][1]*m[5] +
+        qMat[2][1]*m[8];
+    right[2][2] = qMat[0][2]*m[2] + qMat[1][2]*m[5] +
+        qMat[2][2]*m[8];
+
+    // The scaling component.
+    diag.makeDiagonal(right[0][0], right[1][1], right[2][2]);
+
+    // the shear component
+    t_Ty invD00 = ((t_Ty)1)/diag[0][0];
+    uMat[0][0] = (t_Ty)1;
+    uMat[0][1] = right[0][1]*invD00;
+    uMat[0][2] = right[0][2]*invD00;
+    uMat[1][0] = (t_Ty)0;
+    uMat[1][1] = (t_Ty)1;
+    uMat[1][2] = right[1][2]/diag[1][1];
+    uMat[2][0] = (t_Ty)0;
+    uMat[2][1] = (t_Ty)0;
+    uMat[2][2] = (t_Ty)1;
+}*/
+
+/*
+template<class t_Ty>
+inline bool matrix3x3<t_Ty>::tridiagonalize (t_Ty diagonal[3], t_Ty subdiagonal[2])
+{
+    // Householder reduction t_Ty = Q^t M Q
+    //   Input:   
     //     mat, symmetric 3x3 matrix M
-    //   Output:
-    //     mat, orthogonal matrix Q
-    //     diag, diagonal entries of T
-    //     subd, subdiagonal entries of T (T is symmetric)
+    //   Output:  
+    //     mat, orthogonal matrix Q (a reflection)
+    //     diag, diagonal entries of t_Ty
+    //     subd, subdiagonal entries of t_Ty (t_Ty is symmetric)
 
-    t_Ty fA = m[0][0];
-    t_Ty fB = m[0][1];
-    t_Ty fC = m[0][2];
-    t_Ty fD = m[1][1];
-    t_Ty fE = m[1][2];
-    t_Ty fF = m[2][2];
+    t_Ty m00 = m[0];
+    t_Ty m01 = m[1];
+    t_Ty m02 = m[2];
+    t_Ty m11 = m[4];
+    t_Ty m12 = m[5];
+    t_Ty m22 = m[8];
 
-    afDiag[0] = fA;
-    afSubDiag[2] = 0.0;
-    if ( abs(fC) >= epsilon<t_Ty>() )
+    diagonal[0] = m00;
+    if (fabs(m02) >= ZERO_TOLERANCE)
     {
-        t_Ty fLength = sqrt(fB*fB+fC*fC);
-        t_Ty fInvLength = 1.0f/fLength;
-        fB *= fInvLength;
-        fC *= fInvLength;
-        t_Ty fQ = 2.0f*fB*fE+fC*(fF-fD);
-        afDiag[1] = fD+fC*fQ;
-        afDiag[2] = fF-fC*fQ;
-        afSubDiag[0] = fLength;
-        afSubDiag[1] = fE-fB*fQ;
-        m[0][0] = 1.0;
-        m[0][1] = 0.0;
-        m[0][2] = 0.0;
-        m[1][0] = 0.0;
-        m[1][1] = fB;
-        m[1][2] = fC;
-        m[2][0] = 0.0;
-        m[2][1] = fC;
-        m[2][2] = -fB;
+        subdiagonal[0] = sqrt(m01*m01 + m02*m02);
+        t_Ty invLength = ((t_Ty)1)/subdiagonal[0];
+        m01 *= invLength;
+        m02 *= invLength;
+        t_Ty tmp = ((t_Ty)2)*m01*m12 + m02*(m22 - m11);
+        diagonal[1] = m11 + m02*tmp;
+        diagonal[2] = m22 - m02*tmp;
+        subdiagonal[1] = m12 - m01*tmp;
+
+        m[0] = (t_Ty)1;
+        m[1] = (t_Ty)0;
+        m[2] = (t_Ty)0;
+        m[3] = (t_Ty)0;
+        m[4] = m01;
+        m[5] = m02;
+        m[6] = (t_Ty)0;
+        m[7] = m02;
+        m[8] = -m01;
+        return true;
     }
     else
     {
-        afDiag[1] = fD;
-        afDiag[2] = fF;
-        afSubDiag[0] = fB;
-        afSubDiag[1] = fE;
-        m[0][0] = 1.0;
-        m[0][1] = 0.0;
-        m[0][2] = 0.0;
-        m[1][0] = 0.0;
-        m[1][1] = 1.0;
-        m[1][2] = 0.0;
-        m[2][0] = 0.0;
-        m[2][1] = 0.0;
-        m[2][2] = 1.0;
+        diagonal[1] = m11;
+        diagonal[2] = m22;
+        subdiagonal[0] = m01;
+        subdiagonal[1] = m12;
+
+        m[0] = (t_Ty)1;
+        m[1] = (t_Ty)0;
+        m[2] = (t_Ty)0;
+        m[3] = (t_Ty)0;
+        m[4] = (t_Ty)1;
+        m[5] = (t_Ty)0;
+        m[6] = (t_Ty)0;
+        m[7] = (t_Ty)0;
+        m[8] = (t_Ty)1;
+        return false;
     }
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-bool matrix3x3<t_Ty>::qlAlgorithm (t_Ty afDiag[3], t_Ty afSubDiag[3])
+}*/
+
+/*
+template<class t_Ty>
+inline bool matrix3x3<t_Ty>::qlAlgorithm (t_Ty diagonal[3], t_Ty subdiagonal[2])
 {
-    // QL iteration with implicit shifting to reduce matrix from tridiagonal
-    // to diagonal
+    // This is an implementation of the symmetric QR algorithm from the book
+    // "matrix Computations" by Gene H. Golub and Charles F. Van Loan,
+    // second edition.  The algorithm is 8.2.3.  The implementation has a
+    // slight variation to actually make it a QL algorithm, and it traps the
+    // case when either of the subdiagonal terms s0 or s1 is zero and reduces
+    // the 2-by-2 subblock directly.
 
-    for (int i0 = 0; i0 < 3; i0++)
+    const int imax = 32;
+    for (int i = 0; i < imax; ++i)
     {
-        const unsigned int iMaxIter = 32;
-        unsigned int iIter;
-        for (iIter = 0; iIter < iMaxIter; iIter++)
-        {
-            int i1;
-            for (i1 = i0; i1 <= 1; i1++)
-            {
-                t_Ty fSum = abs(afDiag[i1]) +
-                    abs(afDiag[i1+1]);
-                if ( abs(afSubDiag[i1]) + fSum == fSum )
-                    break;
-            }
-            if ( i1 == i0 )
-                break;
+        t_Ty sum, diff, discr, eigVal0, eigVal1, cs, sn, tmp;
+        int row;
 
-            t_Ty fTmp0 = (afDiag[i0+1]-afDiag[i0])/(2.0f*afSubDiag[i0]);
-            t_Ty fTmp1 = sqrt(fTmp0*fTmp0+1.0f);
-            if ( fTmp0 < 0.0 )
-                fTmp0 = afDiag[i1]-afDiag[i0]+afSubDiag[i0]/(fTmp0-fTmp1);
+        sum = fabs(diagonal[0]) + fabs(diagonal[1]);
+        if (fabs(subdiagonal[0]) + sum == sum)
+        {
+            // The matrix is effectively
+            //       +-        -+
+            //   M = | d0  0  0 |
+            //       | 0  d1 s1 |
+            //       | 0  s1 d2 |
+            //       +-        -+
+
+            // Test whether M is diagonal (within numerical round-off).
+            sum = fabs(diagonal[1]) +
+                fabs(diagonal[2]);
+            if (fabs(subdiagonal[1]) + sum == sum)
+            {
+                return true;
+            }
+
+            // Compute the eigenvalues as roots of a quadratic equation.
+            sum = diagonal[1] + diagonal[2];
+            diff = diagonal[1] - diagonal[2];
+            discr = sqrt(diff*diff +
+                ((t_Ty)4)*subdiagonal[1]*subdiagonal[1]);
+            eigVal0 = ((t_Ty)0.5)*(sum - discr);
+            eigVal1 = ((t_Ty)0.5)*(sum + discr);
+
+            // Compute the Givens rotation.
+            if (diff >= (t_Ty)0)
+            {
+                cs = subdiagonal[1];
+                sn = diagonal[1] - eigVal0;
+            }
             else
-                fTmp0 = afDiag[i1]-afDiag[i0]+afSubDiag[i0]/(fTmp0+fTmp1);
-            t_Ty fSin = 1.0;
-            t_Ty fCos = 1.0;
-            t_Ty fTmp2 = 0.0;
-            for (int i2 = i1-1; i2 >= i0; i2--)
             {
-                t_Ty fTmp3 = fSin*afSubDiag[i2];
-                t_Ty fTmp4 = fCos*afSubDiag[i2];
-                if ( abs(fTmp3) >= abs(fTmp0) )
-                {
-                    fCos = fTmp0/fTmp3;
-                    fTmp1 = sqrt(fCos*fCos+1.0f);
-                    afSubDiag[i2+1] = fTmp3*fTmp1;
-                    fSin = 1.0f/fTmp1;
-                    fCos *= fSin;
-                }
-                else
-                {
-                    fSin = fTmp3/fTmp0;
-                    fTmp1 = sqrt(fSin*fSin+1.0f);
-                    afSubDiag[i2+1] = fTmp0*fTmp1;
-                    fCos = 1.0f/fTmp1;
-                    fSin *= fCos;
-                }
-                fTmp0 = afDiag[i2+1]-fTmp2;
-                fTmp1 = (afDiag[i2]-fTmp0)*fSin+2.0f*fTmp4*fCos;
-                fTmp2 = fSin*fTmp1;
-                afDiag[i2+1] = fTmp0+fTmp2;
-                fTmp0 = fCos*fTmp1-fTmp4;
-
-                for (int iRow = 0; iRow < 3; iRow++)
-                {
-                    fTmp3 = m[iRow][i2+1];
-                    m[iRow][i2+1] = fSin*m[iRow][i2] +
-                        fCos*fTmp3;
-                    m[iRow][i2] = fCos*m[iRow][i2] -
-                        fSin*fTmp3;
-                }
+                cs = diagonal[2] - eigVal0;
+                sn = subdiagonal[1];
             }
-            afDiag[i0] -= fTmp2;
-            afSubDiag[i0] = fTmp0;
-            afSubDiag[i1] = 0.0;
+            tmp = invSqrt(cs*cs + sn*sn);
+            cs *= tmp;
+            sn *= tmp;
+
+            // Postmultiply the current orthogonal matrix with the Givens
+            // rotation.
+            for (row = 0; row < 3; ++row)
+            {
+                tmp = m[2+3*row];
+                m[2+3*row] = sn*m[1+3*row] + cs*tmp;
+                m[1+3*row] = cs*m[1+3*row] - sn*tmp;
+            }
+
+            // Update the tridiagonal matrix.
+            diagonal[1] = eigVal0;
+            diagonal[2] = eigVal1;
+            subdiagonal[0] = (t_Ty)0;
+            subdiagonal[1] = (t_Ty)0;
+            return true;
         }
 
-        if ( iIter == iMaxIter )
+        sum = fabs(diagonal[1]) + fabs(diagonal[2]);
+        if (fabs(subdiagonal[1]) + sum == sum)
         {
-            // should not get here under normal circumstances
-            return false;
+            // The matrix is effectively
+            //       +-         -+
+            //   M = | d0  s0  0 |
+            //       | s0  d1  0 |
+            //       | 0   0  d2 |
+            //       +-         -+
+
+            // Test whether M is diagonal (within numerical round-off).
+            sum = fabs(diagonal[0]) +
+                fabs(diagonal[1]);
+            if (fabs(subdiagonal[0]) + sum == sum)
+            {
+                return true;
+            }
+
+            // Compute the eigenvalues as roots of a quadratic equation.
+            sum = diagonal[0] + diagonal[1];
+            diff = diagonal[0] - diagonal[1];
+            discr = sqrt(diff*diff +
+                ((t_Ty)4.0)*subdiagonal[0]*subdiagonal[0]);
+            eigVal0 = ((t_Ty)0.5)*(sum - discr);
+            eigVal1 = ((t_Ty)0.5)*(sum + discr);
+
+            // Compute the Givens rotation.
+            if (diff >= (t_Ty)0)
+            {
+                cs = subdiagonal[0];
+                sn = diagonal[0] - eigVal0;
+            }
+            else
+            {
+                cs = diagonal[1] - eigVal0;
+                sn = subdiagonal[0];
+            }
+            tmp = invSqrt(cs*cs + sn*sn);
+            cs *= tmp;
+            sn *= tmp;
+
+            // Postmultiply the current orthogonal matrix with the Givens
+            // rotation.
+            for (row = 0; row < 3; ++row)
+            {
+                tmp = m[1+3*row];
+                m[1+3*row] = sn*m[0+3*row] + cs*tmp;
+                m[0+3*row] = cs*m[0+3*row] - sn*tmp;
+            }
+
+            // Update the tridiagonal matrix.
+            diagonal[0] = eigVal0;
+            diagonal[1] = eigVal1;
+            subdiagonal[0] = (t_Ty)0;
+            subdiagonal[1] = (t_Ty)0;
+            return true;
         }
-    }
 
-    return true;
-}
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::eigenSolveSymmetric (t_Ty afEigenvalue[3],
-    vector3_type akEigenvector[3]) const
+        // The matrix is
+        //       +-        -+
+        //   M = | d0 s0  0 |
+        //       | s0 d1 s1 |
+        //       | 0  s1 d2 |
+        //       +-        -+
+
+        // Set up the parameters for the first pass of the QL step.  The
+        // value for A is the difference between diagonal term D[2] and the
+        // implicit shift suggested by Wilkinson.
+        t_Ty ratio = (diagonal[1] - diagonal[0])/(((t_Ty)2)*subdiagonal[0]);
+        t_Ty root = sqrt((t_Ty)1 + ratio*ratio);
+        t_Ty b = subdiagonal[1];
+        t_Ty a = diagonal[2] - diagonal[0];
+        if (ratio >= (t_Ty)0)
+        {
+            a += subdiagonal[0]/(ratio + root);
+        }
+        else
+        {
+            a += subdiagonal[0]/(ratio - root);
+        }
+
+        // Compute the Givens rotation for the first pass.
+        if (fabs(b) >= fabs(a))
+        {
+            ratio = a/b;
+            sn = invSqrt((t_Ty)1 + ratio*ratio);
+            cs = ratio*sn;
+        }
+        else
+        {
+            ratio = b/a;
+            cs = invSqrt((t_Ty)1 + ratio*ratio);
+            sn = ratio*cs;
+        }
+
+        // Postmultiply the current orthogonal matrix with the Givens
+        // rotation.
+        for (row = 0; row < 3; ++row)
+        {
+            tmp = m[2+3*row];
+            m[2+3*row] = sn*m[1+3*row] + cs*tmp;
+            m[1+3*row] = cs*m[1+3*row] - sn*tmp;
+        }
+
+        // Set up the parameters for the second pass of the QL step.  The
+        // values tmp0 and tmp1 are required to fully update the tridiagonal
+        // matrix at the end of the second pass.
+        t_Ty tmp0 = (diagonal[1] - diagonal[2])*sn +
+            ((t_Ty)2)*subdiagonal[1]*cs;
+        t_Ty tmp1 = cs*subdiagonal[0];
+        b = sn*subdiagonal[0];
+        a = cs*tmp0 - subdiagonal[1];
+        tmp0 *= sn;
+
+        // Compute the Givens rotation for the second pass.  The subdiagonal
+        // term S[1] in the tridiagonal matrix is updated at this time.
+        if (fabs(b) >= fabs(a))
+        {
+            ratio = a/b;
+            root = sqrt((t_Ty)1 + ratio*ratio);
+            subdiagonal[1] = b*root;
+            sn = ((t_Ty)1)/root;
+            cs = ratio*sn;
+        }
+        else
+        {
+            ratio = b/a;
+            root = sqrt((t_Ty)1 + ratio*ratio);
+            subdiagonal[1] = a*root;
+            cs = ((t_Ty)1)/root;
+            sn = ratio*cs;
+        }
+
+        // Postmultiply the current orthogonal matrix with the Givens
+        // rotation.
+        for (row = 0; row < 3; ++row)
+        {
+            tmp = m[1+3*row];
+            m[1+3*row] = sn*m[0+3*row] + cs*tmp;
+            m[0+3*row] = cs*m[0+3*row] - sn*tmp;
+        }
+
+        // Complete the update of the tridiagonal matrix.
+        t_Ty tmp2 = diagonal[1] - tmp0;
+        diagonal[2] += tmp0;
+        tmp0 = (diagonal[0] - tmp2)*sn + ((t_Ty)2)*tmp1*cs;
+        subdiagonal[0] = cs*tmp0 - tmp1;
+        tmp0 *= sn;
+        diagonal[1] = tmp2 + tmp0;
+        diagonal[0] -= tmp0;
+    }
+    return false;
+}*/
+
+
+template<class t_Ty>
+inline matrix3x3<t_Ty> operator* (t_Ty scalar, const matrix3x3<t_Ty>& mat)
 {
-    matrix3x3<t_Ty> kMatrix = *this;
-    t_Ty afSubDiag[3];
-    kMatrix.Tridiagonal(afEigenvalue,afSubDiag);
-    kMatrix.QLAlgorithm(afEigenvalue,afSubDiag);
-
-    for (size_t i = 0; i < 3; i++)
-    {
-        akEigenvector[i][0] = kMatrix[0][i];
-        akEigenvector[i][1] = kMatrix[1][i];
-        akEigenvector[i][2] = kMatrix[2][i];
-    }
-
-    // make eigenvectors form a right--handed system
-    vector3_type kCross = akEigenvector[1].crossProduct(akEigenvector[2]);
-    t_Ty fDet = akEigenvector[0].dotProduct(kCross);
-    if ( fDet < 0.0 )
-    {
-        akEigenvector[2][0] = - akEigenvector[2][0];
-        akEigenvector[2][1] = - akEigenvector[2][1];
-        akEigenvector[2][2] = - akEigenvector[2][2];
-    }
+    return mat*scalar;
 }
-//-----------------------------------------------------------------------
-template<typename t_Ty>
-void matrix3x3<t_Ty>::tensorProduct (const typename matrix3x3<t_Ty>::vector3_type& rkU, const typename matrix3x3<t_Ty>::vector3_type& rkV,
-    matrix3x3<t_Ty>& rkProduct)
+
+
+template<class t_Ty>
+inline vector3<t_Ty> operator* (const vector3<t_Ty>& vec,
+    const matrix3x3<t_Ty>& mat)
 {
-    for (size_t iRow = 0; iRow < 3; iRow++)
-    {
-        for (size_t iCol = 0; iCol < 3; iCol++)
-            rkProduct[iRow][iCol] = rkU[iRow]*rkV[iCol];
-    }
+    return vector3<t_Ty>
+    (
+        vec[0]*mat[0][0] + vec[1]*mat[0][1] + vec[2]*mat[0][2],
+        vec[0]*mat[1][0] + vec[1]*mat[1][1] + vec[2]*mat[1][2],
+        vec[0]*mat[2][0] + vec[1]*mat[2][1] + vec[2]*mat[2][2]
+    );
 }
-//-----------------------------------------------------------------------
 
-o_namespace_end(phantom, math)

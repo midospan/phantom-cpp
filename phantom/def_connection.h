@@ -50,6 +50,9 @@
 #define o_try_disconnect(_emitter_, _signal_, _receiver_, _member_function_)\
     phantom::tryDisconnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_))
 
+#define o_connected(_emitter_, _signal_, _receiver_, _member_function_)\
+    phantom::areConnected((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_))
+
 o_namespace_begin(phantom)
 
 namespace connection
@@ -248,7 +251,7 @@ namespace connection
         friend class detail::dynamic_initializer_handle;
         friend class Phantom;
     public:
-        typedef phantom::unordered_map<void*, slot_pool> allocation_controller_map;
+        typedef phantom::unordered_map<double_size_t, slot_pool> allocation_controller_map;
         slot_pool():slotAllocator(NULL) { }
         ~slot_pool()
         {
@@ -277,11 +280,17 @@ namespace connection
             // TODO: integrate stat allocation
             slotAllocator->destroy(a_pSlot);
         }
-        static boolean    hasAllocationController(void* a_pInstance) { return m_allocation_controller_map->find(a_pInstance) != m_allocation_controller_map->end(); }
-        static slot_pool& allocationController(void* a_pInstance) { return (*m_allocation_controller_map)[a_pInstance]; }
-        static void       eraseAllocationController(void* a_pInstance)
+        o_forceinline static double_size_t allocationControllerKey(void* a_pInstance, reflection::Type* a_pType)
         {
-            allocation_controller_map::iterator found = m_allocation_controller_map->find(a_pInstance);
+            double_size_t hw = ((double_size_t)a_pInstance)<<(sizeof(double_size_t)*4);
+            double_size_t lw = ((double_size_t)a_pType);
+            return hw|lw;
+        }
+        static boolean    hasAllocationController(void* a_pInstance, reflection::Type* a_pType) { return m_allocation_controller_map->find(allocationControllerKey(a_pInstance, a_pType)) != m_allocation_controller_map->end(); }
+        static slot_pool& allocationController(void* a_pInstance, reflection::Type* a_pType) { return (*m_allocation_controller_map)[allocationControllerKey(a_pInstance, a_pType)]; }
+        static void       eraseAllocationController(void* a_pInstance, reflection::Type* a_pType)
+        {
+            allocation_controller_map::iterator found = m_allocation_controller_map->find(allocationControllerKey(a_pInstance, a_pType));
             o_assert(found != m_allocation_controller_map->end())
                 m_allocation_controller_map->erase(found);
         }

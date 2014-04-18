@@ -73,9 +73,9 @@ o_exposeNT((std), (typename), (_Ty), _Tree_iterator);
 // Phantom std specialization
 /*
 
-o_classNS((phantom, reflection), MapValueIteratorVariable, (IteratorVariable))
+o_classNS((phantom, reflection), MapValueIterator, (Iterator))
 {
     o_reflection {};
 };
-o_exposeN((phantom,reflection), MapValueIteratorVariable);*/
+o_exposeN((phantom,reflection), MapValueIterator);*/
 

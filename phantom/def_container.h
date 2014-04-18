@@ -580,5 +580,23 @@ struct is_map<phantom::unordered_map<t_Kty, t_Ty, t_Hash, t_Pr, t_Alloc>>
     enum { value = true };
 };
 
+o_create_has_member_function_1(add);
+o_create_has_member_function_2(addPair);
+o_create_has_member_function_2(set);
+o_create_has_member_function_1(remove);
+o_create_has_member_function_1(added);
+o_create_has_member_function_1(removed);
+o_create_has_member_function_1(aboutToBeRemoved);
+o_create_has_member_function_2(addedAt);
+o_create_has_member_function_2(removedAt);
+o_create_has_member_function_2(aboutToBeRemovedAt);
+o_create_has_member_function_2(iterator);
+o_create_has_member_function_2(swap);
+o_create_has_member_function_2(swaped);
+o_create_has_member_function_2(keys);
+o_create_has_member_function_2(indexes);
+o_create_has_member_function_1(keyOf);
+o_create_has_member_function_1(indexOf);
+
 o_namespace_end(phantom, container)
 #endif // o_phantom_container_h__

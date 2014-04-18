@@ -57,7 +57,6 @@ public:
     typedef phantom::vector<Type*>                        type_vector;
     typedef phantom::vector<MemberFunction*>                    member_function_vector;
     typedef phantom::vector<InstanceMemberFunction*>            instance_member_function_vector;
-    typedef member_collection::const_iterator            member_const_iterator;
 
 public:
 
@@ -69,10 +68,7 @@ public:
 
     virtual ClassType*      asClassType() const { return const_cast<ClassType*>(this); }
 
-    void                    getAllMember(vector<LanguageElement*>& a_out) const;
-    void                    getAllValueMember(vector<ValueMember*>& out) const;
-    void                    getAllCollection(vector<Collection*>& out) const;
-
+    void                    getMembers(vector<LanguageElement*>& a_out) const;
 
     virtual void            addConstructor( Constructor* a_pConstructor );
     virtual void            addValueMember( ValueMember* a_pValueMember );
@@ -85,6 +81,18 @@ public:
     virtual void            addInstanceMemberFunction(InstanceMemberFunction* a_MetaMemberFunction);
     virtual void            addStaticMemberFunction(StaticMemberFunction* a_MetaMemberFunction);
 
+    virtual void            removeConstructor( Constructor* a_pConstructor );
+    virtual void            removeValueMember( ValueMember* a_pValueMember );
+    virtual void            removeDataMember( DataMember* a_pDataMember );
+    virtual void            removeStaticDataMember( StaticDataMember* a_pDataMember );
+    virtual void            removeInstanceDataMember( InstanceDataMember* a_pDataMember );
+    virtual void            removeCollection( Collection* a_pCollection );
+    virtual void            removeProperty( Property* a_pProperty );
+    virtual void            removeMemberFunction(MemberFunction* a_MetaMemberFunction);
+    virtual void            removeInstanceMemberFunction(InstanceMemberFunction* a_MetaMemberFunction);
+    virtual void            removeStaticMemberFunction(StaticMemberFunction* a_MetaMemberFunction);
+
+
     Constructor*            getConstructor( const string& a_strIdentifierString ) const;
     ValueMember*            getValueMember(const string& a_strName) const;
     size_t                  getValueMemberCount() const;
@@ -93,21 +101,34 @@ public:
     DataMember*             getDataMember(const string& a_strName) const;
     InstanceDataMember*     getInstanceDataMember(const string& a_strName) const;
     StaticDataMember*       getStaticDataMember(const string& a_strName) const;
+    Property*               getProperty(const string& a_strName) const;
     MemberFunction*         getMemberFunction(const string& a_strIdentifierString) const;
-    MemberFunction*         getMemberFunction(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers = 0) const;
+    MemberFunction*         getMemberFunction(const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes = nullptr, bitfield a_Modifiers = 0) const;
     InstanceMemberFunction* getInstanceMemberFunction(const string& a_strIdentifierString) const;
-    InstanceMemberFunction* getInstanceMemberFunction(const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers = 0) const;
+    InstanceMemberFunction* getInstanceMemberFunction(const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes = nullptr, bitfield a_Modifiers = 0) const;
     size_t                  getInstanceMemberFunctionCount() const;
     StaticMemberFunction*   getStaticMemberFunction( const string& a_strIdentifierString ) const;
-    StaticMemberFunction*   getStaticMemberFunction( const string& a_strName, function_signature const* a_FunctionSignature, bitfield a_Modifiers /*= 0*/ ) const;
+    StaticMemberFunction*   getStaticMemberFunction( const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes = nullptr, bitfield a_Modifiers = 0 ) const;
     size_t                  getStaticMemberFunctionCount() const;
 
     InstanceMemberFunction* getUniqueInstanceMemberFunctionWithName(const string& a_strName) const;
 
-    void                    findPublicPropertiesPointingValueType(Type* a_pType, vector<ValueMember*>& out) const;
+    void                    findPublicValueMembersPointingValueType(Type* a_pType, vector<ValueMember*>& out) const;
 
-    member_const_iterator   valueMembersBegin() const;
-    member_const_iterator   valueMembersEnd() const;
+    vector<ValueMember*>::const_iterator            beginValueMembers() const { return m_ValueMembers.begin(); }
+    vector<ValueMember*>::const_iterator            endValueMembers() const { return m_ValueMembers.end(); }
+    vector<InstanceDataMember*>::const_iterator     beginInstanceDataMembers() const { return m_InstanceDataMembers.begin(); }
+    vector<InstanceDataMember*>::const_iterator     endInstanceDataMembers() const { return m_InstanceDataMembers.end(); }
+    vector<StaticDataMember*>::const_iterator       beginStaticDataMembers() const;
+    vector<StaticDataMember*>::const_iterator       endStaticDataMembers() const;
+    vector<InstanceMemberFunction*>::const_iterator beginInstanceMemberFunctions() const { return m_InstanceMemberFunctions.begin(); }
+    vector<InstanceMemberFunction*>::const_iterator endInstanceMemberFunctions() const { return m_InstanceMemberFunctions.end(); }
+    vector<StaticMemberFunction*>::const_iterator   beginStaticMemberFunctions() const;
+    vector<StaticMemberFunction*>::const_iterator   endStaticMemberFunctions() const;
+    vector<Property*>::const_iterator               beginProperties() const { return m_Properties.begin(); }
+    vector<Property*>::const_iterator               endProperties() const { return m_Properties.end(); }
+    vector<Collection*>::const_iterator             beginCollections() const;
+    vector<Collection*>::const_iterator             endCollections() const;
 
     virtual void*           newInstance() const;
 
@@ -122,11 +143,25 @@ public:
 
     virtual void            smartCopy(void* a_Instance, void const* a_pSource, reflection::Type* a_pSourceType) const;
 
-    virtual LanguageElement*getElement(
-        const char* a_strQualifiedName
-        , template_specialization const*
-        , function_signature const*
+    virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
+    virtual void            fetchReferencedData(const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask) const;
+
+    virtual LanguageElement*    solveElement(
+        const string& a_strName
+        , const vector<TemplateElement*>*
+        , const vector<LanguageElement*>*
         , bitfield a_Modifiers = 0) const ;
+
+    virtual Expression*           solveExpression( Expression* a_pLeftExpression
+        , const string& a_strName 
+        , const vector<TemplateElement*>* 
+        , const vector<LanguageElement*>*
+        , bitfield a_Modifiers /*= 0*/ ) const;
+
+    virtual LanguageElement* solveParenthesisOperator(const vector<LanguageElement*>& a_Signature) const
+    {
+        return nullptr; // TODO : return constructor ?
+    }
 
     virtual void getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
 
@@ -137,12 +172,20 @@ public:
 
 protected:
     bool canBeDestroyed() const;
-    virtual void  teardownMetaDataCascade(size_t count);
     void elementAdded(LanguageElement* a_pElement);
     void elementRemoved(LanguageElement* a_pElement);
 
 protected:
-    member_collection       m_Members;
+    vector<ValueMember*>            m_ValueMembers;
+    vector<Property*>               m_Properties;
+    vector<InstanceDataMember*>     m_InstanceDataMembers;
+    vector<InstanceMemberFunction*> m_InstanceMemberFunctions;
+    
+    // less frequent => use vector ptrs
+    vector<StaticDataMember*>*      m_pStaticDataMembers;
+    vector<StaticMemberFunction*>*  m_pStaticMemberFunctions;
+    vector<Collection*>*            m_pCollections;
+
     void*                   m_pAttributes; // use pimpl to avoid need to include variant type
 
 };

@@ -680,8 +680,8 @@ void JitClass::deserialize( void* a_pInstance, const property_tree& a_InBranch, 
 
 void JitClass::serializeLayout( void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
 {
-    reflection::ClassType::member_const_iterator it = valueMembersBegin();
-    reflection::ClassType::member_const_iterator end = valueMembersEnd();
+    reflection::ClassType::member_const_iterator it = beginValueMembers();
+    reflection::ClassType::member_const_iterator end = endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember*const pValueMember = static_cast<reflection::ValueMember*const>(it->second);
@@ -692,8 +692,8 @@ void JitClass::serializeLayout( void const* a_pInstance, property_tree& a_OutBra
 
 void JitClass::deserializeLayout( void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
 {
-    auto it = valueMembersBegin();
-    auto end = valueMembersEnd();
+    auto it = beginValueMembers();
+    auto end = endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember* const pValueMember = static_cast<reflection::ValueMember*const>(it->second);

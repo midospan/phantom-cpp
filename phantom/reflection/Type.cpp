@@ -35,6 +35,7 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/Type.h>
 #include <phantom/reflection/Type.hxx>
+#include <phantom/reflection/Expression.h>
 #include <phantom/reflection/DataPointerType.hxx>
 #include <phantom/reflection/ArrayType.hxx>
 #include <phantom/reflection/ReferenceType.hxx>
@@ -56,7 +57,9 @@ o_namespace_begin(phantom, reflection)
 o_define_meta_type(Type);
 
 
-Type::Type( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) : TemplateElement(a_strName, a_Modifiers)
+Type::Type( ETypeId a_eTypeId, const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
+    : LanguageElement(a_strName, a_Modifiers)
+    , m_eTypeId(a_eTypeId)
 , m_uiSize(0)
 , m_uiSerializedSize(0)
 , m_uiResetSize(0)
@@ -69,7 +72,9 @@ Type::Type( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) : TemplateEl
     m_uiBuildOrder = NextBuildOrderValue();
 }
 
-Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) : TemplateElement(a_strName, a_Modifiers)
+Type::Type( ETypeId a_eTypeId, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) 
+    : LanguageElement(a_strName, a_Modifiers)
+    , m_eTypeId(a_eTypeId)
     , m_uiSize(a_uiSize)
     , m_uiAlignment(a_uiAlignment)
     , m_uiSerializedSize(a_uiSize)
@@ -82,7 +87,9 @@ Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitf
     m_uiBuildOrder = NextBuildOrderValue();
 }
 
-Type::Type( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) : TemplateElement(a_strName, a_uiGuid, a_Modifiers)
+Type::Type( ETypeId a_eTypeId, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) 
+    : LanguageElement(a_strName, a_uiGuid, a_Modifiers)
+    , m_eTypeId(a_eTypeId)
     , m_uiSize(a_uiSize)
     , m_uiAlignment(a_uiAlignment)
     , m_uiSerializedSize(a_uiSize)
@@ -102,7 +109,7 @@ Type::~Type()
 
 void Type::terminate()
 {
-    TemplateElement::terminate();
+    LanguageElement::terminate();
 }
 
 Type::ERelation Type::getRelationWith( Type* a_pType ) const
@@ -191,9 +198,9 @@ inline Type* Type::getNestedTypedef( const string& a_strTypedef ) const
     return nullptr;
 }
 
-LanguageElement* Type::getElement( const char* a_strName, template_specialization const* a_pTemplateSpecialization, function_signature const* a_pFunctionSignature, bitfield a_Modifiers /*= 0*/ ) const
+LanguageElement* Type::solveElement( const string& a_strName, const vector<TemplateElement*>* a_pTemplateSpecialization, const vector<LanguageElement*>* a_pFunctionSignature, bitfield a_Modifiers /*= 0*/ ) const
 {
-    LanguageElement* pElement = TemplateElement::getElement(a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers);
+    LanguageElement* pElement = LanguageElement::solveElement(a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers);
     if(pElement) return pElement;
     if(m_pNestedTypedefs)  
     {
@@ -212,7 +219,7 @@ LanguageElement* Type::getElement( const char* a_strName, template_specializatio
             }
             else if((*it)->asEnum())
             {
-                LanguageElement* pConstant = (*it)->getElement(a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers);
+                LanguageElement* pConstant = (*it)->solveElement(a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers);
                 if(pConstant) return pConstant;
             }
         }
@@ -232,7 +239,7 @@ void Type::removeNestedType( Type* a_pType )
 
 void Type::elementAdded(LanguageElement* a_pElement)
 {
-    TemplateElement::elementAdded(a_pElement);
+    LanguageElement::elementAdded(a_pElement);
     Type* pType = a_pElement->asType();
     if(pType)
     {
@@ -247,7 +254,7 @@ void Type::elementAdded(LanguageElement* a_pElement)
 
 void Type::elementRemoved(LanguageElement* a_pElement)
 {
-    TemplateElement::elementRemoved(a_pElement);
+    LanguageElement::elementRemoved(a_pElement);
     Type* pType = a_pElement->asType();
     if(pType)
     {
@@ -463,7 +470,7 @@ phantom::signal_t Type::kindDestroyed(void* a_pInstance) const
 
     void Type::getElements( vector<LanguageElement*>& out, Class* a_pClass ) const
     {
-        TemplateElement::getElements(out, a_pClass);
+        LanguageElement::getElements(out, a_pClass);
         if(m_pNestedTypes AND (a_pClass == nullptr OR classOf<Type>()->isKindOf(a_pClass)))
         {
             for(auto it = m_pNestedTypes->begin(); it != m_pNestedTypes->end(); ++it)
@@ -576,7 +583,7 @@ phantom::signal_t Type::kindDestroyed(void* a_pInstance) const
         for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
         {
             ArrayType* pArrayType = (*it)->asArrayType();
-            if(pArrayType && pArrayType->getCount() == a_uiCount) return pArrayType;
+            if(pArrayType && pArrayType->getElementCount() == a_uiCount) return pArrayType;
         }
         return nullptr;
     }
@@ -705,20 +712,6 @@ phantom::signal_t Type::kindDestroyed(void* a_pInstance) const
         return pType;
     }
 
-    void Type::teardownMetaDataCascade( size_t count )
-    {
-        if(m_pNestedTypes)
-        {
-            type_container::const_iterator it = m_pNestedTypes->begin();
-            type_container::const_iterator end = m_pNestedTypes->end();
-            for(;it != end; ++it)
-            {
-                (*it)->teardownMetaDataCascade(count);
-            }
-        }
-        TemplateElement::teardownMetaDataCascade(count);
-    }
-
     Type* Type::pointerType( size_t a_uiPointerLevel ) const
     {
         if(a_uiPointerLevel == 0) return (Type*)this;
@@ -749,7 +742,27 @@ phantom::signal_t Type::kindDestroyed(void* a_pInstance) const
 
     void Type::referencedElementRemoved( LanguageElement* a_pElement )
     {
-        TemplateElement::referencedElementRemoved(a_pElement);
+        LanguageElement::referencedElementRemoved(a_pElement);
+    }
+
+    LanguageElement* Type::solveBracketOperator( Expression* a_pExpression ) const
+    {
+        size_t count = 0;
+        if(a_pExpression->getValueType() == typeOf<size_t>())
+        {
+            a_pExpression->getValue(&count);
+        }
+        else 
+        {
+            byte buffer[64];
+            if(a_pExpression->getValueType()->isImplicitlyConvertibleTo(typeOf<size_t>()))
+            {
+                a_pExpression->getValue(buffer);
+                a_pExpression->getValueType()->convertValueTo(typeOf<size_t>(), &count, buffer);
+            }
+            else return nullptr;
+        }
+        return count ? arrayType(count) : nullptr;
     }
 
 o_namespace_end(phantom, reflection)
