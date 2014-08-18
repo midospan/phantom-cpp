@@ -107,7 +107,19 @@ public:
     o_forceinline boolean   isSaved(uint a_uiSerializationFlag) const { return NOT(((m_Modifiers & o_transient) == o_transient)) AND ((m_uiSerializationMask & a_uiSerializationFlag) == a_uiSerializationFlag); }
     o_forceinline boolean   isReset() const { return ((m_Modifiers & o_reset) == o_reset); }
     o_forceinline boolean   isTransient() const { return ((m_Modifiers & o_transient) == o_transient); }
-        
+
+    void copyHierarchy(StateMachine* a_pStateMachine, Track* a_pSourceTrack);
+
+    void transit(dynamic_state_machine_data* smdataptr, State* a_pNextState);
+
+    inline void enter(dynamic_state_machine_data* smdataptr);
+
+    inline void update(dynamic_state_machine_data* smdataptr);
+
+    inline void leave(dynamic_state_machine_data* smdataptr);
+
+    virtual variant compile(reflection::Compiler* a_pCompiler);
+
 protected:
     void                    setParentState(State* a_pState) { m_pParentState = a_pState; }
 
@@ -117,6 +129,47 @@ protected:
     State*                  m_pParentState;
     uint                    m_uiSerializationMask;
 };
+
+o_namespace_end(phantom, state)
+
+#include <phantom/state/State.h>
+
+o_namespace_begin(phantom, state)
+
+inline void Track::enter(dynamic_state_machine_data* smdataptr)
+{
+    o_Track_TraceEnter();
+    State*& rpCurrentState = smdataptr->current_states[m_uiIndex];
+    State* pTransitState = smdataptr->transit_states[m_uiIndex];
+    o_assert(rpCurrentState == NULL) ;
+    if(pTransitState == NULL)
+    {
+        pTransitState = static_cast<State*>(m_States[0]);
+    }
+    else
+    {
+        smdataptr->transit_states[m_uiIndex] = NULL;
+    }
+    rpCurrentState = pTransitState;
+    smdataptr->lock();
+    pTransitState->enter(smdataptr);
+    smdataptr->unlock();
+}
+
+inline void Track::update(dynamic_state_machine_data* smdataptr)
+{
+    smdataptr->current_states[m_uiIndex]->update(smdataptr);
+}
+
+inline void Track::leave(dynamic_state_machine_data* smdataptr)
+{
+    State*& rpCurrentState = smdataptr->current_states[m_uiIndex];
+    smdataptr->lock();
+    rpCurrentState->leave(smdataptr);
+    smdataptr->unlock();
+    rpCurrentState = NULL;
+    o_Track_TraceLeave();
+}
 
 o_namespace_end(phantom, state)
 

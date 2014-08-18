@@ -35,6 +35,7 @@
 #include "phantom/phantom.h"
 #include <phantom/state/State.h>
 #include <phantom/state/State.hxx>
+#include <phantom/reflection/Compiler.h>
 /* *********************************************** */
 o_registerN((phantom, state), State);
 
@@ -49,21 +50,23 @@ State::State( const string& a_strName , bitfield modifiers /*= 0*/)
     , m_uiIndexInTrack(0xffffffff)
     , m_uiIndex(0xffffffff)
 {
-
+    m_pCompilationData = new state_compilation_data;
 }
 
 State::State(const string& a_strName, uint a_uiOrderingFactor, bitfield modifiers /*= 0*/)
     : StateMachineElement(a_strName, modifiers)
     , m_pParentTrack(NULL)
     , m_uiOrderingFactor(a_uiOrderingFactor)
-, m_uiKey(0xffffffff)
-, m_uiIndex(0xffffffff)
+    , m_uiKey(0xffffffff)
+    , m_uiIndex(0xffffffff)
+    , m_pCompilationData(nullptr)
 {
 
 }
 
 State::~State( void )
 {
+    delete m_pCompilationData;
 }
 
 void State::addTrack( Track* a_pTrack )
@@ -120,9 +123,9 @@ bool State::equals( reflection::LanguageElement* a_pOther ) const
     reflection::Class* pThisOwner = getOwnerStateMachine()->getOwnerClass();
     reflection::Class* pOtherOwner = static_cast<State*>(a_pOther)->getOwnerStateMachine()->getOwnerClass();
     reflection::Type::ERelation relation = pOtherOwner->getRelationWith(pThisOwner);
-    return relation == reflection::Type::eRelation_Equal
-        OR relation == reflection::Type::eRelation_Child
-        OR relation == reflection::Type::eRelation_Parent;
+    return relation == reflection::Type::e_Relation_Equal
+        OR relation == reflection::Type::e_Relation_Child
+        OR relation == reflection::Type::e_Relation_Parent;
 }
 
 Track* State::getTrackCascade( const string& a_strName ) const
@@ -140,6 +143,118 @@ Track* State::getTrackCascade( const string& a_strName ) const
         }
     }
     return NULL;
+}
+
+void State::enter( dynamic_state_machine_data* smdataptr )
+{
+    o_assert(m_pCompilationData);
+    o_State_TraceEnter();
+    o_assert(m_pCompilationData->m_pEnterClosure);
+    void* args[1] = { &smdataptr->owner };
+    m_pCompilationData->m_ClosureCallDelegate( m_pCompilationData->m_pEnterClosure, args, 1, nullptr);
+    o_foreach(Track* pTrack, m_Tracks)
+    {
+        ((Track*)pTrack)->enter(smdataptr);
+    }
+}
+
+void State::update( dynamic_state_machine_data* smdataptr )
+{
+    o_assert(m_pCompilationData);
+    o_assert(m_pCompilationData->m_pUpdateClosure);
+    void* args[1] = { &smdataptr->owner };
+    m_pCompilationData->m_ClosureCallDelegate( m_pCompilationData->m_pUpdateClosure, args, 1, nullptr);
+    o_foreach(Track* pTrack, m_Tracks)
+    {
+        ((Track*)pTrack)->update(smdataptr);
+    }
+}
+
+void State::leave( dynamic_state_machine_data* smdataptr )
+{
+    o_assert(m_pCompilationData);
+    o_foreach(Track* pTrack, m_Tracks)
+    {
+        ((Track*)pTrack)->leave(smdataptr);
+    }
+    o_State_TraceLeave();
+    o_assert(m_pCompilationData->m_pLeaveClosure);
+    void* args[1] = { &smdataptr->owner };
+    m_pCompilationData->m_ClosureCallDelegate( m_pCompilationData->m_pLeaveClosure, args, 1, nullptr);
+}
+
+void State::copyHierarchy( StateMachine* a_pStateMachine, State* a_pSourceState )
+{
+    size_t i = 0;
+    size_t count = a_pSourceState->getTrackCount();
+    m_Tracks.resize(count);
+    for(;i<count;++i)
+    {
+        m_Tracks[i] = a_pStateMachine->getTrack(a_pSourceState->getTrack(i)->getIndex());
+        static_cast<Track*>(m_Tracks[i])->m_pParentState = this;
+        static_cast<Track*>(m_Tracks[i])->copyHierarchy(a_pStateMachine, a_pSourceState->getTrack(i));
+    }
+}
+
+class FakeClosure
+{
+public:
+    void method()
+    {
+
+    }
+};
+
+variant State::compile(reflection::Compiler* a_pCompiler)
+{
+    return a_pCompiler->compile(this);
+    /*auto closureptr = &FakeClosure::method;
+    void* ptr = *((void**)&closureptr);
+    if(m_pEnterClosure == nullptr)
+    {
+        m_pEnterClosure = ptr;
+    }
+    if(m_pUpdateClosure == nullptr)
+    {
+        m_pUpdateClosure = ptr;
+    }
+    if(m_pLeaveClosure == nullptr)
+    {
+        m_pLeaveClosure = ptr;
+    }*/
+}
+
+reflection::InstanceMemberFunction* State::createEnterMemberFunction( void )
+{
+    o_assert(m_pCompilationData->m_pEnterMemberFunction == nullptr); 
+    o_assert(m_pOwner != nullptr, "this State must be added to a Track, itself attached to a StateMachine"); 
+    m_pCompilationData->m_pEnterMemberFunction = o_new(reflection::InstanceMemberFunction)(string("PHANTOM_RESERVED_")+m_strName+"_enter", StateMachine::StateMemberFunctionSignature(), m_Modifiers);
+    reflection::Class* pClass = as<reflection::Class*>(getOwnerStateMachine()->getOwnerClass());
+    o_assert(pClass);
+    pClass->addInstanceMemberFunction(m_pCompilationData->m_pEnterMemberFunction);
+    return m_pCompilationData->m_pEnterMemberFunction;
+}
+
+reflection::InstanceMemberFunction* State::createUpdateMemberFunction( void )
+{
+    o_assert(m_pCompilationData->m_pUpdateMemberFunction == nullptr); 
+    o_assert(m_pOwner != nullptr, "this State must be added to a Track, itself attached to a StateMachine"); 
+    m_pCompilationData->m_pUpdateMemberFunction = o_new(reflection::InstanceMemberFunction)(string("PHANTOM_RESERVED_")+m_strName+"_update", StateMachine::StateMemberFunctionSignature(), m_Modifiers);
+    reflection::Class* pClass = as<reflection::Class*>(getOwnerStateMachine()->getOwnerClass());
+    o_assert(pClass);
+    pClass->addInstanceMemberFunction(m_pCompilationData->m_pUpdateMemberFunction);
+    return m_pCompilationData->m_pUpdateMemberFunction;
+}
+
+reflection::InstanceMemberFunction* State::createLeaveMemberFunction( void )
+{
+    o_assert(m_pCompilationData->m_pLeaveMemberFunction == nullptr); 
+    o_assert(m_pOwner != nullptr, "this State must be added to a Track, itself attached to a StateMachine"); 
+    m_pCompilationData->m_pLeaveMemberFunction = o_new(reflection::InstanceMemberFunction)(string("PHANTOM_RESERVED_")+m_strName+"_leave", StateMachine::StateMemberFunctionSignature(), m_Modifiers);
+    reflection::Class* pClass = as<reflection::Class*>(getOwnerStateMachine()->getOwnerClass());
+    o_assert(pClass);
+    pClass->addInstanceMemberFunction(m_pCompilationData->m_pLeaveMemberFunction);
+    return m_pCompilationData->m_pLeaveMemberFunction;
 }
 
 o_namespace_end(phantom, state)

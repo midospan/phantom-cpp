@@ -24,36 +24,32 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\phantom\qt\Action.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\ArrayElementVariable.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\ArrayTypeVariableNodeFactory.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\AddComponentDataCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\AddDataCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\AddNodeCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\ArrayTypeVisualizerNode.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\BitFieldEditor.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\BoolCheckBoxEditor.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\CharLineEditor.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\ClassComboBox.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\ClassTypeVariableNodeFactory.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\ClassVariableNodeFactory.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\CollectionAddVariable.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\CollectionElementVariable.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\ClassComboBoxEditor.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\ClassTypeVisualizerNode.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\ClassVisualizerNode.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\ComponentDataComboBox.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\ComponentDataComboBoxEditor.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\ComponentVariable.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\CompositionAddVariable.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\CompositionClassVariableNodeFactory.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\ContainerInsertVariable.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\DataBaseAttributeVariable.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\DataComboBox.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\DataComboBoxEditor.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\CompositionVisualizerNode.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\DataAttributeChangeCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\DataComboBox.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\DataComboBoxEditor.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\DataTreeView.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\EnumComboBoxEditor.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\VariableSetCommand.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\MapContainerClassVariableNodeFactory.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\MapInsertPairVariable.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\ExpressionCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\LoadLibraryCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\LoadNodeCommand.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\MessageDisplay.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\ModuleExplorer.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\MoveToTrashbinCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\NodeAttributeChangeCommand.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\NumberLineEditor.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -62,17 +58,25 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">-Zm450 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\qt.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\SequentialContainerClassVariableNodeFactory.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\SequentialContainerPushBackVariable.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\SetContainerClassVariableNodeFactory.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\SetContainerInsertVariable.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\MapVisualizerNode.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\SaveDataAttributeCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\SaveDataCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\SaveNodeAttributeCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\SequentialContainerVisualizerNode.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\SetContainerVisualizerNode.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\StateMachineInspector.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\StringLineEditor.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\TypeVisualizer.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\TypeVisualizerNode.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\UndoCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\UndoStack.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\UndoStackView.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\UnloadLibraryCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\UnloadNodeCommand.cpp" />
+    <ClCompile Include="..\..\..\phantom\qt\UpdateComponentDataCommand.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\VariableAction.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\VariableEditor.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\VariableNode.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\VariableNodeFactory.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\VariableWidget.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\VariableModel.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\VariableWidgetEditor.cpp" />
@@ -109,7 +113,7 @@
     <ClCompile Include="GeneratedFiles\Debug\moc_StateMachineInspector.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_VariableAction.cpp">
+    <ClCompile Include="GeneratedFiles\Debug\moc_UndoStackView.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_VariableEditor.cpp">
@@ -160,7 +164,7 @@
     <ClCompile Include="GeneratedFiles\Release\moc_StateMachineInspector.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_VariableAction.cpp">
+    <ClCompile Include="GeneratedFiles\Release\moc_UndoStackView.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_VariableEditor.cpp">
@@ -193,10 +197,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\phantom\qt\Action.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\ArrayElementVariable.h" />
-    <ClInclude Include="..\..\..\phantom\qt\ArrayElementVariable.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\ArrayTypeVariableNodeFactory.h" />
-    <ClInclude Include="..\..\..\phantom\qt\ArrayTypeVariableNodeFactory.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\AddComponentDataCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\AddComponentDataCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\AddDataCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\AddDataCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\AddNodeCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\AddNodeCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\ArrayTypeVisualizerNode.h" />
+    <ClInclude Include="..\..\..\phantom\qt\ArrayTypeVisualizerNode.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\BitFieldEditor.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\BoolCheckBoxEditor.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\CharLineEditor.hxx" />
@@ -220,49 +228,73 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp" "-fphantom/qt/qt.h" "-f..\..\..\..\..\phantom\qt\ComponentDataComboBox.h"  -DPHANTOM_QT_DLL -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -D_WINDLL "-I." "-I.\GeneratedFiles" "-I.\..\..\.." "-I$(BOOST_ROOT)\." "-I.\..\..\..\Dependencies\QWidgets\src" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I." "-I." "-I." "-I."</Command>
     </CustomBuild>
-    <ClInclude Include="..\..\..\phantom\qt\ClassTypeVariableNodeFactory.h" />
-    <ClInclude Include="..\..\..\phantom\qt\ClassTypeVariableNodeFactory.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\ClassVariableNodeFactory.h" />
-    <ClInclude Include="..\..\..\phantom\qt\ClassVariableNodeFactory.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\CollectionAddVariable.h" />
-    <ClInclude Include="..\..\..\phantom\qt\CollectionAddVariable.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\CollectionElementVariable.h" />
-    <ClInclude Include="..\..\..\phantom\qt\CollectionElementVariable.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\ClassComboBoxEditor.h" />
+    <ClInclude Include="..\..\..\phantom\qt\ClassComboBoxEditor.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\ClassTypeVisualizerNode.h" />
+    <ClInclude Include="..\..\..\phantom\qt\ClassTypeVisualizerNode.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\ClassVisualizerNode.h" />
+    <ClInclude Include="..\..\..\phantom\qt\ClassVisualizerNode.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\ComponentDataComboBoxEditor.h" />
     <ClInclude Include="..\..\..\phantom\qt\ComponentDataComboBoxEditor.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\ComponentVariable.h" />
-    <ClInclude Include="..\..\..\phantom\qt\ComponentVariable.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\CompositionAddVariable.h" />
-    <ClInclude Include="..\..\..\phantom\qt\CompositionAddVariable.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\CompositionClassVariableNodeFactory.h" />
-    <ClInclude Include="..\..\..\phantom\qt\CompositionClassVariableNodeFactory.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\ContainerInsertVariable.h" />
-    <ClInclude Include="..\..\..\phantom\qt\ContainerInsertVariable.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\DataBaseAttributeVariable.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\CompositionVisualizerNode.h" />
+    <ClInclude Include="..\..\..\phantom\qt\CompositionVisualizerNode.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\DataAttributeChangeCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\DataAttributeChangeCommand.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\DataComboBoxEditor.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\DataTreeView.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\EnumComboBoxEditor.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\VariableSetCommand.h" />
-    <ClInclude Include="..\..\..\phantom\qt\VariableSetCommand.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\MapContainerClassVariableNodeFactory.h" />
-    <ClInclude Include="..\..\..\phantom\qt\MapContainerClassVariableNodeFactory.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\MapInsertPairVariable.h" />
-    <ClInclude Include="..\..\..\phantom\qt\MapInsertPairVariable.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\ExpressionCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\ExpressionCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\LoadLibraryCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\LoadLibraryCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\LoadNodeCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\LoadNodeCommand.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\MessageDisplay.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\ModuleExplorer.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\MoveToTrashbinCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\MoveToTrashbinCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\NodeAttributeChangeCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\NodeAttributeChangeCommand.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\NumberLineEditor.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\SequentialContainerClassVariableNodeFactory.h" />
-    <ClInclude Include="..\..\..\phantom\qt\SequentialContainerClassVariableNodeFactory.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\SequentialContainerPushBackVariable.h" />
-    <ClInclude Include="..\..\..\phantom\qt\SequentialContainerPushBackVariable.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\SetContainerClassVariableNodeFactory.h" />
-    <ClInclude Include="..\..\..\phantom\qt\SetContainerClassVariableNodeFactory.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\SetContainerInsertVariable.h" />
-    <ClInclude Include="..\..\..\phantom\qt\SetContainerInsertVariable.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\MapVisualizerNode.h" />
+    <ClInclude Include="..\..\..\phantom\qt\MapVisualizerNode.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\SaveDataAttributeCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\SaveDataAttributeCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\SaveDataCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\SaveDataCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\SaveNodeAttributeCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\SaveNodeAttributeCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\SequentialContainerVisualizerNode.h" />
+    <ClInclude Include="..\..\..\phantom\qt\SequentialContainerVisualizerNode.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\SetContainerVisualizerNode.h" />
+    <ClInclude Include="..\..\..\phantom\qt\SetContainerVisualizerNode.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\StateMachineInspector.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\StringLineEditor.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\TypeVisualizer.h" />
+    <ClInclude Include="..\..\..\phantom\qt\TypeVisualizer.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\TypeVisualizerNode.h" />
+    <ClInclude Include="..\..\..\phantom\qt\TypeVisualizerNode.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\UndoCommand.h" />
     <ClInclude Include="..\..\..\phantom\qt\UndoCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\UndoStack.h" />
+    <ClInclude Include="..\..\..\phantom\qt\UndoStack.hxx" />
+    <CustomBuild Include="..\..\..\phantom\qt\UndoStackView.h">
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp" "-fphantom/qt/qt.h" "-f..\..\..\..\..\phantom\qt\UndoStackView.h"  -DPHANTOM_QT_DLL -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -D_WINDLL "-I." "-I.\GeneratedFiles" "-I.\..\..\.." "-I$(BOOST_ROOT)\." "-I.\..\..\..\Dependencies\QWidgets\src" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I." "-I." "-I." "-I."</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp" "-fphantom/qt/qt.h" "-f..\..\..\..\..\phantom\qt\UndoStackView.h"  -DPHANTOM_QT_DLL -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -D_WINDLL "-I." "-I.\GeneratedFiles" "-I.\..\..\.." "-I$(BOOST_ROOT)\." "-I.\..\..\..\Dependencies\QWidgets\src" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I." "-I." "-I." "-I."</Command>
+    </CustomBuild>
+    <ClInclude Include="..\..\..\phantom\qt\UndoStackView.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\UnloadLibraryCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\UnloadLibraryCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\UnloadNodeCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\UnloadNodeCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\UpdateComponentDataCommand.h" />
+    <ClInclude Include="..\..\..\phantom\qt\UpdateComponentDataCommand.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\VariableAction.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\VariableEditor.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\VariableModel.hxx" />
@@ -283,8 +315,6 @@
       </Command>
     </CustomBuild>
     <ClInclude Include="..\..\..\phantom\qt\VariableNode.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\VariableNodeFactory.h" />
-    <ClInclude Include="..\..\..\phantom\qt\VariableNodeFactory.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\VariableWidgetEditor.hxx" />
     <CustomBuild Include="..\..\..\phantom\qt\StateMachineInspector.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
@@ -307,14 +337,20 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp" "-fphantom/qt/qt.h" "-f..\..\..\..\..\phantom\qt\VariableWidgetEditor.h"  -DPHANTOM_QT_DLL -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -D_WINDLL "-I." "-I.\GeneratedFiles" "-I.\..\..\.." "-I$(BOOST_ROOT)\." "-I.\..\..\..\Dependencies\QWidgets\src" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I." "-I." "-I." "-I."</Command>
     </CustomBuild>
     <CustomBuild Include="..\..\..\phantom\qt\VariableAction.h">
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing %(Identity)...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp" "-fphantom/qt/qt.h" "-f..\..\..\..\..\phantom\qt\VariableAction.h"  -DPHANTOM_QT_DLL -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -D_WINDLL "-I." "-I.\GeneratedFiles" "-I.\..\..\.." "-I$(BOOST_ROOT)\." "-I.\..\..\..\Dependencies\QWidgets\src" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I." "-I." "-I." "-I."</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing %(Identity)...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp" "-fphantom/qt/qt.h" "-f..\..\..\..\..\phantom\qt\VariableAction.h"  -DPHANTOM_QT_DLL -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -D_WINDLL "-I." "-I.\GeneratedFiles" "-I.\..\..\.." "-I$(BOOST_ROOT)\." "-I.\..\..\..\Dependencies\QWidgets\src" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I." "-I." "-I." "-I."</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalInputs)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalInputs)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Command>
     </CustomBuild>
     <CustomBuild Include="..\..\..\phantom\qt\StringLineEditor.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalInputs)</AdditionalInputs>
@@ -438,7 +474,6 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing %(Identity)...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp" "-fphantom/qt/qt.h" "-f..\..\..\..\..\phantom\qt\DataComboBox.h"  -DPHANTOM_QT_DLL -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -D_WINDLL "-I." "-I.\GeneratedFiles" "-I.\..\..\.." "-I$(BOOST_ROOT)\." "-I.\..\..\..\Dependencies\QWidgets\src" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I." "-I." "-I." "-I."</Command>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\..\..\phantom\qt\DataComboBoxEditor.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalInputs)</AdditionalInputs>
@@ -455,7 +490,6 @@
       </Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </Command>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </CustomBuild>
     <ClInclude Include="..\..\..\phantom\qt\qt.h" />
   </ItemGroup>
@@ -518,7 +552,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>phantom/qt/qt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>../../../build/$(ProjectName)/debug/$(ProjectName).pch</PrecompiledHeaderOutputFile>
-      <AdditionalOptions>-Zm450 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm450 /MP %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -539,7 +573,7 @@
       <PrecompiledHeaderOutputFile>../../../build/$(ProjectName)/release/$(ProjectName).pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>phantom/qt/qt.h</PrecompiledHeaderFile>
-      <AdditionalOptions>-Zm450 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm450 /MP %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

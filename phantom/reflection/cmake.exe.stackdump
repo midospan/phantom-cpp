@@ -1,6 +1,6 @@
 Exception: STATUS_ACCESS_VIOLATION at eip=6112A143
 eax=00000000 ebx=0000007F ecx=00000000 edx=00000000 esi=008C7850 edi=00000000
-ebp=0028A2C8 esp=0028A2C4 program=E:\DEVELOPMENT\CYGWIN\BIN\cmake.exe, pid 6008, thread main
+ebp=0028A2C8 esp=0028A2C4 program=E:\DEVELOPMENT\CYGWIN\BIN\cmake.exe, pid 6748, thread main
 cs=0023 ds=002B es=002B fs=0053 gs=002B ss=002B
 Stack trace:
 Frame     Function  Args

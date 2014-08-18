@@ -11,7 +11,7 @@ namespace phantom {
         namespace jit {
 
     LocalVariableEditor::LocalVariableEditor( void ) 
-        : VariableEditor(o_new(LocalVariableModel), "Expression")
+        : VariableEditor("Expression")
     {
         setEnabled(false);
     }

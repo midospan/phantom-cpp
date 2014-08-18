@@ -50,9 +50,15 @@ public:
     CastExpression( Type* a_pCastType, Expression* a_pCastedExpression );
     ~CastExpression();
 
+    virtual void    terminate();
+
     virtual void    getValue(void* a_pDest) const;
 
-    virtual void    flush() { m_pCastedExpression->flush(); }
+    virtual void    flush() const { m_pCastedExpression->flush(); }
+
+    Expression* getCastedExpression() const { return m_pCastedExpression; }
+
+    virtual CastExpression*     clone() const;
 
 protected:
     Expression*     m_pCastedExpression;

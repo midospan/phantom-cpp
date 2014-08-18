@@ -173,6 +173,7 @@ protected: // old QtTreePropertyBrowserPrivate
 protected:
     void updateItem(QTreeWidgetItem *item);
     void updateItemCascade(QTreeWidgetItem *item);
+    void updateItemParents(QTreeWidgetItem *item);
     virtual void updateItemLook(QtBrowserItem* item);
     virtual void updateCustomExtraColumns( QTreeWidgetItem * item, QtProperty * property );
 

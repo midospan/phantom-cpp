@@ -5,86 +5,55 @@
 #include <QtGui/QAction>
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, qt), VariableAction);
-o_declareN(class, (phantom, qt), ResetAction);
-o_declareN(class, (phantom, qt), EraseContainerIteratorAction);
-o_declareN(class, (phantom, qt), ContainerMoveDownAction);
-o_declareN(class, (phantom, qt), ContainerMoveUpAction);
 /* *********************************************** */
 
 namespace phantom { namespace qt {
 
-class VariableWidget;
 class VariableEditor;
 class CollectionElementVariable;
 class VariableNode;
 
+enum EVariableActionLayout
+{
+    e_VariableActionLayout_Button,
+    e_VariableActionLayout_Menu,
+};
+
 class o_qt_export VariableAction : public QAction
 {
-    Q_OBJECT
+    friend class VariableNode;
 
 public:
-    VariableAction(const QIcon& a_Icon, const QString& a_Name, VariableNode* a_pVariable, VariableWidget* a_pVariableWidget);
+    VariableAction(const QIcon& a_Icon, const QString& a_Name, EVariableActionLayout a_Layout, VariableNode* a_pVariableNode, VariableEditor* a_pVariableEditor);
     ~VariableAction();
+
+    VariableNode*   getVariableNode() const { return m_pVariableNode; }
     VariableEditor* getVariableEditor() const;
-    VariableNode* getVariable() const { return m_pVariable; }
-
-protected slots:
-    void slotActionDone();
 
 protected:
-    virtual void actionDone() = 0;
-    virtual void variableChanged() 
-    {
+    virtual void doNow();
 
-    }
+    o_signal_data(actionAboutToBeDone);
+    o_signal_data(actionDone);
 
-    void valueChanged();
-    void valueAboutToBeChanged();
+public slots:
+    void slotTriggered();
 
 protected:
-    VariableNode*       m_pVariable;
-    VariableWidget* m_pVariableWidget;
-
+    VariableNode*           m_pVariableNode;
+    EVariableActionLayout   m_Layout;
 };
+/*
 
 class o_qt_export ResetAction : public VariableAction
 {
 public:
-    ResetAction(VariableNode* a_pVariable, VariableWidget* a_pEditor);
+    ResetAction();
 
 protected:
     virtual void actionDone();
 };
-
-
-class o_qt_export ContainerMoveUpAction : public VariableAction
-{
-public:
-    ContainerMoveUpAction(VariableNode* a_pVariable, VariableWidget* a_pVariableWidget);
-
-    virtual void actionDone();
-
-protected:
-};
-
-class o_qt_export ContainerMoveDownAction : public VariableAction
-{
-public:
-    ContainerMoveDownAction(VariableNode* a_pVariable, VariableWidget* a_pVariableWidget);
-
-    virtual void actionDone();
-
-protected:
-};
-
-class o_qt_export EraseContainerIteratorAction : public VariableAction
-{
-public:
-    EraseContainerIteratorAction(VariableNode* a_pVariable, VariableWidget* a_pVariableWidget);
-
-    void actionDone();
-
-};
+*/
 
 }}
 

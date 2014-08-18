@@ -3,7 +3,7 @@
 
 
 /* ****************** Includes ******************* */
-#include <ghost/reflection/reflection.h>
+#include <phantom/reflection/reflection.h>
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, reflection), SequencialCollection);
 /* *********************************************** */

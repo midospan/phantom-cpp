@@ -55,7 +55,7 @@ namespace detail {
         {
             return in == NULL
                 ? true
-                : phantom::classOf(in)->isKindOf(classOf<t_Ty>());
+                : phantom::classOf(in)->isKindOf(typeOf<t_Ty>());
         }
     };
 
@@ -116,13 +116,15 @@ o_export inline const phantom::rtti_data&            rttiDataOf(void const* a_pT
 template<typename t_Ty>
 inline const phantom::rtti_data&            rttiDataOf(t_Ty const* a_pThis)
 {
-    return rttiDataOf(a_pThis, classOf<t_Ty>());
+    auto pType = typeOf<t_Ty>();
+    return rttiDataOf(a_pThis, pType ? pType->asClass() : nullptr);
 }
 
 template<typename t_Ty>
 inline reflection::Class*                   classOf(t_Ty const* a_pThis)
 {
-    return rttiDataOf(a_pThis, classOf<t_Ty>()).object_class;
+    auto pType = typeOf<t_Ty>();
+    return rttiDataOf(a_pThis, pType ? pType->asClass() : nullptr).object_class;
 }
 
 o_namespace_end(phantom)
@@ -157,12 +159,85 @@ void rtti_data_registrer_helper_<t_Ty, 0>::unregisterInfo(t_Ty* a_pThis, size_t 
 }
 
 
-template <typename t_Ty>
-void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+template<>
+struct default_converter<std::nullptr_t> 
 {
-    reflection::ClassType* pClass = classOf<t_Ty>();
-    auto it = pClass->beginValueMembers();
-    auto end = pClass->endValueMembers();
+    // By default converter just copy
+    static void convert(reflection::Type* a_pType, reflection::Type* a_pDestType, void* a_pDestValue, const std::nullptr_t* a_pSrcValue)
+    {
+        *((void**)a_pDestValue) = nullptr;
+    }
+    static bool isConvertibleTo(reflection::Type* a_pType, reflection::Type* a_pDestType)
+    {
+        return a_pDestType->asDataPointerType() != nullptr;
+    }
+    static bool isImplicitlyConvertibleTo(reflection::Type* a_pType, reflection::Type* a_pDestType)
+    {
+        return a_pDestType->asDataPointerType() != nullptr;
+    }
+};
+
+template <typename t_Ty>
+void default_serializer_helper<t_Ty, default_serializer_classtype>::serialize(reflection::ClassType* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+{
+    super_class_serializer<t_Ty>::serialize(static_cast<reflection::Class*>(a_pType), a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+    property_tree class_tree;
+    serializeLayout(a_pType, a_pInstance, class_tree, a_uiSerializationMask, a_pDataBase);
+    a_OutBranch.add_child(encodeQualifiedDecoratedNameToIdentifierName(a_pType->getQualifiedDecoratedName()), class_tree);
+}
+template <typename t_Ty>
+void default_serializer_helper<t_Ty, default_serializer_classtype>::deserialize(reflection::ClassType* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+{
+    super_class_serializer<t_Ty>::deserialize(static_cast<reflection::Class*>(a_pType), a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+    auto it = a_InBranch.begin();
+    auto end = a_InBranch.end();
+    for(;it!=end;++it)
+    {
+        // The test below could seem dirty but it's useful to deserialize typedefs or placeholder types 
+        // which goal is to point to a type without having the same representation name (ex: my_vector2 could point to phantom::math::vector2<float>)
+        // It's also useful is you have a type versionning (a script class rebuilt with a different name but you still want to deserialize from the older type name
+        reflection::Type* solvedType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first));
+        if(solvedType AND (solvedType->getQualifiedDecoratedName() == a_pType->getQualifiedDecoratedName()))
+        {
+            deserializeLayout(a_pType, a_pInstance, it->second, a_uiSerializationMask, a_pDataBase);
+        }
+    }
+}
+template <typename t_Ty>
+void default_serializer_helper<t_Ty, default_serializer_classtype>::serialize(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+{
+    super_class_serializer<t_Ty>::serialize(static_cast<reflection::Class*>(a_pType), a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+    property_tree class_tree;
+    serializeLayout(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, class_tree, a_uiSerializationMask, a_pDataBase);
+    a_OutBranch.add_child(encodeQualifiedDecoratedNameToIdentifierName(a_pType->getQualifiedDecoratedName()), class_tree);
+}
+template <typename t_Ty>
+void default_serializer_helper<t_Ty, default_serializer_classtype>::deserialize(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+{
+    super_class_serializer<t_Ty>::deserialize(static_cast<reflection::Class*>(a_pType), a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+    auto it = a_InBranch.begin();
+    auto end = a_InBranch.end();
+    for(;it!=end;++it)
+    {
+        // The test below could seem dirty but it's useful to deserialize typedefs or placeholder types 
+        // which goal is to point to a type without having the same representation name (ex: my_vector2 could point to phantom::math::vector2<float>)
+        // It's also useful is you have a type versionning (a script class rebuilt with a different name but you still want to deserialize from the older type name
+        reflection::Type* solvedType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first));
+        if(solvedType AND (solvedType->getQualifiedDecoratedName() == a_pType->getQualifiedDecoratedName()))
+        {
+            deserializeLayout(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, it->second, a_uiSerializationMask, a_pDataBase);
+        }
+    }
+}
+
+
+
+
+template <typename t_Ty>
+void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+{
+    auto it = a_pType->beginValueMembers();
+    auto end = a_pType->endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember*const pValueMember = (*it);
@@ -172,11 +247,10 @@ void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLay
 }
 
 template <typename t_Ty>
-void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
-    reflection::ClassType* pClass = classOf<t_Ty>();
-    auto it = pClass->beginValueMembers();
-    auto end = pClass->endValueMembers();
+    auto it = a_pType->beginValueMembers();
+    auto end = a_pType->endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember* const pValueMember = (*it);
@@ -186,11 +260,10 @@ void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeL
 }
 
 template <typename t_Ty>
-void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
-    reflection::ClassType* pClass = classOf<t_Ty>();
-    auto it = pClass->beginValueMembers();
-    auto end = pClass->endValueMembers();
+    auto it = a_pType->beginValueMembers();
+    auto end = a_pType->endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember*const pValueMember = (*it);
@@ -200,11 +273,10 @@ void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLay
 }
 
 template <typename t_Ty>
-void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
-    reflection::ClassType* pClass = classOf<t_Ty>();
-    auto it = pClass->beginValueMembers();
-    auto end = pClass->endValueMembers();
+    auto it = a_pType->beginValueMembers();
+    auto end = a_pType->endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember* const pValueMember = (*it);
@@ -214,11 +286,10 @@ void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeL
 }
 
 template <typename t_Ty>
-void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
-    reflection::ClassType* pClass = classOf<t_Ty>();
-    auto it = pClass->beginValueMembers();
-    auto end = pClass->endValueMembers();
+    auto it = a_pType->beginValueMembers();
+    auto end = a_pType->endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember*const pValueMember = (*it);
@@ -228,11 +299,10 @@ void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLay
 }
 
 template <typename t_Ty>
-void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
-    reflection::ClassType* pClass = classOf<t_Ty>();
-    auto it = pClass->beginValueMembers();
-    auto end = pClass->endValueMembers();
+    auto it = a_pType->beginValueMembers();
+    auto end = a_pType->endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember* const pValueMember = (*it);
@@ -242,16 +312,15 @@ void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeL
 }
 
 template <typename t_Ty>
-void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
     // If you have a compilation error here 
     // that probably means that a super class declared 
     // in a reflection declaration ( the class t_Ty ) hasn't
     // itself a reflection declared
     // v
-    reflection::ClassType* pClass = classOf<t_Ty>();
-    auto it = pClass->beginValueMembers();
-    auto end = pClass->endValueMembers();
+    auto it = a_pType->beginValueMembers();
+    auto end = a_pType->endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember*const pValueMember = (*it);
@@ -261,11 +330,10 @@ void default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLay
 }
 
 template <typename t_Ty>
-void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
 {
-    reflection::ClassType* pClass = classOf<t_Ty>();
-    auto it = pClass->beginValueMembers();
-    auto end = pClass->endValueMembers();
+    auto it = a_pType->beginValueMembers();
+    auto end = a_pType->endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember* const pValueMember = (*it);
@@ -275,12 +343,11 @@ void default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeL
 }
 
 template <typename t_Ty>
-void default_resetter_helper<t_Ty, default_resetter_classtype>::remember(t_Ty const* a_pInstance, byte*& a_pOutBuffer)
+void default_resetter_helper<t_Ty, default_resetter_classtype>::remember(reflection::ClassType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer)
 {
-    super_class_resetter<t_Ty>::remember(a_pInstance, a_pOutBuffer);
-    reflection::ClassType* pClass = classOf<t_Ty>();
-    auto it = pClass->beginValueMembers();
-    auto end = pClass->endValueMembers();
+    super_class_resetter<t_Ty>::remember(static_cast<reflection::Class*>(a_pType), a_pInstance, a_pOutBuffer);
+    auto it = a_pType->beginValueMembers();
+    auto end = a_pType->endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember*const pValueMember = (*it);
@@ -290,12 +357,11 @@ void default_resetter_helper<t_Ty, default_resetter_classtype>::remember(t_Ty co
 }
 
 template <typename t_Ty>
-void default_resetter_helper<t_Ty, default_resetter_classtype>::reset(t_Ty* a_pInstance, byte const*& a_pInBuffer)
+void default_resetter_helper<t_Ty, default_resetter_classtype>::reset(reflection::ClassType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer)
 {
-    super_class_resetter<t_Ty>::reset(a_pInstance, a_pInBuffer);
-    reflection::ClassType* pClass = classOf<t_Ty>();
-    auto it = pClass->beginValueMembers();
-    auto end = pClass->endValueMembers();
+    super_class_resetter<t_Ty>::reset(static_cast<reflection::Class*>(a_pType), a_pInstance, a_pInBuffer);
+    auto it = a_pType->beginValueMembers();
+    auto end = a_pType->endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember* const pValueMember = (*it);
@@ -305,12 +371,11 @@ void default_resetter_helper<t_Ty, default_resetter_classtype>::reset(t_Ty* a_pI
 }
 
 template <typename t_Ty>
-void default_resetter_helper<t_Ty, default_resetter_classtype>::remember(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
+void default_resetter_helper<t_Ty, default_resetter_classtype>::remember(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
 {
-    super_class_resetter<t_Ty>::remember(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
-    reflection::ClassType* pClass = classOf<t_Ty>();
-    auto it = pClass->beginValueMembers();
-    auto end = pClass->endValueMembers();
+    super_class_resetter<t_Ty>::remember(static_cast<reflection::Class*>(a_pType), a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
+    auto it = a_pType->beginValueMembers();
+    auto end = a_pType->endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember*const pValueMember = (*it);
@@ -320,12 +385,11 @@ void default_resetter_helper<t_Ty, default_resetter_classtype>::remember(t_Ty co
 }
 
 template <typename t_Ty>
-void default_resetter_helper<t_Ty, default_resetter_classtype>::reset(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
+void default_resetter_helper<t_Ty, default_resetter_classtype>::reset(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
 {
-    super_class_resetter<t_Ty>::reset(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
-    reflection::ClassType* pClass = classOf<t_Ty>();
-    auto it = pClass->beginValueMembers();
-    auto end = pClass->endValueMembers();
+    super_class_resetter<t_Ty>::reset(static_cast<reflection::Class*>(a_pType), a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
+    auto it = a_pType->beginValueMembers();
+    auto end = a_pType->endValueMembers();
     for(;it != end; ++it)
     {
         reflection::ValueMember* const pValueMember = (*it);
@@ -354,3 +418,5 @@ void super_class_adder<t_Ty, t_STy, t_counter>::apply(phantom::reflection::Class
 }
 
 o_namespace_end(phantom, reflection, detail)
+
+#include "phantom/variant.inl"

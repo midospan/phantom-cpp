@@ -54,29 +54,29 @@ public:
         string enter_func_name = name+o_CS("_enter()");
         string update_func_name = name+o_CS("_update()");
         string leave_func_name = name+o_CS("_leave()");
-        phantom::reflection::InstanceMemberFunction*    pEnterMemberFunction = classOf<t_ObjectClass>()->getInstanceMemberFunctionCascade(enter_func_name);
+        phantom::reflection::InstanceMemberFunction*    pEnterMemberFunction = typeOf<t_ObjectClass>()->getInstanceMemberFunctionCascade(enter_func_name);
         if(pEnterMemberFunction == NULL)
         {
-            classOf<t_ObjectClass>()->addMemberFunction(phantom::reflection::native::TNativeMemberFunctionProvider<t_ObjectClass, 0, void()>::CreateMemberFunction(
+            typeOf<t_ObjectClass>()->addMemberFunction(phantom::reflection::native::TNativeMemberFunctionProvider<t_ObjectClass, 0, void()>::CreateMemberFunction(
                 enter_func_name
                 , StateMachine::StateMemberFunctionSignature()
                 , pState->getEnterFunctionPointer())
                 );
         }
-        phantom::reflection::InstanceMemberFunction*    pUpdateMemberFunction = classOf<t_ObjectClass>()->getInstanceMemberFunctionCascade(update_func_name);
+        phantom::reflection::InstanceMemberFunction*    pUpdateMemberFunction = typeOf<t_ObjectClass>()->getInstanceMemberFunctionCascade(update_func_name);
         if(pUpdateMemberFunction == NULL)
         {
-            classOf<t_ObjectClass>()->addMemberFunction(phantom::reflection::native::TNativeMemberFunctionProvider<t_ObjectClass, 0, void()>::CreateMemberFunction(
+            typeOf<t_ObjectClass>()->addMemberFunction(phantom::reflection::native::TNativeMemberFunctionProvider<t_ObjectClass, 0, void()>::CreateMemberFunction(
                 update_func_name
                 , StateMachine::StateMemberFunctionSignature()
                 , pState->getUpdateFunctionPointer())
                 );
         }
 
-        phantom::reflection::InstanceMemberFunction*    pLeaveMemberFunction = classOf<t_ObjectClass>()->getInstanceMemberFunctionCascade(leave_func_name);
+        phantom::reflection::InstanceMemberFunction*    pLeaveMemberFunction = typeOf<t_ObjectClass>()->getInstanceMemberFunctionCascade(leave_func_name);
         if(pLeaveMemberFunction == NULL)
         {
-            classOf<t_ObjectClass>()->addMemberFunction(phantom::reflection::native::TNativeMemberFunctionProvider<t_ObjectClass, 0, void()>::CreateMemberFunction(
+            typeOf<t_ObjectClass>()->addMemberFunction(phantom::reflection::native::TNativeMemberFunctionProvider<t_ObjectClass, 0, void()>::CreateMemberFunction(
                 leave_func_name
                 , StateMachine::StateMemberFunctionSignature()
                 , pState->getLeaveFunctionPointer())

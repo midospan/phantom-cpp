@@ -24,6 +24,7 @@ struct o_export auto_dll_loader
 class o_export ModuleLoader
 {
     friend struct auto_dll_loader;
+    friend class Phantom;
 
 public:
     ModuleLoader(void);
@@ -73,6 +74,7 @@ protected:
     o_signal_data(moduleUnloaded, Module*, size_t, size_t);
     o_signal_data(elementAdded, reflection::LanguageElement*);
     o_signal_data(elementRemoved, reflection::LanguageElement*);
+    o_signal_data(elementReplaced, reflection::LanguageElement*, reflection::LanguageElement*);
 
 protected:
     vector<Module*> m_LoadedModules;

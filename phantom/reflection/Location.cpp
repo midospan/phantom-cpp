@@ -52,8 +52,8 @@ CodeLocation::CodeLocation( const CodePosition& a_bip, const CodePosition& a_eip
 
 bool CodePosition::operator<( const CodePosition& other ) const
 {
-    return (sourceFile->getAbsoluteName() < other.sourceFile->getAbsoluteName())
-        OR ((sourceFile->getAbsoluteName() == other.sourceFile->getAbsoluteName()) 
+    return (sourceFile AND other.sourceFile AND (sourceFile->getAbsoluteName() < other.sourceFile->getAbsoluteName()))
+        OR ( ( sourceFile AND other.sourceFile AND (sourceFile->getAbsoluteName() == other.sourceFile->getAbsoluteName())) 
         AND ((line < other.line) 
         OR ((line == other.line)
         AND column < other.column)

@@ -33,6 +33,8 @@ namespace phantom { namespace qt {
         , m_UnloadedIcon(":/../../bin/resources/icons/plugin_disabled.png")
         , m_pRootMessage(nullptr)
         , m_pModuleLoader(nullptr)
+        , m_LoadDelegate(&ModuleExplorer::defaultLoadLibraryDelegate)
+        , m_UnloadDelegate(&ModuleExplorer::defaultUnloadLibraryDelegate)
     {
         setColumnCount(2);
         QStringList headerLabels;
@@ -74,6 +76,16 @@ namespace phantom { namespace qt {
 
     }
 
+    void ModuleExplorer::defaultUnloadLibraryDelegate(ModuleExplorer* a_pModuleExplorer, const string& a_strPath)
+    {
+        phantom::moduleLoader()->unloadLibrary(a_strPath, a_pModuleExplorer->getMessage());
+    }
+
+    void ModuleExplorer::defaultLoadLibraryDelegate(ModuleExplorer* a_pModuleExplorer, const string& a_strPath)
+    {
+        phantom::moduleLoader()->loadLibrary(a_strPath, a_pModuleExplorer->getMessage());
+    }
+
     void ModuleExplorer::slotItemDoubleClicked( QTreeWidgetItem* a_pItem, int )
     {
         if(a_pItem == nullptr || m_pModuleLoader == nullptr) return;
@@ -81,11 +93,11 @@ namespace phantom { namespace qt {
         LibraryItem* pItem = ((LibraryItem*)a_pItem);
         if(m_pModuleLoader->isLibraryLoaded(pItem->m_strAbsolutePath.toAscii().constData()))
         {
-            m_pModuleLoader->unloadLibrary(pItem->m_strAbsolutePath.toAscii().constData(), m_pRootMessage);
+            m_UnloadDelegate(this, pItem->m_strAbsolutePath.toAscii().constData());
         }
         else 
         {
-            m_pModuleLoader->loadLibrary(pItem->m_strAbsolutePath.toAscii().constData(), m_pRootMessage);
+            m_LoadDelegate(this, pItem->m_strAbsolutePath.toAscii().constData());
         }
     }
 
@@ -164,6 +176,16 @@ namespace phantom { namespace qt {
         {
             pItem->setText(1, QString::number(a_uiLoadCount));
         }
+    }
+
+    void ModuleExplorer::setUnloadLibraryDelegate( delegate_t a_Delegate )
+    {
+        m_UnloadDelegate = a_Delegate;
+    }
+
+    void ModuleExplorer::setLoadLibraryDelegate( delegate_t a_Delegate )
+    {
+        m_LoadDelegate = a_Delegate;
     }
 
     LibraryItem::LibraryItem( ModuleExplorer* a_pModuleExplorer, const QString& a_strAbsolutePath ) 

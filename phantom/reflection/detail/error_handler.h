@@ -10,6 +10,7 @@ o_namespace_begin(phantom, reflection, cpp)
 ///////////////////////////////////////////////////////////////////////////////
 //  The error handler
 ///////////////////////////////////////////////////////////////////////////////
+/*
 
 template <typename t_BaseIterator, typename t_Iterator>
 struct error_handler
@@ -84,7 +85,7 @@ struct error_handler
     t_BaseIterator first;
     t_BaseIterator last;
     std::vector<t_Iterator> iters;
-};
+};*/
 
 o_namespace_end(phantom, reflection, cpp)
 

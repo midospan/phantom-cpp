@@ -404,7 +404,7 @@ template<typename t_ObjectClass>
 class state_machine_data : public base_state_machine_data
 {
 public:
-    template <typename> friend class phantom::reflection::native::TType;
+    template <typename, int> friend class phantom::reflection::native::TType;
     template <typename> friend struct phantom::state::detail::state_machine_serializer;
     template <typename> friend struct phantom::state::detail::state_machine_resetter;
     template <typename, typename, typename, typename> friend class phantom::state::native::TNativeTransition;

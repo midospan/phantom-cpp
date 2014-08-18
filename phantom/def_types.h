@@ -570,156 +570,6 @@ public:
 
 namespace reflection { class Type; }
 
-class argument
-{
-public:
-    class list
-    {
-    public:
-
-    };
-
-    template<size_t t_size>
-    class list_n : public list
-    {
-        byte data[t_size];
-    };
-
-    template<typename t_Param0>
-    class list_1 : public list
-    {
-    public:
-        list_1(void) {}
-        list_1(const t_Param0& a_p0) : p0(a_p0) {}
-        t_Param0 p0;
-    };
-    template<typename t_Param0, typename t_Param1>
-    class list_2: public list
-    {
-    public:
-        list_2(void) {}
-        list_2(const t_Param0& a_p0, const t_Param1& a_p1) : p0(a_p0), p1(a_p1) {}
-        t_Param0 p0;
-        t_Param1 p1;
-    };
-    template<typename t_Param0, typename t_Param1, typename t_Param2>
-    class list_3: public list
-    {
-    public:
-        list_3(void) {}
-        list_3(const t_Param0& a_p0, const t_Param1& a_p1, const t_Param2& a_p2)
-            : p0(a_p0), p1(a_p1), p2(a_p2) {}
-        t_Param0 p0;
-        t_Param1 p1;
-        t_Param2 p2;
-    };
-    template<typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3>
-    class list_4: public list
-    {
-    public:
-        list_4(void) {}
-        list_4(const t_Param0& a_p0, const t_Param1& a_p1, const t_Param2& a_p2, const t_Param3& a_p3)
-            : p0(a_p0), p1(a_p1), p2(a_p2), p3(a_p3) {}
-        t_Param0 p0;
-        t_Param1 p1;
-        t_Param2 p2;
-        t_Param3 p3;
-    };
-    template<typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4>
-    class list_5: public list
-    {
-    public:
-        list_5(void) {}
-        list_5(const t_Param0& a_p0, const t_Param1& a_p1, const t_Param2& a_p2, const t_Param3& a_p3, const t_Param4& a_p4)
-            : p0(a_p0), p1(a_p1), p2(a_p2), p3(a_p3), p4(a_p4) {}
-        t_Param0 p0;
-        t_Param1 p1;
-        t_Param2 p2;
-        t_Param3 p3;
-        t_Param4 p4;
-    };
-    template<typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5>
-    class list_6: public list
-    {
-    public:
-        list_6(void) {}
-        list_6(const t_Param0& a_p0, const t_Param1& a_p1, const t_Param2& a_p2, const t_Param3& a_p3, const t_Param4& a_p4, const t_Param5& a_p5)
-            : p0(a_p0), p1(a_p1), p2(a_p2), p3(a_p3), p4(a_p4), p5(a_p5) {}
-        t_Param0 p0;
-        t_Param1 p1;
-        t_Param2 p2;
-        t_Param3 p3;
-        t_Param4 p4;
-        t_Param5 p5;
-    };
-    template<typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6>
-    class list_7: public list
-    {
-    public:
-        list_7(void) {}
-        list_7(const t_Param0& a_p0, const t_Param1& a_p1, const t_Param2& a_p2, const t_Param3& a_p3, const t_Param4& a_p4, const t_Param5& a_p5, const t_Param6& a_p6)
-            : p0(a_p0), p1(a_p1), p2(a_p2), p3(a_p3), p4(a_p4), p5(a_p5), p6(a_p6) {}
-        t_Param0 p0;
-        t_Param1 p1;
-        t_Param2 p2;
-        t_Param3 p3;
-        t_Param4 p4;
-        t_Param5 p5;
-        t_Param6 p6;
-    };
-    template<typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7>
-    class list_8: public list
-    {
-    public:
-        list_8(void) {}
-        list_8(const t_Param0& a_p0, const t_Param1& a_p1, const t_Param2& a_p2, const t_Param3& a_p3, const t_Param4& a_p4, const t_Param5& a_p5, const t_Param6& a_p6, const t_Param7& a_p7)
-            : p0(a_p0), p1(a_p1), p2(a_p2), p3(a_p3), p4(a_p4), p5(a_p5), p6(a_p6), p7(a_p7) {}
-        t_Param0 p0;
-        t_Param1 p1;
-        t_Param2 p2;
-        t_Param3 p3;
-        t_Param4 p4;
-        t_Param5 p5;
-        t_Param6 p6;
-        t_Param7 p7;
-    };
-    template<typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7, typename t_Param8>
-    class list_9: public list
-    {
-    public:
-        list_9(void) {}
-        list_9(const t_Param0& a_p0, const t_Param1& a_p1, const t_Param2& a_p2, const t_Param3& a_p3, const t_Param4& a_p4, const t_Param5& a_p5, const t_Param6& a_p6, const t_Param7& a_p7, const t_Param8& a_p8)
-            : p0(a_p0), p1(a_p1), p2(a_p2), p3(a_p3), p4(a_p4), p5(a_p5), p6(a_p6), p7(a_p7), p8(a_p8) {}
-        t_Param0 p0;
-        t_Param1 p1;
-        t_Param2 p2;
-        t_Param3 p3;
-        t_Param4 p4;
-        t_Param5 p5;
-        t_Param6 p6;
-        t_Param7 p7;
-        t_Param8 p8;
-    };
-    template<typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7, typename t_Param8, typename t_Param9>
-    class list_10: public list
-    {
-    public:
-        list_10(void) {}
-        list_10(const t_Param0& a_p0, const t_Param1& a_p1, const t_Param2& a_p2, const t_Param3& a_p3, const t_Param4& a_p4, const t_Param5& a_p5, const t_Param6& a_p6, const t_Param7& a_p7, const t_Param8& a_p8, const t_Param9& a_p9)
-            : p0(a_p0), p1(a_p1), p2(a_p2), p3(a_p3), p4(a_p4), p5(a_p5), p6(a_p6), p7(a_p7), p8(a_p8), p9(a_p9) {}
-        t_Param0 p0;
-        t_Param1 p1;
-        t_Param2 p2;
-        t_Param3 p3;
-        t_Param4 p4;
-        t_Param5 p5;
-        t_Param6 p6;
-        t_Param7 p7;
-        t_Param8 p8;
-        t_Param9 p9;
-    };
-};
-
 struct rtti_data;
 
 typedef void (*dynamic_delete_func_t)(void* o_memory_stat_append_parameters);
@@ -840,11 +690,12 @@ o_namespace_end(phantom)
 namespace boost 
 {
     template<typename t_Key, typename t_Value>
-    struct is_copy_constructible<std::pair<t_Key, t_Value>>
+    struct is_copy_constructible<std::pair<const t_Key, t_Value>>
     {
         const static bool value = false;
     };
 }
+
 
 #include <phantom/bitfield.h>
 #include <phantom/flags.h>

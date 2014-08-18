@@ -12,69 +12,69 @@ struct default_serializer<vector<bool>>
     typedef vector<bool>::const_iterator const_iterator;
 
 public:
-    static void serialize(vector<bool> const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::ClassType* a_pType, vector<bool> const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         size_type   size = a_pInstance->size();
-        serializer<size_type>::serialize(&size, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serializer<size_type>::serialize(typeOf<size_type>(), &size, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
         const_iterator it = a_pInstance->begin();
         const_iterator end = a_pInstance->end();
         for(;it!=end;++it)
         {
             bool value = *it;
-            serializer<value_type>::serialize(&value, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+            serializer<value_type>::serialize(typeOf<value_type>(), &value, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
         }
     }
-    static void deserialize(vector<bool>* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::ClassType* a_pType, vector<bool>* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         size_type   size = 0;
-        serializer<size_type>::deserialize(&size, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        serializer<size_type>::deserialize(typeOf<size_type>(), &size, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
         a_pInstance->reserve(size);
         size_type i = 0;
         for(;i<size;++i)
         {
             value_type deserialized;
-            serializer<value_type>::deserialize(&deserialized, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+            serializer<value_type>::deserialize(typeOf<value_type>(), &deserialized, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
             a_pInstance->push_back(deserialized);
         }
     }
-    static void serialize(vector<bool> const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::ClassType* a_pType, vector<bool> const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         while(a_uiCount--)
         {
             vector<bool> const* pInstance = reinterpret_cast<vector<bool> const*>(pChunk);
             size_type   size = pInstance->size();
-            serializer<size_type>::serialize(&size, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+            serializer<size_type>::serialize(typeOf<size_type>(), &size, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
             const_iterator it = pInstance->begin();
             const_iterator end = pInstance->end();
             for(;it!=end;++it)
             {
                 bool value = *it;
-                serializer<value_type>::serialize(&value, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+                serializer<value_type>::serialize(typeOf<value_type>(), &value, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
             }
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void deserialize(vector<bool>* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::ClassType* a_pType, vector<bool>* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         while(a_uiCount--)
         {
             vector<bool>* pInstance = reinterpret_cast<vector<bool>*>(pChunk);
             size_type   size = 0;
-            serializer<size_type>::deserialize(&size, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+            serializer<size_type>::deserialize(typeOf<size_type>(), &size, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
             pInstance->reserve(size);
             size_type i = 0;
             for(;i<size;++i)
             {
                 value_type deserialized;
-                serializer<value_type>::deserialize(&deserialized, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+                serializer<value_type>::deserialize(typeOf<value_type>(), &deserialized, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
                 pInstance->push_back(deserialized);
             }
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void serialize(vector<bool> const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::ClassType* a_pType, vector<bool> const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         size_type   size = a_pInstance->size();
         a_OutBranch.put<string>("size", phantom::lexical_cast<string>(size));
@@ -87,11 +87,11 @@ public:
             o_secured_sprintf(index_buffer, 32, "_%d", i++);
             property_tree index_tree;
             bool value = *it;
-            serializer<value_type>::serialize(&value, index_tree, a_uiSerializationMask, a_pDataBase);
+            serializer<value_type>::serialize(typeOf<value_type>(), &value, index_tree, a_uiSerializationMask, a_pDataBase);
             a_OutBranch.add_child(index_buffer, index_tree);
         }
     }
-    static void deserialize(vector<bool>* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::ClassType* a_pType, vector<bool>* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         boost::optional<string> size_str_opt = a_InBranch.get_optional<string>("size");
         if(size_str_opt.is_initialized())
@@ -107,13 +107,13 @@ public:
                 if(index_tree_opt.is_initialized())
                 {
                     value_type pDeserialized;
-                    serializer<value_type>::deserialize(&pDeserialized, *index_tree_opt, a_uiSerializationMask, a_pDataBase);
+                    serializer<value_type>::deserialize(typeOf<value_type>(), &pDeserialized, *index_tree_opt, a_uiSerializationMask, a_pDataBase);
                     a_pInstance->push_back(pDeserialized);
                 }
             }
         }
     }
-    static void serialize(vector<bool> const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::ClassType* a_pType, vector<bool> const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         int i = 0;
@@ -135,7 +135,7 @@ public:
                     o_secured_sprintf(index_buffer, 32, "_%d", i++);
                     property_tree index_tree;
                     bool value = *it;
-                    serializer<value_type>::serialize(&value, index_tree, a_uiSerializationMask, a_pDataBase);
+                    serializer<value_type>::serialize(typeOf<value_type>(), &value, index_tree, a_uiSerializationMask, a_pDataBase);
                     container_tree.add_child(index_buffer, index_tree);
                 }
             }
@@ -143,7 +143,7 @@ public:
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void deserialize(vector<bool>* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::ClassType* a_pType, vector<bool>* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         int i = 0;
@@ -168,7 +168,7 @@ public:
                         if(index_tree_opt.is_initialized())
                         {
                             value_type deserialized;
-                            serializer<value_type>::deserialize(&deserialized, *index_tree_opt, a_uiSerializationMask, a_pDataBase);
+                            serializer<value_type>::deserialize(typeOf<value_type>(), &deserialized, *index_tree_opt, a_uiSerializationMask, a_pDataBase);
                             pInstance->push_back(deserialized);
                         }
                     }
@@ -177,53 +177,110 @@ public:
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void serializeLayout(vector<bool> const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::ClassType* a_pType, vector<bool> const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(vector<bool>* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::ClassType* a_pType, vector<bool>* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(vector<bool> const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::ClassType* a_pType, vector<bool> const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(vector<bool>* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::ClassType* a_pType, vector<bool>* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(vector<bool> const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::ClassType* a_pType, vector<bool> const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(vector<bool>* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::ClassType* a_pType, vector<bool>* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(vector<bool> const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::ClassType* a_pType, vector<bool> const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(vector<bool>* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::ClassType* a_pType, vector<bool>* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 };
 
 o_namespace_end(phantom, extension, detail)
 
 // _Vector_val
-o_classNT((std), (typename, typename), (_Ty, _Alloc), _Vector_val){o_reflection {};};
-o_exposeNT((std), (typename, typename), (_Ty, _Alloc), _Vector_val);
+o_classNT((std), (typename, typename), (_Ty, _Alloc), _Vector_val)
+{
+    o_reflection 
+    {
+        o_nested_typedef(pointer);
+        o_data_member(pointer, _Myfirst, o_no_range, o_protected);	// pointer to beginning of array
+        o_data_member(pointer, _Mylast, o_no_range, o_protected);	// pointer to current end of sequence
+        o_data_member(pointer, _Myend, o_no_range, o_protected);	// pointer to end of array
+    };
+};
 
 // _Vector_const_iterator
-o_classNT((std), (typename), (_Ty), _Vector_const_iterator){o_reflection {};};
-o_exposeNT((std), (typename), (_Ty), _Vector_const_iterator);
+o_classNT((std), (typename), (_Ty), _Vector_const_iterator)
+{
+    o_reflection 
+    {
+        o_nested_typedef(_Myiter);
+        o_nested_typedef(reference);
+        o_nested_typedef(pointer);
+        o_nested_typedef(difference_type);
+
+        o_member_function(reference , operator*, ());
+        o_member_function(pointer   , operator->, ());
+        o_member_function(_Myiter&  , operator++, ());
+        o_member_function(_Myiter   , operator++, (int));
+        o_member_function(_Myiter&  , operator--, ());
+        o_member_function(_Myiter   , operator--, (int));
+        o_member_function(_Myiter&  , operator+=, (difference_type));
+        o_member_function(_Myiter   , operator+, (difference_type));
+        o_member_function(_Myiter&  , operator-=, (difference_type));
+        o_member_function(_Myiter   , operator-, (difference_type));
+        o_member_function(difference_type , operator-, (const _Myiter&));
+        o_member_function(reference , operator[], (difference_type));
+        o_member_function(bool , operator==, (const _Myiter&));
+        o_member_function(bool , operator!=, (const _Myiter&));
+        o_member_function(bool , operator<, (const _Myiter&));
+        o_member_function(bool , operator>, (const _Myiter&));
+        o_member_function(bool , operator<=, (const _Myiter&));
+        o_member_function(bool , operator>=, (const _Myiter&));
+    };
+};
 
 // _Vector_iterator
-o_classNTS((std), (typename), (_Ty), _Vector_iterator, (_Vector_const_iterator<_Ty>)){o_reflection {};};
-o_exposeNT((std), (typename), (_Ty), _Vector_iterator);
+o_classNTS((std), (typename), (_Ty), _Vector_iterator, (_Vector_const_iterator<_Ty>))
+{
+    o_reflection 
+    {
+        o_nested_typedef(_Myiter);
+        o_nested_typedef(_Mybase);
+        o_nested_typedef(reference);
+        o_nested_typedef(pointer);
+        o_nested_typedef(difference_type);
+
+        o_member_function(reference , operator*, ());
+        o_member_function(pointer   , operator->, ());
+        o_member_function(_Myiter&  , operator++, ());
+        o_member_function(_Myiter   , operator++, (int));
+        o_member_function(_Myiter&  , operator--, ());
+        o_member_function(_Myiter   , operator--, (int));
+        o_member_function(_Myiter&  , operator+=, (difference_type));
+        o_member_function(_Myiter   , operator+, (difference_type));
+        o_member_function(_Myiter&  , operator-=, (difference_type));
+        o_member_function(_Myiter   , operator-, (difference_type));
+        o_member_function(difference_type,  operator-, (const _Mybase&));
+        o_member_function(reference,  operator[], (difference_type));
+    };
+};
 
 // vector
 o_traits_specializeNT(has_has_something, (static const bool value = false;), (std), (typename, typename), (t_Ty, t_Alloc), vector);
@@ -233,10 +290,18 @@ o_classNTS((std), (typename, typename), (t_Ty, t_Alloc), vector, (_Vector_val<t_
     o_reflection 
     {
         o_default_template_argument_type(t_Alloc, std::allocator<t_Ty>);
-        o_typedef(iterator);
-        o_typedef(const_iterator);
-        o_typedef(reverse_iterator);
-        o_typedef(const_reverse_iterator);
+        o_nested_typedef(iterator);
+        o_nested_typedef(const_iterator);
+        o_nested_typedef(reverse_iterator);
+        o_nested_typedef(const_reverse_iterator);
+        o_nested_typedef(reference);
+        o_nested_typedef(const_reference);
+        o_nested_typedef(pointer);
+        o_nested_typedef(const_pointer);
+        o_nested_typedef(size_type);
+        o_member_function(size_type, size, (), o_public);
+        o_member_function(bool, empty, (), o_public);
+        o_member_function(void, push_back, (const_reference), o_public);
     };
 };
 o_exposeNT((std), (typename, typename), (t_Ty, t_Alloc), vector);

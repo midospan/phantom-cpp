@@ -47,10 +47,10 @@ o_namespace_begin(phantom, reflection)
 class o_export ConstantExpression : public Expression
 {
 public:
-    ConstantExpression(Constant* a_pConstant, Expression* a_pChildExpression = nullptr);
+    ConstantExpression(Constant* a_pConstant, Expression* a_pChildExpression = nullptr, bool a_bOwnsConstant = false);
     o_destructor ~ConstantExpression(void)     {}
 
-    virtual void*   getAddress() const { return nullptr; }
+    virtual void* getValueStorageAddress() const { return nullptr; }
 
     virtual void    setValue(void const* a_pSrc) const;
 
@@ -60,9 +60,18 @@ public:
 
     virtual bool isConstExpression() const { return true; }
 
+    virtual bool hasValueStorage() const { return false; }
+
+    virtual void eval() const 
+    {
+    }
+
+    virtual LanguageElement* hatch();   
+
+    virtual ConstantExpression*     clone() const;
+
 protected:
     Constant*     m_pConstant;
-
 };
 
 o_namespace_end(phantom, reflection)

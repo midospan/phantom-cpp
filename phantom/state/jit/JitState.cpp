@@ -10,7 +10,7 @@
 /* *********************************************** */
 o_registerN((phantom, state, jit), JitState);
 
-static jit_type_t g_ClosureSignature = nullptr;
+//static jit_type_t g_ClosureSignature = nullptr;
 
 o_namespace_begin(phantom, state, jit)
 
@@ -24,10 +24,10 @@ o_namespace_begin(phantom, state, jit)
     , m_bCompiled(false)
 {
     jit_type_t this_t = jit_type_void_ptr;
-    if(g_ClosureSignature == nullptr)
+    /*if(g_ClosureSignature == nullptr)
     {
         g_ClosureSignature = jit_type_create_signature(jit_abi_thiscall, jit_type_void, &this_t, 1, 0);
-    }
+    }*/
 }
 
 

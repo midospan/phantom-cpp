@@ -49,6 +49,13 @@ InstanceDataMember::InstanceDataMember( const string& a_strName, Type* a_pValueT
 {
 }
 
+InstanceDataMember::InstanceDataMember( const string& a_strName, Type* a_pValueType, Range* a_pRange, uint a_uiSerializationMask /*= 0xffffffff*/, bitfield a_Modifiers /*= 0*/ )
+    : ValueMember(a_strName, a_pValueType, a_pRange, a_uiSerializationMask, a_Modifiers)
+    , m_uiOffset(~size_t(0))
+{
+
+}
+
 void InstanceDataMember::referencedElementRemoved( LanguageElement* a_pElement )
 {
     ValueMember::referencedElementRemoved(a_pElement);
@@ -56,20 +63,12 @@ void InstanceDataMember::referencedElementRemoved( LanguageElement* a_pElement )
 
 Expression* InstanceDataMember::createAccessExpression( Expression* a_pLeftExpression ) const
 {
-    return o_new(InstanceDataMemberAccess)(a_pLeftExpression->implicitCast(getOwnerClassType()), const_cast<InstanceDataMember*>(this));
+    return o_new(InstanceDataMemberAccess)(a_pLeftExpression, const_cast<InstanceDataMember*>(this));
 }
 
 bool InstanceDataMember::referencesData( const void* a_pInstance, const phantom::data& a_Data ) const
 {
     return m_pValueType->referencesData(getAddress(a_pInstance), a_Data);
-}
-
-void InstanceDataMember::fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const
-{
-    if((m_uiSerializationMask & a_uiSerializationMask) != 0)
-    {
-        m_pValueType->fetchReferencedData(getAddress(a_pInstance), out, a_uiSerializationMask);
-    }
 }
 
 

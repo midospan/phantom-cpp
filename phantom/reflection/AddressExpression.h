@@ -46,22 +46,33 @@ o_namespace_begin(phantom, reflection)
 
 class o_export AddressExpression : public Expression
 {
-
 public:
-    AddressExpression(void* a_pAddress, Type* a_pType, Expression* a_pChildExpression = nullptr);
-    o_destructor ~AddressExpression(void)     {}
+    AddressExpression(Expression* a_pReferenceableExpression);
 
-    virtual void*   getAddress() const;
+    virtual void                    getValue(void* a_pDest) const 
+    {
+        *((void**)a_pDest) = m_pAddressedExpression->loadEffectiveAddress();
+    }
 
-    virtual void    setValue(void const* a_pSrc) const;
+    virtual AddressExpression*    asAddressExpression() const  { return const_cast<AddressExpression*>(this); }
 
-    virtual void    getValue(void* a_pDest) const;
+    virtual void flush() const { m_pAddressedExpression->flush(); }
+    
+    virtual Expression*     dereference() const
+    {
+        Expression* pExp = m_pAddressedExpression;
+        const_cast<AddressExpression*>(this)->removeElement(pExp);
+        const_cast<AddressExpression*>(this)->terminate();
+        const_cast<AddressExpression*>(this)->deleteNow();
+        return pExp;
+    }
 
-    virtual bool    isAddressable() const { return true; }
+    Expression* getAddressedExpression() const { return m_pAddressedExpression; }
+
+    virtual AddressExpression*     clone() const;
 
 protected:
-    void*     m_pAddress;
-
+    Expression* m_pAddressedExpression;
 };
 
 o_namespace_end(phantom, reflection)

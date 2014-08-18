@@ -18,7 +18,7 @@ o_classNT((phantom), (typename), (t_Component), composition)
 {
 	o_reflection
     {
-        o_typedef(sequence_type);
+        o_nested_typedef(sequence_type);
 
         o_signal(aboutToBeInserted, (size_t, t_Component*));
         o_signal(inserted, (size_t, t_Component*));

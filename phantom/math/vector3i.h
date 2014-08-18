@@ -76,11 +76,12 @@ o_namespace_begin(phantom, math)
 		}
 				
 		// Special vectors.
-		static const self_type ZERO;    // (0,0)
-		static const self_type UNIT_X;  // (1,0)
-		static const self_type UNIT_Y;  // (0,1)
-		static const self_type ONE;     // (1,1)
-		static const self_type INFINITE_VALUE;// (inf,inf)
+		o_export static const self_type ZERO;    // (0,0)
+		o_export static const self_type UNIT_X;  // (1,0)
+        o_export static const self_type UNIT_Y;  // (0,1)
+        o_export static const self_type UNIT_Z;  // (0,1)
+		o_export static const self_type ONE;     // (1,1)
+		o_export static const self_type INFINITE_VALUE;// (inf,inf)
 		
 	public:
 		union

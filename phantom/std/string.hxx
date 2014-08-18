@@ -28,12 +28,12 @@ o_classNT((std), (typename, typename, typename), (t_Elem, t_Traits, t_Ax), basic
 {
     o_reflection
     {
-        o_typedef(iterator);
-        o_typedef(const_iterator);
-        o_typedef(reverse_iterator);
-        o_typedef(const_reverse_iterator);
-        o_typedef(const_pointer);
-        o_typedef(size_type);
+        o_nested_typedef(iterator);
+        o_nested_typedef(const_iterator);
+        o_nested_typedef(reverse_iterator);
+        o_nested_typedef(const_reverse_iterator);
+        o_nested_typedef(const_pointer);
+        o_nested_typedef(size_type);
         o_member_function(iterator, begin, ());
         o_member_function(iterator, end, ());
         o_member_function(const_iterator, begin, ());
@@ -43,7 +43,7 @@ o_classNT((std), (typename, typename, typename), (t_Elem, t_Traits, t_Ax), basic
         o_member_function(const_reverse_iterator, rbegin, ());
         o_member_function(const_reverse_iterator, rend, ());
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
-        o_typedef(_Myt);
+        o_nested_typedef(_Myt);
         o_member_function(_Myt&, append, (const_pointer, const_pointer));
         o_member_function(_Myt&, append, (const_iterator, const_iterator));
         o_member_function(_Myt&, append, (size_type, t_Elem));

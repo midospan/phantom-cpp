@@ -45,6 +45,14 @@
 
 o_namespace_begin(phantom, reflection)
 
+struct property_compilation_data
+{
+    property_compilation_data() : m_pSetClosure(nullptr), m_pGetClosure(nullptr) {}
+    void* m_pSetClosure;
+    void* m_pGetClosure;
+    closure_call_delegate m_ClosureCallDelegate;
+};
+
 class o_export Property : public ValueMember
 {
 
@@ -61,12 +69,24 @@ public:
     , uint a_uiSerializationMask
     , bitfield a_Modifiers = 0);
 
-    o_destructor ~Property(void) {}
+protected:
+    Property(const string& a_strName
+        , Type* a_pValueType
+        , InstanceMemberFunction* a_pSetMemberFunction
+        , InstanceMemberFunction* a_pGetMemberFunction
+        , Signal* a_pSignal
+        , Range* a_pRange
+        , uint a_uiSerializationMask
+        , bitfield a_Modifiers
+        , int protectedCtorTag);
 
-    virtual void            getValue(void const* a_pObject, void* dest) const = 0;
-    virtual void            setValue(void* a_pObject, void const* src) const = 0;
+public:
+    o_destructor ~Property(void);
+
+    virtual void            getValue(void const* a_pObject, void* a_pDest) const;
+    virtual void            setValue(void* a_pObject, void const* a_pSrc) const;
     Type*                   getValueType() const { return m_pValueType; }
-    virtual Property*       asProperty() const { return (Property*)this; }
+    virtual Property*       asProperty() const { return const_cast<Property*>(this); }
         
     InstanceMemberFunction* getSetMemberFunction() const { return m_pSetMemberFunction; }
     InstanceMemberFunction* getGetMemberFunction() const { return m_pGetMemberFunction; }
@@ -75,7 +95,6 @@ public:
     virtual Expression*     createAccessExpression(Expression* a_pLeftExpression) const;
 
     virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
-    virtual void            fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const;
 
 protected:
     virtual void            referencedElementRemoved(LanguageElement* a_pElement);
@@ -84,6 +103,7 @@ protected:
     Signal* m_pSignal;
     InstanceMemberFunction* m_pSetMemberFunction;
     InstanceMemberFunction* m_pGetMemberFunction;
+    property_compilation_data* m_pCompilationData;
 };
 
 o_namespace_end(phantom, reflection)

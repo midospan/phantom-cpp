@@ -97,8 +97,6 @@ public:
 
     virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const = 0;
 
-    virtual void            fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const = 0;
-
 protected:
     void                    referencedElementRemoved( LanguageElement* a_pElement );
 

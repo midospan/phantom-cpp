@@ -37,15 +37,15 @@
 #include <phantom/reflection/Constructor.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), Constructor);
+
 o_namespace_begin(phantom, reflection) 
 
+Class* const Constructor::metaType = o_type_of(Constructor);
 
 Constructor::Constructor( const string& a_strName, Signature* a_pSignature , bitfield a_Modifiers) 
-: Subroutine(a_strName, a_pSignature, a_Modifiers)
+: Subroutine(a_strName, a_pSignature, e_ABI_thiscall, a_Modifiers)
 {
 
 }
-
-
 
 o_namespace_end(phantom, reflection)

@@ -3,8 +3,6 @@
 
 
 #include "phantom/phantom.h"
-#include <boost/spirit/include/phoenix.hpp>
-#include <boost/fusion/adapted/struct.hpp>
 #include <boost/variant.hpp>
 #include "tokens.h"
 
@@ -13,26 +11,240 @@ o_namespace_begin(phantom, reflection)
 namespace cpp {
 namespace ast {
 
+struct node
+{
+    node() : m_text(0), m_length(0) {}
+    const char*  m_text;
+    size_t       m_length;
+    CodeLocation m_location;
+};
+
+template<typename T>
+struct fundamental_node : node
+{
+    o_forceinline fundamental_node() {}
+    o_forceinline fundamental_node(T a_value) : m_value(a_value) {}
+
+    o_forceinline fundamental_node<T>& operator=(T a_value) { m_value = a_value; return *this; }
+
+    o_forceinline operator T() { return m_value; }
+
+    T m_value;
+};
+
+typedef fundamental_node<string> string_node;
+/*
+
+class string_node : public string, public node
+{
+public:
+    string_node() {}
+    string_node(const string_node& other) : string(other) {}
+    string_node(const char* other) : string(other) {}
+    string_node(const string& other) : string(other) {}
+
+    string_node(string_node&& _Right)
+        : string(std::forward<string_node>(_Right))
+    {	
+    }
+
+    string_node(string&& _Right)
+        : string(std::forward<string>(_Right))
+    {	
+    }
+
+    string_node& operator=(const string_node& other)
+    {
+        return (string_node&)assign(other);
+    }
+
+    string_node& operator=(string_node&& other)
+    {
+        return (string_node&)(assign(_STD forward<string_node>(other)));
+    }
+
+};*/
+
+template<typename T>
+inline std::ostream&  operator<<(std::ostream& stream, const fundamental_node<T>& expr)
+{
+    return stream<<expr.m_value;
+}
+
+template<typename AstNode>
+struct location_assigner
+{
+    static void set(AstNode& a_Node, const CodeLocation& a_Location, const char* a_Text, size_t a_Length)
+    {
+        a_Node.m_location = a_Location;
+        a_Node.m_text = a_Text;
+        a_Node.m_length = a_Length;
+    }
+    static void get(const AstNode& a_Node, CodeLocation& a_Location, const char*& a_Text, size_t& a_Length)
+    {
+        a_Location = a_Node.m_location;
+        a_Text = a_Node.m_text;
+        a_Length = a_Node.m_length;
+    }
+};
+
+template <
+    typename T0_
+    , BOOST_VARIANT_ENUM_SHIFTED_PARAMS(typename T)
+>
+struct location_assigner<boost::variant<T0_, BOOST_VARIANT_ENUM_SHIFTED_PARAMS(T)>>
+{
+    struct set_visitor : public boost::static_visitor<>
+    {
+        set_visitor(const CodeLocation& l, const char* a_Text, size_t a_Length) : location(l), text(a_Text), length(a_Length) {}
+        template<typename T>
+        void operator()(T& any) const
+        {
+            location_assigner<T>::set(any, location, text, length);
+        }
+        const CodeLocation& location;
+        const char* text;
+        size_t length;
+    };
+    struct get_visitor : public boost::static_visitor<>
+    {
+        get_visitor(CodeLocation& l, const char*& a_Text, size_t& a_Length) : location(l), text(a_Text), length(a_Length) {}
+        template<typename T>
+        void operator()(const T& any) const
+        {
+            location_assigner<T>::get(any, location, text, length);
+        }
+        CodeLocation& location;
+        const char*& text;
+        size_t& length;
+    };
+
+    typedef boost::variant<T0_, BOOST_VARIANT_ENUM_SHIFTED_PARAMS(T)> variant;
+    static void set(variant& a_Node, const CodeLocation& a_Location, const char* a_Text, size_t a_Length)
+    {
+        set_visitor v(a_Location, a_Text, a_Length);
+        a_Node.apply_visitor(v);
+    }
+    static void get(const variant& a_Node, CodeLocation& a_Location, const char*& a_Text, size_t& a_Length)
+    {
+        get_visitor v(a_Location, a_Text, a_Length);
+        a_Node.apply_visitor(v);
+    }
+};
+
+template <typename T>
+struct location_assigner<phantom::vector<T>>
+{
+    static void set(phantom::vector<T>& a_Node, const CodeLocation& a_Location, const char* a_Text, size_t a_Length)
+    {
+
+    }
+    static void get(const phantom::vector<T>& a_Node, CodeLocation& a_Location, const char*& a_Text, size_t& a_Length)
+    {
+
+    }
+};
+
+template <typename T>
+struct location_assigner<boost::recursive_wrapper<T>>
+{
+    static void set(boost::recursive_wrapper<T>& a_Node, const CodeLocation& a_Location, const char* a_Text, size_t a_Length)
+    {
+        location_assigner<T>::set(a_Node.get(), a_Location, a_Text, a_Length);
+    }
+    static void get(const boost::recursive_wrapper<T>& a_Node, CodeLocation& a_Location, const char*& a_Text, size_t& a_Length)
+    {
+        location_assigner<T>::get(a_Node.get(), a_Location, a_Text, a_Length);
+    }
+};
+
+template <typename T>
+struct location_assigner<boost::optional<T>>
+{
+    static void set(boost::optional<T>& a_Node, const CodeLocation& a_Location, const char* a_Text, size_t a_Length)
+    {
+        if(a_Node.is_initialized())
+        {
+            location_assigner<T>::set(*a_Node, a_Location, a_Text, a_Length);
+        }
+    }
+    static void get(const boost::optional<T>& a_Node, CodeLocation& a_Location, const char*& a_Text, size_t& a_Length)
+    {
+        if(a_Node.is_initialized())
+        {
+            location_assigner<T>::get(*a_Node, a_Location, a_Text, a_Length);
+        }
+    }
+};
+
+template<typename T>
+string node_string(T& a_Node)
+{
+    CodeLocation location;
+    const char* text = nullptr;
+    size_t length;
+    location_assigner<T>::get(a_Node, location, text, length);
+    return text ? string(text, length) : string();
+}
+
+template<typename T>
+CodeLocation node_location(T& a_Node)
+{
+    CodeLocation location;
+    const char* text;
+    size_t length;
+    location_assigner<T>::get(a_Node, location, text, length);
+    return location;
+}
+
+
 struct element;
+struct type;
 struct name;
 struct unnamed_class_declaration;
 struct named_class_declaration;
 struct cast_expression;
 struct pre_unary_expression;
 struct post_unary_expression;
-struct binary_left_expression;
+//struct binary_left_expression;
 struct binary_right_expression;
 struct ternary_if_expression;
 struct call_expression;
+struct bracket_expression;
 
-typedef boost::variant<float, double, longdouble, int, uint, short, ushort, longlong, ulonglong, char, bool> fundamental_literal;
+typedef vector<boost::recursive_wrapper<name>> qualified_name;
+
+typedef boost::variant<fundamental_node<hex_t>
+                     , fundamental_node<float>
+                     , fundamental_node<double>
+                     , fundamental_node<longdouble>
+                     , fundamental_node<int>
+                     , fundamental_node<uint>
+                     , fundamental_node<longlong>
+                     , fundamental_node<ulonglong>
+                     , fundamental_node<char>
+                     , fundamental_node<bool>
+                     , fundamental_node<std::nullptr_t>> fundamental_literal;
 
 inline std::ostream&  operator<<(std::ostream& stream, const fundamental_literal& expr)
 {
     return stream;
 }
 
-typedef boost::variant<fundamental_literal, string> literal;
+typedef boost::variant<fundamental_node<hex_t>
+                     , fundamental_node<int>
+                     , fundamental_node<uint>
+                     , fundamental_node<longlong>
+                     , fundamental_node<ulonglong>
+                     , fundamental_node<char>
+                     , fundamental_node<bool>> integral_literal;
+
+inline std::ostream&  operator<<(std::ostream& stream, const integral_literal& expr)
+{
+    return stream;
+}
+
+typedef boost::variant<fundamental_literal, string_node> literal;
 
 inline std::ostream&  operator<<(std::ostream& stream, const literal& expr)
 {
@@ -43,11 +255,12 @@ typedef boost::variant<literal
                      , boost::recursive_wrapper<cast_expression>
                      , boost::recursive_wrapper<pre_unary_expression>
                      , boost::recursive_wrapper<post_unary_expression>
-                     , boost::recursive_wrapper<binary_left_expression>
+                     //, boost::recursive_wrapper<binary_left_expression>
                      , boost::recursive_wrapper<binary_right_expression>
                      , boost::recursive_wrapper<ternary_if_expression>
                      , boost::recursive_wrapper<call_expression>
-                     , boost::recursive_wrapper<element>
+                     , boost::recursive_wrapper<bracket_expression>
+                     , boost::recursive_wrapper<qualified_name>
                      > expression;
 
 inline std::ostream&  operator<<(std::ostream& stream, const expression& expr)
@@ -65,8 +278,16 @@ struct goto_statement;
 struct label_statement;
 struct variable_declaration;
 
+struct return_statement : node
+{
+    boost::optional<expression> m_return_value;
+};
+
+
+inline std::ostream&  operator<<(std::ostream& stream, const return_statement& arg) { return stream; }
+
 typedef boost::variant<expression
-                    , boost::recursive_wrapper<block>
+                     , boost::recursive_wrapper<block>
                      , boost::recursive_wrapper<if_statement>
                      , boost::recursive_wrapper<for_statement>
                      , boost::recursive_wrapper<while_statement>
@@ -75,102 +296,74 @@ typedef boost::variant<expression
                      , boost::recursive_wrapper<goto_statement>
                      , boost::recursive_wrapper<label_statement>
                      , boost::recursive_wrapper<variable_declaration>
-                     , int> statement;
+                     , return_statement
+                     , fundamental_node<int>> statement;
 
 inline std::ostream&  operator<<(std::ostream& stream, const statement& expr)
 {
     return stream;
 }
 
-typedef boost::recursive_wrapper<element> template_element;
+typedef boost::variant<boost::recursive_wrapper<type>, integral_literal> template_element;
 
-struct name
+struct name : node
 {
     name() {}
+    name(const char* identifier) : m_identifier(identifier) {}
     name(const string& identifier) : m_identifier(identifier) {}
-    string                      m_identifier;
+    name(const string_node& identifier) : m_identifier(identifier) {}
+    string_node           m_identifier;
     boost::optional<vector<template_element>> m_template_signature;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, name const& arg) { return stream; }
+/*
 
-typedef vector<name> qualified_name;
-
-
-struct extent_or_signature
+struct qualified_name : public node
 {
-    extent_or_signature() : m_opening(token_ids::left_paren), m_closing(token_ids::right_paren) {}
-    extent_or_signature(const phantom::vector<expression>& list) : m_opening(token_ids::left_paren), m_list(list), m_closing(token_ids::right_paren) {}
-    extent_or_signature(const expression& exp)
-        : m_opening(token_ids::left_bracket)
-        , m_closing(token_ids::right_bracket) 
-    { 
-        m_list.push_back(exp); 
-    }
+    qualified_name() {}
+    qualified_name(const vector<name>& a_names) { m_names = a_names; }
+    qualified_name (const char* n) { m_names.push_back(name(string_node(n))); }
+    qualified_name (const string& n) { m_names.push_back(name(string_node(n))); }
+    vector<name> m_names;
+};*/
 
-    size_t m_opening;
-    phantom::vector<expression> m_list;
-    size_t m_closing;
-};
+//inline std::ostream&  operator<<(std::ostream& stream, qualified_name const& arg) { return stream; }
 
-inline std::ostream&  operator<<(std::ostream& stream, const extent_or_signature& arg) { return stream; }
 
-typedef boost::variant<char, extent_or_signature> qualifier_or_extent_or_signature;
+typedef vector<type> function_signature;
 
-inline std::ostream&  operator<<(std::ostream& stream, const qualifier_or_extent_or_signature& expr)
+typedef template_element extent;
+
+typedef boost::variant<template_element, function_signature> extent_or_function_signature;
+
+inline std::ostream&  operator<<(std::ostream& stream, const extent_or_function_signature& arg) { return stream; }
+
+typedef boost::variant<fundamental_node<char>, template_element> qualifier_or_extent;
+typedef phantom::vector<qualifier_or_extent> qualifier_or_extents;
+
+
+struct function_prototype : node
 {
-    return stream;
-}
-
-typedef phantom::vector<qualifier_or_extent_or_signature> qualifier_or_extent_or_signatures;
-
-typedef phantom::vector<extent_or_signature> extent_or_signatures;
-
-struct qualifier_and_qualifier_or_extents
-{
-    char m_qualifier;
-    qualifier_or_extent_or_signatures m_qualifier_or_extents;
-};
-
-inline std::ostream&  operator<<(std::ostream& stream, const qualifier_and_qualifier_or_extents& arg) { return stream; }
-
-typedef boost::variant<qualifier_and_qualifier_or_extents, extent_or_signatures>  qualifier_and_qualifier_or_extents_OR_extent_or_signatures;
-
-inline std::ostream&  operator<<(std::ostream& stream, const qualifier_and_qualifier_or_extents_OR_extent_or_signatures& expr)
-{
-    return stream;
-}
-
-struct extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures 
-{
-    extent_or_signature m_extent;
-    qualifier_and_qualifier_or_extents_OR_extent_or_signatures m_qualifier_and_qualifier_or_extents_OR_extent_or_signatures;
-};
-
-inline std::ostream&  operator<<(std::ostream& stream, const extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures& arg) { return stream; }
-
-struct function_prototype
-{
-    extent_or_signature         m_signature;
-    boost::optional<char>       m_const_modifier;
+    function_signature                      m_signature;
+    boost::optional<fundamental_node<char>> m_const_modifier;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const function_prototype& arg) { return stream; }
 
-typedef boost::variant<qualifier_and_qualifier_or_extents
-    , extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures
-    , function_prototype> element_extension;
-
-inline std::ostream&  operator<<(std::ostream& stream, const element_extension& expr)
+struct type : node
 {
-    return stream;
-}
+    boost::optional<fundamental_node<char>> m_const_modifier;
+    qualified_name                          m_qualified_name;
+    vector<qualifier_or_extent>             m_type_extension;
+};
 
-struct element
+inline std::ostream&  operator<<(std::ostream& stream, const type& arg) { return stream; }
+
+struct element : node
 {
-    boost::optional<char>               m_const_modifier;
-    qualified_name                      m_qualified_name;
-    boost::optional<element_extension>  m_element_extension;
+    type m_type;
+    boost::optional<function_prototype> m_function_prototype;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const element& arg) { return stream; }
@@ -178,47 +371,62 @@ inline std::ostream&  operator<<(std::ostream& stream, const element& arg) { ret
 
 typedef phantom::vector<element> elements;
 
-struct cast_expression
+struct cast_type : public node
 {
-    elements m_types;
+    cast_type() {}
+    cast_type(const type& t) : m_type(t) {}
+    type m_type;
+};
+
+inline std::ostream&  operator<<(std::ostream& stream, const cast_type& arg) { return stream; }
+
+typedef phantom::vector<cast_type> cast_types;
+
+struct cast_expression : node
+{
+    cast_expression() {}
+    cast_expression(const expression& a_expression) : m_casted_expression(a_expression) {}
+    cast_types m_types;
     boost::recursive_wrapper<expression> m_casted_expression;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const cast_expression& arg) { return stream; }
 
-struct pre_unary_expression
+struct pre_unary_expression : node
 {
-    vector<size_t> m_ops;
+    pre_unary_expression() {}
+    pre_unary_expression(const expression& a_expression) : m_expression(a_expression) {}
+    vector<fundamental_node<size_t>> m_ops;
     boost::recursive_wrapper<expression> m_expression;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const pre_unary_expression& arg) { return stream; }
 
-struct post_unary_expression
+struct post_unary_expression : node
 {
     boost::recursive_wrapper<expression> m_expression;
-    vector<size_t> m_ops;
+    vector<fundamental_node<size_t>> m_ops;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const post_unary_expression& arg) { return stream; }
 
-struct binary_op_left_expression
+struct binary_op_left_expression : node
 {
     boost::recursive_wrapper<expression> m_left;
-    size_t m_op;
+    fundamental_node<size_t> m_op;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const binary_op_left_expression& arg) { return stream; }
 
-struct binary_op_right_expression
+struct binary_op_right_expression : node
 {
-    size_t m_op;
+    fundamental_node<size_t> m_op;
     boost::recursive_wrapper<expression> m_right;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const binary_op_right_expression& arg) { return stream; }
 
-struct binary_right_expression
+struct binary_right_expression : node
 {
     boost::recursive_wrapper<expression>    m_left;
     vector<binary_op_right_expression>      m_op_rights;
@@ -226,23 +434,38 @@ struct binary_right_expression
 
 inline std::ostream&  operator<<(std::ostream& stream, const binary_right_expression& arg) { return stream; }
 
-struct binary_left_expression
+// struct binary_left_expression : node
+// {
+//     boost::recursive_wrapper<expression>        m_left;
+//     boost::optional<binary_op_right_expression> m_op_right;
+// };
+// 
+// inline std::ostream&  operator<<(std::ostream& stream, const binary_left_expression& arg) { return stream; }
+
+struct bracket_expression : node
 {
-    vector<binary_op_left_expression>      m_op_lefts;
-    boost::recursive_wrapper<expression>    m_right;
+    boost::recursive_wrapper<call_expression> m_left;
+    vector<expression> m_arguments;
 };
 
-inline std::ostream&  operator<<(std::ostream& stream, const binary_left_expression& arg) { return stream; }
+inline std::ostream&  operator<<(std::ostream& stream, const bracket_expression& arg) { return stream; }
 
-struct call_expression
+struct argument_list : public node
 {
-    boost::recursive_wrapper<expression> m_left;
-    extent_or_signatures m_extent_or_signatures;
+    vector<expression> m_expressions;
+};
+
+inline std::ostream&  operator<<(std::ostream& stream, const argument_list& arg) { return stream; }
+
+struct call_expression : node
+{
+    boost::recursive_wrapper<post_unary_expression> m_left;
+    vector<argument_list> m_argument_lists;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const call_expression& arg) { return stream; }
 
-struct ternary_if_expression_result
+struct ternary_if_expression_result : node
 {
     boost::recursive_wrapper<expression> m_true;
     boost::recursive_wrapper<expression> m_false;
@@ -250,7 +473,7 @@ struct ternary_if_expression_result
 
 inline std::ostream&  operator<<(std::ostream& stream, const ternary_if_expression_result& arg) { return stream; }
 
-struct ternary_if_expression
+struct ternary_if_expression : node
 {
     boost::recursive_wrapper<expression> m_condition;
     phantom::vector<ternary_if_expression_result> m_results;
@@ -260,43 +483,7 @@ inline std::ostream&  operator<<(std::ostream& stream, const ternary_if_expressi
 
 typedef phantom::vector<statement> statements;
 
-struct variable_declarator
-{
-    string m_identifier;
-    boost::optional<expression> m_expression;
-};
-
-inline std::ostream&  operator<<(std::ostream& stream, const variable_declarator& arg) { return stream; }
-
-struct extra_variable_declarator
-{
-    boost::optional<char> m_type_qualifier;
-    variable_declarator m_variable_declarator;
-};
-
-inline std::ostream&  operator<<(std::ostream& stream, const extra_variable_declarator& arg) { return stream; }
-
-struct parameter
-{
-    element m_type;
-    boost::optional<variable_declarator> m_declarator;
-};
-
-inline std::ostream&  operator<<(std::ostream& stream, const parameter& arg) { return stream; }
-
-typedef phantom::vector<extra_variable_declarator> extra_variable_declarators;
-
-struct variable_declaration
-{
-    boost::optional<bool> m_is_static; 
-    element m_type;
-    variable_declarator m_declarator;
-    extra_variable_declarators m_extra_declarators;
-};
-
-inline std::ostream&  operator<<(std::ostream& stream, const variable_declaration& arg) { return stream; }
-
-struct block 
+struct block  : node
 {
     block() {}
     block(const statements& a_statements): m_statements(a_statements) {}
@@ -305,39 +492,118 @@ struct block
 
 inline std::ostream&  operator<<(std::ostream& stream, const block& arg) { return stream; }
 
-struct if_statement
+struct array_initializer : node
 {
-    expression m_condition;
+    vector<expression> m_expressions;
+};
+
+inline std::ostream&  operator<<(std::ostream& stream, const array_initializer& arg) { return stream; }
+
+typedef boost::variant<array_initializer, expression> array_initializer_or_expression;
+
+struct variable_declarator_end : node
+{
+    phantom::vector<template_element> m_extents;
+    boost::optional<array_initializer_or_expression> m_array_initializer_or_expression;
+};
+
+inline std::ostream&  operator<<(std::ostream& stream, const variable_declarator_end& arg) { return stream; }
+
+struct variable_declarator : node
+{
+    string_node m_identifier;
+    variable_declarator_end m_end;
+};
+
+inline std::ostream&  operator<<(std::ostream& stream, const variable_declarator& arg) { return stream; }
+
+struct extra_variable_declarator : node
+{
+    phantom::vector<fundamental_node<char>> m_type_qualifiers;
+    variable_declarator m_variable_declarator;
+};
+
+typedef phantom::vector<extra_variable_declarator> extra_variable_declarators;
+
+inline std::ostream&  operator<<(std::ostream& stream, const extra_variable_declarator& arg) { return stream; }
+
+struct parameter : node
+{
+    type m_type;
+    boost::optional<variable_declarator> m_declarator;
+};
+
+typedef phantom::vector<parameter> parameters;
+
+inline std::ostream&  operator<<(std::ostream& stream, const parameter& arg) { return stream; }
+
+struct static_function_signature : node
+{
+    parameters m_parameters;
+};
+
+inline std::ostream&  operator<<(std::ostream& stream, const static_function_signature& arg) { return stream; }
+
+struct ambiguous_global_declaration_signature_and_block : node
+{
+    static_function_signature m_signature;
+    boost::optional<block> m_block;
+};
+
+inline std::ostream&  operator<<(std::ostream& stream, const ambiguous_global_declaration_signature_and_block& arg) { return stream; }
+
+typedef boost::variant<ambiguous_global_declaration_signature_and_block, variable_declarator_end> ambiguous_global_declaration_signature_and_block_or_declarator;
+
+struct ambiguous_global_declaration  : node
+{
+    boost::optional<fundamental_node<bool>> m_is_static; 
+    type m_type ;
+    string_node m_identifier ;
+    boost::optional<ambiguous_global_declaration_signature_and_block_or_declarator> m_signature_and_block;
+};
+
+inline std::ostream&  operator<<(std::ostream& stream, const ambiguous_global_declaration& arg) { return stream; }
+
+
+struct variable_declaration : node
+{
+    boost::optional<fundamental_node<bool>> m_is_static; 
+    type m_type;
+    variable_declarator m_declarator;
+    extra_variable_declarators m_extra_declarators;
+};
+
+inline std::ostream&  operator<<(std::ostream& stream, const variable_declaration& arg) { return stream; }
+
+typedef boost::variant<variable_declaration, boost::recursive_wrapper<expression>> variable_declaration_or_expression;
+
+struct if_statement : node
+{
+    variable_declaration_or_expression m_condition;
     statement m_then;
     boost::optional<statement> m_else;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const if_statement& arg) { return stream; }
 
-struct goto_statement
+struct goto_statement : node
 {
-    string m_label;
+    string_node m_label;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const goto_statement& arg) { return stream; }
 
-struct label_statement
+struct label_statement : node
 {
-    string m_label;
+    string_node m_label;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const label_statement& arg) { return stream; }
 
-typedef boost::variant<variable_declaration, expression> for_init;
 
-inline std::ostream&  operator<<(std::ostream& stream, const for_init& expr)
+struct for_statement : node
 {
-    return stream;
-}
-
-struct for_statement
-{
-    boost::optional<for_init> m_init;
+    boost::optional<variable_declaration_or_expression> m_init;
     boost::optional<expression> m_condition;
     phantom::vector<expression> m_update;
     boost::optional<statement> m_statement;
@@ -345,15 +611,15 @@ struct for_statement
 
 inline std::ostream&  operator<<(std::ostream& stream, const for_statement& arg) { return stream; }
 
-struct while_statement
+struct while_statement : node
 {
-    expression m_condition;
+    variable_declaration_or_expression m_condition;
     boost::optional<statement> m_statement;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const while_statement& arg) { return stream; }
 
-struct do_while_statement
+struct do_while_statement : node
 {
     boost::optional<statement> m_statement;
     expression m_condition;
@@ -361,80 +627,72 @@ struct do_while_statement
 
 inline std::ostream&  operator<<(std::ostream& stream, const do_while_statement& arg) { return stream; }
 
-struct case_statement
+struct case_label : node
 {
-    fundamental_literal m_value;
-    statements m_statements;
+    boost::optional<template_element> m_value;
 };
 
-inline std::ostream&  operator<<(std::ostream& stream, const case_statement& arg) { return stream; }
+inline std::ostream&  operator<<(std::ostream& stream, const case_label& arg) { return stream; }
 
-typedef phantom::vector<case_statement> case_statements;
+typedef boost::variant<statement, case_label> statement_or_case_label;
 
-struct switch_statement
+typedef phantom::vector<statement_or_case_label> statement_or_case_labels;
+
+struct switch_statement : node
 {
-    expression m_condition;
-    case_statements m_case_statements;
+    variable_declaration_or_expression m_test_value;
+    statement_or_case_labels m_statement_or_case_labels;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const switch_statement& arg) { return stream; }
 
-typedef phantom::vector<parameter> parameters;
-
-struct member_function_signature
+struct member_function_signature : node
 {
     parameters m_parameters;
-    boost::optional<char> m_const;
+    boost::optional<fundamental_node<char>> m_const;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const member_function_signature& arg) { return stream; }
 
-struct static_member_function_signature
-{
-    parameters m_parameters;
-};
-
-inline std::ostream&  operator<<(std::ostream& stream, const static_member_function_signature& arg) { return stream; }
-
-struct ambiguous_member_declaration_signature
+struct ambiguous_member_declaration_signature_and_block : node
 {
     member_function_signature m_signature;
     boost::optional<block> m_block;
 };
 
-inline std::ostream&  operator<<(std::ostream& stream, const ambiguous_member_declaration_signature& arg) { return stream; }
+inline std::ostream&  operator<<(std::ostream& stream, const ambiguous_member_declaration_signature_and_block& arg) { return stream; }
 
-struct ambiguous_member_declaration 
+struct ambiguous_member_declaration  : node
 {
-    element m_element ;
-    string m_identifier ;
-    boost::optional<ambiguous_member_declaration_signature> m_signature;
+    type m_type ;
+    string_node m_identifier ;
+    boost::optional<ambiguous_member_declaration_signature_and_block> m_signature_and_block;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const ambiguous_member_declaration& arg) { return stream; }
 
-struct static_ambiguous_member_declaration_signature
+struct static_ambiguous_member_declaration_signature_and_block : node
 {
-    static_member_function_signature m_signature;
+    static_function_signature m_signature;
     boost::optional<block> m_block;
 };
 
-inline std::ostream&  operator<<(std::ostream& stream, const static_ambiguous_member_declaration_signature& arg) { return stream; }
+inline std::ostream&  operator<<(std::ostream& stream, const static_ambiguous_member_declaration_signature_and_block& arg) { return stream; }
 
-struct static_ambiguous_member_declaration 
+struct static_ambiguous_member_declaration  : node
 {
-    element m_element ;
-    string m_identifier ;
-    boost::optional<static_ambiguous_member_declaration_signature> m_signature;
+    type m_type ;
+    string_node m_identifier ;
+    boost::optional<static_ambiguous_member_declaration_signature_and_block> m_signature_and_block;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const static_ambiguous_member_declaration& arg) { return stream; }
 
-struct virtual_member_function_declaration 
+struct virtual_member_function_declaration  : node
 {
-    element r_element;
-    string r_identifier ;
-    member_function_signature r_member_function_signature;
+    type m_return_type;
+    string_node m_identifier ;
+    member_function_signature m_signature;
     boost::optional<uint> m_abstract;
     boost::optional<block> m_block;
 };
@@ -448,9 +706,9 @@ inline std::ostream&  operator<<(std::ostream& stream, const member_declaration&
     return stream;
 }
 
-struct class_inheritance
+struct class_inheritance : node
 {
-    int m_access_specifier;
+    fundamental_node<int> m_access_specifier;
     qualified_name m_qualified_name;
 };
 
@@ -468,22 +726,31 @@ inline std::ostream&  operator<<(std::ostream& stream, const named_or_unnamed_cl
     return stream;
 }
 
-struct class_declaration
+struct class_declaration : node
 {
-    bool m_is_struct;
+    fundamental_node<bool> m_is_struct;
     named_or_unnamed_class_declaration m_named_or_unnamed_class_declaration;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const class_declaration& arg) { return stream; }
 
-typedef boost::variant<element, class_declaration> element_or_class_declaration;
 
-inline std::ostream&  operator<<(std::ostream& stream, const element_or_class_declaration& expr)
+typedef boost::variant<type, class_declaration> type_or_class_declaration;
+
+inline std::ostream&  operator<<(std::ostream& stream, const type_or_class_declaration& expr)
 {
     return stream;
 }
 
-typedef boost::variant<int, member_declaration, class_declaration, variable_declaration> class_member_declaration;
+struct typedef_declaration : node
+{
+    type_or_class_declaration m_type;
+    string_node m_name;
+};
+
+inline std::ostream&  operator<<(std::ostream& stream, const typedef_declaration& arg) { return stream; }
+
+typedef boost::variant<fundamental_node<int>, typedef_declaration, member_declaration, class_declaration> class_member_declaration;
 
 inline std::ostream&  operator<<(std::ostream& stream, const class_member_declaration& expr)
 {
@@ -492,7 +759,7 @@ inline std::ostream&  operator<<(std::ostream& stream, const class_member_declar
 
 typedef phantom::vector<class_member_declaration> class_member_declarations;
 
-struct class_scope
+struct class_scope : node
 {
     class_inheritances m_class_inheritances;
     class_member_declarations m_class_member_declarations;
@@ -500,7 +767,7 @@ struct class_scope
 
 inline std::ostream&  operator<<(std::ostream& stream, const class_scope& arg) { return stream; }
 
-struct class_variable_declarator
+struct class_variable_declarator : node
 {
     variable_declarator m_variable_declarator;
     extra_variable_declarators m_extra_variable_declarators;
@@ -508,16 +775,16 @@ struct class_variable_declarator
 
 inline std::ostream&  operator<<(std::ostream& stream, const class_variable_declarator& arg) { return stream; }
 
-struct named_class_declaration
+struct named_class_declaration : node
 {
-    string m_name;
+    string_node m_name;
     boost::optional<class_scope> m_class_scope; 
     boost::optional<class_variable_declarator> m_variable_declarator;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const named_class_declaration& arg) { return stream; }
 
-struct unnamed_class_declaration
+struct unnamed_class_declaration : node
 {
     class_scope m_class_scope; 
     class_variable_declarator m_variable_declarator;
@@ -527,16 +794,7 @@ inline std::ostream&  operator<<(std::ostream& stream, const unnamed_class_decla
 
 struct namespace_declaration;
 
-
-struct typedef_declaration
-{
-    element_or_class_declaration m_type;
-    string m_name;
-};
-
-inline std::ostream&  operator<<(std::ostream& stream, const typedef_declaration& arg) { return stream; }
-
-typedef boost::variant<variable_declaration, class_declaration, boost::recursive_wrapper<namespace_declaration>, typedef_declaration> namespace_member_declaration;
+typedef boost::variant<ambiguous_global_declaration, class_declaration, boost::recursive_wrapper<namespace_declaration>, typedef_declaration> namespace_member_declaration;
 
 inline std::ostream&  operator<<(std::ostream& stream, const namespace_member_declaration& expr)
 {
@@ -545,16 +803,18 @@ inline std::ostream&  operator<<(std::ostream& stream, const namespace_member_de
 
 typedef vector<namespace_member_declaration> namespace_scope;
 
-typedef boost::variant<vector<string>, namespace_scope> namespace_alias_or_scope;
+typedef vector<string_node> namespace_alias;
+
+typedef boost::variant<namespace_alias, namespace_scope> namespace_alias_or_scope;
 
 inline std::ostream&  operator<<(std::ostream& stream, const namespace_alias_or_scope& expr)
 {
     return stream;
 }
 
-struct namespace_declaration
+struct namespace_declaration : node
 {
-    string m_name;
+    string_node m_name;
     namespace_alias_or_scope m_alias_or_scope;
 };
 
@@ -563,689 +823,10 @@ inline std::ostream&  operator<<(std::ostream& stream, const namespace_declarati
 
 typedef namespace_scope compilation_unit;
 
-class element_or_class_declaration_visitor
-    : public boost::static_visitor<>
-{
-public:
-    element_or_class_declaration_visitor(element** a_pp_element, class_declaration** a_pp_class_declaration)
-        : m_pp_element(a_pp_element)
-        , m_pp_class_declaration(a_pp_class_declaration) {}
-
-    void operator()(element & arg) const // if we go here, it's a qualifier
-    {
-        *m_pp_element = &arg;
-    }
-
-    void operator()(class_declaration& arg) const // if we go here, it's an extent
-    {
-        *m_pp_class_declaration = &arg;
-    }
-
-    element**           m_pp_element;
-    class_declaration**  m_pp_class_declaration;
-};
-
-
-class qualifier_or_extent_or_signature_visitor
-    : public boost::static_visitor<>
-{
-public:
-    qualifier_or_extent_or_signature_visitor(char** a_ppQualifiers, extent_or_signature** a_ppExtents)
-        : m_ppQualifiers(a_ppQualifiers)
-        , m_ppExtents(a_ppExtents) {}
-
-    void operator()(char & str) const // if we go here, it's a qualifier
-    {
-        *m_ppQualifiers = &str;
-    }
-
-    void operator()(extent_or_signature& fp) const // if we go here, it's an extent
-    {
-        *m_ppExtents = &fp;
-    }
-
-    extent_or_signature**    m_ppExtents;
-    char**  m_ppQualifiers;
-};
-
-class qualifier_and_qualifier_or_extents_OR_extent_or_signatures_visitor
-    : public boost::static_visitor<>
-{
-public:
-    qualifier_and_qualifier_or_extents_OR_extent_or_signatures_visitor(qualifier_and_qualifier_or_extents** a_pp_qualifier_and_qualifier_or_extents
-        , extent_or_signatures** a_pp_extent_or_function_signatures)
-        : m_pp_qualifier_and_qualifier_or_extents(a_pp_qualifier_and_qualifier_or_extents)
-        , m_pp_extent_or_function_signatures(a_pp_extent_or_function_signatures) {}
-
-    void operator()(qualifier_and_qualifier_or_extents & arg) const
-    {
-        *m_pp_qualifier_and_qualifier_or_extents = &arg;
-    }
-
-    void operator()(extent_or_signatures& arg) const
-    {
-        *m_pp_extent_or_function_signatures = &arg;
-    }
-
-protected:
-    qualifier_and_qualifier_or_extents**      m_pp_qualifier_and_qualifier_or_extents;
-    extent_or_signatures**   m_pp_extent_or_function_signatures;
-};
-
-class element_extension_visitor
-    : public boost::static_visitor<>
-{
-public:
-    element_extension_visitor(qualifier_and_qualifier_or_extents** a_pp_qualifier_and_qualifier_or_extents
-                            , extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures** a_pp_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures
-                            , function_prototype** a_pp_function_prototype)
-        : m_pp_qualifier_and_qualifier_or_extents(a_pp_qualifier_and_qualifier_or_extents)
-        , m_pp_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures(a_pp_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures)
-        , m_pp_function_prototype(a_pp_function_prototype) {}
-
-    void operator()(qualifier_and_qualifier_or_extents & arg) const
-    {
-        *m_pp_qualifier_and_qualifier_or_extents = &arg;
-    }
-
-    void operator()(extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures& arg) const
-    {
-        *m_pp_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures = &arg;
-    }
-
-    void operator()(function_prototype& arg) const 
-    {
-        *m_pp_function_prototype = &arg;
-    }
-
-protected:
-    qualifier_and_qualifier_or_extents**      m_pp_qualifier_and_qualifier_or_extents;
-    extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures**   m_pp_extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_function_signatures;
-    function_prototype**   m_pp_function_prototype;
-};
-
-class root_visitor
-    : public boost::static_visitor<>
-{
-public:
-    root_visitor(
-        element** a_pp_element
-        , block** a_pp_block) : m_pp_element(a_pp_element), m_pp_block(a_pp_block) {}
-
-
-    void operator()(element& arg) const
-    {
-        *m_pp_element = &arg;
-    }
-
-    void operator()(block& arg) const
-    {
-        *m_pp_block = &arg;
-    }
-
-protected:
-    element** m_pp_element;
-    block** m_pp_block;
-};
-
-
-class statement_visitor
-    : public boost::static_visitor<>
-{
-public:
-    statement_visitor(
-        expression** a_pp_expression
-        , block** a_pp_block
-        , if_statement**                  a_pp_if_statement 
-        , for_statement**                 a_pp_for_statement
-        , while_statement**               a_pp_while_statement 
-        , do_while_statement**            a_pp_do_while_statement
-        , switch_statement**              a_pp_switch_statement
-        , goto_statement**                a_pp_goto_statement 
-        , label_statement**               a_pp_label_statement
-        , variable_declaration**          a_pp_variable_declaration
-        , int** a_pp_keyword_statement) 
-            : m_pp_expression(a_pp_expression)
-            , m_pp_block(a_pp_block) 
-            , m_pp_if_statement  (a_pp_if_statement) 
-            , m_pp_for_statement (a_pp_for_statement)
-            , m_pp_while_statement  (a_pp_while_statement) 
-            , m_pp_do_while_statement (a_pp_do_while_statement)
-            , m_pp_switch_statement (a_pp_switch_statement)
-            , m_pp_goto_statement  (a_pp_goto_statement) 
-            , m_pp_label_statement (a_pp_label_statement)
-            , m_pp_variable_declaration (a_pp_variable_declaration)
-            , m_pp_keyword_statement(a_pp_keyword_statement)
-    {}
-
-
-    void operator()(expression& arg) const
-    {
-        *m_pp_expression = &arg;
-    }
-
-    void operator()(block& arg) const
-    {
-        *m_pp_block = &arg;
-    }
-
-    void operator()(if_statement& arg) const
-	{
-		*m_pp_if_statement = &arg;
-	}
-
-    void operator()(for_statement& arg) const
-	{
-		*m_pp_for_statement = &arg;
-	}
-
-    void operator()(while_statement& arg) const
-	{
-		*m_pp_while_statement = &arg;
-	}
-
-    void operator()(do_while_statement& arg) const
-	{
-		*m_pp_do_while_statement = &arg;
-	}
-
-    void operator()(switch_statement& arg) const
-	{
-		*m_pp_switch_statement = &arg;
-	}
-
-    void operator()(goto_statement& arg) const
-	{
-		*m_pp_goto_statement = &arg;
-	}
-
-    void operator()(label_statement& arg) const
-	{
-		*m_pp_label_statement = &arg;
-	}
-
-    void operator()(variable_declaration& arg) const
-	{
-		*m_pp_variable_declaration = &arg;
-    }
-
-    void operator()(int& arg) const
-    {
-        *m_pp_keyword_statement = &arg;
-    }
-
-
-protected:
-    expression**                    m_pp_expression;
-    block**                         m_pp_block;
-    if_statement**                  m_pp_if_statement ;
-    for_statement**                 m_pp_for_statement;
-    while_statement**               m_pp_while_statement ;
-    do_while_statement**            m_pp_do_while_statement;
-    switch_statement**              m_pp_switch_statement;
-    goto_statement**                m_pp_goto_statement ;
-    label_statement**               m_pp_label_statement;
-    variable_declaration**          m_pp_variable_declaration;
-    int**                           m_pp_keyword_statement;
-};
-
-class literal_visitor
-    : public boost::static_visitor<>
-{
-public:
-    literal_visitor(
-        fundamental_literal** a_pp_fundamental_literal
-        , string** a_pp_string) : m_pp_fundamental_literal(a_pp_fundamental_literal), m_pp_string(a_pp_string) {}
-
-
-    void operator()(fundamental_literal& arg) const
-    {
-        *m_pp_fundamental_literal = &arg;
-    }
-
-    void operator()(string& arg) const
-    {
-        *m_pp_string = &arg;
-    }
-
-protected:
-    fundamental_literal** m_pp_fundamental_literal;
-    string** m_pp_string;
-};
-
-
-class fundamental_literal_visitor
-    : public boost::static_visitor<>
-{
-public:
-    fundamental_literal_visitor(
-        float** a_pp_float, double** a_pp_double, longdouble** a_pp_longdouble, int** a_pp_int, uint** a_pp_uint, short** a_pp_short, ushort** a_pp_ushort, longlong** a_pp_longlong, ulonglong** a_pp_ulonglong, char** a_pp_char, bool** a_pp_bool
-        
-        ) : m_pp_float (a_pp_float), m_pp_double (a_pp_double), m_pp_longdouble (a_pp_longdouble), m_pp_int (a_pp_int), m_pp_uint (a_pp_uint), m_pp_short (a_pp_short), m_pp_ushort (a_pp_ushort), m_pp_longlong (a_pp_longlong), m_pp_ulonglong (a_pp_ulonglong), m_pp_char (a_pp_char), m_pp_bool (a_pp_bool)
-    {
-
-    }
-
-    void operator()(float& arg) const
-    {
-        *m_pp_float = &arg;
-    }
-
-    void operator()(double& arg) const
-    {
-        *m_pp_double = &arg;
-    }
-
-    void operator()(longdouble& arg) const
-    {
-        *m_pp_longdouble = &arg;
-    }
-
-    void operator()(int& arg) const
-    {
-        *m_pp_int = &arg;
-    }
-
-    void operator()(uint& arg) const
-    {
-        *m_pp_uint = &arg;
-    }
-
-    void operator()(short& arg) const
-    {
-        *m_pp_short = &arg;
-    }
-
-    void operator()(ushort& arg) const
-    {
-        *m_pp_ushort = &arg;
-    }
-
-    void operator()(longlong& arg) const
-    {
-        *m_pp_longlong = &arg;
-    }
-
-    void operator()(ulonglong& arg) const
-    {
-        *m_pp_ulonglong = &arg;
-    }
-
-    void operator()(char& arg) const
-    {
-        *m_pp_char = &arg;
-    }
-
-    void operator()(bool& arg) const
-    {
-        *m_pp_bool = &arg;
-    }
-
-protected:
-    float** m_pp_float; 
-    double** m_pp_double; 
-    longdouble** m_pp_longdouble; 
-    int** m_pp_int; 
-    uint** m_pp_uint; 
-    short** m_pp_short; 
-    ushort** m_pp_ushort; 
-    longlong** m_pp_longlong; 
-    ulonglong** m_pp_ulonglong; 
-    char** m_pp_char; 
-    bool** m_pp_bool;
-};
-
-class expression_visitor
-    : public boost::static_visitor<>
-{
-public:
-    expression_visitor(
-          cast_expression** a_pp_cast_expression
-        , pre_unary_expression** a_pp_pre_unary_expression
-        , post_unary_expression** a_pp_post_unary_expression
-        , binary_left_expression** a_pp_binary_left_expression
-        , binary_right_expression** a_pp_binary_right_expression
-        , ternary_if_expression** a_pp_ternary_if_expression
-        , call_expression** a_pp_call_expression
-        , element** a_pp_element
-        , literal** a_pp_literal)
-        : m_pp_cast_expression(a_pp_cast_expression)
-        , m_pp_pre_unary_expression(a_pp_pre_unary_expression)
-        , m_pp_post_unary_expression(a_pp_post_unary_expression)
-        , m_pp_binary_right_expression(a_pp_binary_right_expression)
-        , m_pp_binary_left_expression(a_pp_binary_left_expression)
-        , m_pp_ternary_if_expression(a_pp_ternary_if_expression)
-        , m_pp_call_expression(a_pp_call_expression)
-        , m_pp_element(a_pp_element)
-        , m_pp_literal(a_pp_literal) {}
-    
-    void operator()(cast_expression& arg) const
-    {
-        *m_pp_cast_expression = &arg;
-    }
-
-    void operator()(pre_unary_expression& arg) const
-    {
-        *m_pp_pre_unary_expression = &arg;
-    }
-
-    void operator()(post_unary_expression& arg) const
-    {
-        *m_pp_post_unary_expression = &arg;
-    }
-
-    void operator()(binary_left_expression& arg) const
-    {
-        *m_pp_binary_left_expression = &arg;
-    }
-
-    void operator()(binary_right_expression& arg) const
-    {
-        *m_pp_binary_right_expression = &arg;
-    }
-
-    void operator()(ternary_if_expression& arg) const
-    {
-        *m_pp_ternary_if_expression = &arg;
-    }
-
-    void operator()(call_expression& arg) const
-    {
-        *m_pp_call_expression = &arg;
-    }
-
-    void operator()(element& arg) const
-    {
-        *m_pp_element = &arg;
-    }
-
-    void operator()(literal& arg) const
-    {
-        *m_pp_literal = &arg;
-    }
-
-protected:
-    cast_expression**       m_pp_cast_expression;
-    pre_unary_expression**  m_pp_pre_unary_expression;
-    post_unary_expression** m_pp_post_unary_expression;
-    binary_right_expression**     m_pp_binary_right_expression;
-    binary_left_expression**     m_pp_binary_left_expression;
-    ternary_if_expression** m_pp_ternary_if_expression;
-    call_expression**       m_pp_call_expression;
-    element**               m_pp_element;
-    literal**              m_pp_literal;
-};
 
 }}
 
 o_namespace_end(phantom, reflection)
-
-BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::name,
-(phantom::string, m_identifier)
-(boost::optional<phantom::vector<phantom::reflection::cpp::ast::template_element>>, m_template_signature)
-);
-
-BOOST_FUSION_ADAPT_STRUCT(
-    phantom::reflection::cpp::ast::element,
-    (boost::optional<char>, m_const_modifier)
-    (phantom::reflection::cpp::ast::qualified_name, m_qualified_name)
-    (boost::optional<phantom::reflection::cpp::ast::element_extension>, m_element_extension)
-);
-
-BOOST_FUSION_ADAPT_STRUCT(
-    phantom::reflection::cpp::ast::function_prototype,
-    (phantom::reflection::cpp::ast::extent_or_signature, m_signature)
-    (boost::optional<char>, m_const_modifier)
-);
-
-BOOST_FUSION_ADAPT_STRUCT(
-    phantom::reflection::cpp::ast::extent_or_signature,
-    (size_t, m_opening)
-    (phantom::vector<phantom::reflection::cpp::ast::expression>, m_list)
-    (size_t, m_closing)
-);
-
-BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::cast_expression,
-    (phantom::reflection::cpp::ast::elements, m_types)
-    (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_casted_expression)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::pre_unary_expression ,
-    (phantom::vector<size_t>, m_ops)
-    (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_expression)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::post_unary_expression ,
-    (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_expression)
-    (phantom::vector<size_t>, m_ops)
-    );
-
-
-BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::binary_op_right_expression,
-    (size_t, m_op)
-    (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_right)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::binary_op_left_expression,
-    (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_left)
-    (size_t, m_op)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::binary_right_expression,
-    (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_left)
-    (phantom::vector<phantom::reflection::cpp::ast::binary_op_right_expression>, m_op_rights)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::binary_left_expression,
-    (phantom::vector<phantom::reflection::cpp::ast::binary_op_left_expression>, m_op_lefts)
-    (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_right)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::ternary_if_expression,
-    (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_condition)
-    (phantom::vector<phantom::reflection::cpp::ast::ternary_if_expression_result>, m_results)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::ternary_if_expression_result,
-    (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_true)
-    (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_false)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::call_expression,
-    (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_left)
-    (phantom::reflection::cpp::ast::extent_or_signatures, m_extent_or_signatures)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(
-    phantom::reflection::cpp::ast::qualifier_and_qualifier_or_extents,
-    (char, m_qualifier)
-    (phantom::reflection::cpp::ast::qualifier_or_extent_or_signatures, m_qualifier_or_extents)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(
-    phantom::reflection::cpp::ast::block,
-    (phantom::reflection::cpp::ast::statements, m_statements)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(
-    phantom::reflection::cpp::ast::extent_AND_qualifier_and_qualifier_or_extents_OR_extent_or_signatures ,
-    (phantom::reflection::cpp::ast::extent_or_signature, m_extent)
-    (phantom::reflection::cpp::ast::qualifier_and_qualifier_or_extents_OR_extent_or_signatures, m_qualifier_and_qualifier_or_extents_OR_extent_or_signatures)
-);
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::extra_variable_declarator,
-    (boost::optional<char>, m_type_qualifier)
-    (phantom::reflection::cpp::ast::variable_declarator, m_variable_declarator)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::variable_declarator,
-    (phantom::string, m_identifier)
-    (boost::optional<phantom::reflection::cpp::ast::expression>, m_expression)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::variable_declaration,
-    (boost::optional<bool>, m_is_static)
-    (phantom::reflection::cpp::ast::element, m_type)
-    (phantom::reflection::cpp::ast::variable_declarator, m_declarator)
-    (phantom::reflection::cpp::ast::extra_variable_declarators, m_extra_declarators)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::if_statement,
-    (phantom::reflection::cpp::ast::expression, m_condition)
-(phantom::reflection::cpp::ast::statement, m_then)
-(boost::optional<phantom::reflection::cpp::ast::statement>, m_else)
-);
-
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::goto_statement,
-    (phantom::string, m_label)
-    );
-
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::label_statement,
-    (phantom::string, m_label)
-    );
-
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::for_statement,
-    (boost::optional<phantom::reflection::cpp::ast::for_init>, m_init)
-    (boost::optional<phantom::reflection::cpp::ast::expression>, m_condition)
-    (phantom::vector<phantom::reflection::cpp::ast::expression>, m_update)
-    (boost::optional<phantom::reflection::cpp::ast::statement>, m_statement)
-    );
-
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::while_statement,
-    (phantom::reflection::cpp::ast::expression, m_condition)
-    (boost::optional<phantom::reflection::cpp::ast::statement>, m_statement)
-);
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::do_while_statement,
-    (boost::optional<phantom::reflection::cpp::ast::statement>, m_statement)
-    (phantom::reflection::cpp::ast::expression, m_condition)
-);
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::case_statement,
-    (phantom::reflection::cpp::ast::fundamental_literal, m_value)
-    (phantom::reflection::cpp::ast::statements, m_statements)
-);
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::switch_statement,
-    (phantom::reflection::cpp::ast::expression, m_condition)
-    (phantom::reflection::cpp::ast::case_statements, m_case_statements)
-    );
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::parameter,
-    (phantom::reflection::cpp::ast::element, m_type)
-    (boost::optional<phantom::reflection::cpp::ast::variable_declarator>, m_declarator)
-);
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::member_function_signature,
-    (phantom::reflection::cpp::ast::parameters, m_parameters)
-    (boost::optional<char>, m_const)
-);
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::static_member_function_signature,
-    (phantom::reflection::cpp::ast::parameters, m_parameters)
-);
-
-
-BOOST_FUSION_ADAPT_STRUCT(  phantom::reflection::cpp::ast::ambiguous_member_declaration_signature,
-    (phantom::reflection::cpp::ast::member_function_signature, m_signature)
-    (boost::optional<phantom::reflection::cpp::ast::block>, m_block)
-);
-
-BOOST_FUSION_ADAPT_STRUCT(  phantom::reflection::cpp::ast::ambiguous_member_declaration ,
-    (phantom::reflection::cpp::ast::element, m_element )
-    (phantom::string, m_identifier )
-    (boost::optional<phantom::reflection::cpp::ast::ambiguous_member_declaration_signature>, m_signature)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(  phantom::reflection::cpp::ast::static_ambiguous_member_declaration_signature,
-    (phantom::reflection::cpp::ast::static_member_function_signature, m_signature)
-    (boost::optional<phantom::reflection::cpp::ast::block>, m_block)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(  phantom::reflection::cpp::ast::static_ambiguous_member_declaration ,
-    (phantom::reflection::cpp::ast::element, m_element )
-    (phantom::string, m_identifier )
-    (boost::optional<phantom::reflection::cpp::ast::static_ambiguous_member_declaration_signature>, m_signature)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT(  phantom::reflection::cpp::ast::virtual_member_function_declaration ,
-    (phantom::reflection::cpp::ast::element, r_element)
-    (phantom::string, r_identifier )
-    (phantom::reflection::cpp::ast::member_function_signature, r_member_function_signature)
-    (boost::optional<phantom::uint>, m_abstract)
-    (boost::optional<phantom::reflection::cpp::ast::block>, m_block)
-);
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::class_inheritance,
-    (int, m_access_specifier)
-    (phantom::reflection::cpp::ast::qualified_name, m_qualified_name)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::class_scope, 
-    (phantom::reflection::cpp::ast::class_inheritances, m_class_inheritances)
-    (phantom::reflection::cpp::ast::class_member_declarations, m_class_member_declarations)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::namespace_declaration, 
-    (phantom::string, m_name)
-    (phantom::reflection::cpp::ast::namespace_alias_or_scope, m_alias_or_scope)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::class_declaration, 
-    (bool, m_is_struct)
-    (phantom::reflection::cpp::ast::named_or_unnamed_class_declaration, m_named_or_unnamed_class_declaration)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::class_variable_declarator, 
-    (phantom::reflection::cpp::ast::variable_declarator, m_variable_declarator)
-    (phantom::reflection::cpp::ast::extra_variable_declarators, m_extra_variable_declarators)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::named_class_declaration, 
-    (phantom::string, m_name)
-    (boost::optional<phantom::reflection::cpp::ast::class_scope>, m_class_scope)
-    (boost::optional<phantom::reflection::cpp::ast::class_variable_declarator>, m_variable_declarator)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::unnamed_class_declaration, 
-    (phantom::reflection::cpp::ast::class_scope, m_class_scope)
-    (phantom::reflection::cpp::ast::class_variable_declarator, m_variable_declarator)
-    );
-
-BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::typedef_declaration, 
-    (phantom::reflection::cpp::ast::element_or_class_declaration, m_type)
-    (phantom::string, m_name)
-    );
-
-namespace boost { namespace spirit { namespace traits
-{
-    template <typename Out, typename T>
-    struct print_attribute_debug<Out, boost::recursive_wrapper<T>>
-    {
-        static void call(Out& out, boost::recursive_wrapper<T> const& val)
-        {
-            // do your output here; Out is a std::ostream
-            print_attribute_debug<Out, T>::call(out, val.get());
-        }
-    };
-    template <typename Out, typename T>
-    struct print_attribute_debug<Out, phantom::vector<T>>
-    {
-        static void call(Out& out, phantom::vector<T> const& val)
-        {
-            // do your output here; Out is a std::ostream
-            for(auto it = val.begin(); it != val.end(); ++it)
-            {
-                if(it != val.begin()) 
-                    out << ' ';
-                print_attribute_debug<Out, T>::call(out, *it);
-            }
-        }
-    };
-}}}
 
 
 #endif // ast_h__

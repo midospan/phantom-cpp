@@ -37,30 +37,31 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/phantom.h>
+#include <phantom/reflection/Expression.h>
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, reflection), DataExpression);
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection)
 
-class o_export DataExpression : public AddressableVariable
+class o_export DataExpression : public Expression
 {
 
 public:
-    DataExpression(uint a_Guid, bitfield modifiers = 0);
+    DataExpression(serialization::DataBase* a_pDataBase, Expression* a_pGuidExpression);
     o_destructor ~DataExpression(void)     {}
 
-    virtual void*   getAddress() const;
-    virtual Type*   getValueType() const;
-
-    virtual void    setValue(void const* a_pSrc) const;
+    virtual bool    hasValueStorage() const { return false; }
 
     virtual void    getValue(void* a_pDest) const;
 
-protected:
-    uint    m_Guid;
+    virtual DataExpression* clone() const;
 
+protected:
+    serialization::DataBase* m_pDataBase;
+    Expression* m_pGuidExpression;
+    Expression* m_pConvertedGuidExpression;
+    uint    m_Guid;
 };
 
 o_namespace_end(phantom, reflection)

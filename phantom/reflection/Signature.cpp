@@ -57,6 +57,13 @@ Signature::Signature( void ) : m_pReturnType(NULL)
 
 }
 
+Signature::Signature( Type* a_pType )
+    : m_pReturnType(NULL)
+    , m_uiArgumentStorageSize(0)
+{
+    setReturnType(a_pType);
+}
+
 Signature::Signature( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization /*= NULL*/, LanguageElement* a_pScope /*= (LanguageElement*)phantom::rootNamespace() */ )
     : m_pReturnType(NULL)
     , m_uiArgumentStorageSize(0)

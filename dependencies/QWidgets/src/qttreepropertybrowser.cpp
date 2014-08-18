@@ -514,6 +514,15 @@ void QtTreePropertyBrowser::updateItemCascade( QTreeWidgetItem *item )
     }
 }
 
+void QtTreePropertyBrowser::updateItemParents( QTreeWidgetItem *item )
+{
+    if(item->parent()) 
+    {
+        updateItem(item->parent());
+        updateItemParents(item->parent());
+    }
+}
+
 
 void QtTreePropertyBrowser::updateItem(QTreeWidgetItem *item)
 {

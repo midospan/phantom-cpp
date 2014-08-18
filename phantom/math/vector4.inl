@@ -23,7 +23,6 @@ inline vector4<t_Ty>::vector4 (const vector3<t_Ty>& xyz, t_Ty w)
     m[3] = w;
 }
 
-
 template<class t_Ty>
 inline vector4<t_Ty>::vector4 (t_Ty x, t_Ty y, t_Ty z, t_Ty w)
 {
@@ -33,6 +32,14 @@ inline vector4<t_Ty>::vector4 (t_Ty x, t_Ty y, t_Ty z, t_Ty w)
     m[3] = w;
 }
 
+template<class t_Ty>
+inline vector4<t_Ty>::vector4 (t_Ty s)
+{
+    m[0] = s;
+    m[1] = s;
+    m[2] = s;
+    m[3] = s;
+}
 
 template<class t_Ty>
 inline vector4<t_Ty>& vector4<t_Ty>::operator= (const vector4<t_Ty>& vec)
@@ -41,6 +48,16 @@ inline vector4<t_Ty>& vector4<t_Ty>::operator= (const vector4<t_Ty>& vec)
     m[1] = vec.m[1];
     m[2] = vec.m[2];
     m[3] = vec.m[3];
+    return *this;
+}
+
+template<class t_Ty>
+inline vector4<t_Ty>& vector4<t_Ty>::operator= (t_Ty s)
+{
+    m[0] = s;
+    m[1] = s;
+    m[2] = s;
+    m[3] = s;
     return *this;
 }
 

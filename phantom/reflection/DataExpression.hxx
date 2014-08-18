@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Variable.hxx"
+#include "Expression.hxx"
 
 o_classNS((phantom, reflection), DataExpression, (Expression)) { o_reflection {}; };
 

@@ -23,7 +23,7 @@ o_declareNT(class, (std), (typename), (t_RanIt), reverse_iterator);
 o_declareNT(class, (std), (typename), (t_Traits), _Tree);
 // _Tree_nod
 o_declareNT(class, (std), (typename), (t_Traits), _Tree_nod);
-// _Tree_val
+
 o_declareNT(class, (std), (typename), (t_Traits), _Tree_val);
 // _Tree_const_iterator
 o_declareNT(class, (std), (typename), (_Ty), _Tree_const_iterator);

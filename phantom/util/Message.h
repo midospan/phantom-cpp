@@ -22,25 +22,24 @@ class o_export Message
 
 
 public:
+    struct messages_def
+    {
+        messages_def(Message* a_pMessage) : m_pMessage(a_pMessage) {}
+        messages_def operator()(EMessageType a_eType, const phantom::variant& a_Data, char* a_Format, ... );
+    protected:
+        Message* m_pMessage;
+    };
 
 	//================================================
 	// Enumerations
 	//================================================
-
-    enum EType
-    {
-        e_Type_Information,
-        e_Type_Success,
-        e_Type_Warning,
-        e_Type_Error,
-    };
 
 
 	//================================================
 	// Constructors / Destructor
 	//================================================
 
-	Message(EType a_eType, const string& a_strText = "");
+	Message(EMessageType a_eType = e_MessageType_Undefined, const string& a_strText = "");
 	~Message();
 
 
@@ -48,7 +47,7 @@ public:
 	// Accessors
 	//================================================
 
-    MessageTree*          getMessageTree() const;
+    Message*                getRootMessage() const;
     
     Message*		        getParent() const;
 	Message*		        getChild(uint a_uiIndex) const;
@@ -57,9 +56,9 @@ public:
 	const phantom::variant& getData() const;
 	void                    setData(const phantom::variant& a_Data);
 
-	EType                   getType() const;
-	void                    setType(EType a_eType);
-	EType                   getMostValuableMessageType() const;
+	EMessageType            getType() const;
+	void                    setType(EMessageType a_eType);
+	EMessageType            getMostValuableMessageType() const;
 
 	const string&           getText() const;
 	void                    setText( const string& a_strText);
@@ -79,15 +78,21 @@ public:
 
     Message*                clone() const;
 
-    Message*                error(const char* a_str, ...);
-    Message*                warning(const char* a_str, ...);
-    Message*                information(const char* a_str, ...);
-    Message*                success(const char* a_str, ...);
+    Message*                error(const variant& a_Data, const char* a_str, ...);
+    Message*                warning(const variant& a_Data, const char* a_str, ...);
+    Message*                information(const variant& a_Data, const char* a_str, ...);
+    Message*                success(const variant& a_Data, const char* a_str, ...);
+
     void                    format(const char* a_format, ... );
     void                    format(const char* a_format, va_list args);
 
     void					open();
 
+    Message*                message(EMessageType a_eType, const phantom::variant& a_Data, const char* a_Format, ... );
+    Message*                message(EMessageType a_eType, const phantom::variant& a_Data, const char* a_Format, va_list args);
+
+    messages_def            messages() { return messages_def(this); }
+    
 
 protected:
 
@@ -95,7 +100,6 @@ protected:
 	// Private Operations
 	//================================================
 
-    void					setMessageTree(MessageTree* a_pMessageTree);
     void					emitMessageOpenedCascade(Message* a_pMessage);
 
 
@@ -107,9 +111,13 @@ protected:
 
     o_signal_data(childAdded, Message*);
     o_signal_data(childRemoved, Message*);
+    o_signal_data(descendantAdded, Message*);
+    o_signal_data(descendantRemoved, Message*);
     o_signal_data(opened);
     o_signal_data(messageOpened, Message*);
 
+    void emitDescendantAddedCascade(Message* a_pMessage);
+    void emitDescendantRemovedCascade(Message* a_pMessage);
 
 protected:
 
@@ -118,10 +126,9 @@ protected:
 	//================================================
 
 	typedef phantom::vector<Message*> MessageVector;
-    MessageTree*			m_pMessageTree;
 	Message*				m_pParent;
     MessageVector			m_Children;
-    EType			        m_eType;
+    EMessageType            m_eType;
     string                  m_strCategory;
     string			        m_strText;
     phantom::variant        m_Data;

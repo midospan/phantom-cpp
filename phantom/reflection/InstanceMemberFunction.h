@@ -37,43 +37,48 @@
 
 
 /* ****************** Includes ******************* */
+#include <phantom/reflection/Subroutine.h>
 #include <phantom/reflection/MemberFunction.h>
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection)
-
+    
 class o_export InstanceMemberFunction : public Subroutine, public MemberFunction
 {
+    friend class Class;
+    friend class ClassType;
+    friend class Structure;
+    friend class VirtualMemberFunctionTable;
+
 public:
-    enum EOverloadRelation
+    enum EOverrideRelation
     {
-        e_OverloadRelation_None = 0,
-        e_OverloadRelation_Equal,
-        e_OverloadRelation_Covariant,
-        e_OverloadRelation_Contravariant,
-        e_OverloadRelation_Forbidden,
+        e_OverrideRelation_None = 0,
+        e_OverrideRelation_Equal,
+        e_OverrideRelation_Covariant,
+        e_OverrideRelation_Contravariant,
+        e_OverrideRelation_Forbidden,
     };
     static Class* const metaType;
 
 public:
-
     InstanceMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
+    ~InstanceMemberFunction();
 
     reflection::ClassType*              getOwnerClassType() const { return static_cast<reflection::ClassType*>(m_pOwner); }
     reflection::Class*                  getOwnerClass() const { return static_cast<reflection::ClassType*>(m_pOwner)->asClass(); }
 
-    void                                safeInvoke( void* a_pCallerAddress, void** a_pArgs ) const;
-    void                                safeInvoke( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const;
+    virtual void                        call( void* a_pCallerAddress, void** a_pArgs ) const { Subroutine::call(a_pCallerAddress, a_pArgs); }
+    virtual void                        call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const { Subroutine::call(a_pCallerAddress, a_pArgs, a_pReturnAddress); }
+    virtual void                        call( void** a_pArgs ) const { Subroutine::call(a_pArgs); }
+    virtual void                        call( void** a_pArgs, void* a_pReturnAddress ) const { Subroutine::call(a_pArgs, a_pReturnAddress); }
+    void                                safeCall( void* a_pCallerAddress, void** a_pArgs ) const;
+    void                                safeCall( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const;
 
-    virtual void                        call( void* a_pCallerAddress, void** a_pArgs ) const = 0;
-    virtual void                        call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const { o_assert(getReturnType() == typeOf<void>()); call(a_pCallerAddress, a_pArgs); }
-    virtual void                        call( void** a_pArgs ) const;
-    virtual void                        call( void** a_pArgs, void* a_pReturnAddress ) const;
-
-    bool                                canOverload(InstanceMemberFunction* a_pInstanceMemberFunction) const;
-    bool                                canOverload(const string& a_strName, Signature* a_pSignature) const;
-    EOverloadRelation                   getOverloadRelationWith(const string& a_strName, Signature* a_pSignature) const;
-    EOverloadRelation                   getOverloadRelationWith(InstanceMemberFunction* a_pMemberFunction) const;
+    bool                                canOverride(InstanceMemberFunction* a_pInstanceMemberFunction) const;
+    bool                                canOverride(const string& a_strName, Signature* a_pSignature) const;
+    EOverrideRelation                   getOverrideRelationWith(const string& a_strName, Signature* a_pSignature) const;
+    EOverrideRelation                   getOverrideRelationWith(InstanceMemberFunction* a_pMemberFunction) const;
 
     virtual InstanceMemberFunction*     asSlot() const { return (((m_Modifiers & o_slot_member_function) == o_slot_member_function)) ? const_cast<InstanceMemberFunction*>(this) : nullptr; }
     virtual LanguageElement*            asLanguageElement() const { return const_cast<InstanceMemberFunction*>(this); }
@@ -81,18 +86,30 @@ public:
     virtual InstanceMemberFunction*     asInstanceMemberFunction() const { return const_cast<InstanceMemberFunction*>(this); }
     virtual MemberFunction*             asMemberFunction() const { return const_cast<InstanceMemberFunction*>(this); }
 
-    int                                 getVirtualTableIndex() const { return m_iVirtualTableIndex; }
+    size_t                              getVirtualTableIndex() const { return m_uiVirtualTableIndex; }
     
-    virtual void                        findOverloadedMemberFunctions(vector<InstanceMemberFunction*>& a_Result) const;
-    
-    virtual generic_member_func_ptr     getGenericMemberFunctionPointer() const = 0;
+    void                                setVirtual();
+
+    virtual variant                     compile(Compiler* a_pCompiler);
+
+    virtual void*                       getVTableClosure(size_t a_uiOffset) const;
+
+    void                                setVTableClosure(size_t a_uiOffset, void* a_pClosure);
+
+    void                                getOriginalOverriddenMemberFunctions(vector<InstanceMemberFunction*>& a_Out) const;
 
 protected:
-    void                                setVirtualTableIndex(int index) { o_assert(m_iVirtualTableIndex == -1); m_iVirtualTableIndex = index; }
+    virtual void                        setVirtualTableIndex(int index)
+    { 
+        o_assert(m_uiVirtualTableIndex == ~size_t(0)); 
+        m_uiVirtualTableIndex = index; 
+    }
 
 protected:
-    int                                 m_iVirtualTableIndex;
+    size_t              m_uiVirtualTableIndex;
+    map<size_t, void*>* m_pVTableClosures;
 
+/// -----------------------
 };
 
 o_namespace_end(phantom, reflection)

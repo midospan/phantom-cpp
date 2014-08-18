@@ -53,7 +53,7 @@ class TNativeInstanceMemberFunctionConst0 : public TNativeInstanceMemberFunction
 public:
     typedef TNativeInstanceMemberFunctionConst0<t_Ty, t_ReturnType> self_type;
     typedef t_ReturnType (t_Ty::*member_function_pointer)(void) const;
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
   
 
     TNativeInstanceMemberFunctionConst0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
@@ -64,24 +64,10 @@ public:
 
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate0<t_ReturnType>(reinterpret_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
-    }
-    
-
-    
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)();
-    }
-
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
-    { 
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) 
-            = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)();
     }
 
     virtual void call(void* a_pObject, void** a_pParams) const 
@@ -91,8 +77,8 @@ public:
 
     virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) 
-            = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)();
+        *reinterpret_cast<return_storage_type*>(a_pReturnAddress) 
+            = return_storage_wrapper<t_ReturnType>::apply((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)());
     }
 
     virtual void* getAddress(void* a_pObject, void** a_pParams) const
@@ -122,18 +108,10 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate0<fastdelegate::detail::DefaultVoid>(reinterpret_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
-    }
-    
-
-    
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {
-        ((static_cast<t_Ty*>(a_pObject))->*m_member_function_pointer)();
     }
 
     virtual void call(void* a_pObject, void** a_pParams) const 
@@ -153,7 +131,7 @@ class TNativeInstanceMemberFunctionConst1 : public TNativeInstanceMemberFunction
 public:
     typedef TNativeInstanceMemberFunctionConst1<t_Ty, t_ReturnType, t_Param0>    self_type;
     typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0) const;
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
 
     TNativeInstanceMemberFunctionConst1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
@@ -163,23 +141,10 @@ public:
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate1<t_ReturnType, t_Param0>(reinterpret_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
-    }
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            (static_cast<argument::list_1<t_Param0>*>(a_pParams)->p0);
-    }
-
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
-    { 
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) 
-            = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            (static_cast<argument::list_1<t_Param0>*>(a_pParams)->p0);
     }
 
     virtual void call(void* a_pObject, void** a_pParams) const 
@@ -190,8 +155,8 @@ public:
 
     virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( *static_cast<t_Param0_noref*>(a_pParams[0]) );
+        *reinterpret_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0]) ));
     }
 
     virtual void* getAddress(void* a_pObject, void** a_pParams) const
@@ -222,17 +187,12 @@ public:
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate1<fastdelegate::detail::DefaultVoid, t_Param0>(reinterpret_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            (static_cast<argument::list_1<t_Param0>*>(a_pParams)->p0);
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -251,7 +211,7 @@ class TNativeInstanceMemberFunctionConst2 : public TNativeInstanceMemberFunction
 public:
     typedef TNativeInstanceMemberFunctionConst2<t_Ty, t_ReturnType, t_Param0, t_Param1>    self_type;
     typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1) const;
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     
@@ -261,24 +221,10 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate2<t_ReturnType, t_Param0, t_Param1>(reinterpret_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
-    }
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p0
-            , static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p1 );
-    }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
-    {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = 
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p0
-            , static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p1 );
     }
 
     virtual void call(void* a_pObject, void** a_pParams) const 
@@ -289,9 +235,9 @@ public:
     }
     virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+        *reinterpret_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
-            , *static_cast<t_Param1_noref*>(a_pParams[1]) );
+            , *static_cast<t_Param1_noref*>(a_pParams[1]) ));
     }
 
     virtual void* getAddress(void* a_pObject, void** a_pParams) const
@@ -323,19 +269,12 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate2<fastdelegate::detail::DefaultVoid, t_Param0, t_Param1>(reinterpret_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
-    
-    
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p0
-            , static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p1 );
-    }
+
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -361,7 +300,7 @@ class TNativeInstanceMemberFunctionConst3 : public TNativeInstanceMemberFunction
 public:
     typedef TNativeInstanceMemberFunctionConst3<t_Ty, t_ReturnType, t_Param0, t_Param1,t_Param2>    self_type;
     typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2) const;
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -372,26 +311,10 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate3<t_ReturnType, t_Param0,t_Param1,t_Param2>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
-    }
-    
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p0
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p1
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p2 );
-    }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
-    {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p0
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p1
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p2 );
     }
 
     virtual void call(void* a_pObject, void** a_pParams) const 
@@ -403,10 +326,10 @@ public:
     }
     virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+        *reinterpret_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
-            , *static_cast<t_Param2_noref*>(a_pParams[2]) );
+            , *static_cast<t_Param2_noref*>(a_pParams[2]) ));
     }
 
     virtual void* getAddress(void* a_pObject, void** a_pParams) const
@@ -440,20 +363,12 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate3<fastdelegate::detail::DefaultVoid, t_Param0,t_Param1,t_Param2>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
     
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p0
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p1
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p2 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -483,7 +398,7 @@ class TNativeInstanceMemberFunctionConst4 : public TNativeInstanceMemberFunction
 public:
     typedef TNativeInstanceMemberFunctionConst4<t_Ty, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3>    self_type;
     typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3) const;
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -495,30 +410,12 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate4<t_ReturnType, t_Param0,t_Param1,t_Param2,t_Param3>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
     
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p0
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p1
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p2
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p3 );
-    }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
-    {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p0
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p1
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p2
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p3 );
-    }
-
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -529,11 +426,11 @@ public:
     }
     virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+        *reinterpret_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2])
-            , *static_cast<t_Param3_noref*>(a_pParams[3]) );
+            , *static_cast<t_Param3_noref*>(a_pParams[3]) ));
     }
 
     virtual void* getAddress(void* a_pObject, void** a_pParams) const
@@ -573,20 +470,10 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate4<fastdelegate::detail::DefaultVoid, t_Param0,t_Param1,t_Param2,t_Param3>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
-    }
-    
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p0
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p1
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p2
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p3 );
     }
 
     virtual void call(void* a_pObject, void** a_pParams) const 
@@ -620,7 +507,7 @@ class TNativeInstanceMemberFunctionConst5 : public TNativeInstanceMemberFunction
 public:
     typedef TNativeInstanceMemberFunctionConst5<t_Ty, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4>    self_type;
     typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4) const;
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -633,30 +520,10 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate5<t_ReturnType, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
-    }
-    
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p0
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p1
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p2
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p3
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p4 );
-    }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
-    {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p0
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p1
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p2
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p3
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p4 );
     }
 
     virtual void call(void* a_pObject, void** a_pParams) const 
@@ -670,12 +537,12 @@ public:
     }
     virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+        *reinterpret_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2])
             , *static_cast<t_Param3_noref*>(a_pParams[3]) 
-            , *static_cast<t_Param4_noref*>(a_pParams[4]) );
+            , *static_cast<t_Param4_noref*>(a_pParams[4]) ));
     }
 
     virtual void* getAddress(void* a_pObject, void** a_pParams) const
@@ -718,22 +585,12 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate5<fastdelegate::detail::DefaultVoid, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
     
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p0
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p1
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p2
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p3
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p4 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -770,7 +627,7 @@ class TNativeInstanceMemberFunctionConst6 : public TNativeInstanceMemberFunction
 public:
     typedef TNativeInstanceMemberFunctionConst6<t_Ty, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>    self_type;
     typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5) const;
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -784,33 +641,12 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate6<t_ReturnType, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
     
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p0
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p1
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p2
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p3
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p4
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p5 );
-    }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
-    {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p0
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p1
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p2
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p3
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p4
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p5 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -823,13 +659,13 @@ public:
     }
     virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+        *reinterpret_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2])
             , *static_cast<t_Param3_noref*>(a_pParams[3]) 
             , *static_cast<t_Param4_noref*>(a_pParams[4])
-            , *static_cast<t_Param5_noref*>(a_pParams[5]) );
+            , *static_cast<t_Param5_noref*>(a_pParams[5]) ));
     }
 
     virtual void* getAddress(void* a_pObject, void** a_pParams) const
@@ -875,23 +711,12 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate6<fastdelegate::detail::DefaultVoid, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
     
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p0
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p1
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p2
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p3
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p4
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p5 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -929,7 +754,7 @@ class TNativeInstanceMemberFunctionConst7 : public TNativeInstanceMemberFunction
 public:
     typedef TNativeInstanceMemberFunctionConst7<t_Ty, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>    self_type;
     typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)const;
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -944,34 +769,10 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate7<t_ReturnType, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
-    }
-    
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p0
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p1
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p2
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p3
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p4
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p5
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p6 );
-    }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
-    {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p0
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p1
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p2
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p3
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p4
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p5
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p6 );
     }
 
     virtual void call(void* a_pObject, void** a_pParams) const 
@@ -987,14 +788,14 @@ public:
     }
     virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+        *reinterpret_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2])
             , *static_cast<t_Param3_noref*>(a_pParams[3]) 
             , *static_cast<t_Param4_noref*>(a_pParams[4])
             , *static_cast<t_Param5_noref*>(a_pParams[5])
-            , *static_cast<t_Param6_noref*>(a_pParams[6]) );
+            , *static_cast<t_Param6_noref*>(a_pParams[6]) ));
     }
 
     virtual void* getAddress(void* a_pObject, void** a_pParams) const
@@ -1045,23 +846,10 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate7<fastdelegate::detail::DefaultVoid, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
-    }
-    
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p0
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p1
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p2
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p3
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p4
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p5
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p6 );
     }
 
     virtual void call(void* a_pObject, void** a_pParams) const 
@@ -1101,7 +889,7 @@ class TNativeInstanceMemberFunctionConst8 : public TNativeInstanceMemberFunction
 public:
     typedef TNativeInstanceMemberFunctionConst8<t_Ty, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>    self_type;
     typedef t_ReturnType (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7) const;
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -1119,37 +907,12 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate8<t_ReturnType, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
     
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p0
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p1
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p2
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p3
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p4
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p5
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p6
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p7 );
-    }
-    virtual void call(void* a_pObject, argument::list* a_pParams, void* a_pReturnAddress) const 
-    {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p0
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p1
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p2
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p3
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p4
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p5
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p6
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p7 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -1164,7 +927,7 @@ public:
     }
     virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const 
     {
-        *reinterpret_cast<t_ReturnType_no_cvr*>(a_pReturnAddress) = (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
+        *reinterpret_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2])
@@ -1172,7 +935,7 @@ public:
             , *static_cast<t_Param4_noref*>(a_pParams[4])
             , *static_cast<t_Param5_noref*>(a_pParams[5])
             , *static_cast<t_Param6_noref*>(a_pParams[6])
-            , *static_cast<t_Param7_noref*>(a_pParams[7]) );
+            , *static_cast<t_Param7_noref*>(a_pParams[7]) ));
     }
 
     virtual void* getAddress(void* a_pObject, void** a_pParams) const
@@ -1226,25 +989,12 @@ public:
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualMemberFunctionIndexOf(a_pFunc));
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate8<fastdelegate::detail::DefaultVoid, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
     
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p0
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p1
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p2
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p3
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p4
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p5
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p6
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p7 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)

@@ -55,22 +55,19 @@ class TNativeSignal0 : public TNativeSignalBase<t_Ty>
 public:
     typedef signal_t (t_Ty::*member_function_pointer)(void) const;
     typedef TNativeSignal0<t_Ty> self_type;
-    typedef connection::slot::list (t_Ty::*member_pointer);
 
-    TNativeSignal0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_pMember, bitfield a_Modifiers = 0)
-        : TNativeSignalBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc), m_member_pointer(a_pMember) {}
-
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
-
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
-    DelegateMemento        getDelegateMemento(void* a_pObject) const
+    TNativeSignal0(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        : TNativeSignalBase<t_Ty>(a_strName, a_pSignature, a_MemberPointer, a_Modifiers | o_native)
+        , m_member_function_pointer(a_pFunc)
     {
-        return FastDelegate0<signal_t>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
+    virtual void        deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
+
+    virtual void*       getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
+    DelegateMemento     getDelegateMemento(void* a_pObject) const
     {
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)();
+        return FastDelegate0<signal_t>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
     virtual void call(void* a_pObject, void** a_pParams) const 
@@ -85,7 +82,6 @@ public:
 
 protected:
     member_function_pointer m_member_function_pointer;
-    member_pointer            m_member_pointer;
 
 };
 
@@ -100,28 +96,19 @@ class TNativeSignal1 : public TNativeSignalBase<t_Ty>
 public:
     typedef TNativeSignal1<t_Ty, t_Param0>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0)  const;
-    typedef connection::slot::list (t_Ty::*member_pointer);
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
 
-    TNativeSignal1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_pMember, bitfield a_Modifiers = 0)
-        :TNativeSignalBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc), m_member_pointer(a_pMember)
+    TNativeSignal1(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        :TNativeSignalBase<t_Ty>(a_strName, a_pSignature, a_MemberPointer, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
 
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate1<signal_t, t_Param0>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
-    }
-
-    
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            (static_cast<argument::list_1<t_Param0>*>(a_pParams)->p0);
     }
 
     virtual void call(void* a_pObject, void** a_pParams) const 
@@ -137,7 +124,6 @@ public:
 
 protected:
     member_function_pointer m_member_function_pointer;
-    member_pointer            m_member_pointer;
 };
 
 
@@ -151,30 +137,21 @@ class TNativeSignal2 : public TNativeSignalBase<t_Ty>
 public:
     typedef TNativeSignal2<t_Ty, t_Param0, t_Param1>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1)  const;
-    typedef connection::slot::list (t_Ty::*member_pointer);
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
 
-    TNativeSignal2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_pMember, bitfield a_Modifiers = 0)
-        :TNativeSignalBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc), m_member_pointer(a_pMember)
+    TNativeSignal2(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        :TNativeSignalBase<t_Ty>(a_strName, a_pSignature, a_MemberPointer, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate2<signal_t, t_Param0,t_Param1>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    
-
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p0
-            , static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p1 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -189,7 +166,6 @@ public:
 
 protected:
     member_function_pointer m_member_function_pointer;
-    member_pointer            m_member_pointer;
 };
 
 ///  ==================================================================================================
@@ -202,30 +178,22 @@ class TNativeSignal3 : public TNativeSignalBase<t_Ty>
 public:
     typedef TNativeSignal3<t_Ty, t_Param0, t_Param1,t_Param2>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2) const;
-    typedef connection::slot::list (t_Ty::*member_pointer);
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
 
-    TNativeSignal3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_pMember, bitfield a_Modifiers = 0)
-        : TNativeSignalBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc), m_member_pointer(a_pMember)
+    TNativeSignal3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        : TNativeSignalBase<t_Ty>(a_strName, a_pSignature, a_MemberPointer, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate3<signal_t, t_Param0,t_Param1,t_Param2>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p0
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p1
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p2 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -241,7 +209,6 @@ public:
 
 protected:
     member_function_pointer m_member_function_pointer;
-    member_pointer            m_member_pointer;
 };
 
 
@@ -260,32 +227,23 @@ class TNativeSignal4 : public TNativeSignalBase<t_Ty>
 public:
     typedef TNativeSignal4<t_Ty, t_Param0, t_Param1,t_Param2,t_Param3>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3) const;
-    typedef connection::slot::list (t_Ty::*member_pointer);
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
 
-    TNativeSignal4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_pMember, bitfield a_Modifiers = 0)
-        : TNativeSignalBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc), m_member_pointer(a_pMember)
+    TNativeSignal4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        : TNativeSignalBase<t_Ty>(a_strName, a_pSignature, a_MemberPointer, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate4<signal_t, t_Param0,t_Param1,t_Param2,t_Param3>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p0
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p1
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p2
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p3 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -302,7 +260,6 @@ public:
 
 protected:
     member_function_pointer m_member_function_pointer;
-    member_pointer            m_member_pointer;
 };
 
 ///  ==================================================================================================
@@ -321,34 +278,24 @@ class TNativeSignal5 : public TNativeSignalBase<t_Ty>
 public:
     typedef TNativeSignal5<t_Ty, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4) const;
-    typedef connection::slot::list (t_Ty::*member_pointer);
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
 
-    TNativeSignal5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_pMember, bitfield a_Modifiers = 0)
-        : TNativeSignalBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc), m_member_pointer(a_pMember)
+    TNativeSignal5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        : TNativeSignalBase<t_Ty>(a_strName, a_pSignature, a_MemberPointer, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate5<signal_t, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p0
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p1
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p2
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p3
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p4 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -366,7 +313,6 @@ public:
 
 protected:
     member_function_pointer m_member_function_pointer;
-    member_pointer            m_member_pointer;
 };
 
 ///  ==================================================================================================
@@ -386,7 +332,6 @@ class TNativeSignal6 : public TNativeSignalBase<t_Ty>
 public:
     typedef TNativeSignal6<t_Ty, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5) const;
-    typedef connection::slot::list (t_Ty::*member_pointer);
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -394,28 +339,18 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
 
-    TNativeSignal6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_pMember, bitfield a_Modifiers = 0)
-        : TNativeSignalBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc), m_member_pointer(a_pMember)
+    TNativeSignal6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        : TNativeSignalBase<t_Ty>(a_strName, a_pSignature, a_MemberPointer, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate6<signal_t, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p0
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p1
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p2
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p3
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p4
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p5 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -434,7 +369,6 @@ public:
 
 protected:
     member_function_pointer m_member_function_pointer;
-    member_pointer            m_member_pointer;
 };
 
 
@@ -456,7 +390,6 @@ class TNativeSignal7 : public TNativeSignalBase<t_Ty>
 public:
     typedef TNativeSignal7<t_Ty, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6) const;
-    typedef connection::slot::list (t_Ty::*member_pointer);
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -465,29 +398,18 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
 
-    TNativeSignal7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_pMember, bitfield a_Modifiers = 0)
-        : TNativeSignalBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc), m_member_pointer(a_pMember)
+    TNativeSignal7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        : TNativeSignalBase<t_Ty>(a_strName, a_pSignature, a_MemberPointer, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate7<signal_t, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p0
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p1
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p2
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p3
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p4
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p5
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p6 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -507,7 +429,6 @@ public:
 
 protected:
     member_function_pointer m_member_function_pointer;
-    member_pointer            m_member_pointer;
 };
 
 
@@ -530,7 +451,6 @@ class TNativeSignal8 : public TNativeSignalBase<t_Ty>
 public:
     typedef TNativeSignal8<t_Ty, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7) const;
-    typedef connection::slot::list (t_Ty::*member_pointer);
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -540,30 +460,18 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param6_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param7_noref;
 
-    TNativeSignal8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_pMember, bitfield a_Modifiers = 0)
-        : TNativeSignalBase<t_Ty>(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc), m_member_pointer(a_pMember)
+    TNativeSignal8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        : TNativeSignalBase<t_Ty>(a_strName, a_pSignature, a_MemberPointer, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
     virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Signal, phantom::reflection::Signal::metaType, self_type) this; }
-    virtual generic_member_func_ptr           getGenericMemberFunctionPointer() const { return m_member_function_pointer; }
+    virtual void*           getClosure() const { return generic_member_func_ptr(m_member_function_pointer); }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate8<signal_t, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(static_cast<t_Ty*>(a_pObject), m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(void* a_pObject, argument::list* a_pParams) const 
-    {        
-        (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
-            ( static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p0
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p1
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p2
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p3
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p4
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p5
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p6
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p7 );
-    }
     virtual void call(void* a_pObject, void** a_pParams) const 
     {        
         (static_cast<t_Ty*>(a_pObject)->*m_member_function_pointer)
@@ -584,7 +492,6 @@ public:
 
 protected:
     member_function_pointer m_member_function_pointer;
-    member_pointer            m_member_pointer;
 };
 
 #ifndef o_NO_FUNCTION_STYLE_TEMPLATE_SIGNATURE
@@ -598,8 +505,8 @@ class TNativeSignal<t_Ty, signal_t()> : public TNativeSignal0< t_Ty>
 public:
     typedef TNativeSignal<t_Ty, signal_t()>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(void) const;
-    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal0< t_Ty>::member_pointer a_pMember, bitfield a_Modifiers = 0)
-        :TNativeSignal0< t_Ty>(a_strName,a_pSignature, a_pFunc, a_pMember, a_Modifiers | o_native)
+    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal0< t_Ty>::member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        :TNativeSignal0< t_Ty>(a_strName,a_pSignature, a_pFunc, a_MemberPointer, a_Modifiers | o_native)
     {
 
     }
@@ -612,8 +519,8 @@ class TNativeSignal<t_Ty, signal_t(t_Param0)> : public TNativeSignal1<t_Ty, t_Pa
 public:
     typedef TNativeSignal<t_Ty, signal_t(t_Param0)>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0) const;
-    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal1< t_Ty, t_Param0>::member_pointer a_pMember, bitfield a_Modifiers = 0)
-        :TNativeSignal1<t_Ty, t_Param0>(a_strName,a_pSignature, a_pFunc ,a_pMember,  a_Modifiers | o_native)
+    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal1< t_Ty, t_Param0>::member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        :TNativeSignal1<t_Ty, t_Param0>(a_strName,a_pSignature, a_pFunc ,a_MemberPointer,  a_Modifiers | o_native)
     {
 
     }
@@ -626,8 +533,8 @@ class TNativeSignal<t_Ty, signal_t(t_Param0,t_Param1)> : public TNativeSignal2<t
 public:
     typedef TNativeSignal<t_Ty, signal_t(t_Param0, t_Param1)>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1) const;
-    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal2< t_Ty, t_Param0, t_Param1>::member_pointer a_pMember, bitfield a_Modifiers = 0)
-        :TNativeSignal2<t_Ty, t_Param0, t_Param1>(a_strName,a_pSignature, a_pFunc , a_pMember, a_Modifiers | o_native)
+    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal2< t_Ty, t_Param0, t_Param1>::member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        :TNativeSignal2<t_Ty, t_Param0, t_Param1>(a_strName,a_pSignature, a_pFunc , a_MemberPointer, a_Modifiers | o_native)
     {
 
     }
@@ -645,8 +552,8 @@ class TNativeSignal<t_Ty, signal_t(t_Param0,t_Param1,t_Param2)> : public TNative
 public:
     typedef TNativeSignal<t_Ty, signal_t(t_Param0, t_Param1, t_Param2)>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2) const;
-    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal3< t_Ty, t_Param0, t_Param1, t_Param2>::member_pointer a_pMember, bitfield a_Modifiers = 0)
-        :TNativeSignal3<t_Ty, t_Param0, t_Param1, t_Param2>(a_strName,a_pSignature, a_pFunc , a_pMember, a_Modifiers | o_native)
+    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal3< t_Ty, t_Param0, t_Param1, t_Param2>::member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        :TNativeSignal3<t_Ty, t_Param0, t_Param1, t_Param2>(a_strName,a_pSignature, a_pFunc , a_MemberPointer, a_Modifiers | o_native)
     {
 
     }
@@ -666,8 +573,8 @@ class TNativeSignal<t_Ty, signal_t(t_Param0,t_Param1,t_Param2,t_Param3)> : publi
 public:
     typedef TNativeSignal<t_Ty, signal_t(t_Param0, t_Param1, t_Param2,t_Param3)>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3) const;
-    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal4<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3>::member_pointer a_pMember, bitfield a_Modifiers = 0)
-        :TNativeSignal4<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3>(a_strName,a_pSignature, a_pFunc , a_pMember, a_Modifiers | o_native)
+    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal4<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3>::member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        :TNativeSignal4<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3>(a_strName,a_pSignature, a_pFunc , a_MemberPointer, a_Modifiers | o_native)
     {
 
     }
@@ -687,8 +594,8 @@ class TNativeSignal<t_Ty, signal_t(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4)
 public:
     typedef TNativeSignal<t_Ty, signal_t(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4)>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4) const;
-    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal5<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>::member_pointer a_pMember, bitfield a_Modifiers = 0)
-        :TNativeSignal5<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(a_strName,a_pSignature, a_pFunc , a_pMember, a_Modifiers | o_native)
+    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal5<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>::member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        :TNativeSignal5<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(a_strName,a_pSignature, a_pFunc , a_MemberPointer, a_Modifiers | o_native)
     {
 
     }
@@ -710,8 +617,8 @@ class TNativeSignal<t_Ty, signal_t(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,
 public:
     typedef TNativeSignal<t_Ty, signal_t(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5)>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5) const;
-    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal6<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>::member_pointer a_pMember, bitfield a_Modifiers = 0)
-        :TNativeSignal6<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(a_strName,a_pSignature, a_pFunc , a_pMember, a_Modifiers | o_native)
+    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal6<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>::member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        :TNativeSignal6<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(a_strName,a_pSignature, a_pFunc , a_MemberPointer, a_Modifiers | o_native)
     {
 
     }
@@ -733,8 +640,8 @@ class TNativeSignal<t_Ty, signal_t(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,
 public:
     typedef TNativeSignal<t_Ty, signal_t(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6) const;
-    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal7<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>::member_pointer a_pMember,  bitfield a_Modifiers = 0)
-        :TNativeSignal7<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(a_strName,a_pSignature, a_pFunc , a_pMember, a_Modifiers | o_native)
+    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal7<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>::member_pointer a_MemberPointer,  bitfield a_Modifiers = 0)
+        :TNativeSignal7<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(a_strName,a_pSignature, a_pFunc , a_MemberPointer, a_Modifiers | o_native)
     {
 
     }
@@ -759,8 +666,8 @@ class TNativeSignal<t_Ty, signal_t(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,
 public:
     typedef TNativeSignal<t_Ty, signal_t(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)>    self_type;
     typedef signal_t (t_Ty::*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7) const;
-    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal8<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>::member_pointer a_pMember,  bitfield a_Modifiers = 0)
-        :TNativeSignal8<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(a_strName,a_pSignature, a_pFunc , a_pMember, a_Modifiers | o_native)
+    TNativeSignal(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, typename TNativeSignal8<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>::member_pointer a_MemberPointer,  bitfield a_Modifiers = 0)
+        :TNativeSignal8<t_Ty, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(a_strName,a_pSignature, a_pFunc , a_MemberPointer, a_Modifiers | o_native)
     {
 
     }

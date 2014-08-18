@@ -10,6 +10,10 @@ o_declareN(class, (phantom, qt), VariableNode);
 
 namespace phantom { namespace qt {
 
+class VariableModel;
+class VariableAction;
+class UndoStack;
+
 enum EVariableNodeProperty
 {
     e_VariableNodeProperty_ReloadOnChildChange = 0x1,
@@ -19,7 +23,10 @@ o_declare_flags(VariableNodeProperties, EVariableNodeProperty);
 
 class o_qt_export VariableNode 
 {
+    friend class VariableModel;
+
 public:
+    static VariableNode* FromData(serialization::DataBase* a_pDataBase, const vector<phantom::data>& a_Data);
 
     enum EClassDisplayPolicy
     {
@@ -27,33 +34,41 @@ public:
         e_ClassDisplayPolicy_List,
     };
 
-    VariableNode(const string& a_strName, const vector<reflection::Variable*>& a_Variables);
-    VariableNode(const vector<reflection::Variable*>& a_Variables);
     VariableNode(const string& a_strName);
+    VariableNode(const string& a_strName, const vector<reflection::Expression*>& a_Expressions, reflection::Range* a_pRange = nullptr, bitfield a_Modifiers = 0);
     ~VariableNode();
 
     o_initialize();
     o_terminate();
 
-    const vector<void*>& getAddresses() const { return m_Addresses;}
+    // void eval(EEvalPolicies a_eEvalPolicy);
 
     bool hasModifier(bitfield a_Modifier) const { return m_Modifiers.matchesMask(a_Modifier); }
 
+    void setModifiers(bitfield a_Modifiers) { m_Modifiers = a_Modifiers; }
+
+    bitfield getModifiers() const { return m_Modifiers; }
+
     bool hasMultipleValues() const;
 
-    bool hasVariables() const { return !m_Variables.empty(); }
-
-    reflection::Class* getVariableClass() const;
+    bool hasExpressions() const { return !m_Expressions.empty(); }
 
     reflection::Type*  getValueType() const;
+
+    void setChangingStructure(bool a_bValue)
+    {
+        m_bChangeStructure = a_bValue;
+    }
+
+    bool isChangingStructure() const { return m_bChangeStructure; }
 
     void flush() const;
 
     void update() const;
 
-    void  getValue(void* a_pDest) const;
+    void getValue(void* a_pDest) const;
 
-    void  setValue(void const* a_pSrc) const;
+    void setValue(void const* a_pSrc) const;
 
     void getValues(void** a_pMultipleDest) const;
 
@@ -69,31 +84,55 @@ public:
 
     VariableNode* getPrevChild(VariableNode* a_pCurrent) const;
 
-    void* getAddress() const { return nullptr; }
+    // reflection::Expression* evalExpression(size_t i) const;
 
-    const vector<reflection::Variable*>& getVariables() const { return m_Variables; }
+    vector<reflection::Expression*>::const_iterator beginExpressions() const { return m_Expressions.begin(); }
+    vector<reflection::Expression*>::const_iterator endExpressions() const { return m_Expressions.end(); }
 
-    reflection::Variable* getVariable(size_t i) const { return m_Variables[i]; }
+    reflection::Expression* getExpression(size_t i) const { return m_Expressions[i]; }
+    size_t getExpressionCount() const { return m_Expressions.size(); }
 
-    size_t getVariableCount() const { return m_Variables.size(); }
+    reflection::Range* getRange() const { return m_pRange; } 
 
-    reflection::Range* getRange() const { return m_Variables.size() ? m_Variables[0]->getRange() : nullptr; } 
+    void setRange(reflection::Range* a_pRange) { m_pRange = a_pRange; }
 
-    void setName(const string& a_strName)
-    {
-        if(m_strName == a_strName) return;
-        m_strName = a_strName;
-        o_emit nameChanged(a_strName);
-    }
+    void setName(const string& a_strName);
 
     const string& getName() const { return m_strName; }
 
-    vector<VariableNode*>::const_iterator beginChildNodes() const { return m_ChildNodes.begin(); }
+    string getQualifiedName(const string& a_strSeparator = ".") const 
+    {
+        if(m_pParentNode)
+        {
+            string qualifiedName = m_pParentNode->getQualifiedName();
+            if(NOT(qualifiedName.empty()))
+            {
+                return qualifiedName + a_strSeparator + m_strName;
+            }
+        }
+        return m_strName;
+    }
 
+    vector<VariableNode*>::const_iterator beginChildNodes() const { return m_ChildNodes.begin(); }
     vector<VariableNode*>::const_iterator endChildNodes() const { return m_ChildNodes.end(); }
 
+    size_t  getChildNodeCount() const { return m_ChildNodes.size(); }
+
     void addChildNode(VariableNode* a_pVariableNode);
+
     void removeChildNode(VariableNode* a_pVariableNode);
+
+    void setExpressionUndoStack(size_t i, UndoStack* a_pUndoStack)
+    {
+        m_ExpressionUndoStacks[i] = a_pUndoStack;
+    }
+
+    UndoStack* getExpressionUndoStack(size_t i) const
+    {
+        return m_ExpressionUndoStacks[i];
+    }
+
+    void clear();
 
 protected:
     o_signal_data(nameChanged, const string&);
@@ -102,29 +141,24 @@ protected:
     o_signal_data(childNodeAboutToBeRemoved, VariableNode*);
 
 protected:
-    void checkCommonAncestorType()
-    {
-        m_pVariableType = nullptr;
-        o_assert(!m_Variables.empty());
-        {
-            m_pVariableType = m_Variables.front()->getValueType();
-            for(auto it = m_Variables.begin()+1; it != m_Variables.end(); ++it)
-            {
-                o_assert(m_pVariableType == (*it)->getValueType());
-            }
-        }
-    }
+    void setVariableModel(VariableModel* a_pVariableModel);
 
 protected:
-    string                  m_strName;
-    vector<reflection::Variable*> m_Variables;
-    vector<void*>           m_Addresses;
-    vector<bool>            m_Buffered;
-    reflection::Type*       m_pVariableType;
-    VariableNode*           m_pParentNode;
-    vector<VariableNode*>   m_ChildNodes;
-    EClassDisplayPolicy     m_eClassDisplayPolicy;
-    bitfield                m_Modifiers;
+    void updateType();
+    void destroyExpressions();
+protected:
+    string                          m_strName;
+    vector<reflection::Expression*> m_Expressions;
+    vector<UndoStack*>              m_ExpressionUndoStacks;
+    reflection::Type*               m_pValueType;
+    reflection::Range*              m_pRange;
+    VariableNode*                   m_pParentNode;
+    VariableModel*                  m_pVariableModel;
+    vector<VariableNode*>           m_ChildNodes;
+    vector<VariableAction*>         m_VariableActions;
+    EClassDisplayPolicy             m_eClassDisplayPolicy;
+    bitfield                        m_Modifiers;
+    bool                            m_bChangeStructure;
 };
 
 }}

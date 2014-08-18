@@ -30,6 +30,36 @@ bool ContainerClass::referencesData( const void* a_pContainer, const phantom::da
     return result;
 }
 
+void ContainerClass::release( Iterator* a_pIterator ) const
+{
+    a_pIterator->terminate(); a_pIterator->deleteNow();
+}
+
+void ContainerClass::release( ConstIterator* a_pIterator ) const
+{
+    a_pIterator->terminate(); a_pIterator->deleteNow();
+}
+
+/*
+
+void ContainerClass::createKeyAccesses( Expression* a_pLeft, vector<Expression*>& out ) const
+{
+    if(!a_pLeft->isAddressable()) return;
+    createKeyAccesses(a_pLeft->getAddress(), out);
+}
+
+void ContainerClass::createValueAccesses( Expression* a_pLeft, vector<Expression*>& out ) const
+{
+    if(!a_pLeft->isAddressable()) return;
+    createValueAccesses(a_pLeft->getAddress(), out);
+}
+
+void ContainerClass::createMappedAccesses( Expression* a_pLeft, vector<Expression*>& out ) const
+{
+    if(!a_pLeft->isAddressable()) return;
+    createMappedAccesses(a_pLeft->getAddress(), out);
+}*/
+
 
 
 o_namespace_end(phantom, reflection)

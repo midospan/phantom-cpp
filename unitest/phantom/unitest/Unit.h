@@ -40,6 +40,7 @@
 #include "GameEntity.h"
 #include "Ability.h"
 #include "phantom/util/composition.h"
+#include "phantom/math/math.h"
 /* **************** Declarations ***************** */
 o_declareN(class, (sc2), RallyPoint)
 o_declareN(class, (sc2), Ability)
@@ -106,9 +107,17 @@ public:
 
     void showControlMarkers() { /*code to show control markers such as rounding selection circle ...*/ }
     void hideControlMarkers() { /*code to hide control markers*/ }
+
+    void setPosition(const phantom::math::vector2<float>& a_Position)
+    {
+        m_Position = a_Position;
+    }
+
+    const phantom::math::vector2<float>& getPosition() const { return m_Position; }
     
 protected:
     Abilities m_Abilities;
+    phantom::math::vector2<float> m_Position;
     int       m_iLifePoints;
     int       m_iInitialLifePoints;
     bool      m_bPatrolWay;

@@ -46,32 +46,72 @@ o_namespace_begin(phantom, reflection)
 
 class o_export VirtualMemberFunctionTable : public LanguageElement
 {
-public:
+    o_declare_meta_type(VirtualMemberFunctionTable);
 
-    typedef phantom::vector<InstanceMemberFunction*> member_function_list;
+    friend class Class;
 
 public:
-    VirtualMemberFunctionTable( Class* a_pBaseClass, member_function_list* a_MemberFunctionList );
+    VirtualMemberFunctionTable();
+    VirtualMemberFunctionTable(size_t a_uiSize);
     o_destructor ~VirtualMemberFunctionTable(void);
 
-    uint getSize() const { return m_uiSize; }
+    size_t getMemberFunctionCount() const { return m_pMemberFunctions->size(); }
     
-    uint getIndexOf(InstanceMemberFunction* a_pMemberFunction);
+    size_t getIndexOf(InstanceMemberFunction* a_pMemberFunction) const;
 
-    InstanceMemberFunction*        getMemberFunction(uint a_uiIndex) const 
+    vector<InstanceMemberFunction*>::const_iterator beginMemberFunctions() const { return m_pMemberFunctions->begin(); }
+    vector<InstanceMemberFunction*>::const_iterator endMemberFunctions() const { return m_pMemberFunctions->end(); }
+
+    InstanceMemberFunction*     getMemberFunction(size_t a_uiIndex) const 
     {
-        o_assert(a_uiIndex < m_uiSize);
-        return m_ppMemberFunctions[a_uiIndex];
+        return (*m_pMemberFunctions)[a_uiIndex];
     }
 
-    InstanceMemberFunction**    getMemberFunctions() const { return m_ppMemberFunctions; }
+    Class*                      getOwnerClass() const { return m_pOwner ? m_pOwner->asClass() : nullptr; }
 
-    Class*                getBaseClass(void) const {return m_pBaseClass;}
+    Class*                      getSourceClass() const 
+    { 
+        return m_pSuperTable == nullptr ? getOwnerClass() : m_pSuperTable->getSourceClass(); 
+    }
 
-protected:
-    uint                        m_uiSize;
-    InstanceMemberFunction**            m_ppMemberFunctions;
-    Class*                        m_pBaseClass;
+    size_t                      getOffset() const;
+
+    VirtualMemberFunctionTable* derive(size_t a_uiSize = 0) const;
+
+    void                        construct(void* a_pInstance);
+
+    VirtualMemberFunctionTable* getRootTable() const { return m_pSuperTable ? m_pSuperTable->getRootTable() : const_cast<VirtualMemberFunctionTable*>(this); }
+
+    InstanceMemberFunction*     getRootMemberFunction(size_t a_uiIndex) const;
+    InstanceMemberFunction*     getRootMemberFunction( InstanceMemberFunction* a_pInstanceMemberFunction ) const;
+
+    VirtualMemberFunctionTable* asVirtualMemberFunctionTable() const { return const_cast<VirtualMemberFunctionTable*>(this); }
+
+private: // Derivation constructors
+    VirtualMemberFunctionTable(VirtualMemberFunctionTable* a_pSuperTable);
+    VirtualMemberFunctionTable(VirtualMemberFunctionTable* a_pSuperTable, size_t a_uiSize);
+
+private:
+    void                        addMemberFunction(InstanceMemberFunction* a_pMemberFunction);
+
+    void                        setMemberFunction(size_t a_uiIndex, InstanceMemberFunction* a_pMemberFunction);
+
+    void                        insertMemberFunction(InstanceMemberFunction* a_pMemberFunction);
+
+    bool                        sharesMemberFunctions() const { return m_pSuperTable && m_pSuperTable->m_pMemberFunctions == m_pMemberFunctions; }
+
+    void                        copyOnWrite()
+    {
+        o_assert(sharesMemberFunctions());
+        m_pMemberFunctions = new vector<InstanceMemberFunction*>;
+        *m_pMemberFunctions = *(m_pSuperTable->m_pMemberFunctions);
+    }
+
+private:
+    vector<InstanceMemberFunction*>* m_pMemberFunctions;
+    VirtualMemberFunctionTable* m_pSuperTable;
+    void**                      m_ppClosures;
+    bool                        m_bClosuresExtracted;
     
 };
 

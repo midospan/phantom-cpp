@@ -43,6 +43,7 @@
 #include <phantom/serialization/Node.h>
 #include <boost/property_tree_custom/xml_parser.hpp>
 #include <phantom/reflection/Expression.h>
+#include <phantom/reflection/CPlusPlus.h>
 #include <phantom/variant.h>
 #include <phantom/std/map.h>
 #include <phantom/std/string.h>
@@ -160,7 +161,7 @@ protected:
 };
 
 TEST(PhantomTest, typeOf) {
-  EXPECT_EQ(phantom::classOf<RootClass>(),                                phantom::typeOf<RootClass>()); 
+  EXPECT_EQ(phantom::typeOf<RootClass>(),                                phantom::typeOf<RootClass>()); 
   EXPECT_EQ(phantom::string("signal_t"),        phantom::typeOf<phantom::signal_t>()->getName());
   EXPECT_EQ(phantom::string("char"),        phantom::typeOf<char>()->getName());
   EXPECT_EQ(phantom::string("signed char"),        phantom::typeOf<phantom::schar>()->getName());
@@ -215,19 +216,15 @@ TEST_F(ReflectionTest, phantom_elementByName)
 TEST_F(ReflectionTest, phantom_reflection_type_conversion)
 {
     using namespace phantom;
-    EXPECT_EQ(true, typeOf<int>()->isConvertibleTo(typeOf<int&>()));
     EXPECT_EQ(true, typeOf<int&>()->isConvertibleTo(typeOf<int>()));
     EXPECT_EQ(true, typeOf<const int&>()->isConvertibleTo(typeOf<int>()));
-    EXPECT_EQ(true, typeOf<int>()->isConvertibleTo(typeOf<const int&>()));
 
     int i = 5;
     int& src = i;
+    int* pSrc = &src;
     int dest = 0;
-    typeOf<int&>()->convertValueTo(typeOf<int>(), &dest, &src);
+    typeOf<int&>()->convertValueTo(typeOf<int>(), &dest, &pSrc);
     EXPECT_EQ(dest, 5);
-
-
-
 }
 
 TEST_F(ReflectionTest, phantom_reflection_operator)
@@ -388,6 +385,8 @@ class TClass
 {
 public:
     t_Ty m_DataMember;
+
+    int operator ( ) (int i) { return 0; }
 };
 
 o_classT((typename), (t_Ty), TClass)
@@ -418,7 +417,7 @@ o_static_assert(!phantom::has_module<phantom::map<phantom::string, int>>::value)
 
 o_static_assert(phantom::has_module<phantom::map<phantom::string, int>>::value);
 
-phantom::reflection::Type* type_with_hxx = phantom::typeOf<phantom::map<phantom::string, int>>();
+//phantom::reflection::Type* type_with_hxx = phantom::typeOf<phantom::map<phantom::string, int>>();
 
 class OwnerTest;
 class ComponentTest 
@@ -468,6 +467,11 @@ o_registerNTI((phantom), composition, (ComponentTest));
 
 o_main;
 
+o_registerNTI((phantom), vector, (int));
+o_registerNTI((phantom), map, (phantom::string, phantom::string));
+
+
+
 int main(int argc, char **argv) 
 {
     //o_assert(type_with_hxx == type_without_hxx);
@@ -514,6 +518,17 @@ int main(int argc, char **argv)
     o_assert(pCompositionClass->getAboutToBeSwappedSignal() ); 
     o_assert(pCompositionClass->getSwappedSignal() );          
 
+    auto composition_ADD_exp = phantom::expressionByName("((OwnerTest*)0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+")->m_ComponentTests.add");
+
+    auto composition_ADD_exp_reeval = phantom::expressionByName(composition_ADD_exp->getName());
+
+    ComponentTest* pComponentTestAddedViaExp = o_new(ComponentTest);
+
+    composition_ADD_exp->store(&pComponentTestAddedViaExp);
+
+    phantom::deleteElement(composition_ADD_exp);
+
+    phantom::deleteElement(composition_ADD_exp_reeval);
 
     o_assert(pCompositionClass);
 
@@ -525,7 +540,25 @@ int main(int argc, char **argv)
 
     pOwnerTest0->m_ComponentTests.remove((size_t)0);
 
-    o_delete(ComponentTest) pOwnerTest1->m_ComponentTests.remove((size_t)0);
+    ComponentTest* pSettedComponentTest = o_new(ComponentTest);
+
+    auto composition_GetSet_exp = phantom::expressionByName("(*(OwnerTest*)0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+").m_ComponentTests[0]");
+
+
+    auto stringLiteral = phantom::expressionByName("\"I'm a string in a string\\n\\t\\r\"");
+
+    ComponentTest* pGettedComponentTest = 0;
+
+    composition_GetSet_exp->load(&pGettedComponentTest);
+    composition_GetSet_exp->store(&pSettedComponentTest);
+
+    phantom::deleteElement(composition_GetSet_exp);
+
+    o_delete(ComponentTest) pComponentTestAddedViaExp;
+    
+    o_delete(ComponentTest) pSettedComponentTest;
+
+    o_delete(ComponentTest) pComponentTest;
 
     o_delete(OwnerTest) pOwnerTest0;
 
@@ -585,16 +618,30 @@ int main(int argc, char **argv)
     phantom::reflection::LanguageElement* pEnumValueC = phantom::elementByName("GlobalEmbedded::TestGlobalEmbedded0");
 
     phantom::math::vector2<float>* vector2_float = o_new(phantom::math::vector2<float>);
+    vector2_float->x = 9.f;
+    vector2_float->y = 15.f;
 
     phantom::string ptr_hex = phantom::lexical_cast<phantom::string>((void*)vector2_float);
 
-    auto vector2_float_expression = phantom::elementByName("&"+ptr_hex+"[TestGlobal1]")->asExpression();
+    auto vector2_float_y = phantom::expressionByName("(*((phantom::math::vector2<float>*)0x"+ptr_hex+")).y");
+    auto vector2_float_x = phantom::expressionByName("(*((phantom::math::vector2<float>*)0x"+ptr_hex+")).x");
 
-    float* ref_float_value = 0;
+    float float_value_x = 0;
+    float float_value_y = 0;
+    float* ref_float_value_y = 0;
 
-    vector2_float_expression->getValue(&ref_float_value);
+    vector2_float_x->load(&float_value_x);
+    vector2_float_y->getValue(&ref_float_value_y);
+    float new_float_value_x = 8.f;
+    vector2_float_x->store(&new_float_value_x);
 
-    o_assert(ref_float_value == &(vector2_float->y));
+    o_assert(*ref_float_value_y == 15.f);
+    o_assert(ref_float_value_y == &(vector2_float->y));
+    o_assert(float_value_x == 9.f);
+    o_assert(vector2_float->x == 8.f);
+
+    phantom::deleteElement(vector2_float_y);
+    phantom::deleteElement(vector2_float_x);
 
     o_static_assert(phantom::has_initializer_member_functions_cascade<Marine>::value);
   
@@ -603,14 +650,62 @@ int main(int argc, char **argv)
     phantom::reflection::LanguageElement* pPhantomVector 
         = phantom::elementByName("std::vector<int, std::allocator<int>>");
 
+    
+    phantom::cplusplus()->compile(
+
+        "class CompiledClass "                                                                     "\n"
+        "{"                                                                                         "\n"
+        "   phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_signalName; "       "\n"
+        "   phantom::signal_t signalName(int a_0) const                                     "       "\n"
+        "   {                                                                                          "       "\n"
+        "       phantom::connection::slot* pSlot = nullptr;                                            "       "\n"
+        "       while(pSlot)                                                                           "       "\n"
+        "       {                                                                                      "       "\n"
+        "           phantom::connection::pair::push(this, pSlot);                                      "       "\n"
+        "           void* args[1] = {(void*)&a_0};                                                        "       "\n"
+        "           pSlot->subroutine()->call( pSlot->receiver(), args );                              "       "\n"
+        "           pSlot = pSlot->next();                                                             "       "\n"
+        "           phantom::connection::pair::pop();                                                  "       "\n"
+        "       }                                                                                      "       "\n"
+        "       return phantom::signal_t();                                                            "       "\n"
+        "   }"                                                                                                 "\n"
+        "   int increment(int i) const { return i++; }"                                                        "\n"
+        "   const char* thenMethod() const { return \"then\"; }"                                               "\n"
+        "   const char* elseMethod() const { return \"else\"; }"                                               "\n"
+        "   void testFor() const"                                                                              "\n"
+        "   {"                                                                                                 "\n"
+        "       for(int i = 0; i<6; ++i)"                                                       "\n"
+        "       {"                                                                                             "\n"
+        "           if(i%2 == 0)"                                                                              "\n"
+        "           {"                                                                                         "\n"
+        "               thenMethod();"                                                                         "\n"
+        "           }"                                                                                         "\n"
+        "           else"                                                                                      "\n"
+        "           {"                                                                                         "\n"
+        "               elseMethod();"                                                                         "\n"
+        "           }"                                                                                         "\n"
+        "       }"                                                                                              "\n"
+        "   }"                                                                                                 "\n"
+        "};                                                                                          "       "\n"
+        , nullptr, nullptr, nullptr);
 
     //phantom::reflection::Type* pType = phantom::typeOf<phantom::string>();
-    phantom::reflection::Type* pTypeByName = phantom::typeByName("phantom::string");
+    phantom::reflection::Type* pStringType = phantom::typeByName("phantom::string");
+    o_assert(pStringType);
+    phantom::reflection::Type* pTypeByName = phantom::typeByName("CompiledClass");
+    o_assert(pTypeByName);
 
-    phantom::reflection::InstanceMemberFunction* pBeginMemberFunction = static_cast<phantom::reflection::Class*>(pTypeByName)->getInstanceMemberFunction("rbegin()");
-    phantom::reflection::InstanceMemberFunction* pEndMemberFunction = static_cast<phantom::reflection::Class*>(pTypeByName)->getInstanceMemberFunction("rend()");
+    void * pNewCompiledClassInstance = pTypeByName->newInstance();
+    phantom::reflection::Subroutine* pSubroutine = pTypeByName->asClassType()->getInstanceMemberFunction("testFor() const");
+    o_assert(pSubroutine);
+    void* args[1] = { &pNewCompiledClassInstance }; 
+    pSubroutine->call(args, nullptr);
+    pTypeByName->deleteInstance(pNewCompiledClassInstance);
 
-    phantom::string* pString = phantom::as<phantom::string*>(pTypeByName->newInstance());
+    phantom::reflection::InstanceMemberFunction* pBeginMemberFunction = static_cast<phantom::reflection::Class*>(pStringType)->getInstanceMemberFunction("rbegin()");
+    phantom::reflection::InstanceMemberFunction* pEndMemberFunction = static_cast<phantom::reflection::Class*>(pStringType)->getInstanceMemberFunction("rend()");
+
+    phantom::string* pString = phantom::as<phantom::string*>(pStringType->newInstance());
     pString->append("this string is reversed");
 
     phantom::string::reverse_iterator it;
@@ -630,6 +725,45 @@ int main(int argc, char **argv)
     /* SERIALIZATION */
 
     Marine* pDBMarine1 = o_new(Marine);
+
+    phantom::constant<int>(0.f);
+    phantom::constant(0.f);
+
+    phantom::string pDBMarine1Hex = phantom::lexical_cast<phantom::string>((void*)pDBMarine1);
+    phantom::reflection::Expression* pDBMarine1PositionXExp = phantom::expressionByName("((sc2::Marine*)0x"+pDBMarine1Hex+")->position");
+
+    pDBMarine1PositionXExp->set(phantom::math::vector2<float>(10.f, 20.f));
+
+    phantom::deleteElement(pDBMarine1PositionXExp);
+
+    pDBMarine1PositionXExp = phantom::expressionByName("((sc2::Marine*)0x"+pDBMarine1Hex+")->position.x");
+
+    int a = 0;
+    int b = 12;
+    float c = 5.6;
+
+    phantom::string astr = phantom::lexical_cast<phantom::string>((void*)&a);
+    phantom::string bstr = phantom::lexical_cast<phantom::string>((void*)&b);
+    phantom::string cstr = phantom::lexical_cast<phantom::string>((void*)&c);
+
+    auto pAssignmentExpression = phantom::expressionByName("*((int*)0x"+astr+") = *((int*)0x"+bstr+")+18+*((float*)0x"+cstr+")");
+
+    pAssignmentExpression->eval();
+
+    auto pPrecedenceAssignmentExpression = phantom::expressionByName("*((int*)0x"+astr+") = (*((int*)0x"+bstr+")=18)=*((float*)0x"+cstr+")");
+
+    pPrecedenceAssignmentExpression->eval();
+
+    auto pPrecedenceAssignmentExpression2 = phantom::expressionByName("*((int*)0x"+astr+") = (*((int*)0x"+bstr+")>>=18)=*((float*)0x"+cstr+")");
+
+    pPrecedenceAssignmentExpression2->eval();
+
+    o_assert(a == 5)
+
+    pDBMarine1PositionXExp->set(5.f);
+
+    phantom::deleteElement(pDBMarine1PositionXExp);
+
     o_statemachine_post(pDBMarine1, Spawn);
     Marine* pDBMarine2 = o_new(Marine);
     Marine* pDBMarine3 = o_new(Marine);
@@ -644,7 +778,7 @@ int main(int argc, char **argv)
         size_t descriptionIndex = pDataBase->addAttribute("description");
         pDataBase->rootNode()->load();
         pDataBase->rootNode()->addData(pDBMarine1);
-        phantom::serialization::Node* pChildNode = pDataBase->createNewNode(pDataBase->rootNode());
+        phantom::serialization::Node* pChildNode = pDataBase->rootNode()->newChildNode();
         pChildNode->load();
         pChildNode->addData(pDBMarine2);
         pChildNode->addData(pDBMarine3);

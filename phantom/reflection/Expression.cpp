@@ -36,6 +36,7 @@
 #include <phantom/reflection/Expression.h>
 #include <phantom/reflection/Expression.hxx>
 #include <phantom/reflection/DereferenceExpression.h>
+#include <phantom/reflection/AddressExpression.h>
 #include <phantom/reflection/ReferenceExpression.h>
 #include <phantom/reflection/CastExpression.h>
 /* *********************************************** */
@@ -44,29 +45,42 @@ o_registerN((phantom, reflection), Expression);
 o_namespace_begin(phantom, reflection) 
 
 Expression::Expression( Type* a_pType, bitfield a_Modifiers /*= 0*/) 
-: LanguageElement("", a_Modifiers)
-, m_pValueType(a_pType)
-{
-    addReferencedElement(a_pType);
-}
-
-Expression::Expression( Type* a_pType, const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
-    : LanguageElement(a_strName, a_Modifiers)
+    : Evaluable("", a_Modifiers)
     , m_pValueType(a_pType)
 {
     addReferencedElement(a_pType);
 }
 
-LanguageElement* Expression::solveBracketOperator( Expression* a_pExpression ) const
+Expression::Expression( Type* a_pType, const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
+    : Evaluable(a_strName, a_Modifiers)
+    , m_pValueType(a_pType)
 {
-    vector<LanguageElement*> signature;
-    signature.push_back(a_pExpression);
-    return solveElement("operator[]", nullptr, &signature, 0);
+    addReferencedElement(a_pType);
 }
 
-LanguageElement* Expression::solveParenthesisOperator( const vector<LanguageElement*>& a_FunctionSignature ) const
+Expression* Expression::solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const 
 {
-    return solveElement("operator()", nullptr, &a_FunctionSignature, 0);
+    vector<Expression*> newExpressions;
+    newExpressions.push_back(const_cast<Expression*>(this));
+    if(a_Expressions.size() > 0)
+    {
+        newExpressions.insert(newExpressions.end(), a_Expressions.begin(), a_Expressions.end());
+
+        // Use 'strongest' type to solve operation
+        if(m_pValueType->getTypeId() == e_struct OR (m_pValueType->removeReference()->getTypeId() >= a_Expressions.back()->getValueType()->removeReference()->getTypeId()))
+        {
+            return m_pValueType->solveOperator(a_strOp, newExpressions, a_Modifiers);
+        }
+        else 
+        {
+            return a_Expressions.back()->getValueType()->solveOperator(a_strOp, newExpressions, a_Modifiers);
+        }
+    }
+    else 
+    {
+        o_assert(a_Expressions.size() == 0);
+        return m_pValueType->solveOperator(a_strOp, newExpressions, a_Modifiers);
+    }
 }
 
 void Expression::setValue( void const* a_pSrc ) const
@@ -76,35 +90,62 @@ void Expression::setValue( void const* a_pSrc ) const
 
 void Expression::load( void* a_pDest ) const
 {
-    getValue(a_pDest);
+    if(m_pValueType->asReferenceType())
+    {
+        void* pBuffer;
+        getValue(&pBuffer);
+        m_pValueType->asReferenceType()->getReferencedType()->copy(a_pDest, pBuffer);
+    }
+    else getValue(a_pDest);
 }
 
 void Expression::store( void const* a_pSrc ) const
 {
-    if(m_pValueType->asConstType())
+    if(isConstExpression())
     {
         o_exception(exception::reflection_runtime_exception, "Expression is const and cannot be modified");
     }
-    else if(!isAddressable())
+    if(m_pValueType->asReferenceType())
     {
-        o_exception(exception::reflection_runtime_exception, "Expression is not an l-value");
+        void* pBuffer;
+        getValue(&pBuffer);
+        m_pValueType->asReferenceType()->getReferencedType()->copy(pBuffer, a_pSrc);
     }
-    setValue(a_pSrc);
-}
-
-void* Expression::getAddress() const
-{
-    o_exception(exception::reflection_runtime_exception, "Expression is not an l-value"); return nullptr;
+    else setValue(a_pSrc);
+    flush();
 }
 
 LanguageElement* Expression::solveElement( const string& a_strName, const vector<TemplateElement*>* a_pTemplateSignature, const vector<LanguageElement*>* a_pFunctionSignature, bitfield a_Modifiers /*= 0*/ ) const
 {
-    return m_pValueType->solveExpression(const_cast<Expression*>(this), a_strName, a_pTemplateSignature, a_pFunctionSignature, a_Modifiers);
+    if(hasEffectiveAddress())
+    {
+        Type* pType = m_pValueType;
+        return pType->solveExpression(reference(), a_strName, a_pTemplateSignature, a_pFunctionSignature, a_Modifiers);
+    }
+    return nullptr;
+}
+
+void* Expression::loadEffectiveAddress() const
+{
+    if(m_pValueType->asReferenceType())
+    {
+        void* pAddress;
+        getValue(&pAddress);
+        return pAddress;
+    }
+    else if(hasValueStorage())
+    {
+        return getValueStorageAddress();
+    }
+    else
+    {
+        o_exception(exception::reflection_runtime_exception, "Expression value does not have memory storage"); return nullptr;
+    }
 }
 
 Expression* Expression::implicitCast( Type* a_pTargetType ) const
 {
-    if(m_pValueType == a_pTargetType) 
+    if(m_pValueType == a_pTargetType->removeConst()) 
         return const_cast<Expression*>(this);
     if(m_pValueType->isImplicitlyConvertibleTo(a_pTargetType) && m_pValueType->isCopyable())
     {
@@ -124,9 +165,22 @@ Expression* Expression::cast( Type* a_pTargetType ) const
 
 Expression* Expression::reference() const
 {
-    if(isReferenceable())
+    if(m_pValueType->asReferenceType())
+    {
+        return const_cast<Expression*>(this);
+    }
+    if(hasEffectiveAddress())
     {
         return o_new(ReferenceExpression)(const_cast<Expression*>(this));
+    }
+    return nullptr;
+}
+
+Expression* Expression::address() const
+{
+    if(isAddressable())
+    {
+        return o_new(AddressExpression)(const_cast<Expression*>(this));
     }
     return nullptr;
 }
@@ -138,6 +192,52 @@ Expression* Expression::dereference() const
         return o_new(DereferenceExpression)(const_cast<Expression*>(this));
     }
     return nullptr;
+}
+
+Type* Expression::storageType(Type* a_pType) const
+{
+    Type* pStorageType = a_pType;
+    if(pStorageType == typeOf<void>()) return nullptr;
+    if(pStorageType->asReferenceType())
+    {
+        pStorageType = pStorageType->asReferenceType()->getReferencedType()->pointerType();
+    }
+    return pStorageType;
+}
+
+variant Expression::get() const
+{
+    variant v;
+    v.setType(m_pValueType->removeReference()->removeConst());
+    load((void*)v.buffer());
+    return v;
+}
+
+void Expression::set( const variant& v )
+{
+    if(v.type() == m_pValueType->removeReference())
+    {
+        store(v.buffer());
+    }
+    else 
+    {
+        variant casted = v.as(m_pValueType->removeReference());
+        if(casted.isNull())
+        {
+            o_exception(exception::reflection_runtime_exception, "Cannot convert variant to expression value type");
+        }
+        store(casted.buffer());
+    }
+}
+
+bool Expression::isConstExpression() const
+{
+    return m_pValueType->removeReference()->asConstType() != nullptr;
+}
+
+bool Expression::isDereferenceable() const
+{
+    return m_pValueType->removeReference()->removeConst()->asDataPointerType() != nullptr;
 }
 
 

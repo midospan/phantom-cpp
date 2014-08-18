@@ -58,6 +58,7 @@ public:
     o_destructor ~PrimitiveType(void) {}
 
     virtual PrimitiveType* asPrimitiveType() const { return const_cast<PrimitiveType*>(this); }
+    virtual Type* asPOD() const { return const_cast<PrimitiveType*>(this); }
 
     virtual bool    isCopyable() const { return true; }
 

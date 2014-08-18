@@ -2,8 +2,10 @@
 #include "phantom/qt/qt.h"
 #include "VariableWidgetEditor.h"
 #include "VariableWidgetEditor.hxx"
-#include "VariableManager.h"
+#include "VariableNode.h"
+#include "phantom/reflection/Expression.h"
 #include "phantom/std/string.h"
+#include <QWidget>
 /* *********************************************** */
 o_registerN((phantom, qt), VariableWidgetEditor);
 
@@ -18,11 +20,11 @@ VariableWidgetEditor::VariableWidgetEditor( QWidget* a_pWidget, const char* sign
     connect(m_pWidget, SIGNAL(destroyed()), this, SLOT(slotDestroyed()));
 }
 
-void VariableWidgetEditor::setVariable( VariableNode* a_pVariable )
+void VariableWidgetEditor::setVariableNode( VariableNode* a_pVariableNode )
 {
-    if(m_pVariableNode == a_pVariable) 
+    if(m_pVariableNode == a_pVariableNode) 
         return; 
-    m_pVariableNode = a_pVariable; 
+    m_pVariableNode = a_pVariableNode; 
     
     variableChanged(m_pVariableNode);
 }
@@ -39,7 +41,7 @@ void VariableWidgetEditor::variableChanged( VariableNode* a_pVariable )
 
 void VariableWidgetEditor::setValues( void const** a_ppMultipleSrc ) const
 {
-    for(size_t i = 0 ;i<m_pVariableNode->getVariableCount(); ++i)
+    for(size_t i = 0 ;i<m_pVariableNode->getExpressionCount(); ++i)
     {
         setValue(a_ppMultipleSrc[i]);
     }
@@ -47,7 +49,7 @@ void VariableWidgetEditor::setValues( void const** a_ppMultipleSrc ) const
 
 void VariableWidgetEditor::getValues( void** a_ppMultipleDest ) const
 {
-    for(size_t i = 0 ;i<m_pVariableNode->getVariableCount(); ++i)
+    for(size_t i = 0 ;i<m_pVariableNode->getExpressionCount(); ++i)
     {
         getValue(a_ppMultipleDest[i]);
     }

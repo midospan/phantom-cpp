@@ -1036,7 +1036,9 @@
 #define o_owner                     0x01000000
 #define o_fixed_size                0x02000000
 #define o_deferred                  0x04000000
-#define o_custom_modifier_start     0x08000000
+#define o_invalid                   0x08000000
+#define o_stdcall                   0x10000000
+#define o_fastcall                  0x20000000
 
 #define o_none 0
 #define o_no_signal m_PHANTOM_RESERVED_no_signal
@@ -1233,6 +1235,8 @@ struct o_PP_CAT(static_warning,__LINE__) { \
 #   define o_debug_only(thing)
 #   define o_verify(_Expression, _Message)     _Expression
 #   define o_log(level, format, ...)           ::phantom::log BOOST_PREVENT_MACRO_SUBSTITUTION (level, __FILE__, __LINE__, format, __VA_ARGS__)
+#   define o_error(_Expression, _Message, ...)    \
+            {(void)( (!!(_Expression)) || (phantom::error BOOST_PREVENT_MACRO_SUBSTITUTION ( o_CS(#_Expression), phantom::to_astring(_Message).c_str(), __FILE__, __LINE__), 0) );}
 
 #endif // _DEBUG
 
@@ -1292,6 +1296,7 @@ application's life time");
 
 
 #    define o_signal_data_1(_signal_name_) \
+    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;\
     inline phantom::signal_t _signal_name_(void) const\
 {\
     phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
@@ -1303,136 +1308,135 @@ application's life time");
     phantom::connection::pair::pop();\
 }\
     return phantom::signal_t();\
-}\
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;
+}
 
 #    define o_signal_data_2(_signal_name_, _t0_) \
+    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;\
     inline phantom::signal_t _signal_name_(_t0_ a_0) const\
 {\
     phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
     while(pSlot)\
 {\
     phantom::connection::pair::push(this, pSlot);\
-    void* args[] = { (void*)(&a_0) };\
+    void* args[1] = { (void*)(&a_0) };\
     pSlot->subroutine()->call( pSlot->receiver(), args );\
     pSlot = pSlot->next();\
     phantom::connection::pair::pop();\
 }\
     return phantom::signal_t();\
-}\
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;
+}
 
 #    define o_signal_data_3(_signal_name_, _t0_, _t1_) \
+    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;\
     inline phantom::signal_t _signal_name_(_t0_ a_0, _t1_ a_1) const\
 {\
     phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
     while(pSlot)\
 {\
     phantom::connection::pair::push(this, pSlot);\
-    void* args[] = { (void*)(&a_0), (void*)(&a_1) };\
+    void* args[2] = { (void*)(&a_0), (void*)(&a_1) };\
     pSlot->subroutine()->call( pSlot->receiver(), args );\
     pSlot = pSlot->next();\
     phantom::connection::pair::pop();\
 }\
     return phantom::signal_t();\
-}\
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;
+}
 
 #    define o_signal_data_4(_signal_name_, _t0_, _t1_, _t2_) \
+    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;\
     inline phantom::signal_t _signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2) const\
 {\
     phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
     while(pSlot)\
 {\
     phantom::connection::pair::push(this, pSlot);\
-    void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2) };\
+    void* args[3] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2) };\
     pSlot->subroutine()->call( pSlot->receiver(), args );\
     pSlot = pSlot->next();\
     phantom::connection::pair::pop();\
 }\
     return phantom::signal_t();\
-}\
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;
+}
 
 #    define o_signal_data_5(_signal_name_, _t0_, _t1_, _t2_, _t3_) \
+    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;\
     inline phantom::signal_t _signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3) const\
 {\
     phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
     while(pSlot)\
 {\
     phantom::connection::pair::push(this, pSlot);\
-    void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3) };\
+    void* args[4] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3) };\
     pSlot->subroutine()->call( pSlot->receiver(), args );\
     pSlot = pSlot->next();\
     phantom::connection::pair::pop();\
 }\
     return phantom::signal_t();\
-}\
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;
+}
 
 #    define o_signal_data_6(_signal_name_, _t0_, _t1_, _t2_, _t3_, _t4_) \
+    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;\
     inline phantom::signal_t _signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3, _t4_ a_4) const\
 {\
     phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
     while(pSlot)\
 {\
     phantom::connection::pair::push(this, pSlot);\
-    void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4) };\
+    void* args[5] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4) };\
     pSlot->subroutine()->call( pSlot->receiver(), args );\
     pSlot = pSlot->next();\
     phantom::connection::pair::pop();\
 }\
     return phantom::signal_t();\
-}\
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;
+}
 
 #    define o_signal_data_7(_signal_name_, _t0_, _t1_, _t2_, _t3_, _t4_, _t5_) \
+    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;\
     inline phantom::signal_t _signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3, _t4_ a_4, _t5_ a_5) const\
 {\
     phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
     while(pSlot)\
 {\
     phantom::connection::pair::push(this, pSlot);\
-    void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4), (void*)(&a_5) };\
+    void* args[6] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4), (void*)(&a_5) };\
     pSlot->subroutine()->call( pSlot->receiver(), args );\
     pSlot = pSlot->next();\
     phantom::connection::pair::pop();\
 }\
     return phantom::signal_t();\
-}\
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;
+}
 
 #    define o_signal_data_8(_signal_name_, _t0_, _t1_, _t2_, _t3_, _t4_, _t5_, _t6_) \
+    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;\
     inline phantom::signal_t _signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3, _t4_ a_4, _t5_ a_5, _t6_ a_6) const\
 {\
     phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
     while(pSlot)\
 {\
     phantom::connection::pair::push(this, pSlot);\
-    void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4), (void*)(&a_5), (void*)(&a_6) };\
+    void* args[7] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4), (void*)(&a_5), (void*)(&a_6) };\
     pSlot->subroutine()->call( pSlot->receiver(), args );\
     pSlot = pSlot->next();\
     phantom::connection::pair::pop();\
 }\
     return phantom::signal_t();\
-}\
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;
+}
 
 #    define o_signal_data_9(_signal_name_, _t0_, _t1_, _t2_, _t3_, _t4_, _t5_, _t6_, _t7_) \
+    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;\
     inline phantom::signal_t _signal_name_(_t0_ a_0, _t1_ a_1, _t2_ a_2, _t3_ a_3, _t4_ a_4, _t5_ a_5, _t6_ a_6, _t7_ a_7) const\
 {\
     phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();\
     while(pSlot)\
 {\
     phantom::connection::pair::push(this, pSlot);\
-    void* args[] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4), (void*)(&a_5), (void*)(&a_6), (void*)(&a_7) };\
+    void* args[8] = { (void*)(&a_0), (void*)(&a_1), (void*)(&a_2), (void*)(&a_3), (void*)(&a_4), (void*)(&a_5), (void*)(&a_6), (void*)(&a_7) };\
     pSlot->subroutine()->call( pSlot->receiver(), args );\
     pSlot = pSlot->next();\
     phantom::connection::pair::pop();\
 }\
     return phantom::signal_t();\
-}\
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_;
+}
 
 
 
@@ -1441,7 +1445,7 @@ application's life time");
 #define o_global_value_SetupStepIndex_TemplateSignature         0
 #define o_global_value_SetupStepIndex_User_PreInheritance_1    1
 #define o_global_value_SetupStepIndex_User_PreInheritance_2    2
-#define o_global_value_SetupStepIndex_User_PreInheritance_3    3
+#define o_global_value_SetupStepIndex_VTable                    3
 #define o_global_value_SetupStepIndex_Inheritance                4  // (reserved)
 #define o_global_value_SetupStepIndex_User_PreMembers_1        5
 #define o_global_value_SetupStepIndex_User_PreMembers_2        6
@@ -1474,7 +1478,7 @@ application's life time");
 #define o_global_value_SetupStepBit_TemplateSignature       0x00000001 // 0
 #define o_global_value_SetupStepBit_User_PreInheritance_1    0x00000002 // 1
 #define o_global_value_SetupStepBit_User_PreInheritance_2    0x00000004 // 2
-#define o_global_value_SetupStepBit_User_PreInheritance_3    0x00000008 // 3
+#define o_global_value_SetupStepBit_VTable                  0x00000008 // 3
 #define o_global_value_SetupStepBit_Inheritance            0x00000010 // 4  (reserved)
 #define o_global_value_SetupStepBit_User_PreMembers_1        0x00000020 // 5
 #define o_global_value_SetupStepBit_User_PreMembers_2        0x00000040 // 6

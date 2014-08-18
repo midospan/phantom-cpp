@@ -37,13 +37,34 @@
 
 /* ****************** Includes ******************* */
 
-
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
 
 o_namespace_begin(phantom, state)
 
+struct state_compilation_data
+{
+    state_compilation_data() 
+        : m_pEnterMemberFunction(0)
+        , m_pUpdateMemberFunction(0)
+        , m_pLeaveMemberFunction(0)
+        , m_pEnterClosure(0)
+        , m_pUpdateClosure(0)
+        , m_pLeaveClosure(0)
+        , m_bCompiled(0)
+    {
+
+    }
+    reflection::closure_call_delegate   m_ClosureCallDelegate;
+    reflection::InstanceMemberFunction* m_pEnterMemberFunction;
+    reflection::InstanceMemberFunction* m_pUpdateMemberFunction;
+    reflection::InstanceMemberFunction* m_pLeaveMemberFunction;
+    void*                               m_pEnterClosure;
+    void*                               m_pUpdateClosure;
+    void*                               m_pLeaveClosure;
+    bool                                m_bCompiled;
+};
 
 class o_export State : public StateMachineElement
 {
@@ -90,9 +111,68 @@ public:
                     : 0;
     }
 
-    virtual generic_member_func_ptr   getEnterGenericMemberFunctionPointer() const = 0;
-    virtual generic_member_func_ptr   getUpdateGenericMemberFunctionPointer() const = 0;
-    virtual generic_member_func_ptr   getLeaveGenericMemberFunctionPointer() const = 0;
+    void copyHierarchy(StateMachine* a_pStateMachine, State* a_pSourceState);
+
+    reflection::InstanceMemberFunction* getEnterMemberFunction(void) const 
+    { 
+        o_assert(m_pCompilationData);
+        return m_pCompilationData->m_pEnterMemberFunction; 
+    }
+    reflection::InstanceMemberFunction* getUpdateMemberFunction(void) const 
+    { 
+        o_assert(m_pCompilationData);
+        return m_pCompilationData->m_pUpdateMemberFunction; 
+    }
+    reflection::InstanceMemberFunction* getLeaveMemberFunction(void) const 
+    { 
+        o_assert(m_pCompilationData);
+        return m_pCompilationData->m_pLeaveMemberFunction; 
+    }
+
+    reflection::InstanceMemberFunction* createEnterMemberFunction(void);
+    reflection::InstanceMemberFunction* createUpdateMemberFunction(void);
+    reflection::InstanceMemberFunction* createLeaveMemberFunction(void);
+
+    void setEnterClosure(void* a_pClosure)
+    {
+        o_assert(m_pCompilationData);
+        m_pCompilationData->m_pEnterClosure = a_pClosure;
+    }
+
+    void setLeaveClosure(void* a_pClosure)
+    {
+        o_assert(m_pCompilationData);
+        m_pCompilationData->m_pLeaveClosure = a_pClosure;
+    }
+
+    void setUpdateClosure(void* a_pClosure)
+    {
+        o_assert(m_pCompilationData);
+        m_pCompilationData->m_pUpdateClosure = a_pClosure;
+    }
+
+    virtual void*   getEnterClosure() const 
+    {
+        o_assert(m_pCompilationData);
+        return m_pCompilationData->m_pEnterClosure;
+    }
+
+    virtual void*   getUpdateClosure() const 
+    {
+        o_assert(m_pCompilationData);
+        return m_pCompilationData->m_pUpdateClosure;
+    }
+
+    virtual void*   getLeaveClosure() const 
+    {
+        o_assert(m_pCompilationData);
+        return m_pCompilationData->m_pLeaveClosure;
+    }
+
+    inline void enter( dynamic_state_machine_data* smdataptr );
+    inline void update( dynamic_state_machine_data* smdataptr );
+    inline void leave( dynamic_state_machine_data* smdataptr );
+    virtual variant compile(reflection::Compiler* a_pCompiler);
 
 protected:
     State(const string& a_strName, uint a_uiOrderingFactor, bitfield modifiers = 0);
@@ -109,6 +189,7 @@ protected:
     uint                m_uiKey;
     size_t              m_uiIndexInTrack;
     size_t              m_uiIndex;
+    state_compilation_data* m_pCompilationData;
 };
 
 o_namespace_end(phantom, state)

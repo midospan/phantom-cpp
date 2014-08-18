@@ -34,18 +34,21 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <phantom/reflection/ConstantExpression.h>
+#include <phantom/reflection/DataExpression.h>
 #include <phantom/reflection/ConstantExpression.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), ConstantExpression);
 o_namespace_begin(phantom, reflection) 
 
-ConstantExpression::ConstantExpression(Constant* a_pConstant, Expression* a_pChildExpression /*= nullptr*/)
-    : Expression(a_pConstant->getValueType(), a_pConstant->getQualifiedDecoratedName())
+ConstantExpression::ConstantExpression(Constant* a_pConstant, Expression* a_pChildExpression /*= nullptr*/, bool a_bOwnsConstant /*= false*/)
+    : Expression(a_pConstant->getValueType(), a_pConstant->getQualifiedDecoratedName(), 0)
     , m_pConstant(a_pConstant)
 {
-    addReferencedElement(m_pConstant);
+    //addReferencedElement(m_pConstant); // TODO : add o_native to Constant instead
     if(a_pChildExpression)
         addElement(a_pChildExpression);
+//     if(a_bOwnsConstant) // TODO : fix the native constant thing to avoid this leak
+//         addElement(m_pConstant);
 }
 
 void ConstantExpression::setValue( void const* a_pSrc ) const
@@ -56,6 +59,23 @@ void ConstantExpression::setValue( void const* a_pSrc ) const
 void ConstantExpression::getValue( void* a_pDest ) const
 {
     m_pConstant->getValue(a_pDest);
+}
+
+LanguageElement* ConstantExpression::hatch()
+{
+    Constant* pConstant = m_pConstant;
+    if(pConstant->getOwner() == this)
+    {
+        removeElement(pConstant);
+    }
+    phantom::deleteElement(this);
+    return pConstant;
+}
+
+ConstantExpression* ConstantExpression::clone() const
+{
+    // TODO : add clone function to Constant
+    return o_new(ConstantExpression)(m_pConstant, (getElementCount() == 2) ? getElement(0)->asExpression()->clone() : nullptr, false);
 }
 
 o_namespace_end(phantom, reflection)

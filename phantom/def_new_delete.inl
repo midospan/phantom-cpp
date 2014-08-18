@@ -153,8 +153,8 @@ struct o_export new_helper
     template<typename t_Ty>
     o_forceinline t_Ty*    operator>>(t_Ty* instance)
     {
-        phantom::extension::installer<t_Ty>::install(instance, 0);
-        phantom::extension::initializer<t_Ty>::initialize(instance);
+        phantom::extension::installer<t_Ty>::install(typeOf<t_Ty>(), instance, 0);
+        phantom::extension::initializer<t_Ty>::initialize(typeOf<t_Ty>(), instance);
         return instance;
     }
 };
@@ -173,8 +173,8 @@ struct o_export new_n_helper
         while(count--)
         {
             phantom::extension::constructor<t_Ty>::construct(pChunk);
-            phantom::extension::installer<t_Ty>::install(pChunk, 0);
-            phantom::extension::initializer<t_Ty>::initialize(pChunk);
+            phantom::extension::installer<t_Ty>::install(typeOf<t_Ty>(), pChunk, 0);
+            phantom::extension::initializer<t_Ty>::initialize(typeOf<t_Ty>(), pChunk);
             ++pChunk;
         }
         return instance;
@@ -218,8 +218,8 @@ struct delete_helper
     template <typename _Tyy>
     o_forceinline void    operator>>(_Tyy* instance)
     {
-        phantom::extension::initializer<t_Ty>::terminate(static_cast<t_Ty*>(instance));
-        phantom::extension::installer<t_Ty>::uninstall(static_cast<t_Ty*>(instance), 0);
+        phantom::extension::initializer<t_Ty>::terminate(typeOf<t_Ty>(), static_cast<t_Ty*>(instance));
+        phantom::extension::installer<t_Ty>::uninstall(typeOf<t_Ty>(), static_cast<t_Ty*>(instance), 0);
         phantom::extension::constructor<t_Ty>::destroy(static_cast<t_Ty*>(instance));
         phantom::extension::allocator<t_Ty>::deallocate(static_cast<t_Ty*>(instance) o_memory_stat_append_parameters_use);
     }
@@ -249,8 +249,8 @@ public:
         size_t i = count;
         while(i--)
         {
-            phantom::extension::initializer<t_Ty>::terminate(pChunk);
-            phantom::extension::installer<t_Ty>::uninstall(pChunk, 0);
+            phantom::extension::initializer<t_Ty>::terminate(typeOf<t_Ty>(), pChunk);
+            phantom::extension::installer<t_Ty>::uninstall(typeOf<t_Ty>(), pChunk, 0);
             phantom::extension::constructor<t_Ty>::destroy(pChunk);
             ++pChunk;
         }

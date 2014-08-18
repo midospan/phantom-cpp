@@ -80,9 +80,11 @@ namespace connection
         }
         o_forceinline static void pop() { o_assert(stack_pointer > -1); --stack_pointer; }
 
-    private:
+    public:
         o_forceinline pair() {}
         o_forceinline pair(void* s, slot* slt) : sender(s), connected_slot(slt) {}
+
+    protected:
         static pair     stack[eMaxStackSize];
         static int32    stack_pointer;
     };
@@ -300,8 +302,6 @@ namespace connection
         slot_allocator* slotAllocator;
     };
 }
-
-
 
 o_namespace_end(phantom)
 

@@ -27,12 +27,11 @@ namespace qt {
     void ClassComboBox::addClass( reflection::Class* a_pClass )
     {
         if((m_iFilter & e_FilterBit_AllowNonDefaultConstructible) 
-            OR (a_pClass->isDefaultInstanciable()))
+            OR (a_pClass->Type::isDefaultInstanciable()))
         {
-            string name = a_pClass->getMetaDataValue(getNameMetaDataIndex());
-            if(name.empty()) name = a_pClass->getName();
-            string icon = a_pClass->getMetaDataValue(getIconMetaDataIndex());
-            addItem(QIcon(icon.c_str())
+            string name = nameOf(a_pClass);
+            QIcon icon = QIcon(iconOf(a_pClass).c_str());
+            addItem(icon
                 , name.c_str()
                 , QVariant((size_t)a_pClass));
         }

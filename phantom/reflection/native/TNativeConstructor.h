@@ -37,7 +37,7 @@
 
 
 /* ****************** Includes ******************* */
-#include "Constructor.h"
+
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection, native)
@@ -48,15 +48,13 @@ o_namespace_begin(phantom, reflection, native)
 template<typename _Signature>
 class TNativeConstructor;
 
-
 template<typename t_Ty>
 class TNativeConstructor<t_Ty()> : public Constructor
 {
 public:
     typedef TNativeConstructor<t_Ty()>    self_type;
-    TNativeConstructor(){}
     TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
-        : Constructor(a_strName, a_pSignature, a_Modifiers)
+        : Constructor(a_strName, a_pSignature, a_Modifiers|o_native)
     {
 
     }
@@ -66,39 +64,9 @@ public:
     { 
         o_proxy_delete(phantom::reflection::Constructor, self_type) this;
     }
-
-    virtual void            construct(void* a_pAddress, argument::list* a_pParams)
+    virtual void            call(void* a_pAddress, void** a_pParams) const
     {
         new (a_pAddress) t_Ty();
-    }
-    virtual void            construct(void* a_pAddress, void** a_pParams)
-    {
-        new (a_pAddress) t_Ty();
-    }
-    virtual void            destroy(void* a_pAddress)
-    {
-        static_cast<t_Ty*>(a_pAddress)->~t_Ty();
-    }
-    virtual void            construct(void* a_pAddress, argument::list* a_pParams, size_t a_uiCount)
-    {
-        while(a_uiCount--)
-        {    
-            new (static_cast<t_Ty*>(a_pAddress)++) t_Ty();
-        }
-    }
-    virtual void            construct(void* a_pAddress, void** a_pParams, size_t a_uiCount)
-    {
-        while(a_uiCount--)
-        {    
-            new (static_cast<t_Ty*>(a_pAddress)++) t_Ty();
-        }
-    }
-    virtual void            destroy(void* a_pAddress, size_t a_uiCount)
-    {
-        while(a_uiCount--)
-        {
-            (static_cast<t_Ty*>(a_pAddress)++)->~t_Ty();
-        }
     }
 
 };
@@ -108,10 +76,10 @@ class TNativeConstructor<t_Ty(t_Param0)> : public Constructor
 {
 public:
     typedef TNativeConstructor<t_Ty(t_Param0)> self_type;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
 
-    TNativeConstructor(){}
     TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
-        : Constructor(a_strName, a_pSignature, a_Modifiers)
+        : Constructor(a_strName, a_pSignature, a_Modifiers|o_native)
     {
     }
     virtual boolean         isNative() const { return true; }
@@ -119,39 +87,9 @@ public:
     { 
         o_proxy_delete(phantom::reflection::Constructor, self_type) this;
     }
-    
-    virtual void            construct(void* a_pAddress, argument::list* a_pParams)
-    {
-        new (a_pAddress) t_Ty(static_cast<argument::list_1<t_Param0>*>(a_pParams)->p0);
-    }
-    virtual void            construct(void* a_pAddress, void** a_pParams)
+    virtual void            call(void* a_pAddress, void** a_pParams) const
     {
         new (a_pAddress) t_Ty(*static_cast<t_Param0*>(a_pParams[0]));
-    }
-    virtual void            destroy(void* a_pObject)
-    {
-        static_cast<t_Ty*>(a_pObject)->~t_Ty();
-    }
-    virtual void            construct(void* a_pAddress, argument::list* a_pParams, size_t a_uiCount)
-    {
-        while(a_uiCount--)
-        {    
-            new (static_cast<t_Ty*>(a_pAddress)++) t_Ty(static_cast<argument::list_1<t_Param0>*>(a_pParams)->p0);
-        }
-    }
-    virtual void            construct(void* a_pAddress, void** a_pParams, size_t a_uiCount)
-    {
-        while(a_uiCount--)
-        {    
-            new (static_cast<t_Ty*>(a_pAddress)++) t_Ty(*static_cast<t_Param0*>(a_pParams[0]));
-        }
-    }
-    virtual void            destroy(void* a_pAddress, size_t a_uiCount)
-    {
-        while(a_uiCount--)
-        {
-            (static_cast<t_Ty*>(a_pAddress)++)->~t_Ty();
-        }
     }
 };
 
@@ -162,9 +100,40 @@ class TNativeConstructor<t_Ty(t_Param0,t_Param1)> : public Constructor
 public:
     typedef TNativeConstructor<t_Ty(t_Param0,t_Param1)> self_type;
 
-    TNativeConstructor(){}
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
+
     TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
-        : Constructor(a_strName, a_pSignature, a_Modifiers)
+        : Constructor(a_strName, a_pSignature, a_Modifiers|o_native)
+    {
+    }
+    virtual boolean         isNative() const { return true; }
+
+    virtual void            deleteNow() 
+    { 
+        o_proxy_delete(phantom::reflection::Constructor, self_type) this;
+    }
+
+    virtual void            call(void* a_pAddress, void** a_pParams) const
+    {
+        new (a_pAddress) t_Ty(*static_cast<t_Param0_noref*>(a_pParams[0])
+                                , *static_cast<t_Param1_noref*>(a_pParams[1]));
+    }
+};
+
+
+template<typename t_Ty, typename t_Param0, typename t_Param1, typename t_Param2>
+class TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2)> : public Constructor
+{
+public:
+    typedef TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2)> self_type;
+
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
+
+    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Constructor(a_strName, a_pSignature, a_Modifiers|o_native)
     {
     }
     virtual boolean      isNative() const { return true; }
@@ -173,44 +142,334 @@ public:
         o_proxy_delete(phantom::reflection::Constructor, self_type) this;
     }
 
-    virtual void            construct(void* a_pAddress, argument::list* a_pParams)
+    virtual void            call(void* a_pAddress, void** a_pParams) const
     {
-        new (a_pAddress) t_Ty(static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p0
-                                , static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p1);
-    }
-    virtual void            construct(void* a_pAddress, void** a_pParams)
-    {
-        new (a_pAddress) t_Ty(*static_cast<t_Param0*>(a_pParams[0])
-                                , *static_cast<t_Param1*>(a_pParams[1]));
-    }
-    virtual void            destroy(void* a_pObject)
-    {
-        static_cast<t_Ty*>(a_pObject)->~t_Ty();
-    }
-    virtual void            construct(void* a_pAddress, argument::list* a_pParams, size_t a_uiCount)
-    {
-        while(a_uiCount--)
-        {    
-            new (static_cast<t_Ty*>(a_pAddress)++) t_Ty(
-                    static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p0
-                    , static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p1
+        new (a_pAddress) t_Ty(*static_cast<t_Param0_noref*>(a_pParams[0])
+                            , *static_cast<t_Param1_noref*>(a_pParams[1])
+                            , *static_cast<t_Param2_noref*>(a_pParams[2])
             );
-        }
     }
-    virtual void            construct(void* a_pAddress, void** a_pParams, size_t a_uiCount)
+};
+
+template<typename t_Ty
+    , typename t_Param0
+    , typename t_Param1
+    , typename t_Param2
+    , typename t_Param3
+>
+class TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3)> : public Constructor
+{
+public:
+    typedef TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3)> self_type;
+
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
+
+
+    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Constructor(a_strName, a_pSignature, a_Modifiers|o_native)
     {
-        while(a_uiCount--)
-        {    
-            new (static_cast<t_Ty*>(a_pAddress)++) t_Ty(*static_cast<t_Param0*>(a_pParams[0])
-                                                            , *static_cast<t_Param1*>(a_pParams[1]));
-        }
     }
-    virtual void            destroy(void* a_pAddress, size_t a_uiCount)
+    virtual boolean      isNative() const { return true; }
+    virtual void            deleteNow() 
+    { 
+        o_proxy_delete(phantom::reflection::Constructor, self_type) this;
+    }
+
+    virtual void            call(void* a_pAddress, void** a_pParams) const
     {
-        while(a_uiCount--)
-        {
-            (static_cast<t_Ty*>(a_pAddress)++)->~t_Ty();
-        }
+        new (a_pAddress) t_Ty(*static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            );
+    }
+};
+
+template<typename t_Ty
+    , typename t_Param0
+    , typename t_Param1
+    , typename t_Param2
+    , typename t_Param3
+    , typename t_Param4
+>
+class TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4)> : public Constructor
+{
+public:
+    typedef TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4)> self_type;
+
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
+
+
+    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Constructor(a_strName, a_pSignature, a_Modifiers|o_native)
+    {
+    }
+    virtual boolean      isNative() const { return true; }
+    virtual void            deleteNow() 
+    { 
+        o_proxy_delete(phantom::reflection::Constructor, self_type) this;
+    }
+
+    virtual void            call(void* a_pAddress, void** a_pParams) const
+    {
+        new (a_pAddress) t_Ty(*static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            , *static_cast<t_Param4_noref*>(a_pParams[4])
+            );
+    }
+};
+
+template<typename t_Ty
+    , typename t_Param0
+    , typename t_Param1
+    , typename t_Param2
+    , typename t_Param3
+    , typename t_Param4
+    , typename t_Param5
+>
+class TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5)> : public Constructor
+{
+public:
+    typedef TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5)> self_type;
+
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
+
+
+    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Constructor(a_strName, a_pSignature, a_Modifiers|o_native)
+    {
+    }
+    virtual boolean      isNative() const { return true; }
+    virtual void            deleteNow() 
+    { 
+        o_proxy_delete(phantom::reflection::Constructor, self_type) this;
+    }
+
+    virtual void            call(void* a_pAddress, void** a_pParams) const
+    {
+        new (a_pAddress) t_Ty(*static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            , *static_cast<t_Param4_noref*>(a_pParams[4])
+            , *static_cast<t_Param5_noref*>(a_pParams[5])
+            );
+    }
+};
+
+template<typename t_Ty
+    , typename t_Param0
+    , typename t_Param1
+    , typename t_Param2
+    , typename t_Param3
+    , typename t_Param4
+    , typename t_Param5
+    , typename t_Param6
+>
+class TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)> : public Constructor
+{
+public:
+    typedef TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)> self_type;
+
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
+
+
+    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Constructor(a_strName, a_pSignature, a_Modifiers|o_native)
+    {
+    }
+    virtual boolean      isNative() const { return true; }
+    virtual void            deleteNow() 
+    { 
+        o_proxy_delete(phantom::reflection::Constructor, self_type) this;
+    }
+
+    virtual void            call(void* a_pAddress, void** a_pParams) const
+    {
+        new (a_pAddress) t_Ty(*static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            , *static_cast<t_Param4_noref*>(a_pParams[4])
+            , *static_cast<t_Param5_noref*>(a_pParams[5])
+            , *static_cast<t_Param6_noref*>(a_pParams[6])
+            );
+    }
+};
+
+template<typename t_Ty
+    , typename t_Param0
+    , typename t_Param1
+    , typename t_Param2
+    , typename t_Param3
+    , typename t_Param4
+    , typename t_Param5
+    , typename t_Param6
+    , typename t_Param7
+>
+class TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)> : public Constructor
+{
+public:
+    typedef TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)> self_type;
+
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param7>::type t_Param7_noref;
+
+
+    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Constructor(a_strName, a_pSignature, a_Modifiers|o_native)
+    {
+    }
+    virtual boolean      isNative() const { return true; }
+    virtual void            deleteNow() 
+    { 
+        o_proxy_delete(phantom::reflection::Constructor, self_type) this;
+    }
+
+    virtual void            call(void* a_pAddress, void** a_pParams) const
+    {
+        new (a_pAddress) t_Ty(*static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            , *static_cast<t_Param4_noref*>(a_pParams[4])
+            , *static_cast<t_Param5_noref*>(a_pParams[5])
+            , *static_cast<t_Param6_noref*>(a_pParams[6])
+            , *static_cast<t_Param7_noref*>(a_pParams[7])
+            );
+    }
+};
+
+template<typename t_Ty
+    , typename t_Param0
+    , typename t_Param1
+    , typename t_Param2
+    , typename t_Param3
+    , typename t_Param4
+    , typename t_Param5
+    , typename t_Param6
+    , typename t_Param7
+    , typename t_Param8
+>
+class TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7,t_Param8)> : public Constructor
+{
+public:
+    typedef TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7,t_Param8)> self_type;
+
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param7>::type t_Param7_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param8>::type t_Param8_noref;
+
+
+    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Constructor(a_strName, a_pSignature, a_Modifiers|o_native)
+    {
+    }
+    virtual boolean      isNative() const { return true; }
+    virtual void            deleteNow() 
+    { 
+        o_proxy_delete(phantom::reflection::Constructor, self_type) this;
+    }
+
+    virtual void            call(void* a_pAddress, void** a_pParams) const
+    {
+        new (a_pAddress) t_Ty(*static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            , *static_cast<t_Param4_noref*>(a_pParams[4])
+            , *static_cast<t_Param5_noref*>(a_pParams[5])
+            , *static_cast<t_Param6_noref*>(a_pParams[6])
+            , *static_cast<t_Param7_noref*>(a_pParams[7])
+            , *static_cast<t_Param8_noref*>(a_pParams[8])
+            );
+    }
+};
+
+template<typename t_Ty
+    , typename t_Param0
+    , typename t_Param1
+    , typename t_Param2
+    , typename t_Param3
+    , typename t_Param4
+    , typename t_Param5
+    , typename t_Param6
+    , typename t_Param7
+    , typename t_Param8
+    , typename t_Param9
+>
+class TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7,t_Param8,t_Param9)> : public Constructor
+{
+public:
+    typedef TNativeConstructor<t_Ty(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7,t_Param8,t_Param9)> self_type;
+
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param7>::type t_Param7_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param8>::type t_Param8_noref;
+    typedef o_NESTED_TYPE boost::remove_reference<t_Param9>::type t_Param9_noref;
+
+
+    TNativeConstructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+        : Constructor(a_strName, a_pSignature, a_Modifiers|o_native)
+    {
+    }
+    virtual boolean      isNative() const { return true; }
+    virtual void            deleteNow() 
+    { 
+        o_proxy_delete(phantom::reflection::Constructor, self_type) this;
+    }
+
+    virtual void            call(void* a_pAddress, void** a_pParams) const
+    {
+        new (a_pAddress) t_Ty(*static_cast<t_Param0_noref*>(a_pParams[0])
+                            , *static_cast<t_Param1_noref*>(a_pParams[1])
+                            , *static_cast<t_Param2_noref*>(a_pParams[2])
+                            , *static_cast<t_Param3_noref*>(a_pParams[3])
+                            , *static_cast<t_Param4_noref*>(a_pParams[4])
+                            , *static_cast<t_Param5_noref*>(a_pParams[5])
+                            , *static_cast<t_Param6_noref*>(a_pParams[6])
+                            , *static_cast<t_Param7_noref*>(a_pParams[7])
+                            , *static_cast<t_Param8_noref*>(a_pParams[8])
+                            , *static_cast<t_Param9_noref*>(a_pParams[9])
+            );
     }
 };
 

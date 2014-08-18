@@ -35,7 +35,7 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/ArrayType.h>
 #include <phantom/reflection/ArrayType.hxx>
-#include <phantom/reflection/ConstArrayType.h>
+#include "phantom/reflection/ArrayElementAccess.h"
 /* *********************************************** */
 o_registerN((phantom, reflection), ArrayType);
 
@@ -44,7 +44,7 @@ o_namespace_begin(phantom, reflection)
 o_define_meta_type(ArrayType);
 
 ArrayType::ArrayType( Type* a_pElementType, size_t a_uiCount ) 
-    : Type(e_array, a_pElementType->getName()+'['+phantom::lexical_cast<string>(m_uiCount)+']'
+    : Type(e_array, a_pElementType->getName()+'['+phantom::lexical_cast<string>(a_uiCount)+']'
 , a_uiCount*a_pElementType->getSize(), a_pElementType->getAlignment())    
 , m_pElementType(a_pElementType)
 , m_uiCount(a_uiCount)
@@ -55,9 +55,13 @@ ArrayType::ArrayType( Type* a_pElementType, size_t a_uiCount )
 
 boolean ArrayType::isConvertibleTo( Type* a_pType ) const
 {
-    if(a_pType == this) return true;
+    return a_pType->asDataPointerType() OR a_pType->asArrayType() OR isImplicitlyConvertibleTo(a_pType);
+}
+
+boolean ArrayType::isImplicitlyConvertibleTo( Type* a_pType ) const
+{
+    if(a_pType == this OR m_pElementType->pointerType()->isImplicitlyConvertibleTo(a_pType)) return true;
     if(a_pType->asArrayType() == nullptr) return false;
-    if(a_pType == phantom::typeOf<void*>()) return true;
     Type*    pElementType = static_cast<ArrayType*>(a_pType)->getElementType();
     if((pElementType->asClass() == nullptr) OR (m_pElementType->asClass() == nullptr)) return false;
     return static_cast<Class*>(pElementType)->isKindOf(static_cast<Class*>(m_pElementType));
@@ -72,11 +76,6 @@ void ArrayType::serialize( void const* a_pInstance, property_tree& a_OutBranch, 
 void ArrayType::deserialize( void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
 {
     m_pElementType->deserialize(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_InBranch, a_uiSerializationMask, a_pDataBase);
-}
-
-Type* ArrayType::createConstType() const
-{
-    return o_new(ConstArrayType)(const_cast<ArrayType*>(this));
 }
 
 void ArrayType::copy( void* a_pDest, void const* a_pSrc ) const
@@ -94,6 +93,40 @@ void ArrayType::referencedElementRemoved( LanguageElement* a_pElement )
     Type::referencedElementRemoved(a_pElement);
     if(m_pElementType == a_pElement)
         m_pElementType = nullptr;
+}
+
+Expression* ArrayType::solveOperator( const string& a_strOperator, const vector<Expression*>& a_Expressions, bitfield a_Modifiers ) const
+{
+    if(a_strOperator == "[]" AND a_Expressions.size() == 2)
+    {
+        if(a_Expressions[0]->getValueType()->removeReference()->removeConst() == this)
+        {
+            if(a_Expressions[1]->getValueType()->isConvertibleTo(typeOf<size_t>()))
+            {
+                if(a_Modifiers.isBitSet(o_const))
+                {
+                    return o_new(ArrayElementAccess)( constType(), a_Expressions[0], a_Expressions[1]);
+                }
+                else 
+                {
+                    return o_new(ArrayElementAccess)( const_cast<ArrayType*>(this), a_Expressions[0], a_Expressions[1]);
+                }
+            }
+        }
+    }
+    return Type::solveOperator(a_strOperator, a_Expressions, a_Modifiers);
+}
+
+void ArrayType::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const
+{
+    if(a_pDestType->asPointerType())
+    {
+        m_pElementType->pointerType()->convertValueTo(a_pDestType, a_pDestValue, &a_pSrcValue);
+    }
+    else 
+    {
+
+    }
 }
 
 

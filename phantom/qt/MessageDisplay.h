@@ -41,11 +41,25 @@ public:
 
     o_initialize();
 
-    void setMessageTree(MessageTree* a_pMessageTree);
+    void setRootMessage(Message* a_pMessage);
+
+    void addListenedMessage(Message* a_pMessage)
+    {
+        o_connect(a_pMessage, descendantAdded(Message*), this, listenedMessageChanged());
+        o_connect(a_pMessage, descendantRemoved(Message*), this, listenedMessageChanged());
+    }
+
+    void removeListenedMessage(Message* a_pMessage)
+    {
+        o_disconnect(a_pMessage, descendantAdded(Message*), this, listenedMessageChanged());
+        o_disconnect(a_pMessage, descendantRemoved(Message*), this, listenedMessageChanged());
+    }
 
 protected:
     MessageDisplayItem* getItem(Message* a_pMessage) const;
     MessageDisplayItem* getItem(Message* a_pMessage, MessageDisplayItem* a_pParentItem) const;
+
+    void listenedMessageChanged();
 
 protected:
     void addNodeItem(Message* a_pNode);
@@ -58,7 +72,7 @@ protected slots:
     void slotItemDoubleClicked(QTreeWidgetItem*, int);
 
 protected:
-    MessageTree* m_pMessageTree;
+    Message* m_pRootMessage;
 
 };
 

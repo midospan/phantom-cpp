@@ -14,8 +14,9 @@ public:
     typedef vector2<t_Ty> self_type;
 	// Construction.
 	vector2 ();  // uninitialized
-	vector2 (const self_type& vec);
-	vector2 (t_Ty x, t_Ty y);
+    vector2 (const self_type& vec);
+    vector2 (t_Ty x, t_Ty y);
+    vector2 (t_Ty s);
 		
 	// Assignment.
 	o_forceinline self_type& operator= (const self_type& vec);

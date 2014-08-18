@@ -13,13 +13,14 @@ class vector3
 public:
 	typedef vector3<t_Ty> self_type;
 	// Construction.
-	vector3 ();  // uninitialized
-	vector3 (const self_type & vec);
-	vector3 (t_Ty s);
-	vector3 (t_Ty x, t_Ty y, t_Ty z);
+	inline vector3 ();  // uninitialized
+	inline vector3 (const self_type & vec);
+	inline vector3 (t_Ty s);
+	inline vector3 (t_Ty x, t_Ty y, t_Ty z);
 		
 	// Assignment.
-	self_type& operator= (const self_type& vec);
+    inline self_type& operator= (const self_type& vec);
+    inline self_type& operator= (t_Ty s);
 		
 	// Arithmetic operations.
 	inline self_type  operator+ (const self_type & vec) const;

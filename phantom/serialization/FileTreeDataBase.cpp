@@ -38,6 +38,7 @@
 #include <phantom/serialization/FileTreeNode.h>
 #include <phantom/serialization/FileTreeDataBase.h>
 #include <phantom/serialization/FileTreeDataBase.hxx>
+#include <phantom/serialization/FileTreeTrashbin.h>
 #include <windows.h>
 #include <Lmcons.h>
 #include <stdio.h>
@@ -142,32 +143,36 @@ void FileTreeDataBase::moveNodeEntry( Node* a_pNode, Node* a_pNewParent )
         , nodePath(a_pNode, a_pNode->getGuid(), a_pNewParent).c_str());
 }
 
-phantom::string FileTreeDataBase::nodePath( Node* a_pNode, uint a_Guid, Node* a_pParent ) const
+phantom::string FileTreeDataBase::relativeNodePath( Node* a_pNode, uint a_Guid, Node* a_pParent ) const
 {
     string path = a_pParent
-        ? nodePath(a_pParent, a_pParent->getGuid(), a_pParent->getParentNode()) 
-        : getUrl();
-    path += "/[";
+        ? relativeNodePath(a_pParent, a_pParent->getGuid(), a_pParent->getParentNode()) 
+        : "";
+    if(!path.empty())
+        path += '/';
+    path += "[";
     path += phantom::lexical_cast<string>(reinterpret_cast<void*>(a_Guid));
     path += "]";
     return path;
 }
 
-string FileTreeDataBase::nodePath( Node* a_pNode ) const
+phantom::string FileTreeDataBase::relativeNodePath( Node* a_pNode ) const
 {
-    return nodePath(a_pNode, a_pNode->getGuid(), a_pNode->getParentNode());
+    return relativeNodePath(a_pNode, getGuid(a_pNode), a_pNode->getParentNode());
 }
 
-phantom::string FileTreeDataBase::dataPath( const phantom::data& a_Data, uint a_Guid, Node* a_pParent ) const
+phantom::string FileTreeDataBase::relativeDataPath( const phantom::data& a_Data, uint a_Guid, Node* a_pParent ) const
 {
     o_assert(a_Guid != 0xffffffff);
     FileTreeNode* pNode = phantom::as<FileTreeNode*>(a_pParent);
     o_assert(pNode, "No valid FileTreeNode associated with the data");
-    string path = nodePath(pNode, pNode->getGuid(), pNode->getParentNode());
-    path += "/[";
+    string path = relativeNodePath(pNode, pNode->getGuid(), pNode->getParentNode());
+    if(!path.empty())
+        path += '/';
+    path += "[";
     path += phantom::lexical_cast<string>(reinterpret_cast<void*>(a_Guid));
     path += "]";
-    
+
     const string& ext = dataFileExtension(a_Data.address());
     if(NOT(ext.empty()))
     {
@@ -177,6 +182,25 @@ phantom::string FileTreeDataBase::dataPath( const phantom::data& a_Data, uint a_
     return path;
 }
 
+string FileTreeDataBase::relativeDataPath( const phantom::data& a_Data ) const
+{
+    return relativeDataPath(a_Data, getGuid(a_Data), getNode(a_Data));
+}
+
+phantom::string FileTreeDataBase::nodePath( Node* a_pNode, uint a_Guid, Node* a_pParent ) const
+{
+    return getUrl() + '/' + relativeNodePath(a_pNode, a_Guid, a_pParent);
+}
+
+string FileTreeDataBase::nodePath( Node* a_pNode ) const
+{
+    return nodePath(a_pNode, a_pNode->getGuid(), a_pNode->getParentNode());
+}
+
+phantom::string FileTreeDataBase::dataPath( const phantom::data& a_Data, uint a_Guid, Node* a_pParent ) const
+{
+    return getUrl() + '/' + relativeDataPath(a_Data, a_Guid, a_pParent);
+}
 
 boolean FileTreeDataBase::hasNodeEntry( Node* a_pNode ) const
 {
@@ -279,6 +303,11 @@ void FileTreeDataBase::generateGuidHelper( const boost::filesystem::path& a_Path
             generateGuidHelper(child_path, guids);
         }
     }
+}
+
+Trashbin* FileTreeDataBase::createTrashBin( const string& a_strUrl ) const
+{
+    return o_new(FileTreeTrashbin)(const_cast<FileTreeDataBase*>(this), a_strUrl);
 }
 
 o_namespace_end(phantom, serialization)

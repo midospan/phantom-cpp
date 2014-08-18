@@ -8,9 +8,64 @@
 #include <boost/spirit/include/lex_lexertl.hpp>
 #include <boost/spirit/include/lex_lexertl_position_token.hpp>
 #include <boost/spirit/include/lex_static_lexertl.hpp>
+#include <boost/spirit/home/qi/numeric/uint.hpp>
+#include <boost/spirit/include/classic_position_iterator.hpp>
 
 #define OR ||
 #define AND &&
+
+namespace boost { namespace spirit { namespace traits 
+{ 
+    template <typename Iterator> 
+    struct assign_to_attribute_from_iterators< 
+        phantom::reflection::cpp::hex_t, Iterator> 
+    { 
+        static void call(Iterator const& first, Iterator const& last, 
+            phantom::reflection::cpp::hex_t& attr) 
+        { 
+            unsigned long long x; 
+            qi::parse(first, last, "0x" >> qi::hex, x); 
+            attr = phantom::reflection::cpp::hex_t(x); 
+        } 
+    }; 
+/*
+
+#define o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(type)                      \
+    template <typename Iterator>                                                                        \
+    struct assign_to_attribute_from_iterators<                                                          \
+        type, classic::position_iterator<Iterator>>                                                     \
+    {                                                                                                   \
+        typedef classic::position_iterator<Iterator> iterator_t;                                        \
+        static void call(iterator_t const& first, iterator_t const& last,                               \
+            type& attr)                                                                                 \
+        {                                                                                               \
+            auto firstPos = first.get_position();                                                       \
+            auto lastPos = last.get_position();                                                         \
+            std::string str(first.base(), last.base());                                                 \
+            std::cout<<firstPos.line<<'|'<<firstPos.column<<" - "<<lastPos.line<<'|'<<lastPos.column<<" : "<<str<<std::endl;\
+            assign_to_attribute_from_iterators<type, Iterator>::call(first.base(), last.base(), attr);  \
+        }                                                                                               \
+    }; 
+
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(phantom::string                );
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(char                           );
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(int                            );
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(unsigned int                   );
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(long                           );
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(unsigned long                  );
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(long long                      );
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(unsigned long long             );
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(phantom::reflection::cpp::hex_t);
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(float                          );
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(double                         );
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(long double                    );
+    o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(bool                           );
+*/
+
+
+
+}}} 
+
 
 o_namespace_begin(phantom, reflection, cpp)
 
@@ -34,6 +89,7 @@ namespace detail
                                   , unsigned long
                                   , long long
                                   , unsigned long long
+                                  , hex_t
                                   , float
                                   , double
                                   , long double
@@ -119,13 +175,10 @@ public:
 
     lex::token_def<string> t_identifier;
     lex::token_def<string> t_string;
-    lex::token_def<int> t_int;
     lex::token_def<unsigned int> t_uint;
     lex::token_def<char> t_char;
-    lex::token_def<long> t_long;
     lex::token_def<unsigned long> t_ulong;
-    lex::token_def<unsigned long> t_hex;
-    lex::token_def<int> t_longlong;
+    lex::token_def<hex_t> t_hex;
     lex::token_def<unsigned int> t_ulonglong;
     lex::token_def<long double> t_longdouble;
     lex::token_def<double> t_double;
@@ -134,24 +187,38 @@ public:
 
     keyword_map_type m_keywords;
     std::set<token_ids::type> m_unicity_checker;
+    size_t m_keyword_id_pool;
 };
+
+template <typename t_BaseIterator>
+bool lexer<t_BaseIterator>::add_keyword(std::string const& keyword)
+{
+    // add the token to the lexer
+    token_ids::type id = token_ids::type(m_keyword_id_pool++);
+    o_assert(m_unicity_checker.insert(id).second && id < 256);
+    this->self.add(keyword, id);
+
+    // store the mapping for later retrieval
+    std::pair<typename keyword_map_type::iterator, bool> p =
+        m_keywords.insert(typename keyword_map_type::value_type(keyword, id));
+
+    return p.second;
+}
 
 template <typename t_BaseIterator>
 lexer<t_BaseIterator>::lexer()
     : t_identifier("[a-zA-Z_][a-zA-Z_0-9]*", token_ids::identifier)
     , t_true_or_false("true|false", token_ids::true_or_false)
-    , t_hex("0[xX][0-9a-fA-F]+", token_ids::ulonglong_literal)
-    , t_longdouble("[\\-\\+]?[0-9]*\\.[0-9]+([eE][\\-\\+]?[0-9]+)?L", token_ids::longdouble_literal)   
-    , t_double("[\\-\\+]?[0-9]*\\.[0-9]+([eE][\\-\\+]?[0-9]+)?", token_ids::double_literal)      
-    , t_float("[\\-\\+]?[0-9]*\\.([0-9]+([eE][\\-\\+]?[0-9]+)?)?f", token_ids::float_literal)        
-    , t_uint("[\\+]?[0-9]+", token_ids::uint_literal)  
-    , t_int("\\-[0-9]+", token_ids::int_literal)              
-    , t_ulong ("[\\+]?[0-9]+U?L", token_ids::ulong_literal)  
-    , t_long ("\\-[0-9]+L", token_ids::long_literal) 
+    , t_hex("0[xX][0-9a-fA-F]+", token_ids::hex_ulonglong_literal)
+    , t_longdouble("[0-9]*\\.[0-9]+([eE][\\-\\+]?[0-9]+)?L", token_ids::longdouble_literal)   
+    , t_double("[0-9]*\\.[0-9]+([eE][\\-\\+]?[0-9]+)?", token_ids::double_literal)      
+    , t_float("[0-9]*\\.([0-9]+([eE][\\-\\+]?[0-9]+)?)?f", token_ids::float_literal)        
+    , t_uint("[0-9]+", token_ids::uint_literal)            
+    , t_ulong ("[0-9]+U?L", token_ids::ulong_literal)  
     , t_ulonglong ("[\\+]?[0-9]+U?LL", token_ids::ulonglong_literal)  
-    , t_longlong ("\\-[0-9]+LL", token_ids::longlong_literal) 
     , t_string("\\\"([^\\\"\\\\]|\\\\.)*\\\"", token_ids::string_literal)
-    , t_char("\\'[.^\n\r\\\\']|\\\\.\\'", token_ids::char_literal)
+    , t_char("'([^\n\r\\\\']|\\\\|\\.)'", token_ids::char_literal)
+    , m_keyword_id_pool(token_ids::first_keyword_id)
 {
     o_assert(m_unicity_checker.insert(token_ids::invalid                        ).second);
     o_assert(m_unicity_checker.insert(token_ids::plus                           ).second);
@@ -210,7 +277,8 @@ lexer<t_BaseIterator>::lexer()
     o_assert(m_unicity_checker.insert(token_ids::whitespace                     ).second);
     o_assert(m_unicity_checker.insert(token_ids::float_literal                  ).second);
     o_assert(m_unicity_checker.insert(token_ids::double_literal                 ).second);
-    o_assert(m_unicity_checker.insert(token_ids::longdouble_literal             ).second);
+    o_assert(m_unicity_checker.insert(token_ids::longdouble_literal             ).second)
+    o_assert(m_unicity_checker.insert(token_ids::hex_ulonglong_literal             ).second);
     o_assert(m_unicity_checker.insert(token_ids::int_literal                    ).second);
     o_assert(m_unicity_checker.insert(token_ids::uint_literal                   ).second);
     o_assert(m_unicity_checker.insert(token_ids::long_literal                   ).second);
@@ -229,19 +297,18 @@ lexer<t_BaseIterator>::lexer()
     this->self += t_float;
     this->self += t_double;
     this->self += t_uint;
-    this->self += t_int;
     this->self += t_ulong;
-    this->self += t_long;
     this->self += t_ulonglong;
-    this->self += t_longlong;
 
     add_keyword("auto");
     add_keyword("bool");
     add_keyword("break");
+    add_keyword("case");
     add_keyword("char");
     add_keyword("class");
     add_keyword("const");
     add_keyword("continue");
+    add_keyword("default");
     add_keyword("do");
     add_keyword("double");
     add_keyword("else");
@@ -253,6 +320,8 @@ lexer<t_BaseIterator>::lexer()
     add_keyword("int");
     add_keyword("long");
     add_keyword("namespace");
+    add_keyword("nullptr");
+    add_keyword("mutable");
     add_keyword("operator");
     add_keyword("private");
     add_keyword("protected");
@@ -262,6 +331,7 @@ lexer<t_BaseIterator>::lexer()
     add_keyword("signed");
     add_keyword("static");
     add_keyword("struct");
+    add_keyword("switch");
     add_keyword("template");
     add_keyword("this");
     add_keyword("typedef");
@@ -272,7 +342,7 @@ lexer<t_BaseIterator>::lexer()
     add_keyword("while");
 
     this->self.add
-        ("\\=", token_ids::assign                     )
+        ("\\=",    token_ids::assign                  )
         ("\\+\\=", token_ids::plus_assign             )
         ("\\-\\=", token_ids::minus_assign            )
         ("\\*\\=", token_ids::times_assign            )
@@ -287,12 +357,13 @@ lexer<t_BaseIterator>::lexer()
         ("\\-\\-", token_ids::minus_minus             )
         ("\\+", token_ids::plus                       )
         ("\\-", token_ids::minus                      )
-        ("\\,", token_ids::comma                      )
+ //       (",", token_ids::comma                      )
         ("\\|\\|", token_ids::logical_or              )
         ("&&", token_ids::logical_and                 )
         ("\\|", token_ids::bit_or                     )
         ("\\^", token_ids::bit_xor                    )
         ("&", token_ids::bit_and                      )
+        ("@", token_ids::arobase                      )
         ("==", token_ids::equal                       )
         ("!=", token_ids::not_equal                   )
         ("<=", token_ids::less_equal                  )
@@ -310,21 +381,20 @@ lexer<t_BaseIterator>::lexer()
         ("\\->\\*", token_ids::minus_greater_star     )
         ("~", token_ids::compl_                       )
         ("!", token_ids::not_                         )
-        ("\\[\\]", token_ids::brackets                )
-        ("\\(\\)", token_ids::parenthesis             )
-        ("\\(", token_ids::left_paren                 )
-        ("\\)", token_ids::right_paren                )
-        ("\\[", token_ids::left_bracket               )
-        ("\\]", token_ids::right_bracket              )
-        ("\\{", token_ids::left_brace                 )
-        ("\\}", token_ids::right_brace                )
-        ("\\;", token_ids::semi_colon                 )
+//         ("\\(", token_ids::left_paren                 )
+//         ("\\)", token_ids::right_paren                )
+//         ("\\[", token_ids::left_bracket               )
+//         ("\\]", token_ids::right_bracket              )
+//         ("\\{", token_ids::left_brace                 )
+//         ("\\}", token_ids::right_brace                )
+//         ("\\;", token_ids::semi_colon                 )
         ("\\:\\:", token_ids::double_colon            )
-        ("\\:", token_ids::colon                      )
     ;
 
     this->self += t_string;
     this->self += t_char;
+
+    this->self += lex::char_('(') | ')' | '{' | '}' | ',' | ';' | '=' | '[' | ']' | ':' | '?';
     
     this->self +=
             t_identifier
@@ -341,21 +411,6 @@ lexer<t_BaseIterator>::lexer()
                 lex::_pass = lex::pass_flags::pass_ignore
             ]
         ;
-}
-
-template <typename t_BaseIterator>
-bool lexer<t_BaseIterator>::add_keyword(std::string const& keyword)
-{
-    // add the token to the lexer
-    token_ids::type id = token_ids::type(this->get_next_id());
-    o_assert(m_unicity_checker.insert(id).second);
-    this->self.add(keyword, id);
-
-    // store the mapping for later retrieval
-    std::pair<typename keyword_map_type::iterator, bool> p =
-        m_keywords.insert(typename keyword_map_type::value_type(keyword, id));
-
-    return p.second;
 }
 
 o_namespace_end(phantom, reflection, cpp)

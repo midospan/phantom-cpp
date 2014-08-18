@@ -16,31 +16,33 @@ class vector4
 		vector4 ();  // uninitialized
 		vector4 (const vector4<t_Ty>& vec);
 		vector4 (const vector3<t_Ty>& xyz, t_Ty w);
-		vector4 (t_Ty x, t_Ty y, t_Ty z, t_Ty w);
+        vector4 (t_Ty x, t_Ty y, t_Ty z, t_Ty w);
+        vector4 (t_Ty s);
 
 		// Assignment.
-		vector4<t_Ty>& operator= (const vector4<t_Ty>& vec);
+        self_type& operator= (const self_type& vec);
+        self_type& operator= (t_Ty);
 
 		// Arithmetic operations.
-		o_forceinline vector4<t_Ty> operator+ (const vector4<t_Ty>& vec) const;
-        o_forceinline vector4<t_Ty> operator- (const vector4<t_Ty>& vec) const;
-        o_forceinline vector4<t_Ty> operator* (const vector4<t_Ty>& vec) const;
-        o_forceinline vector4<t_Ty> operator/ (const vector4<t_Ty>& vec) const;
-        o_forceinline vector4<t_Ty> operator+ (t_Ty scalar) const;
-        o_forceinline vector4<t_Ty> operator- (t_Ty scalar) const;
-		o_forceinline vector4<t_Ty> operator* (t_Ty scalar) const;
-		o_forceinline vector4<t_Ty> operator/ (t_Ty scalar) const;
-		o_forceinline vector4<t_Ty> operator- () const;
+		o_forceinline self_type operator+ (const self_type& vec) const;
+        o_forceinline self_type operator- (const self_type& vec) const;
+        o_forceinline self_type operator* (const self_type& vec) const;
+        o_forceinline self_type operator/ (const self_type& vec) const;
+        o_forceinline self_type operator+ (t_Ty scalar) const;
+        o_forceinline self_type operator- (t_Ty scalar) const;
+		o_forceinline self_type operator* (t_Ty scalar) const;
+		o_forceinline self_type operator/ (t_Ty scalar) const;
+		o_forceinline self_type operator- () const;
 
 		// Arithmetic updates.
-		o_forceinline vector4<t_Ty>& operator+= (const vector4<t_Ty>& vec);
-        o_forceinline vector4<t_Ty>& operator-= (const vector4<t_Ty>& vec);
-        o_forceinline vector4<t_Ty>& operator*= (const vector4<t_Ty>& vec);
-        o_forceinline vector4<t_Ty>& operator/= (const vector4<t_Ty>& vec);
-        o_forceinline vector4<t_Ty>& operator+= (t_Ty scalar);
-        o_forceinline vector4<t_Ty>& operator-= (t_Ty scalar);
-        o_forceinline vector4<t_Ty>& operator*= (t_Ty scalar);
-        o_forceinline vector4<t_Ty>& operator/= (t_Ty scalar);
+		o_forceinline self_type& operator+= (const self_type& vec);
+        o_forceinline self_type& operator-= (const self_type& vec);
+        o_forceinline self_type& operator*= (const self_type& vec);
+        o_forceinline self_type& operator/= (const self_type& vec);
+        o_forceinline self_type& operator+= (t_Ty scalar);
+        o_forceinline self_type& operator-= (t_Ty scalar);
+        o_forceinline self_type& operator*= (t_Ty scalar);
+        o_forceinline self_type& operator/= (t_Ty scalar);
 
 		o_forceinline const vector3<t_Ty>& xyz() const { return *((const vector3<t_Ty>*)this); }
 		o_forceinline vector3<t_Ty>& xyz() { return *((vector3<t_Ty>*)this); }
@@ -71,16 +73,16 @@ class vector4
 		o_forceinline t_Ty normalize ();
 
 		// Compute the axis-aligned bounding box of the points.
-		static void computeExtremes (int numVectors, const vector4<t_Ty>* vectors,
-				vector4<t_Ty>& vmin, vector4<t_Ty>& vmax);
+		static void computeExtremes (int numVectors, const self_type* vectors,
+				self_type& vmin, self_type& vmax);
 
 		// Special vectors.
-		o_export static const vector4<t_Ty> ZERO;
-		o_export static const vector4<t_Ty> UNIT_X;  // (1,0,0,0)
-		o_export static const vector4<t_Ty> UNIT_Y;  // (0,1,0,0)
-		o_export static const vector4<t_Ty> UNIT_Z;  // (0,0,1,0)
-		o_export static const vector4<t_Ty> UNIT_W;  // (0,0,0,1)
-		o_export static const vector4<t_Ty> ONE;     // (1,1,1,1)
+		o_export static const self_type ZERO;
+		o_export static const self_type UNIT_X;  // (1,0,0,0)
+		o_export static const self_type UNIT_Y;  // (0,1,0,0)
+		o_export static const self_type UNIT_Z;  // (0,0,1,0)
+		o_export static const self_type UNIT_W;  // (0,0,0,1)
+		o_export static const self_type ONE;     // (1,1,1,1)
 
 
 		o_forceinline const t_Ty&  operator[](unsigned int i) const   

@@ -83,20 +83,13 @@ public:
     virtual boolean     isConvertibleTo(Type* a_pType) const;
     virtual void        convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;
 
-    virtual void        copy(void* a_pDest, void const* a_pSrc) const 
-    {
-        *static_cast<void**>(a_pDest) = *static_cast<void* const*>(a_pSrc);
-    }
+    virtual void        copy(void* a_pDest, void const* a_pSrc) const;
     
-    virtual void        valueFromString(const string& a_str, void* dest) const
-    {
-        *reinterpret_cast<void**>(dest) = ::phantom::lexical_cast<void*>(a_str);
-    }
+    virtual void        valueFromString(const string& a_str, void* dest) const;
 
-    virtual void        valueToString(string& a_str, const void* src) const
-    {
-        a_str += ::phantom::lexical_cast<string>(*((void**)(src)));;
-    }
+    virtual void        valueToString(string& a_str, const void* src) const;
+
+    virtual void        valueToLiteral(string& a_str, const void* src) const;
 
     virtual void        serialize(void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
 
@@ -121,36 +114,35 @@ public:
 
     virtual void        remember(void const* a_pInstance, byte*& a_pOutBuffer) const
     {
-        phantom::extension::resetter<void*>::remember((void* const*)a_pInstance, a_pOutBuffer);
+        phantom::extension::resetter<void*>::remember(const_cast<DataPointerType*>(this), (void* const*)a_pInstance, a_pOutBuffer);
     }
 
     virtual void        reset(void* a_pInstance, byte const*& a_pInBuffer) const
     {
-        phantom::extension::resetter<void*>::reset((void**)a_pInstance, a_pInBuffer);
+        phantom::extension::resetter<void*>::reset(const_cast<DataPointerType*>(this), (void**)a_pInstance, a_pInBuffer);
     }
 
     virtual void        remember(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) const
     {
-        phantom::extension::resetter<void*>::remember((void* const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
+        phantom::extension::resetter<void*>::remember(const_cast<DataPointerType*>(this), (void* const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
     }
 
     virtual void        reset(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) const
     {
-        phantom::extension::resetter<void*>::reset((void**)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
+        phantom::extension::resetter<void*>::reset(const_cast<DataPointerType*>(this), (void**)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
     }
 
     virtual Type*      removePointer() const { return m_pPointedType; }
-
-    Type*              createConstType() const;
 
     virtual string     getDecoratedName() const { return m_pPointedType->getDecoratedName()+'*'; }
     virtual string     getQualifiedDecoratedName() const { return m_pPointedType->getQualifiedDecoratedName()+'*'; }
 
     virtual bool       referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
 
-    virtual void       fetchReferencedData(const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask) const;
+    virtual void       fetchPointerReferenceExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask ) const;
     virtual bool       isCopyable() const { return true; }
 
+    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const;
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);
 

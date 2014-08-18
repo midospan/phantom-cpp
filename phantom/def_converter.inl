@@ -1,14 +1,14 @@
 
 
 template<typename t_Ty>
-struct default_converter_enum 
+struct default_converter_integral 
 {
     // By default converter just copy
-    static void convert(reflection::Type* a_pDestType, void* a_pDestValue, const t_Ty* a_pSrcValue)
+    static void convert(reflection::Type* a_pType, reflection::Type* a_pDestType, void* a_pDestValue, const t_Ty* a_pSrcValue)
     {
-        if(a_pDestType == typeOf<t_Ty>()) 
+        if(a_pDestType == a_pType) 
         {
-            copier<t_Ty>::copy((t_Ty*)a_pDestValue, a_pSrcValue); 
+            a_pType->copy((t_Ty*)a_pDestValue, a_pSrcValue); 
             return;
         }
         else 
@@ -32,24 +32,25 @@ struct default_converter_enum
 #pragma warning(disable:4800)
                 case reflection::e_bool: *((bool*)a_pDestValue) = (bool)*a_pSrcValue; return;
 #pragma warning(default:4800)
+                case reflection::e_pointer: *((void**)a_pDestValue) = (void*)*a_pSrcValue; return;
                 default:
                     break;
             }
         }
-        o_exception(exception::reflection_runtime_exception, "Cannot convert types");
+        return default_converter_helper<t_Ty, false>::convert(a_pType, a_pDestType, a_pDestValue, a_pSrcValue);
     }
-    static bool isConvertibleTo(reflection::Type* a_pType)
+    static bool isConvertibleTo(reflection::Type* a_pType, reflection::Type* a_pDestType)
     {
-        return ((a_pType->getTypeId() >= reflection::e_char) AND (a_pType->getTypeId() <= reflection::e_enum));
+        return ((a_pDestType->getTypeId() >= reflection::e_char) AND (a_pDestType->getTypeId() <= reflection::e_enum)) OR a_pDestType->getTypeId() == reflection::e_pointer;
     }
-    static bool isImplicitlyConvertibleTo(reflection::Type* a_pType)
+    static bool isImplicitlyConvertibleTo(reflection::Type* a_pType, reflection::Type* a_pDestType)
     {
-        return a_pType == typeOf<t_Ty>() OR ((a_pType->getTypeId() >= reflection::e_char) AND (a_pType->getTypeId() <= reflection::e_wchar_t));
+        return a_pDestType == a_pType OR ((a_pDestType->getTypeId() >= reflection::e_char) AND (a_pDestType->getTypeId() <= reflection::e_wchar_t));
     }
 };
 
 template<typename t_Ty, bool is_enum>
-struct default_converter_helper : public default_converter_enum<t_Ty>
+struct default_converter_helper : public default_converter_integral<t_Ty>
 {
 };
 
@@ -57,7 +58,7 @@ template<typename t_Ty>
 struct default_converter_helper<t_Ty, false>
 {
     // By default converter just copy
-    static void convert(reflection::Type* a_pDestType, void* a_pDestValue, const t_Ty* a_pSrcValue)
+    static void convert(reflection::Type* a_pType, reflection::Type* a_pDestType, void* a_pDestValue, const t_Ty* a_pSrcValue)
     {
         reflection::ReferenceType* pRefType = a_pDestType->asReferenceType();
         if(pRefType)
@@ -65,27 +66,27 @@ struct default_converter_helper<t_Ty, false>
             pRefType->getReferencedType()->copy(a_pDestValue, a_pSrcValue); // for references, copy address to dest
         }
         // By default just copy
-        else copier<t_Ty>::copy((t_Ty*)a_pDestValue, a_pSrcValue);
+        else a_pType->copy((t_Ty*)a_pDestValue, a_pSrcValue);
 
     }
-    static bool isConvertibleTo(reflection::Type* a_pDestType)
+    static bool isConvertibleTo(reflection::Type* a_pType, reflection::Type* a_pDestType)
     {
-        if(a_pDestType->removeConst() == reflection::Types::get<t_Ty>()->removeConst()) return !has_copy_disabled<t_Ty>::value;
+        if(a_pDestType->removeConst() == a_pType->removeConst()) return !a_pType->hasCopyDisabled();
         reflection::ReferenceType* pRefType = a_pDestType->asReferenceType();
         if(pRefType AND pRefType->getReferencedType()->asReferenceType()) return false;
-        return pRefType AND isConvertibleTo(pRefType->getReferencedType()) AND !has_copy_disabled<t_Ty>::value;
+        return pRefType AND isConvertibleTo(a_pType, pRefType->getReferencedType()) AND !a_pType->hasCopyDisabled();
     }
-    static bool isImplicitlyConvertibleTo(reflection::Type* a_pDestType)
+    static bool isImplicitlyConvertibleTo(reflection::Type* a_pType, reflection::Type* a_pDestType)
     {
-        if(a_pDestType->removeConst() == reflection::Types::get<t_Ty>()->removeConst()) return !has_copy_disabled<t_Ty>::value;
+        if(a_pDestType->removeConst() == a_pType->removeConst()) return a_pType->isCopyConstructible();
         reflection::ReferenceType* pRefType = a_pDestType->asReferenceType();
         if(pRefType AND pRefType->getReferencedType()->asReferenceType()) return false;
-        return pRefType AND isImplicitlyConvertibleTo(pRefType->getReferencedType()) AND !has_copy_disabled<t_Ty>::value;
+        return pRefType AND isImplicitlyConvertibleTo(a_pType, pRefType->getReferencedType()) AND !a_pType->hasCopyDisabled();
     }
 };
 
 template<typename t_Ty>
-struct default_converter : public default_converter_helper<t_Ty, boost::is_enum<t_Ty>::value>
+struct default_converter : public default_converter_helper<t_Ty, boost::is_integral<t_Ty>::value OR boost::is_enum<t_Ty>::value>
 {
 
 };

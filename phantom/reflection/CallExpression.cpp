@@ -2,68 +2,119 @@
 #include "phantom/phantom.h"
 #include "CallExpression.h"
 #include "CallExpression.hxx"
+#include "AddressExpression.h"
+#include "ExpressionStatement.h"
+#include "Block.h"
+#include "Compiler.h"
 /* *********************************************** */
 o_registerN((phantom, reflection), CallExpression);
 
 o_namespace_begin(phantom, reflection)
+
+string CallExpression::evaluateName( Subroutine* a_pSubroutine, Expression* a_pArgument )
+{
+    vector<Expression*> expressions;
+    expressions.push_back(a_pArgument);
+    return evaluateName(a_pSubroutine, expressions);
+}
 
 string CallExpression::evaluateName( Subroutine* a_pSubroutine, const vector<Expression*>& a_Arguments )
 {
     string name;
     if(a_pSubroutine->asInstanceMemberFunction())
     {
+        name += '(';
         name += a_Arguments[0]->getName();
+        name += ')';
         name += '.';
         name += a_pSubroutine->getName();
+        name += '(';
         if(a_Arguments.size() > 1)
         {
-            name += '(';
             for(size_t i = 1; i<a_Arguments.size(); ++i)
             {
+                if(i != 1)
+                    name += ',';
                 name += a_Arguments[i]->getName();
             }
-            name += ')';
         }
+        name += ')';
     }
     else 
     {
         name += a_pSubroutine->getName();
+        name += '(';
         if(a_Arguments.size())
         {
-            name += '(';
             for(size_t i = 0; i<a_Arguments.size(); ++i)
             {
+                if(i != 1)
+                    name += ',';
                 name += a_Arguments[i]->getName();
             }
-            name += ')';
         }
+        name += ')';
     }
     return name;
 }
 
 
-CallExpression::CallExpression( Subroutine* a_pSubroutine, const vector<Expression*>& a_Arguments ) 
-    : Expression(a_pSubroutine->getReturnType(), evaluateName(a_pSubroutine, a_Arguments), 0)
+CallExpression::CallExpression( Subroutine* a_pSubroutine, const vector<Expression*>& a_Arguments, Type* a_pConstructedType ) 
+    : Expression(a_pConstructedType ? a_pConstructedType : a_pSubroutine->getReturnType()
+                , evaluateName(a_pSubroutine, a_Arguments)
+                , 0)
     , m_pSubroutine(a_pSubroutine)
     , m_Arguments(a_Arguments)
     , m_pReturnStorage(nullptr)
 {
+    
+}
 
-    Type* pStorageType = storageType(m_pValueType);
+CallExpression::CallExpression( Subroutine* a_pSubroutine, Expression* a_pArgument, Type* a_pConstructedType ) 
+    : Expression(a_pConstructedType ? a_pConstructedType : a_pSubroutine->getReturnType()
+    , evaluateName(a_pSubroutine, a_pArgument)
+    , 0)
+    , m_pSubroutine(a_pSubroutine)
+    , m_pReturnStorage(nullptr)
+{
+    m_Arguments.push_back(a_pArgument);
+}
+
+o_initialize_cpp(CallExpression)
+{
+    addReferencedElement(m_pSubroutine);
+    Type* pStorageType = storageType(m_pSubroutine->getReturnType());
     if(pStorageType)
     {
         m_pReturnStorage = pStorageType->allocate();
-        pStorageType->construct(m_pReturnStorage);
-        pStorageType->install(m_pReturnStorage);
-        pStorageType->initialize(m_pReturnStorage);
+    }
+    bool isInstanceMemberFunction = (m_pSubroutine->asInstanceMemberFunction() != nullptr);
+    o_assert(m_Arguments.size() == (m_pSubroutine->getParameterCount()+isInstanceMemberFunction));
+    m_TempValues.resize(m_Arguments.size(), nullptr);
+    m_ConvertedArguments.resize(m_Arguments.size(), nullptr);
+    Type* pThisPointerType = nullptr;
+    if(isInstanceMemberFunction)
+    {
+        pThisPointerType = m_pSubroutine->getOwner()->asClassType();
+        if(m_pSubroutine->isConst())
+        {
+            pThisPointerType = pThisPointerType->constType()->referenceType();
+        }
+        else 
+        {
+            pThisPointerType = pThisPointerType->referenceType();
+        }
     }
 
-    m_TempValues.resize(m_Arguments.size(), nullptr);
-    for(size_t i = 0; i<m_Arguments.size(); ++i)
+    size_t i = m_Arguments.size();
+    while(i--)
     {
-        Expression* pArgument = m_Arguments[i];
-        addElement(pArgument);
-        if(NOT(pArgument->isAddressable()))
+        Expression* pArgument = m_ConvertedArguments[i] = m_Arguments[i]->implicitCast( (isInstanceMemberFunction AND (i == 0)) 
+            ? pThisPointerType
+            : m_pSubroutine->getParameterType(i-isInstanceMemberFunction) );
+        o_assert(pArgument);
+        addElement(pArgument); // add elements in evaluation order
+        if(NOT(pArgument->hasValueStorage()))
         {
             pStorageType = storageType(pArgument->getValueType());
             void* pTempValue = pStorageType->allocate();
@@ -75,10 +126,10 @@ CallExpression::CallExpression( Subroutine* a_pSubroutine, const vector<Expressi
     }
 }
 
-CallExpression::~CallExpression() 
+void CallExpression::terminate() 
 {
     // Release temp buffers
-    Type* pStorageType = storageType(m_pValueType);
+    Type* pStorageType = storageType(m_pSubroutine->getReturnType());
     if(pStorageType)
     {
         pStorageType->terminate(m_pReturnStorage);
@@ -86,11 +137,10 @@ CallExpression::~CallExpression()
         pStorageType->destroy(m_pReturnStorage);
         pStorageType->deallocate(m_pReturnStorage);
     }
-    for(size_t i = 0; i<m_Arguments.size(); ++i)
+    for(size_t i = 0; i<m_ConvertedArguments.size(); ++i)
     {
-        Expression* pArgument = m_Arguments[i];
-        addElement(pArgument);
-        if(NOT(pArgument->isAddressable()))
+        Expression* pArgument = m_ConvertedArguments[i];
+        if(NOT(pArgument->hasValueStorage()))
         {
             void* pTempValue = m_TempValues[i];
             pStorageType = storageType(pArgument->getValueType());
@@ -100,19 +150,20 @@ CallExpression::~CallExpression()
             pStorageType->deallocate(pTempValue);
         }
     }
+    Expression::terminate();
 }
 
 void CallExpression::getValue( void* a_pDest ) const
 {
     vector<void*> addresses;
-    addresses.resize(m_Arguments.size());
-    size_t i = m_Arguments.size();
+    addresses.resize(m_ConvertedArguments.size());
+    size_t i = m_ConvertedArguments.size();
     while(i--) // evaluate arguments from right to left
     {
-        Expression* pArgument = m_Arguments[i];
-        if(pArgument->isAddressable())
+        Expression* pArgument = m_ConvertedArguments[i];
+        if(pArgument->hasValueStorage())
         {
-            addresses[i] = pArgument->getAddress();
+            addresses[i] = pArgument->getValueStorageAddress();
         }
         else 
         {
@@ -120,28 +171,39 @@ void CallExpression::getValue( void* a_pDest ) const
             addresses[i] = m_TempValues[i];
         }
     }
-    if(m_pReturnStorage)
+
+    if(m_pReturnStorage AND m_pSubroutine->getReturnType() == m_pValueType)
+    {
+        Type* pStorageType = storageType(m_pSubroutine->getReturnType());
+        // Default construct the return storage
+        pStorageType->construct(m_pReturnStorage);
+        pStorageType->install(m_pReturnStorage);
+        pStorageType->initialize(m_pReturnStorage);
         m_pSubroutine->call(addresses.data(), a_pDest);
+    }
     else // void call
+    {
         m_pSubroutine->call(addresses.data());
+    }
+
 }
 
 void CallExpression::setValue( void const* a_pSrc ) const
 {
-    m_pValueType->copy(getAddress(), a_pSrc);
-    for(auto it = m_Arguments.begin(); it != m_Arguments.end(); ++it)
+    m_pValueType->copy(getValueStorageAddress(), a_pSrc);
+    for(auto it = m_ConvertedArguments.begin(); it != m_ConvertedArguments.end(); ++it)
     {
         (*it)->flush();
     }
 }
 
-void* CallExpression::getAddress() const
+void* CallExpression::getValueStorageAddress() const
 {
     getValue(m_pReturnStorage);
     return m_pReturnStorage;
 }
 
-void CallExpression::flush()
+void CallExpression::flush() const
 {
     for(auto it = m_Arguments.begin(); it != m_Arguments.end(); ++it)
     {
@@ -149,15 +211,69 @@ void CallExpression::flush()
     }
 }
 
-Type* CallExpression::storageType(Type* a_pType)
+void CallExpression::call() const
 {
-    Type* pStorageType = a_pType;
-    if(pStorageType == typeOf<void>()) return nullptr;
-    if(pStorageType->asReferenceType())
+    vector<void*> addresses;
+    addresses.resize(m_ConvertedArguments.size());
+    size_t i = m_ConvertedArguments.size();
+    while(i--) // evaluate arguments from right to left
     {
-        pStorageType = pStorageType->asReferenceType()->getReferencedType()->pointerType();
+        Expression* pArgument = m_ConvertedArguments[i];
+        if(pArgument->hasValueStorage())
+        {
+            addresses[i] = pArgument->getValueStorageAddress();
+        }
+        else 
+        {
+            pArgument->getValue(m_TempValues[i]);
+            addresses[i] = m_TempValues[i];
+        }
     }
-    return pStorageType;
+    m_pSubroutine->call(addresses.data(), m_pReturnStorage);
+    flush();
+}
+
+variant CallExpression::compile( Compiler* a_pCompiler )
+{
+    return a_pCompiler->compile(this);
+}
+
+void CallExpression::ancestorChanged( LanguageElement* a_pLanguageElement )
+{
+    if(m_pBlock == nullptr)
+    {
+        m_pBlock = getBlock();
+        if(m_pBlock)
+        {
+            if(NOT(getValueType()->asPOD()) AND getValueType()->asClassType())
+            {
+                vector<Expression*> arguments;
+                arguments.push_back(o_new(AddressExpression)(const_cast<CallExpression*>(this)));
+                m_pBlock->addRAIIDestructionStatement(
+                    o_new(ExpressionStatement)(
+                        o_new(CallExpression)(getValueType()->asClassType()->getDestructor(), arguments)
+                    )
+                );
+            }
+        }
+    }
+}
+
+LanguageElement* CallExpression::hatch()
+{
+    Subroutine* pSubroutine = m_pSubroutine;
+    phantom::deleteElement(this);
+    return pSubroutine;
+}
+
+Expression* CallExpression::clone() const
+{
+    vector<Expression*> clonedExpressions;
+    for(auto it = m_Arguments.begin(); it != m_Arguments.end(); ++it)
+    {
+        clonedExpressions.push_back((*it)->clone());
+    }
+    return o_new(CallExpression)(m_pSubroutine, clonedExpressions, (m_pSubroutine->getReturnType() != m_pValueType) ? m_pValueType : nullptr);
 }
 
 o_namespace_end(phantom, reflection)

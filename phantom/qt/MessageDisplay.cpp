@@ -2,7 +2,6 @@
 #include <phantom/qt/qt.h>
 #include "MessageDisplay.h"
 #include "MessageDisplay.hxx"
-#include <phantom/util/MessageTree.h>
 #include <phantom/util/Message.h>
 /* *********************************************** */
 o_registerN((phantom, qt), MessageDisplay);
@@ -10,7 +9,7 @@ o_registerN((phantom, qt), MessageDisplay);
 namespace phantom { namespace qt {
     
 MessageDisplay::MessageDisplay( void ) 
-: m_pMessageTree( nullptr )
+: m_pRootMessage( nullptr )
 {
     setColumnCount(1);
     QStringList headerLabels;
@@ -24,32 +23,32 @@ o_initialize_cpp(MessageDisplay)
     
 }
 
-void MessageDisplay::setMessageTree(MessageTree* a_pMessageTree)
+void MessageDisplay::setRootMessage(Message* a_pMessage)
 {
-    if(m_pMessageTree == a_pMessageTree) return;
-    if(m_pMessageTree)
+    if(m_pRootMessage == a_pMessage) return;
+    if(m_pRootMessage)
     {
         size_t i = 0;
-        size_t count = m_pMessageTree->getRootMessage()->getChildCount();
+        size_t count = m_pRootMessage->getChildCount();
         for(;i<count;++i)
         {
-            Message* pChild = m_pMessageTree->getRootMessage()->getChild(i);
+            Message* pChild = m_pRootMessage->getChild(i);
             removeNodeItem(pChild);
         }
-        o_disconnect(m_pMessageTree->getRootMessage(), childAdded(Message*), this, addNodeItem(Message*));
-        o_disconnect(m_pMessageTree->getRootMessage(), childRemoved(Message*), this, removeNodeItem(Message*));
+        o_disconnect(m_pRootMessage, childAdded(Message*), this, addNodeItem(Message*));
+        o_disconnect(m_pRootMessage, childRemoved(Message*), this, removeNodeItem(Message*));
         Q_ASSERT(this->topLevelItemCount() == 0);
     }
-    m_pMessageTree = a_pMessageTree;
-    if(m_pMessageTree)
+    m_pRootMessage = a_pMessage;
+    if(m_pRootMessage)
     {
-        o_connect(m_pMessageTree->getRootMessage(), childAdded(Message*), this, addNodeItem(Message*));
-        o_connect(m_pMessageTree->getRootMessage(), childRemoved(Message*), this, removeNodeItem(Message*));
+        o_connect(m_pRootMessage, childAdded(Message*), this, addNodeItem(Message*));
+        o_connect(m_pRootMessage, childRemoved(Message*), this, removeNodeItem(Message*));
         size_t i = 0;
-        size_t count = m_pMessageTree->getRootMessage()->getChildCount();
+        size_t count = m_pRootMessage->getChildCount();
         for(;i<count;++i)
         {
-            Message* pChild = m_pMessageTree->getRootMessage()->getChild(i);
+            Message* pChild = m_pRootMessage->getChild(i);
             addNodeItem(pChild);
         }
     }
@@ -100,7 +99,7 @@ void MessageDisplay::addNodeItem( Message* a_pNode )
     }
     else
     {
-        o_assert(a_pNode->getParent() == m_pMessageTree->getRootMessage());
+        o_assert(a_pNode->getParent() == m_pRootMessage);
         addTopLevelItem(pItem);
     }
     size_t i = 0;
@@ -143,6 +142,13 @@ void MessageDisplay::slotItemDoubleClicked( QTreeWidgetItem* a_pItem, int )
     pMessage->open();
 }
 
+void MessageDisplay::listenedMessageChanged()
+{
+    Message* pMessage = as<Message*>(connection::sender());
+    o_assert(pMessage);
+    setRootMessage(pMessage);
+}
+
 
 MessageDisplayItem::MessageDisplayItem( Message* a_pNode ) : m_pMessage(a_pNode)
 {
@@ -155,16 +161,16 @@ void MessageDisplayItem::updateLook()
     setText(0,  message ? message->getText().c_str() : "");
     switch(m_pMessage->getMostValuableMessageType())
     {
-    case Message::e_Type_Error:
+    case e_MessageType_Error:
         setIcon(0, QIcon(":/../../bin/resources/icons/exclamation.png"));
         break;
-    case Message::e_Type_Warning:
+    case e_MessageType_Warning:
         setIcon(0, QIcon(":/../../bin/resources/icons/error.png"));
         break;
-    case Message::e_Type_Information:
+    case e_MessageType_Information:
         setIcon(0, QIcon(":/../../bin/resources/icons/information.png"));
         break;
-    case Message::e_Type_Success:
+    case e_MessageType_Success:
         setIcon(0, QIcon(":/../../bin/resources/icons/accept.png"));
         break;
     }

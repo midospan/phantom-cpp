@@ -72,6 +72,7 @@ public:
     TemplateElement*    getDefaultArgument(const string& a_strParameterName) const;
 
     string              getQualifiedName() const;
+    string              getQualifiedDecoratedName() const;
 
     boolean             matches(const vector<TemplateElement*>* a_TemplateSpecialization) const;
   

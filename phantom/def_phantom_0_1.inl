@@ -17,7 +17,7 @@ o_namespace_begin(phantom, extension)
     template<>\
 struct converter<s>\
 {\
-    static void convert(reflection::Type* a_pDestType, void* dest, const s* src)\
+    static void convert(reflection::Type* a_pType, reflection::Type* a_pDestType, void* dest, const s* src)\
 {\
     o_phantom_extension_fundamental_converter_case(bool)\
             else o_phantom_extension_fundamental_converter_case(char)\
@@ -38,26 +38,26 @@ struct converter<s>\
     switch(a_pDestType->getSize())\
 {\
     case 1:\
-    convert(phantom::reflection::Types::get<unsigned char>(), dest, src);\
+    convert(a_pType, phantom::reflection::Types::get<unsigned char>(), dest, src);\
     break;\
     case 2:\
-    convert(phantom::reflection::Types::get<unsigned short>(), dest, src);\
+    convert(a_pType, phantom::reflection::Types::get<unsigned short>(), dest, src);\
     break;\
     case 4:\
-    convert(phantom::reflection::Types::get<unsigned int>(), dest, src);\
+    convert(a_pType, phantom::reflection::Types::get<unsigned int>(), dest, src);\
     break;\
     case 8:\
-    convert(phantom::reflection::Types::get<unsigned long long>(), dest, src);\
+    convert(a_pType, phantom::reflection::Types::get<unsigned long long>(), dest, src);\
     break;\
     default:\
     o_assert(false, "invalid size for enum type");\
 }\
 }\
-            else detail::default_converter<s>::convert(a_pDestType, dest, src);\
+            else detail::default_converter<s>::convert(a_pType, a_pDestType, dest, src);\
 }\
-    static bool isConvertibleTo(reflection::Type* a_pDestType)\
+    static bool isConvertibleTo(reflection::Type* a_pType, reflection::Type* a_pDestType)\
 {\
-    if(a_pDestType == phantom::reflection::Types::get<s>()) return true;\
+    if(a_pDestType == a_pType) return true;\
             else o_phantom_extension_fundamental_converter_can_case(bool)\
             else o_phantom_extension_fundamental_converter_can_case(char)\
             else o_phantom_extension_fundamental_converter_can_case(unsigned char)\
@@ -73,11 +73,11 @@ struct converter<s>\
             else o_phantom_extension_fundamental_converter_can_case(float)\
             else o_phantom_extension_fundamental_converter_can_case(double)\
             else if(a_pDestType->asEnum()) { return true; }\
-            return detail::default_converter<s>::isConvertibleTo(a_pDestType);\
+            return detail::default_converter<s>::isConvertibleTo(a_pType, a_pDestType);\
 }\
-    static bool isImplicitlyConvertibleTo(reflection::Type* a_pDestType)\
+    static bool isImplicitlyConvertibleTo(reflection::Type* a_pType, reflection::Type* a_pDestType)\
 {\
-    if(a_pDestType == phantom::reflection::Types::get<s>()) return true;\
+    if(a_pDestType == a_pType) return true;\
             else o_phantom_extension_fundamental_converter_can_case(bool)\
             else o_phantom_extension_fundamental_converter_can_case(char)\
             else o_phantom_extension_fundamental_converter_can_case(unsigned char)\
@@ -92,7 +92,7 @@ struct converter<s>\
             else o_phantom_extension_fundamental_converter_can_case(long double)\
             else o_phantom_extension_fundamental_converter_can_case(float)\
             else o_phantom_extension_fundamental_converter_can_case(double)\
-            return detail::default_converter<s>::isImplicitlyConvertibleTo(a_pDestType);\
+            return detail::default_converter<s>::isImplicitlyConvertibleTo(a_pType, a_pDestType);\
 }\
 };
 

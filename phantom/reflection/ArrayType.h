@@ -135,6 +135,10 @@ public:
     
     virtual boolean     isConvertibleTo(Type* a_pType) const;
 
+    virtual boolean     isImplicitlyConvertibleTo( Type* a_pType ) const;
+
+    virtual void        convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;
+
     virtual void        valueFromString(const string& a_str, void* dest) const
     {
         *reinterpret_cast<void**>(dest) = ::phantom::lexical_cast<void*>(a_str);
@@ -229,17 +233,18 @@ public:
 
     virtual Type*                   removeArray() const { return m_pElementType; }
 
-    Type*                           createConstType() const;
-
     virtual string          getDecoratedName() const { return m_pElementType->getDecoratedName()+'['+phantom::lexical_cast<string>(m_uiCount)+']'; }
     virtual string          getQualifiedDecoratedName() const { return m_pElementType->getQualifiedDecoratedName()+'['+phantom::lexical_cast<string>(m_uiCount)+']'; }
 
     virtual void            copy(void* a_pDest, void const* a_pSrc) const;
     virtual bool            isCopyable() const { return m_pElementType->isCopyable(); }
 
+    virtual Type*           asPOD() const { return m_pElementType->asPOD() ? (Type*)this : nullptr; }
+
+    virtual Expression*     solveOperator(const string& a_strOperator, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const;
+
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);
-
 protected:
     Type*       m_pElementType;
     size_t      m_uiCount;

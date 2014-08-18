@@ -39,7 +39,6 @@
 #   include "def_phantom_deferred_reflection.inl"
 #endif
 
-#include <phantom/reflection/detail/element_finder_spirit.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <stdarg.h>
@@ -54,6 +53,11 @@
 
 #include "phantom/ModuleLoader.h"
 #include "phantom/ModuleLoader.hxx"
+#include "phantom/reflection/CPlusPlus.h"
+#include "phantom/reflection/CPlusPlus.hxx"
+#include "phantom/reflection/Interpreter.h"
+#include "phantom/reflection/Interpreter.hxx"
+#include "phantom/util/Message.h"
 
 o_registerN((phantom, memory), malloc_free_allocator_for_boost)
 o_registerNT((phantom, memory), (typename, typename), (T, UserAllocator), malloc_free_allocator)
@@ -66,8 +70,6 @@ o_declareN(class, (phantom, reflection), Signature)
 
 o_namespace_begin(phantom) 
 
-#define element_finder_default element_finder_spirit
-
 connection::pair connection::pair::stack[connection::pair::eMaxStackSize];
 int32 connection::pair::stack_pointer = -1;
 
@@ -78,22 +80,27 @@ connection::slot_pool::allocation_controller_map* connection::slot_pool::m_alloc
 uint Phantom::m_uiSetupStep;
 phantom::reflection::Type* Phantom::m_type_of_string = nullptr;
 
-
+static phantom::vector<phantom::Module*>*       m_auto_loaded_modules;    
 phantom::Phantom::EState                        Phantom::m_eState;
 phantom::Phantom::message_report_func           Phantom::m_assert_func = default_assert;
 phantom::Phantom::message_report_func           Phantom::m_warning_func = default_warning;
 phantom::Phantom::message_report_func           Phantom::m_error_func = default_error;
 phantom::Phantom::log_func                      Phantom::m_log_func = default_log;
+phantom::Phantom::message_map                   Phantom::m_Messages;
 phantom::reflection::Namespace*                 Phantom::m_pRootNamespace;
+phantom::reflection::CPlusPlus*                 Phantom::m_pCPlusPlus;
+phantom::reflection::Interpreter*               Phantom::m_pInterpreter;
 void*                                           Phantom::m_typeOf_cycling_address_workaround_ptr;
-phantom::Phantom::rtti_data_map*                Phantom::m_rtti_data_map = NULL;
-phantom::Phantom::element_container*		    Phantom::m_elements = NULL;
-phantom::Module*		                        Phantom::m_module = NULL;
-phantom::ModuleLoader*		                    Phantom::m_module_loader = NULL;
-phantom::serialization::DataBase*		        Phantom::m_current_data_base = NULL;
+phantom::Phantom::rtti_data_map*                Phantom::m_rtti_data_map = nullptr;
+phantom::Phantom::element_container*		    Phantom::m_elements = nullptr;
+phantom::Module*		                        Phantom::m_module = nullptr;
+phantom::ModuleLoader*		                    Phantom::m_module_loader = nullptr;
+phantom::serialization::DataBase*		        Phantom::m_current_data_base = nullptr;
 phantom::map<phantom::string, phantom::Module*> Phantom::m_modules;
-phantom::Phantom*                               Phantom::m_instance = NULL;
+phantom::Phantom*                               Phantom::m_instance = nullptr;
 phantom::Phantom::dynamic_pool_type_map         Phantom::m_DynamicPoolAllocators;
+phantom::vector<phantom::reflection::Constant*> Phantom::m_Constants;
+
 
 map<string, reflection::SourceFile*>            phantom::Phantom::m_SourceFiles;
 
@@ -103,11 +110,22 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
     o_assert(m_instance == NULL, "Only one instance allowed and initialized once, the best is to use your main function scope and RAII");
     m_instance = this;
 
+    int i = 003;
+
     //o_assert(m_eState == eState_NotInstalled, "Phantom has already been installed and can only be installed once per application");
     typeByName("phantom::reflection::Namespace")->install(Phantom::m_pRootNamespace);
+    typeByName("phantom::reflection::CPlusPlus")->install(Phantom::m_pCPlusPlus);
+    typeByName("phantom::reflection::Interpreter")->install(Phantom::m_pInterpreter);
 
     typeOf<ModuleLoader>()->install(m_module_loader); 
     typeOf<ModuleLoader>()->initialize(m_module_loader);
+
+    moduleLoader()->m_OperationCounter++;
+    for(auto it = m_auto_loaded_modules->begin(); it != m_auto_loaded_modules->end(); ++it)
+    {
+        moduleLoader()->moduleInstanciated(*it);
+    }
+    moduleLoader()->m_OperationCounter--;
 
 #if o_OPERATING_SYSTEM != o_OPERATING_SYSTEM_WINDOWS
     setState(eState_DynamicInitializerDone_StartingInitialization);
@@ -132,6 +150,13 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
 Phantom::~Phantom()
 {
     moduleLoader()->unloadMain();
+
+    moduleLoader()->m_OperationCounter++;
+    for(auto it = m_auto_loaded_modules->rbegin(); it != m_auto_loaded_modules->rend(); ++it)
+    {
+        moduleLoader()->moduleDeleted(*it);
+    }
+    moduleLoader()->m_OperationCounter--;
     typeOf<ModuleLoader>()->terminate(m_module_loader);
     typeOf<ModuleLoader>()->uninstall(m_module_loader); 
     
@@ -185,6 +210,7 @@ detail::dynamic_initializer_handle::dynamic_initializer_handle()
     , m_bAutoRegistrationLocked(false)
     , m_iCurrentInstallationStep(-1)
 {
+    Phantom::m_instance = nullptr;
     memory::Statistics::m_Allocations = new std::map<void*, memory::Statistics::allocation_info>;
     memory::Statistics::m_AllocationCount = 0 ;
     memory::Statistics::m_TotalAllocationCount = 0 ;
@@ -192,12 +218,13 @@ detail::dynamic_initializer_handle::dynamic_initializer_handle()
     memory::Statistics::m_TotalAllocatedByteCount = 0 ;
     memory::Statistics::m_Locked = false;
 
+    m_auto_loaded_modules = new vector<Module*>;
+
     Phantom::m_rtti_data_map = o_allocate(Phantom::rtti_data_map);
     new (Phantom::m_rtti_data_map) Phantom::rtti_data_map; 
 
 	Phantom::m_elements = o_allocate(Phantom::element_container);
 	new (Phantom::m_elements) Phantom::element_container; 
-
 
     connection::slot_pool::m_allocation_controller_map= o_allocate(connection::slot_pool::allocation_controller_map);
     new (connection::slot_pool::m_allocation_controller_map) connection::slot_pool::allocation_controller_map; 
@@ -207,6 +234,12 @@ detail::dynamic_initializer_handle::dynamic_initializer_handle()
 
     Phantom::m_eState = Phantom::eState_NotInstalled;
     Phantom::m_typeOf_cycling_address_workaround_ptr = &Phantom::m_typeOf_cycling_address_workaround_ptr;
+
+    Phantom::m_pCPlusPlus = o_static_new_alloc_and_construct_part(reflection::CPlusPlus);
+    //o_static_new_install_and_initialize_part(Phantom::m_pCPlusPlus); 
+
+    Phantom::m_pInterpreter = o_static_new_alloc_and_construct_part(reflection::Interpreter);
+
     Phantom::m_pRootNamespace = o_static_new_alloc_and_construct_part(reflection::Namespace)(o_CS(o_root_namespace_name));
     o_static_new_install_and_initialize_part(Phantom::m_pRootNamespace);
     
@@ -223,8 +256,10 @@ detail::dynamic_initializer_handle::dynamic_initializer_handle()
 
 detail::dynamic_initializer_handle::~dynamic_initializer_handle()
 {
+    delete m_auto_loaded_modules;
     Phantom::m_module_loader->~ModuleLoader();
     o_deallocate(Phantom::m_module_loader, ModuleLoader) ;
+    o_delete(reflection::CPlusPlus) Phantom::m_pCPlusPlus;
 }
 
 void Phantom::setState(EState s) 
@@ -290,30 +325,50 @@ phantom::reflection::Type* typeByName( const string& a_strName, phantom::reflect
     return pElement ? pElement->asType() : nullptr;
 }
 
-phantom::reflection::Type* typeByNameCascade( const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope ) 
+phantom::reflection::Type* typeByNameCascade( const string& a_strName, phantom::reflection::LanguageElement* a_pScope ) 
 {
-    reflection::LanguageElement* pElement = elementByNameCascade(a_strName, static_cast<phantom::reflection::Namespace*>(a_pRootScope));
+    reflection::LanguageElement* pElement = elementByNameCascade(a_strName, static_cast<phantom::reflection::Namespace*>(a_pScope));
     return pElement ? pElement->asType() : nullptr;
 }
 
-phantom::reflection::LanguageElement* elementByName( const string& a_strName, phantom::reflection::LanguageElement* a_pRootElement )
+phantom::reflection::Expression* expressionByName( const string& a_strName, phantom::reflection::LanguageElement* a_pScope ) 
 {
-  return phantom::reflection::detail::element_finder_default::find(a_strName, a_pRootElement);
+    return Phantom::m_pCPlusPlus->expressionByName(a_strName, a_pScope);
 }
 
-void elementsByClass(reflection::Class* a_pClass, vector<reflection::LanguageElement*>& out, phantom::reflection::LanguageElement* a_pRootElement )
+phantom::reflection::LanguageElement* elementByName( const string& a_strName, phantom::reflection::LanguageElement* a_pScope )
 {
-    if(a_pClass == nullptr OR classOf(a_pRootElement)->isKindOf(a_pClass))
+    return Phantom::m_pCPlusPlus->elementByName(a_strName, a_pScope);
+}
+
+phantom::reflection::Function* functionByName( const string& a_strName, phantom::reflection::Namespace* a_pScope )
+{
+    reflection::LanguageElement* pElement = Phantom::m_pCPlusPlus->elementByName(a_strName, a_pScope);
+    return pElement ? pElement->asFunction() : nullptr;
+}
+
+void deleteElement(phantom::reflection::LanguageElement*  a_pLanguageElement) 
+{
+    o_assert(a_pLanguageElement);
+    o_assert(NOT(a_pLanguageElement->testModifiers(o_native)));
+    o_assert(a_pLanguageElement->getOwner() == nullptr);
+    a_pLanguageElement->terminate();
+    a_pLanguageElement->deleteNow();
+}
+
+void elementsByClass(reflection::Class* a_pClass, vector<reflection::LanguageElement*>& out, phantom::reflection::LanguageElement* a_pScope )
+{
+    if(a_pClass == nullptr OR classOf(a_pScope)->isKindOf(a_pClass))
     {
-        out.push_back(a_pRootElement);
+        out.push_back(a_pScope);
     }
-    a_pRootElement->getElementsCascade(out, a_pClass);
+    a_pScope->getElementsCascade(out, a_pClass);
 }
 
 phantom::reflection::LanguageElement* elementByNameCascade( const string& a_strName, phantom::reflection::Namespace* a_pNamespace )
 {
 	phantom::reflection::LanguageElement* pElement = elementByName(a_strName, reinterpret_cast<phantom::reflection::LanguageElement*>(a_pNamespace));
-	if (pElement != NULL)
+	if(pElement != NULL)
 	{
 		return pElement;
 	}
@@ -436,37 +491,43 @@ void detail::dynamic_initializer_handle::installReflection(const string& a_strNa
         pModule->addLanguageElement(*it);
     }
     m_DeferredTemplates.clear();
+    for(auto it = m_DeferredFunctions.begin(); it != m_DeferredFunctions.end(); ++it)
+    {
+        (*it)->registerFunction();
+        delete *it;
+    }
+    m_DeferredFunctions.clear();
     o_assert(m_iCurrentInstallationStep == -1);
     m_iCurrentInstallationStep = 0;
     for(;m_iCurrentInstallationStep<32;++m_iCurrentInstallationStep)
     {
         dynamic_initializer_module_installation_func_vector& infos = m_DeferredSetupInfos[m_iCurrentInstallationStep]; 
+        std::sort(infos.begin(), infos.end());
         size_t j = 0;
         for(;j<infos.size(); ++j)
         {
-            if(infos[j].type->getQualifiedDecoratedName().find("vector<char") != std::string::npos)
-            {
-                int c = 0;
-                ++c;
-            }
             infos[j].exec(m_iCurrentInstallationStep);
         }
         infos.clear();
     }
-    phantom::popModule();
-    m_RegisteredTypes.clear();
-    pModule->checkCompleteness();
-    
-    if(a_strName == "")
+
+    if(a_strName.empty())
     {
         Phantom::m_eState = Phantom::eState_Installed;
     }
+    if(Phantom::m_instance == nullptr) // Phantom not initialized yet by user
+    {
+        m_auto_loaded_modules->push_back(pModule); // Module needs auto loading
+    }
+    phantom::popModule();
+    m_RegisteredTypes.clear();
+    pModule->checkCompleteness();
     m_iCurrentInstallationStep = -1;
 }
 
 void detail::dynamic_initializer_handle::uninstallReflection(const string& a_strName)
 {
-    if(a_strName == "")
+    if(a_strName.empty())
     {
         Phantom::m_eState = Phantom::eState_Uninstalled;
     }
@@ -579,6 +640,75 @@ void default_log(int level, const char* file, uint line, const char* format, va_
     buffer[511] = '\0';
     int r = vsprintf_s(buffer, 511, format, arglist);
     std::cout<<buffer<<std::endl<<console::fg_gray;
+}
+
+Message* topMessage(const string& a_strCategory)
+{
+    auto found = Phantom::m_Messages.find(a_strCategory);
+    if(found == Phantom::m_Messages.end())
+    {
+        Phantom::m_Messages[a_strCategory] = o_new(Message);
+    }
+    return Phantom::m_Messages[a_strCategory];
+}
+
+void clearMessages(const string& a_strCategory)
+{
+    auto found = Phantom::m_Messages.find(a_strCategory);
+    if(found != Phantom::m_Messages.end())
+    {
+        o_delete(Message) Phantom::m_Messages[a_strCategory]->getRootMessage();
+        Phantom::m_Messages.erase(found);
+    }
+}
+
+Message* _message(EMessageType a_eType, const phantom::variant& a_Data, char* a_Format, va_list args )
+{
+    Message* pMessage = o_new(Message)(a_eType);
+    pMessage->setData(a_Data);
+    size_t size = strlen(a_Format)+512;
+    char* buffer = (char*)o_malloc(size);
+    buffer[size-1] = '\0';
+    int r = vsprintf_s(buffer, size, a_Format, args);
+    pMessage->setText(buffer);
+    o_free(buffer);
+    return pMessage;
+}
+
+void message(const string& a_strCategory, EMessageType a_eType, const phantom::variant& a_Data, char* a_Format, va_list args )
+{
+    topMessage(a_strCategory)->addChild(_message(a_eType, a_Data, a_Format, args ));
+}
+
+void message(const string& a_strCategory, EMessageType a_eType, const phantom::variant& a_Data, char* a_Format, ... )
+{
+    va_list args;
+    va_start(args, a_Format);
+    message(a_strCategory, a_eType, a_Data, a_Format, args );
+    va_end(args);
+}
+
+void pushMessage(const string& a_strCategory, EMessageType a_eType, const phantom::variant& a_Data, char* a_Format, va_list args)
+{
+    Message* pTopMessage = topMessage(a_strCategory);
+    Message* pNewTopMessage = _message(a_eType, a_Data, a_Format, args );
+    pTopMessage->addChild(pNewTopMessage);
+    pTopMessage = pNewTopMessage;
+}
+
+void pushMessage(const string& a_strCategory, EMessageType a_eType, const phantom::variant& a_Data, char* a_Format, ...)
+{
+    va_list args;
+    va_start(args, a_Format);
+    pushMessage(a_strCategory, a_eType, a_Data, a_Format, args );
+    va_end(args);
+}
+
+void popMessage(const string& a_strCategory)
+{
+    Message* pTopMessage = topMessage(a_strCategory);
+    pTopMessage = pTopMessage->getParent();
+    o_assert(pTopMessage);
 }
 
 boolean canConnect( reflection::Signal* a_pSignal, reflection::InstanceMemberFunction* a_pMemberFunction )
@@ -1288,9 +1418,20 @@ o_export void setCurrentDataBase( serialization::DataBase* a_pDataBase )
 {
     Phantom::m_current_data_base = a_pDataBase;
 }
+
 o_export serialization::DataBase* getCurrentDataBase()
 {
     return Phantom::m_current_data_base;
+}
+
+o_export phantom::reflection::Language* cplusplus()
+{
+    return Phantom::m_pCPlusPlus;
+}
+
+o_export phantom::reflection::Interpreter* interpreter()
+{
+    return Phantom::m_pInterpreter;
 }
 
 

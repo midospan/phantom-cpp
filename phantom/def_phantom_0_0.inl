@@ -43,7 +43,3 @@ o_specialize_type_of_for_primitive_type(bool);
 o_specialize_type_of_for_primitive_type(void);
 
 o_namespace_end(phantom, reflection)
-
-
-#include "phantom/reflection/Block.h"
-#include "phantom/reflection/LocalVariable.h"

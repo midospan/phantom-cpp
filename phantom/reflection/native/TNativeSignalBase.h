@@ -43,16 +43,20 @@ using namespace fastdelegate;
 
 o_namespace_begin(phantom, reflection, native)
 
-template<typename t_Class>
+template<typename t_Ty>
 class TNativeSignalBase : public Signal
 {
 public:
-    TNativeSignalBase(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
-        : Signal(a_strName, a_pSignature, a_Modifiers)
-    {
+    typedef connection::slot::list (t_Ty::*member_pointer);
 
+    TNativeSignalBase(const string& a_strName, Signature* a_pSignature, member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
+        : Signal(a_strName, a_pSignature, a_Modifiers)
+        , m_member_pointer(a_MemberPointer) 
+    {
+        setSlotListDataMemberOffset( (size_t)&(((t_Ty*)nullptr)->*m_member_pointer) );
     }
-    virtual bool isNative() const { return true; }
+protected:
+    member_pointer            m_member_pointer;
 };
 
 

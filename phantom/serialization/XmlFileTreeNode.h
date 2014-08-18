@@ -67,10 +67,10 @@ protected:
     virtual void    loadDataAttributes(const phantom::data& a_Data, uint guid);
     virtual bool    canLoad(vector<string>* missing_types) const;
     virtual void    cache();
-    virtual void    build();
-    virtual void    deserialize(uint a_uiSerializationFlag);
+    virtual void    build(vector<data>& a_Data);
+    virtual void    deserialize(uint a_uiSerializationFlag, vector<data>& a_Data);
+    virtual void    restore(uint a_uiSerializationFlag, vector<data>& a_Data);
     virtual void    uncache();
-    virtual void    restore(uint a_uiSerializationFlag);
     virtual void    unbuild();
     virtual void    configure();
     virtual void    unconfigure();
@@ -88,10 +88,10 @@ protected:
     virtual void    loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid);
     
 protected:
-    list<data>      m_DataRestoreQueue;
     list<data>      m_DataAbortQueue;
 	property_tree	m_CacheTree;
 	vector<uint>    m_ParentGuids;
+    vector<string>  m_ReferenceExpressions;
 };
 
 o_namespace_end(phantom, serialization)

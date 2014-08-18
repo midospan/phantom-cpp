@@ -44,7 +44,7 @@ o_namespace_begin(phantom, reflection, native)
 template <typename t_Ty>
 class TNumericConstant : public NumericConstant
 {
-    o_static_assert(boost::is_arithmetic<t_Ty>::value OR boost::is_enum<t_Ty>::value);
+    o_static_assert(boost::is_arithmetic<t_Ty>::value OR boost::is_enum<t_Ty>::value OR phantom::is_nullptr_t<t_Ty>::value);
 
     friend class PrimitiveType;
 
@@ -63,7 +63,7 @@ public:
 
     virtual void deleteNow() 
     {
-        o_dynamic_proxy_delete(phantom::reflection::Constant, phantom::reflection::Constant::metaType, self_type) this;   
+        o_dynamic_proxy_delete(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, self_type) this;   
     }
 
 public:

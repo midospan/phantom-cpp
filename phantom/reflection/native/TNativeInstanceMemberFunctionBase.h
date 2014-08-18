@@ -54,6 +54,18 @@ public:
 
     }
     virtual bool isNative() const { return true; }
+    virtual void call( void* a_pCaller, void** a_pArgs ) const = 0;
+    virtual void call( void* a_pCaller, void** a_pArgs, void* a_pReturnAddress ) const { call(a_pCaller, a_pArgs); }
+    virtual void call( void** a_pArgs ) const
+    {
+        void* caller = *(void**)(*a_pArgs++);
+        call( caller, a_pArgs);
+    }
+    virtual void call( void** a_pArgs, void* a_pReturnAddress ) const
+    {
+        void* caller = *(void**)(*a_pArgs++);
+        call( caller, a_pArgs, a_pReturnAddress);
+    }
 };
 
 

@@ -4,10 +4,15 @@
 
 
 o_fwd(class, phantom, Phantom)
+o_fwd(class, phantom, Message)
 o_fwd(class, phantom, variant)
 o_fwd(class, phantom, data)
 o_fwd(struct, phantom, signal_t)
 
+o_fwd(class, phantom, reflection, Language);
+o_fwd(class, phantom, reflection, CPlusPlus);
+o_fwd(class, phantom, reflection, Compiler);
+o_fwd(class, phantom, reflection, Interpreter);
 o_fwd(class, phantom, Module)
 o_fwd(class, phantom, ModuleLoader)
 o_fwd(struct, phantom, reflection, CodePosition)
@@ -21,9 +26,7 @@ o_fwd(class, phantom, reflection, Function)
 o_fwd(class, phantom, reflection, Addressable)
 o_fwd(class, phantom, reflection, Constant)
 o_fwd(class, phantom, reflection, NumericConstant)
-o_fwd(class, phantom, reflection, AddressableConstant)
 o_fwd(class, phantom, reflection, Variable)
-o_fwd(class, phantom, reflection, AddressableVariable)
 o_fwd(class, phantom, reflection, StaticVariable)
 o_fwd(class, phantom, reflection, Member)
 o_fwd(class, phantom, reflection, MemberFunction)
@@ -36,15 +39,13 @@ o_fwd(class, phantom, reflection, InstanceDataMember)
 o_fwd(class, phantom, reflection, StaticDataMember)
 o_fwd(class, phantom, reflection, Property)
 o_fwd(class, phantom, reflection, ValueMember)
-o_fwd(class, phantom, reflection, SubValueMember)
 o_fwd(class, phantom, reflection, ClassExtension)
 o_fwd(class, phantom, reflection, Type)
 o_fwd(class, phantom, reflection, PrimitiveType)
 o_fwd(class, phantom, reflection, PointerType)
 o_fwd(class, phantom, reflection, DataPointerType)
-o_fwd(class, phantom, reflection, ConstDataPointerType)
+o_fwd(class, phantom, reflection, ConstType)
 o_fwd(class, phantom, reflection, ReferenceType)
-o_fwd(class, phantom, reflection, ConstReferenceType)
 o_fwd(class, phantom, reflection, ArrayType)
 o_fwd(class, phantom, reflection, Enum)
 o_fwd(class, phantom, reflection, Class)
@@ -56,10 +57,12 @@ o_fwd(class, phantom, reflection, SetContainerClass)
 o_fwd(class, phantom, reflection, ConstIterator)
 o_fwd(class, phantom, reflection, Iterator)
 o_fwd(class, phantom, reflection, PODUnion)
-o_fwd(class, phantom, reflection, PODStruct)
+o_fwd(class, phantom, reflection, Structure)
 o_fwd(class, phantom, reflection, Union)
 o_fwd(class, phantom, reflection, LanguageElement)
 o_fwd(class, phantom, reflection, TemplateElement)
+o_fwd(class, phantom, reflection, Evaluable)
+o_fwd(class, phantom, reflection, Statement)
 o_fwd(class, phantom, reflection, Expression)
 o_fwd(class, phantom, reflection, VirtualMemberFunctionTable)
 o_fwd(class, phantom, reflection, Namespace)
@@ -110,38 +113,24 @@ o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,
 o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst7 )
 o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInstanceMemberFunctionConst8 )
 
-o_fwdT(class, phantom, reflection, native, (typename,typename), TNativeInterfaceMemberFunction0 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename), TNativeInterfaceMemberFunction1 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInterfaceMemberFunction2 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction3 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction4 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction5 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction6 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction7 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunction8 )
-
-o_fwdT(class, phantom, reflection, native, (typename,typename), TNativeInterfaceMemberFunctionConst0 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename), TNativeInterfaceMemberFunctionConst1 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst2 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst3 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst4 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst5 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst6 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst7 )
-o_fwdT(class, phantom, reflection, native, (typename,typename,typename,typename,typename,typename,typename,typename,typename,typename), TNativeInterfaceMemberFunctionConst8 )
-
 o_fwdT(class, phantom, reflection, native, (typename), TNumericConstant)
 
-o_fwdT(class, phantom, reflection, native, (typename), TType)
+o_namespace_begin(phantom, reflection, native)
+
+template <typename, int t_TemplateNestedModifiers = 0> class TType;
+template <typename, int t_TemplateNestedModifiers = 0> class TType_;
+
+o_namespace_end(phantom, reflection, native)
+
 o_fwdT(class, phantom, reflection, native, (typename), TPrimitiveType)
-o_fwdT(class, phantom, reflection, native, (typename), TType_)
-o_fwdT(class, phantom, reflection, native, (typename,int), TTypeHelper)
-o_fwdT(class, phantom, reflection, native, (typename), TConstType)
+o_fwdT(class, phantom, reflection, native, (typename), TFundamentalType)
+o_fwdT(class, phantom, reflection, native, (typename), TArithmeticType)
+o_fwdT(class, phantom, reflection, native, (typename), TIntegralType)
+o_fwdT(class, phantom, reflection, native, (typename), TFloatingPointType)
+o_fwdT(class, phantom, reflection, native, (int, typename), TNativeFunction)
 o_fwdT(class, phantom, reflection, native, (typename, typename), TNativeSignal)
 o_fwdT(class, phantom, reflection, native, (typename, typename), TNativeInstanceMemberFunction)
 o_fwdT(class, phantom, reflection, native, (typename, typename), TNativeInstanceMemberFunctionConst)
-o_fwdT(class, phantom, reflection, native, (typename, typename), TNativeInterfaceMemberFunction)
-o_fwdT(class, phantom, reflection, native, (typename, typename), TNativeInterfaceMemberFunctionConst)
 o_fwdT(class, phantom, reflection, native, (typename, typename), TNativeStaticMemberFunction)
 o_fwdT(class, phantom, reflection, native, (typename, typename), TNativeInstanceDataMember)
 o_fwdT(class, phantom, reflection, native, (typename, typename), TNativeStaticDataMember)
@@ -150,11 +139,9 @@ o_fwdT(class, phantom, reflection, native, (typename, uint, typename), TNativeDa
 
 #ifdef o_NO_FUNCTION_STYLE_TEMPLATE_SIGNATURE
 o_fwdT(class, phantom, reflection, native, (typename, uint, typename, typename, typename), TNativeMemberFunctionProvider)
-o_fwdT(class, phantom, reflection, native, (typename, uint, typename, typename, typename), TNativeInterfaceMemberFunctionProvider)
 o_fwdT(class, phantom, reflection, native, (typename, typename, typename), TNativeSignatureProvider)
 #else
 o_fwdT(class, phantom, reflection, native, (typename, uint, typename), TNativeMemberFunctionProvider)
-o_fwdT(class, phantom, reflection, native, (typename, uint, typename), TNativeInterfaceMemberFunctionProvider)
 o_fwdT(class, phantom, reflection, native, (int, typename), TNativeSignatureProvider)
 #endif
 

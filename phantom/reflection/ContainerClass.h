@@ -22,15 +22,24 @@ public:
     {
     }
 
-    virtual size_t     count(void const* a_pContainer) const = 0;
-    virtual void       erase(void* a_pContainer, Iterator* first, Iterator* last) const = 0;
-    virtual void       erase(void* a_pContainer, void* first, void* last) const = 0;
-    virtual void       erase(void* a_pContainer, Iterator* it) const = 0;
-    virtual size_t     replaceAll(void* a_pContainer, const void* a_pOld, const void* a_pNew) const = 0;
-    virtual size_t     eraseAll(void* a_pContainer, const void* a_pOld) const = 0;
+    virtual size_t      count(void const* a_pContainer) const = 0;
+    virtual void        erase(void* a_pContainer, Iterator* first, Iterator* last) const = 0;
+    virtual void        erase(void* a_pContainer, void* first, void* last) const = 0;
+    virtual void        erase(void* a_pContainer, Iterator* it) const = 0;
+    virtual size_t      replaceAll(void* a_pContainer, const void* a_pOld, const void* a_pNew) const = 0;
+    virtual size_t      eraseAll(void* a_pContainer, const void* a_pOld) const = 0;
 
-    Type*              getKeyType() const { return m_pValueType; }
-    Type*              getValueType() const { return m_pValueType; }
+    virtual Type*       getKeyType() const { return m_pValueType; }
+    virtual Type*       getMappedType() const { return m_pValueType; }
+    inline  Type*       getValueType() const { return m_pValueType; }/*
+
+    void                createKeyAccesses(Expression* a_pLeft, vector<Expression*>& out) const;
+    void                createValueAccesses(Expression* a_pLeft, vector<Expression*>& out) const;
+    void                createMappedAccesses(Expression* a_pLeft, vector<Expression*>& out) const;
+
+    virtual void        createKeyAccesses(Expression* a_pLeft, void* a_pLeft, vector<Expression*>& out) const {}
+    virtual void        createValueAccesses(Expression* a_pLeft, void* a_pLeft, vector<Expression*>& out) const {}
+    virtual void        createMappedAccesses(Expression* a_pLeft, void* a_pLeft, vector<Expression*>& out) const {}*/
 
     virtual ContainerClass* asContainerClass() const { return const_cast<ContainerClass*>(this); }
 
@@ -47,8 +56,8 @@ public:
 
     virtual Iterator*  begin(void* a_pContainer) const = 0;
     virtual ConstIterator*  begin(const void* a_pContainer) const = 0;
-    virtual void       release(Iterator* a_pIterator) const { a_pIterator->deleteNow(); }
-    virtual void       release(ConstIterator* a_pIterator) const { a_pIterator->deleteNow(); }
+    virtual void       release(Iterator* a_pIterator) const;
+    virtual void       release(ConstIterator* a_pIterator) const;
 
     virtual bool       referencesData(const void* a_pContainer, const phantom::data& a_Data) const;
 

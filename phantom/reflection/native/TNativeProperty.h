@@ -45,11 +45,22 @@ using namespace fastdelegate;
 
 o_namespace_begin(phantom, reflection, native)
 
+template<typename t_Ty>
+struct is_property_value_type
+{
+    const static bool value = !boost::is_reference<t_Ty>::value && !boost::is_const<t_Ty>::value;
+};
 
+template<typename t_Ty>
+struct is_property_value_type<const t_Ty&>
+{
+    const static bool value = !boost::is_reference<t_Ty>::value && !boost::is_const<t_Ty>::value;
+};
 
-template<typename t_Ty, typename t_ContentType>
+template<typename t_Ty, typename t_ValueType>
 class TNativeProperty : public Property
 {
+    o_static_assert_msg(is_property_value_type<t_ValueType>::value, "Type is not a valid property value type");
 
     template<typename t_CTy>
     struct value_getter
@@ -98,18 +109,18 @@ class TNativeProperty : public Property
         }
     };
 
-    typedef o_NESTED_TYPE boost::remove_reference<t_ContentType>::type      t_ContentTypeNoRef;
-    typedef o_NESTED_TYPE boost::remove_const<t_ContentTypeNoRef>::type     t_ContentTypeNoConstNoRef;
+    typedef o_NESTED_TYPE boost::remove_reference<t_ValueType>::type      t_ValueTypeNoRef;
+    typedef o_NESTED_TYPE boost::remove_const<t_ValueTypeNoRef>::type     t_ValueTypeNoConstNoRef;
+    typedef o_NESTED_TYPE canonical_meta_class_type_of<t_ValueTypeNoConstNoRef>::type meta_value_type;
     
 public:
-    typedef TNativeProperty<t_Ty, t_ContentType> self_type;
-    typedef t_ContentType (t_Ty::*getter)() const;
-    typedef void (t_Ty::*setter)(t_ContentType);
-
+    typedef TNativeProperty<t_Ty, t_ValueType> self_type;
+    typedef t_ValueType (t_Ty::*getter)() const;
+    typedef void (t_Ty::*setter)(t_ValueType);
     
 public:
     TNativeProperty(const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pSignal, Range* a_pRange, setter a_setter, getter a_getter, uint a_uiSerializationMask, bitfield a_uiModifiers = 0)
-     : Property(a_strName, a_pValueType, a_pSetMemberFunction, a_pGetMemberFunction, a_pSignal, a_pRange, a_uiSerializationMask, a_uiModifiers)
+     : Property(a_strName, a_pValueType, a_pSetMemberFunction, a_pGetMemberFunction, a_pSignal, a_pRange, a_uiSerializationMask, a_uiModifiers, 0)
      , m_setter(a_setter)
      , m_getter(a_getter)
     {
@@ -119,11 +130,11 @@ public:
 
     virtual void        getValue( void const* a_pObject, void* dest ) const
     {
-        *((t_ContentTypeNoConstNoRef*)dest) = (reinterpret_cast<t_Ty const*>(a_pObject)->*m_getter)();
+        *((t_ValueTypeNoConstNoRef*)dest) = (reinterpret_cast<t_Ty const*>(a_pObject)->*m_getter)();
     }
     virtual void        setValue( void* a_pObject, void const* src ) const
     {
-        (reinterpret_cast<t_Ty*>(a_pObject)->*m_setter)(*((t_ContentTypeNoConstNoRef*)src));
+        (reinterpret_cast<t_Ty*>(a_pObject)->*m_setter)(*((t_ValueTypeNoConstNoRef*)src));
     }
     void                copyValue(void* dest, void const* src) const
     {
@@ -132,9 +143,9 @@ public:
 
     void serializeValue( void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
     {
-        t_ContentType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
-        phantom::extension::serializer<t_ContentTypeNoConstNoRef>::serialize(
-            (t_ContentTypeNoConstNoRef*)&contentType
+        t_ValueType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
+        phantom::extension::serializer<t_ValueTypeNoConstNoRef>::serialize(static_cast<meta_value_type*>(getValueType()),
+            (t_ValueTypeNoConstNoRef*)&contentType
             , a_pOutBuffer
             , a_uiSerializationMask, a_pDataBase);
     }
@@ -144,9 +155,9 @@ public:
         byte const* pChunk = reinterpret_cast<byte const*>(a_pInstance);
         while(a_uiCount--)
         {
-            t_ContentType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
-            phantom::extension::serializer<t_ContentTypeNoConstNoRef>::serialize(
-                (t_ContentTypeNoConstNoRef*)&contentType
+            t_ValueType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
+            phantom::extension::serializer<t_ValueTypeNoConstNoRef>::serialize(static_cast<meta_value_type*>(getValueType()),
+                (t_ValueTypeNoConstNoRef*)&contentType
                 , a_pOutBuffer
                 , a_uiSerializationMask, a_pDataBase);
             pChunk += a_uiChunkSectionSize;
@@ -155,8 +166,8 @@ public:
     
     void deserializeValue( void* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
     {
-        t_ContentTypeNoConstNoRef contentType;
-        phantom::extension::serializer<t_ContentTypeNoConstNoRef>::deserialize(
+        t_ValueTypeNoConstNoRef contentType;
+        phantom::extension::serializer<t_ValueTypeNoConstNoRef>::deserialize(static_cast<meta_value_type*>(getValueType()),
             &contentType
             , a_pInBuffer
             , a_uiSerializationMask, a_pDataBase);
@@ -165,11 +176,11 @@ public:
 
     void deserializeValue( void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
     {
-        t_ContentTypeNoConstNoRef contentType;
+        t_ValueTypeNoConstNoRef contentType;
         byte* pChunk = reinterpret_cast<byte*>(a_pInstance);
         while(a_uiCount--)
         {
-            phantom::extension::serializer<t_ContentTypeNoConstNoRef>::deserialize(
+            phantom::extension::serializer<t_ValueTypeNoConstNoRef>::deserialize(static_cast<meta_value_type*>(getValueType()),
                 &contentType
                 , a_pInBuffer
                 , a_uiSerializationMask, a_pDataBase);
@@ -180,10 +191,10 @@ public:
 
     void serializeValue( void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
     {
-        t_ContentType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
+        t_ValueType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
         property_tree value_tree;
         m_pValueType->removeReference()->removeConst()->serialize(
-            (t_ContentTypeNoConstNoRef*)&contentType
+            (t_ValueTypeNoConstNoRef*)&contentType
             , value_tree
             , a_uiSerializationMask, a_pDataBase);
         a_OutBranch.add_child(m_strName, value_tree);
@@ -195,10 +206,10 @@ public:
         while(a_uiCount--)
         {
             // TODO : correct this
-            t_ContentType contentType = (reinterpret_cast<t_Ty const*>(pChunk)->*m_getter)();
+            t_ValueType contentType = (reinterpret_cast<t_Ty const*>(pChunk)->*m_getter)();
             property_tree value_tree;
             m_pValueType->removeReference()->removeConst()->serialize(
-                (t_ContentTypeNoConstNoRef*)&contentType
+                (t_ValueTypeNoConstNoRef*)&contentType
                 , value_tree
                 , a_uiSerializationMask, a_pDataBase);
             a_OutBranch.add_child(m_strName, value_tree);
@@ -208,7 +219,7 @@ public:
 
     void deserializeValue( void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
     {
-        t_ContentTypeNoConstNoRef contentType;
+        t_ValueTypeNoConstNoRef contentType;
         boost::optional<const property_tree&> value_tree_opt = a_InBranch.get_child_optional(m_strName);
         if(value_tree_opt.is_initialized())
         {
@@ -222,7 +233,7 @@ public:
 
     void deserializeValue( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
     {
-        t_ContentTypeNoConstNoRef contentType;
+        t_ValueTypeNoConstNoRef contentType;
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         while(a_uiCount--)
         {
@@ -242,9 +253,9 @@ public:
 
     void rememberValue( void const* a_pInstance, byte*& a_pOutBuffer ) const
     {
-        t_ContentType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
-        phantom::extension::resetter<t_ContentTypeNoConstNoRef>::remember(
-            (t_ContentTypeNoConstNoRef*)&contentType
+        t_ValueType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
+        phantom::extension::resetter<t_ValueTypeNoConstNoRef>::remember(static_cast<meta_value_type*>(getValueType()),
+            (t_ValueTypeNoConstNoRef*)&contentType
             , a_pOutBuffer);
     }
 
@@ -253,9 +264,9 @@ public:
         byte const* pChunk = reinterpret_cast<byte const*>(a_pInstance);
         while(a_uiCount--)
         {
-            t_ContentType contentType = (reinterpret_cast<t_Ty const*>(pChunk)->*m_getter)();
-            phantom::extension::resetter<t_ContentTypeNoConstNoRef>::remember(
-                (t_ContentTypeNoConstNoRef*)&contentType
+            t_ValueType contentType = (reinterpret_cast<t_Ty const*>(pChunk)->*m_getter)();
+            phantom::extension::resetter<t_ValueTypeNoConstNoRef>::remember(static_cast<meta_value_type*>(getValueType()),
+                (t_ValueTypeNoConstNoRef*)&contentType
                 , a_pOutBuffer);
             pChunk += a_uiChunkSectionSize;
         }
@@ -263,8 +274,8 @@ public:
 
     void resetValue( void* a_pInstance, byte const*& a_pInBuffer ) const
     {
-        t_ContentTypeNoConstNoRef contentType;
-        phantom::extension::resetter<t_ContentTypeNoConstNoRef>::reset(
+        t_ValueTypeNoConstNoRef contentType;
+        phantom::extension::resetter<t_ValueTypeNoConstNoRef>::reset(static_cast<meta_value_type*>(getValueType()),
             &contentType
             , a_pInBuffer);
         (reinterpret_cast<t_Ty*>(a_pInstance)->*m_setter)(contentType);
@@ -273,10 +284,10 @@ public:
     void resetValue( void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer ) const
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pInstance);
-        t_ContentTypeNoConstNoRef contentType;
+        t_ValueTypeNoConstNoRef contentType;
         while(a_uiCount--)
         {
-            phantom::extension::resetter<t_ContentTypeNoConstNoRef>::reset(
+            phantom::extension::resetter<t_ValueTypeNoConstNoRef>::reset(static_cast<meta_value_type*>(getValueType()),
                 &contentType
                 , a_pInBuffer);
 
@@ -296,20 +307,20 @@ public:
     setter              m_setter;
 };
 
-template<typename t_Ty, typename t_ContentType>
-class TNativeProperty<t_Ty, t_ContentType const>
-    : public TNativeProperty<t_Ty,t_ContentType>
+template<typename t_Ty, typename t_ValueType>
+class TNativeProperty<t_Ty, t_ValueType const>
+    : public TNativeProperty<t_Ty,t_ValueType>
 {
 public:
-    typedef TNativeProperty<t_Ty, t_ContentType const> self_type;
-    typedef t_ContentType const (t_Ty::*member_field_pointer);
+    typedef TNativeProperty<t_Ty, t_ValueType const> self_type;
+    typedef t_ValueType const (t_Ty::*member_field_pointer);
 
 public:
     TNativeProperty(const string& a_strName, Type* a_pContentType, member_field_pointer a_member_field_pointer, bitfield a_uiModifiers = 0)
-        : TNativeProperty<t_Ty,t_ContentType>(a_strName, a_pContentType
+        : TNativeProperty<t_Ty,t_ValueType>(a_strName, a_pContentType
 
         // We manage const-type attributes like no-const-type attributes : we break the const qualifier to be able to force write with "setValue"
-        , const_cast<typename TNativeProperty<t_Ty,t_ContentType>::member_field_pointer>(a_member_field_pointer)
+        , const_cast<typename TNativeProperty<t_Ty,t_ValueType>::member_field_pointer>(a_member_field_pointer)
         , a_uiModifiers)
     {}
 
@@ -319,7 +330,7 @@ o_namespace_end(phantom, reflection, native)
 /*o_traits_specialize_all_super_traitNTS(
 (phantom,reflection,native)
 , (typename, typename)
-, (t_Ty, t_ContentType)
+, (t_Ty, t_ValueType)
 , TNativeProperty
 , (Property)
 )*/

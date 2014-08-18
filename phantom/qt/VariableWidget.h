@@ -29,9 +29,9 @@ public:
 
     VariableWidgetEditor* getVariableWidgetEditor() const { return m_pVariableWidgetEditor; }
 
-    VariableNode* getVariable() const { return m_pVariable; }
+    VariableNode* getVariableNode() const { return m_pVariableNode; }
 
-    void setVariable(VariableNode* a_pVariable);
+    void setVariableNode(VariableNode* a_pVariableNode);
 
     void addVariableAction(VariableAction* a_pAction);
 
@@ -49,7 +49,7 @@ signals:
     void valueChanged();
 
 protected:
-    VariableNode*   m_pVariable;
+    VariableNode*   m_pVariableNode;
     VariableEditor*         m_pVariableEditor;
     VariableWidgetEditor*   m_pVariableWidgetEditor;
     QVector<VariableAction*>m_Actions;

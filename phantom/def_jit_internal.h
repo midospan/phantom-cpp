@@ -22,6 +22,8 @@ Type* fromJitType(jit_type_t type) ;
 jit_type_t toJitType(Type* a_pType);
 jit_type_t toJitSignature(EJitAbi abi, Signature* a_pSignature) ;
 
+void clearCache();
+
 o_namespace_end(phantom, reflection, jit)
 
 #endif

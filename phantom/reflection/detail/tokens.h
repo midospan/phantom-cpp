@@ -1,9 +1,9 @@
 #ifndef o_reflection_eval_cpp_tokens_h__
 #define o_reflection_eval_cpp_tokens_h__
 
-o_namespace_begin(phantom, reflection)
+#include "phantom/reflection/detail/cpp.h"
 
-namespace cpp {
+o_namespace_begin(phantom, reflection, cpp)
 
 struct op_category
 {
@@ -109,6 +109,7 @@ struct token_ids
         ulong_literal          ,
         longlong_literal       ,
         ulonglong_literal      ,
+        hex_ulonglong_literal      ,
         string_literal          ,
         char_literal            ,
         true_or_false           ,
@@ -132,19 +133,19 @@ struct token_ids
         bit_or_assign       = op::bit_or_assign         | op_category::assignment_binary_logical | op_category::overloadable,
         shift_left_assign   = op::shift_left_assign     | op_category::assignment_shift | op_category::overloadable,
         shift_right_assign  = op::shift_right_assign    | op_category::assignment_shift | op_category::overloadable,
-        logical_or          = op::logical_or            ,
-        logical_and         = op::logical_and           ,
-        bit_or              = op::bit_or                ,
-        bit_xor             = op::bit_xor               ,
-        bit_and             = op::bit_and               | op_category::reference,
-        equal               = op::equal                 | op_category::equality,
-        not_equal           = op::not_equal             | op_category::equality,
-        less                = op::less                  | op_category::lesser,
-        less_equal          = op::less_equal            | op_category::lesser,
-        greater             = op::greater               | op_category::greater,
-        greater_equal       = op::greater_equal         | op_category::greater,
-        shift_left          = op::shift_left            | op_category::shift,
-        shift_right         = op::shift_right           | op_category::shift,
+        logical_or          = op::logical_or            | op_category::overloadable,
+        logical_and         = op::logical_and           | op_category::overloadable,
+        bit_or              = op::bit_or                | op_category::overloadable,
+        bit_xor             = op::bit_xor               | op_category::overloadable,
+        bit_and             = op::bit_and               | op_category::reference | op_category::overloadable,
+        equal               = op::equal                 | op_category::equality | op_category::overloadable,
+        not_equal           = op::not_equal             | op_category::equality | op_category::overloadable,
+        less                = op::less                  | op_category::lesser | op_category::overloadable,
+        less_equal          = op::less_equal            | op_category::lesser | op_category::overloadable,
+        greater             = op::greater               | op_category::greater | op_category::overloadable,
+        greater_equal       = op::greater_equal         | op_category::greater | op_category::overloadable,
+        shift_left          = op::shift_left            | op_category::shift | op_category::overloadable,
+        shift_right         = op::shift_right           | op_category::shift | op_category::overloadable,
         times               = op::times                 | op_category::multiplicative | op_category::overloadable,
         divide              = op::divide                | op_category::multiplicative | op_category::overloadable,
         mod                 = op::mod                   | op_category::multiplicative | op_category::overloadable,
@@ -183,12 +184,8 @@ struct token_ids
     };
 
     static const string& operator_string_from_token_id(size_t token_id);
-
-    static map<size_t, string> m_operator_string_from_token_ids;
 };
 
-}
-
-o_namespace_end(phantom, reflection)
+o_namespace_end(phantom, reflection, cpp)
 
 #endif // tokens_h__

@@ -28,6 +28,15 @@ o_classNS((phantom, qt), AddDataAction, (Action), o_no_copy)
 };
 o_exposeN((phantom, qt), AddDataAction);
 
+o_classNS((phantom, qt), RemoveDataAction, (Action), o_no_copy)
+{
+    o_reflection
+    {
+
+    };
+};
+o_exposeN((phantom, qt), RemoveDataAction);
+
 o_classNS((phantom, qt), AddNodeAction, (Action), o_no_copy)
 {
     o_reflection

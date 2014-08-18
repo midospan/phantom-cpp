@@ -48,39 +48,22 @@ class o_export ArrayElementAccess : public Expression
 {
 public:
     ArrayElementAccess(ArrayType* a_pArrayType, Expression* a_pLeftExpression, Expression* a_pIndexExpression);
-
-    virtual Type*               getValueType() const 
-    {
-        return m_pArrayType->getElementType();
-    }
+    ArrayElementAccess(ConstType* a_pConstArrayType, Expression* a_pLeftExpression, Expression* a_pIndexExpression);
 
     virtual void                getValue(void* a_pDest) const 
     {
         size_t index;
         m_pIndexExpression->getValue(&index);
-        m_pArrayType->getElementValue(m_pLeftExpression->getAddress(), index, a_pDest);
+        *((void**)a_pDest) = m_pArrayType->getElementAddress(m_pLeftExpression->loadEffectiveAddress(), index);
     }
 
-    virtual void                setValue(void const* a_pSrc) const 
-    {
-        size_t index;
-        m_pIndexExpression->getValue(&index);
-        m_pArrayType->setElementValue(m_pLeftExpression->getAddress(), index, a_pSrc);
-        m_pLeftExpression->flush();
-    }
+    Expression*                 getLeftExpression() const { return m_pLeftExpression; }
 
-    virtual void*               getAddress() const 
-    { 
-        size_t index;
-        m_pIndexExpression->getValue(&index);
-        return m_pArrayType->getElementAddress(m_pLeftExpression->getAddress(), index); 
-    }
+    Expression*                 getIndexExpression() const { return m_pIndexExpression; }
 
-    Expression*                getLeftExpression() const { return m_pLeftExpression; }
+    virtual void flush() const { m_pIndexExpression->flush(); m_pLeftExpression->flush(); }
 
-    Expression*                   getIndexExpression() const { return m_pIndexExpression; }
-
-    virtual void flush() { m_pLeftExpression->flush(); }
+    virtual ArrayElementAccess*     clone() const;
 
 protected:
     void referencedElementRemoved( LanguageElement* a_pElement );

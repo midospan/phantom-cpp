@@ -44,6 +44,29 @@
 
 o_namespace_begin(phantom, state)
 
+struct state_machine_compilation_data
+{
+    state_machine_compilation_data() : m_uiDataSize(0), m_uiDataPtrOffset(0), m_bCompiled(false) {}
+    /// JIT
+    size_t m_uiDataSize;
+    size_t m_uiDataPtrOffset;
+    bool m_bCompiled;
+};
+
+#define o_dynamic_smdataptr(a_pObject) (*((dynamic_state_machine_data**)((byte*)a_pObject + m_pCompilationData->m_uiDataPtrOffset)))
+
+struct dynamic_state_machine_data : base_state_machine_data
+{
+    friend class StateMachine;
+    friend class State;
+    friend class Track;
+
+    dynamic_state_machine_data(void* a_pOwner, StateMachine* a_pSM);
+    ~dynamic_state_machine_data();
+    State**  current_states;
+    State**  transit_states;
+};
+
 class o_export StateMachine : public reflection::LanguageElement
 {
     typedef list<Event*>        EventQueue;
@@ -53,6 +76,7 @@ class o_export StateMachine : public reflection::LanguageElement
     friend class Track;
     friend class reflection::Class;
     friend class base_state_machine_data;
+    friend struct dynamic_state_machine_data;
 
 public:
     static reflection::Class* const metaType;
@@ -70,15 +94,14 @@ public:
     }
 
 public:
-
     StateMachine(bitfield a_Modifiers = 0);
     o_destructor ~StateMachine(void);
 
     virtual StateMachine* asStateMachine() const { return (StateMachine*)this; }
     reflection::Class*    getOwnerClass() const { return static_cast<reflection::Class*>(m_pOwner); }
 
-    virtual void    install(void* a_pObject) const = 0;
-    virtual void    uninstall(void* a_pObject) const = 0;
+    virtual void    install(void* a_pObject) const;
+    virtual void    uninstall(void* a_pObject) const;
     
     void            postRandomEvent(void* a_pObject, vector<uint>* eventIds = nullptr);
     template<typename t_EventTy>
@@ -89,10 +112,10 @@ public:
     }
     void            postEvent(void* a_pInstance, const string& a_strName) { postEvent(a_pInstance, getEventId(a_strName)); }
 
-    virtual State*const* getTransitStates(void const* a_pInstance) const = 0;
-    virtual State*const* getCurrentStates(void const* a_pInstance) const = 0;
-    virtual State**      getTransitStates(void * a_pInstance) const = 0;
-    virtual State**      getCurrentStates(void * a_pInstance) const = 0;
+    virtual State*const* getTransitStates(void const* a_pInstance) const;
+    virtual State*const* getCurrentStates(void const* a_pInstance) const;
+    virtual State**      getTransitStates(void * a_pInstance) const;
+    virtual State**      getCurrentStates(void * a_pInstance) const;
 
     Track*          getRootTrack() const { return m_Tracks[0]; }
     void            setRootTrack(Track* a_pRootTrack);
@@ -112,32 +135,55 @@ public:
     State*          getSurrogateState(State* a_pState) const;
     Track*          getSurrogateTrack(Track* a_pTrack) const;
 
-    virtual size_t  getDataPtrOffset() const = 0;
-
-    virtual base_state_machine_data* getInstanceData(void* a_pInstance) const = 0;
+    virtual base_state_machine_data* getInstanceData(void* a_pInstance) const
+    {
+        return o_dynamic_smdataptr(a_pInstance);
+    }
     
     inline void     addTransition(State* a_pSrcState, uint a_uiEventId, State* a_pDestState);
     inline State*   getTransitionState(State* a_pSrcState, uint a_uiEventId) const ;
     
-    virtual State*  getCurrentState(void* a_pObject, const Track* a_pTrack) const = 0;
-    virtual State*  getTransitState(void* a_pObject, const Track* a_pTrack) const = 0;
+    virtual State*  getCurrentState(void* a_pObject, const Track* a_pTrack) const;
+    virtual State*  getTransitState(void* a_pObject, const Track* a_pTrack) const;
     
     boolean         isTrackActive(void* a_pObject, const Track* a_pTrack)
     {
         return getCurrentState(a_pObject, a_pTrack) != nullptr;
     }
+
+    /// JIT 
+
+    inline size_t getDataSize() const { o_assert(m_pCompilationData); return m_pCompilationData->m_uiDataSize; }
+
+    virtual size_t  getDataPtrOffset() const { o_assert(m_pCompilationData); return m_pCompilationData->m_uiDataPtrOffset; }
+
+    // Internal methods
+    void    solveQueuedTransitions(dynamic_state_machine_data* smdataptr);
+    void    solveTransitions( dynamic_state_machine_data* smdataptr, uint a_uiEventId );
+    void    queue(dynamic_state_machine_data* smdataptr, uint a_uiEventId);
+    virtual void    setup( StateMachine* a_pSuper );
+
+protected:
+    virtual variant compile(reflection::Compiler* a_pCompiler);
+
+protected:
+    void setDataPtrOffset(size_t offset)
+    {
+        o_assert(m_pCompilationData);
+        m_pCompilationData->m_uiDataPtrOffset = offset;
+    }
     
 protected:
-    virtual void    initialize(void* a_pObject) = 0;
-    virtual void    update(void* a_pObject) = 0;
+    virtual void    initialize(void* a_pObject) ;
+    virtual void    update(void* a_pObject) ;
     virtual void    reset(void* a_pObject)
     {
         terminate(a_pObject);
         initialize(a_pObject);
     }
-    virtual void    terminate(void* a_pObject) = 0;
-    virtual void    postEvent(void* a_pObject, uint a_uiEventId) = 0;
-    virtual void    queueEvent(void* a_pObject, uint a_uiEventId) = 0;
+    virtual void    terminate(void* a_pObject);
+    virtual void    postEvent(void* a_pObject, uint a_uiEventId);
+    virtual void    queueEvent(void* a_pObject, uint a_uiEventId);
     virtual void    registerTrack(Track* a_pTrack);
     virtual void    registerState(State* a_pState);
 
@@ -155,6 +201,8 @@ protected:
     event_id_map            m_EventIds;
     transition_map          m_Transitions;
     uint                    m_uiTrackCount;
+    state_machine_compilation_data* m_pCompilationData;
+
 };
 
 o_namespace_end(phantom, state)

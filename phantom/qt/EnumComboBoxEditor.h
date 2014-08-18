@@ -28,12 +28,8 @@ public:
             size_t constantValue = 0;
             phantom::reflection::Constant* pConstant = a_pEnum->getConstant(i);
             pConstant->getValue(&constantValue);
-            addItem(getIconMetaDataIndex() == eInvalidMetaDataIndex 
-                        ? QIcon()
-                        : QIcon(pConstant->getMetaDataValue(getIconMetaDataIndex()).c_str())
-                , getNameMetaDataIndex() == eInvalidMetaDataIndex
-                        ? pConstant->getName().c_str()
-                        : pConstant->getMetaDataValue(getNameMetaDataIndex()).c_str()
+            addItem(QIcon(iconOf(pConstant).c_str())
+                , nameOf(pConstant).c_str()
                 , constantValue); 
         }
     }

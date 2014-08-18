@@ -11,31 +11,21 @@ o_declareN(class, (phantom, reflection, jit), JitSubroutine);
 o_namespace_begin(phantom, reflection, jit)
 
 
-class o_jit_export JitSubroutine
+class o_jit_export JitSubroutine : public Extension
 {
     friend class JitClass;
-public:
-    JitSubroutine(void);
+
+    JitSubroutine(Subroutine* a_pSubroutine, EJitAbi a_eAbi);
     ~JitSubroutine(void);
-
-    o_initialize();
-
-    virtual reflection::LanguageElement* asLanguageElement() const = 0;
-    virtual Subroutine* asSubroutine() const = 0;
 
     void startCompilation();
     void abortCompilation();
     void endCompilation();
 
-    virtual void    call( void* a_pThis, void** a_ppArgs ) const = 0;
-    virtual void    call( void* a_pThis, void** a_ppArgs, void* a_pReturnArea ) const = 0;
+    Subroutine* getSubroutine() const {return static_cast<Subroutine*>(m_pElement); }
 
-    virtual void    call( void** args, void* a_pReturnArea ) const = 0;
-    virtual void    call( void** args ) const = 0;
+    Signature* getSignature() const { return getSubroutine()->getSignature(); }
     
-    virtual void*   getClosurePointer() const;
-
-    virtual generic_member_func_ptr getGenericMemberFunctionPointer() const;
     void reset();
 
     /*int get_opcode (jit_insn insn)
@@ -122,12 +112,13 @@ public:
     int         branchIfNot (jit_value value, jit_label *label);
     int         jumpTable (jit_value value, jit_label *labels, uint num_labels);
     jit_value   addressOf (jit_value value1);
+    jit_value   referenceOf (jit_value value1);
     jit_value   addressOfLabel (jit_label *label);
     jit_value   implicitCast(jit_value value, Type* dest );
     jit_value   cast(jit_value value, Type* dest );
     jit_value   convert(jit_value value, Type* dest);
     jit_value   callSubroutine (Subroutine* a_pSubroutine, jit_value *args, uint a_uiArgCount, int flags);
-    void        callSignal (JitSignal* a_pJitSignal, jit_value *args, uint a_uiArgCount, int flags);
+    void        callSignal (Signal* a_pSignal, jit_value *args, uint a_uiArgCount, int flags);
     jit_value   callIndirect (jit_value value, Signature* signature, jit_value *args, uint a_uiArgCount, int flags);
     jit_value   callIndirectVtable (jit_value value, Signature* signature, jit_value *args, uint a_uiArgCount, int flags);
     jit_value   callNative (const char *name, void *native_func, EJitAbi abi, Signature* signature, jit_value* args, uint a_uiArgCount, int exception_return, int flags);
@@ -150,7 +141,7 @@ public:
     int         setParam (jit_value value, int offset);
     int         setParamPtr (jit_value value, Type* type, int offset);
     int         pushReturnAreaPtr ();
-    int         pop_stack (int num_items);
+    int         popStack (int num_items);
     int         deferPopStack (int num_items);
     int         flushDeferPop (int num_items);
     int         returnValue (jit_value value);
@@ -196,7 +187,7 @@ public:
     jit_value   getParameter (uint param) const;
     jit_value   getThis() const ;
 
-    virtual EJitAbi getAbi() const = 0;
+    EJitAbi     getAbi() const { return m_eAbi; }
 
     void compileDebugPrint( const char* to_print );
 
@@ -210,20 +201,24 @@ public:
 
     bool isCompiled() const;
 
-protected:
     jit_context getContext() const;
     jit_function getJitFunction() const { return m_jit_function; }
+    virtual jit_function getJitCallFunction() const { return m_jit_function; }
 
     static void instructionCompilationCallback( void* insn, byte* start, byte* end );
     static void compilationSuccessCallback(void* func);
     
-    virtual jit_function createJitFunction(jit_context context) = 0;
     string convertIntrinsicName(const string& a_strInstrinsicName);
 
 protected:
-    std::vector<CodeLocation> sm_CodeLocationStack;
+    virtual void setClosures();
+
+protected:
+    Subroutine* m_pSubroutine;
+    phantom::vector<CodeLocation> sm_CodeLocationStack;
     jit_function  m_jit_function;
     jit_context   m_jit_context;
+    EJitAbi       m_eAbi;
 };
 
 o_namespace_end(phantom, reflection, jit)

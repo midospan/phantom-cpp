@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Class.hxx"
+#include "Expression.hxx"
 
 o_classNS((phantom, reflection), CompositionClass, (Class))
 {
@@ -9,4 +10,11 @@ o_classNS((phantom, reflection), CompositionClass, (Class))
 
     };
 };
-o_exposeN((phantom, reflection), CompositionClass);
+
+o_classNCS((phantom, reflection), (CompositionClass), GetSetExpression, (Expression))
+{
+    o_reflection
+    {
+
+    };
+};

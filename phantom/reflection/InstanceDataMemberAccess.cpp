@@ -41,13 +41,15 @@ o_registerN((phantom, reflection), InstanceDataMemberAccess);
 o_namespace_begin(phantom, reflection) 
 
 InstanceDataMemberAccess::InstanceDataMemberAccess( Expression* a_pLeftExpression, InstanceDataMember* a_pInstanceDataMember ) 
-    : Expression(a_pInstanceDataMember->getValueType(), a_pInstanceDataMember->getName() + "." + a_pInstanceDataMember->getName()
-                        
+    : Expression(a_pLeftExpression->isConstExpression() 
+                    ? a_pInstanceDataMember->getValueType()->constType()->referenceType()
+                    : a_pInstanceDataMember->getValueType()->referenceType()
+                , "("+a_pLeftExpression->getName() + ")." + a_pInstanceDataMember->getName()
                         , a_pInstanceDataMember->getModifiers())
     , m_pLeftExpression(a_pLeftExpression)
     , m_pInstanceDataMember(a_pInstanceDataMember)
 {
-    o_assert(m_pLeftExpression->isAddressable());
+    o_assert(a_pLeftExpression->getValueType()->asReferenceType());
     addElement(a_pLeftExpression);
     addReferencedElement(m_pInstanceDataMember);
 }
@@ -57,6 +59,21 @@ void InstanceDataMemberAccess::referencedElementRemoved( LanguageElement* a_pEle
     Expression::referencedElementRemoved(a_pElement);
     if(m_pInstanceDataMember == a_pElement)
         m_pInstanceDataMember = nullptr;
+}
+
+void InstanceDataMemberAccess::getValue( void* a_pDest ) const
+{
+    *((void**)a_pDest) = m_pInstanceDataMember->getAddress(m_pLeftExpression->loadEffectiveAddress());
+}
+
+void InstanceDataMemberAccess::setValue( void const* src ) const
+{
+    m_pInstanceDataMember->setValue(m_pLeftExpression->loadEffectiveAddress(), src);
+}
+
+InstanceDataMemberAccess* InstanceDataMemberAccess::clone() const
+{
+    return o_new(InstanceDataMemberAccess)(m_pLeftExpression->clone(), m_pInstanceDataMember);
 }
 
 o_namespace_end(phantom, reflection)

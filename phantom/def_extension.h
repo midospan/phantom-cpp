@@ -125,6 +125,26 @@ inline phantom::string lexical_cast<phantom::string, unsigned char>(const unsign
 }
 
 template<>
+inline std::nullptr_t lexical_cast<std::nullptr_t, phantom::string>(const phantom::string &arg)
+{
+    if(arg != "nullptr")
+    {
+        o_exception(exception::reflection_runtime_exception, "parsing nullptr value failed");
+    }
+    return nullptr;
+}
+
+template<>
+inline phantom::string lexical_cast<phantom::string, std::nullptr_t>(const std::nullptr_t& arg)
+{
+    if(arg != nullptr)
+    {
+        o_exception(exception::reflection_runtime_exception, "parsing nullptr value failed");
+    }
+    return "nullptr";
+}
+
+template<>
 inline void* lexical_cast<void*, phantom::string>(const phantom::string &arg)
 {
     void* ptr;
@@ -159,6 +179,10 @@ struct string_converter_helper
     {
         a_strOut += phantom::lexical_cast<string>(*a_pSrc);
     }
+    static void toLiteral(const reflection::Type* a_pType, string& a_strOut, const t_Ty* a_pSrc)
+    {
+        a_strOut += phantom::lexical_cast<string>(*a_pSrc);
+    }
     static void from(const reflection::Type* a_pType, const string& input, t_Ty* a_pDest)
     {
         *a_pDest = phantom::lexical_cast<t_Ty>(input);
@@ -177,14 +201,62 @@ struct string_converter<void>
     static void to(const reflection::Type* a_pType, string& a_strOut, const void* a_pSrc)
     {
     }
+    static void toLiteral(const reflection::Type* a_pType, string& a_strOut, const void* a_pSrc)
+    {
+    }
     static void from(const reflection::Type* a_pType, const string& a_strIn, void* a_pDest)
     {
     }
 };
 
 template<>
+struct string_converter<std::nullptr_t> 
+{
+    static void toLiteral(const reflection::Type* a_pType, string& a_strOut, const std::nullptr_t* a_pSrc)
+    {
+        if(*a_pSrc != nullptr)
+        {
+            o_exception(exception::reflection_runtime_exception, "parsing nullptr value failed");
+        }
+        a_strOut = "nullptr";
+    }
+    static void to(const reflection::Type* a_pType, string& a_strOut, const std::nullptr_t* a_pSrc)
+    {
+        if(*a_pSrc != nullptr)
+        {
+            o_exception(exception::reflection_runtime_exception, "parsing nullptr value failed");
+        }
+        a_strOut = "nullptr";
+    }
+    static void from(const reflection::Type* a_pType, const string& a_strIn, std::nullptr_t* a_pDest)
+    {
+        if(a_strIn != "nullptr")
+        {
+            o_exception(exception::reflection_runtime_exception, "parsing nullptr value failed");
+        }
+        *a_pDest = nullptr;
+    }
+};
+
+template<>
 struct string_converter<char>
 {
+    static void toLiteral(const reflection::Type* a_pType, string& a_strOut, const char* a_pSrc)
+    {
+        a_strOut += "'";
+        switch(*a_pSrc)
+        {
+        case '\'':  a_strOut += "\\'"; break;
+        case '\\': a_strOut += "\\\\"; break;
+        case '\n': a_strOut += "\\n" ; break;
+        case '\r': a_strOut += "\\r" ; break;
+        case '\t': a_strOut += "\\t" ; break;
+        case '\0': a_strOut += "\\0" ; break;
+        default:
+            a_strOut += *a_pSrc;
+        }
+        a_strOut += "'";
+    }
     static void to(const reflection::Type* a_pType, string& a_strOut, const char* a_pSrc)
     {
         a_strOut += *a_pSrc;
@@ -198,6 +270,10 @@ struct string_converter<char>
 template<>
 struct string_converter<bool>
 {
+    static void toLiteral(const reflection::Type* a_pType, string& a_strOut, const bool* a_pSrc)
+    {
+        a_strOut += *a_pSrc ? "true" : "false";
+    }
     static void to(const reflection::Type* a_pType, string& a_strOut, const bool* a_pSrc)
     {
         a_strOut += *a_pSrc ? "true" : "false";
@@ -218,6 +294,11 @@ struct string_converter<bool>
 template<>
 struct string_converter<wchar_t>
 {
+    static void toLiteral(const reflection::Type* a_pType, string& a_strOut, const wchar_t* a_pSrc)
+    {
+        a_strOut += *((const char*)a_pSrc);
+        a_strOut += *(((const char*)a_pSrc)+1);
+    }
     static void to(const reflection::Type* a_pType, string& a_strOut, const wchar_t* a_pSrc)
     {
         a_strOut += *((const char*)a_pSrc);
@@ -233,6 +314,9 @@ struct string_converter<wchar_t>
 template<>
 struct string_converter<signal_t>
 {
+    static void toLiteral(const reflection::Type* a_pType, string& a_strOut, const signal_t* a_pSrc)
+    {
+    }
     static void to(const reflection::Type* a_pType, string& a_strOut, const signal_t* a_pSrc)
     {
     }
@@ -241,16 +325,37 @@ struct string_converter<signal_t>
     }
 };
 
-template<>
-struct string_converter<string>
+template<typename t_Alloc>
+struct string_converter<std::basic_string<char, std::char_traits<char>, t_Alloc>>
 {
-    static void to(const reflection::Type* a_pType, string& a_strOut, const string* a_pSrc)
+    typedef std::basic_string<char, std::char_traits<char>, t_Alloc> self_type;
+
+    static void toLiteral(const reflection::Type* a_pType, string& a_strOut, const self_type* a_pSrc)
     {
-        a_strOut += *a_pSrc;
+        a_strOut += "\"";
+        for(auto it = a_pSrc->begin(); it != a_pSrc->end(); ++it)
+        {
+            switch(*it)
+            {
+            case '"':  a_strOut += "\\\""; break;
+            case '\\': a_strOut += "\\\\"; break;
+            case '\n': a_strOut += "\\n" ; break;
+            case '\r': a_strOut += "\\r" ; break;
+            case '\t': a_strOut += "\\t" ; break;
+            case '\0': a_strOut += "\\0" ; break;
+            default:
+                a_strOut += *it;
+            }
+        }
+        a_strOut += "\"";
     }
-    static void from(const reflection::Type* a_pType, const string& a_strIn, string* a_pDest)
+    static void to(const reflection::Type* a_pType, string& a_strOut, const self_type* a_pSrc)
     {
-        *a_pDest = a_strIn;
+        a_strOut.insert(a_strOut.end(), a_pSrc->begin(), a_pSrc->end());
+    }
+    static void from(const reflection::Type* a_pType, const string& a_strIn, self_type* a_pDest)
+    {
+        a_pDest->insert(a_pDest->end(), a_strIn.begin(), a_strIn.end());
     }
 };
 
@@ -390,9 +495,9 @@ template<typename t_Ty>
 struct default_installer_helper<t_Ty, default_installer_static_rtti_registration>
 {
 public:
-    o_forceinline static void install(t_Ty* a_pInstance, size_t a_uiLevel)
+    o_forceinline static void install(reflection::Class* a_pClass, t_Ty* a_pInstance, size_t a_uiLevel)
     {
-        reflection::Class* pBaseClass = classOf<t_Ty>();
+        reflection::Class* pBaseClass = a_pClass;
         o_assert(!connection::slot_pool::hasAllocationController(a_pInstance, pBaseClass));
         connection::slot_pool& ac = connection::slot_pool::allocationController(a_pInstance, pBaseClass);
         phantom::addRttiData(a_pInstance, phantom::rtti_data(pBaseClass, pBaseClass, a_pInstance, &ac, &phantom::extension::dynamic_deleter<t_Ty>::dynamicDelete, a_uiLevel));
@@ -401,18 +506,18 @@ public:
         pBaseClass->registerInstance(a_pInstance);
     }
      
-    o_forceinline static void uninstall(t_Ty* a_pInstance, size_t a_uiLevel)
+    o_forceinline static void uninstall(reflection::Class* a_pClass, t_Ty* a_pInstance, size_t a_uiLevel)
     {
-        reflection::Class* pBaseClass = classOf<t_Ty>();
+        reflection::Class* pBaseClass = a_pClass;
         pBaseClass->unregisterInstance(a_pInstance);
         pBaseClass->uninstallInstanceDataMembersCascade(a_pInstance, a_uiLevel);
         removeRttiData(a_pInstance, a_uiLevel);
         phantom::extension::rtti_data_registrer<t_Ty>::unregisterInfo(a_pInstance, a_uiLevel);
         connection::slot_pool::eraseAllocationController(a_pInstance, pBaseClass);
     }
-    o_forceinline static void install(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel)
+    o_forceinline static void install(reflection::Class* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel)
     {
-        reflection::Class* pBaseClass = classOf<t_Ty>();
+        reflection::Class* pBaseClass = a_pClass;
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
@@ -424,9 +529,9 @@ public:
             pBaseClass->registerInstance(pChunk);
         }
     }
-    o_forceinline static void uninstall(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel)
+    o_forceinline static void uninstall(reflection::Class* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel)
     {
-        reflection::Class* pBaseClass = classOf<t_Ty>();
+        reflection::Class* pBaseClass = a_pClass;
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
@@ -514,29 +619,29 @@ struct default_installer_helper<t_Ty, default_installer_static_rtti_registration
 {
     typedef phantom::state::native::state_machine_data<t_Ty> state_machine_data;
 public:
-    inline static void        install( t_Ty* a_pInstance, size_t a_uiLevel )
+    inline static void        install(reflection::Class* a_pClass,  t_Ty* a_pInstance, size_t a_uiLevel )
     {
-        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::install(a_pInstance, a_uiLevel);
+        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::install(a_pClass, a_pInstance, a_uiLevel);
         phantom::state::base_state_machine_data* smdataptr = new (phantom::extension::allocator<state_machine_data>::allocate(o_memory_stat_insert_arguments)) state_machine_data(a_pInstance);
         smdata_installer_of<t_Ty>::install(a_pInstance, smdataptr);
     }
-    inline static void        uninstall( t_Ty* a_pInstance, size_t a_uiLevel )
+    inline static void        uninstall(reflection::Class* a_pClass,  t_Ty* a_pInstance, size_t a_uiLevel )
     {
         phantom::extension::allocator<state_machine_data>::deallocate(
             (state_machine_data*)(
                 static_cast<o_NESTED_TYPE first_super_statechart_class_of<t_Ty>::type*>(a_pInstance)->PHANTOM_CODEGEN_m_smdataptr
             ) o_memory_stat_append_arguments
         );
-        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::uninstall(a_pInstance, a_uiLevel);
+        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::uninstall(a_pClass, a_pInstance, a_uiLevel);
 
     }
-    inline static void        install( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel )
+    inline static void        install(reflection::Class* a_pClass,  t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel )
     {
-        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::install(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_uiLevel);
+        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::install(a_pClass, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_uiLevel);
         // new (phantom::allocate<state_machine_data>(a_uiCount)) state_machine_data[a_uiCount];
         o_assert(false, "TODO : implement smdataptr installation for chunks");
     }
-    inline static void        uninstall( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel )
+    inline static void        uninstall(reflection::Class* a_pClass,  t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel )
     {
         phantom::deallocate<state_machine_data>(
             (state_machine_data*)(
@@ -544,7 +649,7 @@ public:
             )
             , a_uiCount o_memory_stat_append_arguments
         );
-        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::uninstall(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_uiLevel);
+        default_installer_helper<t_Ty, default_installer_static_rtti_registration>::uninstall(a_pClass, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_uiLevel);
     }
 };
 
@@ -552,10 +657,10 @@ template<typename t_Ty>
 struct default_installer_helper<t_Ty, default_installer_none>
 {
 public:
-    o_forceinline static void install(t_Ty* a_pInstance, size_t a_uiLevel) {  }
-    o_forceinline static void uninstall(t_Ty* a_pInstance, size_t a_uiLevel) {  }
-    o_forceinline static void install(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel) {  }
-    o_forceinline static void uninstall(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel) {  }
+    o_forceinline static void install(reflection::Type* , t_Ty* a_pInstance, size_t a_uiLevel) {  }
+    o_forceinline static void uninstall(reflection::Type* , t_Ty* a_pInstance, size_t a_uiLevel) {  }
+    o_forceinline static void install(reflection::Type* , t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel) {  }
+    o_forceinline static void uninstall(reflection::Type* , t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel) {  }
 };
 
 /* initialization */
@@ -574,12 +679,12 @@ struct default_initializer_helper;
 template<typename t_Ty>
 struct default_initializer_helper<t_Ty, default_initializer_none>
 {
-    o_forceinline static void initialize(t_Ty* a_pInstance) {  }
-    o_forceinline static void terminate(t_Ty* a_pInstance) {  }
-    o_forceinline static void initialize(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize) {  }
-    o_forceinline static void terminate(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize) {  }
-    o_forceinline static restore_state restore(t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass) { return restore_complete; }
-    o_forceinline static restore_state restore(t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize) { return restore_complete; }
+    o_forceinline static void initialize(reflection::Type*, t_Ty* a_pInstance) {  }
+    o_forceinline static void terminate(reflection::Type*, t_Ty* a_pInstance) {  }
+    o_forceinline static void initialize(reflection::Type*, t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize) {  }
+    o_forceinline static void terminate(reflection::Type*, t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize) {  }
+    o_forceinline static restore_state restore(reflection::Type*, t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass) { return restore_complete; }
+    o_forceinline static restore_state restore(reflection::Type*, t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize) { return restore_complete; }
 };
 
 
@@ -849,71 +954,65 @@ struct destroyed_signal_emitter
 template<typename t_Ty>
 struct default_initializer_helper<t_Ty, default_initializer_member_function_and_instanciation_notification>
 {
-    inline static void      initialize( t_Ty* a_pInstance )
+    inline static void      initialize( reflection::Class* a_pClass, t_Ty* a_pInstance )
     {
-        auto pType = typeOf<t_Ty>();
-        initialize_member_function_caller<t_Ty>::apply(pType, a_pInstance);
+        initialize_member_function_caller<t_Ty>::apply(a_pClass, a_pInstance);
 #if o__bool__use_kind_creation_signal
-        pType->fireKindCreated(a_pInstance);
+        a_pClass->fireKindCreated(a_pInstance);
 #endif
     }
-    inline static restore_state   restore( t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass )
+    inline static restore_state   restore( reflection::Class* a_pClass, t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass )
     {
-        auto pType = typeOf<t_Ty>();
-        restore_state result = restore_member_function_caller<t_Ty>::apply(pType, a_pInstance, a_uiSerializationFlag, a_uiPass); 
+        restore_state result = restore_member_function_caller<t_Ty>::apply(a_pClass, a_pInstance, a_uiSerializationFlag, a_uiPass); 
 #if o__bool__use_kind_creation_signal
-        pType->fireKindCreated(a_pInstance);
+        a_pClass->fireKindCreated(a_pInstance);
 #endif
         return result;
     }
-    inline static void      terminate( t_Ty* a_pInstance )
+    inline static void      terminate( reflection::Class* a_pClass, t_Ty* a_pInstance )
     {
-        auto pClass = typeOf<t_Ty>();
 #if o__bool__use_kind_destruction_signal
-        pClass->fireKindDestroyed(static_cast<t_Ty*>(a_pInstance));
+        a_pClass->fireKindDestroyed(static_cast<t_Ty*>(a_pInstance));
 #endif
 #if o__bool__use_destroyed_signal
         destroyed_signal_emitter<t_Ty>::apply(a_pInstance);
 #endif
-        terminate_member_function_caller<t_Ty>::apply(pClass, a_pInstance);
+        terminate_member_function_caller<t_Ty>::apply(a_pClass, a_pInstance);
     }
-    inline static void        initialize( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
+    inline static void        initialize( reflection::Class* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
-        auto pClass = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            initialize_member_function_caller<t_Ty>::apply(pClass, reinterpret_cast<t_Ty*>(pChunk));
+            initialize_member_function_caller<t_Ty>::apply(a_pClass, reinterpret_cast<t_Ty*>(pChunk));
 #if o__bool__use_kind_creation_signal
-            pClass->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
+            a_pClass->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
 #endif
         }
     }
-    inline static void        terminate( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
+    inline static void        terminate( reflection::Class* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
-        auto pClass = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
 #if o__bool__use_kind_destruction_signal
-            pClass->fireKindDestroyed(reinterpret_cast<t_Ty*>(pChunk));
+            a_pClass->fireKindDestroyed(reinterpret_cast<t_Ty*>(pChunk));
 #endif
 #if o__bool__use_destroyed_signal
             destroyed_signal_emitter<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
 #endif
-            terminate_member_function_caller<t_Ty>::apply(pClass, reinterpret_cast<t_Ty*>(pChunk));
+            terminate_member_function_caller<t_Ty>::apply(a_pClass, reinterpret_cast<t_Ty*>(pChunk));
         }
     }
-    inline static restore_state   restore( t_Ty* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize  )
+    inline static restore_state   restore( reflection::Class* a_pClass, t_Ty* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize  )
     {
-        auto pClass = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         restore_state result = restore_complete;
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            result = combine_restore_states(result, restore_member_function_caller<t_Ty>::apply(pClass, reinterpret_cast<t_Ty*>(pChunk), a_uiSerializationFlag, a_uiPass)); 
+            result = combine_restore_states(result, restore_member_function_caller<t_Ty>::apply(a_pClass, reinterpret_cast<t_Ty*>(pChunk), a_uiSerializationFlag, a_uiPass)); 
 #if o__bool__use_kind_creation_signal
-            pClass->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
+            a_pClass->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
 #endif
         }
         return result;
@@ -924,50 +1023,47 @@ struct default_initializer_helper<t_Ty, default_initializer_member_function_and_
 template<typename t_Ty>
 struct default_initializer_helper<t_Ty, default_initializer_member_function_only>
 {
-    inline static void        initialize( t_Ty* a_pInstance )
+    inline static void        initialize( reflection::Class* a_pClass, t_Ty* a_pInstance )
     {
-        initialize_member_function_caller<t_Ty>::apply(typeOf<t_Ty>(), a_pInstance);
+        initialize_member_function_caller<t_Ty>::apply(a_pClass, a_pInstance);
     }
-    inline static void        terminate( t_Ty* a_pInstance )
+    inline static void        terminate( reflection::Class* a_pClass, t_Ty* a_pInstance )
     {
 #if o__bool__use_destroyed_signal
         destroyed_signal_emitter<t_Ty>::apply(a_pInstance);
 #endif
-        terminate_member_function_caller<t_Ty>::apply(typeOf<t_Ty>(), a_pInstance);
+        terminate_member_function_caller<t_Ty>::apply(a_pClass, a_pInstance);
     }
-    inline static restore_state   restore( t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass )
+    inline static restore_state   restore( reflection::Class* a_pClass, t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass )
     {
-        return restore_member_function_caller<t_Ty>::apply(typeOf<t_Ty>(), a_pInstance, a_uiSerializationFlag, a_uiPass); 
+        return restore_member_function_caller<t_Ty>::apply(a_pClass, a_pInstance, a_uiSerializationFlag, a_uiPass); 
     }
-    inline static void        initialize( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
+    inline static void        initialize( reflection::Class* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
-        auto pClass = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
             initialize_member_function_caller<t_Ty>::apply(pClass, reinterpret_cast<t_Ty*>(pChunk));
         }
     }
-    inline static void        terminate( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
+    inline static void        terminate( reflection::Class* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
-        auto pClass = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
 #if o__bool__use_destroyed_signal
             destroyed_signal_emitter<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
 #endif
-            terminate_member_function_caller<t_Ty>::apply(pClass, reinterpret_cast<t_Ty*>(pChunk));
+            terminate_member_function_caller<t_Ty>::apply(a_pClass, reinterpret_cast<t_Ty*>(pChunk));
         }
     }
-    inline static restore_state   restore( t_Ty* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize  )
+    inline static restore_state   restore( reflection::Class* a_pClass, t_Ty* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize  )
     {
-        auto pClass = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         restore_state result = restore_complete;
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
-            result = combine_restore_states(result, restore_member_function_caller<t_Ty>::apply(pClass, reinterpret_cast<t_Ty*>(pChunk), a_uiSerializationFlag, a_uiPass)); 
+            result = combine_restore_states(result, restore_member_function_caller<t_Ty>::apply(a_pClass, reinterpret_cast<t_Ty*>(pChunk), a_uiSerializationFlag, a_uiPass)); 
         }
         return result;
     }
@@ -976,61 +1072,58 @@ struct default_initializer_helper<t_Ty, default_initializer_member_function_only
 template<typename t_Ty>
 struct default_initializer_helper<t_Ty, default_initializer_instanciation_notification_only>
 {
-    inline static void        initialize( t_Ty* a_pInstance )
+    inline static void        initialize( reflection::Class* a_pClass, t_Ty* a_pInstance )
     {
 #if o__bool__use_kind_creation_signal
-        typeOf<t_Ty>()->fireKindCreated(a_pInstance);
+        a_pClass->fireKindCreated(a_pInstance);
 #endif
     }
-    inline static restore_state     restore( t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass )
+    inline static restore_state     restore( reflection::Class* a_pClass, t_Ty* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass )
     {
 #if o__bool__use_kind_creation_signal
-        typeOf<t_Ty>()->fireKindCreated(a_pInstance);
+        a_pClass->fireKindCreated(a_pInstance);
 #endif
         return restore_complete;
     }
-    inline static void        terminate( t_Ty* a_pInstance )
+    inline static void        terminate( reflection::Class* a_pClass, t_Ty* a_pInstance )
     {
 #if o__bool__use_kind_destruction_signal
-        typeOf<t_Ty>()->fireKindDestroyed(a_pInstance);
+        a_pClass->fireKindDestroyed(a_pInstance);
 #endif
 #if o__bool__use_destroyed_signal
         destroyed_signal_emitter<t_Ty>::apply(a_pInstance);
 #endif
     }
-    inline static void        initialize( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
+    inline static void        initialize( reflection::Class* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
-        auto pType = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
 #if o__bool__use_kind_creation_signal
-            pType->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
+            a_pClass->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
 #endif
         }
     }
-    inline static void        terminate( t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
+    inline static void        terminate( reflection::Class* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
     {
-        auto pType = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
 #if o__bool__use_kind_destruction_signal
-            pType->fireKindDestroyed(reinterpret_cast<t_Ty*>(pChunk));
+            a_pClass->fireKindDestroyed(reinterpret_cast<t_Ty*>(pChunk));
 #endif
 #if o__bool__use_destroyed_signal
             destroyed_signal_emitter<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
 #endif
         }
     }
-    inline static restore_state   restore( t_Ty* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize  )
+    inline static restore_state   restore( reflection::Class* a_pClass, t_Ty* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize  )
     {
-        auto pType = typeOf<t_Ty>();
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
         {
 #if o__bool__use_kind_creation_signal
-            pType->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
+            a_pClass->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
 #endif
         }
         return restore_complete;
@@ -1073,67 +1166,67 @@ template<typename t_Ty>
 struct default_serializer_helper<t_Ty, default_serializer_not_serializable>
 {
     static void throw_exception() { o_exception(exception::unsupported_member_function_exception, "This type is not serializable"); }
-    o_forceinline static void serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Type* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Type* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    o_forceinline static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    o_forceinline static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
        throw_exception();
     }
-    o_forceinline static void serialize(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Type* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Type* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    o_forceinline static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    o_forceinline static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    static void serializeLayout(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    static void deserializeLayout(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    static void serializeLayout(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    static void deserializeLayout(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         throw_exception();
     }
@@ -1143,19 +1236,19 @@ template<typename t_Ty>
 struct default_resetter_helper<t_Ty, default_resetter_not_resettable>
 {
     static void throw_exception() { o_exception(exception::unsupported_member_function_exception, "This type is not resettable"); }
-    o_forceinline static void remember(t_Ty const* a_pInstance, byte*& a_pOutBuffer)
+    o_forceinline static void remember(reflection::Type* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer)
     {
         throw_exception();
     }
-    o_forceinline static void reset(t_Ty* a_pInstance, byte const*& a_pInBuffer)
+    o_forceinline static void reset(reflection::Type* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer)
     {
         throw_exception();
     }
-    o_forceinline static void remember(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
+    o_forceinline static void remember(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
     {
         throw_exception();
     }
-    o_forceinline static void reset(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
+    o_forceinline static void reset(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
     {
         throw_exception();
     }
@@ -1192,17 +1285,17 @@ template<typename t_Ty>
 struct default_serializer_helper<t_Ty, default_serializer_canonical>
 {
 public:
-    o_forceinline static void serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Type* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         *reinterpret_cast<t_Ty*>(a_pOutBuffer) = *a_pInstance;
         a_pOutBuffer += sizeof(t_Ty);
     }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Type* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         *a_pInstance = *reinterpret_cast<t_Ty const*>(a_pInBuffer);
         a_pInBuffer += sizeof(t_Ty);
     }
-    o_forceinline static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
@@ -1211,7 +1304,7 @@ public:
             a_pOutBuffer += sizeof(t_Ty);
         }
     }
-    o_forceinline static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
@@ -1220,11 +1313,11 @@ public:
             a_pInBuffer += sizeof(t_Ty);
         }
     }
-    o_forceinline static void serialize(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Type* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         a_OutBranch.put_value(phantom::lexical_cast<string>(*a_pInstance));
     }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Type* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         const boost::optional<string>& value = a_InBranch.get_value_optional<string>();
         if(value.is_initialized())
@@ -1232,7 +1325,7 @@ public:
             *reinterpret_cast<t_Ty*>(a_pInstance) = phantom::lexical_cast<t_Ty>(*value);
         }
     }
-    o_forceinline static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         int i = 0;
@@ -1245,7 +1338,7 @@ public:
             pChunk += a_uiChunkSectionSize;
         }
     }
-    o_forceinline static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         int i = 0;
@@ -1261,37 +1354,37 @@ public:
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void serializeLayout(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 };
 
@@ -1299,21 +1392,21 @@ public:
 template<typename t_Ty>
 struct default_resetter_helper<t_Ty, default_resetter_canonical>
 {
-    o_forceinline static void remember(t_Ty const* a_pInstance, byte*& a_pOutBuffer)
+    o_forceinline static void remember(reflection::Type* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer)
     {
-        default_serializer_helper<t_Ty, default_serializer_canonical>::serialize(a_pInstance, a_pOutBuffer, 0, NULL);
+        default_serializer_helper<t_Ty, default_serializer_canonical>::serialize(a_pType, a_pInstance, a_pOutBuffer, 0, NULL);
     }
-    o_forceinline static void reset(t_Ty* a_pInstance, byte const*& a_pInBuffer)
+    o_forceinline static void reset(reflection::Type* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer)
     {
-        default_serializer_helper<t_Ty, default_serializer_canonical>::deserialize(a_pInstance, a_pInBuffer, 0, NULL);
+        default_serializer_helper<t_Ty, default_serializer_canonical>::deserialize(a_pType, a_pInstance, a_pInBuffer, 0, NULL);
     }
-    o_forceinline static void remember(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
+    o_forceinline static void remember(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
     {
-        default_serializer_helper<t_Ty, default_serializer_canonical>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, 0, NULL);
+        default_serializer_helper<t_Ty, default_serializer_canonical>::serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, 0, NULL);
     }
-    o_forceinline static void reset(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
+    o_forceinline static void reset(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
     {
-        default_serializer_helper<t_Ty, default_serializer_canonical>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, 0, NULL);
+        default_serializer_helper<t_Ty, default_serializer_canonical>::deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, 0, NULL);
     }
 };
 
@@ -1325,43 +1418,45 @@ struct default_serializer_helper<t_Ty, default_serializer_array>
     enum {extent = boost::extent<t_Ty>::value};
     typedef o_NESTED_TYPE boost::remove_extent<t_Ty>::type content_type;
 
-    static void serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    typedef o_NESTED_TYPE reflection::canonical_meta_class_type_of<content_type>::type meta_content_type;
+
+    static void serialize(reflection::ArrayType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        phantom::extension::serializer<content_type>::serialize(reinterpret_cast<content_type const*>(a_pInstance), extent, sizeof(content_type), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::extension::serializer<content_type>::serialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type const*>(a_pInstance), extent, sizeof(content_type), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::ArrayType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        phantom::extension::serializer<content_type>::deserialize(reinterpret_cast<content_type*>(a_pInstance), extent, sizeof(content_type), a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::extension::serializer<content_type>::deserialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type*>(a_pInstance), extent, sizeof(content_type), a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serialize( t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase )
+    static void serialize(reflection::ArrayType* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase )
     {
-        phantom::extension::serializer<content_type>::serialize(reinterpret_cast<content_type const*>(a_pInstance), extent, sizeof(content_type), a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::extension::serializer<content_type>::serialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type const*>(a_pInstance), extent, sizeof(content_type), a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserialize( t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase )
+    static void deserialize(reflection::ArrayType* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase )
     {
-        phantom::extension::serializer<content_type>::deserialize(reinterpret_cast<content_type*>(a_pInstance), extent, sizeof(content_type), a_InBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::extension::serializer<content_type>::deserialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type*>(a_pInstance), extent, sizeof(content_type), a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void        serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void        serialize(reflection::ArrayType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         while(a_uiCount--)
         {
-            phantom::extension::serializer<content_type>::serialize(reinterpret_cast<content_type const*>(pChunk), extent, sizeof(content_type), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+            phantom::extension::serializer<content_type>::serialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type const*>(pChunk), extent, sizeof(content_type), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
             pChunk += a_uiChunkSectionSize;
         }
     }
 
-    static void        deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void        deserialize(reflection::ArrayType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         while(a_uiCount--)
         {
-            phantom::extension::serializer<content_type>::deserialize(reinterpret_cast<content_type*>(pChunk), extent, sizeof(content_type), a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+            phantom::extension::serializer<content_type>::deserialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type*>(pChunk), extent, sizeof(content_type), a_pInBuffer, a_uiSerializationMask, a_pDataBase);
             pChunk += a_uiChunkSectionSize;
         }
     }
 
-    static void        serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void        serialize(reflection::ArrayType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         int i = 0;
@@ -1370,13 +1465,13 @@ struct default_serializer_helper<t_Ty, default_serializer_array>
             char index_buffer[32]="";
             o_secured_sprintf(index_buffer, 32, "_%d", i++);
             property_tree index_tree;
-            phantom::extension::serializer<content_type>::serialize(reinterpret_cast<content_type const*>(pChunk), extent, sizeof(content_type), index_tree, a_uiSerializationMask, a_pDataBase);
+            phantom::extension::serializer<content_type>::serialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type const*>(pChunk), extent, sizeof(content_type), index_tree, a_uiSerializationMask, a_pDataBase);
             a_OutBranch.add_child(index_buffer, index_tree);
             pChunk += a_uiChunkSectionSize;
         }
     }
 
-    static void        deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void        deserialize(reflection::ArrayType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         int i = 0;
@@ -1387,42 +1482,42 @@ struct default_serializer_helper<t_Ty, default_serializer_array>
             boost::optional<const property_tree&> index_tree_opt = a_InBranch.get_child_optional(index_buffer);
             if(index_tree_opt.is_initialized())
             {
-                phantom::extension::serializer<content_type>::deserialize(reinterpret_cast<content_type*>(pChunk), extent, sizeof(content_type), *index_tree_opt, a_uiSerializationMask, a_pDataBase);
+                phantom::extension::serializer<content_type>::deserialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type*>(pChunk), extent, sizeof(content_type), *index_tree_opt, a_uiSerializationMask, a_pDataBase);
             }
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void serializeLayout(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::ArrayType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::ArrayType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::ArrayType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::ArrayType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::ArrayType* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::ArrayType* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::ArrayType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::ArrayType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 
 };
@@ -1430,7 +1525,7 @@ struct default_serializer_helper<t_Ty, default_serializer_array>
 template<typename t_Ty>
 struct default_serializer_helper<t_Ty, default_serializer_pointer>
 {
-    static void        serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void        serialize(reflection::Type* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         void* ptr = *reinterpret_cast<void* const*>(a_pInstance);
         const rtti_data& rttiData = phantom::rttiDataOf(ptr);
@@ -1466,7 +1561,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
         }
     }
 
-    static void        deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void        deserialize(reflection::Type* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         uint guid = *reinterpret_cast<uint const*>(a_pInBuffer);
         a_pInBuffer += sizeof(uint);
@@ -1522,7 +1617,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
         }
     }
 
-    static void serialize( t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase )
+    static void serialize(reflection::Type* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase )
     {
         void* ptr = *reinterpret_cast<void* const*>(a_pInstance);
         const rtti_data& rttiData = phantom::rttiDataOf(ptr);
@@ -1541,7 +1636,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
         }
     }
 
-    static void deserialize( t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase )
+    static void deserialize( reflection::Type* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase )
     {
         string guid_str = a_InBranch.get<string>("guid");
         string offset_str = a_InBranch.get<string>("offset");
@@ -1592,7 +1687,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
         }
     }
 
-    static void        serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void        serialize(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         while(a_uiCount--)
@@ -1633,7 +1728,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
         }
     }
 
-    static void        deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void        deserialize(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         while(a_uiCount--)
@@ -1695,7 +1790,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
         }
     }
 
-    static void        serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void        serialize(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         int i = 0;
@@ -1725,7 +1820,7 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
         }
     }
 
-    static void        deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void        deserialize(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         int i = 0;
@@ -1787,37 +1882,37 @@ struct default_serializer_helper<t_Ty, default_serializer_pointer>
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void serializeLayout(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 };
 
@@ -1827,72 +1922,72 @@ template<typename t_Ty>
 struct default_serializer_helper<t_Ty, default_serializer_enum>
 {
     typedef o_NESTED_TYPE phantom::enum_integral_type<t_Ty>::type proxy_type;
-    o_forceinline static void serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Enum* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::serialize((proxy_type const*)a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::serialize(a_pType, (proxy_type const*)a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Enum* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::deserialize((proxy_type*)a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::deserialize(a_pType, (proxy_type*)a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serialize(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Enum* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::serialize((proxy_type const*)a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::serialize(a_pType, (proxy_type const*)a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Enum* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::deserialize((proxy_type*)a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::deserialize(a_pType, (proxy_type*)a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Enum* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::serialize((proxy_type const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::serialize(a_pType, (proxy_type const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Enum* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::deserialize((proxy_type*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::deserialize(a_pType, (proxy_type*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Enum* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::serialize((proxy_type const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::serialize(a_pType, (proxy_type const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Enum* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::deserialize((proxy_type*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::deserialize(a_pType, (proxy_type*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 
 
 
-    o_forceinline static void serializeLayout(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serializeLayout(reflection::Enum* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::serializeLayout((proxy_type const*)a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::serializeLayout(a_pType, (proxy_type const*)a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserializeLayout(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserializeLayout(reflection::Enum* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::deserializeLayout((proxy_type*)a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::deserializeLayout(a_pType, (proxy_type*)a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serializeLayout(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serializeLayout(reflection::Enum* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::serializeLayout((proxy_type const*)a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::serializeLayout(a_pType, (proxy_type const*)a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserializeLayout(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserializeLayout(reflection::Enum* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::deserializeLayout((proxy_type*)a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::deserializeLayout(a_pType, (proxy_type*)a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serializeLayout(reflection::Enum* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::serializeLayout((proxy_type const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::serializeLayout(a_pType, (proxy_type const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserializeLayout(reflection::Enum* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::deserializeLayout((proxy_type*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::deserializeLayout(a_pType, (proxy_type*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serializeLayout(reflection::Enum* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::serializeLayout((proxy_type const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::serializeLayout(a_pType, (proxy_type const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserializeLayout(reflection::Enum* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<proxy_type>::deserializeLayout((proxy_type*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<proxy_type>::deserializeLayout(a_pType, (proxy_type*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 };
 
@@ -1900,21 +1995,25 @@ struct default_serializer_helper<t_Ty, default_serializer_enum>
 template<typename t_Ty>
 struct default_resetter_helper<t_Ty, default_resetter_default>
 {
-    o_forceinline static void remember(t_Ty const* a_pInstance, byte*& a_pOutBuffer)
+    template<typename t_MetaTy>
+    o_forceinline static void remember(t_MetaTy* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer)
     {
-        serializer<t_Ty>::serialize(a_pInstance, a_pOutBuffer, 0, NULL);
+        serializer<t_Ty>::serialize(a_pType, a_pInstance, a_pOutBuffer, 0, NULL);
     }
-    o_forceinline static void reset(t_Ty* a_pInstance, byte const*& a_pInBuffer)
+    template<typename t_MetaTy>
+    o_forceinline static void reset(t_MetaTy* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer)
     {
-        serializer<t_Ty>::deserialize(a_pInstance, a_pInBuffer, 0, NULL);
+        serializer<t_Ty>::deserialize(a_pType, a_pInstance, a_pInBuffer, 0, NULL);
     }
-    o_forceinline static void remember(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
+    template<typename t_MetaTy>
+    o_forceinline static void remember(t_MetaTy* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
     {
-        serializer<t_Ty>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, 0, NULL);
+        serializer<t_Ty>::serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, 0, NULL);
     }
-    o_forceinline static void reset(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
+    template<typename t_MetaTy>
+    o_forceinline static void reset(t_MetaTy* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
     {
-        serializer<t_Ty>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, 0, NULL);
+        serializer<t_Ty>::deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, 0, NULL);
     }
 };
 
@@ -1924,87 +2023,87 @@ template <typename t_Ty>
 struct default_serializer_helper<t_Ty, default_serializer_classtype_with_root_statechart>
 {
 public:
-    o_forceinline static void serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::ClassType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::serialize(a_pType, a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
         state::detail::state_machine_serializer<t_Ty>::serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::ClassType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::deserialize(a_pType, a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
         state::detail::state_machine_serializer<t_Ty>::deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serialize(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::ClassType* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::serialize(a_pType, a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
         state::detail::state_machine_serializer<t_Ty>::serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::ClassType* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::deserialize(a_pType, a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
         state::detail::state_machine_serializer<t_Ty>::deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
         state::detail::state_machine_serializer<t_Ty>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
         state::detail::state_machine_serializer<t_Ty>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
         state::detail::state_machine_serializer<t_Ty>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
         state::detail::state_machine_serializer<t_Ty>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 
 
 
-    o_forceinline static void serializeLayout(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(a_pType, a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
         state::detail::root_class_state_machine_serializer<t_Ty>::serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserializeLayout(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(a_pType, a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
         state::detail::root_class_state_machine_serializer<t_Ty>::deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serializeLayout(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(a_pType, a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
         state::detail::root_class_state_machine_serializer<t_Ty>::serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserializeLayout(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(a_pType, a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
         state::detail::root_class_state_machine_serializer<t_Ty>::deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
         state::detail::root_class_state_machine_serializer<t_Ty>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
         state::detail::root_class_state_machine_serializer<t_Ty>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::serializeLayout(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
         state::detail::root_class_state_machine_serializer<t_Ty>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer_helper<t_Ty, default_serializer_classtype>::deserializeLayout(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
         state::detail::root_class_state_machine_serializer<t_Ty>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 
@@ -2014,24 +2113,24 @@ template <typename t_Ty>
 struct default_resetter_helper<t_Ty, default_resetter_classtype_with_root_statechart>
 {
 public:
-    o_forceinline static void remember(t_Ty const* a_pInstance, byte*& a_pOutBuffer)
+    o_forceinline static void remember(reflection::ClassType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer)
     {
-        default_resetter_helper<t_Ty, default_resetter_classtype>::remember(a_pInstance, a_pOutBuffer);
+        default_resetter_helper<t_Ty, default_resetter_classtype>::remember(a_pType, a_pInstance, a_pOutBuffer);
         state::detail::state_machine_resetter<t_Ty>::remember(a_pInstance, a_pOutBuffer);
     }
-    o_forceinline static void reset(t_Ty* a_pInstance, byte const*& a_pInBuffer)
+    o_forceinline static void reset(reflection::ClassType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer)
     {
-        default_resetter_helper<t_Ty, default_resetter_classtype>::reset(a_pInstance, a_pInBuffer);
+        default_resetter_helper<t_Ty, default_resetter_classtype>::reset(a_pType, a_pInstance, a_pInBuffer);
         state::detail::state_machine_resetter<t_Ty>::reset(a_pInstance, a_pInBuffer);
     }
-    o_forceinline static void remember(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
+    o_forceinline static void remember(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
     {
-        default_resetter_helper<t_Ty, default_resetter_classtype>::remember(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
+        default_resetter_helper<t_Ty, default_resetter_classtype>::remember(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
         state::detail::state_machine_resetter<t_Ty>::remember(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
     }
-    o_forceinline static void reset(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
+    o_forceinline static void reset(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
     {
-        default_resetter_helper<t_Ty, default_resetter_classtype>::reset(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
+        default_resetter_helper<t_Ty, default_resetter_classtype>::reset(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
         state::detail::state_machine_resetter<t_Ty>::reset(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
     }
 };
@@ -2040,45 +2139,45 @@ public:
 template<typename t_Ty, size_t t_super_class_count_of>
 struct super_class_serializer_helper
 {
-    o_forceinline static void serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Class* a_pClass, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
-        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::serialize(a_pClass, a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::serialize(a_pClass->getSuperClass(t_super_class_count_of-1), a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Class* a_pClass, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
-        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::deserialize(a_pClass, a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::deserialize(a_pClass->getSuperClass(t_super_class_count_of-1), a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Class* a_pClass, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
-        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::serialize(a_pClass, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::serialize(a_pClass->getSuperClass(t_super_class_count_of-1), a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Class* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
-        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::deserialize(a_pClass, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::deserialize(a_pClass->getSuperClass(t_super_class_count_of-1), a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serialize(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Class* a_pClass, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
-        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::serialize(a_pClass, a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::serialize(a_pClass->getSuperClass(t_super_class_count_of-1), a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Class* a_pClass, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
-        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::deserialize(a_pClass, a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::deserialize(a_pClass->getSuperClass(t_super_class_count_of-1), a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void serialize(reflection::Class* a_pClass, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
-        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::serialize(a_pClass, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::serialize(a_pClass->getSuperClass(t_super_class_count_of-1), a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    o_forceinline static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    o_forceinline static void deserialize(reflection::Class* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
-        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        super_class_serializer_helper<t_Ty, t_super_class_count_of-1>::deserialize(a_pClass, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::extension::serializer<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::deserialize(a_pClass->getSuperClass(t_super_class_count_of-1), a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 };
 
@@ -2086,25 +2185,25 @@ struct super_class_serializer_helper
 template<typename t_Ty, size_t t_super_class_count_of>
 struct super_class_resetter_helper
 {
-    o_forceinline static void remember(t_Ty const* a_pInstance, byte*& a_pOutBuffer)
+    o_forceinline static void remember(reflection::Class* a_pClass, t_Ty const* a_pInstance, byte*& a_pOutBuffer)
     {
-        super_class_resetter_helper<t_Ty, t_super_class_count_of-1>::remember(a_pInstance, a_pOutBuffer);
-        phantom::extension::resetter<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::remember(a_pInstance, a_pOutBuffer);
+        super_class_resetter_helper<t_Ty, t_super_class_count_of-1>::remember(a_pClass, a_pInstance, a_pOutBuffer);
+        phantom::extension::resetter<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::remember(a_pClass->getSuperClass(t_super_class_count_of-1), a_pInstance, a_pOutBuffer);
     }
-    o_forceinline static void reset(t_Ty* a_pInstance, byte const*& a_pInBuffer)
+    o_forceinline static void reset(reflection::Class* a_pClass, t_Ty* a_pInstance, byte const*& a_pInBuffer)
     {
-        super_class_resetter_helper<t_Ty, t_super_class_count_of-1>::reset(a_pInstance, a_pInBuffer);
-        phantom::extension::resetter<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::reset(a_pInstance, a_pInBuffer);
+        super_class_resetter_helper<t_Ty, t_super_class_count_of-1>::reset(a_pClass, a_pInstance, a_pInBuffer);
+        phantom::extension::resetter<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::reset(a_pClass->getSuperClass(t_super_class_count_of-1), a_pInstance, a_pInBuffer);
     }
-    o_forceinline static void remember(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
+    o_forceinline static void remember(reflection::Class* a_pClass, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
     {
-        super_class_resetter_helper<t_Ty, t_super_class_count_of-1>::remember(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
-        phantom::extension::resetter<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::remember(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
+        super_class_resetter_helper<t_Ty, t_super_class_count_of-1>::remember(a_pClass, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
+        phantom::extension::resetter<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::remember(a_pClass->getSuperClass(t_super_class_count_of-1), a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
     }
-    o_forceinline static void reset(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
+    o_forceinline static void reset(reflection::Class* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
     {
-        super_class_resetter_helper<t_Ty, t_super_class_count_of-1>::reset(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
-        phantom::extension::resetter<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::reset(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
+        super_class_resetter_helper<t_Ty, t_super_class_count_of-1>::reset(a_pClass, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
+        phantom::extension::resetter<o_traits_t_Ty_super_class(t_super_class_count_of-1)>::reset(a_pClass->getSuperClass(t_super_class_count_of-1), a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
     }
     
 };
@@ -2112,23 +2211,23 @@ struct super_class_resetter_helper
 template<typename t_Ty>
 struct super_class_serializer_helper<t_Ty, 0> // recursion stop 
 {
-    o_forceinline static void serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)     {    }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)     {    }
-    o_forceinline static void serialize(t_Ty const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)     {    }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)    {    }
-    o_forceinline static void serialize(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)    {    }
-    o_forceinline static void deserialize(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)     {    }
-    o_forceinline static void serialize(t_Ty const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)     {    }
-    o_forceinline static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)    {    }
+    o_forceinline static void serialize(reflection::Type* a_pClass, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)     {    }
+    o_forceinline static void deserialize(reflection::Type* a_pClass, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)     {    }
+    o_forceinline static void serialize(reflection::Type* a_pClass, t_Ty const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)     {    }
+    o_forceinline static void deserialize(reflection::Type* a_pClass, t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)    {    }
+    o_forceinline static void serialize(reflection::Type* a_pClass, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)    {    }
+    o_forceinline static void deserialize(reflection::Type* a_pClass, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)     {    }
+    o_forceinline static void serialize(reflection::Type* a_pClass, t_Ty const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)     {    }
+    o_forceinline static void deserialize(reflection::Type* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)    {    }
 };
 
 template<typename t_Ty>
 struct super_class_resetter_helper<t_Ty, 0> // recursion stop 
 {
-    o_forceinline static void remember(t_Ty const* a_pInstance, byte*& a_pOutBuffer) {    }
-    o_forceinline static void reset(t_Ty* a_pInstance, byte const*& a_pInBuffer) {    }
-    o_forceinline static void remember(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) {    }
-    o_forceinline static void reset(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) {    }
+    o_forceinline static void remember(reflection::Type* a_pClass, t_Ty const* a_pInstance, byte*& a_pOutBuffer) {    }
+    o_forceinline static void reset(reflection::Type* a_pClass, t_Ty* a_pInstance, byte const*& a_pInBuffer) {    }
+    o_forceinline static void remember(reflection::Type* a_pClass, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) {    }
+    o_forceinline static void reset(reflection::Type* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) {    }
 };
 
 template <typename t_Ty>
@@ -2147,91 +2246,47 @@ template <typename t_Ty>
 struct default_serializer_helper<t_Ty, default_serializer_classtype>
 {
 public:
-    static void serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::ClassType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        super_class_serializer<t_Ty>::serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
-        serializeLayout(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        super_class_serializer<t_Ty>::serialize(static_cast<reflection::Class*>(a_pType), a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serializeLayout(a_pType, a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::ClassType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        super_class_serializer<t_Ty>::deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
-        deserializeLayout(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        super_class_serializer<t_Ty>::deserialize(static_cast<reflection::Class*>(a_pType), a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserializeLayout(a_pType, a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serialize(t_Ty const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::ClassType* a_pType, t_Ty const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        super_class_serializer<t_Ty>::serialize(a_pInstance, a_uiCount, a_uiChunkSectionSize,a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
-        serializeLayout(a_pInstance, a_uiCount, a_uiChunkSectionSize,a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        super_class_serializer<t_Ty>::serialize(static_cast<reflection::Class*>(a_pType), a_pInstance, a_uiCount, a_uiChunkSectionSize,a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serializeLayout(a_pType, a_pInstance, a_uiCount, a_uiChunkSectionSize,a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserialize(t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::ClassType* a_pType, t_Ty* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        super_class_serializer<t_Ty>::deserialize(a_pInstance, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
-        deserializeLayout(a_pInstance, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        super_class_serializer<t_Ty>::deserialize(static_cast<reflection::Class*>(a_pType), a_pInstance, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserializeLayout(a_pType, a_pInstance, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serialize(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-    {
-        super_class_serializer<t_Ty>::serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
-        property_tree class_tree;
-        serializeLayout(a_pInstance, class_tree, a_uiSerializationMask, a_pDataBase);
-        a_OutBranch.add_child(encodeQualifiedDecoratedNameToIdentifierName(qualifiedDecoratedTypeNameOf<t_Ty>()), class_tree);
-    }
-    static void deserialize(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-    {
-        super_class_serializer<t_Ty>::deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
-        auto it = a_InBranch.begin();
-        auto end = a_InBranch.end();
-        for(;it!=end;++it)
-        {
-            // The test below could seem dirty but it's useful to deserialize typedefs or placeholder types 
-            // which goal is to point to a type without having the same representation name (ex: my_vector2 could point to phantom::math::vector2<float>)
-            // It's also useful is you have a type versionning (a script class rebuilt with a different name but you still want to deserialize from the older type name
-            reflection::Type* solvedType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first));
-            if(solvedType AND (solvedType->getQualifiedDecoratedName() == qualifiedDecoratedTypeNameOf<t_Ty>()))
-            {
-                deserializeLayout(a_pInstance, it->second, a_uiSerializationMask, a_pDataBase);
-            }
-        }
-    }
-    static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-    {
-        super_class_serializer<t_Ty>::serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
-        property_tree class_tree;
-        serializeLayout(a_pChunk, a_uiCount, a_uiChunkSectionSize, class_tree, a_uiSerializationMask, a_pDataBase);
-        a_OutBranch.add_child(encodeQualifiedDecoratedNameToIdentifierName(qualifiedDecoratedTypeNameOf<t_Ty>()), class_tree);
-    }
-    static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
-    {
-        super_class_serializer<t_Ty>::deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
-        auto it = a_InBranch.begin();
-        auto end = a_InBranch.end();
-        for(;it!=end;++it)
-        {
-            // The test below could seem dirty but it's useful to deserialize typedefs or placeholder types 
-            // which goal is to point to a type without having the same representation name (ex: my_vector2 could point to phantom::math::vector2<float>)
-            // It's also useful is you have a type versionning (a script class rebuilt with a different name but you still want to deserialize from the older type name
-            reflection::Type* solvedType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first));
-            if(solvedType AND (solvedType->getQualifiedDecoratedName() == qualifiedDecoratedTypeNameOf<t_Ty>()))
-            {
-                deserializeLayout(a_pChunk, a_uiCount, a_uiChunkSectionSize, it->second, a_uiSerializationMask, a_pDataBase);
-            }
-        }
-    }
-    static void serializeLayout(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
-    static void deserializeLayout(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
-    static void serializeLayout(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
-    static void deserializeLayout(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
+    static void serialize(reflection::ClassType* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
+    static void deserialize(reflection::ClassType* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
+    static void serialize(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
+    static void deserialize(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
+    static void serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
+    static void deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
+    static void serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
+    static void deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
+    static void serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
+    static void deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
+    static void serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
+    static void deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase);
 };
 
 template <typename t_Ty>
 struct default_resetter_helper<t_Ty, default_resetter_classtype>
 {
-    o_forceinline static void remember(t_Ty const* a_pInstance, byte*& a_pOutBuffer);
-    o_forceinline static void reset(t_Ty* a_pInstance, byte const*& a_pInBuffer);
-    o_forceinline static void remember(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer);
-    o_forceinline static void reset(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer);
+    o_forceinline static void remember(reflection::ClassType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer);
+    o_forceinline static void reset(reflection::ClassType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer);
+    o_forceinline static void remember(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer);
+    o_forceinline static void reset(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer);
 };
 
 template <typename t_Ty>
@@ -2241,68 +2296,71 @@ struct default_serializer_helper<t_Ty, default_serializer_container>
     typedef o_NESTED_TYPE t_Ty::size_type size_type;
     typedef o_NESTED_TYPE t_Ty::const_iterator const_iterator;
 
+    typedef o_NESTED_TYPE reflection::canonical_meta_class_type_of<t_Ty>::type meta_type;
+    typedef o_NESTED_TYPE reflection::canonical_meta_class_type_of<value_type>::type meta_value_type;
+
 public:
-    static void serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(meta_type* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         size_type   size = a_pInstance->size();
-        serializer<size_type>::serialize(&size, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serializer<size_type>::serialize(typeOf<size_type>(), &size, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
         const_iterator it = a_pInstance->begin();
         const_iterator end = a_pInstance->end();
         for(;it!=end;++it)
         {
-            serializer<value_type>::serialize(&(*it), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+            serializer<value_type>::serialize(static_cast<meta_value_type*>(a_pType->getValueType()), &(*it), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
         }
     }
-    static void deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(meta_type* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         size_type   size = 0;
-        serializer<size_type>::deserialize(&size, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        serializer<size_type>::deserialize(typeOf<size_type>(), &size, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
         phantom::container::reserver<t_Ty>::apply(a_pInstance, size);
         size_type i = 0;
         for(;i<size;++i)
         {
             value_type deserialized;
-            serializer<value_type>::deserialize(&deserialized, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+            serializer<value_type>::deserialize(static_cast<meta_value_type*>(a_pType->getValueType()), &deserialized, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
             phantom::container::adder<t_Ty>::apply(a_pInstance, deserialized);
         }
     }
-    static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(meta_type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         while(a_uiCount--)
         {
             t_Ty const* pInstance = reinterpret_cast<t_Ty const*>(pChunk);
             size_type   size = pInstance->size();
-            serializer<size_type>::serialize(&size, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+            serializer<size_type>::serialize(typeOf<size_type>(), &size, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
             const_iterator it = pInstance->begin();
             const_iterator end = pInstance->end();
             for(;it!=end;++it)
             {
-                serializer<value_type>::serialize(&(*it), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+                serializer<value_type>::serialize(static_cast<meta_value_type*>(a_pType->getValueType()), &(*it), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
             }
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(meta_type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         while(a_uiCount--)
         {
             t_Ty* pInstance = reinterpret_cast<t_Ty*>(pChunk);
             size_type   size = 0;
-            serializer<size_type>::deserialize(&size, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+            serializer<size_type>::deserialize(typeOf<size_type>(), &size, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
             phantom::container::reserver<t_Ty>::apply(pInstance, size);
             size_type i = 0;
             for(;i<size;++i)
             {
                 value_type deserialized;
-                serializer<value_type>::deserialize(&deserialized, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+                serializer<value_type>::deserialize(static_cast<meta_value_type*>(a_pType->getValueType()), &deserialized, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
                 phantom::container::adder<t_Ty>::apply(pInstance, deserialized);
             }
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void serialize(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(meta_type* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         size_type   size = a_pInstance->size();
         a_OutBranch.put<string>("size", phantom::lexical_cast<string>(size));
@@ -2314,11 +2372,11 @@ public:
             char index_buffer[32]="";
             o_secured_sprintf(index_buffer, 32, "_%d", i++);
             property_tree index_tree;
-            serializer<value_type>::serialize(&(*it), index_tree, a_uiSerializationMask, a_pDataBase);
+            serializer<value_type>::serialize(static_cast<meta_value_type*>(a_pType->getValueType()), &(*it), index_tree, a_uiSerializationMask, a_pDataBase);
             a_OutBranch.add_child(index_buffer, index_tree);
         }
     }
-    static void deserialize(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(meta_type* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         boost::optional<string> size_str_opt = a_InBranch.get_optional<string>("size");
         if(size_str_opt.is_initialized())
@@ -2334,13 +2392,13 @@ public:
                 if(index_tree_opt.is_initialized())
                 {
                     value_type pDeserialized;
-                    serializer<value_type>::deserialize(&pDeserialized, *index_tree_opt, a_uiSerializationMask, a_pDataBase);
+                    serializer<value_type>::deserialize(static_cast<meta_value_type*>(a_pType->getValueType()), &pDeserialized, *index_tree_opt, a_uiSerializationMask, a_pDataBase);
                     phantom::container::adder<t_Ty>::apply(a_pInstance, pDeserialized);
                 }
             }
         }
     }
-    static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(meta_type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         int i = 0;
@@ -2361,7 +2419,7 @@ public:
                     char index_buffer[32]="";
                     o_secured_sprintf(index_buffer, 32, "_%d", i++);
                     property_tree index_tree;
-                    serializer<value_type>::serialize(&(*it), index_tree, a_uiSerializationMask, a_pDataBase);
+                    serializer<value_type>::serialize(static_cast<meta_value_type*>(a_pType->getValueType()), &(*it), index_tree, a_uiSerializationMask, a_pDataBase);
                     container_tree.add_child(index_buffer, index_tree);
                 }
             }
@@ -2369,7 +2427,7 @@ public:
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(meta_type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         int i = 0;
@@ -2394,7 +2452,7 @@ public:
                         if(index_tree_opt.is_initialized())
                         {
                             value_type deserialized;
-                            serializer<value_type>::deserialize(&deserialized, *index_tree_opt, a_uiSerializationMask, a_pDataBase);
+                            serializer<value_type>::deserialize(static_cast<meta_value_type*>(a_pType->getValueType()), &deserialized, *index_tree_opt, a_uiSerializationMask, a_pDataBase);
                             phantom::container::adder<t_Ty>::apply(pInstance, deserialized);
                         }
                     }
@@ -2403,37 +2461,37 @@ public:
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void serializeLayout(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(meta_type* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(meta_type* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(meta_type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(meta_type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(meta_type* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(meta_type* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(meta_type* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(meta_type* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 };
 
@@ -2472,51 +2530,51 @@ struct default_serializer_helper<t_Ty, default_serializer_basic_string_char>
     typedef o_NESTED_TYPE t_Ty::const_iterator  const_iterator;
 
 public:
-    static void serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::ClassType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         size_type size = a_pInstance->size();
-        serializer<size_type>::serialize(&size, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serializer<size_type>::serialize(typeOf<size_type>(), &size, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
         memcpy(a_pOutBuffer, a_pInstance->c_str(), size);
         a_pOutBuffer += size;
     }
-    static void deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::ClassType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         size_type   size = 0;
-        serializer<size_type>::deserialize(&size, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        serializer<size_type>::deserialize(typeOf<size_type>(), &size, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
         a_pInstance->assign((char const*)a_pInBuffer, size);
         a_pInBuffer += size;
     }
-    static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         while(a_uiCount--)
         {
             t_Ty const* pInstance = reinterpret_cast<t_Ty const*>(pChunk);
             size_type size = pInstance->size();
-            serializer<size_type>::serialize(&size, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+            serializer<size_type>::serialize(typeOf<size_type>(), &size, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
             memcpy(a_pOutBuffer, pInstance->c_str(), size);
             a_pOutBuffer += size;
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         while(a_uiCount--)
         {
             t_Ty* pInstance = reinterpret_cast<t_Ty*>(pChunk);
             size_type   size = 0;
-            serializer<size_type>::deserialize(&size, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+            serializer<size_type>::deserialize(typeOf<size_type>(), &size, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
             pInstance->assign((char const*)a_pInBuffer, size);
             a_pInBuffer += size;
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void serialize(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::ClassType* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         a_OutBranch.put_value(to_property_branch_value<t_Ty>::apply(a_pInstance));
     }
-    static void deserialize(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::ClassType* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         boost::optional<string> opt = a_InBranch.get_value_optional<string>();
         if(opt.is_initialized())
@@ -2525,7 +2583,7 @@ public:
         }
         else a_pInstance->clear();
     }
-    static void serialize(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         int i = 0;
@@ -2538,7 +2596,7 @@ public:
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void deserialize(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         int i = 0;
@@ -2556,37 +2614,37 @@ public:
             pChunk += a_uiChunkSectionSize;
         }
     }
-    static void serializeLayout(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        serialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        serialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        deserialize(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        deserialize(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 };
 
@@ -2620,9 +2678,10 @@ template<typename t_Ty>
 struct default_installer : public default_installer_helper<t_Ty,
     (boost::is_fundamental<t_Ty>::value
         OR phantom::is_signal_t<t_Ty>::value
-        OR (boost::is_class<t_Ty>::value AND boost::is_pod<t_Ty>::value AND has_meta_specifier<t_Ty,o_pod>::value)
-        OR (NOT(boost::is_class<t_Ty>::value) AND boost::is_pod<t_Ty>::value)
-        OR has_meta_specifier<t_Ty,o_no_rtti>::value)
+        OR phantom::is_nullptr_t<t_Ty>::value
+        OR boost::is_pod<t_Ty>::value 
+        OR has_meta_specifier<t_Ty, o_pod>::value
+        OR has_meta_specifier<t_Ty, o_no_rtti>::value)
         ? default_installer_none
         : (has_reflection_cascade<t_Ty>::value || is_meta_type<t_Ty>::value)
             ? has_statechart_cascade<t_Ty>::value
@@ -2648,7 +2707,7 @@ struct default_serializer : public default_serializer_helper<t_Ty,
         : boost::is_class<t_Ty>::value
             ? is_basic_string_char<t_Ty>::value
                 ? default_serializer_basic_string_char
-                : is_container<t_Ty>::value
+                : (is_map_container<t_Ty>::value OR is_sequential_container<t_Ty>::value OR is_set_container<t_Ty>::value)
                     ? detail::default_serializer_container
                     : /*has_reflection<t_Ty>::value
                         ? */has_root_statechart<t_Ty>::value
@@ -2667,6 +2726,8 @@ struct default_initializer : public default_initializer_helper<t_Ty,
     OR boost::is_void<t_Ty>::value 
     OR is_meta_type<t_Ty>::value 
     OR boost::is_abstract<t_Ty>::value
+    OR boost::is_pod<t_Ty>::value 
+    OR has_meta_specifier<t_Ty, o_pod>::value
     OR NOT(has_reflection_cascade<t_Ty>::value))
     ? detail::default_initializer_none
     : boost::is_class<t_Ty>::value 
@@ -2766,69 +2827,69 @@ template <>
 class default_serializer<phantom::signal_t>
 {
 public:
-    static void serialize(phantom::signal_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::Type* a_pType, phantom::signal_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(phantom::exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void deserialize(phantom::signal_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::Type* a_pType, phantom::signal_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void serialize(phantom::signal_t const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::Type* a_pType, phantom::signal_t const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void deserialize(phantom::signal_t* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::Type* a_pType, phantom::signal_t* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void serialize(phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::Type* a_pType, phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void deserialize(phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::Type* a_pType, phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void serialize(phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::Type* a_pType, phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void deserialize(phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::Type* a_pType, phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
 
 
-    static void serializeLayout(phantom::signal_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, phantom::signal_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void deserializeLayout(phantom::signal_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, phantom::signal_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void serializeLayout(phantom::signal_t const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, phantom::signal_t const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void deserializeLayout(phantom::signal_t* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, phantom::signal_t* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void serializeLayout(phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void deserializeLayout(phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void serializeLayout(phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
-    static void deserializeLayout(phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be serialized");
     }
@@ -2841,19 +2902,19 @@ template <>
 class default_resetter<phantom::signal_t>
 {
 public:
-    o_forceinline static void remember(phantom::signal_t const* a_pInstance, byte*& a_pOutBuffer)
+    o_forceinline static void remember(reflection::Type* a_pType, phantom::signal_t const* a_pInstance, byte*& a_pOutBuffer)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be reset");
     }
-    o_forceinline static void reset(phantom::signal_t* a_pInstance, byte const*& a_pInBuffer)
+    o_forceinline static void reset(reflection::Type* a_pType, phantom::signal_t* a_pInstance, byte const*& a_pInBuffer)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be reset");
     }
-    o_forceinline static void remember(phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
+    o_forceinline static void remember(reflection::Type* a_pType, phantom::signal_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be reset");
     }
-    o_forceinline static void reset(phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
+    o_forceinline static void reset(reflection::Type* a_pType, phantom::signal_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
     {
         o_exception(exception::unsupported_member_function_exception, "signal_t is not supposed to be reset");
     }
@@ -2863,72 +2924,72 @@ public:
 template <>
 struct default_serializer<wchar_t>
 {
-    static void serialize(wchar_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::Type* a_pType, wchar_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::serialize((short*)a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serialize(a_pType, (short*)a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserialize(wchar_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::Type* a_pType, wchar_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::deserialize((short*)a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserialize(a_pType, (short*)a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serialize(wchar_t const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::Type* a_pType, wchar_t const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::serialize((short*)a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serialize(a_pType, (short*)a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserialize(wchar_t* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::Type* a_pType, wchar_t* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::deserialize((short*)a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserialize(a_pType, (short*)a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void serialize(wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::Type* a_pType, wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::serialize((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serialize(a_pType, (short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserialize(wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::Type* a_pType, wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::deserialize((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserialize(a_pType, (short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serialize(wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serialize(reflection::Type* a_pType, wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::serialize((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serialize(a_pType, (short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserialize(wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserialize(reflection::Type* a_pType, wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::deserialize((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserialize(a_pType, (short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 
 
 
-    static void serializeLayout(wchar_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, wchar_t const* a_pInstance, byte* a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::serializeLayout((short*)a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serializeLayout(a_pType, (short*)a_pInstance, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(wchar_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, wchar_t* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::deserializeLayout((short*)a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserializeLayout(a_pType, (short*)a_pInstance, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(wchar_t const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, wchar_t const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::serializeLayout((short*)a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serializeLayout(a_pType, (short*)a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(wchar_t* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, wchar_t* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::deserializeLayout((short*)a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserializeLayout(a_pType, (short*)a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::serializeLayout((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serializeLayout(a_pType, (short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::deserializeLayout((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserializeLayout(a_pType, (short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
-    static void serializeLayout(wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void serializeLayout(reflection::Type* a_pType, wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::serializeLayout((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::serializeLayout(a_pType, (short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
-    static void deserializeLayout(wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
+    static void deserializeLayout(reflection::Type* a_pType, wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
     {
-        default_serializer<short>::deserializeLayout((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        default_serializer<short>::deserializeLayout(a_pType, (short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 
 };
@@ -2936,21 +2997,21 @@ template <>
 class default_resetter<wchar_t>
 {
 public:
-    o_forceinline static void remember(wchar_t const* a_pInstance, byte*& a_pOutBuffer)
+    o_forceinline static void remember(reflection::Type* a_pType, wchar_t const* a_pInstance, byte*& a_pOutBuffer)
     {
-        default_resetter<short>::remember((short const*)a_pInstance, a_pOutBuffer);
+        default_resetter<short>::remember(a_pType, (short const*)a_pInstance, a_pOutBuffer);
     }
-    o_forceinline static void reset(wchar_t* a_pInstance, byte const*& a_pInBuffer)
+    o_forceinline static void reset(reflection::Type* a_pType, wchar_t* a_pInstance, byte const*& a_pInBuffer)
     {
-        default_resetter<short>::reset((short*)a_pInstance, a_pInBuffer);
+        default_resetter<short>::reset(a_pType, (short*)a_pInstance, a_pInBuffer);
     }
-    o_forceinline static void remember(wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
+    o_forceinline static void remember(reflection::Type* a_pType, wchar_t const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
     {
-        default_resetter<short>::remember((short const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
+        default_resetter<short>::remember(a_pType, (short const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
     }
-    o_forceinline static void reset(wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
+    o_forceinline static void reset(reflection::Type* a_pType, wchar_t* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
     {
-        default_resetter<short>::reset((short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
+        default_resetter<short>::reset(a_pType, (short*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
     }
 };
 #endif
@@ -3171,6 +3232,39 @@ struct copier : public detail::default_copier<t_Ty>
 
 template<typename t_Ty>
 struct converter : public detail::default_converter<t_Ty>
+{
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// \struct converter
+///
+/// \brief  converter.
+/// 		Provides conversion of type instances
+///
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace detail 
+{
+    template<typename t_Ty, bool t_is_fundamental>
+    struct default_promoter_helper
+    {
+        static reflection::Type* apply(reflection::Type*)
+        {
+            return typeOf<o_NESTED_TYPE boost::promote<t_Ty>::type>();
+        }
+    };
+    template<typename t_Ty>
+    struct default_promoter_helper<t_Ty, false>
+    {
+        static reflection::Type* apply(reflection::Type* a_pType)
+        {
+            return a_pType;
+        }
+    };
+}
+
+template<typename t_Ty>
+struct promoter : public detail::default_promoter_helper<t_Ty, boost::is_fundamental<t_Ty>::value>
 {
 };
 

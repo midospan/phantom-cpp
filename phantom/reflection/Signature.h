@@ -85,6 +85,7 @@ public:
     typedef phantom::vector<Type*> parameter_type_list;
 
     Signature( void );
+    Signature( Type* a_pType );
     Signature( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization = NULL, LanguageElement* a_pScope = (LanguageElement*)phantom::rootNamespace() );
     o_destructor ~Signature(void);
 

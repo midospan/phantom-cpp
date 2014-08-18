@@ -51,17 +51,15 @@ public:
 
     StaticMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
 
-    virtual void        call( void** a_pParams ) const = 0;
-    virtual void        call( void** a_pParams, void* a_pReturnAddress ) const { o_assert(getReturnType() == typeOf<void>()); call(a_pParams); }
-    virtual void        call( void* a_pCallerAddress, void** a_pParams ) const { call(a_pParams); }
-    virtual void        call( void* a_pCallerAddress, void** a_pParams, void* a_pReturnAddress ) const { call(a_pParams, a_pReturnAddress); }
+    virtual void                    call( void* a_pCallerAddress, void** a_pArgs ) const { Subroutine::call(a_pCallerAddress, a_pArgs); }
+    virtual void                    call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const { Subroutine::call(a_pCallerAddress, a_pArgs, a_pReturnAddress); }
+    virtual void                    call( void** a_pArgs ) const { Function::call(a_pArgs); }
+    virtual void                    call( void** a_pArgs, void* a_pReturnAddress ) const { Function::call(a_pArgs, a_pReturnAddress); }
 
     virtual LanguageElement*        asLanguageElement() const { return const_cast<StaticMemberFunction*>(this); }
     virtual Subroutine*             asSubroutine() const { return const_cast<StaticMemberFunction*>(this); }
     virtual StaticMemberFunction*   asStaticMemberFunction() const { return const_cast<StaticMemberFunction*>(this); }
     virtual MemberFunction*         asMemberFunction() const { return const_cast<StaticMemberFunction*>(this); }
-
-    virtual void*       getClosurePointer() const = 0;
 
     virtual void* getAddress(void** a_pParams) const 
     {

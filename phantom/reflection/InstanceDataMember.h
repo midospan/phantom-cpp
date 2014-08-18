@@ -46,11 +46,14 @@ o_namespace_begin(phantom, reflection)
 class o_export InstanceDataMember : public ValueMember, public DataMember
 {
     friend class Class;
+    friend class ClassType;
+
 public:
     static Class* const metaType;
 
 public:
-    InstanceDataMember(const string& a_strName, Type* a_pValueType, size_t  a_uiOffset, Range* a_pRange, uint a_uiSerializationMask, bitfield a_uiModifiers = 0);
+    InstanceDataMember(const string& a_strName, Type* a_pValueType, Range* a_pRange = nullptr, uint a_uiSerializationMask = 0xffffffff, bitfield a_uiModifiers = 0);
+    InstanceDataMember(const string& a_strName, Type* a_pValueType, size_t a_uiOffset, Range* a_pRange = nullptr, uint a_uiSerializationMask = 0xffffffff, bitfield a_uiModifiers = 0);
     o_destructor ~InstanceDataMember()
     {
 
@@ -64,8 +67,15 @@ public:
     Type*                   getValueType() const { return ValueMember::getValueType(); }
 
     // overloadings
-    virtual    void         getValue(void const* a_pObject, void* dest) const = 0;
-    virtual    void         setValue(void* a_pObject, void const* src) const = 0;
+    virtual    void         getValue(void const* a_pObject, void* a_pDest) const 
+    {
+        getValueType()->copy(a_pDest, getAddress(a_pObject));
+    }
+
+    virtual    void         setValue(void* a_pObject, void const* a_pSrc) const 
+    {
+        getValueType()->copy(getAddress(a_pObject), a_pSrc);
+    }
 
     virtual LanguageElement*    asLanguageElement() const  { return const_cast<InstanceDataMember*>(this); }
     virtual InstanceDataMember* asInstanceDataMember() const { return const_cast<InstanceDataMember*>(this); }
@@ -76,10 +86,9 @@ public:
 
     virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
     
-    virtual void            fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const;
-
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);
+    void setOffset(size_t a_uiOffset) { m_uiOffset = a_uiOffset; }
 
 protected:
     size_t  m_uiOffset;

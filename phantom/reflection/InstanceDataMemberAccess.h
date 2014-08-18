@@ -54,27 +54,17 @@ public:
         return m_pInstanceDataMember->getValueType();
     }
 
-    virtual void                getValue(void* dest) const 
-    {
-        m_pInstanceDataMember->getValue(m_pLeftExpression->getAddress(), dest);
-    }
+    virtual void                getValue(void* dest) const;
 
-    virtual void                setValue(void const* src) const 
-    {
-        m_pInstanceDataMember->setValue(m_pLeftExpression->getAddress(), src);
-        m_pLeftExpression->flush();
-    }
+    virtual void                setValue(void const* src) const;
 
-    virtual void*               getAddress() const 
-    { 
-        return m_pInstanceDataMember->getAddress(m_pLeftExpression->getAddress()); 
-    }
-
-    Expression*                getLeftExpression() const { return m_pLeftExpression; }
+    Expression*                 getLeftExpression() const { return m_pLeftExpression; }
 
     InstanceDataMember*         getInstanceDataMember() const { return m_pInstanceDataMember; }
 
-    virtual void flush() { m_pLeftExpression->flush(); }
+    virtual void flush() const { m_pLeftExpression->flush(); }
+
+    virtual InstanceDataMemberAccess*     clone() const;
 
 protected:
     void referencedElementRemoved( LanguageElement* a_pElement );

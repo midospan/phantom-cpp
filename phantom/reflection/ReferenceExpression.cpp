@@ -40,11 +40,18 @@ o_registerN((phantom, reflection), ReferenceExpression);
 
 o_namespace_begin(phantom, reflection) 
     
-ReferenceExpression::ReferenceExpression( Expression* a_pReferenceableExpression ) 
-    : Expression(a_pReferenceableExpression->getValueType()->pointerType(), "&"+a_pReferenceableExpression->getName())
+ReferenceExpression::ReferenceExpression( Expression* a_pReferencedExpression ) 
+    : Expression(a_pReferencedExpression->getValueType()->removeReference()->referenceType()
+                , a_pReferencedExpression->getName())
+    , m_pReferencedExpression(a_pReferencedExpression)
 {
-    addElement(a_pReferenceableExpression);
-    o_assert(a_pReferenceableExpression->isReferenceable());
+    addElement(m_pReferencedExpression);
+    o_assert(m_pReferencedExpression->hasEffectiveAddress());
+}
+
+ReferenceExpression* ReferenceExpression::clone() const
+{
+    return o_new(ReferenceExpression)(m_pReferencedExpression->clone());
 }
 
 o_namespace_end(phantom, reflection)

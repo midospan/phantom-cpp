@@ -80,7 +80,7 @@ void XmlFileTreeNode::saveDataAttributes(const phantom::data& a_Data, uint guid)
         saveDataAttributesHelper(attribute_tree, a_Data);
         p_tree.add_child("data.attributes", attribute_tree);
     }
-    boost::property_tree_custom::write_xml(path.c_str(), p_tree);
+    boost::property_tree_custom::write_xml(path.c_str(), p_tree, std::locale(), boost::property_tree_custom::xml_parser::xml_writer_settings<string>(' ', 1));
 }
 
 void XmlFileTreeNode::saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) 
@@ -93,7 +93,7 @@ void XmlFileTreeNode::saveData(uint a_uiSerializationFlag, const phantom::data& 
     saveDataAttributesHelper(attribute_tree, a_Data);
     p_tree.add_child("data.valueMembers", valueMembers_tree);
     p_tree.add_child("data.attributes", attribute_tree);
-    boost::property_tree_custom::write_xml(path.c_str(), p_tree);
+    boost::property_tree_custom::write_xml(path.c_str(), p_tree, std::locale(), boost::property_tree_custom::xml_parser::xml_writer_settings<property_tree::key_basic_string>(' ', 1));
 }
 
 void XmlFileTreeNode::loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) 
@@ -126,17 +126,18 @@ void XmlFileTreeNode::saveIndex()
         property_tree dataPath;
         dataPath.put<string>("typename", encodeQualifiedDecoratedNameToIdentifierName(pType->getQualifiedDecoratedName()));
         dataPath.put<string>("guid", phantom::lexical_cast<string>(reinterpret_cast<void*>(guid)));
-        const data& parent = m_pOwnerDataBase->getSubDataOwner(pAddress);
+        const data& parent = m_pOwnerDataBase->getComponentDataOwner(pAddress);
         if(NOT(parent.isNull()))
         {
             uint parentGuid = m_pOwnerDataBase->getGuid(parent);
             dataPath.put<string>("parent", phantom::lexical_cast<string>(reinterpret_cast<void*>(parentGuid)));
+            dataPath.put<string>("reference_expression", encodeQualifiedDecoratedNameToIdentifierName(m_pOwnerDataBase->getComponentDataReferenceExpression(*it)));
         }
         index_tree.add_child("index.data", dataPath);
     }
 
     const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
-    boost::property_tree_custom::write_xml(self_path+'/'+"index", index_tree);
+    boost::property_tree_custom::write_xml(self_path+'/'+"index", index_tree, std::locale(), boost::property_tree_custom::xml_parser::xml_writer_settings<string>(' ', 1));
     
 }
 
@@ -165,7 +166,7 @@ void XmlFileTreeNode::saveTypes()
     }
 
     const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
-    boost::property_tree_custom::write_xml(self_path+'/'+"types", types_tree);
+    boost::property_tree_custom::write_xml(self_path+'/'+"types", types_tree, std::locale(), boost::property_tree_custom::xml_parser::xml_writer_settings<string>(' ', 1));
 }
 
 void XmlFileTreeNode::saveAttributes()
@@ -188,7 +189,7 @@ void XmlFileTreeNode::saveAttributes()
     }
 
     const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
-    boost::property_tree_custom::write_xml(self_path+'/'+"attributes", attribute_tree);
+    boost::property_tree_custom::write_xml(self_path+'/'+"attributes", attribute_tree, std::locale(), boost::property_tree_custom::xml_parser::xml_writer_settings<string>(' ', 1));
 }
 
 void XmlFileTreeNode::saveDataAttributesHelper( property_tree& tree, const phantom::data& a_Data )
@@ -346,6 +347,7 @@ void XmlFileTreeNode::cache()
     if(index_tree.empty()) return;
 
     vector<uint>    parentGuids;
+    vector<string>  referenceExpressions;
 
     property_tree& datalist_tree = index_tree.get_child("index");
     property_tree::const_iterator it = datalist_tree.begin();
@@ -384,11 +386,11 @@ void XmlFileTreeNode::cache()
         // TODO : specialize lexical_cast for : uint guid = reinterpret_cast<uint>(phantom::lexical_cast<void*>(strGuid));
         phantom::data the_data(pType->allocate(),pType);
         storeData(the_data);
-        m_DataRestoreQueue.push_back(the_data);
         pDB->registerData(the_data, guid, this);
 
         boost::optional<string> strParentGuid_opt = sub_tree.get_optional<string>("parent");
         uint parentGuid = 0xFFFFFFFF;
+
         if(strParentGuid_opt.is_initialized())        
         {
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
@@ -398,8 +400,14 @@ void XmlFileTreeNode::cache()
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(default:4996)
 #endif        
+            referenceExpressions.push_back(decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("reference_expression")));
+        }
+        else 
+        {
+            referenceExpressions.push_back("");
         }
         parentGuids.push_back(parentGuid);
+        
     }
     size_t i = 0;
     size_t count = m_Data.size();
@@ -410,19 +418,19 @@ void XmlFileTreeNode::cache()
         {
             const phantom::data& parentData = pDB->getData(parentGuid);
             o_assert(NOT(parentData.isNull()));
-            pDB->registerSubDataOwner(m_Data[i], parentData);
+            pDB->registerComponentData(m_Data[i], parentData, referenceExpressions[i]);
         }
     }
 }
 
-void XmlFileTreeNode::build()
+void XmlFileTreeNode::build(vector<data>& a_Data)
 {
     XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
   
-    data_vector::iterator end = m_Data.end();
+    data_vector::iterator end = a_Data.end();
     // Build ( Construction + Installation)
     
-    data_vector::iterator it = m_Data.begin();
+    data_vector::iterator it = a_Data.begin();
     for(;it != end; ++it)
     {
         it->type()->build(it->address());
@@ -430,12 +438,12 @@ void XmlFileTreeNode::build()
     
 }
 
-void XmlFileTreeNode::deserialize(uint a_uiSerializationFlag)
+void XmlFileTreeNode::deserialize(uint a_uiSerializationFlag, vector<data>& a_Data)
 {
     // Deserialization
     XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
-    data_vector::iterator it = m_Data.begin();
-    data_vector::iterator end = m_Data.end();
+    data_vector::iterator it = a_Data.begin();
+    data_vector::iterator end = a_Data.end();
     for(;it != end; ++it)
     {
         void* pAddress = it->address();
@@ -452,18 +460,18 @@ void XmlFileTreeNode::deserialize(uint a_uiSerializationFlag)
     }
 }
 
-void XmlFileTreeNode::restore(uint a_uiSerializationFlag)
+void XmlFileTreeNode::restore(uint a_uiSerializationFlag, vector<data>& a_Data)
 {
     XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
-
+    list<data> dataCopy(a_Data.begin(), a_Data.end());
     uint pass = 0;
     int counter = 0;
-    int cycle_count = m_DataRestoreQueue.size();
+    int cycle_count = dataCopy.size();
     while(cycle_count)
     {
         // extract the data from the queue
-        phantom::data d = m_DataRestoreQueue.front();
-        m_DataRestoreQueue.pop_front();
+        phantom::data d = dataCopy.front();
+        dataCopy.pop_front();
         
         restore_state state = d.type()->restore(d.address(), a_uiSerializationFlag, pass) ;;
         switch(state)
@@ -471,10 +479,10 @@ void XmlFileTreeNode::restore(uint a_uiSerializationFlag)
         case restore_complete: // if success, we do nothing
             break;
         case restore_incomplete: // if incomplete, we reinject the data at the end of the queue to apply to it another pass later
-            m_DataRestoreQueue.push_back(d);
+            dataCopy.push_back(d);
             break;
         case restore_failed: // if failed we store the data in the destruction queue which will be handled at the node loading end
-            m_DataAbortQueue.push_back(d);
+            dataCopy.push_back(d);
             break;
         default:
             o_assert(false, "state unknown, anormal, probably a segfault somewhere which overrided the restore_state enum value");
@@ -483,7 +491,7 @@ void XmlFileTreeNode::restore(uint a_uiSerializationFlag)
         if((++counter) == cycle_count) // reached the cycle end => increment pass, reset counters
         {
             ++pass;
-            cycle_count = m_DataRestoreQueue.size();
+            cycle_count = dataCopy.size();
             counter = 0;
         }
     }
@@ -558,7 +566,7 @@ bool XmlFileTreeNode::cacheOne(uint a_uiIndex)
 
 			const property_tree& sub_tree = it->second;
 			const string& strGuid = sub_tree.get<string>("guid");
-			ulong guid = 0xFFFFFFFF;
+            ulong guid = 0xFFFFFFFF;
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(disable:4996)
 #endif
@@ -598,9 +606,14 @@ bool XmlFileTreeNode::cacheOne(uint a_uiIndex)
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(default:4996)
 #endif        
-			}
-			m_ParentGuids.push_back(parentGuid);
+                m_ReferenceExpressions.push_back(decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("reference_expression")));
+            }
+            else 
+            {
+                m_ReferenceExpressions.push_back("");
+            }
 
+			m_ParentGuids.push_back(parentGuid);
 			datalist_tree.pop_front();
 
 			return false;
@@ -619,11 +632,12 @@ void XmlFileTreeNode::postCache()
 	for(;i<count;++i)
 	{
 		uint parentGuid = m_ParentGuids[i] ;
+        
 		if(parentGuid != 0xffffffff)
 		{
 			const phantom::data& parentData = pDB->getData(parentGuid);
 			o_assert(NOT(parentData.isNull()));
-			pDB->registerSubDataOwner(m_Data[i], parentData);
+			pDB->registerComponentData(m_Data[i], parentData, m_ReferenceExpressions[i]);
 		}
 	}
 }

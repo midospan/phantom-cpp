@@ -51,15 +51,32 @@ public:
 
     virtual void                    getValue(void* a_pDest) const 
     {
-        *((void**)a_pDest) = m_pReferenceableExpression->getAddress();
+        *((void**)a_pDest) = m_pReferencedExpression->loadEffectiveAddress();
     }
 
     virtual ReferenceExpression*    asReferenceExpression() const  { return const_cast<ReferenceExpression*>(this); }
 
-    virtual void flush() { m_pReferenceableExpression->flush(); }
+    virtual void flush() const { m_pReferencedExpression->flush(); }
 
+    virtual Expression*     reference() const
+    {
+        return const_cast<ReferenceExpression*>(this);
+    }
+    
+    virtual Expression*     dereference() const
+    {
+        Expression* pExp = m_pReferencedExpression;
+        const_cast<ReferenceExpression*>(this)->removeElement(pExp);
+        const_cast<ReferenceExpression*>(this)->terminate();
+        const_cast<ReferenceExpression*>(this)->deleteNow();
+        return pExp;
+    }
+
+    Expression* getReferencedExpression() const { return m_pReferencedExpression; }
+
+    virtual ReferenceExpression*     clone() const;
 protected:
-    Expression* m_pReferenceableExpression;
+    Expression* m_pReferencedExpression;
 };
 
 o_namespace_end(phantom, reflection)

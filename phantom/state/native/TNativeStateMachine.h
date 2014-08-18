@@ -73,7 +73,7 @@ public:
         static self_type* s_Instance = NULL;
         if(s_Instance == NULL)
         {
-            phantom::reflection::Class* pClass = phantom::classOf<object_class>();
+            phantom::reflection::Class* pClass = phantom::typeOf<object_class>();
             o_assert(pClass);
             if(pClass->getStateMachine())
             {

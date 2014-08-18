@@ -39,4 +39,17 @@ o_namespace_begin(phantom, math)
 	 std::numeric_limits<double>::max(),
 	 std::numeric_limits<double>::max()
 	 );
+
+    o_export const vector3<int> vector3<int>::ZERO(0, 0, 0);
+    o_export const vector3<int> vector3<int>::UNIT_X(1, 0, 0);
+    o_export const vector3<int> vector3<int>::UNIT_Y(0, 1, 0);
+    o_export const vector3<int> vector3<int>::UNIT_Z(0, 0, 1);
+    o_export const vector3<int> vector3<int>::ONE(1, 1, 1);
+    o_export const vector3<int> vector3<int>::INFINITE_VALUE
+        (
+        std::numeric_limits<int>::max(),
+        std::numeric_limits<int>::max(),
+        std::numeric_limits<int>::max()
+        );
+
 o_namespace_end(phantom, math)

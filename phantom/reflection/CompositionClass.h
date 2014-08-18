@@ -4,6 +4,7 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/phantom.h>
+#include <phantom/reflection/Expression.h>
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, reflection), CompositionClass);
 /* *********************************************** */
@@ -69,8 +70,31 @@ public:
     
     virtual bool referencesData( const void* a_pContainer, const phantom::data& a_Data ) const;
 
+    virtual Expression* solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, bitfield a_Modifiers ) const;
+
+public:
+    class GetSetExpression : public Expression
+    {
+    public:
+        GetSetExpression(Expression* a_pLeftExpression, Expression* a_pIndexExpression, CompositionClass* a_pCompositionClass);
+
+        virtual void getValue(void* a_pDest) const;
+
+        virtual void setValue(void const* a_pSrc) const;
+
+        virtual bool hasValueStorage() const { return false; }
+
+        virtual GetSetExpression*     clone() const;
+
+    protected:
+        Expression* m_pLeftExpression;
+        Expression* m_pIndexExpression;
+        CompositionClass* m_pCompositionClass;
+    };
+
 protected:
     Class*   m_pComponentClass;
+
 };
 
 o_namespace_end(phantom, reflection)

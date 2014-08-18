@@ -17,9 +17,8 @@ public:
     VariableNodeFactory(bool a_bExclusive = false)
         : m_bExclusive(a_bExclusive) {}
 
-    virtual void addChildNodes(VariableNode* a_pVariableNode, const vector<void*>& a_Addresses, reflection::Type* a_pType) const = 0;
-    void addChildNodes(VariableNode* a_pVariableNode) const;
-
+    virtual void addChildNodes(VariableNode* a_pVariableNode, const vector<string>& a_LeftExpressions, reflection::Type* a_pType) const = 0;
+    virtual void addChildNodes(VariableNode* a_pVariableNode) const;
     bool isExclusive() const { return m_bExclusive; }
 
 protected:

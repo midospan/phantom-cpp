@@ -22,10 +22,19 @@ o_classNTS((std), (typename, typename), (t_Ty, t_Alloc), list, (_List_val<t_Ty, 
 {
     o_reflection 
     {
-        o_typedef(iterator);
-        o_typedef(const_iterator);
-        o_typedef(reverse_iterator);
-        o_typedef(const_reverse_iterator);
+        o_nested_typedef(iterator);
+        o_nested_typedef(const_iterator);
+        o_nested_typedef(reverse_iterator);
+        o_nested_typedef(const_reverse_iterator);
+        o_nested_typedef(reference);
+        o_nested_typedef(const_reference);
+        o_nested_typedef(pointer);
+        o_nested_typedef(const_pointer);
+        o_nested_typedef(size_type);
+        o_member_function(size_type, size, (), o_public);
+        o_member_function(bool, empty, (), o_public);
+        o_member_function(void, push_front, (const_reference), o_public);
+        o_member_function(void, push_back, (const_reference), o_public);
     };
 };
 o_exposeNT((std), (typename, typename), (t_Ty, t_Alloc), list);

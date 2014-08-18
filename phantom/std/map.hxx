@@ -19,10 +19,41 @@ o_classNTS((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr, 
     {
         o_default_template_argument_type(t_Alloc, std::allocator<std::pair<const t_Kty, t_Ty>>);
         o_default_template_argument_type(t_Pr, std::less<t_Kty>);
-        o_typedef(iterator);
-        o_typedef(const_iterator);
-        o_typedef(reverse_iterator);
-        o_typedef(const_reverse_iterator);
+
+        o_nested_typedef(iterator);
+        o_nested_typedef(const_iterator);
+        o_nested_typedef(reverse_iterator);
+        o_nested_typedef(const_reverse_iterator);
+        o_nested_typedef(value_type);
+        o_nested_typedef(mapped_type);
+        o_nested_typedef(key_type);
+        o_nested_typedef(reference);
+        o_nested_typedef(const_reference);
+        o_nested_typedef(pointer);
+        o_nested_typedef(const_pointer);
+        o_nested_typedef(size_type);
+
+        o_member_function(mapped_type&, operator[], (const key_type&), o_public);
+        o_member_function(mapped_type&, at, (const key_type& k), o_public);
+        o_member_function(const mapped_type&, at, (const key_type& k), o_public|o_const);
+
+        o_member_function(const_iterator, begin, (), o_public|o_const);
+        o_member_function(const_reverse_iterator, rbegin, (), o_public|o_const);
+        o_member_function(iterator, begin, (), o_public|o_noconst);
+        o_member_function(reverse_iterator, rbegin, (), o_public|o_noconst);
+        o_member_function(const_iterator, cbegin, (), o_public);
+        o_member_function(const_reverse_iterator, crbegin, (), o_public);
+
+        o_member_function(const_iterator, end, (), o_public|o_const);
+        o_member_function(const_reverse_iterator, rend, (), o_public|o_const);
+        o_member_function(iterator, end, (), o_public|o_noconst);
+        o_member_function(reverse_iterator, rend, (), o_public|o_noconst);
+        o_member_function(const_iterator, cend, (), o_public);
+        o_member_function(const_reverse_iterator, crend, (), o_public);
+
+        o_member_function(size_type, size, (), o_public);
+        o_member_function(bool, empty, (), o_public);
+
     };
 };
 o_exposeNT((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr, t_Alloc), map);

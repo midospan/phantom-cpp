@@ -45,15 +45,25 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Constructor : public Subroutine
 {
+public:
+    static Class* const metaType;
 
 public:
-
     Constructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
 
-    virtual void construct(void* a_pInstance, argument::list* a_pParams) = 0;
-    virtual void construct(void* a_pInstance, void** a_pParams) = 0;
-    virtual void construct(void* a_pChunk, argument::list* a_pParams, size_t a_uiCount) = 0;
-    virtual void construct(void* a_pChunk, void** a_pParams, size_t a_uiCount) = 0;
+    virtual void        construct(void* a_pInstance, void** a_pParams) const 
+    {
+        call(a_pInstance, a_pParams);
+    }
+
+    virtual void        construct(void* a_pChunk, void** a_pParams, size_t a_uiCount) 
+    {
+        size_t i = 0;
+        while(a_uiCount--)
+        {    
+            call((byte*)a_pChunk+(i++)*getOwner()->asType()->getSize(), a_pParams);
+        }
+    }
 
     virtual Constructor* asConstructor() const { return (Constructor*)this; }
 

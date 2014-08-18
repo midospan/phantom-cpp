@@ -40,7 +40,7 @@ namespace detail
     {
         statechart_installer_helper()
         {
-            classOf<t_Ty>()->setStateMachine(phantom::state::native::TNativeStateMachine<t_Ty>::Instance());
+            typeOf<t_Ty>()->setStateMachine(phantom::state::native::TNativeStateMachine<t_Ty>::Instance());
         }
     };
 
@@ -60,9 +60,9 @@ namespace detail
     {
         static void apply(phantom::reflection::Type* a_pType, uint step)
         {
-            reflection::Class* saved_class = reflection::Types::currentInstalledClass;
+            reflection::ClassType* saved_class = reflection::Types::currentInstalledClass;
             reflection::TemplateSpecialization* saved_template_specialization = reflection::Types::currentInstalledTemplateSpecialization;
-            reflection::Types::currentInstalledClass = a_pType->asClass();
+            reflection::Types::currentInstalledClass = a_pType->asClassType();
             reflection::Types::currentInstalledTemplateSpecialization = reflection::Types::currentInstalledClass ? reflection::Types::currentInstalledClass->getTemplateSpecialization() : nullptr;
             switch(step)
             {
@@ -72,9 +72,15 @@ namespace detail
                 }
                 break;
 
+            case o_global_value_SetupStepIndex_VTable:
+                {
+                    reflection::vtable_adder<t_Ty>::apply(reflection::Types::currentInstalledClass->asClass());
+                }
+                break;
+
             case o_global_value_SetupStepIndex_Inheritance:
                 {
-                    reflection::super_classes_adder<t_Ty, t_counter>::apply(reflection::Types::currentInstalledClass);
+                    reflection::super_classes_adder<t_Ty, t_counter>::apply(reflection::Types::currentInstalledClass->asClass());
                 }
                 break;
             case o_global_value_SetupStepIndex_Reflection:
@@ -100,9 +106,9 @@ namespace detail
     {
         static void apply(phantom::reflection::Type* a_pType, uint step)
         {
-            reflection::Class* saved_class = reflection::Types::currentInstalledClass;
+            reflection::ClassType* saved_class = reflection::Types::currentInstalledClass;
             reflection::TemplateSpecialization* saved_template_specialization = reflection::Types::currentInstalledTemplateSpecialization;
-            reflection::Types::currentInstalledClass = a_pType->asClass();
+            reflection::Types::currentInstalledClass = a_pType->asClassType();
             reflection::Types::currentInstalledTemplateSpecialization = reflection::Types::currentInstalledClass ? reflection::Types::currentInstalledClass->getTemplateSpecialization() : nullptr;
             switch(step)
             {
@@ -112,9 +118,15 @@ namespace detail
                 }
                 break;
 
+            case o_global_value_SetupStepIndex_VTable:
+                {
+                    reflection::vtable_adder<t_Ty>::apply(reflection::Types::currentInstalledClass->asClass());
+                }
+                break;
+
             case o_global_value_SetupStepIndex_Inheritance:
                 {
-                    reflection::super_classes_adder<t_Ty, t_counter>::apply(reflection::Types::currentInstalledClass);
+                    reflection::super_classes_adder<t_Ty, t_counter>::apply(reflection::Types::currentInstalledClass->asClass());
                 }
                 break;
             case o_global_value_SetupStepIndex_StateChart:
@@ -134,9 +146,9 @@ namespace detail
     {
         static void apply(phantom::reflection::Type* a_pType, uint step)
         {
-            reflection::Class* saved_class = reflection::Types::currentInstalledClass;
+            reflection::ClassType* saved_class = reflection::Types::currentInstalledClass;
             reflection::TemplateSpecialization* saved_template_specialization = reflection::Types::currentInstalledTemplateSpecialization;
-            reflection::Types::currentInstalledClass = a_pType->asClass();
+            reflection::Types::currentInstalledClass = a_pType->asClassType();
             reflection::Types::currentInstalledTemplateSpecialization = reflection::Types::currentInstalledClass ? reflection::Types::currentInstalledClass->getTemplateSpecialization() : nullptr;
             switch(step)
             {
@@ -146,9 +158,15 @@ namespace detail
                 }
                 break;
 
+            case o_global_value_SetupStepIndex_VTable:
+                {
+                    reflection::vtable_adder<t_Ty>::apply(reflection::Types::currentInstalledClass->asClass());
+                }
+                break;
+
             case o_global_value_SetupStepIndex_Inheritance:
                 {
-                    reflection::super_classes_adder<t_Ty, t_counter>::apply(reflection::Types::currentInstalledClass);
+                    reflection::super_classes_adder<t_Ty, t_counter>::apply(reflection::Types::currentInstalledClass->asClass());
                 }
                 break;
             case o_global_value_SetupStepIndex_Reflection:

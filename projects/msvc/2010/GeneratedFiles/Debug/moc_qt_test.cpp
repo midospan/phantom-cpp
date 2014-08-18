@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'qt_test.h'
 **
-** Created: Mon 17. Feb 21:49:26 2014
+** Created: Fri 11. Jul 18:48:30 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,26 +23,33 @@ static const uint qt_meta_data_qt_test[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       0,    0, // methods
+       1,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
        0,       // signalCount
 
+ // slots: signature, parameters, type, tag, flags
+      16,    9,    8,    8, 0x09,
+
        0        // eod
 };
 
 static const char qt_meta_stringdata_qt_test[] = {
-    "qt_test\0"
+    "qt_test\0\0a_Data\0edit(phantom::vector<phantom::data>)\0"
 };
 
 void qt_test::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    Q_UNUSED(_o);
-    Q_UNUSED(_id);
-    Q_UNUSED(_c);
-    Q_UNUSED(_a);
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        Q_ASSERT(staticMetaObject.cast(_o));
+        qt_test *_t = static_cast<qt_test *>(_o);
+        switch (_id) {
+        case 0: _t->edit((*reinterpret_cast< const phantom::vector<phantom::data>(*)>(_a[1]))); break;
+        default: ;
+        }
+    }
 }
 
 const QMetaObjectExtraData qt_test::staticMetaObjectExtraData = {
@@ -76,6 +83,11 @@ int qt_test::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     _id = QMainWindow::qt_metacall(_c, _id, _a);
     if (_id < 0)
         return _id;
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        if (_id < 1)
+            qt_static_metacall(this, _c, _id, _a);
+        _id -= 1;
+    }
     return _id;
 }
 QT_END_MOC_NAMESPACE

@@ -130,7 +130,7 @@ void BinaryPackageNode::saveIndex()
         property_tree dataPath;
         dataPath.put<string>("typename", encodeQualifiedDecoratedNameToIdentifierName(pType->getQualifiedDecoratedName()));
         dataPath.put<string>("guid", phantom::lexical_cast<string>(reinterpret_cast<void*>(guid)));
-        const data& parent = m_pOwnerDataBase->getSubDataOwner(pAddress);
+        const data& parent = m_pOwnerDataBase->getComponentDataOwner(pAddress);
         if(NOT(parent.isNull()))
         {
             uint parentGuid = m_pOwnerDataBase->getGuid(parent);
@@ -332,7 +332,7 @@ void BinaryPackageNode::cache()
         {
             const phantom::data& parentData = pDB->getData(parentGuid);
             o_assert(NOT(parentData.isNull()));
-            pDB->registerSubDataOwner(m_Data[i], parentData);
+            pDB->registerComponentData(m_Data[i], parentData);
         }
     }*/
 }

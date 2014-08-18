@@ -45,7 +45,7 @@ Class* const StaticMemberFunction::metaType = o_type_of(phantom::reflection::Sta
 
 
 StaticMemberFunction::StaticMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers /*= 0*/ )
-: Function(a_strName, a_pSignature, a_Modifiers )
+: Function(a_strName, a_pSignature, e_ABI_stdcall, a_Modifiers ) // TODO : remove this stdcall
 {
 }
 

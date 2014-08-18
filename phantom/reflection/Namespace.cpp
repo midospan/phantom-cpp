@@ -37,6 +37,8 @@
 #include <boost/algorithm/string.hpp>
 #include <phantom/reflection/Namespace.h>
 #include <phantom/reflection/Namespace.hxx>
+#include <phantom/reflection/Expression.h>
+#include <phantom/reflection/ConstructorCallExpression.h>
 #include <phantom/reflection/Template.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), Namespace);
@@ -129,8 +131,9 @@ Namespace*        Namespace::findOrCreateNamespaceCascade(list<string>* a_Hierar
         pChildNamespace = o_static_new_alloc_and_construct_part(Namespace)(str);
         m_Namespaces.push_back(pChildNamespace); 
         addElement(pChildNamespace);
-        typeOf<Namespace>()->install(pChildNamespace, 0);
-        typeOf<Namespace>()->initialize(pChildNamespace);
+        o_static_new_install_and_initialize_part(pChildNamespace);
+        /*typeOf<Namespace>()->install(pChildNamespace, 0);
+        typeOf<Namespace>()->initialize(pChildNamespace);*/
         if(Phantom::getState() == Phantom::eState_Installed)
         {
             o_emit namespaceAdded(pChildNamespace);
@@ -303,6 +306,18 @@ void Namespace::addType( Type* a_pType )
     }
 }
 
+void Namespace::addFunction( Function* a_pFunction )
+{
+    o_assert(a_pFunction->getOwner() == NULL, "Function has already been attached to a Namespace");
+    o_assert(phantom::elementByName(a_pFunction->getQualifiedDecoratedName(), this) == nullptr, "Function with same signature found in current namespace");
+    m_Functions.push_back(a_pFunction);
+    addElement(a_pFunction);
+    if(Phantom::getState() == Phantom::eState_Installed)
+    {
+        o_emit functionAdded(a_pFunction);
+    }
+}
+
 void Namespace::addTemplate( Template* a_pTemplate )
 {
     o_assert(a_pTemplate->m_pOwner == NULL, "Type has already been attached to a Namespace");
@@ -327,6 +342,19 @@ void Namespace::removeType( Type* a_pType )
     if(Phantom::getState() == Phantom::eState_Installed)
     {
         o_emit typeRemoved(a_pType);
+    }
+}
+
+void Namespace::removeFunction( Function* a_pFunction )
+{
+    o_assert(a_pFunction->getOwner() == this, "This function is attached to another Namespace");
+    vector<Function*>::iterator found = std::find(m_Functions.begin(), m_Functions.end(), a_pFunction);
+    o_assert(found != m_Functions.end(), "Function not found");
+    m_Functions.erase(found);
+    removeElement(a_pFunction);
+    if(Phantom::getState() == Phantom::eState_Installed)
+    {
+        o_emit functionRemoved(a_pFunction);
     }
 }
 
@@ -494,16 +522,53 @@ LanguageElement* Namespace::solveElement(
         Namespace* pNamespaceAlias = getNamespaceAlias(a_strName);
         if(pNamespaceAlias != nullptr) return pNamespaceAlias;
     }
-    o_foreach(Type* pType, m_Types)
+    if(a_FunctionSignature)
     {
-        if(pType->matches(a_strName, a_TemplateSpecialization, a_Modifiers))
+        o_foreach(Type* pType, m_Types)
         {
-            return pType;
+            if(pType->getName() == a_strName AND pType->asClassType())
+            {
+                vector<Expression*> expressions;
+                vector<Type*> types;
+                for( auto it = a_FunctionSignature->begin(); it != a_FunctionSignature->end(); ++it)
+                {
+                    LanguageElement* pElement = (*it);
+                    if(pElement)
+                    {
+                        Expression* pExpression = pElement->asExpression();
+                        if(pExpression)
+                        {
+                            expressions.push_back(pExpression);
+                            types.push_back(pExpression->getValueType());
+                        }
+                        else return nullptr;
+                    }
+                    else return nullptr;
+                }
+                vector<size_t> partialMatches;
+                Constructor* pConstructor = pType->asClassType()->getConstructor(types, &partialMatches, a_Modifiers);
+                if(pConstructor == nullptr)
+                    return nullptr;
+                if(pType->isCopyable())
+                {
+                    return o_new(ConstructorCallExpression)(pConstructor, expressions);
+                }
+            }
         }
-        else if(pType->asEnum())
+    }
+    else 
+    {
+        o_foreach(Type* pType, m_Types)
         {
-            LanguageElement* pEnumConstant = pType->solveElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
-            if(pEnumConstant) return pEnumConstant;
+            if(pType->matches(a_strName, a_TemplateSpecialization, a_Modifiers))
+            {
+                return pType;
+            }
+            else if(pType->asEnum())
+            {
+                LanguageElement* pEnumConstant = pType->solveElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
+                if(pEnumConstant) return pEnumConstant;
+            }
         }
     }
     if(a_TemplateSpecialization != nullptr AND NOT(a_TemplateSpecialization->empty())) return nullptr;
@@ -551,7 +616,7 @@ void Namespace::removeNamespaceAlias( const string& a_strAlias, Namespace* a_pNa
 
 void Namespace::getElements( vector<LanguageElement*>& out, Class* a_pClass /*= nullptr*/ ) const
 {
-    if(a_pClass == nullptr OR classOf<Namespace>()->isKindOf(a_pClass))
+    if(a_pClass == nullptr OR typeOf<Namespace>()->isKindOf(a_pClass))
     {
         for(auto it = m_Namespaces.begin(); it != m_Namespaces.end(); ++it)
         {
@@ -559,7 +624,7 @@ void Namespace::getElements( vector<LanguageElement*>& out, Class* a_pClass /*= 
         }
     }
 
-    if(a_pClass == nullptr OR classOf<Type>()->isKindOf(a_pClass))
+    if(a_pClass == nullptr OR typeOf<Type>()->isKindOf(a_pClass))
     {
         for(auto it = m_Types.begin(); it != m_Types.end(); ++it)
         {

@@ -52,9 +52,9 @@ public:
     static Class* const metaType;
 
 public:
-
     StaticDataMember(const string& a_strName, Type* a_pContentType, void* a_pStaticDataMemberAddress, Range* a_pRange, bitfield a_Modifiers = 0);
-    o_destructor ~StaticDataMember(void)     {}
+    StaticDataMember(const string& a_strName, Type* a_pContentType, Range* a_pRange, bitfield a_Modifiers = 0);
+    o_destructor ~StaticDataMember(void);
 
     virtual void*               getAddress(void const* a_pObject) const { return m_pAddress; }
 
@@ -76,6 +76,9 @@ public:
     virtual DataMember*         asDataMember() const { return const_cast<StaticDataMember*>(this); }
 
     Range*                      getRange() const { return StaticVariable::getRange(); }
+
+protected:
+    bool m_bAllocated;
 };
 
 o_namespace_end(phantom, reflection)

@@ -35,6 +35,7 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/PropertyAccess.h>
 #include <phantom/reflection/PropertyAccess.hxx>
+#include <phantom/reflection/CallExpression.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), PropertyAccess);
 
@@ -42,20 +43,31 @@ o_namespace_begin(phantom, reflection)
 
 PropertyAccess::PropertyAccess( Expression* a_pLeftExpression, Property* a_pProperty ) 
     : Expression(a_pLeftExpression->isConstExpression() 
-                                ? m_pProperty->getValueType()->constType() 
-                                : m_pProperty->getValueType()
-                , a_pLeftExpression->getName() + m_pProperty->getName())
+                                ? a_pProperty->getValueType()->removeReference()->removeConst()->constType()->referenceType()
+                                : a_pProperty->getValueType()->removeReference()->removeConst()->referenceType()
+                , "("+a_pLeftExpression->getName() + ")." + a_pProperty->getName()
+                , a_pProperty->getModifiers())
     , m_pLeftExpression(a_pLeftExpression)
     , m_pProperty(a_pProperty)
 {
-    o_assert(a_pLeftExpression->isAddressable());
+    o_assert(a_pLeftExpression->hasEffectiveAddress());
+    o_assert(a_pLeftExpression->getValueType()->removeReference()->removeConst() == a_pProperty->getOwner());
     addElement(a_pLeftExpression);
     addReferencedElement(a_pProperty);
 
-    m_pBuffer = m_pValueType->allocate();
-    m_pValueType->construct(m_pBuffer);
-    m_pValueType->install(m_pBuffer);
-    m_pValueType->initialize(m_pBuffer);
+    m_pBuffer = m_pValueType->removeReference()->allocate();
+    m_pValueType->removeReference()->construct(m_pBuffer);
+    m_pValueType->removeReference()->install(m_pBuffer);
+    m_pValueType->removeReference()->initialize(m_pBuffer);
+}
+
+void PropertyAccess::terminate()
+{
+    m_pValueType->removeReference()->terminate(m_pBuffer);
+    m_pValueType->removeReference()->uninstall(m_pBuffer);
+    m_pValueType->removeReference()->destroy(m_pBuffer);
+    m_pValueType->removeReference()->deallocate(m_pBuffer);
+    Expression::terminate();
 }
 
 void PropertyAccess::referencedElementRemoved( LanguageElement* a_pElement )
@@ -67,35 +79,62 @@ void PropertyAccess::referencedElementRemoved( LanguageElement* a_pElement )
 
 void PropertyAccess::setValue( void const* a_pSrc ) const
 {
-    void* pCaller = nullptr;
-    m_pLeftExpression->getValue(&pCaller);
-    if(m_pProperty->getSignal())
-    {
-        auto thisRtti = rttiDataOf(this);
-        rtti_data callerRtti = rttiDataOf(pCaller, getProperty()->getOwnerClass());
-        phantom::connect(callerRtti, m_pProperty->getSignal(), thisRtti, thisRtti.object_class->getSignalCascade("valueChanged()"));
-        m_pProperty->setValue(pCaller, a_pSrc);
-        phantom::disconnect(callerRtti, m_pProperty->getSignal(), thisRtti, thisRtti.object_class->getSignalCascade("valueChanged()"));
-    }
-    else 
-    {
-        m_pProperty->setValue(pCaller, a_pSrc);
-    }
-
+    void* pCaller = m_pLeftExpression->loadEffectiveAddress();
+    m_pProperty->setValue(pCaller, a_pSrc);
     m_pProperty->getValue(pCaller, m_pBuffer); // store the value back in the buffer
-    m_pLeftExpression->flush();
 }
 
 void PropertyAccess::getValue( void* a_pDest ) const
 {
-    void* pCaller = nullptr;
-    m_pLeftExpression->getValue(&pCaller);
-    m_pProperty->getValue(m_pLeftExpression->getAddress(), a_pDest);
+    m_pProperty->getValue(m_pLeftExpression->loadEffectiveAddress(), m_pBuffer);
+    *((void**)a_pDest) = (void*)m_pBuffer;
 }
 
-void PropertyAccess::flush()
+void PropertyAccess::flush() const
 {
-    setValue(m_pBuffer);  
+    m_pProperty->setValue(m_pLeftExpression->loadEffectiveAddress(), m_pBuffer);
+    m_pLeftExpression->flush();
+}
+
+Expression* PropertyAccess::solveOperator( const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers /* = 0 */ ) const
+{
+//     if(a_Expressions.size() == 1)
+//     {
+//         if(a_strOp == "=")
+//         {
+//             if(a_Expressions[0]->getValueType()->isImplicitlyConvertibleTo(m_pProperty->getSetMemberFunction()->getParameterType(0)))
+//             {
+//                 const_cast<PropertyAccess*>(this)->removeElement(m_pLeftExpression);
+//                 vector<Expression*> arguments;
+//                 arguments.push_back(m_pLeftExpression->reference());
+//                 InstanceMemberFunction* pSet = m_pProperty->getSetMemberFunction();
+//                 arguments.push_back(a_Expressions[0]->implicitCast(pSet->getParameterType(0)));
+//                 phantom::deleteElement(const_cast<PropertyAccess*>(this));
+//                 return o_new(CallExpression)(pSet, arguments);
+//             }
+//         }
+//         else if(a_strOp.size() == 2 && a_strOp[1] == '=' && a_strOp[0] != '=') 
+//         {
+//             vector<Expression*> arguments;
+//             arguments.push_back(asExpression());
+//             arguments.push_back(a_Expressions[0]);
+//             Expression* pOperation = getValueType()->solveOperator(a_strOp.substr(0, 1), arguments, 0);
+//             if(pOperation != nullptr)
+//             {
+//                 const_cast<PropertyAccess*>(this)->removeElement(m_pLeftExpression); // abandon left expression to give it to the call expression
+//                 InstanceMemberFunction* pSet = m_pProperty->getSetMemberFunction();
+//                 arguments[0] = m_pLeftExpression;
+//                 arguments[1] = pOperation->implicitCast(pSet->getParameterType(0));
+//                 return o_new(CallExpression)(pSet, arguments);
+//             }
+//         }
+//     }
+    return Expression::solveOperator(a_strOp, a_Expressions, a_Modifiers);
+}
+
+PropertyAccess* PropertyAccess::clone() const
+{
+    return o_new(PropertyAccess)(m_pLeftExpression->clone(), m_pProperty);
 }
 
 o_namespace_end(phantom, reflection)

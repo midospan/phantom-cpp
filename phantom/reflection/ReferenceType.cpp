@@ -35,6 +35,7 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/ReferenceType.h>
 #include <phantom/reflection/ReferenceType.hxx>
+#include <phantom/reflection/Expression.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), ReferenceType);
 
@@ -54,22 +55,42 @@ ReferenceType::ReferenceType( Type* a_pType ) : Type(e_reference, a_pType->getNa
 
 boolean ReferenceType::isConvertibleTo( Type* a_pType ) const
 {
-    return m_pReferencedType->isConvertibleTo(a_pType);
+    return a_pType->asReferenceType()
+        OR m_pReferencedType->isConvertibleTo(a_pType)
+        OR isImplicitlyConvertibleTo(a_pType);
 }
 
 boolean ReferenceType::isImplicitlyConvertibleTo( Type* a_pType ) const
 {
-    return m_pReferencedType->isImplicitlyConvertibleTo(a_pType);
-}
-
-Type* ReferenceType::createConstType() const
-{
-    return o_new(ConstReferenceType)(const_cast<ReferenceType*>(this));
+    return m_pReferencedType->isImplicitlyConvertibleTo(a_pType) 
+        OR (a_pType->asReferenceType() 
+            AND m_pReferencedType->pointerType()->isImplicitlyConvertibleTo(a_pType->removeReference()->pointerType()));
 }
 
 void ReferenceType::convertValueTo( Type* a_pDestType, void* a_pDestValue, const void* a_pSrcValue ) const
 {
-    m_pReferencedType->convertValueTo(a_pDestType, a_pDestValue, a_pSrcValue);
+    if(a_pDestType->asReferenceType())
+    {
+        // Reference to reference convertion is same as pointer to pointer convertion
+        m_pReferencedType->pointerType()->convertValueTo(a_pDestType->removeReference()->pointerType(), a_pDestValue, a_pSrcValue);
+    }
+    else 
+    {
+        // First convert from dest type reference type, 
+        if(isImplicitlyConvertibleTo(a_pDestType->referenceType()))
+        {
+            void* pConvertedReference;
+            convertValueTo(a_pDestType->referenceType(), &pConvertedReference, a_pSrcValue);
+            // then dereference the content from the reference value
+            a_pDestType->copy(a_pDestValue, pConvertedReference);
+        }
+        else 
+        {
+            void* pBuffer = m_pReferencedType->newInstance();
+            m_pReferencedType->copy(pBuffer, *((void**)a_pSrcValue));
+            m_pReferencedType->convertValueTo(a_pDestType, a_pDestValue, pBuffer);
+        }
+    }
 }
 
 void ReferenceType::referencedElementRemoved( LanguageElement* a_pElement )
@@ -77,6 +98,73 @@ void ReferenceType::referencedElementRemoved( LanguageElement* a_pElement )
     Type::referencedElementRemoved(a_pElement);
     if(m_pReferencedType == a_pElement)
         m_pReferencedType = nullptr;
+}
+
+Expression* ReferenceType::solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTemplateSignature, const vector<LanguageElement*>* a_pFunctionSignature, bitfield a_Modifiers /* = 0 */ ) const
+{
+    return m_pReferencedType->solveExpression(a_pLeftExpression, a_strName, a_pTemplateSignature, a_pFunctionSignature, a_Modifiers);
+}
+
+void*   ReferenceType::allocate() const
+{
+    return m_pReferencedType->pointerType()->allocate();
+}
+
+void ReferenceType::deallocate( void* a_pInstance ) const
+{
+    m_pReferencedType->pointerType()->deallocate(a_pInstance);
+}
+
+void*   ReferenceType::allocate(size_t a_uiCount) const
+{
+    return m_pReferencedType->pointerType()->allocate(a_uiCount);
+}
+
+void ReferenceType::deallocate( void* a_pChunk, size_t a_uiCount ) const
+{
+    m_pReferencedType->pointerType()->deallocate(a_pChunk, a_uiCount);
+}
+
+void ReferenceType::safeConstruct( void* a_pBuffer ) const
+{
+    m_pReferencedType->pointerType()->safeConstruct(a_pBuffer);
+}
+
+void ReferenceType::safeConstruct( void* a_pBuffer, size_t a_uiCount, size_t a_uiChunkSectionSize ) const
+{
+    m_pReferencedType->pointerType()->safeConstruct(a_pBuffer, a_uiCount, a_uiChunkSectionSize);
+}
+
+void ReferenceType::construct( void* a_pBuffer ) const
+{
+    m_pReferencedType->pointerType()->construct(a_pBuffer);
+}
+
+void ReferenceType::construct( void* a_pBuffer, size_t a_uiCount, size_t a_uiChunkSectionSize ) const
+{
+    m_pReferencedType->pointerType()->construct(a_pBuffer, a_uiCount, a_uiChunkSectionSize);
+}
+
+void ReferenceType::destroy( void* a_pBuffer ) const
+{
+    m_pReferencedType->pointerType()->destroy(a_pBuffer);
+}
+
+void ReferenceType::destroy( void* a_pBuffer, size_t a_uiCount, size_t a_uiChunkSectionSize ) const
+{
+    m_pReferencedType->pointerType()->destroy(a_pBuffer, a_uiCount, a_uiChunkSectionSize);
+}
+
+Expression* ReferenceType::solveOperator( const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers ) const
+{
+    if(a_strOp == "&" && a_Expressions.size() == 1)
+    {
+        return a_Expressions.back()->address();
+    }
+    else 
+    {
+        return m_pReferencedType->solveOperator(a_strOp, a_Expressions, a_Modifiers);
+    }
 }
 
 o_namespace_end(phantom, reflection)

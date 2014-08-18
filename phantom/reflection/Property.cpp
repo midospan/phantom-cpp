@@ -48,6 +48,7 @@ Property::Property( const string& a_strName, Type* a_pValueType, InstanceMemberF
     , m_pSetMemberFunction(a_pSetMemberFunction)
     , m_pGetMemberFunction(a_pGetMemberFunction)
     , m_pSignal(a_pSignal)
+    , m_pCompilationData(new property_compilation_data)
 {
     o_assert(m_pGetMemberFunction->getSignature()->getReturnType() == m_pValueType);
     o_assert(m_pSetMemberFunction->getSignature()->getParameterCount() == 1 && m_pSetMemberFunction->getSignature()->getParameterType(0) == m_pValueType);
@@ -56,11 +57,37 @@ Property::Property( const string& a_strName, Type* a_pValueType, InstanceMemberF
         || (m_pSignal->getSignature()->getParameterCount() == 1 && m_pSignal->getSignature()->getParameterType(0) == m_pValueType));
     // TODO : fix this, put it in o_property ...
     if(m_pSignal && m_pSignal->getOwner() == nullptr)
-        a_pSetMemberFunction->getOwnerClass()->addSignal(m_pSignal);
-    addReferencedElement(a_pSetMemberFunction);
-    addReferencedElement(a_pGetMemberFunction);
+        m_pSetMemberFunction->getOwnerClass()->addSignal(m_pSignal);
+    addReferencedElement(m_pSetMemberFunction);
+    addReferencedElement(m_pGetMemberFunction);
     if(m_pSignal)
         addReferencedElement(m_pSignal);
+}
+
+Property::Property( const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pSignal, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers, int protectedTag ) 
+    : ValueMember(a_strName, a_pValueType, a_pRange, a_uiSerializationMask, a_Modifiers) 
+    , m_pSetMemberFunction(a_pSetMemberFunction)
+    , m_pGetMemberFunction(a_pGetMemberFunction)
+    , m_pSignal(a_pSignal)
+    , m_pCompilationData(nullptr)
+{
+    o_assert(m_pGetMemberFunction->getSignature()->getReturnType() == m_pValueType);
+    o_assert(m_pSetMemberFunction->getSignature()->getParameterCount() == 1 && m_pSetMemberFunction->getSignature()->getParameterType(0) == m_pValueType);
+    o_assert(m_pSignal == nullptr 
+        || m_pSignal->getSignature()->getParameterCount() == 0 
+        || (m_pSignal->getSignature()->getParameterCount() == 1 && m_pSignal->getSignature()->getParameterType(0) == m_pValueType));
+    // TODO : fix this, put it in o_property ...
+    if(m_pSignal && m_pSignal->getOwner() == nullptr)
+        m_pSetMemberFunction->getOwnerClass()->addSignal(m_pSignal);
+    addReferencedElement(m_pSetMemberFunction);
+    addReferencedElement(m_pGetMemberFunction);
+    if(m_pSignal)
+        addReferencedElement(m_pSignal);
+}
+
+o_destructor Property::~Property( void )
+{
+    delete m_pCompilationData;
 }
 
 void Property::referencedElementRemoved( LanguageElement* a_pElement )
@@ -76,7 +103,7 @@ void Property::referencedElementRemoved( LanguageElement* a_pElement )
 
 Expression* Property::createAccessExpression( Expression* a_pLeftExpression ) const
 {
-    return o_new(PropertyAccess)(a_pLeftExpression->implicitCast(getOwnerClassType()), const_cast<Property*>(this));
+    return o_new(PropertyAccess)(a_pLeftExpression, const_cast<Property*>(this));
 }
 
 bool Property::referencesData( const void* a_pInstance, const phantom::data& a_Data ) const
@@ -99,20 +126,18 @@ bool Property::referencesData( const void* a_pInstance, const phantom::data& a_D
     return false;
 }
 
-void Property::fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const
+void Property::getValue( void const* a_pObject, void* a_pDest ) const
 {
-    if((m_uiSerializationMask & a_uiSerializationMask) != 0)
-    {
-        Type* pType = m_pValueType;
-        void* pBuffer = pType->allocate();
-        pType->construct(pBuffer);
-        pType->initialize(pBuffer);
-        getValue(a_pInstance, pBuffer);
-        pType->fetchReferencedData(pBuffer, out, a_uiSerializationMask);
-        pType->terminate(pBuffer);
-        pType->destroy(pBuffer);
-        pType->deallocate(pBuffer);
-    }
+    o_assert(m_pCompilationData);
+    void* args[1] = {&a_pObject};
+    m_pCompilationData->m_ClosureCallDelegate(m_pCompilationData->m_pGetClosure, args, 1, a_pDest);
+}
+
+void Property::setValue( void* a_pObject, void const* a_pSrc ) const
+{
+    o_assert(m_pCompilationData);
+    void* args[2] = {&a_pObject, (void*)a_pSrc};
+    m_pCompilationData->m_ClosureCallDelegate(m_pCompilationData->m_pGetClosure, args, 2, nullptr);
 }
 
 o_namespace_end(phantom, reflection)

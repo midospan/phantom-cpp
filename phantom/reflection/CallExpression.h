@@ -47,26 +47,55 @@ o_namespace_begin(phantom, reflection)
 class o_export CallExpression : public Expression
 {
 public:
-    CallExpression(Subroutine* a_pFunction, const vector<Expression*>& a_Arguments);
-    ~CallExpression();
+    CallExpression(Subroutine* a_pFunction, const vector<Expression*>& a_Arguments, Type* a_pConstructedType = nullptr);
+    CallExpression(Subroutine* a_pFunction, Expression* a_pArgument, Type* a_pConstructedType = nullptr);
+
+    o_initialize();
+
+    virtual void  terminate();
 
     virtual void  getValue(void* a_pDest) const ;
 
     virtual void  setValue(void const* a_pSrc) const;
 
-    virtual bool isReferenceable() const { return m_pReturnStorage != nullptr; }
+    virtual bool  isAddressable() const { return m_pReturnStorage != nullptr; }
 
-    virtual void* getAddress() const ;
+    virtual void* getValueStorageAddress() const ;
 
-    virtual void flush();
+    virtual bool hasValueStorage() const { return m_pReturnStorage != nullptr; }
+
+    virtual void flush() const;
+
+    virtual void eval() const { call(); }
+
+    void call() const;
+
+    void call(void* a_pReturnAddress) const { getValue(a_pReturnAddress); }
+
+    vector<Expression*>::const_iterator beginArguments() const { return m_Arguments.begin(); }
+    vector<Expression*>::const_iterator endArguments() const { return m_Arguments.end(); }
+
+    vector<Expression*>::const_reverse_iterator rbeginArguments() const { return m_Arguments.rbegin(); }
+    vector<Expression*>::const_reverse_iterator rendArguments() const { return m_Arguments.rend(); }
+
+    virtual variant compile(Compiler* a_pCompiler);
+
+    virtual LanguageElement* hatch();
+
+    virtual Expression*     clone() const;
+
+    virtual LanguageElement*getHatchedElement() const { return m_pSubroutine; }
 
 protected:
     static string evaluateName(Subroutine* a_pSubroutine, const vector<Expression*>& a_Arguments);
-    Type* storageType(Type* a_pType);
+    static string evaluateName( Subroutine* a_pSubroutine, Expression* a_pArgument );
+protected:
+    virtual void ancestorChanged(LanguageElement* a_pLanguageElement);
 
 protected:
     Subroutine*         m_pSubroutine;
     vector<Expression*> m_Arguments;
+    vector<Expression*> m_ConvertedArguments;
     vector<void*>       m_TempValues;
     void*               m_pReturnStorage;
 };

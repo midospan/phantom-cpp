@@ -1,6 +1,6 @@
 #pragma once
 
-o_classN((phantom, reflection), CodePosition)
+o_classN((phantom, reflection), CodePosition, o_pod)
 {
     o_reflection
     {
@@ -10,7 +10,7 @@ o_classN((phantom, reflection), CodePosition)
 };
 o_exposeN((phantom, reflection), CodePosition);
 
-o_classN((phantom, reflection), CodeLocation)
+o_classN((phantom, reflection), CodeLocation, o_pod)
 {
     o_reflection
     {

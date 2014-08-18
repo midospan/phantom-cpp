@@ -17,7 +17,7 @@ class SourceFile;
 
 struct o_export CodePosition
 {
-    CodePosition() : line(0), column(0) {}
+    CodePosition() : sourceFile(nullptr), line(0), column(0) {}
     CodePosition(SourceFile* a_pSourceFile) : sourceFile(a_pSourceFile), line(0), column(0) {}
     CodePosition(SourceFile* a_pSourceFile, int l, int c) : sourceFile(a_pSourceFile), line(l), column(c) {}
     
@@ -73,6 +73,16 @@ public:
     const CodePosition& getStart() const { return m_Start; }
     const CodePosition& getEnd() const { return m_End; }
     SourceFile* getSourceFile() const { return m_Start.sourceFile == m_End.sourceFile ? m_Start.sourceFile : nullptr; }
+
+    inline CodeLocation operator|(const CodeLocation& other) const // union 
+    {
+        CodeLocation union_ = *this;
+        if(other.m_Start < m_Start)
+            union_.m_Start = other.m_Start;
+        if(m_End < other.m_End )
+            union_.m_End = other.m_End;
+        return union_;
+    }
 
 protected:
 	CodePosition		m_Start;

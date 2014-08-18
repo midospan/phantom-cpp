@@ -84,6 +84,9 @@
     <CustomBuild Include="..\..\..\phantom\qt\VariableNode.h">
       <Filter>src</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\UndoStackView.h">
+      <Filter>src</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GeneratedFiles\Debug\moc_VariableEditor.cpp">
@@ -133,12 +136,6 @@
     </ClCompile>
     <ClCompile Include="GeneratedFiles\qrc_qt.cpp">
       <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_VariableAction.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_VariableAction.cpp">
-      <Filter>Generated Files\Release</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\VariableAction.cpp">
       <Filter>src</Filter>
@@ -251,64 +248,103 @@
     <ClCompile Include="..\..\..\phantom\qt\VariableNode.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\CollectionElementVariable.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\ComponentVariable.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\CompositionAddVariable.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\ContainerInsertVariable.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\MapInsertPairVariable.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\SequentialContainerPushBackVariable.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\SetContainerInsertVariable.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\ArrayElementVariable.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\CollectionAddVariable.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\DataBaseAttributeVariable.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\ClassTypeVariableNodeFactory.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\ClassVariableNodeFactory.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\SequentialContainerClassVariableNodeFactory.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\VariableNodeFactory.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\SetContainerClassVariableNodeFactory.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\MapContainerClassVariableNodeFactory.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\CompositionClassVariableNodeFactory.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\ArrayTypeVariableNodeFactory.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\UndoCommand.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\VariableSetCommand.cpp">
+    <ClCompile Include="..\..\..\phantom\qt\TypeVisualizer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\TypeVisualizerNode.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\ClassTypeVisualizerNode.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\ClassVisualizerNode.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\MapVisualizerNode.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\SequentialContainerVisualizerNode.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\SetContainerVisualizerNode.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\CompositionVisualizerNode.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\ExpressionCommand.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\ArrayTypeVisualizerNode.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\ExpressionCommand.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\UndoStackView.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\UndoStack.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\ExpressionCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\ExpressionCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_UndoStackView.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_UndoStackView.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\AddNodeCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\AddDataCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\LoadNodeCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\UnloadNodeCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\UnloadLibraryCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\LoadLibraryCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\MoveToTrashbinCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\SaveDataCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\DataAttributeChangeCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\SaveDataAttributeCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\SaveNodeAttributeCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\NodeAttributeChangeCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\AddComponentDataCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\ClassComboBoxEditor.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\UpdateComponentDataCommand.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -376,121 +412,184 @@
     <ClInclude Include="..\..\..\phantom\qt\VariableNode.hxx">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\CollectionAddVariable.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\CollectionElementVariable.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\CollectionElementVariable.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\ComponentVariable.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\ComponentVariable.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\CompositionAddVariable.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\CompositionAddVariable.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\ContainerInsertVariable.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\ContainerInsertVariable.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\MapInsertPairVariable.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\MapInsertPairVariable.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\SequentialContainerPushBackVariable.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\SequentialContainerPushBackVariable.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\SetContainerInsertVariable.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\SetContainerInsertVariable.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\ArrayElementVariable.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\ArrayElementVariable.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\CollectionAddVariable.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\DataBaseAttributeVariable.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\ClassTypeVariableNodeFactory.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\ClassTypeVariableNodeFactory.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\ClassVariableNodeFactory.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\ClassVariableNodeFactory.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\SequentialContainerClassVariableNodeFactory.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\SequentialContainerClassVariableNodeFactory.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\VariableNodeFactory.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\VariableNodeFactory.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\SetContainerClassVariableNodeFactory.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\SetContainerClassVariableNodeFactory.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\MapContainerClassVariableNodeFactory.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\MapContainerClassVariableNodeFactory.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\CompositionClassVariableNodeFactory.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\CompositionClassVariableNodeFactory.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\ArrayTypeVariableNodeFactory.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\ArrayTypeVariableNodeFactory.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\qt\UndoCommand.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\qt\UndoCommand.hxx">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\VariableSetCommand.hxx">
+    <ClInclude Include="..\..\..\phantom\qt\TypeVisualizer.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\VariableSetCommand.h">
+    <ClInclude Include="..\..\..\phantom\qt\TypeVisualizer.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\TypeVisualizerNode.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\TypeVisualizerNode.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ClassTypeVisualizerNode.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ClassTypeVisualizerNode.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ClassVisualizerNode.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ClassVisualizerNode.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\MapVisualizerNode.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\MapVisualizerNode.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\SequentialContainerVisualizerNode.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\SequentialContainerVisualizerNode.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\SetContainerVisualizerNode.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\SetContainerVisualizerNode.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\CompositionVisualizerNode.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\CompositionVisualizerNode.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ExpressionCommand.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ExpressionCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\ArrayTypeVisualizerNode.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ArrayTypeVisualizerNode.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ExpressionCommand.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ExpressionCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\ExpressionCommand.hxx" />
+    <ClInclude Include="..\..\..\phantom\qt\UndoStack.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\UndoStackView.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\UndoStack.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ExpressionCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ExpressionCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ExpressionCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ExpressionCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\AddNodeCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\AddNodeCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\AddDataCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\AddDataCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\LoadNodeCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\LoadNodeCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\UnloadNodeCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\UnloadNodeCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\UnloadLibraryCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\UnloadLibraryCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\LoadLibraryCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\LoadLibraryCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\MoveToTrashbinCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\MoveToTrashbinCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\SaveDataCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\SaveDataCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\DataAttributeChangeCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\DataAttributeChangeCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\SaveDataAttributeCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\SaveDataAttributeCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\SaveNodeAttributeCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\SaveNodeAttributeCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\NodeAttributeChangeCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\NodeAttributeChangeCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\AddComponentDataCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\AddComponentDataCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ClassComboBoxEditor.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ClassComboBoxEditor.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\UpdateComponentDataCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\UpdateComponentDataCommand.hxx">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

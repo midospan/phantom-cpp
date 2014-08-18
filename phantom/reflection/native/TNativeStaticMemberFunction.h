@@ -50,7 +50,7 @@ class TNativeStaticMemberFunction0 : public TNativeStaticMemberFunctionBase<t_Ty
 public:
     typedef TNativeStaticMemberFunction0<t_Ty, t_ReturnType> self_type;
     typedef t_ReturnType (*member_function_pointer)(void);
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
 
 
     TNativeStaticMemberFunction0(){}
@@ -65,17 +65,6 @@ public:
         return FastDelegate0<t_ReturnType>(m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)();
-    }
-
-    virtual void call(argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress)
-            = (*m_member_function_pointer)();
-    }
-
     virtual void call(void** a_pParams) const
     {
         (*m_member_function_pointer)();
@@ -83,8 +72,7 @@ public:
 
     virtual void call(void** a_pParams, void* a_pReturnAddress) const
     {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress)
-            = (*m_member_function_pointer)();
+        *static_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((*m_member_function_pointer)());
     }
 
     virtual void* getAddress(void** a_pParams) const
@@ -124,11 +112,6 @@ public:
         return FastDelegate0<fastdelegate::detail::DefaultVoid>(m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)();
-    }
-
     virtual void call(void** a_pParams) const
     {
         (*m_member_function_pointer)();
@@ -145,7 +128,7 @@ class TNativeStaticMemberFunction1 : public TNativeStaticMemberFunctionBase<t_Ty
 public:
     typedef TNativeStaticMemberFunction1<t_Ty, t_ReturnType, t_Param0>    self_type;
     typedef t_ReturnType (*member_function_pointer)(t_Param0);
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
 
 
@@ -166,22 +149,7 @@ public:
     {
         return FastDelegate1<t_ReturnType, t_Param0>(m_member_function_pointer).GetMemento();
     }
-
-
-
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            (static_cast<argument::list_1<t_Param0>*>(a_pParams)->p0);
-    }
-
-    virtual void call(argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress)
-            = (*m_member_function_pointer)
-            (static_cast<argument::list_1<t_Param0>*>(a_pParams)->p0);
-    }
-
+    
     virtual void call(void** a_pParams) const
     {
         (*m_member_function_pointer)
@@ -189,8 +157,8 @@ public:
     }
     virtual void call(void** a_pParams, void* a_pReturnAddress) const
     {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
-            ( *static_cast<t_Param0_noref*>(a_pParams[0]) );
+        *static_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((*m_member_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0]) ));
     }
 
     virtual void* getAddress(void** a_pParams) const
@@ -233,12 +201,6 @@ public:
         return FastDelegate1<fastdelegate::detail::DefaultVoid, t_Param0>(m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            (static_cast<argument::list_1<t_Param0>*>(a_pParams)->p0);
-    }
-
     virtual void call(void** a_pParams) const
     {
         (*m_member_function_pointer)
@@ -256,7 +218,7 @@ class TNativeStaticMemberFunction2 : public TNativeStaticMemberFunctionBase<t_Ty
 public:
     typedef TNativeStaticMemberFunction2<t_Ty, t_ReturnType, t_Param0, t_Param1>    self_type;
     typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1);
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
 
@@ -278,32 +240,18 @@ public:
         return FastDelegate2<t_ReturnType, t_Param0, t_Param1>(m_member_function_pointer).GetMemento();
     }
 
-
-
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p0
-            , static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p1 );
-    }
-    virtual void call(argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
-            ( static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p0
-            , static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p1 );
-    }
-
     virtual void call(void** a_pParams) const
     {
         (*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1]) );
     }
+
     virtual void call(void** a_pParams, void* a_pReturnAddress) const
     {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
+        *static_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
-            , *static_cast<t_Param1_noref*>(a_pParams[1]) );
+            , *static_cast<t_Param1_noref*>(a_pParams[1]) ));
     }
 
     virtual void* getAddress(void** a_pParams) const
@@ -347,13 +295,6 @@ public:
         return FastDelegate2<fastdelegate::detail::DefaultVoid, t_Param0, t_Param1>(m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p0
-            , static_cast<argument::list_2<t_Param0,t_Param1>*>(a_pParams)->p1 );
-    }
-
     virtual void call(void** a_pParams) const
     {
         (*m_member_function_pointer)
@@ -371,19 +312,19 @@ protected:
 ///  ==================================================================================================
 
 template<typename t_Ty, typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2>
-class TNativeStaticMemberFunction3 : public InstanceMemberFunction
+class TNativeStaticMemberFunction3 : public TNativeStaticMemberFunctionBase<t_Ty>
 {
 public:
     typedef TNativeStaticMemberFunction3<t_Ty, t_ReturnType, t_Param0, t_Param1,t_Param2>    self_type;
     typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1,t_Param2);
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
 
 
     TNativeStaticMemberFunction3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
+        : TNativeStaticMemberFunctionBase(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -395,22 +336,6 @@ public:
         return FastDelegate3<t_ReturnType, t_Param0,t_Param1,t_Param2>(m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p0
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p1
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p2 );
-    }
-    virtual void call(argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
-            ( static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p0
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p1
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p2 );
-    }
-
-
     virtual void call(void** a_pParams) const
     {
         (*m_member_function_pointer)
@@ -418,12 +343,13 @@ public:
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2]) );
     }
+
     virtual void call(void** a_pParams, void* a_pReturnAddress) const
     {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
+        *static_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
-            , *static_cast<t_Param2_noref*>(a_pParams[2]) );
+            , *static_cast<t_Param2_noref*>(a_pParams[2]) ));
     }
 
     virtual void* getAddress(void** a_pParams) const
@@ -442,7 +368,7 @@ protected:
 };
 
 template<typename t_Ty, typename t_Param0, typename t_Param1, typename t_Param2>
-class TNativeStaticMemberFunction3<t_Ty, void, t_Param0, t_Param1, t_Param2> : public InstanceMemberFunction
+class TNativeStaticMemberFunction3<t_Ty, void, t_Param0, t_Param1, t_Param2> : public TNativeStaticMemberFunctionBase<t_Ty>
 {
 public:
     typedef TNativeStaticMemberFunction3<t_Ty, void, t_Param0, t_Param1, t_Param2>    self_type;
@@ -452,7 +378,7 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
 
     TNativeStaticMemberFunction3(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
+        : TNativeStaticMemberFunctionBase(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -462,14 +388,6 @@ public:
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate3<fastdelegate::detail::DefaultVoid, t_Param0,t_Param1,t_Param2>(m_member_function_pointer).GetMemento();
-    }
-
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p0
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p1
-            , static_cast<argument::list_3<t_Param0,t_Param1,t_Param2>*>(a_pParams)->p2 );
     }
     
     virtual void call(void** a_pParams) const
@@ -496,19 +414,19 @@ template<typename t_Ty
     , typename t_Param1
     , typename t_Param2
     , typename t_Param3>
-class TNativeStaticMemberFunction4 : public InstanceMemberFunction
+class TNativeStaticMemberFunction4 : public TNativeStaticMemberFunctionBase<t_Ty>
 {
 public:
     typedef TNativeStaticMemberFunction4<t_Ty, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3>    self_type;
     typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3);
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
 
     TNativeStaticMemberFunction4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
+        : TNativeStaticMemberFunctionBase(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -518,23 +436,6 @@ public:
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate4<t_ReturnType, t_Param0,t_Param1,t_Param2,t_Param3>(m_member_function_pointer).GetMemento();
-    }
-
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p0
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p1
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p2
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p3 );
-    }
-    virtual void call(argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
-            ( static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p0
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p1
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p2
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p3 );
     }
 
     virtual void call(void** a_pParams) const
@@ -547,11 +448,11 @@ public:
     }
     virtual void call(void** a_pParams, void* a_pReturnAddress) const
     {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
+        *static_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2])
-            , *static_cast<t_Param3_noref*>(a_pParams[3]));
+            , *static_cast<t_Param3_noref*>(a_pParams[3])));
     }
 
     virtual void* getAddress(void** a_pParams) const
@@ -575,7 +476,7 @@ template<typename t_Ty
     , typename t_Param1
     , typename t_Param2
     , typename t_Param3>
-class TNativeStaticMemberFunction4<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3> : public InstanceMemberFunction
+class TNativeStaticMemberFunction4<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3> : public TNativeStaticMemberFunctionBase<t_Ty>
 {
 public:
     typedef TNativeStaticMemberFunction4<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3>    self_type;
@@ -586,7 +487,7 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
 
     TNativeStaticMemberFunction4(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
+        : TNativeStaticMemberFunctionBase(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -596,15 +497,6 @@ public:
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate4<fastdelegate::detail::DefaultVoid, t_Param0,t_Param1,t_Param2,t_Param3>(m_member_function_pointer).GetMemento();
-    }
-
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p0
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p1
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p2
-            , static_cast<argument::list_4<t_Param0,t_Param1,t_Param2,t_Param3>*>(a_pParams)->p3 );
     }
 
     virtual void call(void** a_pParams) const
@@ -632,12 +524,12 @@ template<typename t_Ty
     , typename t_Param2
     , typename t_Param3
     , typename t_Param4>
-class TNativeStaticMemberFunction5 : public InstanceMemberFunction
+class TNativeStaticMemberFunction5 : public TNativeStaticMemberFunctionBase<t_Ty>
 {
 public:
     typedef TNativeStaticMemberFunction5<t_Ty, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4>    self_type;
     typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4);
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -645,7 +537,7 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
 
     TNativeStaticMemberFunction5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
+        : TNativeStaticMemberFunctionBase(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -656,26 +548,6 @@ public:
     {
         return FastDelegate5<t_ReturnType, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>(m_member_function_pointer).GetMemento();
     }
-
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p0
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p1
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p2
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p3
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p4 );
-    }
-    virtual void call(argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
-            ( static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p0
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p1
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p2
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p3
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p4 );
-    }
-
 
     virtual void call(void** a_pParams) const
     {
@@ -688,12 +560,12 @@ public:
     }
     virtual void call(void** a_pParams, void* a_pReturnAddress) const
     {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
+        *static_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2])
             , *static_cast<t_Param3_noref*>(a_pParams[3])
-            , *static_cast<t_Param4_noref*>(a_pParams[4]) );
+            , *static_cast<t_Param4_noref*>(a_pParams[4]) ));
     }
 
     virtual void* getAddress(void** a_pParams) const
@@ -719,7 +591,7 @@ template<typename t_Ty
     , typename t_Param2
     , typename t_Param3
     , typename t_Param4>
-class TNativeStaticMemberFunction5<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4> : public InstanceMemberFunction
+class TNativeStaticMemberFunction5<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4> : public TNativeStaticMemberFunctionBase<t_Ty>
 {
 public:
     typedef TNativeStaticMemberFunction5<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4>    self_type;
@@ -731,7 +603,7 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
 
     TNativeStaticMemberFunction5(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
+        : TNativeStaticMemberFunctionBase(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -742,17 +614,7 @@ public:
     {
         return FastDelegate5<fastdelegate::detail::DefaultVoid, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>(m_member_function_pointer).GetMemento();
     }
-
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p0
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p1
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p2
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p3
-            , static_cast<argument::list_5<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4>*>(a_pParams)->p4 );
-    }
-
+    
     virtual void call(void** a_pParams) const
     {
         (*m_member_function_pointer)
@@ -783,12 +645,12 @@ template<typename t_Ty
     , typename t_Param3
     , typename t_Param4
     , typename t_Param5>
-class TNativeStaticMemberFunction6 : public InstanceMemberFunction
+class TNativeStaticMemberFunction6 : public TNativeStaticMemberFunctionBase<t_Ty>
 {
 public:
     typedef TNativeStaticMemberFunction6<t_Ty, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>    self_type;
     typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5);
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -797,7 +659,7 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
 
     TNativeStaticMemberFunction6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
+        : TNativeStaticMemberFunctionBase(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -808,28 +670,6 @@ public:
     {
         return FastDelegate6<t_ReturnType, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>(m_member_function_pointer).GetMemento();
     }
-
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p0
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p1
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p2
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p3
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p4
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p5 );
-    }
-    virtual void call(argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
-            ( static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p0
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p1
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p2
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p3
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p4
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p5 );
-    }
-
 
     virtual void call(void** a_pParams) const
     {
@@ -843,13 +683,13 @@ public:
     }
     virtual void call(void** a_pParams, void* a_pReturnAddress) const
     {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
+        *static_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2])
             , *static_cast<t_Param3_noref*>(a_pParams[3])
             , *static_cast<t_Param4_noref*>(a_pParams[4])
-            , *static_cast<t_Param5_noref*>(a_pParams[5]) );
+            , *static_cast<t_Param5_noref*>(a_pParams[5]) ));
     }
 
     virtual void* getAddress(void** a_pParams) const
@@ -877,7 +717,7 @@ template<typename t_Ty
     , typename t_Param3
     , typename t_Param4
     , typename t_Param5>
-class TNativeStaticMemberFunction6<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5> : public InstanceMemberFunction
+class TNativeStaticMemberFunction6<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5> : public TNativeStaticMemberFunctionBase<t_Ty>
 {
 public:
     typedef TNativeStaticMemberFunction6<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5>    self_type;
@@ -890,7 +730,7 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
 
     TNativeStaticMemberFunction6(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
+        : TNativeStaticMemberFunctionBase(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -902,16 +742,6 @@ public:
         return FastDelegate6<fastdelegate::detail::DefaultVoid, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>(m_member_function_pointer).GetMemento();
     }
 
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p0
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p1
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p2
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p3
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p4
-            , static_cast<argument::list_6<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>*>(a_pParams)->p5 );
-    }
     virtual void call(void** a_pParams) const
     {
         (*m_member_function_pointer)
@@ -944,12 +774,12 @@ template<typename t_Ty
     , typename t_Param4
     , typename t_Param5
     , typename t_Param6>
-class TNativeStaticMemberFunction7 : public InstanceMemberFunction
+class TNativeStaticMemberFunction7 : public TNativeStaticMemberFunctionBase<t_Ty>
 {
 public:
     typedef TNativeStaticMemberFunction7<t_Ty, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>    self_type;
     typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6);
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -959,7 +789,7 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
 
     TNativeStaticMemberFunction7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
+        : TNativeStaticMemberFunctionBase(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -970,31 +800,7 @@ public:
     {
         return FastDelegate7<t_ReturnType, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>(m_member_function_pointer).GetMemento();
     }
-
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p0
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p1
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p2
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p3
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p4
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p5
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p6 );
-    }
-    virtual void call(argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
-            ( static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p0
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p1
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p2
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p3
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p4
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p5
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p6 );
-    }
-
-
+    
     virtual void call(void** a_pParams) const
     {
         (*m_member_function_pointer)
@@ -1008,14 +814,14 @@ public:
     }
     virtual void call(void** a_pParams, void* a_pReturnAddress) const
     {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
+        *static_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2])
             , *static_cast<t_Param3_noref*>(a_pParams[3])
             , *static_cast<t_Param4_noref*>(a_pParams[4])
             , *static_cast<t_Param5_noref*>(a_pParams[5])
-            , *static_cast<t_Param6_noref*>(a_pParams[6]) );
+            , *static_cast<t_Param6_noref*>(a_pParams[6]) ));
     }
 
     virtual void* getAddress(void** a_pParams) const
@@ -1046,7 +852,7 @@ template<typename t_Ty
     , typename t_Param4
     , typename t_Param5
     , typename t_Param6>
-class TNativeStaticMemberFunction7<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6> : public InstanceMemberFunction
+class TNativeStaticMemberFunction7<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6> : public TNativeStaticMemberFunctionBase<t_Ty>
 {
 public:
     typedef TNativeStaticMemberFunction7<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6>    self_type;
@@ -1060,7 +866,7 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
 
     TNativeStaticMemberFunction7(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
+        : TNativeStaticMemberFunctionBase(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -1070,18 +876,6 @@ public:
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate7<fastdelegate::detail::DefaultVoid, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>(m_member_function_pointer).GetMemento();
-    }
-
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p0
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p1
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p2
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p3
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p4
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p5
-            , static_cast<argument::list_7<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>*>(a_pParams)->p6 );
     }
 
     virtual void call(void** a_pParams) const
@@ -1116,12 +910,12 @@ template<typename t_Ty
     , typename t_Param5
     , typename t_Param6
     , typename t_Param7>
-class TNativeStaticMemberFunction8 : public InstanceMemberFunction
+class TNativeStaticMemberFunction8 : public TNativeStaticMemberFunctionBase<t_Ty>
 {
 public:
     typedef TNativeStaticMemberFunction8<t_Ty, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>    self_type;
     typedef t_ReturnType (*member_function_pointer)(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7);
-    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_ReturnType>::type>::type t_ReturnType_no_cvr;
+    typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
@@ -1132,7 +926,7 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param7>::type t_Param7_noref;
 
     TNativeStaticMemberFunction8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
+        : TNativeStaticMemberFunctionBase(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -1142,31 +936,6 @@ public:
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate8<t_ReturnType, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(m_member_function_pointer).GetMemento();
-    }
-
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p0
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p1
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p2
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p3
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p4
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p5
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p6
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p7 );
-    }
-    virtual void call(argument::list* a_pParams, void* a_pReturnAddress) const
-    {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
-            ( static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p0
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p1
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p2
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p3
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p4
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p5
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p6
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p7 );
     }
 
     virtual void call(void** a_pParams) const
@@ -1183,7 +952,7 @@ public:
     }
     virtual void call(void** a_pParams, void* a_pReturnAddress) const
     {
-        *reinterpret_cast<t_ReturnType*>(a_pReturnAddress) = (*m_member_function_pointer)
+        *static_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((*m_member_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2])
@@ -1191,7 +960,7 @@ public:
             , *static_cast<t_Param4_noref*>(a_pParams[4])
             , *static_cast<t_Param5_noref*>(a_pParams[5])
             , *static_cast<t_Param6_noref*>(a_pParams[6])
-            , *static_cast<t_Param7_noref*>(a_pParams[7]) );
+            , *static_cast<t_Param7_noref*>(a_pParams[7]) ));
     }
     virtual void* getAddress(void** a_pParams) const
     {
@@ -1222,7 +991,7 @@ template<typename t_Ty
     , typename t_Param5
     , typename t_Param6
     , typename t_Param7>
-class TNativeStaticMemberFunction8<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7> : public InstanceMemberFunction
+class TNativeStaticMemberFunction8<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7> : public TNativeStaticMemberFunctionBase<t_Ty>
 {
 public:
     typedef TNativeStaticMemberFunction8<t_Ty, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7>    self_type;
@@ -1239,7 +1008,7 @@ public:
 
 
     TNativeStaticMemberFunction8(const string& a_strName, Signature* a_pSignature, member_function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
+        : TNativeStaticMemberFunctionBase(a_strName,a_pSignature, a_Modifiers | o_native), m_member_function_pointer(a_pFunc)
     {
 
     }
@@ -1249,19 +1018,6 @@ public:
     DelegateMemento        getDelegateMemento(void* a_pObject) const
     {
         return FastDelegate8<fastdelegate::detail::DefaultVoid, t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(m_member_function_pointer).GetMemento();
-    }
-
-    virtual void call(argument::list* a_pParams) const
-    {
-        (*m_member_function_pointer)
-            ( static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p0
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p1
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p2
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p3
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p4
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p5
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p6
-            , static_cast<argument::list_8<t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>*>(a_pParams)->p7 );
     }
 
     virtual void call(void** a_pParams) const

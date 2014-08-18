@@ -9,10 +9,9 @@ o_registerN((phantom, qt), VariableNodeFactory);
 namespace phantom { 
 namespace qt {
 
-
     void VariableNodeFactory::addChildNodes( VariableNode* a_pVariableNode ) const
     {
-        addChildNodes(a_pVariableNode, a_pVariableNode->getAddresses(), a_pVariableNode->getValueType());
+        addChildNodes(a_pVariableNode, a_pVariableNode->getExpressionStrings(), a_pVariableNode->getValueType());
     }
 
 }}

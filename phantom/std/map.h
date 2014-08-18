@@ -19,5 +19,4 @@ o_declareNT(class, (std), (typename, typename, typename, typename), (t_Kty, t_Ty
 
 o_declareNT(class, (phantom), (typename,typename,typename), (t_Key,t_Value,t_Pred), map);
 
-
 #endif // vector_h__

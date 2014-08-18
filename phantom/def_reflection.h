@@ -3,15 +3,24 @@
 
 o_namespace_begin(phantom, reflection)
 
+enum EABI
+{
+    e_ABI_stdcall,
+    e_ABI_fastcall,
+    e_ABI_cdecl,
+    e_ABI_thiscall,
+};
+
+
 o_export void initializeSystem();
 
 #define o_declare_meta_type(_type_)\
     template<typename t_Ty> friend struct detail::type_of_builder;\
-    template<typename t_Ty> friend class native::TConstType;\
-    template<typename t_Ty> friend class native::TType_;\
+    template<typename t_Ty, int> friend class native::TType_;\
     friend struct phantom::reflection::Types;\
-private:\
-    static native::TType<_type_>* metaType
+public:\
+    static native::TType<_type_>* metaType;\
+private:
 
 #define o_define_meta_type(_type_)\
     native::TType<_type_>* _type_::metaType
@@ -36,6 +45,7 @@ enum ETypeId
     e_bool,
     e_wchar_t,
     e_enum,
+    e_nullptr_t,
     e_signal_t,
     e_pointer,
     e_reference,
@@ -65,6 +75,7 @@ private:
     static Type* BOOL;
     static Type* STRING;
     static Type* SIGNAL_T;
+    static Type* NULLPTR_T;
     static Type* WCHAR_T;
     static Type* VOID_PTR;
      
@@ -72,9 +83,12 @@ public:
     template<typename t_Ty>
     inline static Type* get() { return detail::type_of_counter<t_Ty, o_read_compilation_counter>::object(); }
 
-    static phantom::reflection::Class*                 currentInstalledClass;
+    static phantom::reflection::ClassType*             currentInstalledClass;
     static phantom::reflection::Namespace*             currentInstalledNamespace;
     static phantom::reflection::TemplateSpecialization*currentInstalledTemplateSpecialization;
+    static phantom::reflection::ClassType*             savedInstalledClass;
+    static phantom::reflection::Namespace*             savedInstalledNamespace;
+    static phantom::reflection::TemplateSpecialization*savedInstalledTemplateSpecialization;
 
 private:
     friend o_export void phantom::reflection::initializeSystem();
@@ -100,6 +114,7 @@ template<> inline Type* Types::get<long double>() { return LONG_DOUBLE; }
 template<> inline Type* Types::get<bool>() { return BOOL; }
 template<> inline Type* Types::get<string>() { return STRING; }
 template<> inline Type* Types::get<signal_t>() { return SIGNAL_T; }
+template<> inline Type* Types::get<std::nullptr_t>() { return NULLPTR_T; }
 #if o_BUILT_IN_WCHAR_T == 1
 template<> inline Type* Types::get<wchar_t>() { return WCHAR_T; }
 #endif
@@ -107,20 +122,16 @@ template<> inline Type* Types::get<void*>() { return VOID_PTR; }
 
 o_namespace_end(phantom, reflection)
 
+#define o_typedef(_typedef_) \
+    phantom::reflection::typedef_registrer<_typedef_>  o_PP_CAT(g_reflection_typedef_registration_##_typedef_, __COUNTER__) (#_typedef_);
 
-#define o_reflection_register_class_type(_namespace_, ...) \
-    phantom::reflection::class_type_registrer< _namespace_::__VA_ARGS__ > o_PP_CAT(g_reflection_registration_, __COUNTER__);
+#define o_typedefN(_namespace_, _typedef_) \
+    phantom::reflection::typedef_registrer<_namespace_::_typedef_>  o_PP_CAT(g_reflection_typedef_registration_##_typedef_, __COUNTER__) (#_namespace_, #_typedef_);
 
-#define o_register_typedef(_typedef_) \
-    phantom::reflection::typedef_registrer<_typedef_>  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_typedef_);
+#define o_typedefNC(_namespace_, _class_, _typedef_) \
+    o_typedefNC_helper(_namespace_, _class_, o_PP_CAT(g_reflection_registration_typedef_friend_##_typedef_, o_PP_IDENTITY o_PP_LEFT_PAREN __COUNTER__ o_PP_RIGHT_PAREN ), _typedef_)
 
-#define o_register_typedefN(_namespace_, _typedef_) \
-    phantom::reflection::typedef_registrer<_namespace_::_typedef_>  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_namespace_, #_typedef_);
-
-#define o_register_typedefNC(_namespace_, _class_, _typedef_) \
-    o_register_typedefNC_helper(_namespace_, _class_, o_PP_CAT(g_reflection_registration_friend_##_typedef_, o_PP_IDENTITY o_PP_LEFT_PAREN __COUNTER__ o_PP_RIGHT_PAREN ), _typedef_)
-
-#define o_register_typedefNC_helper(_namespace_, _class_, _friend_class_, _typedef_) \
+#define o_typedefNC_helper(_namespace_, _class_, _friend_class_, _typedef_) \
     class _friend_class_ : public _namespace_::_class_\
     {\
     public:\
@@ -128,10 +139,10 @@ o_namespace_end(phantom, reflection)
     };\
     phantom::reflection::typedef_registrer<_friend_class_::wrapped_typedef>  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_namespace_"::"#_class_, #_typedef_);
 
-#define o_register_typedefC(_class_, _typedef_) \
-    o_register_typedefC_helper(_class_, o_PP_CAT(g_reflection_registration_friend_##_typedef_, o_PP_IDENTITY o_PP_LEFT_PAREN __COUNTER__ o_PP_RIGHT_PAREN ), _typedef_)
+#define o_typedefC(_class_, _typedef_) \
+    o_typedefC_helper(_class_, o_PP_CAT(g_reflection_registration_friend_##_typedef_, o_PP_IDENTITY o_PP_LEFT_PAREN __COUNTER__ o_PP_RIGHT_PAREN ), _typedef_)
 
-#define o_register_typedefC_helper(_class_, _friend_class_, _typedef_) \
+#define o_typedefC_helper(_class_, _friend_class_, _typedef_) \
     class _friend_class_ : public _class_\
     {\
     public:\
@@ -164,16 +175,60 @@ o_namespace_begin(phantom, reflection)
 template<typename t_Ty, int t_counter>
 struct super_classes_adder;
 
+template<typename t_Ty, bool t_has_new_vtable>
+struct vtable_adder_helper
+{
+    static void apply(Class* a_pClass)
+    {
+        static_cast<native::TType_<t_Ty>*>(a_pClass)->addNewVirtualMemberFunctionTable();
+    }
+};
+
 template<typename t_Ty>
+struct vtable_adder_helper<t_Ty, false>
+{
+    static void apply(Class* a_pClass)
+    {
+
+    }
+};
+
+template<typename t_Ty>
+struct vtable_adder : public vtable_adder_helper<t_Ty, has_new_vtable<t_Ty>::value>
+{
+
+};
+
+template<typename t_Ty, int t_TemplateNestedModifiers = 0>
 struct meta_class_type_of;
 
 
-namespace native { template<typename t_Ty> class TType; }
+namespace native { template<typename t_Ty, int> class TType; }
 
 template<typename t_Ty>
 struct template_specialization_registrer
 {
     inline template_specialization_registrer() ;
+};
+
+template<typename t_SignatureTy>
+struct function_registrer
+{
+    template<typename t_FunctionPtrTy>
+    function_registrer( const char* a_strNamespace, const char* a_strName, const char* a_strSignature, t_FunctionPtrTy a_FunctionPtr, bitfield a_Modifiers = 0 )
+    {
+        Phantom::dynamic_initializer()->setActive(true);
+        Phantom::dynamic_initializer()->registerFunction<t_SignatureTy, t_FunctionPtrTy>(a_strNamespace, a_strName, a_strSignature, a_FunctionPtr, a_Modifiers);
+        Phantom::dynamic_initializer()->setActive(false);
+    }
+
+    template<typename t_FunctionPtrTy>
+    function_registrer( const char* a_strName, const char* a_strSignature, t_FunctionPtrTy a_FunctionPtr, bitfield a_Modifiers = 0 )
+    {
+        Phantom::dynamic_initializer()->setActive(true);
+        Phantom::dynamic_initializer()->registerFunction<t_SignatureTy, t_FunctionPtrTy>("", a_strName, a_strSignature, a_FunctionPtr, a_Modifiers);
+        Phantom::dynamic_initializer()->setActive(false);
+    }
 };
 
 template<typename t_Ty>
@@ -480,7 +535,7 @@ struct custom_setup
                     s_pType = static_cast<meta_type*>(typeByName(qualifiedDecoratedName));
                     if(s_pType == NULL)
                     {
-                        s_pType = new (o__t1_class__default_class_allocator(meta_type)::allocate()) meta_type;
+                        s_pType = new (o__t1_class__default_class_allocator(meta_type)::allocate()) meta_type(typeNameOf<t_Ty>());
                         if(meta_type::metaType == nullptr)
                         {
                             o_assert((boost::is_same<meta_type, o_NESTED_TYPE meta_class_type_of<Class>::type>::value));
@@ -641,7 +696,9 @@ struct custom_setup
 
             meta_container, // 18
 
-            meta_todo,// 19
+            meta_nullptr_type, // 19
+
+            meta_todo,// 20
         };
 
         template<typename t_Ty>
@@ -652,7 +709,7 @@ struct custom_setup
                 ? meta_array
                 : boost::is_enum<t_Ty>::value
                 ? meta_enum
-                : (boost::is_void<t_Ty>::value OR phantom::is_signal_t<t_Ty>::value)
+                : (boost::is_void<t_Ty>::value)
                 ? meta_special
                 : ::boost::is_pointer<t_Ty>::value
                 ? ::boost::is_convertible<t_Ty, void*>::value
@@ -660,6 +717,8 @@ struct custom_setup
                 : meta_function_pointer_type
                 : ::boost::is_floating_point<t_Ty>::value
                 ? meta_floating_point_type
+                : ::phantom::is_nullptr_t<t_Ty>::value
+                ? meta_nullptr_type
                 : ::boost::is_integral<t_Ty>::value
                 ? meta_integral_type
                 : ::boost::is_member_function_pointer<t_Ty>::value
@@ -669,15 +728,27 @@ struct custom_setup
                 : is_container<t_Ty>::value
                 ? meta_container
                 : ::boost::is_class<t_Ty>::value
-                ? meta_class
-                : ::boost::is_pod<t_Ty>::value
-                ? meta_pod_struct
-                : meta_todo;
+                    ? has_meta_specifier<t_Ty, o_pod>::value 
+                        ? meta_pod_struct
+                        : meta_class
+                    : meta_todo;
         };
 
 
         template<typename t_Ty, int t_id>
         struct base_meta_class_type_of_helper;
+
+        template<typename t_Ty, bool t_is_fundamental>
+        struct canonical_meta_class_type_of_helper
+        {
+            typedef PrimitiveType type;
+        };
+
+        template<typename t_Ty>
+        struct canonical_meta_class_type_of_helper<t_Ty, false>
+        {
+            typedef o_NESTED_TYPE base_meta_class_type_of<t_Ty>::type type;
+        };
 
 #define x_specialize____meta_type_super_class_solver(_meta_type_id_,...)\
     template<typename t_Ty>\
@@ -725,11 +796,12 @@ struct custom_setup
             x_specialize____meta_type_super_class_solver(meta_attribute_pointer_type,phantom::reflection::Type)
             x_specialize____meta_type_super_class_solver(meta_member_function_pointer_type,phantom::reflection::Type)
             x_specialize____meta_type_super_class_solver(meta_reference_type,phantom::reflection::ReferenceType)
-            x_specialize____meta_type_super_class_solver(meta_fundamental_type,phantom::reflection::native::TPrimitiveType<t_Ty>)
-            x_specialize____meta_type_super_class_solver(meta_arithmetic_type,phantom::reflection::native::TPrimitiveType<t_Ty>)
-            x_specialize____meta_type_super_class_solver(meta_floating_point_type,phantom::reflection::native::TPrimitiveType<t_Ty>)
-            x_specialize____meta_type_super_class_solver(meta_integral_type,phantom::reflection::native::TPrimitiveType<t_Ty>)
-            x_specialize____meta_type_super_class_solver(meta_pod_struct,phantom::reflection::PODStruct)
+            x_specialize____meta_type_super_class_solver(meta_fundamental_type,phantom::reflection::native::TFundamentalType<t_Ty>)
+            x_specialize____meta_type_super_class_solver(meta_arithmetic_type,phantom::reflection::native::TArithmeticType<t_Ty>)
+            x_specialize____meta_type_super_class_solver(meta_floating_point_type,phantom::reflection::native::TFloatingPointType<t_Ty>)
+            x_specialize____meta_type_super_class_solver(meta_integral_type,phantom::reflection::native::TIntegralType<t_Ty>)
+            x_specialize____meta_type_super_class_solver(meta_nullptr_type,phantom::reflection::native::TPrimitiveType<t_Ty>)
+            x_specialize____meta_type_super_class_solver(meta_pod_struct,phantom::reflection::Structure)
             x_specialize____meta_type_super_class_solver(meta_class,phantom::reflection::Class)
             x_specialize____meta_type_super_class_solver(meta_special,phantom::reflection::native::TPrimitiveType<t_Ty>)
             x_specialize____meta_type_super_class_solver(meta_enum,phantom::reflection::Enum)
@@ -741,10 +813,10 @@ struct custom_setup
 
     } // namespace detail
 
-    template<typename t_Ty>
+    template<typename t_Ty, int t_TemplateNestedModifiers>
     struct meta_class_type_of 
     {
-        typedef phantom::reflection::native::TType<t_Ty> type;
+        typedef phantom::reflection::native::TType<t_Ty, t_TemplateNestedModifiers> type;
     };
 
     template<typename t_Ty>
@@ -754,25 +826,31 @@ struct custom_setup
     };
 
     template<typename t_Ty>
-    struct meta_class_type_of<t_Ty*>
+    struct canonical_meta_class_type_of 
+        : public detail::canonical_meta_class_type_of_helper<t_Ty, boost::is_fundamental<t_Ty>::value>
+    {
+    };
+
+    template<typename t_Ty>
+    struct meta_class_type_of<t_Ty*, 0>
     {
         typedef DataPointerType type;
     };
 
     template<typename t_Ty>
-    struct meta_class_type_of<t_Ty&>
+    struct meta_class_type_of<t_Ty&, 0>
     {
         typedef ReferenceType type;
     };
 
     template<typename t_Ty>
-    struct meta_class_type_of <t_Ty const>
+    struct meta_class_type_of <t_Ty const, 0>
     {
         typedef Type type;
     };
 
     template<typename t_Ty, size_t t_size>
-    struct meta_class_type_of <t_Ty[t_size]>
+    struct meta_class_type_of <t_Ty[t_size], 0>
     {
         typedef ArrayType type;
     };
@@ -918,7 +996,7 @@ struct super_class_adder
     reflection::TemplateElement* \
     reflection::detail::template_signature_parameter_phantom::_type_<value>::element()\
     {\
-        return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<_type_>)("",value);\
+        return o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<_type_>)("",value);\
     }
 
 #define o_define_template_signature_parameter_phantom(_type_) \
@@ -966,7 +1044,7 @@ struct template_signature_parameter_phantom
     reflection::TemplateElement* \
     reflection::detail::template_signature_parameter_##_type_<value>::element()\
     {\
-        return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<_type_>)("",value);\
+        return o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<_type_>)("",value);\
     }
 
 #define o_define_template_signature_parameter(_type_) \
@@ -1079,7 +1157,7 @@ class template_signature_parameter_class : public template_signature_parameter_t
     reflection::TemplateElement* \
     reflection::detail::template_signature_parameter_counter_phantom::_type_<value, t_counter>::object()\
 {\
-    return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<_type_>)(value);\
+    return o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<_type_>)(value);\
 }
 
 #define o_define_template_signature_parameter_counter_phantom(_type_) \
@@ -1151,7 +1229,7 @@ struct template_signature_parameter_counter_phantom
     reflection::TemplateElement* \
     reflection::detail::template_signature_parameter_counter_##_type_<value, t_counter>::object()\
 {\
-    return o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<_type_>)("",value);\
+    return o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<_type_>)("",value);\
     }
 
 #define o_define_template_signature_parameter_counter(_type_) \
@@ -1645,6 +1723,9 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
 #define o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) \
     :: o_PP_CREATE_SCOPE _namespaces_ :: _name_
 
+#define o_PP_CREATE_QUALIFIED_NAME_RELATIVE(_namespaces_,_name_) \
+    o_PP_CREATE_SCOPE _namespaces_ :: _name_
+
 #define o_PP_CREATE_QUALIFIED_IDENTIFIER_NAME(_namespaces_,_name_) \
      o_PP_IDENTITY(o_PP_IDENTITY o_PP_LEFT_PAREN o_PP_CREATE_SCOPE_IDENTIFIER _namespaces_##_##_name_ o_PP_RIGHT_PAREN)
 
@@ -1667,11 +1748,11 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
     }                                                                                                             \
     static const char* qualifiedDecoratedName()                                                                         \
     {                                                                                                                         \
-    return o_PP_QUOTE_SCOPE(_namespaces_) "::"o_PP_QUOTE(_name_);           \
+    return "::" o_PP_QUOTE_SCOPE(_namespaces_) "::"o_PP_QUOTE(_name_);           \
     }                                                                                                                           \
     static const char* namespaceName()                                                                                   \
     {                                                                                                                                \
-    return o_PP_QUOTE_SCOPE(_namespaces_) ;                                          \
+    return "::" o_PP_QUOTE_SCOPE(_namespaces_) ;                                          \
     }     \
     static const char* classScopeName()                                                                                   \
     {                                                                                                                                \
@@ -1683,15 +1764,15 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
     static const char* decoratedName() { return o_PP_QUOTE(_name_); }                   \
     static const char* qualifiedName()                                                             \
     {                                                                   \
-    return o_PP_QUOTE_SCOPE(_classes_) "::" o_PP_QUOTE(_name_);           \
+    return "::" o_PP_QUOTE_SCOPE(_classes_) "::" o_PP_QUOTE(_name_);           \
     }                                                                                                             \
     static const char* qualifiedDecoratedName()                                                                         \
     {                                                                                                                         \
-    return o_PP_QUOTE_SCOPE(_classes_) "::" o_PP_QUOTE(_name_);           \
+    return "::" o_PP_QUOTE_SCOPE(_classes_) "::" o_PP_QUOTE(_name_);           \
     }                                                                                                                           \
     static const char* namespaceName()                                                                                   \
     {                                                                                                                                \
-    return "";                                          \
+    return "::";                                          \
     }     \
     static const char* classScopeName()                                                                                   \
     {                                                                                                                                \
@@ -1703,15 +1784,15 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
     static const char* decoratedName() { return o_PP_QUOTE(_name_); }                   \
     static const char* qualifiedName()                                                             \
     {                                                                   \
-    return o_PP_QUOTE_SCOPE(_namespaces_) "::" o_PP_QUOTE_SCOPE(_classes_) "::"o_PP_QUOTE(_name_);           \
+    return "::" o_PP_QUOTE_SCOPE(_namespaces_) "::" o_PP_QUOTE_SCOPE(_classes_) "::"o_PP_QUOTE(_name_);           \
     }                                                                                                             \
     static const char* qualifiedDecoratedName()                                                                         \
     {                                                                                                                         \
-    return o_PP_QUOTE_SCOPE(_namespaces_) "::" o_PP_QUOTE_SCOPE(_classes_) "::"o_PP_QUOTE(_name_);           \
+    return "::" o_PP_QUOTE_SCOPE(_namespaces_) "::" o_PP_QUOTE_SCOPE(_classes_) "::"o_PP_QUOTE(_name_);           \
     }                                                                                                                           \
     static const char* namespaceName()                                                                                   \
     {                                                                                                                                \
-    return o_PP_QUOTE_SCOPE(_namespaces_) ;                                          \
+    return "::"o_PP_QUOTE_SCOPE(_namespaces_) ;                                          \
     }\
     static const char* classScopeName()                                                                                   \
     {                                                                                                                                \
@@ -1723,15 +1804,15 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
     static const char* decoratedName() { return o_PP_QUOTE(_name_); }                   \
     static const char* qualifiedName()                                                             \
     {                                                                   \
-    return o_PP_QUOTE(_name_);           \
+    return "::" o_PP_QUOTE(_name_);           \
     }                                                                                                             \
     static const char* qualifiedDecoratedName()                                                                         \
     {                                                                                                                         \
-    return o_PP_QUOTE(_name_);           \
+    return "::" o_PP_QUOTE(_name_);           \
     }                                                                                                                           \
     static const char* namespaceName()                                                                                   \
     {                                                                                                                                \
-    return "";                                          \
+    return "::";                                          \
     }\
     static const char*  classScopeName()         {             return "";        }
 
@@ -1743,9 +1824,9 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
         static phantom::string n;\
         if(n.empty())\
             {\
-            n = o_PP_QUOTE(_name_)"<";\
+            n = o_PP_QUOTE(_name_)"< ";\
             n += o_reflection_create_template_parameters_list_string_counter_N(_template_types_,_template_params_,decoratedName, _counter_); \
-            n += '>';\
+            n += " >";\
             }\
             return n;\
         } \
@@ -1754,22 +1835,55 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
         static phantom::string n;\
         if(n.empty())\
             {\
-            n = o_PP_QUOTE_SCOPE(_namespaces_)  "::"o_PP_QUOTE(_name_)"<";\
+            n = "::" o_PP_QUOTE_SCOPE(_namespaces_) "::" o_PP_QUOTE(_name_)"< ";\
             n += o_reflection_create_template_parameters_list_string_counter_N(_template_types_,_template_params_,qualifiedDecoratedName, _counter_); \
-            n += '>';\
+            n += " >";\
             }\
             return n;\
         } \
         static const char*    qualifiedName() \
         { \
-        return o_PP_QUOTE_SCOPE(_namespaces_) "::"o_PP_QUOTE(_name_); \
+        return "::" o_PP_QUOTE_SCOPE(_namespaces_) "::"o_PP_QUOTE(_name_); \
         } \
         static const char* namespaceName() \
         { \
-        return o_PP_QUOTE_SCOPE(_namespaces_) ;\
+        return "::" o_PP_QUOTE_SCOPE(_namespaces_) ;\
         } \
         static const char*  classScopeName()         {             return "";        }
 
+#define o_reflection_specialize_type_name_static_member_counter_functionsNTC(_namespaces_, _template_types_, _template_params_, _class_, _name_, _counter_) \
+    static const char* name() { return o_PP_QUOTE(_name_); } \
+    static const phantom::string&    decoratedName() { return o_PP_QUOTE(_name_); } \
+        static const phantom::string&    qualifiedDecoratedName() \
+        { \
+        static phantom::string n;\
+        if(n.empty())\
+            {\
+            n = "::" o_PP_QUOTE_SCOPE(_namespaces_) "::" o_PP_QUOTE(_class_)"< ";\
+            n += o_reflection_create_template_parameters_list_string_counter_N(_template_types_,_template_params_,qualifiedDecoratedName, _counter_); \
+            n += " >::"o_PP_QUOTE(_name_);\
+            }\
+            return n;\
+        } \
+        static const phantom::string&    qualifiedName() \
+        { \
+            return qualifiedDecoratedName(); \
+        } \
+        static const char* namespaceName() \
+        { \
+        return "::" o_PP_QUOTE_SCOPE(_namespaces_) ;\
+        } \
+        static const char*  classScopeName()         \
+        { \
+            static phantom::string n;\
+            if(n.empty())\
+            {\
+                n = o_PP_QUOTE(_class_)"< ";\
+                n += o_reflection_create_template_parameters_list_string_counter_N(_template_types_,_template_params_,qualifiedDecoratedName, _counter_); \
+                n += " >";\
+            }\
+            return n;\
+        } 
 
 #define o_reflection_specialize_type_name_static_member_counter_functionsNPT(_namespaces_, _template_types_, _template_params_, _template_spec_, _name_, _counter_) \
     static const char* name() { return o_PP_QUOTE(_name_); } \
@@ -1778,9 +1892,9 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
         static phantom::string n;\
         if(n.empty())\
             {\
-            n = o_PP_QUOTE(_name_)"<";\
+            n = o_PP_QUOTE(_name_)"< ";\
             n += o_reflection_create_template_parameters_list_string_counter_NP(_template_types_,_template_params_,_template_spec_,decoratedName, _counter_); \
-            n += '>';\
+            n += " >";\
             }\
             return n;\
         } \
@@ -1789,19 +1903,19 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
         static phantom::string n;\
         if(n.empty())\
             {\
-            n = o_PP_QUOTE_SCOPE(_namespaces_)  "::"o_PP_QUOTE(_name_)"<";\
+            n = "::" o_PP_QUOTE_SCOPE(_namespaces_)  "::"o_PP_QUOTE(_name_)"< ";\
             n += o_reflection_create_template_parameters_list_string_counter_N(_template_types_,_template_params_,qualifiedDecoratedName, _counter_); \
-            n += '>';\
+            n += " >";\
             }\
             return n;\
         } \
         static const char*    qualifiedName() \
         { \
-        return o_PP_QUOTE_SCOPE(_namespaces_) "::"o_PP_QUOTE(_name_); \
+        return "::" o_PP_QUOTE_SCOPE(_namespaces_) "::"o_PP_QUOTE(_name_); \
         } \
         static const char* namespaceName() \
         { \
-        return o_PP_QUOTE_SCOPE(_namespaces_) ;\
+        return "::" o_PP_QUOTE_SCOPE(_namespaces_) ;\
         } \
         static const char*  classScopeName()         {             return "";        }
 
@@ -1812,9 +1926,9 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
         static phantom::string n;\
         if(n.empty())\
             {\
-            n = o_PP_QUOTE(_name_)"<";\
+            n = o_PP_QUOTE(_name_)"< ";\
             n += o_reflection_create_template_parameters_list_string_counter_N(_template_types_,_template_params_,decoratedName, _counter_); \
-            n += '>';\
+            n += " >";\
             }\
             return n;\
         } \
@@ -1823,19 +1937,19 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
         static phantom::string n;\
         if(n.empty())\
             {\
-            n = "::"o_PP_QUOTE(_name_)"<";\
+            n = "::" o_PP_QUOTE(_name_)"< ";\
             n += o_reflection_create_template_parameters_list_string_counter_N(_template_types_,_template_params_,qualifiedDecoratedName, _counter_); \
-            n += '>';\
+            n += " >";\
             }\
             return n;\
         } \
         static const char*    qualifiedName() \
         { \
-        return "::"o_PP_QUOTE(_name_); \
+        return "::" o_PP_QUOTE(_name_); \
         } \
         static const char* namespaceName() \
         { \
-        return "";\
+        return "::";\
         } \
         static const char*  classScopeName()         \
         {             \
@@ -1849,9 +1963,9 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
         static phantom::string n;\
         if(n.empty())\
             {\
-            n = o_PP_QUOTE(_name_)"<";\
+            n = o_PP_QUOTE(_name_)"< ";\
             n += o_reflection_create_template_parameters_list_string_counter_N(_template_types_,_template_params_,decoratedName, _counter_); \
-            n += '>';\
+            n += " >";\
             }\
             return n;\
         } \
@@ -1860,19 +1974,19 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
         static phantom::string n;\
         if(n.empty())\
             {\
-            n = o_PP_QUOTE_SCOPE(_namespaces_)  "::" o_PP_QUOTE_SCOPE(_classes_)  "::"o_PP_QUOTE(_name_)"<";\
+            n = "::" o_PP_QUOTE_SCOPE(_namespaces_)  "::" o_PP_QUOTE_SCOPE(_classes_)  "::"o_PP_QUOTE(_name_)"< ";\
             n += o_reflection_create_template_parameters_list_string_counter_N(_template_types_,_template_params_,qualifiedDecoratedName, _counter_); \
-            n += '>';\
+            n += " >";\
             }\
             return n;\
         } \
-        static const char*    qualifiedName() \
+        static const char*  qualifiedName() \
         { \
-        return o_PP_QUOTE_SCOPE(_namespaces_) "::" o_PP_QUOTE_SCOPE(_classes_) "::"o_PP_QUOTE(_name_); \
+        return "::" o_PP_QUOTE_SCOPE(_namespaces_) "::" o_PP_QUOTE_SCOPE(_classes_) "::"o_PP_QUOTE(_name_); \
         } \
-        static const char* namespaceName() \
+        static const char*  namespaceName() \
         { \
-        return o_PP_QUOTE_SCOPE(_namespaces_) ;\
+        return "::" o_PP_QUOTE_SCOPE(_namespaces_) ;\
         } \
         static const char*  classScopeName()         \
         {             \
@@ -1886,9 +2000,9 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
         static phantom::string n;\
         if(n.empty())\
             {\
-            n = o_PP_QUOTE(_name_)"<";\
+            n = o_PP_QUOTE(_name_)"< ";\
             n += o_reflection_create_template_parameters_list_string_counter_N(_template_types_,_template_params_,decoratedName, _counter_); \
-            n += '>';\
+            n += " >";\
             }\
             return n;\
         } \
@@ -1897,19 +2011,19 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
         static phantom::string n;\
         if(n.empty())\
             {\
-            n = o_PP_QUOTE_SCOPE(_classes_)  "::"o_PP_QUOTE(_name_)"<";\
+            n = "::" o_PP_QUOTE_SCOPE(_classes_)  "::"o_PP_QUOTE(_name_)"< ";\
             n += o_reflection_create_template_parameters_list_string_counter_N(_template_types_,_template_params_,qualifiedDecoratedName, _counter_); \
-            n += '>';\
+            n += " >";\
             }\
             return n;\
         } \
         static const char*    qualifiedName() \
         { \
-        return o_PP_QUOTE_SCOPE(_classes_) "::"o_PP_QUOTE(_name_); \
+        return "::" o_PP_QUOTE_SCOPE(_classes_) "::" o_PP_QUOTE(_name_); \
         } \
         static const char* namespaceName() \
         { \
-        return "";\
+        return "::";\
         } \
         static const char*  classScopeName()         \
         {             \
@@ -2025,6 +2139,21 @@ class type_name_of_counter<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)< o_PP
     };\
     o_namespace_end(phantom, reflection, detail)
 
+// #define o_reflection_specialize_type_name_of_counterNTC(_namespaces_, _template_types_, _template_params_, _class_, _name_) \
+//     o_namespace_begin(phantom, reflection, detail) \
+//     template<typename t_Ty>
+//     struct o_PP_CREATE_QUALIFIED_IDENTIFIER_NAME(_namespaces_, _class_##_##_name_)\
+//     {\
+//         typedef typename t_Ty::_name_ nested_type;\
+//         o_reflection_specialize_type_name_static_member_counter_functionsNTC(_namespaces_, _template_types_, _template_params_, _class_, _name_, t_init_counter) \
+//     };\
+//     template<o_PP_MIX(_template_types_, _template_params_), int t_init_counter> \
+// class type_name_of_counter<o_NESTED_TYPE o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_class_)< o_PP_IDENTITY _template_params_ >::_name_, t_init_counter, o_read_compilation_counter> \
+//     { \
+//     public: \
+//     };\
+//     o_namespace_end(phantom, reflection, detail)
+
 #define o_reflection_specialize_type_name_of_counterCT(_classes_, _template_types_, _template_params_, _name_) \
     o_namespace_begin(phantom, reflection, detail) \
     template<o_PP_MIX(_template_types_, _template_params_), int t_init_counter> \
@@ -2107,6 +2236,16 @@ class type_name_of_counter<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)< o_PP
     };\
     o_namespace_end(phantom, reflection, detail)
 
+// #define o_reflection_specialize_type_name_of_implNTC(_namespaces_, _template_types_, _template_params_, _class_, _name_) \
+//     o_namespace_begin(phantom, reflection, detail) \
+//     template<o_PP_MIX(_template_types_, _template_params_), int t_init_counter, int t_counter> \
+// class type_name_of_counter<o_NESTED_TYPE o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_class_)< o_PP_IDENTITY _template_params_ >::_name_, t_init_counter, t_counter> \
+//     { \
+//     public: \
+//     o_reflection_specialize_type_name_static_member_counter_functionsNTC(_namespaces_, _template_types_, _template_params_, _class_, _name_, o_read_compilation_counter) \
+//     };\
+//     o_namespace_end(phantom, reflection, detail)
+
 #define o_reflection_specialize_type_name_of_implNPT(_namespaces_, _template_types_, _template_params_, _template_spec_, _name_) \
     o_namespace_begin(phantom, reflection, detail) \
     template<o_PP_MIX(_template_types_, _template_params_), int t_init_counter, int t_counter> \
@@ -2185,6 +2324,13 @@ struct type_of_counter<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) < o_PP_ID
     : public detail::type_of_counter_defined<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)< o_PP_IDENTITY _template_params_ > , o_read_compilation_counter> {};\
     o_namespace_end(phantom, reflection, detail)
 
+// #define o_reflection_specialize_type_ofNTC(_namespaces_, _template_types_, _template_params_, _class_, _name_) \
+//     o_namespace_begin(phantom, reflection, detail) \
+//     template<o_PP_MIX(_template_types_, _template_params_), int t_counter>  \
+// struct type_of_counter<o_NESTED_TYPE o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_class_) < o_PP_IDENTITY _template_params_ >::_name_, t_counter> \
+//     : public detail::type_of_counter_defined<o_NESTED_TYPE o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_class_)< o_PP_IDENTITY _template_params_ >::_name_ , o_read_compilation_counter> {};\
+//     o_namespace_end(phantom, reflection, detail)
+
 #define o_reflection_specialize_type_ofNCT(_namespaces_, _classes_, _template_types_, _template_params_, _name_) \
     o_namespace_begin(phantom, reflection, detail) \
     template<o_PP_MIX(_template_types_, _template_params_), int t_counter>  \
@@ -2240,13 +2386,13 @@ struct type_of_counter<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)< o_PP_IDENTI
 #   define o_property(...) o_PP_CAT(o_PP_CAT(o_property_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #   define o_collection(...) o_PP_CAT(o_PP_CAT(o_collection_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #   define o_range(...) o_PP_CAT(o_PP_CAT(o_range_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
-#   define o_typedef(...) o_PP_CAT(o_PP_CAT(o_typedef_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#   define o_nested_typedef(...) o_PP_CAT(o_PP_CAT(o_nested_typedef_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #else
 #   define o_data_member(...) o_PP_CAT(o_data_member_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #   define o_property(...) o_PP_CAT(o_property_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #   define o_collection(...) o_PP_CAT(o_collection_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #   define o_range(...) o_PP_CAT(o_range_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
-#   define o_typedef(...) o_PP_CAT(o_typedef_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
+#   define o_nested_typedef(...) o_PP_CAT(o_nested_typedef_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #endif
 
 #define o_default_template_argument_constant(parameter, ...)\
@@ -2255,27 +2401,27 @@ class o_PP_CAT(parameter,__LINE__) \
         friend class enclosed_reflection;\
         o_PP_CAT(parameter,__LINE__)() \
             {\
-            phantom::reflection::Types::currentInstalledTemplateSpecialization->setDefaultArgument(#parameter, o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<decltype(parameter)>)(parameter));\
+            phantom::reflection::Types::currentInstalledTemplateSpecialization->setDefaultArgument(#parameter, o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<decltype(parameter)>)(parameter));\
             }\
         } o_PP_CAT(parameter,__LINE__);
 
-#    define o_range_1(_default_) \
+#define o_range_1(_default_) \
     phantom::reflection::native::CreateRange(_default_)
 
-#    define o_range_2(_min_, _max_) \
+#define o_range_2(_min_, _max_) \
     phantom::reflection::native::CreateRange(_min_, _max_)
 
-#    define o_range_3(_min_, _default_, _max_) \
+#define o_range_3(_min_, _default_, _max_) \
     phantom::reflection::native::CreateRange(_min_, _default_, _max_)
 
-#    define o_data_member_2(_type_, _name_) \
+#define o_data_member_2(_type_, _name_) \
     o_data_member_5(_type_, _name_, (phantom::reflection::native::null_range), 0, 0xffffffff)
 
-#    define o_data_member_3(_type_, _name_, _range_) \
+#define o_data_member_3(_type_, _name_, _range_) \
     o_data_member_5(_type_, _name_, _range_, 0, 0xffffffff)
 
-#    define o_data_member_4(_type_, _name_, _range_, _modifiers_) \
-    o_data_member_5(_type_, _name_, _range_, _modifiers_, (((_modifiers_&o_transient)==0)?0xffffffff:0))
+#define o_data_member_4(_type_, _name_, _range_, _modifiers_) \
+    o_data_member_5(_type_, _name_, _range_, _modifiers_, ((((_modifiers_)&o_transient)==0)?0xffffffff:0))
 
 #define o_property_4(_type_, _name_, _set_member_function_, _get_member_function_)\
     o_property_8(_type_, _name_, _set_member_function_, _get_member_function_, m_PHANTOM_RESERVED_no_signal, (phantom::reflection::native::null_range), 0, 0xffffffff)
@@ -2576,7 +2722,7 @@ struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnTyp
 #define o_enum_add_values( ... ) o_PP_CAT(o_enum_add_values_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
 #endif
 
-#define o_enum_add_values_1( v0) pEnum->addConstant(o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<enum_value_type>)(o_PP_QUOTE(v0), v0));
+#define o_enum_add_values_1( v0) pEnum->addConstant(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<enum_value_type>)(o_PP_QUOTE(v0), v0));
 #define o_enum_add_values_2( v0,v1) o_enum_add_values_1( v0) o_enum_add_values_1(v1)
 #define o_enum_add_values_3( v0,v1,v2)  o_enum_add_values_2( v0,v1) o_enum_add_values_1(v2)
 #define o_enum_add_values_4( v0,v1,v2,v3) o_enum_add_values_3( v0,v1,v2) o_enum_add_values_1(v3)
@@ -2624,7 +2770,7 @@ struct _native_member_function_##FunctionStyleSuperClassSolver<t_Ty, t_ReturnTyp
 #define o_enum_add_valuesN( ... ) o_PP_CAT(o_enum_add_valuesN_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
 #endif
 
-#define o_enum_add_valuesN_2( n, v0) pEnum->addConstant(o_dynamic_proxy_new(phantom::reflection::Constant, phantom::reflection::Constant::metaType, phantom::reflection::native::TNumericConstant<enum_value_type>)(o_PP_QUOTE(v0), ::o_PP_CREATE_SCOPE n::v0));
+#define o_enum_add_valuesN_2( n, v0) pEnum->addConstant(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<enum_value_type>)(o_PP_QUOTE(v0), ::o_PP_CREATE_SCOPE n::v0));
 #define o_enum_add_valuesN_3( n, v0,v1) o_enum_add_valuesN_2(n, v0) o_enum_add_valuesN_2(n,v1)
 #define o_enum_add_valuesN_4( n, v0,v1,v2)  o_enum_add_valuesN_3(n, v0,v1) o_enum_add_valuesN_2(n,v2)
 #define o_enum_add_valuesN_5( n, v0,v1,v2,v3) o_enum_add_valuesN_4(n, v0,v1,v2) o_enum_add_valuesN_2(n,v3)

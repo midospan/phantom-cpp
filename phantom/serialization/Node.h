@@ -40,6 +40,7 @@
 #include "phantom/util/TVisitor.h"
 /* **************** Declarations ***************** */
 o_fwd(class, phantom, serialization, DataBase);
+o_fwd(class, phantom, serialization, Trashbin);
 o_declareN(class, (phantom, serialization), Node)
 /* *********************************************** */
 o_namespace_begin(phantom, serialization)
@@ -47,6 +48,7 @@ o_namespace_begin(phantom, serialization)
 class o_export Node
 {
     friend class DataBase;
+    friend class Trashbin;
     
 public:
     enum EState
@@ -73,6 +75,8 @@ public:
     o_terminate(); 
 
 public:
+    phantom::data   getData(size_t i) const { return m_Data[i]; }
+    size_t          getDataCount() const { return m_Data.size(); }
     boolean         isLoaded() const { return m_eState == e_Loaded; }
     boolean         isUnloaded() const { return m_eState == e_Unloaded; }
     EState          getState() const { return m_eState; }
@@ -178,8 +182,8 @@ public:
     /*
      *   /brief add a new child node to the given node
     */
-    Node*           addChildNode();
-	void			addChildNode(Node* a_pNode, uint a_uiGuid);
+    Node*           newChildNode();
+    Node*           newChildNode(uint guid);
 
     /*
      *   /brief add a new child node to the given node
@@ -193,9 +197,29 @@ public:
     void            addData(const data& a_Data);
 
     /*
+     *   /brief add a new component data to the given node
+    */
+    void            addComponentData(const data& a_Data, const data& a_OwnerData, const string& a_ReferenceExpression);
+
+    /*
+     *   /brief add a new component data to the given node with choosen guid
+    */
+    void            addComponentData(const data& a_Data, uint a_uiGuid, const data& a_OwnerData, const string& a_ReferenceExpression);
+
+    /*
+     *   /brief add a new data of given type to the given node (node instanciate the data)
+    */
+    phantom::data   newData(reflection::Type* a_pType);
+
+    /*
      *   /brief add a new data to the given node with the given guid
     */
 	void			addData( const data& a_Data, uint a_uiGuid );
+
+    /*
+     *   /brief add a new data of given type to the given node (node instanciate the data)
+    */
+    phantom::data   newData(reflection::Type* a_pType, uint a_uiGuid);
     
     /*
      *   /brief add new multiple contiguous data to the given node
@@ -206,6 +230,11 @@ public:
      *   /brief remove definitely the given data from the data base by its address
     */
     void            removeData(void* a_pData);
+    
+    /*
+     *   /brief remove definitely the given data from the data base by its address
+    */
+    void            removeComponentData(const data& a_Data, const data& a_OwnerData);
 
     /*
      *   /brief remove definitely the given data from the data base
@@ -231,8 +260,8 @@ public:
 
     bool            isEmpty() const { return m_Data.empty(); }
 
-    void            addDataComponentsCascade(vector<data_pair>* opt_out_to_add = nullptr, vector<data_pair>* opt_out_to_remove = nullptr);
-    void            addDataComponents(vector<std::pair<phantom::data,phantom::data>>* opt_out_to_add = nullptr, vector<std::pair<phantom::data,phantom::data>>* opt_out_to_remove = nullptr);
+    void            fetchUpdatedData(const phantom::data& a_Data, vector<data_pair>& out_to_add, vector<data_pair>& out_to_remove, vector<string>& out_to_add_reference_expressions, vector<phantom::data>& a_TreatedData);
+    void            fetchUpdatedData(const phantom::data& a_Data, vector<data_pair>& out_to_add, vector<data_pair>& out_to_remove, vector<string>& out_to_add_reference_expressions, std::set<phantom::data>& a_TreatedData);
 
     reflection::Type* getType(const string& a_strQualifiedDecoratedName) const;
 
@@ -242,18 +271,22 @@ public:
 
     void            replaceTypes(const map<reflection::Type*, reflection::Type*>& replacedTypes);
 
+    uint            generateGuid() const;
+
 protected:
-    void            addDataComponents( const phantom::data& a_Data, size_t a_uiCurrentSize, vector<std::pair<phantom::data,phantom::data>>* opt_out_to_add /*= nullptr*/,vector<std::pair<phantom::data,phantom::data>>* opt_out_to_remove /*= nullptr*/);
-    void            addDataComponents(const phantom::data& a_Data, vector<std::pair<phantom::data,phantom::data>>* opt_out_to_add = nullptr, vector<std::pair<phantom::data,phantom::data>>* opt_out_to_remove = nullptr);
-    void            fetchDataComponents(const phantom::data& a_Data, vector<phantom::data>& out );
+    void            fetchUpdatedData(const phantom::data& a_Data
+        , vector<data_pair>& out_to_add /*= nullptr*/
+        , vector<data_pair>& out_to_remove /*= nullptr*/
+        , vector<string>& out_added_pointer_reference_expressions);
+    void            fetchComponentData(const phantom::data& a_Data, vector<phantom::data>& out );
     void            fetchContainerComponents(reflection::ContainerClass* a_pContainerClass, void* a_pContainer, vector<phantom::data>& out);
 
     void            rebuildAllData(reflection::Type* a_pOld, reflection::Type* a_pNew, vector<data>& a_Old, vector<data>& a_New, uint a_uiStateId = 0xffffffff) ;
     void            rebuildAllDataCascade(reflection::Type* a_pOld, reflection::Type* a_pNew, vector<data>& a_Old, vector<data>& a_New, uint a_uiStateId = 0xffffffff);
 
-    void            clearDataReferenceCascade(const vector<void*>& a_OldLayout) const;
+    void            clearDataReferenceCascade(const vector<void*>& a_OldLayout, vector<reflection::Expression*>* a_pRestoreReferenceExpressions = nullptr) const;
 
-    void            clearDataReference( const vector<void*>& layout ) const;
+    void            clearDataReference( const vector<void*>& layout, vector<reflection::Expression*>* a_pRestoreReferenceExpressions = nullptr ) const;
 
     void            replaceDataReferenceCascade(const vector<void*>& a_OldLayout, const phantom::data& a_New) const;
 
@@ -273,11 +306,11 @@ protected:
     virtual void    saveDataAttributes(const phantom::data& a_Data, uint guid) = 0;
     virtual void    loadDataAttributes(const phantom::data& a_Data, uint guid) = 0;
     virtual void    cache() = 0;
-    virtual void    build() = 0;
-    virtual void    deserialize(uint a_uiSerializationFlag) = 0;
+    virtual void    build(vector<data>& a_Data) = 0;
+    virtual void    deserialize(uint a_uiSerializationFlag, vector<data>& a_Data) = 0;
     virtual void    unbuild() = 0;
     virtual void    uncache() = 0;
-    virtual void    restore(uint a_uiSerializationFlag) = 0;
+    virtual void    restore(uint a_uiSerializationFlag, vector<data>& a_Data) = 0;
     virtual void    configure() = 0;
     virtual void    unconfigure() = 0;
 

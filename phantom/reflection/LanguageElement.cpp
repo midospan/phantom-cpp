@@ -55,6 +55,8 @@ LanguageElement::LanguageElement()
     , m_Modifiers(0)
     , m_pModule(nullptr)
     , m_pTemplateSpecialization(nullptr)
+    , m_pExtension(nullptr)
+    , m_pLanguage(cplusplus())
 {
 	Phantom::registerLanguageElement(this);
 }
@@ -73,6 +75,8 @@ LanguageElement::LanguageElement( const string& a_strName, bitfield a_Modifiers 
     , m_Modifiers(a_Modifiers)
     , m_pModule(nullptr)
     , m_pTemplateSpecialization(nullptr)
+    , m_pExtension(nullptr)
+    , m_pLanguage(cplusplus())
 {
     o_assert(NOT(isPublic() AND isProtected()), "o_public and o_protected cannot co-exist");
 	Phantom::registerLanguageElement(this);
@@ -92,6 +96,8 @@ LanguageElement::LanguageElement( const string& a_strName, uint a_uiGuid, bitfie
     , m_Modifiers(a_Modifiers)
     , m_pModule(nullptr)
     , m_pTemplateSpecialization(nullptr)
+    , m_pExtension(nullptr)
+    , m_pLanguage(cplusplus())
 {
     o_assert(NOT(isPublic() AND isProtected()), "o_public and o_protected cannot co-exist");
 	Phantom::registerLanguageElement(this);
@@ -104,6 +110,10 @@ LanguageElement::~LanguageElement()
 
 void LanguageElement::terminate()
 {
+    if(m_pExtension)
+    {
+        o_dynamic_delete m_pExtension;
+    }
     o_assert(canBeDestroyed());
     if(m_pMetaData != nullptr)
     {
@@ -151,7 +161,7 @@ void LanguageElement::terminate()
 
 phantom::string LanguageElement::getQualifiedName() const
 {
-  return m_pOwner ? m_pOwner->getQualifiedName() + o_CS("::") + getName() : getName();
+    return m_pOwner ? m_pOwner->getQualifiedName() + o_CS("::") + getName() : getName();
 }
 
 phantom::string LanguageElement::getDecoratedName() const
@@ -334,7 +344,7 @@ void LanguageElement::addElement( LanguageElement* a_pElement )
         m_pElements = new vector<LanguageElement*>;
     }
     m_pElements->push_back(a_pElement);
-    a_pElement->m_pOwner = this;
+    a_pElement->setOwner(this);
     elementAdded(a_pElement);
 }
 
@@ -539,5 +549,76 @@ void LanguageElement::deleteNow()
     o_dynamic_delete this;
 }
 
+variant LanguageElement::compile( Compiler* a_pCompiler )
+{
+    return variant();
+}
+
+bool LanguageElement::isInvalid() const 
+{
+    if((m_Modifiers & o_invalid) != 0) 
+        return true;
+    if(m_pElements)
+    {
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            if((*it)->isInvalid()) 
+                return true;
+        }
+    }
+    return false;
+}
+
+Block* LanguageElement::getBlock() const
+{
+    return m_pOwner ? (m_pOwner->asBlock() ? m_pOwner->asBlock() : m_pOwner->getBlock()) : nullptr ;
+}
+
+void LanguageElement::internalAncestorChanged( LanguageElement* a_pOwner )
+{
+    if(m_pElements)
+    {
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            (*it)->internalAncestorChanged(a_pOwner);
+        }
+    }
+    ancestorChanged(m_pOwner);
+}
+
+void LanguageElement::setOwner( LanguageElement* a_pOwner )
+{
+    o_assert(m_pOwner == nullptr);
+    m_pOwner = a_pOwner;
+    internalAncestorChanged(m_pOwner);
+}
+
+void LanguageElement::ancestorChanged( LanguageElement* a_pOwner )
+{
+    o_unused(a_pOwner);
+}
+
+boolean LanguageElement::isNative() const
+{
+    if(m_Modifiers & o_native) 
+        return true;
+    if(m_pElements)
+    {
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            if(!(*it)->isNative())
+                return false;
+        }
+    }
+    if(m_pReferencedElements)
+    {
+        for(auto it = m_pReferencedElements->begin(); it != m_pReferencedElements->end(); ++it)
+        {
+            if(!(*it)->isNative())
+                return false;
+        }
+    }
+    return true;
+}
 
 o_namespace_end(phantom, reflection)

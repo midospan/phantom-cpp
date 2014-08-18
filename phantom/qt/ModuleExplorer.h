@@ -26,6 +26,9 @@ class o_qt_export ModuleExplorer : public QTreeWidget
     friend class LibraryItem;
 
 public:
+    typedef fastdelegate::FastDelegate<void(ModuleExplorer* a_pModuleExplorer, const string& a_strPath)> delegate_t;
+
+public:
     ModuleExplorer(void);
     ~ModuleExplorer(void);
 
@@ -33,6 +36,13 @@ public:
     void setPath(const string& a_strPath);
     void setModuleLoader(ModuleLoader* a_pModuleLoader);
     LibraryItem* getItem(const QString& absolutePath) const;
+
+    Message* getMessage() const { return m_pRootMessage; }
+    static void defaultUnloadLibraryDelegate(ModuleExplorer* a_pModuleExplorer, const string& a_strPath);
+    static void defaultLoadLibraryDelegate(ModuleExplorer* a_pModuleExplorer, const string& a_strPath);
+
+    void setUnloadLibraryDelegate(delegate_t a_Delegate);
+    void setLoadLibraryDelegate(delegate_t a_Delegate);
 
 protected:
     void libraryLoaded(const string& a_strPath);
@@ -49,6 +59,8 @@ protected:
     QIcon m_UnloadedIcon;
     Message* m_pRootMessage;
     ModuleLoader* m_pModuleLoader;
+    delegate_t m_LoadDelegate;
+    delegate_t m_UnloadDelegate;
 };
 
 }}

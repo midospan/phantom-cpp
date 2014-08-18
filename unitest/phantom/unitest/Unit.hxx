@@ -4,11 +4,13 @@ o_classNS((sc2), Unit, (GameEntity))
 {
     o_reflection 
     {
-        o_typedef(Abilities);
+        o_nested_typedef(Abilities);
         o_data_member(bool, m_bPatrolWay, o_no_range, o_protected);
         o_data_member(int, m_iLifePoints, o_no_range, o_protected);
         o_data_member(int, m_iInitialLifePoints, o_no_range, o_protected);
         o_data_member(Abilities, m_Abilities, o_no_range, o_protected);
+        o_data_member(phantom::math::vector2<float>, m_Position, o_no_range, o_protected);
+        o_property(const phantom::math::vector2<float>&, position, setPosition, getPosition, o_no_signal, o_no_range, o_public|o_transient);
     };
     o_statechart
     {

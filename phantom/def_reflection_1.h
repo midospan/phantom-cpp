@@ -123,13 +123,14 @@ class o_PP_CAT(_name_,__LINE__) \
             , phantom::detail::int_embedder< __VA_ARGS__ >::value\
             );\
             pSignal->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::reflection::Types::currentInstalledClass->addSignal(pSignal);\
+            o_assert(phantom::reflection::Types::currentInstalledClass->asClass(), "Cannot add signal to pod class");\
+            phantom::reflection::Types::currentInstalledClass->asClass()->addSignal(pSignal);\
             }\
         } o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
 
 
 #    define o_data_member_5(_type_, _name_, _range_, _modifiers_, _serialization_mask_) \
-    o_static_assert_msg( (((_modifiers_&o_transient) == 0) OR (_serialization_mask_ == 0)), "if transient, data member must have a null serialization mask" );\
+    o_static_assert_msg( ((((_modifiers_)&o_transient) == 0) OR (_serialization_mask_ == 0)), "if transient, data member must have a null serialization mask" );\
     class o_PP_CAT(_name_,__LINE__)\
         {\
         friend class enclosed_reflection;\
@@ -187,14 +188,14 @@ class o_PP_CAT(o_global_value_Type,__LINE__) \
         friend class enclosed_reflection;\
         o_PP_CAT(o_global_value_Type,__LINE__)() \
             {\
-            auto pConstructor = o_proxy_new(phantom::reflection::Constructor, phantom::reflection::native::TNativeConstructor<phantom_proxy_generator_reflection_self_type _parameterslist_>)(o_PP_QUOTE(o_local_value_ShortType), phantom::reflection::Signature::Create("_" o_PP_QUOTE(_parameterslist_), phantom::reflection::Types::currentInstalledTemplateSpecialization),phantom::detail::int_embedder<__VA_ARGS__>::value);\
+            auto pConstructor = o_proxy_new(phantom::reflection::Constructor, phantom::reflection::native::TNativeConstructor<phantom_proxy_generator_reflection_self_type _parameterslist_>)(phantom::reflection::Types::currentInstalledClass->getName(), phantom::reflection::Signature::Create("void" o_PP_QUOTE(_parameterslist_), phantom::reflection::Types::currentInstalledTemplateSpecialization),phantom::detail::int_embedder<__VA_ARGS__>::value);\
             pConstructor->addCodeLocation(phantom::sourceFile(__FILE__));\
             phantom::reflection::Types::currentInstalledClass->addConstructor(pConstructor);\
             }\
-        } o_PP_CAT(o_PP_CAT(o_global_value_Type,__LINE__),_instance);
+        } o_PP_CAT(o_PP_CAT(constructor,__LINE__),_instance);
 
 
-#define o_typedef_1(name)\
+#define o_nested_typedef_1(name)\
 class o_PP_CAT(name,__LINE__) \
         {\
         friend class enclosed_reflection;\
@@ -204,53 +205,53 @@ class o_PP_CAT(name,__LINE__) \
             }\
         } o_PP_CAT(name,__LINE__);
 
-#define o_typedef_2(part0, name)\
+#define o_nested_typedef_2(part0, name)\
 class o_PP_CAT(name,__LINE__) \
         {\
         friend class enclosed_reflection;\
         o_PP_CAT(name,__LINE__)() \
             {\
-            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::reflection::detail::type_of_counter<part0, PHANTOM_CODEGEN_reflection_counter_value>::object());\
+            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0, phantom::reflection::Types::currentInstalledClass));\
             }\
         } o_PP_CAT(name,__LINE__);
 
-#define o_typedef_3(part0, part1, name)\
+#define o_nested_typedef_3(part0, part1, name)\
 class o_PP_CAT(name,__LINE__) \
         {\
         friend class enclosed_reflection;\
         o_PP_CAT(name,__LINE__)() \
             {\
-            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::reflection::detail::type_of_counter<part0, part1, PHANTOM_CODEGEN_reflection_counter_value>::object());\
+            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0 #part1, phantom::reflection::Types::currentInstalledClass));\
             }\
         } o_PP_CAT(name,__LINE__);
 
-#define o_typedef_4(part0, part1, part2, name)\
+#define o_nested_typedef_4(part0, part1, part2, name)\
 class o_PP_CAT(name,__LINE__) \
         {\
         friend class enclosed_reflection;\
         o_PP_CAT(name,__LINE__)() \
             {\
-            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::reflection::detail::type_of_counter<part0, part1, part2, PHANTOM_CODEGEN_reflection_counter_value>::object());\
+            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0 #part1 #part2, phantom::reflection::Types::currentInstalledClass));\
             }\
         } o_PP_CAT(name,__LINE__);
 
-#define o_typedef_5(part0, part1, part2, part3, name)\
+#define o_nested_typedef_5(part0, part1, part2, part3, name)\
 class o_PP_CAT(name,__LINE__) \
         {\
         friend class enclosed_reflection;\
         o_PP_CAT(name,__LINE__)() \
             {\
-            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::reflection::detail::type_of_counter<part0, part1, part2, part3, PHANTOM_CODEGEN_reflection_counter_value>::object());\
+            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0 #part1 #part2 #part3, phantom::reflection::Types::currentInstalledClass));\
             }\
         } o_PP_CAT(name,__LINE__);
 
-#define o_typedef_6(part0, part1, part2, part3, part4, name)\
+#define o_nested_typedef_6(part0, part1, part2, part3, part4, name)\
 class o_PP_CAT(name,__LINE__) \
         {\
         friend class enclosed_reflection;\
         o_PP_CAT(name,__LINE__)() \
             {\
-            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::reflection::detail::type_of_counter<part0, part1, part2, part3, part4, PHANTOM_CODEGEN_reflection_counter_value>::object());\
+            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0 #part1 #part2 #part3 #part4, phantom::reflection::Types::currentInstalledClass));\
             }\
         } o_PP_CAT(name,__LINE__);
 
@@ -265,7 +266,7 @@ class o_PP_CAT(parameter,__LINE__) \
         } o_PP_CAT(parameter,__LINE__);
 /*
 
-#define o_typedef_2(part0, name)\
+#define o_nested_typedef_2(part0, name)\
 class o_PP_CAT(name,__LINE__) \
         {\
         friend class enclosed_reflection;\
@@ -275,7 +276,7 @@ class o_PP_CAT(name,__LINE__) \
             }\
         } o_PP_CAT(name,__LINE__);
 
-#define o_typedef_3(part0, part1, name)\
+#define o_nested_typedef_3(part0, part1, name)\
 class o_PP_CAT(name,__LINE__) \
         {\
         friend class enclosed_reflection;\
@@ -285,7 +286,7 @@ class o_PP_CAT(name,__LINE__) \
             }\
         } o_PP_CAT(name,__LINE__);
 
-#define o_typedef_4(part0, part1, part2, name)\
+#define o_nested_typedef_4(part0, part1, part2, name)\
 class o_PP_CAT(name,__LINE__) \
         {\
         friend class enclosed_reflection;\
@@ -295,7 +296,7 @@ class o_PP_CAT(name,__LINE__) \
             }\
         } o_PP_CAT(name,__LINE__);
 
-#define o_typedef_5(part0, part1, part2, part3, name)\
+#define o_nested_typedef_5(part0, part1, part2, part3, name)\
 class o_PP_CAT(name,__LINE__) \
         {\
         friend class enclosed_reflection;\
@@ -305,7 +306,7 @@ class o_PP_CAT(name,__LINE__) \
             }\
         } o_PP_CAT(name,__LINE__);
 
-#define o_typedef_6(part0, part1, part2, part3, part4, name)\
+#define o_nested_typedef_6(part0, part1, part2, part3, part4, name)\
 class o_PP_CAT(name,__LINE__) \
         {\
         friend class enclosed_reflection;\
@@ -324,4 +325,10 @@ class o_PP_CAT(parameter,__LINE__) \
             phantom::reflection::Types::currentInstalledTemplateSpecialization->setDefaultArgument(#parameter, phantom::typeByName(#__VA_ARGS__, phantom::reflection::Types::currentInstalledClass));\
             }\
         } o_PP_CAT(parameter,__LINE__);
-*/
+        */
+
+#define o_function(_returntype_, _name_, _parameters_, ...) \
+    static phantom::reflection::function_registrer<_returntype_ _parameters_>  o_PP_CAT(g_reflection_function_registration_##_name_, __COUNTER__)(#_name_, o_PP_QUOTE(_returntype_)o_PP_QUOTE(_parameters_),_name_,##__VA_ARGS__);
+
+#define o_functionN(_namespace_, _returntype_, _name_, _parameters_, ...) \
+    static phantom::reflection::function_registrer<_returntype_ _parameters_>  o_PP_CAT o_PP_LEFT_PAREN o_PP_CREATE_QUALIFIED_IDENTIFIER_NAME(_namespace_, _name_), __COUNTER__ o_PP_RIGHT_PAREN (o_PP_QUOTE o_PP_LEFT_PAREN o_PP_CREATE_SCOPE _namespace_ o_PP_RIGHT_PAREN , #_name_, o_PP_QUOTE(_returntype_)o_PP_QUOTE(_parameters_), o_PP_CREATE_QUALIFIED_NAME(_namespace_, _name_),##__VA_ARGS__);

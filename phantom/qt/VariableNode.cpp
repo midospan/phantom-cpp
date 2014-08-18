@@ -2,7 +2,9 @@
 #include "phantom/qt/qt.h"
 #include "VariableNode.h"
 #include "VariableNode.hxx"
+#include "VariableModel.h"
 #include "phantom/std/string.h"
+#include "phantom/reflection/Expression.h"
 /* *********************************************** */
 o_registerN((phantom, qt), VariableNode);
  
@@ -11,75 +13,37 @@ namespace qt {
 
 VariableNode::VariableNode( const string& a_strName ) 
     : m_strName(a_strName)
-    , m_pVariableType(nullptr)
+    , m_pValueType(nullptr)
     , m_pParentNode(nullptr)
     , m_Modifiers(0)
+    , m_bChangeStructure(false)
+    , m_pRange(nullptr)
 {
-    update();
 }
 
-VariableNode::VariableNode( const string& a_strName, const vector<reflection::Variable*>& a_Variables ) 
+VariableNode::VariableNode( const string& a_strName, const vector<reflection::Expression*>& a_Expressions, reflection::Range* a_pRange, bitfield a_Modifiers ) 
     : m_strName(a_strName)
-    , m_pVariableType(a_Variables[0]->getValueType()->removeReference()->removeConst())
+    , m_pValueType(nullptr)
     , m_pParentNode(nullptr)
-    , m_Variables(a_Variables)
-    , m_Modifiers(a_Variables[0]->getModifiers())
+    , m_Expressions(a_Expressions)
+    , m_Modifiers(a_Modifiers)
+    , m_bChangeStructure(false)
+    , m_pRange(a_pRange)
 {
-#if defined(_DEBUG)
-    checkCommonAncestorType();
-#endif
-    for(auto it = m_Variables.begin(); it != m_Variables.end(); ++it)
+    for(auto it = a_Expressions.begin(); it != a_Expressions.end(); ++it)
     {
-        void* pAddress = (*it)->getAddress();
-        m_Buffered.push_back(pAddress == nullptr);
-        if(pAddress == nullptr)
-        {
-            auto pType = m_pVariableType->removeReference()->removeConst();
-            pAddress = pType->allocate();
-            pType->safeConstruct(pAddress);
-            // skip install (rtti)
-            pType->initialize(pAddress);
-        }
-        m_Addresses.push_back( pAddress );       
-
+        o_assert((*it)->getOwner() == nullptr);
     }
-    update();
-}
-
-VariableNode::VariableNode( const vector<reflection::Variable*>& a_Variables ) 
-    : m_strName(m_Variables[0]->getName())
-    , m_pVariableType(a_Variables[0]->getValueType()->removeReference()->removeConst())
-    , m_pParentNode(nullptr)
-    , m_Variables(a_Variables)
-    , m_Modifiers(a_Variables[0]->getModifiers())
-{
-#if defined(_DEBUG)
-    checkCommonAncestorType();
-#endif
-    for(auto it = m_Variables.begin(); it != m_Variables.end(); ++it)
-    {
-        void* pAddress = (*it)->getAddress();
-        m_Buffered.push_back(pAddress == nullptr);
-        if(pAddress == nullptr)
-        {
-            auto pType = m_pVariableType->removeReference()->removeConst();
-            pAddress = pType->allocate();
-            pType->safeConstruct(pAddress);
-            // skip install (rtti)
-            pType->initialize(pAddress);
-        }
-        m_Addresses.push_back( pAddress );       
-
-    }
-    update();
+    m_ExpressionUndoStacks.resize(m_Expressions.size());
+    updateType();
 }
 
 o_initialize_cpp(VariableNode)
 {
-    for(auto it = m_Variables.begin(); it != m_Variables.end(); ++it)
-    {
-        o_connect(*it, valueChanged(), this, valueChanged());
-    }
+//     for(auto it = m_Expressions.begin(); it != m_Expressions.end(); ++it)
+//     {
+//         o_connect(*it, valueChanged(), this, valueChanged());
+//     }
 }
 
 o_terminate_cpp(VariableNode)
@@ -89,109 +53,97 @@ o_terminate_cpp(VariableNode)
         m_pParentNode->removeChildNode(this);
     }
     o_assert(m_pParentNode == nullptr);
-    while(m_ChildNodes.size())
-    {
-        o_dynamic_delete m_ChildNodes.back();
-    }
+    clear();
 }
 
 VariableNode::~VariableNode()
 {
-    for(auto it = m_Variables.begin(); it != m_Variables.end(); ++it)
+    destroyExpressions();
+}
+
+void VariableNode::destroyExpressions()
+{
+    for(auto it = m_Expressions.begin(); it != m_Expressions.end(); ++it)
     {
-        o_dynamic_delete *it;
+        (*it)->terminate();
+        (*it)->deleteNow();
     }
-    for(size_t i = 0; i<m_Addresses.size(); ++i)
-    {
-        if(m_Buffered[i])
-        {
-            m_pVariableType->terminate(m_Addresses[i]);
-            m_pVariableType->destroy(m_Addresses[i]);
-            m_pVariableType->deallocate(m_Addresses[i]);
-        }
-    }
+    m_Expressions.clear();
 }
 
 bool VariableNode::hasMultipleValues() const
 {
-    if(m_Variables.empty()) return false;
-    reflection::Type* pType = m_pVariableType->removeReference()->removeConst();
-    void* pBufferMain = pType->newInstance();
-    void* pBufferTest = pType->newInstance();
-    m_Variables.front()->getValue(pBufferMain);
-    for(auto it = m_Variables.begin()+1; it != m_Variables.end(); ++it)
+    if(m_Expressions.empty()) return false;
+    reflection::Type* pType = getValueType()->removeReference()->removeConst();
+    void* pBufferMain = nullptr;
+    void* pBufferTest = nullptr;
+    bool hasEffectiveAddress = m_Expressions.front()->hasEffectiveAddress();
+    if(hasEffectiveAddress)
     {
-        (*it)->getValue(pBufferTest);
+        pBufferMain = m_Expressions.front()->loadEffectiveAddress();
+    }
+    else 
+    {
+        pBufferMain = pType->newInstance();
+        pBufferTest = pType->newInstance();
+        m_Expressions.front()->load(pBufferMain);
+    }
+    for(auto it = m_Expressions.begin()+1; it != m_Expressions.end(); ++it)
+    {
+        if(hasEffectiveAddress)
+        {
+            o_assert((*it)->hasEffectiveAddress());
+            pBufferTest = (*it)->loadEffectiveAddress();
+        }
+        else (*it)->load(pBufferTest);
         if(pType->hasLess())
         {
             if(pType->less(pBufferTest, pBufferMain) || pType->less(pBufferMain, pBufferTest))
             {
-                pType->deleteInstance(pBufferMain);
-                pType->deleteInstance(pBufferTest);
+                if(!hasEffectiveAddress)
+                {
+                    pType->deleteInstance(pBufferMain);
+                    pType->deleteInstance(pBufferTest);
+                }
                 return true;
             }
         }
         else if(!pType->areValueEqual(pBufferTest, pBufferMain)) 
         {
-            pType->deleteInstance(pBufferMain);
-            pType->deleteInstance(pBufferTest);
+            if(!hasEffectiveAddress)
+            {
+                pType->deleteInstance(pBufferMain);
+                pType->deleteInstance(pBufferTest);
+            }
             return true;
         }
     }
-    pType->deleteInstance(pBufferMain);
-    pType->deleteInstance(pBufferTest);
+    if(!hasEffectiveAddress)
+    {
+        pType->deleteInstance(pBufferMain);
+        pType->deleteInstance(pBufferTest);
+    }
     return false;
-}
-
-reflection::Class* VariableNode::getVariableClass() const
-{
-    return m_Variables.size() ? classOf(m_Variables[0]) : nullptr;
 }
 
 reflection::Type* VariableNode::getValueType() const
 {
-    return m_pVariableType;
-}
-
-void VariableNode::flush() const
-{
-    for(size_t i = 0; i<m_Variables.size(); ++i)
-    {
-        if(m_Buffered[i])
-        {
-            m_Variables[i]->setValue(m_Addresses[i]); 
-        }
-    }
-    if(m_pParentNode)
-        m_pParentNode->flush();
-}
-
-void VariableNode::update() const
-{
-    for(size_t i = 0; i<m_Variables.size(); ++i)
-    {
-        if(m_Buffered[i])
-        {
-            m_Variables[i]->getValue(m_Addresses[i]);
-        }
-    }
+    return m_pValueType;
 }
 
 void VariableNode::getValue( void* a_pDest ) const
 {
-    if(m_Variables.size()) m_Variables[0]->getValue(a_pDest);
+    if(m_Expressions.size())
+    {
+        m_Expressions.back()->load(a_pDest);
+    }
 }
 
 void VariableNode::setValue( void const* a_pSrc ) const
 {
-    for(auto it = m_Variables.begin(); it != m_Variables.end(); ++it)
+    for(auto it = m_Expressions.begin(); it != m_Expressions.end(); ++it)
     {
-        (*it)->setValue(a_pSrc);
-    }
-    update();
-    if(m_pParentNode)
-    {
-        m_pParentNode->flush();
+        (*it)->store(a_pSrc);
     }
 }
 
@@ -237,24 +189,155 @@ void VariableNode::removeChildNode( VariableNode* a_pVariableNode )
 
 void VariableNode::getValues( void** a_pMultipleDest ) const
 {
-    for(size_t i = 0; i<m_Variables.size(); ++i)
+    for(size_t i = 0; i<m_Expressions.size(); ++i)
     {
-        m_Variables[i]->getValue(a_pMultipleDest[i]);
+        m_Expressions[i]->load(a_pMultipleDest[i]);
     }
 }
 
 void VariableNode::setValues( void const ** a_pMultipleSrc ) const
 {
-    for(size_t i = 0; i<m_Variables.size(); ++i)
+    for(size_t i = 0; i<m_Expressions.size(); ++i)
     {
-        m_Variables[i]->setValue(a_pMultipleSrc[i]);
+        m_Expressions[i]->store(a_pMultipleSrc[i]);
     }
-    update();
-    if(m_pParentNode)
+}
+// 
+// void VariableNode::eval( EEvalPolicies a_eEvalPolicy )
+// {
+//     if(m_pParentNode AND (a_eEvalPolicy & e_EvalPolicy_Parent))
+//     {
+//         if(a_eEvalPolicy & e_EvalPolicy_Ancestors)
+//         {
+//             m_pParentNode->eval(EEvalPolicies(e_EvalPolicy_Local|e_EvalPolicy_Ancestors));
+//         }
+//         else 
+//         {
+//             m_pParentNode->eval(e_EvalPolicy_Local);
+//         }
+//     }
+//     if(a_eEvalPolicy & e_EvalPolicy_Local)
+//     {
+//         destroyExpressions();
+//         for(size_t i = 0; i<m_ExpressionStrings.size(); ++i)
+//         {
+//             reflection::Expression* pExpression = evalExpression(i);
+//             if(pExpression)
+//                 m_Expressions.push_back(pExpression);
+//         }
+//         reflection::Type* pOldType = m_pValueType;
+//         updateType();
+//         if(m_pValueType != pOldType)
+//         {
+//             a_eEvalPolicy |= e_EvalPolicy_Rebuild;
+//         }
+//     }
+//     if(a_eEvalPolicy & e_EvalPolicy_Children)
+//     {
+//         if(a_eEvalPolicy & e_EvalPolicy_Rebuild)
+//         {
+//             m_pVariableModel->rebuild(this);
+//         }
+//         else 
+//         {
+//             for(auto it = m_ChildNodes.begin(); it != m_ChildNodes.end(); ++it)
+//             {
+//                 VariableNode* pChildNode = *it;
+//                 if(a_eEvalPolicy & e_EvalPolicy_Descendants)
+//                 {
+//                     pChildNode->eval(EEvalPolicies(e_EvalPolicy_Local|e_EvalPolicy_Descendants));
+//                 }
+//                 else 
+//                 {
+//                     pChildNode->eval(e_EvalPolicy_Local);
+//                 }
+//             }
+//         }
+//     }
+// }
+
+void VariableNode::clear()
+{
+    while(m_ChildNodes.size())
     {
-        m_pParentNode->flush();
+        o_dynamic_delete m_ChildNodes.back();
     }
 }
 
+void VariableNode::setVariableModel( VariableModel* a_pVariableModel )
+{
+    m_pVariableModel = a_pVariableModel;
+}
+
+void VariableNode::updateType()
+{
+    m_pValueType = nullptr;
+    if(!m_Expressions.empty())
+    {
+        m_pValueType = m_Expressions.front()->getValueType()->removeReference();
+        for(auto it = m_Expressions.begin()+1; it != m_Expressions.end(); ++it)
+        {
+            o_assert(m_pValueType == (*it)->getValueType()->removeReference());
+        }
+    }
+}
+
+void VariableNode::setName( const string& a_strName )
+{
+    if(m_strName == a_strName) return;
+    m_strName = a_strName;
+    o_emit nameChanged(a_strName);
+}
+
+VariableNode* VariableNode::FromData( serialization::DataBase* a_pDataBase, const vector<phantom::data>& a_Data )
+{
+    if(a_Data.empty()) 
+        return nullptr;
+    reflection::Type* pType = a_Data.front().type();
+    for(auto it = a_Data.begin()+1; it != a_Data.end(); ++it)
+    {
+        if(pType)
+        {
+            pType = pType->getCommonAncestor(it->type());
+        }
+    }
+    if(pType != nullptr)
+    {
+        vector<reflection::Expression*> expressions;
+        for(auto it = a_Data.begin(); it != a_Data.end(); ++it)
+        {
+            const phantom::data& data = *it;
+            string dataExpressionStr;
+            if(a_pDataBase)
+            {
+                uint guid = a_pDataBase->getGuid(data);
+                dataExpressionStr = "(@"+lexical_cast<string>(guid)+")";
+            }
+            else 
+            {
+                dataExpressionStr = lexical_cast<string>(data.address());
+                dataExpressionStr = "(("+(data.type()->getQualifiedDecoratedName()+"*")+")"+dataExpressionStr+")";
+            }
+            if(pType != data.type())
+            {
+                dataExpressionStr = "(("+(pType->getQualifiedDecoratedName()+"&")+")"+dataExpressionStr+")";
+            }
+            phantom::setCurrentDataBase(a_pDataBase);
+            reflection::Expression* pExpression = phantom::expressionByName(dataExpressionStr);
+            o_assert(pExpression);
+            expressions.push_back(pExpression);
+        }
+        return o_new(VariableNode)("", expressions);
+    }
+    return nullptr;
+}
+
+// 
+// reflection::Expression* VariableNode::evalExpression( size_t i ) const
+// {
+//     reflection::LanguageElement* pElement = phantom::elementByName(m_ExpressionStrings[i]);
+//     if(pElement == nullptr) return nullptr;
+//     return pElement->asExpression();
+// }
 
 }}

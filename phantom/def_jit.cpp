@@ -5,12 +5,19 @@
 #include <jit/jit.h>
 #include <windows.h>
 
-o_classN((phantom, reflection, jit), jit_value)
+o_classN((phantom, reflection, jit), jit_value, o_pod)
 {
     o_reflection {};
 };
 
 o_registerN((phantom, reflection, jit), jit_value);
+
+o_classN((phantom, reflection, jit), jit_label, o_pod)
+{
+    o_reflection {};
+};
+
+o_registerN((phantom, reflection, jit), jit_label);
 
 o_namespace_begin(phantom, reflection, jit)
 
@@ -201,9 +208,15 @@ ulonglong jit_constant::getULongLongValue() const
     return un.ulonglong_value;
 }
 
-jit_label::jit_label() : label(jit_label_undefined)
+jit_label::jit_label() 
+    : label(jit_label_undefined)
 {
 
+}
+
+bool jit_label::isUndefined() const
+{
+    return label == jit_label_undefined;
 }
 
 jit_block::jit_block() : block(0)

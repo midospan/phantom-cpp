@@ -100,6 +100,7 @@ public:
     typedef TNativeInstanceDataMember<t_Ty, t_ContentType> self_type;
     typedef t_ContentType (t_Ty::*member_field_pointer);
     typedef o_NESTED_TYPE boost::remove_const<t_ContentType>::type t_ContentTypeNoConst;
+    typedef o_NESTED_TYPE canonical_meta_class_type_of<t_ContentTypeNoConst>::type meta_value_type;
 
 public:
     TNativeInstanceDataMember(const string& a_strName, Type* a_pContentType, member_field_pointer a_member_field_pointer, Range* a_pRange, uint a_uiSerializationMask, bitfield a_uiModifiers = 0 )
@@ -133,7 +134,7 @@ public:
 
     void serializeValue( void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
     {
-        phantom::extension::serializer<t_ContentType>::serialize(
+        phantom::extension::serializer<t_ContentType>::serialize(static_cast<meta_value_type*>(getValueType()),
             &(static_cast<t_Ty const*>(a_pInstance)->*m_member_field_pointer)
             , a_pOutBuffer
             , a_uiSerializationMask, a_pDataBase);
@@ -144,7 +145,7 @@ public:
         byte const* pChunk = reinterpret_cast<byte const*>(a_pInstance);
         while(a_uiCount--)
         {
-            phantom::extension::serializer<t_ContentType>::serialize(
+            phantom::extension::serializer<t_ContentType>::serialize(static_cast<meta_value_type*>(getValueType()),
                 &(reinterpret_cast<t_Ty const*>(pChunk)->*m_member_field_pointer)
                 , a_pOutBuffer
                 , a_uiSerializationMask, a_pDataBase);
@@ -155,7 +156,7 @@ public:
     
     void deserializeValue( void* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
     {
-        phantom::extension::serializer<t_ContentType>::deserialize(
+        phantom::extension::serializer<t_ContentType>::deserialize(static_cast<meta_value_type*>(getValueType()),
             &(static_cast<t_Ty*>(a_pInstance)->*m_member_field_pointer)
             , a_pInBuffer
             , a_uiSerializationMask, a_pDataBase);
@@ -166,7 +167,7 @@ public:
         byte* pChunk = reinterpret_cast<byte*>(a_pInstance);
         while(a_uiCount--)
         {
-            phantom::extension::serializer<t_ContentType>::deserialize(
+            phantom::extension::serializer<t_ContentType>::deserialize(static_cast<meta_value_type*>(getValueType()),
                 &(reinterpret_cast<t_Ty*>(pChunk)->*m_member_field_pointer)
                 , a_pInBuffer
                 , a_uiSerializationMask, a_pDataBase);
@@ -233,7 +234,7 @@ public:
 
     void rememberValue( void const* a_pInstance, byte*& a_pOutBuffer ) const
     {
-        phantom::extension::resetter<t_ContentType>::remember(
+        phantom::extension::resetter<t_ContentType>::remember(static_cast<meta_value_type*>(getValueType()),
             &(static_cast<t_Ty const*>(a_pInstance)->*m_member_field_pointer)
             , a_pOutBuffer);
     }
@@ -243,7 +244,7 @@ public:
         byte const* pChunk = reinterpret_cast<byte const*>(a_pInstance);
         while(a_uiCount--)
         {
-            phantom::extension::resetter<t_ContentType>::remember(
+            phantom::extension::resetter<t_ContentType>::remember(static_cast<meta_value_type*>(getValueType()),
                 &(reinterpret_cast<t_Ty const*>(pChunk)->*m_member_field_pointer)
                 , a_pOutBuffer);
             pChunk += a_uiChunkSectionSize;
@@ -252,7 +253,7 @@ public:
 
     void resetValue( void* a_pInstance, byte const*& a_pInBuffer ) const
     {
-        phantom::extension::resetter<t_ContentType>::reset(
+        phantom::extension::resetter<t_ContentType>::reset(static_cast<meta_value_type*>(getValueType()),
             &(static_cast<t_Ty*>(a_pInstance)->*m_member_field_pointer)
             , a_pInBuffer);
     }
@@ -262,7 +263,7 @@ public:
         byte* pChunk = reinterpret_cast<byte*>(a_pInstance);
         while(a_uiCount--)
         {
-            phantom::extension::resetter<t_ContentType>::reset(
+            phantom::extension::resetter<t_ContentType>::reset(static_cast<meta_value_type*>(getValueType()),
                 &(reinterpret_cast<t_Ty*>(pChunk)->*m_member_field_pointer)
                 , a_pInBuffer);
             pChunk += a_uiChunkSectionSize;

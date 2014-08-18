@@ -69,10 +69,10 @@ public:
     virtual void    loadDataAttributes(const phantom::data& a_Data, uint guid);
     virtual bool    canLoad(vector<string>* missing_types) const;
     virtual void    cache();
-    virtual void    build();
-    virtual void    deserialize(uint a_uiSerializationFlag);
+    virtual void    build(vector<data>& a_Data);
+    virtual void    deserialize(uint a_uiSerializationFlag, vector<data>& a_Data);
     virtual void    uncache();
-    virtual void    restore(uint a_uiSerializationFlag);
+    virtual void    restore(uint a_uiSerializationFlag, vector<data>& a_Data);
     virtual void    unbuild();
     virtual void    configure();
     virtual void    unconfigure();

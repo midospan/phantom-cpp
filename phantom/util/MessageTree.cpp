@@ -16,7 +16,7 @@ o_namespace_begin(phantom)
 //================================================
 
 MessageTree::MessageTree() 
-: m_pRootMessage(o_new(Message)(Message::e_Type_Information))
+: m_pRootMessage(o_new(Message))
 {
     m_pRootMessage->setMessageTree(this);
 }

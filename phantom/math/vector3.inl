@@ -38,6 +38,15 @@ inline vector3<t_Ty>& vector3<t_Ty>::operator= (const vector3<t_Ty>& vec)
 	return *this;
 }
 
+template<class t_Ty>
+inline vector3<t_Ty>& vector3<t_Ty>::operator= (t_Ty s)
+{
+    m[0] = s;
+    m[1] = s;
+    m[2] = s;
+    return *this;
+}
+
 
 template<class t_Ty>
 inline vector3<t_Ty> vector3<t_Ty>::operator+ (const vector3<t_Ty>& vec) const

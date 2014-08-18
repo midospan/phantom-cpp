@@ -3,14 +3,15 @@
 #include "VariableWidget.h"
 #include "VariableWidgetEditor.h"
 #include "VariableAction.h"
-#include "VariableManager.h"
+#include "VariableNode.h"
+#include "VariableModel.h"
 #include "phantom/std/string.h"
 /* *********************************************** */
 namespace phantom { namespace qt {
 
 VariableWidget::VariableWidget( VariableWidgetEditor* a_pVariableWidgetEditor, VariableEditor* a_pVariableEditor ) 
     : m_pVariableWidgetEditor(a_pVariableWidgetEditor)
-    , m_pVariable(nullptr)
+    , m_pVariableNode(nullptr)
     , m_pVariableEditor(a_pVariableEditor)
 {
     QLayout *layout = new QHBoxLayout(this);
@@ -55,26 +56,18 @@ void VariableWidget::rebuildLayout()
     setFocusProxy(m_pVariableWidgetEditor->getWidget());
 }
 
-void VariableWidget::setVariable( VariableNode* a_pVariable )
+void VariableWidget::setVariableNode( VariableNode* a_pVariableNode )
 {
-    if(m_pVariable == a_pVariable) 
+    if(m_pVariableNode == a_pVariableNode) 
         return; 
-    m_pVariable = a_pVariable;
-    m_pVariableWidgetEditor->setVariable(a_pVariable);
+    m_pVariableNode = a_pVariableNode;
+    m_pVariableWidgetEditor->setVariableNode(a_pVariableNode);
+/*
 
-    if(a_pVariable->getVariableClass()->isKindOf(typeOf<CollectionElementVariable>()))
+    if (m_pVariableNode->getRange()) 
     {
-        addVariableAction(o_new(ContainerMoveUpAction)(a_pVariable, this));
-        addVariableAction(o_new(ContainerMoveDownAction)(a_pVariable, this));
-    }
-    if(a_pVariable->getVariableClass()->isKindOf(typeOf<reflection::IteratorVariable>()))
-    {
-        addVariableAction(o_new(EraseContainerIteratorAction)(a_pVariable, this));
-    }
-    else if (a_pVariable->getRange()) 
-    {
-        addVariableAction(o_new(ResetAction)(a_pVariable, this));
-    }
+        addVariableAction(o_new(ResetAction)(m_pVariableNode, this));
+    }*/
 }
 
 }}

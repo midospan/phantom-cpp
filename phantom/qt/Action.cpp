@@ -28,13 +28,11 @@ namespace phantom { namespace qt {
         reflection::Class* pClass = classOf(this);
         if(text().isEmpty())
         {
-            string name = pClass->getMetaDataValue(getNameMetaDataIndex());
-            setText(name.empty() ? pClass->getName().c_str() : name.c_str());
+            setText(nameOf(pClass).c_str());
         }
         if(icon().isNull())
         {
-            string icon = pClass->getMetaDataValue(getIconMetaDataIndex());
-            setIcon(icon.empty() ? QIcon() : QIcon(icon.c_str()));
+            setIcon(QIcon(iconOf(pClass).c_str()));
         }
     }
 }}

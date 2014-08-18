@@ -20,8 +20,9 @@ class VariableModel;
 class VariableEditorFactory;
 class CollectionElementVariable;
 class VariableWidgetEditor;
+class VariableEditorManager;
 
-class o_qt_export VariableEditor : public QtTreePropertyBrowser, public QtAbstractPropertyManager 
+class o_qt_export VariableEditor : public QtTreePropertyBrowser 
 {
     Q_OBJECT
 
@@ -30,12 +31,12 @@ class o_qt_export VariableEditor : public QtTreePropertyBrowser, public QtAbstra
     friend class VariableModel;
 
 public:
-    typedef fastdelegate::FastDelegate< void ( VariableNode* a_pVariable, void const** a_ppValueSources ) > variable_value_set_delegate;
+    typedef fastdelegate::FastDelegate< void ( VariableEditor* a_pVariableEditor, VariableNode* a_pVariable, void const* a_ppValueSources ) > variable_value_set_delegate;
 
-    static void     defaultVariableValueSetDelegate(VariableNode* a_pVariable, void const** a_ppValueSources);
+    static void     defaultVariableValueSetDelegate(VariableEditor* a_pVariableEditor, VariableNode* a_pVariable, void const* a_pValue);
 
 public:
-    VariableEditor(VariableModel* a_pManager, const QString& variableColumnName);
+    VariableEditor(const QString& variableColumnName);
     ~VariableEditor(void);
 
 	o_initialize() {};
@@ -60,14 +61,6 @@ public:
     bool isAutoSaveStateEnabled() const { return m_bAutoSaveStateEnabled; }
     void setAutoSaveStateEnabled(bool a_bEnabled) { m_bAutoSaveStateEnabled = a_bEnabled; }
 
-    void setDataBase(serialization::DataBase* a_pDataBase);
-    serialization::DataBase* getDataBase() const { return m_pDataBase; }
-
-    void initializeProperty(QtProperty *property) {}
-    void uninitializeProperty(QtProperty *property) 
-    {
-        o_assert(getVariable(property) == nullptr);
-    }
 
     void registerProperty(QtProperty* property, VariableNode* a_pVariable);
 
@@ -82,16 +75,21 @@ public:
 
     QtProperty* getProperty(VariableNode* a_pVariable) const;
 
+protected:
+    void variableNodeExpressionsAboutToBeAssigned(VariableNode* a_pVariableNode);
+    void variableNodeExpressionsAssigned(VariableNode* a_pVariableNode);
+    void variableNodeAboutToBeAccessed(VariableNode* a_pVariableNode);
+    void variableNodeAccessed(VariableNode* a_pVariableNode);
+
 public slots:
     void refresh();
     void reedit();
-    void edit(const phantom::vector<phantom::data>& a_Data);
 
 protected:
     void init();
     virtual void updateCustomExtraColumns( QTreeWidgetItem * item, QtProperty * property );
     virtual void updateItemLook(QtBrowserItem* item);
-    QWidget* createEditor(VariableModel*a_pManager, QtProperty *property, QWidget *parent);
+    QWidget* createEditor(VariableEditor*a_pThis, QtProperty *property, QWidget *parent);
 
 protected slots:
     void createPropertyPopupMenu(const QPoint& pos);
@@ -100,6 +98,7 @@ protected slots:
     virtual void slotEditorValueChanged();
     void variableChildNodeAdded( VariableNode* a_pVariableNode );
     void variableChildNodeAboutToBeRemoved( VariableNode* a_pVariableNode );
+    void columnSectionResized(int logicalIndex, int oldSize, int newSize);
 
 signals:
     void variableAboutToBeAccessed(VariableNode* a_pVariable) ;
@@ -108,15 +107,17 @@ signals:
     void variableChanged(VariableNode* a_pVariable);
 
 protected:
-    VariableModel*                    m_pVariableModel;
-    VariableWidget*                   m_pOpenedEditor;
-    map<QtProperty*, VariableNode*> m_Variables;
-    map<VariableNode*, QtProperty*> m_Properties;
+    VariableModel*                      m_pVariableModel;
+    VariableWidget*                     m_pOpenedEditor;
+    VariableEditorManager*              m_pManager;
+    map<QtProperty*, VariableNode*>     m_Variables;
+    map<VariableNode*, QtProperty*>     m_Properties;
     vector<phantom::data>               m_EditedData;
     reflection::Type*                   m_pEditedType;
 
     QMap<reflection::Type*, reflection::Class*> m_VariableTypeToEditorClass;
     variable_value_set_delegate                 m_variable_value_set_delegate;
+    int                                 m_iUserValueColumnWidth;
     bool m_bChangingPropertyValue;
     bool m_bAutoSaveEnabled;
     bool m_bAutoSaveStateEnabled;

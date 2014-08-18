@@ -45,18 +45,28 @@ o_define_meta_type(Enum);
 
 Enum::Enum() 
     : PrimitiveType(e_enum, "", 4, 4, 0)
+    , m_pIntType(typeOf<int>())
 {
+    addReferencedElement(m_pIntType);
+}
 
+Enum::Enum( const string& a_strName, PrimitiveType* a_pIntType, bitfield a_Modifiers /*= 0*/ )
+    : PrimitiveType(e_enum, a_strName, a_pIntType->getSize(), a_pIntType->getAlignment(), a_Modifiers)
+    , m_pIntType(a_pIntType)
+{
+    addReferencedElement(m_pIntType);
 }
 
 Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) 
     : PrimitiveType(e_enum, a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+    , m_pIntType(nullptr)
 {
 
 }
 
 Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) 
     : PrimitiveType(e_enum, a_strName, a_uiSize, a_uiAlignment, a_uiGuid, a_Modifiers)
+    , m_pIntType(nullptr)
 {
 
 }
@@ -89,49 +99,20 @@ boolean Enum::isImplicitlyConvertibleTo( Type* a_pType ) const
 
 void Enum::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const
 {
-    o_assert(isConvertibleTo(a_pDestType));
-    if(a_pDestType->asIntegralType())
-    {
-        if(a_pDestType->getSize() == getSize())
-        {
-            memcpy(a_pDestValue, a_pSrcValue, getSize());
-        }
-        else 
-        {
-            memcpy(a_pDestValue, a_pSrcValue, std::min(getSize(), a_pDestType->getSize()));
-        }
-    }
-    else if(a_pDestType->asArithmeticType())
-    {
-        switch(getSize())
-        {
-        case 1:
-            extension::converter<byte>::convert(a_pDestType, a_pDestValue, (byte const*)a_pSrcValue);
-            break;
-        case 2:
-            extension::converter<ushort>::convert(a_pDestType, a_pDestValue, (ushort const*)a_pSrcValue);
-            break;
-        case 4:
-            extension::converter<uint>::convert(a_pDestType, a_pDestValue, (uint const*)a_pSrcValue);
-            break;
-        case 8:
-            extension::converter<ulonglong>::convert(a_pDestType, a_pDestValue, (ulonglong const*)a_pSrcValue);
-            break;
-        default:
-            o_assert(false, "invalid size for enum type");
-        }
-    }
+    m_pIntType->convertValueTo(a_pDestType, a_pDestValue, a_pSrcValue);
 }
 
 void Enum::addConstant( NumericConstant* a_pConstant )
 {
     o_assert(getConstant(a_pConstant->getName()) == nullptr);
+    o_assert(a_pConstant->getValueType() == this);
     addElement(a_pConstant);
 }
 
 void Enum::removeConstant( NumericConstant* a_pConstant )
 {
     o_assert(getConstant(a_pConstant->getName()) != nullptr);
+    o_assert(a_pConstant->getValueType() == this);
     removeElement(a_pConstant);
 }
 
@@ -143,7 +124,7 @@ NumericConstant* Enum::getConstant( const string& a_strKey ) const
     {
         if((*it)->getName() == a_strKey) return *it;
     }
-    return NULL;
+    return nullptr;
 }
 
 void Enum::valueFromString( const string& a_strIn, void* a_pDest ) const
@@ -173,7 +154,7 @@ void Enum::valueToString( string& a_strOut, const void* a_pSrc ) const
         pConstant->getValue(&constantValue);
         if(constantValue == *((size_t*)a_pSrc))
         {
-            a_strOut = pConstant->getName();
+            a_strOut = m_pOwner ? m_pOwner->getQualifiedName() + "::" + pConstant->getName() : pConstant->getName();
             return;
         }
     }

@@ -41,14 +41,27 @@ o_registerN((phantom, reflection), ArrayElementAccess);
 o_namespace_begin(phantom, reflection) 
 
 ArrayElementAccess::ArrayElementAccess( ArrayType* a_pArrayType, Expression* a_pLeftExpression, Expression* a_pIndexExpression) 
-    : Expression(a_pArrayType->getElementType(), a_pLeftExpression->getName()+'['+a_pIndexExpression->getName()+']', a_pLeftExpression->getModifiers())
+    : Expression(a_pArrayType->getElementType()->referenceType(), "("+a_pLeftExpression->getName()+")["+a_pIndexExpression->getName()+']', a_pLeftExpression->getModifiers())
     , m_pArrayType(a_pArrayType)
     , m_pLeftExpression(a_pLeftExpression)
     , m_pIndexExpression(a_pIndexExpression)
 {
-    o_assert(a_pLeftExpression->isDereferenceable());
-    addElement(m_pLeftExpression->asConstant());
+    if(NOT(m_pLeftExpression->hasEffectiveAddress()))
+        setInvalid();
+    addElement(m_pLeftExpression);
     addReferencedElement(m_pArrayType);
+}
+
+ArrayElementAccess::ArrayElementAccess(ConstType* a_pConstArrayType, Expression* a_pLeftExpression, Expression* a_pIndexExpression)
+    : Expression(a_pConstArrayType->getConstedType()->asArrayType()->getElementType()->constType()->referenceType(), "("+a_pLeftExpression->getName()+")["+a_pIndexExpression->getName()+']', a_pLeftExpression->getModifiers())
+    , m_pArrayType(a_pConstArrayType->getConstedType()->asArrayType())
+    , m_pLeftExpression(a_pLeftExpression)
+    , m_pIndexExpression(a_pIndexExpression)
+{
+    if(NOT(a_pLeftExpression->hasEffectiveAddress()))
+        setInvalid();
+    addElement(m_pLeftExpression->asConstant());
+    addReferencedElement(a_pConstArrayType);
 }
 
 void ArrayElementAccess::referencedElementRemoved( LanguageElement* a_pElement )
@@ -56,6 +69,11 @@ void ArrayElementAccess::referencedElementRemoved( LanguageElement* a_pElement )
     Expression::referencedElementRemoved(a_pElement);
     if(m_pArrayType == a_pElement)
         m_pArrayType = nullptr;
+}
+
+ArrayElementAccess* ArrayElementAccess::clone() const
+{
+    return o_new(ArrayElementAccess)(m_pArrayType, m_pLeftExpression->clone(), m_pIndexExpression->clone());
 }
 
 o_namespace_end(phantom, reflection)

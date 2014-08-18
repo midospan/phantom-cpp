@@ -77,9 +77,9 @@ Trashbin* DataBase::getTrashbin() const
 	return m_pTrashbin;
 }
 
-void DataBase::setTrashbin(Trashbin* a_pTrashbin)
+Trashbin* DataBase::addTrashbin(const string& a_strUrl)
 {
-	m_pTrashbin = a_pTrashbin;
+	return (m_pTrashbin = createTrashBin(a_strUrl));
 }
 
 void            DataBase::moveNode(Node* a_pNode, Node* a_pNewParent)
@@ -115,51 +115,6 @@ void            DataBase::moveData(const phantom::data& a_Data, Node* a_pNewOwne
     o_emit dataMoved(a_Data, pOldOwnerNode, a_pNewOwnerNode);
 }
 
-void DataBase::addDataToTrashbin(const phantom::data& a_Data)
-{
-	o_assert(m_pTrashbin);
-
-	Node* pNode = getNode(a_Data);
-	uint uiGuid = getGuid(a_Data);
-	m_pTrashbin->addData(a_Data, pNode, uiGuid);
-	pNode->removeData(a_Data);
-}
-
-void DataBase::removeDataFromTrashbin(uint a_uiGuid)
-{
-	o_assert(m_pTrashbin);
-
-	phantom::data d = m_pTrashbin->getDataByGuid(a_uiGuid);
-	Node* pNode = m_pTrashbin->getNodeOf(d);
-	m_pTrashbin->removeDataByGuid(a_uiGuid);
-	pNode->addData(d, a_uiGuid);
-}
-
-void DataBase::addNodeToTrashbin(Node* a_pNode)
-{
-	o_assert(m_pTrashbin);
-
-	Node* pParentNode = a_pNode->getParentNode();
-	uint uiGuid = a_pNode->getGuid();
-	m_pTrashbin->addNode(a_pNode, pParentNode, uiGuid);
-	a_pNode->unload();
-	pParentNode->removeChildNode(a_pNode);
-}
-
-void DataBase::removeNodeFromTrashbin(uint a_uiGuid)
-{
-	o_assert(m_pTrashbin);
-
-	Node* pNode = m_pTrashbin->getNodeByGuid(a_uiGuid);	
-	Node* pParentNode = m_pTrashbin->getNodeOf(pNode);	
-	pParentNode->addChildNode(pNode, a_uiGuid);
-	pParentNode->getOwnerDataBase()->setNodeAttributeValue(pNode, pParentNode->getOwnerDataBase()->getAttributeIndex("name"), "Node");
-	pNode->saveAttributes();
-	pNode->load();
-
-	m_pTrashbin->removeNodeByGuid(a_uiGuid);	
-}
-
 void DataBase::registerData( const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode )
 {
     o_assert(hasDataEntry(a_Data, a_Guid, a_pOwnerNode), "Data must have an entry created to be registered");
@@ -188,7 +143,6 @@ void DataBase::registerData( const phantom::data& a_Data, uint a_Guid, Node* a_p
 void DataBase::unregisterData( const phantom::data& a_Data )
 {
     o_assert(isDataRegistered(a_Data.address()), "Data not registered");
-    unregisterSubDataOwner(a_Data);
     m_uiLoadedDataSize -= a_Data.type()->getSize();
     m_uiLoadedDataResetSize -= a_Data.type()->getResetSize();
     m_uiLoadedDataSerializedSize -= a_Data.type()->getSerializedSize();
@@ -250,31 +204,30 @@ void DataBase::unregisterNode( Node* a_pNode )
         m_AttributeValues.erase(found);
     }
     o_assert(a_pNode->getParentNode(), "Node should have a parent");
-    Node* pOldParent = a_pNode->getParentNode();
-    pOldParent->eraseNode(a_pNode);
 }
 
-Node* DataBase::createNewNode( Node* a_pParentNode )
+Node* DataBase::internalAddNewNode( Node* a_pParentNode )
 {
-    uint guid = generateGuid();
-    Node* pNewNode = createNode(guid, a_pParentNode);
-    createNodeEntry(pNewNode);
-    registerNode(pNewNode);
-    pNewNode->save();
-    o_emit nodeAdded(pNewNode, a_pParentNode);
+    return internalAddNewNode(generateGuid(), a_pParentNode);
+}
+
+Node* DataBase::internalAddNewNode( uint a_uiGuid, Node* a_pParentNode )
+{
+    Node* pNewNode = createNode(a_uiGuid, a_pParentNode);
+    internalAddNode(pNewNode, a_uiGuid, a_pParentNode);
     return pNewNode;
 }
 
-void DataBase::addNode( Node* a_pNode, Node* a_pParentNode, uint a_uiGuid )
+void DataBase::internalAddNode( Node* a_pNode, uint a_uiGuid, Node* a_pParentNode )
 {
-	a_pParentNode->storeNode(a_pNode);
 	createNodeEntry(a_pNode);	
 	registerNode(a_pNode);
 	a_pNode->save();
 	o_emit nodeAdded(a_pNode, a_pParentNode);
 }
+/*
 
-void DataBase::deleteNode( Node* a_pNode )
+void DataBase::internalDeleteNode( Node* a_pNode )
 {
     o_emit nodeAboutToBeRemoved(a_pNode, a_pNode->getParentNode());
     uint guid = getGuid(a_pNode);
@@ -283,17 +236,7 @@ void DataBase::deleteNode( Node* a_pNode )
     destroyNodeEntry(a_pNode);
     destroyNode(a_pNode);
     releaseGuid(guid);
-}
-
-void DataBase::removeNode( Node* a_pNode )
-{
-	o_emit nodeAboutToBeRemoved(a_pNode, a_pNode->getParentNode());
-	uint guid = getGuid(a_pNode);
-	o_assert(guid != 0xFFFFFFFF);
-	destroyNodeEntry(a_pNode);
-	unregisterNode(a_pNode);
-	releaseGuid(guid);
-}
+}*/
 
 void DataBase::replaceDataInfo( const phantom::data& a_Old, const phantom::data& a_New )
 {
@@ -314,17 +257,17 @@ void DataBase::replaceDataInfo( const phantom::data& a_Old, const phantom::data&
     // Owner data
     {
         // Replace sub data entry
-        auto found = m_SubDataOwnerMap.find(a_Old.address());
-        if(found != m_SubDataOwnerMap.end())
+        auto found = m_ComponentDataOwnerMap.find(a_Old.address());
+        if(found != m_ComponentDataOwnerMap.end())
         {
             data oldOwner = found->second;
-            m_SubDataOwnerMap.erase(found);
-            m_SubDataOwnerMap[a_New.address()] = oldOwner;
+            m_ComponentDataOwnerMap.erase(found);
+            m_ComponentDataOwnerMap[a_New.address()] = oldOwner;
         }
 
         // Replace owner data entry
-        auto it = m_SubDataOwnerMap.begin();
-        auto end = m_SubDataOwnerMap.end();
+        auto it = m_ComponentDataOwnerMap.begin();
+        auto end = m_ComponentDataOwnerMap.end();
         for(;it!=end;++it)
         {
             if(it->second.address() == a_Old.address())
@@ -367,12 +310,12 @@ reflection::Type* DataBase::solveTypeById(uint id) const
         : nullptr;
 }
 
-void DataBase::clearDataReference( const phantom::data& a_data )
+void DataBase::clearDataReference( const phantom::data& a_data, vector<reflection::Expression*>* a_pRestoreReferenceExpressions )
 {
     vector<void*> layout;
     phantom::rttiLayoutOf(a_data.address(), layout, 0);
     if(layout.empty()) layout.push_back(a_data.address());
-    rootNode()->clearDataReferenceCascade(layout);
+    rootNode()->clearDataReferenceCascade(layout, a_pRestoreReferenceExpressions);
 }
 
 void DataBase::replaceDataReference( const phantom::data& a_old, const phantom::data& a_New ) 
@@ -449,9 +392,9 @@ void DataBase::rebuildAllData( reflection::Type* a_pOld, reflection::Type* a_pNe
         {
             phantom::data newData = it->second;
             // Check if the sub data interface is still present
-            if(NOT(getSubDataOwner(newData).isNull()))
+            if(NOT(getComponentDataOwner(newData).isNull()))
             {
-                if(m_pSubDataManager->getCollectionContainingData(newData) == nullptr)
+                if(m_pComponentDataManager->getCollectionContainingData(newData) == nullptr)
                 {
                     subDataWhichHaveLostOwnership.push_back(newData);
                 }
@@ -481,7 +424,7 @@ void DataBase::rebuildAllData( reflection::Type* a_pOld, reflection::Type* a_pNe
     }
 
     // Ensure we have sub data first and their owners after
-    sortSubDataFirst(subDataWhichHaveLostOwnership.begin(), subDataWhichHaveLostOwnership.end());
+    sortComponentDataFirst(subDataWhichHaveLostOwnership.begin(), subDataWhichHaveLostOwnership.end());
 
     // Sixth and last pass : erase sub data owner info for data having lost ownership
     {
@@ -490,7 +433,7 @@ void DataBase::rebuildAllData( reflection::Type* a_pOld, reflection::Type* a_pNe
         for(;it!=end;++it)
         {
             o_emit subDataOwnershipLost(*it);
-            m_SubDataOwnerMap.erase(it->address());
+            m_ComponentDataOwnerMap.erase(it->address());
         }
     }
 
@@ -620,7 +563,8 @@ void DataBase::replaceTypes( const map<reflection::Type*, reflection::Type*>& re
             Node* pNode = getNode(d);
             if(pNode) // Data could not exist anymore due to component removal
             {
-                pNode->addDataComponents(d);
+                o_assert(false); // REIMPLEMENT THIS PART
+                //pNode->addComponentData(d);
             }
         }
     }
@@ -700,9 +644,9 @@ void DataBase::terminate()
     }
 }
 
-reflection::Collection* DataBase::getCollectionContainingSubData( const phantom::data& d ) const
+reflection::Collection* DataBase::getCollectionContainingComponentData( const phantom::data& d ) const
 {
-    phantom::data ownerData = getSubDataOwner(d);
+    phantom::data ownerData = getComponentDataOwner(d);
     if(ownerData.isNull())
         return nullptr;
 
@@ -850,6 +794,12 @@ const string* DataBase::getNodeAttributeValues( Node* a_pNode ) const
     return found != m_AttributeValues.end() ? found->second : NULL;
 }
 
+const string* DataBase::getAttributeValues( void* a_pAddress ) const
+{
+    attribute_map::const_iterator found = m_AttributeValues.find(a_pAddress);
+    return found != m_AttributeValues.end() ? found->second : NULL;
+}
+
 void DataBase::setDataAttributeValue( const phantom::data& a_Data, size_t attributeIndex, const string& value )
 {
     o_assert(attributeIndex < getAttributeCount());
@@ -900,19 +850,20 @@ const string& DataBase::getAttributeName( size_t attributeIndex ) const
     return m_AttributeNames[attributeIndex];
 }
 
-void DataBase::registerSubDataOwner( const data& a_Data, const data& a_Owner )
+void DataBase::registerComponentData( const data& a_Data, const data& a_Owner, const string& a_ReferenceExpression )
 {
-    o_assert(m_SubDataOwnerMap.find(a_Data.address()) == m_SubDataOwnerMap.end());
-    m_SubDataOwnerMap[a_Data.address()] = a_Owner;
+    o_assert(m_ComponentDataOwnerMap.find(a_Data.address()) == m_ComponentDataOwnerMap.end());
+    o_assert(m_ComponentReferenceExpressionMap.find(a_Data.address()) == m_ComponentReferenceExpressionMap.end());
+    m_ComponentDataOwnerMap[a_Data.address()] = a_Owner;
+    m_ComponentReferenceExpressionMap[a_Data.address()] = a_ReferenceExpression;
 }
 
-void DataBase::unregisterSubDataOwner( const data& a_Data )
+void DataBase::unregisterComponentData( const data& a_Data )
 {
-    sub_data_owner_map::iterator found = m_SubDataOwnerMap.find(a_Data.address());
-    if(found != m_SubDataOwnerMap.end())
-    {
-        m_SubDataOwnerMap.erase(found);
-    }
+    o_assert(m_ComponentDataOwnerMap.find(a_Data.address()) != m_ComponentDataOwnerMap.end());
+    o_assert(m_ComponentReferenceExpressionMap.find(a_Data.address()) != m_ComponentReferenceExpressionMap.end());
+    m_ComponentDataOwnerMap.erase(a_Data.address());
+    m_ComponentReferenceExpressionMap.erase(a_Data.address());
 }
 
 void DataBase::saveData( const phantom::data& a_Data )
@@ -965,6 +916,45 @@ void DataBase::replaceType( reflection::Type* a_pOld, reflection::Type* a_pNew, 
     map<reflection::Type*, reflection::Type*> pair;
     pair[a_pOld] = a_pNew;
     replaceTypes(pair, a_uiCurrentState);
+}
+
+void DataBase::internalAddNewData( const phantom::data& a_Data, uint a_uiGuid, Node* a_pOwnerNode )
+{
+    createDataEntry(a_Data, a_uiGuid, a_pOwnerNode);
+    internalAddData(a_Data, a_uiGuid, a_pOwnerNode);
+}
+
+void DataBase::internalAddData( const phantom::data& a_Data, uint a_uiGuid, Node* a_pOwnerNode )
+{
+    registerData(a_Data, a_uiGuid, a_pOwnerNode);
+    o_emit dataAdded(a_Data, a_pOwnerNode);
+}
+
+void DataBase::internalRemoveData( const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode )
+
+{
+    // Ensure clearing/dereferencing in other data
+    clearDataReference(a_Data);
+
+    o_emit dataAboutToBeRemoved(a_Data, a_pOwnerNode);
+    unregisterData(a_Data);
+    destroyDataEntry(a_Data, a_Guid, a_pOwnerNode);
+    releaseGuid(a_Guid);
+}
+
+void DataBase::internalRemoveNode( Node* a_pNode, uint a_uiGuid, Node* a_pParentNode )
+{
+    o_assert(a_uiGuid != 0xFFFFFFFF);
+
+    o_emit nodeAboutToBeRemoved(a_pNode, a_pParentNode);
+    unregisterNode(a_pNode);
+    destroyNodeEntry(a_pNode);
+    releaseGuid(a_uiGuid);
+}
+
+Node* DataBase::getNode( uint a_uiGuid ) const
+{
+    return as<Node*>(m_GuidBase.getData(a_uiGuid).address());
 }
 
 o_namespace_end(phantom, serialization)

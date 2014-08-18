@@ -48,6 +48,11 @@ o_namespace_begin(phantom, reflection)
 
 class SourceFile;
 
+class o_export Extension
+{
+    
+};
+
 class o_export LanguageElement
 {
     friend class ClassType;
@@ -106,11 +111,12 @@ public:
     virtual Collection*                 asCollection() const { return nullptr; }
     virtual Constant*                   asConstant() const { return nullptr; }
     virtual Constructor*                asConstructor() const { return nullptr; }
-    virtual Type*                       asConstType() const { return nullptr; }
+    virtual ConstType*                  asConstType() const { return nullptr; }
     virtual ContainerClass*             asContainerClass() const { return nullptr; }
     virtual DataMember*                 asDataMember() const { return nullptr; }
     virtual DataPointerType*            asDataPointerType() const { return nullptr; }
     virtual Enum*                       asEnum() const { return nullptr; }
+    virtual Evaluable*                  asEvaluable() const { return nullptr; }
     virtual state::Event*               asEvent() const { return nullptr; }
     virtual Expression*                 asExpression() const { return nullptr; }
     virtual ClassExtension*             asClassExtension() const { return nullptr; }
@@ -124,6 +130,7 @@ public:
     virtual MapContainerClass*          asMapContainerClass() const { return nullptr; }
     virtual MemberFunction*             asMemberFunction() const { return nullptr; }
     virtual Namespace*                  asNamespace() const { return nullptr; }
+    virtual PrimitiveType*              asNullptrType() const { return nullptr; }
     virtual NumericConstant*            asNumericConstant() const { return nullptr; }
     virtual Type*                       asPOD() const { return nullptr; }
     virtual PointerType*                asPointerType() const { return nullptr; }
@@ -138,11 +145,11 @@ public:
     virtual InstanceMemberFunction*     asSlot() const  { return nullptr; }
     virtual state::State*               asState() const { return nullptr; }
     virtual state::StateMachine*        asStateMachine() const { return nullptr; }
+    virtual Statement*                  asStatement() const { return nullptr; }
     virtual StaticDataMember*           asStaticDataMember() const  { return nullptr; }
     virtual StaticMemberFunction*       asStaticMemberFunction() const { return nullptr; }
     virtual StaticVariable*             asStaticVariable() const  { return nullptr; }
     virtual Subroutine*                 asSubroutine() const { return nullptr; }
-    virtual SubValueMember*             asSubValueMember() const { return nullptr; }
     virtual state::Track*               asTrack() const { return nullptr; }
     virtual Template*                   asTemplate() const { return nullptr; }
     virtual TemplateElement*            asTemplateElement() const { return nullptr; }
@@ -150,8 +157,13 @@ public:
     virtual Type*                       asType() const { return nullptr; }
     virtual ValueMember*                asValueMember() const { return nullptr; }
     virtual Variable*                   asVariable() const  { return nullptr; }
-    virtual AddressableVariable*                asAddressableVariable() const  { return nullptr; }
+    virtual VirtualMemberFunctionTable* asVirtualMemberFunctionTable() const { return nullptr; }
 
+    void                                setInvalid() { m_Modifiers |= o_invalid; }
+    bool                                isInvalid() const ;
+    virtual bool                        isDeclared() const { return true; }
+    virtual bool                        isDefined() const { return true; }
+    virtual bool                        isLinked() const { return true; }
     virtual bool                        isMemberPointerType() const { return false; }
     virtual bool                        isFunctionPointerType() const { return false; }
     virtual bool                        isDataMemberPointerType() const { return false; }
@@ -170,8 +182,7 @@ public:
     o_forceinline bool                  isVirtual() const { return ((m_Modifiers & o_virtual) == o_virtual); }
     o_forceinline bool                  isConst() const { return ((m_Modifiers & o_const) == o_const); }
 
-    virtual boolean                     isNative() const { return false ; }
-    virtual boolean                     isRuntime() const { return false; }
+    virtual boolean                     isNative() const;
    
 
     virtual boolean                     isCustom() const { return false; }
@@ -184,14 +195,9 @@ public:
                                             , const vector<LanguageElement*>*
                                             , bitfield a_Modifiers = 0) const;
 
-    virtual LanguageElement*            solveBracketOperator(Expression* a_pExpression) const
-    {
-        return nullptr;
-    }
-
-    virtual LanguageElement*            solveParenthesisOperator(const vector<LanguageElement*>& a_Signature) const
-    {
-        return nullptr;
+    virtual Expression*                 solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const 
+    { 
+        return nullptr; 
     }
 
     void getElementsCascade(vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
@@ -212,6 +218,12 @@ public:
     const CodeLocation& getCodeLocation() const 
     { 
         return getCodeLocation(0);
+    }
+
+    void setCodeLocation(const CodeLocation& a_Location)
+    {
+        if(m_CodeLocations == nullptr) addCodeLocation(a_Location);
+        else (*m_CodeLocations)[0] = a_Location;
     }
 
     const CodeLocation& getCodeLocation(size_t index) const;
@@ -242,10 +254,26 @@ public:
 
     virtual bool    equals(LanguageElement* a_pOther) const { return this == a_pOther; }
 
+    virtual variant compile(Compiler* a_pCompiler);
+
+    virtual LanguageElement* hatch() { return this; }
+
+    Extension*  getExtension() const { return m_pExtension; }
+
+    void        setExtension(Extension* a_pExtension) { m_pExtension = a_pExtension; }
+
+    void        setLanguage(Language* a_pLanguage) { o_assert(a_pLanguage); m_pLanguage = a_pLanguage; }
+    Language*   getLanguage() const { return m_pLanguage; }
+
+    virtual Block* getBlock() const;
+
 protected:
     void setGuid(uint a_uiGuid);
     void setName(const string& a_strName) { m_strName = a_strName; }
-    
+    void setOwner(LanguageElement* a_pOwner);
+    void internalAncestorChanged(LanguageElement* a_pOwner);
+    virtual void ancestorChanged(LanguageElement* a_pOwner);
+
 protected:
     void setModule(Module* a_pModule);
     virtual void moduleChanged(Module* a_pModule);
@@ -262,19 +290,21 @@ protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
-    string              m_strName;
-    vector<LanguageElement*>* m_pElements;
-    vector<LanguageElement*>* m_pReferencingElements;
-    vector<LanguageElement*>* m_pReferencedElements;
-    vector<CodeLocation>*   m_DeclarationCodeLocations;
-    vector<CodeLocation>*   m_ReferenceCodeLocations;
-    vector<CodeLocation>*   m_CodeLocations;
-    LanguageElement*    m_pOwner;
-    TemplateSpecialization* m_pTemplateSpecialization;
-    uint                m_uiGuid;
-    bitfield            m_Modifiers;
-    mutable string*     m_pMetaData;
-    Module*             m_pModule;
+    string                      m_strName;
+    Language*                   m_pLanguage;
+    vector<LanguageElement*>*   m_pElements;
+    vector<LanguageElement*>*   m_pReferencingElements;
+    vector<LanguageElement*>*   m_pReferencedElements;
+    vector<CodeLocation>*       m_DeclarationCodeLocations;
+    vector<CodeLocation>*       m_ReferenceCodeLocations;
+    vector<CodeLocation>*       m_CodeLocations;
+    LanguageElement*            m_pOwner;
+    Extension*                  m_pExtension;
+    TemplateSpecialization*     m_pTemplateSpecialization;
+    uint                        m_uiGuid;
+    bitfield                    m_Modifiers;
+    mutable string*             m_pMetaData;
+    Module*                     m_pModule;
 
 };
 

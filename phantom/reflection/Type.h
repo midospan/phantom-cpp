@@ -55,13 +55,13 @@ public:
 
     enum ERelation
     {
-        eRelation_None = 0,
-        eRelation_Equal,
-        eRelation_Child ,
-        eRelation_Parent ,
-        eRelation_Compatible ,
-        eRelation_GenericContentChild,
-        eRelation_GenericContentParent,
+        e_Relation_None = 0,
+        e_Relation_Equal,
+        e_Relation_Child ,
+        e_Relation_Parent ,
+        e_Relation_Compatible ,
+        e_Relation_GenericContentChild,
+        e_Relation_GenericContentParent,
     };
 
     class o_export alignment
@@ -126,7 +126,7 @@ public:
     o_forceinline size_t    getBuildOrder() const { return m_uiBuildOrder; }
     virtual boolean         isSerializable() const { return isDefaultInstanciable(); }
     virtual bool            isDefaultConstructible() const { return (m_Modifiers & o_no_default_constructor) == 0; }
-    bool                    isDefaultInstanciable() const { return NOT(isAbstract()) AND isDefaultConstructible(); }
+    virtual bool            isDefaultInstanciable() const { return NOT(isAbstract()) AND isDefaultConstructible(); }
     virtual boolean         isKindOf(Type* a_pType) const { return this == a_pType; }
     virtual Type*           asType() const { return const_cast<Type*>(this); }
     virtual TemplateElement*asTemplateElement() const { return const_cast<Type*>(this); }
@@ -138,10 +138,35 @@ public:
     virtual void*           cast(Type* a_pTargetType, void* a_pSrc) const { return a_pTargetType == this ? a_pSrc : NULL; }
 
     /// Allocation
-    virtual void*           allocate() const = 0;
-    virtual void*           allocate(size_t a_uiCount) const = 0;
-    virtual void            deallocate(void* a_pAddress) const = 0;
-    virtual void            deallocate(void* a_pAddress, size_t a_uiCount) const = 0;
+
+    virtual void*           allocate() const
+    {
+        // allocate m_uiSize bytes
+        void* memory = o_dynamic_pool_allocate(m_uiSize);
+
+        // initialize memory to 0xdadadadada.... to recognize it
+        memset(memory, 0xda, m_uiSize);
+        return memory;
+    }
+
+    virtual void            deallocate(void* a_pInstance) const
+    {
+        o_dynamic_pool_deallocate(a_pInstance, m_uiSize);
+    }
+
+    virtual void*           allocate(size_t a_uiCount) const
+    {
+        void* pAllocation = o_dynamic_pool_allocate_n(a_uiCount, m_uiSize); 
+
+        // initialize memory to 0xdadadadada.... to recognize it
+        memset(pAllocation, 0xda, m_uiSize*a_uiCount);
+        return pAllocation;
+    }
+
+    virtual void            deallocate(void* a_pChunk, size_t a_uiCount) const
+    {
+        o_dynamic_pool_deallocate_n(a_pChunk, a_uiCount, m_uiSize);
+    }
 
 #if o__bool__enable_allocation_statistics
     virtual void*           allocate(o_memory_stat_insert_parameters) const { return allocate(); }
@@ -151,12 +176,12 @@ public:
 #endif
 
     /// Construction
-    virtual void            construct(void* a_pBuffer) const = 0;
-    virtual void            construct(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const = 0;
+    virtual void            construct(void* a_pBuffer) const {}
+    virtual void            construct(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const;
     virtual void            safeConstruct(void* a_pBuffer) const  { construct(a_pBuffer); }
     virtual void            safeConstruct(void* a_pBuffer, size_t a_uiCount, size_t a_uiChunkSectionSize) const { construct(a_pBuffer, a_uiCount, a_uiChunkSectionSize); }
-    virtual void            destroy(void* a_pBuffer) const  = 0;
-    virtual void            destroy(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const = 0;
+    virtual void            destroy(void* a_pBuffer) const {}
+    virtual void            destroy( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const;
 
     /// Build (Construction by default (+ installation for classes))
     virtual void            build(void* a_pBuffer, size_t a_uiLevel = 0) const { construct(a_pBuffer); }
@@ -166,15 +191,15 @@ public:
 
     /// Installation (for classes but implemented in Type and empty to make it more generic
     virtual void            install(void* a_pBuffer, size_t a_uiLevel = 0) const { }
-    virtual void            install(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) {}
+    virtual void            install(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const;
     virtual void            uninstall(void* a_pBuffer, size_t a_uiLevel = 0) const { }
-    virtual void            uninstall(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) {}
+    virtual void            uninstall(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const;
 
     /// Initialization (for classes but implemented in Type and empty to make it more generic
     virtual void            initialize(void* a_pBuffer) const { }
-    virtual void            initialize(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) {}
+    virtual void            initialize(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const;
     virtual void            terminate(void* a_pBuffer) const { }
-    virtual void            terminate(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) {}
+    virtual void            terminate(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const;
 
     /// Setup (Construction by default (+ installation + initialization for classes))
     virtual void            setup(void* a_pBuffer, size_t a_uiLevel = 0) const { construct(a_pBuffer); }
@@ -184,18 +209,18 @@ public:
     virtual void            teardown(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const { destroy(a_pChunk, a_uiCount, a_uiChunkSectionSize); }
 
     /// Serialization
-    virtual void            serialize(void const* a_pInstance, byte*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-    virtual void            serialize(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-    virtual void            serialize(void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-    virtual void            serialize(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
+    virtual void            serialize(void const* a_pInstance, byte*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
+    virtual void            serialize(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
+    virtual void            serialize(void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
+    virtual void            serialize(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
     virtual void            serializeLayout(void const* a_pInstance, byte*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { serialize(a_pInstance, a_pBuffer, a_uiSerializationMask, a_pDataBase); }
     virtual void            serializeLayout(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { serialize(a_pInstance, a_uiCount, a_uiChunkSectionSize, a_pBuffer, a_uiSerializationMask, a_pDataBase); }
     virtual void            serializeLayout(void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { serialize(a_pInstance, a_OutBranch, a_uiSerializationMask, a_pDataBase); }
     virtual void            serializeLayout(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { serialize(a_pInstance, a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase); }
-    virtual void            deserialize(void* a_pInstance, byte const*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-    virtual void            deserialize(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-    virtual void            deserialize(void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-    virtual void            deserialize(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
+    virtual void            deserialize(void* a_pInstance, byte const*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
+    virtual void            deserialize(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
+    virtual void            deserialize(void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
+    virtual void            deserialize(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
     virtual void            deserializeLayout(void* a_pInstance, byte const*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { deserialize(a_pInstance, a_pBuffer, a_uiSerializationMask, a_pDataBase); }
     virtual void            deserializeLayout(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { deserialize(a_pInstance, a_uiCount, a_uiChunkSectionSize, a_pBuffer, a_uiSerializationMask, a_pDataBase); }
     virtual void            deserializeLayout(void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { deserialize(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase); }
@@ -206,10 +231,10 @@ public:
     virtual restore_state   restore(void* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { return restore_complete; }
 
     /// Reset
-    virtual void            remember(void const* a_pInstance, byte*& a_pBuffer) const = 0;
-    virtual void            remember(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pBuffer) const = 0;
-    virtual void            reset(void* a_pInstance, byte const*& a_pBuffer) const = 0;
-    virtual void            reset(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer) const = 0;
+    virtual void            remember(void const* a_pInstance, byte*& a_pBuffer) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
+    virtual void            remember(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pBuffer) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
+    virtual void            reset(void* a_pInstance, byte const*& a_pBuffer) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
+    virtual void            reset(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
 
 
     /// Combination
@@ -223,23 +248,49 @@ public:
     virtual void            convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;
     virtual boolean         areValueEqual(void const* a_pSrc0, void const* a_pSrc1) const;
 
-
-    Namespace*              getNamespace() const;
-    void                    removeFromNamespace();
-
-    Type*                   getOwnerType() const;
-
-    virtual void            valueFromString(const string& a_str, void* dest) const = 0;
-    virtual void            valueToString( string& s, const void* src) const = 0;
-    virtual void            interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode = 0) const = 0;
+    virtual void            valueFromString(const string& a_str, void* dest) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
+    virtual void            valueToString( string& s, const void* src) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
+    virtual void            valueToLiteral( string& s, const void* src ) const;
+    virtual void            interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode = 0) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
     virtual void            copy(void* a_pDest, void const* a_pSrc) const { o_exception(exception::unsupported_member_function_exception, "not implemented yet"); }
     virtual void            smartCopy(void* a_pDest, void const* a_pSource, reflection::Type* a_pSourceType) const;
 
+
+    virtual LanguageElement*            solveElement(
+        const string& a_strName
+        , const vector<TemplateElement*>*
+        , const vector<LanguageElement*>*
+        , bitfield a_Modifiers = 0) const;
+
+    virtual void getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr ) const;
+
+    // Operators
+    virtual bool less(const void* a_pLHS, const void* a_pRHS) const 
+    {
+        o_assert(hasLess());
+        return false;
+    }
+    virtual Expression*     solveExpression( Expression* a_pLeftExpression
+        , const string& a_strName
+        , const vector<TemplateElement*>*
+        , const vector<LanguageElement*>*
+        , bitfield a_Modifiers = 0) const 
+    { 
+        return nullptr; 
+    }
+
+    virtual Expression*     solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const;
+
+    virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const { o_unused(a_pInstance); o_unused(a_Data); return false; }
+    virtual void            fetchPointerReferenceExpressions(Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask = 0xffffffff) const { o_unused(a_pInstanceExpression); o_unused(out); o_unused(a_uiSerializationMask); }
+
     // Traits
+    virtual bool            isCopyConstructible() const { return true; }
     virtual bool            isConvertibleTo(Type* a_pType) const;
     virtual bool            isImplicitlyConvertibleTo(Type* a_pType) const;
     virtual bool            isCopyable() const { return false; }
-    virtual bool            hasNoCopy() const { return false; }
+    virtual bool            hasNewVTable() const { return false; }
+    virtual bool            hasCopyDisabled() const { return false; }
     virtual bool            hasBitAnd() const { return false; }
     virtual bool            hasBitAndAssign() const { return false; }
     virtual bool            hasBitOr() const { return false; }
@@ -285,7 +336,14 @@ public:
 
     virtual bool            hasTrivialCastTo(Type* a_pType) const { return a_pType == this; }
 
+    virtual Type*           promote() const { return const_cast<Type*>(this); }
+
     virtual uint            getDataPointerLevel() const { return 0; }
+
+    Namespace*              getNamespace() const;
+    void                    removeFromNamespace();
+
+    Type*                   getOwnerType() const;
 
     size_t                  getNestedTypeCount() const
     {
@@ -318,50 +376,16 @@ public:
 
     Type*                   getCommonAncestor(Type* a_pType) const;
 
-    virtual LanguageElement*            solveElement(
-        const string& a_strName
-        , const vector<TemplateElement*>*
-        , const vector<LanguageElement*>*
-        , bitfield a_Modifiers = 0) const;
-
-    virtual LanguageElement*            solveBracketOperator(Expression* a_pExpression) const;
-
-    virtual LanguageElement*            solveParenthesisOperator(const vector<LanguageElement*>& a_Signature) const
-    {
-        return nullptr;
-    }
-
-    virtual void getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr ) const;
-
-    // Operators
-    virtual bool less(const void* a_pLHS, const void* a_pRHS) const 
-    {
-        o_assert(hasLess());
-        return false;
-    }
-
     DataPointerType*        getDataPointerType() const;
     ReferenceType*          getReferenceType() const;
     ArrayType*              getArrayType(size_t a_uiCount) const;
-    Type*                   getConstType() const;
+    ConstType*              getConstType() const;
 
     Type*                   pointerType(size_t a_uiPointerLevel) const;
     DataPointerType*        pointerType() const;
     ReferenceType*          referenceType() const;
     ArrayType*              arrayType(size_t a_uiCount) const;
-    Type*                   constType() const;
-
-    virtual Expression*     solveExpression( Expression* a_pLeftExpression
-        , const string& a_strName
-        , const vector<TemplateElement*>*
-        , const vector<LanguageElement*>*
-        , bitfield a_Modifiers = 0) const 
-    { 
-        return nullptr; 
-    }
-
-    virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const { o_unused(a_pInstance); o_unused(a_Data); return false; }
-    virtual void            fetchReferencedData(const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask) const { o_unused(a_pInstance); o_unused(out); o_unused(a_uiSerializationMask); }
+    ConstType*              constType() const;
 
 protected:
     virtual void            elementAdded(LanguageElement* a_pElement);
@@ -369,7 +393,7 @@ protected:
     virtual DataPointerType*createDataPointerType() const;
     virtual ReferenceType*  createReferenceType() const;
     virtual ArrayType*      createArrayType(size_t a_uiCount) const;
-    virtual Type*           createConstType() const = 0;
+    virtual ConstType*      createConstType() const;
     virtual void            moduleChanged(Module* a_pModule);
     
     void                    registerTypedef(Namespace* a_pNamespace, const string& a_strTypedefName);

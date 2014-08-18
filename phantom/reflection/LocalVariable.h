@@ -6,7 +6,9 @@
 
 
 /* ****************** Includes ******************* */
+#include <phantom/reflection/LanguageElement.h>
 /* **************** Declarations ***************** */
+o_declareN(class, (phantom, reflection), LocalVariable);
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection)
@@ -23,12 +25,12 @@ public:
     };
 
 public:
-    LocalVariable(Block* a_pBlock, reflection::Type* a_pType, const string& a_strName, const CodeLocation& a_Location, bitfield modifiers = 0);
+    LocalVariable(Type* a_pType, const string& a_strName, bitfield modifiers = 0);
 	~LocalVariable(void) 	{}
 
     virtual LocalVariable*  asLocalVariable() const { return (LocalVariable*)this; }
 
-    reflection::Type*   getValueType() const { return m_pType; }
+    reflection::Type*   getValueType() const { return m_pValueType; }
     Block*              getBlock() const;
 
     bool isAccessibleAtCodePosition(const CodePosition& position) const;
@@ -44,7 +46,8 @@ public:
     virtual LanguageElement* solveElement( const string& a_strName , const vector<TemplateElement*>* , const vector<LanguageElement*>* , bitfield a_Modifiers /*= 0*/ ) const;
 
 protected:
-    Type*   m_pType;
+    Type*   m_pValueType;
+    size_t  m_uiIndexInBlock;
     int     m_iFrameOffset;	
 };
 

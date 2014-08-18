@@ -56,7 +56,7 @@ public:
     virtual void                getValue(void* dest) const = 0;
     virtual void                setValue(const void* a_pSrc) const = 0;
     virtual reflection::Type*   getValueType() const = 0;
-    virtual void                advance(size_t offset) = 0;
+    virtual void                advance(size_t offset = 1) = 0;
 
 protected:
     

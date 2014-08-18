@@ -77,15 +77,19 @@ protected:
     o_signal_data(namespaceRemoved, Namespace*)
     o_signal_data(templateAdded, Template*)
     o_signal_data(templateRemoved, Template*)
+    o_signal_data(functionAdded, Function*)
+    o_signal_data(functionRemoved, Function*)
     //@}
 
 public:
     virtual Namespace*  asNamespace() const { return (Namespace*)this; }
     void                addType(Type* a_pType);
+    void                addFunction(Function* a_pFunction);
     void                addTemplate(Template* a_pTemplate);
     void                removeTemplate( Template* a_pTemplate );
     void                addNamespace(Namespace* a_pNamespace);
     void                removeType(Type* a_pType);
+    void                removeFunction(Function* a_pFunction);
     void                removeNamespace(Namespace* a_pNamespace);
     void                getHierarchicalName(string* a_OutString);
     void                getHierarchicalNameNoRoot(string* a_OutString);

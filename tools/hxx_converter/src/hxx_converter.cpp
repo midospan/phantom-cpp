@@ -1,6 +1,7 @@
 #ifndef hxx_converter_h__
 #define hxx_converter_h__
 #include <boost/filesystem.hpp>
+#include <set>
 
 
 const char* o_class_kwd = "o_class";
@@ -345,13 +346,128 @@ protected:
     std::vector<boost::filesystem::path> mSourceFiles;
 };
 
+class A
+{
+public:
+    virtual void methodA() {}
+};
+
+class B
+{
+public:
+    virtual void methodB() {}
+    virtual void methodBranch() {}
+};
+
+class C : public A, public B
+{
+
+};
+
+class D 
+{
+    virtual void methodD() {}
+    virtual void methodBranch() {}
+};
+
+class E : public D, public C
+{
+public:
+    virtual void methodA() 
+    { 
+        e = 2; 
+    }
+    virtual void methodD() {}
+    virtual void methodB() {}
+    virtual void methodE() {}
+    virtual void methodBranch() 
+    { 
+        e = 8; 
+    }
+
+public:
+    int e;
+};
+
+int testMethod()
+{
+    return 1;
+}
+
+int testMethodRef(const int& i)
+{
+    return i;
+}
+
+struct FirstConstructed 
+{ 
+    FirstConstructed() { printf("FirstConstructed\n"); };
+    ~FirstConstructed() { printf("~FirstConstructed\n"); };
+};
+
+struct SecondConstructed
+{ 
+    SecondConstructed() { printf("SecondConstructed\n"); };
+    ~SecondConstructed() { printf("~SecondConstructed\n"); };
+};
+
 int main(int argc, char** argv)
 {
-    if(argc == 2)
+   /* if(argc == 2)
     {
         hxx_converter tool(argv[1]);
         return 0;
+    }*/
+
+    long long c = '0';
+    unsigned long long u = '1';
+
+    int i_caca = 4;
+    int i_value = 5;
+    int& i_caca_ref = i_caca;
+    (i_value = 3) = i_caca_ref;
+
+    {
+        FirstConstructed fc;
+        SecondConstructed sc;
+
+        //auto fptr = &FirstConstructed::~FirstConstructed;
     }
+
+    while(int i = 2)
+    {
+        i++;
+    }
+    
+    testMethodRef(testMethod());
+
+    void* ptrr;
+
+    float a;
+
+    switch(int i = 0)
+    {
+
+    }
+
+    auto& r = i_value = 3;
+    r = i_caca_ref;
+    auto cu = c+u;
+    auto uc = u+c;
+
+    E* e = new E;
+    e->methodA();
+    e->methodBranch();
+
+    B* pB = e;
+    pB->methodB();
+    pB->methodBranch();
+
+    std::set<int> m_blabla;
+    m_blabla.insert(1);
+    m_blabla.insert(2);
+    m_blabla.insert(4);
+
     return 1;
 }
 

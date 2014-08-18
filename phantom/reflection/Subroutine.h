@@ -44,6 +44,8 @@
 
 o_namespace_begin(phantom, reflection)
 
+typedef fastdelegate::FastDelegate4<void*, void**, size_t, void*> closure_call_delegate;
+
 struct MemoryLocation
 {
     MemoryLocation() : m_pStart(0), m_pEnd(0) {}
@@ -132,14 +134,15 @@ protected:
 
 class o_export Subroutine : public LanguageElement
 {
-public:
+    friend class Block;
 
-
 public:
-    Subroutine(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
+    Subroutine(const string& a_strName, Signature* a_pSignature, EABI a_eABI, bitfield a_Modifiers = 0);
     o_destructor ~Subroutine();
 
     virtual void        terminate();
+
+    EABI                getABI() const { return m_eABI; }
 
     virtual Subroutine* asSubroutine() const { return const_cast<Subroutine*>(this); }
 
@@ -150,17 +153,19 @@ public:
     virtual string      getQualifiedName() const;
     virtual string      getQualifiedDecoratedName() const;
 
-    Type*               getParameterType(uint i) const { return m_pSignature->getParameterType(i); }
-    uint                getParameterCount() const { return m_pSignature->getParameterCount(); }
+    Type*               getParameterType(uint i) const { return m_pSignature ? m_pSignature->getParameterType(i) : nullptr; }
+    uint                getParameterCount() const { return m_pSignature ?m_pSignature->getParameterCount() : 0; }
 
-    Type*               getReturnType() const    {        return m_pSignature->getReturnType();    }
+    Type*               getReturnType() const    {        return m_pSignature ? m_pSignature->getReturnType() : nullptr;    }
     
     bool                matches( const string& a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatches, bitfield a_Modifiers /*= 0*/ ) const;
 
-    virtual void        call( void** a_pArgs ) const = 0;
-    virtual void        call( void** a_pArgs, void* a_pReturnAddress ) const;
-    virtual void        call( void* a_pCallerAddress, void** a_pArgs ) const = 0;
+    virtual void        call( void* a_pCallerAddress, void** a_pArgs ) const;
     virtual void        call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const;
+    virtual void        call( void** a_pArgs ) const;
+    virtual void        call( void** a_pArgs, void* a_pReturnAddress ) const;
+    
+    void                call( void** a_pArgs, size_t a_uiCount, void* a_pReturnAddress ) const;
 
     void                setMemoryLocation(const MemoryLocation& a_MemoryLocation ) { m_MemoryLocation = a_MemoryLocation; }
     const MemoryLocation& getMemoryLocation() const { return m_MemoryLocation; }
@@ -209,16 +214,30 @@ public:
         return nullptr;
     }
 
-    virtual bool        isAddressable() const { return getReturnType()->removeConst()->asReferenceType() != nullptr; }
+    virtual bool        isAddressable() const { return getReturnType() ? getReturnType()->removeConst()->asReferenceType() != nullptr : false; }
+
+    virtual void*       getClosure() const { return m_pClosure; }
+
+    void                setClosure(void* a_pClosure) 
+    { 
+        o_assert(!testModifiers(o_native));
+        m_pClosure = a_pClosure; 
+    }
+
+    size_t              getFrameSize() const { return m_uiFrameSize; }
 
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
-    vector<Instruction*>*   m_pInstructions;
-    Block*                  m_pBlock;
-    Signature*              m_pSignature;
-    MemoryLocation          m_MemoryLocation;
+    Signature*                      m_pSignature;
+    EABI                            m_eABI;
+    vector<Instruction*>*           m_pInstructions;
+    Block*                          m_pBlock;
+    MemoryLocation                  m_MemoryLocation;
+    void*                           m_pClosure;
+    closure_call_delegate           m_ClosureCallDelegate;
+    size_t                          m_uiFrameSize;
 };
 
 o_namespace_end(phantom, reflection)

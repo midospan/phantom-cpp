@@ -25,7 +25,7 @@
 #include "phantom\reflection\Member.hxx"
 #include "phantom\reflection\MemberFunction.hxx"
 #include "phantom\reflection\Namespace.hxx"
-#include "phantom\reflection\PODStruct.hxx"
+#include "phantom\reflection\Structure.hxx"
 #include "phantom\reflection\PODUnion.hxx"
 #include "phantom\reflection\PointerType.hxx"
 #include "phantom\reflection\PrimitiveType.hxx"

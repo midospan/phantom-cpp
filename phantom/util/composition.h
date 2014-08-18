@@ -14,10 +14,12 @@ template <typename t_Component>
 class composition
 {
 public:
-    typedef void* (t_Component::*owner_get_member_function_ptr)() const;
-    typedef void (t_Component::*owner_set_member_function_ptr)(void*);
     typedef vector<t_Component*> sequence_type;
     typedef t_Component component_type;
+    typedef typename sequence_type::const_iterator const_iterator;
+    typedef typename sequence_type::const_reverse_iterator const_reverse_iterator;
+    typedef void* (t_Component::*owner_get_member_function_ptr)() const;
+    typedef void (t_Component::*owner_set_member_function_ptr)(void*);
     typedef size_t (t_Component::*index_in_owner_set_member_function_ptr);
 
 public:
@@ -208,11 +210,13 @@ public:
 
     size_t count() const { return m_Components.size(); }
 
-    typename sequence_type::const_iterator begin() const { return m_Components.begin(); }
-    typename sequence_type::const_iterator end() const { return m_Components.end(); }
+    const_iterator begin() const { return m_Components.begin(); }
+    const_iterator end() const { return m_Components.end(); }
 
-    typename sequence_type::const_reverse_iterator rbegin() const { return m_Components.rbegin(); }
-    typename sequence_type::const_reverse_iterator rend() const { return m_Components.rend(); }
+    const_reverse_iterator rbegin() const { return m_Components.rbegin(); }
+    const_reverse_iterator rend() const { return m_Components.rend(); }
+
+    t_Component*    operator[](size_t i) const { return m_Components[i]; }
 
 protected:
     o_signal_data(aboutToBeInserted, size_t, t_Component*);

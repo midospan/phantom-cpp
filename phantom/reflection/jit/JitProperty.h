@@ -15,8 +15,8 @@ class o_jit_export JitProperty : public Property
 {
     friend class JitClass;
 public:
-    JitProperty(const string& a_strName, Type* a_pValueType, JitInstanceMemberFunction* a_pSetter, JitInstanceMemberFunction* a_pGetter, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers);
-    JitProperty(const string& a_strName, Type* a_pValueType, JitInstanceMemberFunction* a_pSetter, JitInstanceMemberFunction* a_pGetter, JitSignal* a_pChangeNotificationSignal, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers);
+    JitProperty(const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetter, InstanceMemberFunction* a_pGetter, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers);
+    JitProperty(const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetter, InstanceMemberFunction* a_pGetter, JitSignal* a_pChangeNotificationSignal, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers);
     ~JitProperty(void);
 
     jit_function getSetJitFunction() const { return m_set_jit_function; }

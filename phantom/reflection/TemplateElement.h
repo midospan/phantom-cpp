@@ -44,11 +44,13 @@ o_namespace_begin(phantom, reflection)
 
 class o_export TemplateElement 
 {
+public:
     friend class TemplateSpecialization;
 
     virtual TemplateElement* asTemplateElement() const = 0;
-
     virtual LanguageElement* asLanguageElement() const = 0;
+
+    virtual Type* asType() const { return asLanguageElement()->asType(); }
     virtual NumericConstant* asNumericConstant() const { return asLanguageElement()->asNumericConstant(); }
 };
 

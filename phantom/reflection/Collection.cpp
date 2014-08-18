@@ -185,7 +185,7 @@ bool Collection::referencesData(const void* a_pInstance, const phantom::data& a_
     return false;
 }
 
-void Collection::fetchReferencedData(const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask) const
+void Collection::fetchPointerReferenceExpressions(const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask) const
 {
     if((a_uiSerializationMask & m_uiSerializationMask) != 0)
     {
@@ -198,7 +198,7 @@ void Collection::fetchReferencedData(const void* a_pInstance, vector<phantom::da
             for(size_t i = 0; i<count; ++i)
             {
                 safeGetElement(a_pInstance, i, pBuffer);
-                m_pElementType->fetchReferencedData(pBuffer, out, a_uiSerializationMask);
+                //m_pElementType->fetchPointerReferenceExpressions(pBuffer, out, a_uiSerializationMask);
             }
             m_pElementType->terminate(pBuffer);
             m_pElementType->destroy(pBuffer);

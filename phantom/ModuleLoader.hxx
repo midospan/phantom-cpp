@@ -16,6 +16,9 @@ o_classN((phantom), ModuleLoader)
         o_signal(moduleDestroyed, (Module*));
         o_signal(moduleLoaded, (Module*, size_t, size_t));
         o_signal(moduleUnloaded, (Module*, size_t, size_t));
+        o_signal(elementAdded, (reflection::LanguageElement*));
+        o_signal(elementRemoved, (reflection::LanguageElement*));
+        o_signal(elementReplaced, (reflection::LanguageElement*, reflection::LanguageElement*));
     };
 };
 o_exposeN((phantom), ModuleLoader);

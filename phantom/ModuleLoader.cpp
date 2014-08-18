@@ -48,7 +48,7 @@ bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMe
     bool result = true;
     if(LoadLibrary(a_strPath.c_str()))
     {
-        if(a_pMessage) a_pMessage->success("Module loaded : %s", moduleName.c_str());
+        if(a_pMessage) a_pMessage->success(moduleName.c_str(), "Module loaded : %s", moduleName.c_str());
         o_warning(m_CurrentlyLoadedModules.size(), "No module found in the loaded library");
         m_CurrentlyLoadedModules.clear();
     }
@@ -58,7 +58,7 @@ bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMe
         DWORD dw = GetLastError(); 
         if(a_pMessage)
         {
-            if(pMessageLoadFailed == nullptr) pMessageLoadFailed = a_pMessage->error("Cannot load module : %s", moduleName.c_str());
+            if(pMessageLoadFailed == nullptr) pMessageLoadFailed = a_pMessage->error(moduleName.c_str(), "Cannot load module : %s", moduleName.c_str());
 #if o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS
             LPVOID lpMsgBuf;
 
@@ -74,7 +74,7 @@ bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMe
 
             string clampedMessage = (char*)lpMsgBuf;
             clampedMessage = clampedMessage.substr(0, clampedMessage.find_first_of("\r\n"));
-            pMessageLoadFailed->error("System DLL loading failed : %s", clampedMessage.c_str());
+            pMessageLoadFailed->error(variant(), "System DLL loading failed : %s", clampedMessage.c_str());
 
             LocalFree(lpMsgBuf);
 #endif
@@ -117,7 +117,7 @@ bool ModuleLoader::unloadLibrary( const string& a_strPath, phantom::Message* a_p
 
     if(FreeLibrary((HMODULE)pModule->getPlatformHandle()))
     {
-        if(a_pMessage) a_pMessage->success("Module unloaded : %s", moduleName.c_str());
+        if(a_pMessage) a_pMessage->success(moduleName.c_str(), "Module unloaded : %s", moduleName.c_str());
     }
     else
     {
@@ -125,7 +125,7 @@ bool ModuleLoader::unloadLibrary( const string& a_strPath, phantom::Message* a_p
         DWORD dw = GetLastError(); 
         if(a_pMessage)
         {
-            if(pMessageUnloadFailed == nullptr) pMessageUnloadFailed = a_pMessage->error("Cannot unload module : %s", moduleName.c_str());
+            if(pMessageUnloadFailed == nullptr) pMessageUnloadFailed = a_pMessage->error(moduleName.c_str(), "Cannot unload module : %s", moduleName.c_str());
 #if o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS
             LPVOID lpMsgBuf;
 
@@ -142,7 +142,7 @@ bool ModuleLoader::unloadLibrary( const string& a_strPath, phantom::Message* a_p
             string clampedMessage = (char*)lpMsgBuf;
             clampedMessage = clampedMessage.substr(0, clampedMessage.find_first_of("\r\n"));
 
-            pMessageUnloadFailed->error("System DLL unloading failed : %s", clampedMessage.c_str());
+            pMessageUnloadFailed->error(moduleName.c_str(), "System DLL unloading failed : %s", clampedMessage.c_str());
 
             LocalFree(lpMsgBuf);
 #endif
@@ -208,24 +208,27 @@ void ModuleLoader::updateReferenceCounts(const string& a_strLibPath, bool a_bLoa
                 {
                     size_t oldCount = m_LoadedModuleCounts[pModule];
                     m_LoadedModuleCounts[pModule] = entry.ProccntUsage;
-                    if(a_bLoading)
+                    if(entry.ProccntUsage != 0x0000ffff)
                     {
-                        o_assert(oldCount <= entry.ProccntUsage, "A dynamic library loading shoudn't decrement any reference counter");
-                        if((int)oldCount < entry.ProccntUsage)
+                        if(a_bLoading)
                         {
-                            m_LibraryModules[a_strLibPath][pModule] += ((size_t)entry.ProccntUsage)-oldCount;
-                            o_emit moduleLoaded(pModule, oldCount, entry.ProccntUsage);
+                            o_assert(oldCount <= entry.ProccntUsage, "A dynamic library loading shoudn't decrement any reference counter");
+                            if((int)oldCount < entry.ProccntUsage)
+                            {
+                                m_LibraryModules[a_strLibPath][pModule] += ((size_t)entry.ProccntUsage)-oldCount;
+                                o_emit moduleLoaded(pModule, oldCount, entry.ProccntUsage);
+                            }
+                        }
+                        else 
+                        {
+                            o_assert(oldCount >= entry.ProccntUsage, "A dynamic library unloading shoudn't increment any reference counter");
+                            if(oldCount > entry.ProccntUsage)
+                            {
+                                o_emit moduleUnloaded(*it, oldCount, entry.ProccntUsage);
+                            }
                         }
                     }
-                    else 
-                    {
-                        o_assert(oldCount >= entry.ProccntUsage, "A dynamic library unloading shoudn't increment any reference counter");
-                        if(oldCount > entry.ProccntUsage)
-                        {
-                            o_emit moduleUnloaded(*it, oldCount, entry.ProccntUsage);
-                        }
-                    }
-                    m_LoadedModuleCounts[*it] = entry.ProccntUsage;
+                    m_LoadedModuleCounts[*it] = entry.ProccntUsage != 0x0000ffff ? entry.ProccntUsage : 1;
                     matchingModuleCount++;
                     break;
                 }
@@ -270,8 +273,8 @@ bool Module_derivedClassHasDifferentModule(const string& moduleName, Module* a_p
                 string derivedClassModuleName = pDerivedClass->getModule()->getFileName().substr(pDerivedClass->getModule()->getFileName().find_last_of("/\\")+1) ;
                 bResult = true;
                 if(a_pMessageUnloadFailed == nullptr)
-                    a_pMessageUnloadFailed = a_pMessage->error("Cannot unload module : %s", moduleName.c_str());
-                a_pMessageUnloadFailed->error("Derived class '%s' of '%s' belongs to another loaded module '%s'", pDerivedClass->getQualifiedDecoratedName().c_str(), a_pClass->getQualifiedDecoratedName().c_str(), derivedClassModuleName.c_str());
+                    a_pMessageUnloadFailed = a_pMessage->error(moduleName.c_str(), "Cannot unload module : %s", moduleName.c_str());
+                a_pMessageUnloadFailed->error(variant(), "Derived class '%s' of '%s' belongs to another loaded module '%s'", pDerivedClass->getQualifiedDecoratedName().c_str(), a_pClass->getQualifiedDecoratedName().c_str(), derivedClassModuleName.c_str());
             }
             else return true;
         }
@@ -315,8 +318,8 @@ bool ModuleLoader::libraryCanBeUnloaded( const string& a_strPath, Message* a_pMe
                     if(a_pMessage)
                     {
                         if(pMessageUnloadFailed == nullptr) 
-                            pMessageUnloadFailed = a_pMessage->error("Cannot unload module : %s", moduleName.c_str());
-                        pMessageUnloadFailed->error("Class '%s' still have %d instances", pClass->getQualifiedDecoratedName().c_str(), pClass->getInstanceCount());
+                            pMessageUnloadFailed = a_pMessage->error(moduleName.c_str(), "Cannot unload module : %s", moduleName.c_str());
+                        pMessageUnloadFailed->error(variant(), "Class '%s' still have %d instances", pClass->getQualifiedDecoratedName().c_str(), pClass->getInstanceCount());
                     } else return false;
                 }
                 if(Module_derivedClassHasDifferentModule(moduleName, pModule, modulesAboutToBeUnloaded, pClass, pMessageUnloadFailed, a_pMessage)) 
@@ -343,7 +346,7 @@ size_t ModuleLoader::getLibraryModuleLoadCount( const string& a_strPath, Module*
 void ModuleLoader::loadMain( Message* a_pMessage /*= nullptr*/ )
 {
     m_OperationCounter++;
-    phantom::installReflection("main", "", 0);
+    phantom::installReflection("main", "", (size_t)GetModuleHandle(0));
     m_OperationCounter--;
 }
 

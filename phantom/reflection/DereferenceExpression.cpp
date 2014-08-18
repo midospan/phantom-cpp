@@ -40,33 +40,31 @@ o_registerN((phantom, reflection), DereferenceExpression);
 
 o_namespace_begin(phantom, reflection) 
     
-DereferenceExpression::DereferenceExpression( Expression* a_pDereferenceableExpression ) 
-    : Expression(a_pDereferenceableExpression->getValueType()->removePointer(), "*"+a_pDereferenceableExpression->getName())
+DereferenceExpression::DereferenceExpression( Expression* a_pDereferencedExpression ) 
+    : Expression(a_pDereferencedExpression->getValueType()->removeReference()->removeConst()->removePointer()->referenceType()
+    , "*("+a_pDereferencedExpression->getName()+")")
+    , m_pDereferencedExpression(a_pDereferencedExpression)
 {
-    addElement(a_pDereferenceableExpression);
-    o_assert(a_pDereferenceableExpression->getValueType()->asDataPointerType());
-    o_assert(a_pDereferenceableExpression->isDereferenceable());
+    o_assert(a_pDereferencedExpression->getValueType()->removeReference()->removeConst()->asDataPointerType());
+    addElement(a_pDereferencedExpression);
+    o_assert(a_pDereferencedExpression->isDereferenceable());
 }
 
 void DereferenceExpression::getValue( void* a_pDest ) const
 {
     void* pAddress = nullptr;
-    m_pDereferenceableExpression->getValue(&pAddress);
-    m_pValueType->copy(a_pDest, pAddress);
+    m_pDereferencedExpression->load(&pAddress);
+    *((void**)a_pDest) = pAddress;
 }
 
-void DereferenceExpression::setValue( const void* a_pSrc ) const
+void DereferenceExpression::flush() const
 {
-    void* pAddress = nullptr;
-    m_pDereferenceableExpression->getValue(&pAddress);
-    m_pValueType->copy(pAddress, a_pSrc);
+    m_pDereferencedExpression->flush();
 }
 
-void* DereferenceExpression::getAddress() const
+Expression* DereferenceExpression::clone() const
 {
-    void* pAddress = nullptr;
-    m_pDereferenceableExpression->getValue(pAddress);
-    return pAddress;
+    return o_new(DereferenceExpression)(m_pDereferencedExpression->clone());
 }
 
 o_namespace_end(phantom, reflection)

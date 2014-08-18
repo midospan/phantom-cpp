@@ -37,32 +37,33 @@
 #include <phantom/reflection/DataExpression.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), DataExpression);
+
 o_namespace_begin(phantom, reflection) 
 
-DataExpression::DataExpression(uint a_Guid, bitfield modifiers /*= 0*/)
-    : Expression(typeOf<void*>(), string("@")+phantom::lexical_cast<string>((void*)a_Guid), modifiers)
-    , m_Guid(a_Guid)
+DataExpression::DataExpression(serialization::DataBase* a_pDataBase, Expression* a_pGuidExpression)
+    : Expression(a_pDataBase->getData(a_pGuidExpression->get().as<uint>()).type()->referenceType()
+                , "@("+a_pGuidExpression->getName()+")")
+                , m_pGuidExpression(a_pGuidExpression)
+    , m_pDataBase(a_pDataBase)
 {
-
-}
-
-void DataExpression::setValue( void const* a_pSrc ) const
-{
-    o_assert(getAddress());
-    phantom::data d = phantom::getCurrentDataBase()->getData(m_Guid);
-    d.type()->copy(d.address(), a_pSrc);
+    o_assert(a_pGuidExpression->getValueType()->isImplicitlyConvertibleTo(typeOf<uint>()));
+    if(m_pGuidExpression)
+    {
+        m_pConvertedGuidExpression = m_pGuidExpression->implicitCast(typeOf<uint>());
+        addElement(m_pConvertedGuidExpression);
+    }
 }
 
 void DataExpression::getValue( void* a_pDest ) const
 {
-    o_assert(getAddress());
-    phantom::data d = phantom::getCurrentDataBase()->getData(m_Guid);
-    d.type()->copy(a_pDest, d.address());
+    uint value = 0;
+    m_pConvertedGuidExpression->load(&value);
+    *((void**)a_pDest) = m_pDataBase->getData(value).address(); 
 }
 
-void* DataExpression::getAddress() const
+DataExpression* DataExpression::clone() const
 {
-    return phantom::getCurrentDataBase()->getData(m_Guid).address();
+    return o_new(DataExpression)(m_pDataBase, m_pGuidExpression->clone());
 }
 
 o_namespace_end(phantom, reflection)

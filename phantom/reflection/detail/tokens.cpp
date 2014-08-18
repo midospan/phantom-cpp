@@ -6,10 +6,9 @@ o_namespace_begin(phantom, reflection)
 namespace cpp {
 
 
-    map<size_t, string> token_ids::m_operator_string_from_token_ids;
-
     const string& token_ids::operator_string_from_token_id( size_t token_id )
     {
+        static map<size_t, string> m_operator_string_from_token_ids;
         static string empty;
         if(m_operator_string_from_token_ids.empty())
         {
@@ -53,6 +52,7 @@ namespace cpp {
             m_operator_string_from_token_ids[not_                   ] = "!";
             m_operator_string_from_token_ids[brackets               ] = "[]";
             m_operator_string_from_token_ids[parenthesis            ] = "()";
+            m_operator_string_from_token_ids[arobase                ] = "@";
         }
         auto it = m_operator_string_from_token_ids.find(token_id);
         return it != m_operator_string_from_token_ids.end() ? it->second : empty;

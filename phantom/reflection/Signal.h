@@ -38,8 +38,8 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/InstanceMemberFunction.h>
-
 /* ************* Class Declarations ************** */
+
 /* *********************************************** */
 o_namespace_begin(phantom, reflection)
 
@@ -58,16 +58,13 @@ public:
 public:
     Signal(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
 
-    virtual connection::slot::list*    getSlotList( void* a_pCaller ) const = 0;
-
-    virtual void    call( void* a_pCallerAddress, argument::list* a_pArgs, void* a_pReturnAddress ) const;
-    virtual void    call( void* a_pCallerAddress, argument::list* a_pArgs ) const = 0;
-    virtual void    call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const;
-    virtual void    call( void* a_pCallerAddress, void** a_pArgs ) const = 0;
-
-    virtual void    initializeLocalStorage(void* a_pLocalStorageAddress);
+    virtual connection::slot::list* getSlotList( void* a_pCaller ) const;
 
     virtual Signal* asSignal() const  { return (Signal*)this; }
+
+    virtual variant compile(Compiler* a_pCompiler);
+
+    void setSlotListDataMemberOffset(size_t a_uiOffset) { m_uiSlotListDataMemberOffset = a_uiOffset; }
 
 private:
     class object_destruction_guard_private
@@ -93,6 +90,7 @@ private:
 protected:
     uint                    m_uiNodeDestructionGuardLevel;
     uint                    m_uiConnectionCount;
+    size_t                  m_uiSlotListDataMemberOffset;
 
 };
 

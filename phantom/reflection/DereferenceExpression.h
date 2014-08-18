@@ -50,18 +50,31 @@ public:
     DereferenceExpression(Expression* a_pDereferenceableExpression);
 
     virtual void                    getValue(void* a_pDest) const;
-    virtual void                    setValue(const void* a_pSrc) const;
 
     virtual DereferenceExpression*    asDereferenceExpression() const  { return const_cast<DereferenceExpression*>(this); }
 
-    virtual void flush() { m_pDereferenceableExpression->flush(); }
+    virtual void flush() const;
 
-    virtual bool isReferenceable() const { return true; }
+    virtual Expression*     reference() const
+    {
+        return const_cast<DereferenceExpression*>(this);
+    }
 
-    virtual void* getAddress() const;
+    virtual Expression*     address() const
+    {
+        Expression* pExp = m_pDereferencedExpression;
+        const_cast<DereferenceExpression*>(this)->removeElement(pExp);
+        const_cast<DereferenceExpression*>(this)->terminate();
+        const_cast<DereferenceExpression*>(this)->deleteNow();
+        return pExp;
+    }
+
+    Expression* getDereferencedExpression() const { return m_pDereferencedExpression; }
+
+    virtual Expression*     clone() const;
 
 protected:
-    Expression* m_pDereferenceableExpression;
+    Expression* m_pDereferencedExpression;
 };
 
 o_namespace_end(phantom, reflection)

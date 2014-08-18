@@ -25,16 +25,9 @@ o_registerNC((phantom, connection), (slot), list);
 
 o_namespace_begin(phantom, reflection, jit)
 
-JitSignal::JitSignal( const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers ) 
-    : Signal(a_strName, a_pSignature, a_Modifiers) 
-    , m_jit_function(nullptr)
-    , m_uiDataOffset(0xffffffff)
-    , m_pDataMember(o_new(phantom::reflection::jit::JitInstanceDataMember)(
-                    "PHANTOM_RESERVED_m_slot_list_of_"+a_strName+boost::lexical_cast<string>((int)this)
-                    , phantom::typeByName("phantom::connection::slot::list"), 0, o_protected))
+JitSignal::JitSignal( Signal* a_pSignal ) 
+    : JitInstanceMemberFunction(a_pSignal) 
 {
-    o_assert(a_pSignature->getReturnType() == typeOf<signal_t>());
-    o_assert(m_pDataMember->getValueType() == typeOf<connection::slot::list>());
     m_jit_context = jit_context_create();
     o_assert(m_jit_context.context);
     m_jit_function.function = jit_function_create((jit_context_t)m_jit_context.context, toJitSignature(e_JitAbi_thiscall, getSignature()));
@@ -55,7 +48,7 @@ void JitSignal::compile()
 {
     o_assert(m_pOwner AND as<JitClass*>(m_pOwner)->getState() == JitClass::e_State_Compiling);
     o_assert(m_uiDataOffset == 0xffffffff);
-    m_uiDataOffset = m_pDataMember->getOffset();
+    m_uiDataOffset = getSignal()->getOffset();
     o_assert(m_uiDataOffset != 0xffffffff);
     jit_context_build_start((jit_context_t)m_jit_context.context);
 

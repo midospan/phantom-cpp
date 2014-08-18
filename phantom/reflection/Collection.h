@@ -85,7 +85,7 @@ public:
     virtual Iterator*           getIterator(void* a_pInstance) const;
 
     virtual bool                referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
-    virtual void                fetchReferencedData(const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask) const;
+    virtual void                fetchPointerReferenceExpressions(const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask) const;
 
 protected:
     virtual bool                canBeDestroyed() const;

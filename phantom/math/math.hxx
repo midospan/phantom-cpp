@@ -1,10 +1,10 @@
 #pragma once
 
-o_classNT((phantom, math), (typename), (t_Ty), vector2)
+o_classNT((phantom, math), (typename), (t_Ty), vector2, o_pod)
 {
     o_reflection
     {
-        o_typedef(self_type);
+        o_nested_typedef(self_type);
         o_data_member(t_Ty, x, o_no_range, o_public);
         o_data_member(t_Ty, y, o_no_range, o_public);
 
@@ -55,7 +55,7 @@ o_classNT((phantom, math), (typename), (t_Ty), vector2)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), vector3)
+o_classNT((phantom, math), (typename), (t_Ty), vector3, o_pod)
 {
     o_reflection
     {
@@ -66,7 +66,7 @@ o_classNT((phantom, math), (typename), (t_Ty), vector3)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), vector4)
+o_classNT((phantom, math), (typename), (t_Ty), vector4, o_pod)
 {
 	o_reflection
 	{
@@ -78,11 +78,11 @@ o_classNT((phantom, math), (typename), (t_Ty), vector4)
 	};
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), matrix2x2)
+o_classNT((phantom, math), (typename), (t_Ty), matrix2x2, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector2_type);
+        o_nested_typedef(vector2_type);
         o_data_member(t_Ty[4], m, o_no_range, o_public|o_union_alternative);
         o_data_member(t_Ty[2][2], mm, o_no_range, o_public|o_union_alternative|o_transient);
         o_data_member(vector2_type, ex, o_no_range, o_public|o_transient);
@@ -90,11 +90,11 @@ o_classNT((phantom, math), (typename), (t_Ty), matrix2x2)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), matrix2x3)
+o_classNT((phantom, math), (typename), (t_Ty), matrix2x3, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector3_type);
+        o_nested_typedef(vector3_type);
         o_data_member(t_Ty[6], m, o_no_range, o_public|o_union_alternative);
         o_data_member(t_Ty[3][2], mm, o_no_range, o_public|o_union_alternative|o_transient);
         o_data_member(vector3_type, ex, o_no_range, o_public|o_transient);
@@ -102,11 +102,11 @@ o_classNT((phantom, math), (typename), (t_Ty), matrix2x3)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), matrix2x4)
+o_classNT((phantom, math), (typename), (t_Ty), matrix2x4, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector4_type);
+        o_nested_typedef(vector4_type);
         o_data_member(t_Ty[8], m, o_no_range, o_public|o_union_alternative);
         o_data_member(t_Ty[4][2], mm, o_no_range, o_public|o_union_alternative|o_transient);
         o_data_member(vector4_type, ex, o_no_range, o_public|o_transient);
@@ -114,11 +114,11 @@ o_classNT((phantom, math), (typename), (t_Ty), matrix2x4)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), matrix3x2)
+o_classNT((phantom, math), (typename), (t_Ty), matrix3x2, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector2_type);
+        o_nested_typedef(vector2_type);
         o_data_member(t_Ty[6], m, o_no_range, o_public|o_union_alternative);
         o_data_member(t_Ty[2][3], mm, o_no_range, o_public|o_union_alternative|o_transient);
         o_data_member(vector2_type, ex, o_no_range, o_public|o_transient);
@@ -127,11 +127,11 @@ o_classNT((phantom, math), (typename), (t_Ty), matrix3x2)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), matrix3x3)
+o_classNT((phantom, math), (typename), (t_Ty), matrix3x3, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector3_type);
+        o_nested_typedef(vector3_type);
         o_data_member(t_Ty[9], m, o_no_range, o_public|o_union_alternative);
         o_data_member(t_Ty[3][3], mm, o_no_range, o_public|o_union_alternative|o_transient);
         o_data_member(vector3_type, ex, o_no_range, o_public|o_transient);
@@ -140,11 +140,11 @@ o_classNT((phantom, math), (typename), (t_Ty), matrix3x3)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), matrix3x4)
+o_classNT((phantom, math), (typename), (t_Ty), matrix3x4, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector4_type);
+        o_nested_typedef(vector4_type);
         o_data_member(t_Ty[12], m, o_no_range, o_public|o_union_alternative);
         o_data_member(t_Ty[4][3], mm, o_no_range, o_public|o_union_alternative|o_transient);
         o_data_member(vector4_type, ex, o_no_range, o_public|o_transient);
@@ -153,11 +153,11 @@ o_classNT((phantom, math), (typename), (t_Ty), matrix3x4)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), matrix4x2)
+o_classNT((phantom, math), (typename), (t_Ty), matrix4x2, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector2_type);
+        o_nested_typedef(vector2_type);
         o_data_member(t_Ty[8], m, o_no_range, o_public|o_union_alternative);
         o_data_member(t_Ty[2][4], mm, o_no_range, o_public|o_union_alternative|o_transient);
         o_data_member(vector2_type, ex, o_no_range, o_public|o_transient);
@@ -167,11 +167,11 @@ o_classNT((phantom, math), (typename), (t_Ty), matrix4x2)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), matrix4x3)
+o_classNT((phantom, math), (typename), (t_Ty), matrix4x3, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector3_type);
+        o_nested_typedef(vector3_type);
         o_data_member(t_Ty[12], m, o_no_range, o_public|o_union_alternative);
         o_data_member(t_Ty[3][4], mm, o_no_range, o_public|o_union_alternative|o_transient);
         o_data_member(vector3_type, ex, o_no_range, o_public|o_transient);
@@ -181,11 +181,11 @@ o_classNT((phantom, math), (typename), (t_Ty), matrix4x3)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), matrix4x4)
+o_classNT((phantom, math), (typename), (t_Ty), matrix4x4, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector4_type);
+        o_nested_typedef(vector4_type);
         o_data_member(t_Ty[16], m, o_no_range, o_public|o_union_alternative);
         o_data_member(t_Ty[4][4], mm, o_no_range, o_public|o_union_alternative|o_transient);
         o_data_member(vector4_type, ex, o_no_range, o_public|o_transient);
@@ -195,11 +195,11 @@ o_classNT((phantom, math), (typename), (t_Ty), matrix4x4)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), angle)
+o_classNT((phantom, math), (typename), (t_Ty), angle, o_pod)
 {
     o_reflection
     {
-        o_typedef(self_type);
+        o_nested_typedef(self_type);
         o_property(t_Ty, degree, setDegree, getDegree, o_no_signal, o_no_range, o_public|o_transient);
         o_property(t_Ty, radian, setRadian, getRadian, o_no_signal, o_no_range, o_public);
         o_member_function(bool, operator==, (const self_type&), o_const);
@@ -207,15 +207,15 @@ o_classNT((phantom, math), (typename), (t_Ty), angle)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), transform2)
+o_classNT((phantom, math), (typename), (t_Ty), transform2, o_pod)
 {
     o_reflection
     {
-        o_typedef(self_type);
-        o_typedef(vector2_type);
-        o_typedef(angle_type);
-        o_typedef(matrix3x3_type);
-        o_typedef(matrix2x2_type);
+        o_nested_typedef(self_type);
+        o_nested_typedef(vector2_type);
+        o_nested_typedef(angle_type);
+        o_nested_typedef(matrix3x3_type);
+        o_nested_typedef(matrix2x2_type);
 
         o_data_member(vector2_type, position, o_no_range, o_public);
         o_data_member(angle_type, orientation, o_no_range, o_public);
@@ -234,7 +234,7 @@ o_classNT((phantom, math), (typename), (t_Ty), transform2)
         o_member_function(bool, operator!=, (const self_type&), o_const);
     };
 };
-o_classNT((phantom, math), (typename), (t_Ty), axis_angle)
+o_classNT((phantom, math), (typename), (t_Ty), axis_angle, o_pod)
 {
     o_reflection
     {
@@ -243,7 +243,7 @@ o_classNT((phantom, math), (typename), (t_Ty), axis_angle)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), quaternion)
+o_classNT((phantom, math), (typename), (t_Ty), quaternion, o_pod)
 {
     o_reflection
     {
@@ -256,15 +256,15 @@ o_classNT((phantom, math), (typename), (t_Ty), quaternion)
 };
 o_traits_specializeNT(has_has_something, (static const bool value = false;), (phantom, math), (typename), (t_Ty), quaternion);
 
-o_classNT((phantom, math), (typename), (t_Ty), transform3)
+o_classNT((phantom, math), (typename), (t_Ty), transform3, o_pod)
 {
     o_reflection
     {
-        o_typedef(self_type);
-        o_typedef(vector3_type);
-        o_typedef(quaternion_type);
-        o_typedef(matrix3x3_type);
-        o_typedef(matrix4x4_type);
+        o_nested_typedef(self_type);
+        o_nested_typedef(vector3_type);
+        o_nested_typedef(quaternion_type);
+        o_nested_typedef(matrix3x3_type);
+        o_nested_typedef(matrix4x4_type);
 
         o_data_member(vector3_type, position, o_no_range, o_public);
         o_data_member(quaternion_type, orientation, o_no_range, o_public);
@@ -277,73 +277,73 @@ o_classNT((phantom, math), (typename), (t_Ty), transform3)
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), aabb2)
+o_classNT((phantom, math), (typename), (t_Ty), aabb2, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector2_type);
+        o_nested_typedef(vector2_type);
         o_data_member(vector2_type, min, o_no_range, o_public);
         o_data_member(vector2_type, max, o_no_range, o_public);
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), line2)
+o_classNT((phantom, math), (typename), (t_Ty), line2, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector2_type);
+        o_nested_typedef(vector2_type);
         o_data_member(vector2_type, point, o_no_range, o_public);
         o_data_member(vector2_type, direction, o_no_range, o_public);
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), segment2)
+o_classNT((phantom, math), (typename), (t_Ty), segment2, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector2_type);
+        o_nested_typedef(vector2_type);
         o_data_member(vector2_type, start, o_no_range, o_public);
         o_data_member(vector2_type, end, o_no_range, o_public);
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), aabb3)
+o_classNT((phantom, math), (typename), (t_Ty), aabb3, o_pod)
 {
     o_reflection
     {
-        o_typedef(self_type);
-        o_typedef(vector3_type);
+        o_nested_typedef(self_type);
+        o_nested_typedef(vector3_type);
         o_data_member(vector3_type, min, o_no_range, o_public);
         o_data_member(vector3_type, max, o_no_range, o_public);
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), line3)
+o_classNT((phantom, math), (typename), (t_Ty), line3, o_pod)
 {
     o_reflection
     {
-        o_typedef(vector3_type);
+        o_nested_typedef(vector3_type);
         o_data_member(vector3_type, point, o_no_range, o_public);
         o_data_member(vector3_type, direction, o_no_range, o_public);
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), plane3)
+o_classNT((phantom, math), (typename), (t_Ty), plane3, o_pod)
 {
     o_reflection
     {
-        o_typedef(self_type);
-        o_typedef(vector3_type);
+        o_nested_typedef(self_type);
+        o_nested_typedef(vector3_type);
         o_data_member(vector3_type, normal, o_no_range, o_public);
         o_data_member(t_Ty, d, o_no_range, o_public);
     };
 };
 
-o_classNT((phantom, math), (typename), (t_Ty), rect)
+o_classNT((phantom, math), (typename), (t_Ty), rect, o_pod)
 {
     o_reflection
     {
-        o_typedef(self_type);
+        o_nested_typedef(self_type);
         o_data_member(t_Ty, m_x, o_no_range, o_protected);
         o_data_member(t_Ty, m_y, o_no_range, o_protected);
         o_data_member(t_Ty, m_w, (t_Ty(0), std::numeric_limits<t_Ty>::max()), o_protected);

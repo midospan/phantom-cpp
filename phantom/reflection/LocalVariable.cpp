@@ -8,17 +8,20 @@ o_registerN((phantom, reflection), LocalVariable);
 
 o_namespace_begin(phantom, reflection) 
     
-LocalVariable::LocalVariable( Block* a_pBlock, reflection::Type* a_pType, const string& a_strName, const CodeLocation& a_Location, bitfield a_Modifiers /*= 0*/ ) 
+LocalVariable::LocalVariable( Type* a_pValueType, const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
     : LanguageElement(a_strName, a_Modifiers)
     , m_iFrameOffset(e_InvalidFrameOffset)
-    , m_pType(a_pType)
+    , m_pValueType(a_pValueType)
+    , m_uiIndexInBlock(~size_t(0))
 {
-    a_pBlock->addLocalVariable(this);
-    addCodeLocation(a_Location);
+    if(m_pValueType == nullptr)
+        setInvalid();
 }
 
 bool LocalVariable::isAccessibleAtCodePosition( const CodePosition& position ) const
 {
+    if(getBlock() == nullptr) 
+        return nullptr;
     return (position.line > getCodeLocation().getStart().line) AND (position.line <= getBlock()->getCodeLocation().getEnd().line);
 }
 

@@ -19,23 +19,23 @@ o_registerNT((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr
 o_registerNT((phantom), (typename,typename,typename), (t_Key,t_Value,t_Pred), map);
 o_registerNT((phantom), (typename, typename, typename), (t_Kty, t_Ty, t_Pr), multimap);
 
-o_registerNTI((phantom), map, (phantom::string, char));
-o_registerNTI((phantom), map, (phantom::string, unsigned char));
-o_registerNTI((phantom), map, (phantom::string, signed char));
-#if o_BUILT_IN_WCHAR_T
-o_registerNTI((phantom), map, (phantom::string, wchar_t));
-#endif
-o_registerNTI((phantom), map, (phantom::string, short));
-o_registerNTI((phantom), map, (phantom::string, unsigned short));
-o_registerNTI((phantom), map, (phantom::string, int));
-o_registerNTI((phantom), map, (phantom::string, unsigned int));
-o_registerNTI((phantom), map, (phantom::string, long));
-o_registerNTI((phantom), map, (phantom::string, unsigned long));
-o_registerNTI((phantom), map, (phantom::string, long long));
-o_registerNTI((phantom), map, (phantom::string, unsigned long long));
-o_registerNTI((phantom), map, (phantom::string, float));
-o_registerNTI((phantom), map, (phantom::string, double));
-o_registerNTI((phantom), map, (phantom::string, long double));
-o_registerNTI((phantom), map, (phantom::string, bool));
-o_registerNTI((phantom), map, (phantom::string, void*));
-o_registerNTI((phantom), map, (phantom::string, phantom::string));
+// o_registerNTI((phantom), map, (phantom::string, char));
+// o_registerNTI((phantom), map, (phantom::string, unsigned char));
+// o_registerNTI((phantom), map, (phantom::string, signed char));
+// #if o_BUILT_IN_WCHAR_T
+// o_registerNTI((phantom), map, (phantom::string, wchar_t));
+// #endif
+// o_registerNTI((phantom), map, (phantom::string, short));
+// o_registerNTI((phantom), map, (phantom::string, unsigned short));
+// o_registerNTI((phantom), map, (phantom::string, int));
+// o_registerNTI((phantom), map, (phantom::string, unsigned int));
+// o_registerNTI((phantom), map, (phantom::string, long));
+// o_registerNTI((phantom), map, (phantom::string, unsigned long));
+// o_registerNTI((phantom), map, (phantom::string, long long));
+// o_registerNTI((phantom), map, (phantom::string, unsigned long long));
+// o_registerNTI((phantom), map, (phantom::string, float));
+// o_registerNTI((phantom), map, (phantom::string, double));
+// o_registerNTI((phantom), map, (phantom::string, long double));
+// o_registerNTI((phantom), map, (phantom::string, bool));
+// o_registerNTI((phantom), map, (phantom::string, void*));
+// o_registerNTI((phantom), map, (phantom::string, phantom::string));

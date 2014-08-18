@@ -3,13 +3,14 @@
 #include "VariableModel.h"
 #include "VariableModel.hxx"
 #include "VariableNode.h"
-#include "ClassTypeVariableNodeFactory.h"
-#include "ClassVariableNodeFactory.h"
-#include "SetContainerClassVariableNodeFactory.h"
-#include "MapContainerClassVariableNodeFactory.h"
-#include "SequentialContainerClassVariableNodeFactory.h"
-#include "CompositionClassVariableNodeFactory.h"
+#include "ClassTypeVisualizerNode.h"
+#include "ClassVisualizerNode.h"
+#include "SetContainerVisualizerNode.h"
+#include "MapVisualizerNode.h"
+#include "SequentialContainerVisualizerNode.h"
+#include "CompositionVisualizerNode.h"
 #include "phantom/reflection/CompositionClass.h"
+#include "phantom/serialization/Node.h"
 /* *********************************************** */
 o_registerN((phantom, qt), VariableModel);
  
@@ -19,12 +20,12 @@ namespace qt {
 VariableModel::VariableModel()
     :m_pRootNode(nullptr)
 {
-    registerTypeClassVariableNodeFactory(typeOf<reflection::ClassType>(), o_new(ClassTypeVariableNodeFactory)(false));
-    registerTypeClassVariableNodeFactory(typeOf<reflection::Class>(), o_new(ClassVariableNodeFactory)(false));
-    registerTypeClassVariableNodeFactory(typeOf<reflection::SetContainerClass>(), o_new(SetContainerClassVariableNodeFactory)(true));
-    registerTypeClassVariableNodeFactory(typeOf<reflection::MapContainerClass>(), o_new(MapContainerClassVariableNodeFactory)(true));
-    registerTypeClassVariableNodeFactory(typeOf<reflection::SequentialContainerClass>(), o_new(SequentialContainerClassVariableNodeFactory)(true));
-    registerTypeClassVariableNodeFactory(typeOf<reflection::CompositionClass>(), o_new(CompositionClassVariableNodeFactory)(true));
+    registerTypeVisualizerNode(typeOf<reflection::ClassType>(), o_new(ClassTypeVisualizerNode)(""));
+    registerTypeVisualizerNode(typeOf<reflection::Class>(), o_new(ClassVisualizerNode)(""));
+    registerTypeVisualizerNode(typeOf<reflection::SetContainerClass>(), o_new(SetContainerVisualizerNode)(""));
+    registerTypeVisualizerNode(typeOf<reflection::MapContainerClass>(), o_new(MapVisualizerNode)(""));
+    registerTypeVisualizerNode(typeOf<reflection::SequentialContainerClass>(), o_new(SequentialContainerVisualizerNode)(""));
+    registerTypeVisualizerNode(typeOf<reflection::CompositionClass>(), o_new(CompositionVisualizerNode)(""));
 }
 
 VariableModel::~VariableModel( void )
@@ -37,64 +38,122 @@ VariableModel::~VariableModel( void )
 
 o_initialize_cpp(VariableModel)
 {
-    registerVariableNode(m_pRootNode);
 }
 
 o_terminate_cpp(VariableModel)
 {
-    unregisterVariableNode(m_pRootNode);
+    if(m_pRootNode)
+    {
+        unregisterVariableNode(m_pRootNode);
+    }
 }
 
-void VariableModel::findTypeClassVariableNodeFactories( reflection::Class* a_pClass, vector<VariableNodeFactory*>& out ) const
+void VariableModel::findTypeVisualizerNodes( reflection::Class* a_pClass, vector<TypeVisualizerNode*>& out ) const
 {
-    auto found = m_VariableNodeFactories.find(a_pClass);
-    if(found != m_VariableNodeFactories.end())
+    auto found = m_TypeVisualizerNodes.find(a_pClass);
+    if(found != m_TypeVisualizerNodes.end())
     {
         out.push_back(found->second);
-        if(found->second->isExclusive())
-            return;
+        return;
     }
     for(size_t i = 0; i<a_pClass->getSuperClassCount(); ++i)
     {
-        findTypeClassVariableNodeFactories(a_pClass->getSuperClass(i), out);
+        findTypeVisualizerNodes(a_pClass->getSuperClass(i), out);
     }
 }
 
 void VariableModel::registerVariableNode( VariableNode* a_pVariableNode )
 {
-    o_connect(a_pVariableNode, childAdded(VariableNode*), this, registerVariableNode(VariableNode*));
-    o_connect(a_pVariableNode, childAboutToBeRemoved(VariableNode*), this, unregisterVariableNode(VariableNode*));
-    if(a_pVariableNode->getValueType())
-    {
-        vector<VariableNodeFactory*> factories;
-        findTypeClassVariableNodeFactories( classOf(a_pVariableNode->getValueType()), factories );
-        for(auto it = factories.begin(); it != factories.end(); ++it)
-        {
-            (*it)->addChildNodes(a_pVariableNode);
-        }
-    }
+    o_connect(a_pVariableNode, childNodeAdded(VariableNode*), this, registerVariableNode(VariableNode*));
+    o_connect(a_pVariableNode, childNodeAboutToBeRemoved(VariableNode*), this, unregisterVariableNode(VariableNode*));
+    a_pVariableNode->setVariableModel(this);
+    expand(a_pVariableNode);
 }
 
 void VariableModel::unregisterVariableNode( VariableNode* a_pVariableNode )
 {
-    o_disconnect(a_pVariableNode, childAdded(VariableNode*), this, registerVariableNode(VariableNode*));
-    o_disconnect(a_pVariableNode, childAboutToBeRemoved(VariableNode*), this, unregisterVariableNode(VariableNode*));
+    a_pVariableNode->setVariableModel(nullptr);
+    o_disconnect(a_pVariableNode, childNodeAdded(VariableNode*), this, registerVariableNode(VariableNode*));
+    o_disconnect(a_pVariableNode, childNodeAboutToBeRemoved(VariableNode*), this, unregisterVariableNode(VariableNode*));
 }
 
-void VariableModel::setRootNode( VariableNode* a_pVariableNode )
+void VariableModel::setData(const vector<data>& a_Data)
 {
-    if(m_pRootNode == a_pVariableNode) return;
-    if(m_pRootNode)
+    if(m_Data.size())
     {
+        o_emit rootNodeAboutToBeRemoved(m_pRootNode);
         unregisterVariableNode(m_pRootNode);
+        o_delete(VariableNode) m_pRootNode;
+        m_pRootNode = nullptr;
     }
-    m_pRootNode = a_pVariableNode;
-    if(m_pRootNode)
+    m_Data = a_Data;
+    if(m_Data.size())
     {
+        m_pRootNode = VariableNode::FromData(m_pDataBase, m_Data); 
         registerVariableNode(m_pRootNode);
+        o_emit rootNodeAdded(m_pRootNode);
     }
-    o_emit rootNodeChanged(m_pRootNode);
 }
 
+void VariableModel::clear()
+{
+    if(m_pRootNode)
+    {
+        o_emit rootNodeAboutToBeRemoved(m_pRootNode);
+        unregisterVariableNode(m_pRootNode);
+        o_delete(VariableNode) m_pRootNode;
+        m_pRootNode = nullptr;
+        m_Data.clear();
+    }
+}
+
+void VariableModel::expand( VariableNode* a_pVariableNode )
+{
+    a_pVariableNode->clear();
+    if(a_pVariableNode->getValueType())
+    {
+        vector<TypeVisualizerNode*> visualizers;
+        findTypeVisualizerNodes( classOf(a_pVariableNode->getValueType()), visualizers );
+        for(auto it = visualizers.begin(); it != visualizers.end(); ++it)
+        {
+            (*it)->expand(a_pVariableNode);
+        }
+    }
+}
+
+void VariableModel::slotVariableNodeExpressionsAssigned( VariableNode* a_pVariableNode )
+{
+//     if(m_pDataBase /*&& isAutoSaveEnabled()*/)
+//     {
+//         m_pDataBase->rootNode()->addDataComponentsCascade();
+//         for(auto it = m_EditedData.begin(); it != m_EditedData.end(); ++it)
+//         {
+//             m_pDataBase->getNode(*it)->saveData(*it);
+//         }
+//     }
+//     if(m_pDataBase && m_pDataBase->getDataStateBase() && isAutoSaveStateEnabled())
+//     {
+//         for(auto it = m_EditedData.begin(); it != m_EditedData.end(); ++it)
+//         {
+//             m_pDataBase->getNode(*it)->saveDataState(*it, 0);
+//         }
+//     }
+    o_emit variableNodeExpressionsAssigned(a_pVariableNode);
+}
+
+void VariableModel::slotVariableNodeExpressionsAboutToBeAssigned( VariableNode* a_pVariableNode )
+{
+    o_emit variableNodeExpressionsAboutToBeAssigned(a_pVariableNode);
+}
+
+void VariableModel::slotVariableNodeAboutToBeAccessed( VariableNode* a_pVariableNode )
+{
+    o_emit variableNodeAboutToBeAccessed(a_pVariableNode);
+}
+
+void VariableModel::slotVariableNodeAccessed( VariableNode* a_pVariableNode )
+{
+    o_emit variableNodeAccessed(a_pVariableNode);
+}
 
 }}

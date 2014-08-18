@@ -49,8 +49,9 @@ namespace qt {
 
     void DataComboBox::addData( const phantom::data& a_Data )
     {
-        phantom::string name = m_pDataBase->getDataAttributeValue(a_Data, m_pDataBase->getAttributeIndex("name"));
-        addItem( QIcon(a_Data.type()->getMetaDataValue(getIconMetaDataIndex()).c_str()), name.c_str(), (phantom::uint)a_Data.address());
+        phantom::string name = m_pDataBase->getDataAttributeValue(a_Data, m_pDataBase->getAttributeIndex("name"))
+                               + " (" + lexical_cast<string>((void*)m_pDataBase->getGuid(a_Data)) + ')';
+        addItem( QIcon(iconOf(a_Data.type()).c_str()), name.c_str(), (size_t)a_Data.address() );
     }
 
     void DataComboBox::addNodeDataCascade( phantom::serialization::Node* a_pNode )

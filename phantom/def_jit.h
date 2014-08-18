@@ -1,53 +1,10 @@
 #ifndef o_phantom_def_jit
 #define o_phantom_def_jit
 
-o_fwd(class, phantom, reflection, jit, JitClass);
-o_fwd(class, phantom, reflection, jit, JitEnum);
-o_fwd(class, phantom, reflection, jit, JitInstanceMemberFunction);
-o_fwd(class, phantom, reflection, jit, JitInstanceDataMember);
-o_fwd(class, phantom, reflection, jit, JitStaticDataMember);
-o_fwd(class, phantom, reflection, jit, JitStaticMemberFunction);
-o_fwd(class, phantom, reflection, jit, JitSignal);
-o_fwd(class, phantom, reflection, jit, JitProperty);
-o_fwd(class, phantom, reflection, jit, JitCollection);
-o_fwd(class, phantom, reflection, jit, JitAddressable);
-o_fwd(class, phantom, reflection, jit, JitLocalVariable);
-o_fwd(class, phantom, reflection, jit, JitSubroutine);
+namespace phantom { namespace reflection { namespace jit {}}}
 
-o_fwd(class, phantom, state, jit, JitStateMachine);
-o_fwd(class, phantom, state, jit, JitTrack);
-o_fwd(class, phantom, state, jit, JitState);
-
-namespace phantom { namespace reflection    { namespace jit {} } }
-namespace phantom { namespace state         { namespace jit 
-    {
-        class JitStateMachine;
-        class JitState;
-        struct jit_state_machine_data : base_state_machine_data
-        {
-            friend class JitStateMachine;
-            friend class JitState;
-            friend class JitTrack;
-            jit_state_machine_data(void* a_pOwner, JitStateMachine* a_pSM)
-                :  base_state_machine_data(a_pOwner, (StateMachine*)a_pSM)
-            {
-                current_states = o_allocate_n(state_machine->getTrackCount(), JitState*);
-                memset(current_states, 0, state_machine->getTrackCount()*sizeof(void*));
-                transit_states = o_allocate_n(state_machine->getTrackCount(), JitState*);
-                memset(transit_states, 0, state_machine->getTrackCount()*sizeof(void*));
-            }
-            ~jit_state_machine_data()
-            {
-                o_deallocate_n(current_states, state_machine->getTrackCount(), JitState*);
-                o_deallocate_n(transit_states, state_machine->getTrackCount(), JitState*);
-            }
-            JitState**  current_states;
-            JitState**  transit_states;
-        };
-    } 
-} 
-}
-
+o_declareN(struct, (phantom, reflection, jit), jit_label);
+o_declareN(struct, (phantom, reflection, jit), jit_value);
 
 o_namespace_begin(phantom, reflection, jit)
 
@@ -74,6 +31,7 @@ enum EJitAbi
 
 struct o_jit_export jit_label
 {
+    bool isUndefined() const;
     jit_label();
     uint label;
 };
@@ -146,7 +104,6 @@ struct o_jit_export jit_value
     void            setAddressable () const;
     int             isAddressable () const;
     Type*           getType () const;
-    JitSubroutine*  getJitSubroutine() const;
     jit_block       getBlock () const;
     jit_context     getContext () const;
     jit_constant    getConstant () const;

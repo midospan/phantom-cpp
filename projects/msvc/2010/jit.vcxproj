@@ -21,6 +21,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\jit\JitCompiler.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\jit\JitProperty.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\jit\JitAddressable.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\jit\JitCollection.cpp" />
@@ -33,6 +34,7 @@
     <ClCompile Include="..\..\..\phantom\reflection\jit\JitSignal.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\jit\JitStaticDataMember.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\jit\JitStaticMemberFunction.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\jit\JitCompiler.hpp" />
     <ClCompile Include="..\..\..\phantom\reflection\jit\JitSubroutine.cpp" />
     <ClCompile Include="..\..\..\phantom\state\jit\JitState.cpp" />
     <ClCompile Include="..\..\..\phantom\state\jit\JitStateMachine.cpp" />
@@ -50,6 +52,8 @@
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitAddressable.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitClass.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitCollection.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitCompiler.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\jit\JitCompiler.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitDebugger.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitEnum.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitInstanceDataMember.hxx" />
@@ -73,8 +77,6 @@
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitStaticMemberFunction.h" />
     <ClInclude Include="..\..\..\phantom\jit.h" />
     <ClInclude Include="..\..\..\phantom\reflection\jit\JitStaticMemberFunction.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\jit\JitSubroutine.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\jit\JitSubroutine.hxx" />
     <ClInclude Include="..\..\..\phantom\state\jit\JitState.h" />
     <ClInclude Include="..\..\..\phantom\state\jit\JitState.hxx" />
     <ClInclude Include="..\..\..\phantom\state\jit\JitStateMachine.h" />

@@ -64,7 +64,10 @@ public:
     {
         return dataPath(a_Data, getGuid(a_Data), getNode(a_Data));
     }
-
+    phantom::string relativeDataPath( const phantom::data& a_Data, uint a_Guid, Node* a_pParent ) const;
+    phantom::string relativeNodePath( Node* a_pNode, uint a_Guid, Node* a_pParent ) const;
+    phantom::string relativeNodePath( Node* a_pNode ) const;
+    virtual string  relativeDataPath(const phantom::data& a_Data) const;
 
     virtual string  dataFileExtension(void* a_pData) const { return ""; }
     
@@ -83,9 +86,9 @@ public:
     virtual void    moveNodeEntry(Node* a_pNode, Node* a_pNewParent) ;
 
 protected:
+    virtual Trashbin*createTrashBin(const string& a_strUrl) const;
     void            loadNodeEntriesHelper(Node* a_pNode, const boost::filesystem::path& a_Path);
     void            generateGuidHelper(const boost::filesystem::path& a_Path, map<uint,uint>& guids);
-
 protected:
         
 };

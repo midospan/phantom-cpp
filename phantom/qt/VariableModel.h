@@ -15,34 +15,7 @@ class VariableEditor;
 class VariableAction;
 class VariableDecorator;
 class VariableNode;
-class VariableNodeFactory;
-
-class DataVariable : public reflection::Variable
-{
-public:
-    DataVariable(const phantom::data& a_Data, uint a_Guid)
-        : m_Data(a_Data)
-        , m_Guid(a_Guid)
-    {
-
-    }
-    virtual void*             getAddress() const { return m_Data.address(); }
-
-    virtual reflection::Type* getValueType() const { return m_Data.type(); }
-
-    virtual void setValue(const void* a_pSrc) const 
-    {
-        m_pType->copy(m_pAddress, a_pSrc);
-    }
-    virtual void getValue(void* a_pDest) const 
-    {
-        m_pType->copy(a_pDest, m_pAddress);
-    }
-
-protected:
-    phantom::data m_Data;
-    uint m_Guid;
-};
+class TypeVisualizerNode;
 
 class o_qt_export VariableModel 
 {
@@ -50,39 +23,59 @@ class o_qt_export VariableModel
     friend class VariableEditor;
 
 public:
-    VariableModel();
+    VariableModel(void);
 	~VariableModel(void);
 
     o_initialize();
-
     o_terminate();
     
     VariableNode* getRootNode() const { return m_pRootNode; }
 
-    void setRootNode(VariableNode* a_pVariableNode);
+    void setData(const vector<data>& a_Data);
 
-    void registerTypeClassVariableNodeFactory(reflection::Class* a_pClass, VariableNodeFactory* a_pFactory)
+    void clear();
+
+    void registerTypeVisualizerNode(reflection::Class* a_pClass, TypeVisualizerNode* a_pVisualizerNode)
     {
-        m_VariableNodeFactories[a_pClass] = a_pFactory;
+        m_TypeVisualizerNodes[a_pClass] = a_pVisualizerNode;
     }
-    void unregisterTypeClassVariableNodeFactory(reflection::Class* a_pClass, VariableNodeFactory* a_pFactory)
+    void unregisterTypeVisualizerNode(reflection::Class* a_pClass)
     {
-        m_VariableNodeFactories.erase(a_pClass);
+        m_TypeVisualizerNodes.erase(a_pClass);
     }
 
-    void findTypeClassVariableNodeFactories(reflection::Class* a_pClass, vector<VariableNodeFactory*>& out) const;
+    void findTypeVisualizerNodes(reflection::Class* a_pClass, vector<TypeVisualizerNode*>& out) const;
+
+    void expand(VariableNode* a_pVariableNode);
+
+    serialization::DataBase* getDataBase() const { return m_pDataBase; }
+    void setDataBase(serialization::DataBase* a_pDataBase) { m_pDataBase = a_pDataBase; }
+
+    const vector<data>& getData() const { return m_Data; }
 
 protected:
     void registerVariableNode(VariableNode* a_pVariableNode);
     void unregisterVariableNode(VariableNode* a_pVariableNode);
 
-protected:
-    o_signal_data(rootNodeChanged, VariableNode*);
+    void slotVariableNodeExpressionsAboutToBeAssigned(VariableNode* a_pVariableNode);
+    void slotVariableNodeExpressionsAssigned(VariableNode* a_pVariableNode);
+    void slotVariableNodeAboutToBeAccessed(VariableNode* a_pVariableNode);
+    void slotVariableNodeAccessed(VariableNode* a_pVariableNode);
+
+    o_signal_data(variableNodeExpressionsAboutToBeAssigned, VariableNode*);
+    o_signal_data(variableNodeExpressionsAssigned, VariableNode*);
+    o_signal_data(variableNodeAboutToBeAccessed, VariableNode*);
+    o_signal_data(variableNodeAccessed, VariableNode*);
 
 protected:
-    VariableNode* m_pRootNode;
+    o_signal_data(rootNodeAdded, VariableNode*);
+    o_signal_data(rootNodeAboutToBeRemoved, VariableNode*);
+
+protected:
+    vector<data>    m_Data;
+    VariableNode*   m_pRootNode;
     serialization::DataBase* m_pDataBase;
-    map<reflection::Class*, VariableNodeFactory*> m_VariableNodeFactories;
+    map<reflection::Class*, TypeVisualizerNode*> m_TypeVisualizerNodes;
 };
 
 } // qt 

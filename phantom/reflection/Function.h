@@ -35,8 +35,6 @@
 #define o_phantom_reflection_Function_h__
 
 /* ****************** Includes ******************* */
-
-
 /* **************** Declarations ***************** */
 /* *********************************************** */
 
@@ -45,19 +43,19 @@ o_namespace_begin(phantom, reflection)
 class o_export Function : public Subroutine
 {
 public:
-    Function(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
-        : Subroutine(a_strName, a_pSignature, a_Modifiers)
+    static Class* const metaType;
+
+public:
+    Function(const string& a_strName, Signature* a_pSignature, EABI a_eABI, bitfield a_Modifiers = 0)
+        : Subroutine(a_strName, a_pSignature, a_eABI, a_Modifiers)
     {
 
     }
 
     virtual Function* asFunction() const { return (Function*)this; }
 
-    virtual void        call( void** a_pParams ) const = 0;
-    virtual void        call( void** a_pParams, void* a_pReturnAddress ) const;
-
-    virtual void        call( void* a_pCallerAddress, void** a_pParams ) const { call(a_pParams); }
-    virtual void        call( void* a_pCallerAddress, void** a_pParams, void* a_pReturnAddress ) const;
+    virtual void call( void** a_pArgs ) const { Subroutine::call(a_pArgs); }
+    virtual void call( void** a_pArgs, void* a_pReturnAddress ) const { Subroutine::call(a_pArgs, a_pReturnAddress); }
 
 protected:
 };

@@ -30,30 +30,33 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     THE SOFTWARE
 */
-
+ 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <phantom/reflection/Subroutine.h>
 #include <phantom/reflection/Subroutine.hxx>
-o_registerN((phantom, reflection), Subroutine);
-#include "Block.h"
+#include <phantom/reflection/Block.h>
+#include <phantom/reflection/Interpreter.h>
 /* *********************************************** */
-
+o_registerN((phantom, reflection), Subroutine);
 
 o_namespace_begin(phantom, reflection) 
 
-Subroutine::Subroutine( const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers /*= 0*/ ) 
+Subroutine::Subroutine( const string& a_strName, Signature* a_pSignature, EABI a_eABI, bitfield a_Modifiers /*= 0*/ ) 
     : LanguageElement(a_strName, a_Modifiers)
     , m_pSignature(a_pSignature)
     , m_pInstructions(nullptr)
     , m_pBlock(nullptr)
+    , m_pClosure(nullptr)
+    , m_uiFrameSize(0)
+    , m_eABI(a_eABI)
 {
     addReferencedElement(a_pSignature);
 }
 
 Subroutine::~Subroutine()
 {
-    
+
 }
 
 void Subroutine::terminate()
@@ -78,17 +81,17 @@ void Subroutine::terminate()
 
 phantom::string Subroutine::getQualifiedName() const
 {
-    return getOwner()->getQualifiedName() + "::" + getName() ;
+    return m_pOwner ? (m_pOwner->getQualifiedName() + "::" + getName()) : getName() ;
 }
 
 phantom::string Subroutine::getQualifiedDecoratedName() const
 {
-    return getOwner()->getQualifiedDecoratedName() + "::" + getName() + m_pSignature->getQualifiedDecoratedName() + (isConst() ? " const" : "");
+    return m_pOwner ? (m_pOwner->getQualifiedDecoratedName() + "::" + getName() + (m_pSignature ? m_pSignature->getQualifiedDecoratedName() : "") + (isConst() ? " const" : "")) : getDecoratedName();
 }
 
 phantom::string Subroutine::getDecoratedName() const
 {
-    return getName() + m_pSignature->getDecoratedName() + (isConst() ? " const" : "");
+    return getName() + (m_pSignature ? m_pSignature->getDecoratedName() : nullptr) + (isConst() ? " const" : "");
 }
 
 void Subroutine::addInstruction( Instruction* a_pInstruction )
@@ -190,20 +193,68 @@ void Subroutine::referencedElementRemoved( LanguageElement* a_pElement )
 bool Subroutine::matches( const string& a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatches, bitfield a_Modifiers /*= 0*/ ) const
 {
     return m_strName == a_strName
+        AND m_pSignature != nullptr 
         AND m_pSignature->matches(a_FunctionSignature, a_pPartialMatches)
         AND testModifiers(a_Modifiers);
 }
 
+void Subroutine::call( void** a_pArgs ) const
+{
+    if(m_pSignature == nullptr)
+    {
+        o_exception(exception::reflection_runtime_exception, "Call of incomplete subroutine");
+    }
+    call(a_pArgs, m_pSignature->getParameterCount()+1, nullptr);
+}
+
 void Subroutine::call( void** a_pArgs, void* a_pReturnAddress ) const
 {
-    o_assert(getReturnType() == typeOf<void>());
-    call(a_pArgs);
+    if(m_pSignature == nullptr)
+    {
+        o_exception(exception::reflection_runtime_exception, "Call of incomplete subroutine");
+    }
+    call(a_pArgs, m_pSignature->getParameterCount()+1, a_pReturnAddress);
 }
 
 void Subroutine::call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const
 {
-    o_assert(getReturnType() == typeOf<void>());
-    call(a_pCallerAddress, a_pArgs);
+    if(m_pSignature == nullptr)
+    {
+        o_exception(exception::reflection_runtime_exception, "Call of incomplete subroutine");
+    }
+    size_t argCount = m_pSignature->getParameterCount()+1;
+    void** newArgs = (void**)o_malloc(argCount*sizeof(void*));
+    newArgs[0] = &a_pCallerAddress;
+    memcpy(&newArgs[1], a_pArgs, (argCount-1)*sizeof(void*));
+    call(newArgs, argCount, a_pReturnAddress);
+    o_free(newArgs);
+}
+
+void Subroutine::call( void* a_pCallerAddress, void** a_pArgs ) const
+{
+    if(m_pSignature == nullptr)
+    {
+        o_exception(exception::reflection_runtime_exception, "Call of incomplete subroutine");
+    }
+    size_t argCount = m_pSignature->getParameterCount()+1;
+    void** newArgs = (void**)o_malloc(argCount*sizeof(void*));
+    newArgs[0] = &a_pCallerAddress;
+    memcpy(&newArgs[1], a_pArgs, (argCount-1)*sizeof(void*));
+    call(newArgs, argCount, nullptr);
+    o_free(newArgs);
+}
+
+void Subroutine::call( void** a_pArgs, size_t a_uiCount, void* a_pReturnAddress ) const
+{
+    o_assert(!testModifiers(o_native));
+    if(!m_ClosureCallDelegate.empty() && m_pClosure)
+    {
+        m_ClosureCallDelegate(m_pClosure, a_pArgs, a_uiCount, a_pReturnAddress);
+    }
+    else 
+    {
+        phantom::interpreter()->call(const_cast<Subroutine*>(this), a_pArgs, a_uiCount, a_pReturnAddress);
+    }
 }
 
 void MemoryLocation::setStart( byte* a_pAddress )

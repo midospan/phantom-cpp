@@ -35,6 +35,11 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/DataPointerType.h>
 #include <phantom/reflection/DataPointerType.hxx>
+#include <phantom/reflection/Expression.h>
+#include <phantom/reflection/AssignmentExpression.h>
+#include <phantom/reflection/BinaryLogicalExpression.h>
+#include <phantom/reflection/PointerArithmeticExpression.h>
+#include <phantom/reflection/TBinaryBooleanExpression.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), DataPointerType);
 
@@ -60,52 +65,33 @@ DataPointerType::~DataPointerType()
 boolean DataPointerType::isConvertibleTo( Type* a_pType ) const
 {
     o_assert(a_pType);
-    if(a_pType == this) return true;
-    if(a_pType->asDataPointerType() == nullptr) return false;
-    if(a_pType == phantom::typeOf<void*>()) return true;
-    Type*    pPointedType = static_cast<DataPointerType*>(a_pType)->getPointedType();
-    if((pPointedType->asClass() == nullptr) OR (m_pPointedType->asClass() == nullptr)) return false;
-    return static_cast<Class*>(m_pPointedType)->isKindOf(static_cast<Class*>(pPointedType))
-        OR static_cast<Class*>(pPointedType)->isKindOf(static_cast<Class*>(m_pPointedType));
-}
-
-Type* DataPointerType::createConstType() const
-{
-    return o_new(ConstDataPointerType)(const_cast<DataPointerType*>(this));
+    return a_pType->asIntegralType() OR a_pType->asPointerType() OR isImplicitlyConvertibleTo(a_pType);
+    
 }
 
 bool DataPointerType::hasTrivialCastTo( Type* a_pType ) const
 {
-    if(a_pType == this OR a_pType == typeOf<void*>())
-    {
-        return true;
-    }
-    else if(a_pType->getDataPointerLevel() == 1 AND getDataPointerLevel() == 1)
-    {
-        Type* pPointedType = static_cast<DataPointerType*>(a_pType)->getPointedType();
-        if(pPointedType == m_pPointedType) return true;
-        if((pPointedType->asClass() != nullptr) AND (m_pPointedType->asClass() != nullptr)) 
-        {
-            reflection::Class* pDestClass  = static_cast<reflection::Class*>(pPointedType);
-            reflection::Class* pClass       = static_cast<reflection::Class*>(m_pPointedType);
-            size_t offset = pClass->getSuperClassOffsetCascade(pDestClass);
-            return (offset == 0) OR ((offset == 0xffffffff) AND (pClass->isKindOf(pDestClass))) ;
-        }
-        return false;
-    }
-    return false;
+    
+    return isImplicitlyConvertibleTo(a_pType);
 }
 
 boolean DataPointerType::isImplicitlyConvertibleTo( Type* a_pType ) const
 {
-    if(a_pType == this OR a_pType == typeOf<void*>())
+    if(a_pType == this 
+        OR (m_pPointedType->asConstType() == nullptr AND a_pType == typeOf<void*>()) 
+        OR a_pType == typeOf<void const*>()
+        OR a_pType == typeOf<bool>())
     {
         return true;
     }
-    else if(a_pType->getDataPointerLevel() == 1 AND getDataPointerLevel() == 1)
+    if(a_pType->getDataPointerLevel() == 1 AND getDataPointerLevel() == 1)
     {
         Type* pPointedType = static_cast<DataPointerType*>(a_pType)->getPointedType();
         if(pPointedType == m_pPointedType) return true;
+        if(pPointedType->asConstType() AND pPointedType->asConstType() == nullptr)
+        {
+            return false;
+        }
         if((pPointedType->asClass() != nullptr) AND (m_pPointedType->asClass() != nullptr)) 
         {
             reflection::Class* pDestClass  = static_cast<reflection::Class*>(pPointedType);
@@ -120,16 +106,29 @@ boolean DataPointerType::isImplicitlyConvertibleTo( Type* a_pType ) const
 void DataPointerType::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const
 {
     o_assert(isConvertibleTo(a_pDestType));
-    reflection::Class* pPointedClass = m_pPointedType->asClass();
-    if(pPointedClass == nullptr) Type::convertValueTo(a_pDestType, a_pDestValue, a_pSrcValue);
-    reflection::Type* pDestPointedType = a_pDestType->asDataPointerType()->getPointedType();
-    if(a_pDestType == this OR pDestPointedType == typeOf<void>())
+    if(m_pPointedType->removeConst() == typeOf<void>())
     {
-        *((byte**)a_pDestValue) = *((byte**)a_pSrcValue);
+        *((void**)a_pDestValue) = *((void**)a_pSrcValue);
+        return;
+    }
+    reflection::Class* pPointedClass = m_pPointedType->removeConst()->asClass();
+    if(pPointedClass == nullptr) 
+    {
+        Type::convertValueTo(a_pDestType, a_pDestValue, a_pSrcValue);
+        return;
+    }
+    reflection::Type* pDestPointedType = a_pDestType->asDataPointerType()->getPointedType();
+    if(a_pDestType == this OR pDestPointedType->removeConst() == typeOf<void>())
+    {
+        *((void**)a_pDestValue) = *((void**)a_pSrcValue);
+    }
+    else if(a_pDestType == typeOf<bool>())
+    {
+        *((bool*)a_pDestValue) = (*((void* const*)a_pSrcValue) != nullptr);
     }
     else
     {
-        reflection::Class* pDestPointedClass = pDestPointedType->asClass();
+        reflection::Class* pDestPointedClass = pDestPointedType->removeConst()->asClass();
         o_assert(pDestPointedClass);
         if(pPointedClass == pDestPointedClass) return Type::convertValueTo(a_pDestType, a_pDestValue, a_pSrcValue);
         size_t offset = pPointedClass->getSuperClassOffsetCascade(pDestPointedClass);
@@ -543,13 +542,102 @@ bool DataPointerType::referencesData( const void* a_pInstance, const phantom::da
     return m_pPointedType->cast(a_Data.type(), (void*)pointerValue) == a_Data.address();
 }
 
-void DataPointerType::fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const
+void DataPointerType::fetchPointerReferenceExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask ) const
 {
-    const void* pointerValue = *((const void**)a_pInstance);
-    if(pointerValue == nullptr) 
-        return;
-    const phantom::rtti_data& rtti = phantom::rttiDataOf(pointerValue, m_pPointedType->asClass());
-    out.push_back(rtti.isNull() ? phantom::data((void*)pointerValue, m_pPointedType) : rtti.data());
+    out.push_back(a_pInstanceExpression);
+}
+
+Expression* DataPointerType::solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const
+{
+    o_assert(a_Expressions[0]->getValueType()->removeReference() == this);
+    if(a_strOp == "*" && a_Expressions.size() == 1)
+    {
+        return a_Expressions.back()->dereference();
+    }
+    if(a_strOp == "->")
+    {
+        if(a_Expressions.size() != 1) return nullptr;
+        return a_Expressions.back()->dereference();
+    }
+    else if(a_strOp.size() == 2 && a_Expressions.size() == 2)
+    {
+        if(a_strOp == "&&" OR a_strOp == "||")
+        {
+            return o_new(BinaryLogicalExpression)(a_strOp, a_Expressions[0], a_Expressions[1]);
+        }/*
+        else if(a_strOp == ">>" OR a_strOp == "<<")
+        {
+            return o_new(TBinaryBitExpression<void*>)(a_strOp, a_Expressions[0], a_Expressions[1]);
+        }*/
+        else if(a_strOp[1] == '=') // Assignment operation
+        {
+            Expression* pSubExpression = nullptr;
+            switch(a_strOp[0])
+            {
+            case '+':
+            case '-':
+                if(a_Expressions[1]->getValueType()->isImplicitlyConvertibleTo(typeOf<int>()))
+                {
+                    pSubExpression = o_new(PointerArithmeticExpression)(a_strOp.substr(0, 1), a_Expressions[0], a_Expressions[1]);
+                }
+                break;
+            case '=':
+            case '!':
+            case '<':
+            case '>':
+                return o_new(TBinaryBooleanExpression<void*>)(a_strOp, a_Expressions[0], a_Expressions[1]);
+            /*case '|':
+            case '&':
+            case '^':
+                pSubExpression = o_new(TBinaryBitExpression<void*>)(a_strOp.substr(0, 1), a_Expressions[0], a_Expressions[1]);
+                break;*/
+
+            }
+            if(pSubExpression)
+            {
+                return o_new(AssignmentExpression)(a_Expressions[0], pSubExpression);
+            }
+        }
+    }
+    else if(a_strOp.size() == 1 && a_Expressions.size() == 2)
+    {
+        switch(a_strOp[0])
+        {
+        case '=': // Assignment operation
+            {
+                if(a_Expressions[1]->getValueType()->isImplicitlyConvertibleTo(a_Expressions[0]->getValueType()->removeReference()))
+                {
+                    return o_new(AssignmentExpression)(a_Expressions[0], a_Expressions[1]);
+                }
+            }
+    
+        case '<':
+        case '>':
+            return o_new(TBinaryBooleanExpression<void*>)(a_strOp, a_Expressions[0], a_Expressions[1]);
+        }
+    }
+    return PointerType::solveOperator(a_strOp, a_Expressions, a_Modifiers);
+}
+
+void DataPointerType::valueToLiteral( string& a_str, const void* src ) const
+{
+    a_str += "(" + getQualifiedDecoratedName() + ")0x";
+    DataPointerType::valueToString(a_str, src);
+}
+
+void DataPointerType::valueToString( string& a_str, const void* src ) const
+{
+    a_str += ::phantom::lexical_cast<string>(*((void**)(src)));;
+}
+
+void DataPointerType::valueFromString( const string& a_str, void* dest ) const
+{
+    *reinterpret_cast<void**>(dest) = ::phantom::lexical_cast<void*>(a_str);
+}
+
+void DataPointerType::copy( void* a_pDest, void const* a_pSrc ) const
+{
+    *static_cast<void**>(a_pDest) = *static_cast<void* const*>(a_pSrc);
 }
 
 o_namespace_end(phantom, reflection)

@@ -32,10 +32,10 @@ public:
 
     QWidget* getWidget() const { return m_pWidget; }
 
-    VariableNode* getVariable() const { return m_pVariableNode; }
+    VariableNode* getVariableNode() const { return m_pVariableNode; }
     reflection::Type* getType() const { return m_pType; }
 
-    void setVariable(VariableNode* a_pVariable);
+    void setVariableNode(VariableNode* a_pVariableNode);
 
 protected:
     virtual void variableChanged(VariableNode* a_pVariable);

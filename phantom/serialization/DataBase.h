@@ -53,7 +53,6 @@ class o_export DataBase
     friend class DefaultNode;
     friend class Trashbin;
 
-
 public:
     enum Constant
     {
@@ -69,14 +68,14 @@ public:
     };
 
 protected:
-    struct data_sorter_sub_data_first
+    struct data_sorter_component_data_first
     {
-        data_sorter_sub_data_first(DataBase* a_pDataBase)
+        data_sorter_component_data_first(DataBase* a_pDataBase)
             : m_pDataBase(a_pDataBase) {}
         bool operator()(const phantom::data& d0, const phantom::data& d1)
         {
-            phantom::data ownerD0 = m_pDataBase->getSubDataOwner(d0);
-            phantom::data ownerD1 = m_pDataBase->getSubDataOwner(d1);
+            phantom::data ownerD0 = m_pDataBase->getComponentDataOwner(d0);
+            phantom::data ownerD1 = m_pDataBase->getComponentDataOwner(d1);
 
 			// Compute the component order
 			uint uiOrderD0 = 0;
@@ -84,12 +83,12 @@ protected:
 			while(NOT(ownerD0.isNull()))
 			{
 				uiOrderD0++;
-				ownerD0 = m_pDataBase->getSubDataOwner(ownerD0);
+				ownerD0 = m_pDataBase->getComponentDataOwner(ownerD0);
 			}
 			while(NOT(ownerD1.isNull()))
 			{
 				uiOrderD1++;
-				ownerD1 = m_pDataBase->getSubDataOwner(ownerD1);
+				ownerD1 = m_pDataBase->getComponentDataOwner(ownerD1);
 			}
 
             if(uiOrderD0 == uiOrderD1) // by adress
@@ -109,8 +108,8 @@ protected:
             : m_pDataBase(a_pDataBase) {}
         bool operator()(const phantom::data& d1, const phantom::data& d0)
         {
-			phantom::data ownerD0 = m_pDataBase->getSubDataOwner(d0);
-			phantom::data ownerD1 = m_pDataBase->getSubDataOwner(d1);
+			phantom::data ownerD0 = m_pDataBase->getComponentDataOwner(d0);
+			phantom::data ownerD1 = m_pDataBase->getComponentDataOwner(d1);
 
 			// Compute the component order
 			uint uiOrderD0 = 0;
@@ -118,18 +117,18 @@ protected:
 			while(NOT(ownerD0.isNull()))
 			{
 				uiOrderD0++;
-				ownerD0 = m_pDataBase->getSubDataOwner(ownerD0);
+				ownerD0 = m_pDataBase->getComponentDataOwner(ownerD0);
 			}
 			while(NOT(ownerD1.isNull()))
 			{
 				uiOrderD1++;
-				ownerD1 = m_pDataBase->getSubDataOwner(ownerD1);
+				ownerD1 = m_pDataBase->getComponentDataOwner(ownerD1);
 			}
 
 			if(uiOrderD0 == uiOrderD1) 
 			{
-				bool bD0IsOwner = m_pDataBase->isSubDataOwner(d0);
-				bool bD1IsOwner = m_pDataBase->isSubDataOwner(d1);
+				bool bD0IsOwner = m_pDataBase->isComponentDataOwner(d0);
+				bool bD1IsOwner = m_pDataBase->isComponentDataOwner(d1);
 				if (bD0IsOwner AND bD1IsOwner) // by adress
 				{
 					return d0.address() < d1.address();
@@ -152,9 +151,9 @@ protected:
     };
 public:
     template<typename t_It>
-    void sortSubDataFirst(t_It first, t_It end)
+    void sortComponentDataFirst(t_It first, t_It end)
     {
-        std::sort(first, end, data_sorter_sub_data_first(this));
+        std::sort(first, end, data_sorter_component_data_first(this));
     }
 
     template<typename t_It>
@@ -187,10 +186,14 @@ public:
 
     DataStateBase*  getDataStateBase() const { return m_pDataStateBase; }
 
-	Trashbin*		getTrashbin() const;
-	void			setTrashbin(Trashbin* a_pTrashbin);
+    Trashbin*       getTrashbin() const;
+    Trashbin*		addTrashbin(const string& a_strUrl);
 
-    virtual void    clearDataReference(const phantom::data& a_data);
+    void            restoreData(uint guid);
+    void            restoreNode(uint guid);
+
+    virtual void    clearDataReference(const phantom::data& a_data, vector<reflection::Expression*>* a_pRestoreReferenceExpressions = nullptr);
+
     virtual void    replaceDataReference(const phantom::data& a_old, const phantom::data& a_New);
 
     void            addType(reflection::Type* a_pType);
@@ -201,9 +204,9 @@ public:
     virtual boolean canMoveNode(Node* a_pNode, Node* a_pNewParent) const;
     virtual boolean canMoveData(const phantom::data& a_Data, Node* a_pNewParent) const;
 
-    void    terminate();
+    void            terminate();
     
-    Node*    rootNode();
+    Node*           rootNode();
 
     Node*           getNode( const phantom::data& a_Data ) const
     {
@@ -217,24 +220,26 @@ public:
         return found == m_DataNodeMap.end() ? NULL : found->second;
     }
 
-    const phantom::data&  getSubDataOwner( void* a_pAddress ) const
+    Node*                   getNode( uint a_uiGuid ) const;
+    
+    const phantom::data&    getComponentDataOwner( const phantom::data& a_Data ) const
     {
         static phantom::data null_data;
-        sub_data_owner_map::const_iterator found = m_SubDataOwnerMap.find(phantom::baseOf(a_pAddress, 0));
-        return found == m_SubDataOwnerMap.end() ? null_data : found->second;
+        component_data_owner_map::const_iterator found = m_ComponentDataOwnerMap.find(a_Data.address());
+        return found == m_ComponentDataOwnerMap.end() ? null_data : found->second;
     }
 
-    const phantom::data&  getSubDataOwner( const phantom::data& a_Data ) const
+    const string&           getComponentDataReferenceExpression( const phantom::data& a_Data ) const
     {
-        static phantom::data null_data;
-        sub_data_owner_map::const_iterator found = m_SubDataOwnerMap.find(a_Data.address());
-        return found == m_SubDataOwnerMap.end() ? null_data : found->second;
+        static string null_string;
+        component_data_reference_expression_map::const_iterator found = m_ComponentReferenceExpressionMap.find(a_Data.address());
+        return found == m_ComponentReferenceExpressionMap.end() ? null_string : found->second;
     }
 
-	bool  isSubDataOwner(const phantom::data& a_Data) const
+	bool                    isComponentDataOwner(const phantom::data& a_Data) const
 	{
-		sub_data_owner_map::const_iterator it = m_SubDataOwnerMap.begin();
-		sub_data_owner_map::const_iterator end = m_SubDataOwnerMap.end();
+		component_data_owner_map::const_iterator it = m_ComponentDataOwnerMap.begin();
+		component_data_owner_map::const_iterator end = m_ComponentDataOwnerMap.end();
 		for (;it != end; it++)
 		{
 			if (it->second == a_Data)
@@ -258,12 +263,6 @@ public:
 
     virtual boolean hasNodeEntry(Node* a_pNode) const = 0;
     virtual boolean hasDataEntry(const data& a_Data, uint guid, Node* a_pOwnerNode) const = 0;
-    
-    Node*           createNewNode(Node* a_pParentNode);
-	void			addNode(Node* a_pNode, Node* a_pParentNode, uint a_uiGuid);
-
-    void            deleteNode(Node* a_pNode);
-	void            removeNode(Node* a_pNode);
 
     void            moveNode(Node* a_pNode, Node* a_pNewParent);
     void            moveData(const phantom::data& a_Data, Node* a_pNewOwnerNode);
@@ -272,12 +271,6 @@ public:
     {
         return a_Data.type()->referencesData(a_Data.address(), a_CandidateDependency);
     }
-
-	void            addDataToTrashbin(const phantom::data& a_Data);
-	void            removeDataFromTrashbin(uint a_uiGuid);
-
-	void            addNodeToTrashbin(Node* a_pNode);
-	void            removeNodeFromTrashbin(uint a_uiGuid);
 
     void            registerData( const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode );
     void            unregisterData( const phantom::data& a_Data);
@@ -312,6 +305,8 @@ public:
     size_t          getAttributeIndex(const string& a_name) const;
 
     const string&   getAttributeName(size_t attributeIndex) const;
+
+    const string*   getAttributeValues( void* a_pAddress ) const;
 
     size_t          getLoadedDataSize() const { return m_uiLoadedDataSize; }
     size_t          getLoadedDataResetSize() const { return m_uiLoadedDataResetSize; }
@@ -357,6 +352,18 @@ protected:
     o_signal_data(nodeAboutToBeRemoved, Node*, Node*);
     o_signal_data(nodeMoved, Node*, Node*, Node*);
     o_signal_data(nodeAttributeValueChanged, Node*, size_t, const string&);
+    o_signal_data(dataErased, uint);
+    o_signal_data(dataRestored, uint);
+
+    virtual Trashbin* createTrashBin(const string& a_strUrl) const { return nullptr; }
+
+    Node*           internalAddNewNode(Node* a_pParentNode);
+    Node*           internalAddNewNode(uint a_uiGuid, Node* a_pParentNode);
+    void			internalAddNode(Node* a_pNode, uint a_uiGuid, Node* a_pParentNode);
+    void			internalAddData(const phantom::data& a_Data, uint a_uiGuid, Node* a_pOwnerNode);
+    void			internalAddNewData(const phantom::data& a_Data, uint a_uiGuid, Node* a_pOwnerNode);
+    void            internalRemoveData(const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode);
+    void			internalRemoveNode(Node* a_pNode, uint a_uiGuid, Node* a_pParentNode);
 
     virtual void    dataDestroyed(void* a_pAddress);
 
@@ -379,9 +386,9 @@ protected:
     void            rebuildData( phantom::data& a_inOutData, reflection::Type* a_pOld, reflection::Type* a_pNewType, vector<data>& a_Old, vector<data>& a_New, uint a_uiStateId /*= 0xffffffff*/ );  
 
 protected:
-    void            registerSubDataOwner(const data& a_Data, const data& a_Owner);
-    void            unregisterSubDataOwner(const data& a_Data);
-    reflection::Collection* getCollectionContainingSubData(const phantom::data& d) const;
+    void            registerComponentData(const data& a_Data, const data& a_Owner, const string& a_ReferenceExpression);
+    void            unregisterComponentData(const data& a_Data);
+    reflection::Collection* getCollectionContainingComponentData(const phantom::data& d) const;
 
 protected:
     typedef map<void*, Node*>       data_node_map;
@@ -390,12 +397,14 @@ protected:
     typedef map<void*, string*>     attribute_map;
     typedef vector<string>          attribute_name_container;
 
-    typedef map<void*,data>         sub_data_owner_map;
+    typedef map<void*,  data>       component_data_owner_map;
+    typedef map<void*, string>      component_data_reference_expression_map;
 
     string                          m_strUrl;
     data_guid_base                  m_GuidBase;
     data_node_map                   m_DataNodeMap;
-    sub_data_owner_map              m_SubDataOwnerMap;
+    component_data_owner_map        m_ComponentDataOwnerMap;
+    component_data_reference_expression_map m_ComponentReferenceExpressionMap;
     attribute_map                   m_AttributeValues;
     attribute_name_container        m_AttributeNames;
     DataTypeManager*                m_pDataTypeManager;

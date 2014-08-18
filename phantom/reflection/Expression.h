@@ -37,18 +37,20 @@
 
 
 /* ****************** Includes ******************* */
-
-
+#include "phantom/reflection/Evaluable.h"
 /* **************** Declarations ***************** */
+o_declareN(class, (phantom, reflection), Expression);
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection)
 
-class o_export Expression : public LanguageElement
+class o_export Expression : public Evaluable
 {
 public:
     Expression(Type* a_pValueType, bitfield a_Modifiers = 0);
     Expression(Type* a_pValueType, const string& a_strName, bitfield a_Modifiers = 0);
+     
+    virtual void            eval() const {}
 
     Type*                   getValueType() const { return m_pValueType; }
 
@@ -60,41 +62,78 @@ public:
 
     void                    store(void const* a_pSrc) const;
 
+    variant                 get() const;
+
+    void                    set(const variant& v);
+
     virtual Expression*     asExpression() const { return (Expression*)this; }
 
-    virtual bool            isReferenceable() const { return false; }
+    virtual bool            isAddressable() const { return m_pValueType->asReferenceType() != nullptr; }
 
-    virtual bool            isDereferenceable() const 
-    { 
-        return m_pValueType->asDataPointerType() != nullptr; 
+    virtual bool            isDereferenceable() const;
+
+    virtual bool            isAssignable() const { return isAddressable() && NOT(isConstExpression()); }
+
+    virtual bool            hasValueStorage() const { return false; }
+
+    virtual void*           getValueStorageAddress() const { return nullptr; }
+
+    bool                    hasEffectiveAddress() const { return m_pValueType->asReferenceType() != nullptr OR hasValueStorage(); }
+
+    void*                   loadEffectiveAddress() const;
+
+    virtual void            flush() const {}
+
+    bool                    isConstExpression() const;
+
+    Expression*             solveUnaryOperator(const string& a_strOp, bitfield a_Modifiers = 0) const
+    {
+        vector<Expression*> elements;
+        return solveOperator(a_strOp, elements, a_Modifiers); 
     }
 
-    virtual bool            isAddressable() const { return isReferenceable(); }
+    Expression*             solveBinaryOperator(const string& a_strOp, Expression* a_pExpression, bitfield a_Modifiers = 0) const 
+    {
+        vector<Expression*> elements;
+        elements.push_back(a_pExpression);
+        return solveOperator(a_strOp, elements, a_Modifiers); 
+    }
 
-    virtual void*           getAddress() const;
+    virtual Expression*     solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers = 0) const;
 
-    virtual void            flush() {}
-
-    bool                    isConstExpression() const { return m_pValueType->asConstType() != nullptr; }
-
-    virtual LanguageElement*solveBracketOperator(Expression* a_pExpression) const;
-    virtual LanguageElement*solveParenthesisOperator(const vector<LanguageElement*>& a_FunctionSignature) const;
     virtual LanguageElement*solveElement(
                                 const string& a_strName
                                 , const vector<TemplateElement*>*
                                 , const vector<LanguageElement*>*
                                 , bitfield a_Modifiers = 0) const;
 
-    Expression*     implicitCast(Type* a_pTargetType) const;
+    Expression*             implicitCast(Type* a_pTargetType) const;
 
-    Expression*     cast(Type* a_pTargetType) const;
+    Expression*             cast(Type* a_pTargetType) const;
 
-    Expression*     reference() const;
+    virtual Expression*     reference() const;
 
-    Expression*     dereference() const;
+    virtual Expression*     dereference() const;
+
+    virtual Expression*     address() const ;  
+
+    virtual Expression*     clone() const = 0;
+
+    virtual LanguageElement*getHatchedElement() const { return nullptr; }
+
+protected:
+    virtual void            ancestorChanged(LanguageElement* a_pLanguageElement) 
+    {
+        if(m_pBlock == nullptr)
+        {
+            m_pBlock = a_pLanguageElement->asBlock();
+        }
+    }
+    Type* storageType(Type* a_pType) const;
 
 protected:
     Type*                   m_pValueType;
+    Block*                  m_pBlock;
 };
 
 o_namespace_end(phantom, reflection)

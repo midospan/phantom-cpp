@@ -1,6 +1,5 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-#include "MessageTree.h"
 #include "Message.h"
 #include "Message.hxx"
 #include <stdarg.h>
@@ -14,11 +13,10 @@ o_namespace_begin(phantom)
 // Constructors / Destructor
 //================================================
 
-Message::Message(EType a_eType, const string& a_strText) 
+Message::Message(EMessageType a_eType, const string& a_strText) 
 : m_strText(a_strText) 
 , m_eType(a_eType)
 , m_pParent(nullptr)
-, m_pMessageTree(nullptr)
 {
 
 }
@@ -33,19 +31,9 @@ Message::~Message()
 // Accessors
 //================================================
 
-MessageTree* Message::getMessageTree() const 
+Message* Message::getRootMessage() const 
 { 
-	return m_pMessageTree; 
-}
-
-void Message::setMessageTree(MessageTree* a_pMessageTree)
-{
-	m_pMessageTree = a_pMessageTree; 
-	auto it = m_Children.begin();
-	for(; it != m_Children.end(); ++it)
-	{
-		(*it)->setMessageTree(a_pMessageTree);
-	}
+	return m_pParent == nullptr ? const_cast<Message*>(this) : m_pParent->getRootMessage(); 
 }
 
 Message* Message::getParent() const 
@@ -73,23 +61,23 @@ const phantom::variant& Message::getData() const
 	return m_Data; 
 }
 
-Message::EType Message::getType() const 
+EMessageType Message::getType() const 
 { 
 	return m_eType; 
 }
 
-void Message::setType(Message::EType a_eType)
+void Message::setType(EMessageType a_eType)
 {
 	m_eType = a_eType;
 }
 
-Message::EType Message::getMostValuableMessageType() const
+EMessageType Message::getMostValuableMessageType() const
 {
-	Message::EType type = m_eType;
+	EMessageType type = m_eType;
 	MessageVector::const_iterator it = m_Children.begin();
 	for(; it != m_Children.end(); ++it)
 	{
-		EType childType = (*it)->getMostValuableMessageType();
+		EMessageType childType = (*it)->getMostValuableMessageType();
 		if(childType > type)
 			type = childType;
 	}
@@ -146,9 +134,9 @@ void Message::addChild(Message* a_pChild)
 {
     o_assert(a_pChild->m_pParent == nullptr);
 	a_pChild->m_pParent = this;
-    a_pChild->setMessageTree(m_pMessageTree);
-	m_Children.push_back(a_pChild);
+    m_Children.push_back(a_pChild);
     o_emit childAdded(a_pChild);
+    emitDescendantRemovedCascade(a_pChild);
 }
 
 void Message::removeChild(Message* a_pChild)
@@ -158,9 +146,9 @@ void Message::removeChild(Message* a_pChild)
 	{
 		if(*it == a_pChild) break;
 	}
-	o_assert( it != m_Children.end());
+    o_assert( it != m_Children.end());
+    emitDescendantRemovedCascade(a_pChild);
     o_emit childRemoved(a_pChild);
-    a_pChild->setMessageTree(nullptr);
     m_Children.erase(it);
 }
 
@@ -176,55 +164,39 @@ void Message::removeAndDestroyAllChildCascade()
     m_Children.clear();
 }
 
-Message* Message::error(const char* format, ...)
+Message* Message::error(const variant& a_Data, const char* a_Format,  ...)
 {
     va_list args;
-    va_start(args, format);
-    char buffer[512];
-    buffer[511] = '\0';
-    int r = vsprintf_s(buffer, 511, format, args);
+    va_start(args, a_Format);
+    Message* pMessage = message(e_MessageType_Error, a_Data, a_Format, args);
     va_end(args);
-    Message* pMessage = o_new(Message)(Message::e_Type_Error, buffer);
-    addChild(pMessage);
     return pMessage;
 }
 
-Message* Message::warning(const char* format, ...)
+Message* Message::warning(const variant& a_Data, const char* a_Format, ...)
 {
     va_list args;
-    va_start(args, format);
-    char buffer[512];
-    buffer[511] = '\0';
-    int r = vsprintf_s(buffer, 511, format, args);
+    va_start(args, a_Format);
+    Message* pMessage = message(e_MessageType_Warning, a_Data, a_Format, args);
     va_end(args);
-    Message* pMessage = o_new(Message)(Message::e_Type_Warning, buffer);
-    addChild(pMessage);
     return pMessage;
 }
 
-Message* Message::information(const char* format, ...)
+Message* Message::information(const variant& a_Data, const char* a_Format, ...)
 {
     va_list args;
-    va_start(args, format);
-    char buffer[512];
-    buffer[511] = '\0';
-    int r = vsprintf_s(buffer, 511, format, args);
+    va_start(args, a_Format);
+    Message* pMessage = message(e_MessageType_Information, a_Data, a_Format, args);
     va_end(args);
-    Message* pMessage = o_new(Message)(Message::e_Type_Information, buffer);
-    addChild(pMessage);
     return pMessage;
 }
 
-Message* Message::success(const char* format, ...)
+Message* Message::success(const variant& a_Data, const char* a_Format, ...)
 {
     va_list args;
-    va_start(args, format);
-    char buffer[512];
-    buffer[511] = '\0';
-    int r = vsprintf_s(buffer, 511, format, args);
+    va_start(args, a_Format);
+    Message* pMessage = message(e_MessageType_Success, a_Data, a_Format, args);
     va_end(args);
-    Message* pMessage = o_new(Message)(Message::e_Type_Success, buffer);
-    addChild(pMessage);
     return pMessage;
 }
 
@@ -250,6 +222,52 @@ void Message::open()
 {
     o_emit opened();
     emitMessageOpenedCascade(this);
+}
+
+Message* Message::message( EMessageType a_eType, const phantom::variant& a_Data, const char* a_Format, ... )
+{
+    va_list args;
+    va_start(args, a_Format);
+    Message* pMessage = message(a_eType, a_Data, a_Format, args);
+    va_end(args);
+    return pMessage;
+}
+
+Message* Message::message( EMessageType a_eType, const phantom::variant& a_Data, const char* a_Format, va_list args )
+{
+    Message* pMessage = o_new(Message)(a_eType);
+    pMessage->setData(a_Data);
+    size_t size = strlen(a_Format)+512;
+    char* buffer = (char*)o_malloc(size);
+    buffer[size-1] = '\0';
+    int r = vsprintf_s(buffer, size, a_Format, args);
+    pMessage->setText(buffer);
+    o_free(buffer);
+    addChild(pMessage);
+    return pMessage;
+}
+
+void Message::emitDescendantAddedCascade( Message* a_pMessage )
+{
+    if(m_pParent)
+        m_pParent->emitDescendantAddedCascade(a_pMessage);
+    o_emit descendantAdded(a_pMessage); 
+}
+
+void Message::emitDescendantRemovedCascade( Message* a_pMessage )
+{
+    o_emit descendantRemoved(a_pMessage);
+    if(m_pParent)
+        m_pParent->emitDescendantRemovedCascade(a_pMessage); 
+}
+
+Message::messages_def Message::messages_def::operator()( EMessageType a_eType, const phantom::variant& a_Data, char* a_Format, ... )
+{
+    va_list args;
+    va_start(args, a_Format);
+    m_pMessage->message(a_eType, a_Data, a_Format, args);
+    va_end(args);
+    return messages_def(m_pMessage);
 }
 
 o_namespace_end(phantom)

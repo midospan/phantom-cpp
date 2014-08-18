@@ -14,6 +14,7 @@ o_declareN(class, (phantom, qt), AddDataAction);
 o_declareN(class, (phantom, qt), AddNodeAction);
 o_declareN(class, (phantom, qt), LoadNodeAction);
 o_declareN(class, (phantom, qt), UnloadNodeAction);
+o_declareN(class, (phantom, qt), RemoveDataAction);
 /* *********************************************** */
 
 namespace phantom { 
@@ -97,18 +98,27 @@ class o_qt_export DataTreeView : public QTreeWidget
     Q_OBJECT
 
 public:
-    typedef fastdelegate::FastDelegate< void ( phantom::serialization::Node*, const phantom::data& ) > add_data_action_delegate;
-    typedef fastdelegate::FastDelegate< void ( phantom::serialization::Node* ) > node_action_delegate;
+    typedef fastdelegate::FastDelegate< void ( DataTreeView*, phantom::serialization::Node*, reflection::Type* ) > new_data_action_delegate;
+    typedef fastdelegate::FastDelegate< void ( DataTreeView*, phantom::serialization::Node* ) > node_action_delegate;
+    typedef fastdelegate::FastDelegate< void ( DataTreeView*, const vector<uint>& a_Guids ) > remove_data_action_delegate;
+    typedef fastdelegate::FastDelegate< void ( DataTreeView*, const phantom::data&, size_t, const string&) > data_attribute_change_delegate;
+    typedef fastdelegate::FastDelegate< void ( DataTreeView*, phantom::serialization::Node*, size_t, const string& ) > node_attribute_change_delegate;
 
-    void defaultAddDataActionDelegate(phantom::serialization::Node* a_pOwnerNode, const phantom::data& a_Data);
+    void defaultAddDataActionDelegate(DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pOwnerNode, reflection::Type* a_pType);
 
-    void defaultAddNodeActionDelegate(phantom::serialization::Node* a_pParentNode);
+    void defaultAddNodeActionDelegate(DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pParentNode);
 
-    void defaultLoadNodeActionDelegate(phantom::serialization::Node* a_pNode);
+    void defaultRemoveDataActionDelegate(DataTreeView* a_pDataTreeView, const vector<uint>& a_Guid);
 
-    void defaultUnloadNodeActionDelegate(phantom::serialization::Node* a_pNode);
+    void defaultLoadNodeActionDelegate(DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode);
 
-    void defaultRecursiveLoadNodeActionDelegate(phantom::serialization::Node* a_pNode);
+    void defaultUnloadNodeActionDelegate(DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode);
+
+    void defaultRecursiveLoadNodeActionDelegate(DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode);
+
+    void defaultNodeAttributeChangeDelegate(DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, size_t a_uiAttributeIndex, const string& a_Value);
+
+    void defaultDataAttributeChangeDelegate(DataTreeView* a_pDataTreeView, const phantom::data& a_Data, size_t a_uiAttributeIndex, const string& a_Value);
 
 public:
 	DataTreeView(Message* a_pRootMessage = nullptr);
@@ -129,6 +139,15 @@ public:
 
     void select(const phantom::vector<phantom::data>& a_Datas, const phantom::vector<phantom::serialization::Node*>& a_Nodes);
 
+    void setAddDataActionDelegate(new_data_action_delegate d) { m_AddDataActionDelegate = d; }
+    void setAddNodeActionDelegate(node_action_delegate d) { m_AddNodeActionDelegate = d; }
+    void setRemoveDataActionDelegate(remove_data_action_delegate d) { m_RemoveDataActionDelegate = d; }
+    void setLoadNodeActionDelegate(node_action_delegate d) { m_LoadNodeActionDelegate = d; }
+    void setUnloadNodeActionDelegate(node_action_delegate d) { m_UnloadNodeActionDelegate = d; }
+    void setRecursiveLoadNodeActionDelegate(node_action_delegate d) { m_RecursiveLoadNodeActionDelegate = d; }
+    void setDataAttributeChangeDelegate(data_attribute_change_delegate d) { m_DataAttributeChangeDelegate = d; }
+    void setNodeAttributeChangeDelegate(node_attribute_change_delegate d) { m_NodeAttributeChangeDelegate = d; }
+
 protected:
     void addDataItem(const phantom::data& a_Data);
     void addNodeItem(phantom::serialization::Node* a_pNode);
@@ -138,6 +157,9 @@ protected:
     void dataBaseUnloaded(phantom::serialization::DataBase* a_pDB) ;
 
 	void keyPressEvent(QKeyEvent* a_pEvent);
+
+    void closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint);
+    virtual bool edit ( const QModelIndex & index, EditTrigger trigger, QEvent * event );
     
 protected slots:
     void slotItemClicked(QTreeWidgetItem* item, int col);
@@ -157,7 +179,7 @@ protected slots:
     void nodeAboutToBeUnloaded();
     void dataAttributeValueChanged( const phantom::data& a_Data, size_t a_uiAttributeIndex, const string& a_strValue);
     void nodeAttributeValueChanged( phantom::serialization::Node* a_pNode, size_t a_uiAttributeIndex, const string& a_strValue);
-	void addClassSubDataActionCascade( QMenu* a_pMenu, const phantom::data& a_Data, phantom::reflection::Collection* a_pCollection, phantom::reflection::Class* a_pSubDataClass );
+	void addClassComponentDataActionCascade( QMenu* a_pMenu, const phantom::data& a_Data, phantom::reflection::Collection* a_pCollection, phantom::reflection::Class* a_pComponentDataClass );
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);
@@ -191,17 +213,21 @@ protected:
 	phantom::vector<phantom::serialization::Node*>						m_NodeLoaded;
 	phantom::vector<std::pair<DataTreeViewItem*, DataTreeViewItem*>>	m_DataItemToRemove;
     QList<QTreeWidgetItem*> m_SelectedItems; // TODO : remove and use SelectionManager ?
-    add_data_action_delegate                                            m_AddDataActionDelegate;
+    new_data_action_delegate                                                m_AddDataActionDelegate;
     node_action_delegate                                                m_AddNodeActionDelegate;
+    remove_data_action_delegate                                         m_RemoveDataActionDelegate;
     node_action_delegate                                                m_LoadNodeActionDelegate;
     node_action_delegate                                                m_UnloadNodeActionDelegate;
     node_action_delegate                                                m_RecursiveLoadNodeActionDelegate;
+    data_attribute_change_delegate                                      m_DataAttributeChangeDelegate;
+    node_attribute_change_delegate                                      m_NodeAttributeChangeDelegate;
     QIcon                                                               m_NodeLoadedIcon;
     QIcon                                                               m_NodeUnloadedIcon;
     QIcon                                                               m_NodeRootIcon;
     bool														        m_bHideInternal;
-    bool														        m_bHideSubData;
+    bool														        m_bHideComponentData;
     bool														        m_bIsChangingSelection;
+    bool                                                                m_bEditorOpened;
 };
 
 class AddDataAction : public Action
@@ -209,48 +235,67 @@ class AddDataAction : public Action
     Q_OBJECT
 
 public:
-    AddDataAction(phantom::serialization::Node* a_pNode, phantom::reflection::Type* a_pDataType, DataTreeView::add_data_action_delegate a_Delegate, QObject* a_pParent);
+    AddDataAction(DataTreeView* a_pDataTreeView, serialization::Node* a_pNode, phantom::reflection::Type* a_pDataType, DataTreeView::new_data_action_delegate a_Delegate, QObject* a_pParent);
     ~AddDataAction(void) {}
 
     void doAction()
     {
-        m_Delegate(m_pTargetNode, phantom::data(m_pDataType->newInstance(), m_pDataType));
+        m_Delegate(m_pDataTreeView, m_pTargetNode, m_pDataType);
     }
 
 protected:
+    DataTreeView*                           m_pDataTreeView;
     phantom::serialization::Node*           m_pTargetNode;
     phantom::reflection::Type*              m_pDataType;
-    DataTreeView::add_data_action_delegate  m_Delegate;
+    DataTreeView::new_data_action_delegate      m_Delegate;
+};
+
+class RemoveDataAction : public Action
+{
+    Q_OBJECT
+
+public:
+    RemoveDataAction(DataTreeView* a_pDataTreeView, const vector<uint>& a_Guids, DataTreeView::remove_data_action_delegate a_Delegate, QObject* a_pParent);
+    ~RemoveDataAction(void) {}
+
+    void doAction();
+
+protected:
+    DataTreeView*                               m_pDataTreeView;
+    vector<uint>                                m_Guids;
+    DataTreeView::remove_data_action_delegate   m_Delegate;
 };
 
 class AddNodeAction : public Action
 {
 public:
-    AddNodeAction(phantom::serialization::Node* a_pNode, DataTreeView::node_action_delegate a_Delegate, QObject* a_pParent);
+    AddNodeAction(DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, DataTreeView::node_action_delegate a_Delegate, QObject* a_pParent);
     ~AddNodeAction(void) {}
 
     void doAction()
     {
-        m_Delegate(m_pTargetNode);
+        m_Delegate(m_pDataTreeView, m_pTargetNode);
     }
 
 protected:
-    phantom::serialization::Node*           m_pTargetNode;
+    DataTreeView*                       m_pDataTreeView;
+    phantom::serialization::Node*       m_pTargetNode;
     DataTreeView::node_action_delegate  m_Delegate;
 };
 
 class LoadNodeAction : public Action
 {
 public:
-    LoadNodeAction(phantom::serialization::Node* a_pNode, DataTreeView::node_action_delegate a_Delegate, QObject* a_pParent);
+    LoadNodeAction(DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, DataTreeView::node_action_delegate a_Delegate, QObject* a_pParent);
     ~LoadNodeAction(void) {}
 
     void doAction()
     {
-        m_Delegate(m_pTargetNode);
+        m_Delegate(m_pDataTreeView, m_pTargetNode);
     }
 
 protected:
+    DataTreeView*                       m_pDataTreeView;
     phantom::serialization::Node*       m_pTargetNode;
     DataTreeView::node_action_delegate  m_Delegate;
 };
@@ -260,15 +305,16 @@ class UnloadNodeAction : public Action
     Q_OBJECT
 
 public:
-    UnloadNodeAction(phantom::serialization::Node* a_pNode, DataTreeView::node_action_delegate a_Delegate, QObject* a_pParent);
+    UnloadNodeAction(DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, DataTreeView::node_action_delegate a_Delegate, QObject* a_pParent);
     ~UnloadNodeAction(void) {}
 
     void doAction()
     {
-        m_Delegate(m_pTargetNode);
+        m_Delegate(m_pDataTreeView, m_pTargetNode);
     }
 
 protected:
+    DataTreeView*                       m_pDataTreeView;
     phantom::serialization::Node*       m_pTargetNode;
     DataTreeView::node_action_delegate  m_Delegate;
 };

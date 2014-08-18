@@ -20,10 +20,11 @@ o_namespace_begin(phantom)
 template<typename t_Ty>
 struct is_container
 {
-    const static bool value = detail::has_value_type<t_Ty>::value AND
-        detail::has_iterator<t_Ty>::value AND
-        detail::has_size_type<t_Ty>::value AND
-        detail::has_reference<t_Ty>::value;
+    const static bool value = detail::has_value_type<t_Ty>::value 
+                          AND detail::has_iterator<t_Ty>::value 
+                          AND detail::has_size_type<t_Ty>::value 
+                          AND detail::has_reference<t_Ty>::value
+                          ;
 };
 
 template<typename t_Ty, bool t_has_key_type>

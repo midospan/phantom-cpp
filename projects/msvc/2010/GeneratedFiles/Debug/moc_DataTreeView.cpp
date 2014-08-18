@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'DataTreeView.h'
 **
-** Created: Mon 17. Feb 21:56:13 2014
+** Created: Fri 11. Jul 18:46:54 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -56,7 +56,7 @@ static const uint qt_meta_data_phantom__qt__DataTreeView[] = {
      949,   26,   26,   26, 0x09,
     1010,  973,   26,   26, 0x09,
     1103, 1065,   26,   26, 0x09,
-    1219, 1174,   26,   26, 0x09,
+    1225, 1174,   26,   26, 0x09,
 
        0        // eod
 };
@@ -90,9 +90,9 @@ static const char qt_meta_stringdata_phantom__qt__DataTreeView[] = {
     "dataAttributeValueChanged(phantom::data,size_t,string)\0"
     "a_pNode,a_uiAttributeIndex,a_strValue\0"
     "nodeAttributeValueChanged(phantom::serialization::Node*,size_t,string)\0"
-    "a_pMenu,a_Data,a_pCollection,a_pSubDataClass\0"
-    "addClassSubDataActionCascade(QMenu*,phantom::data,phantom::reflection:"
-    ":Collection*,phantom::reflection::Class*)\0"
+    "a_pMenu,a_Data,a_pCollection,a_pComponentDataClass\0"
+    "addClassComponentDataActionCascade(QMenu*,phantom::data,phantom::refle"
+    "ction::Collection*,phantom::reflection::Class*)\0"
 };
 
 void phantom::qt::DataTreeView::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -123,7 +123,7 @@ void phantom::qt::DataTreeView::qt_static_metacall(QObject *_o, QMetaObject::Cal
         case 19: _t->nodeAboutToBeUnloaded(); break;
         case 20: _t->dataAttributeValueChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
         case 21: _t->nodeAttributeValueChanged((*reinterpret_cast< phantom::serialization::Node*(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
-        case 22: _t->addClassSubDataActionCascade((*reinterpret_cast< QMenu*(*)>(_a[1])),(*reinterpret_cast< const phantom::data(*)>(_a[2])),(*reinterpret_cast< phantom::reflection::Collection*(*)>(_a[3])),(*reinterpret_cast< phantom::reflection::Class*(*)>(_a[4]))); break;
+        case 22: _t->addClassComponentDataActionCascade((*reinterpret_cast< QMenu*(*)>(_a[1])),(*reinterpret_cast< const phantom::data(*)>(_a[2])),(*reinterpret_cast< phantom::reflection::Collection*(*)>(_a[3])),(*reinterpret_cast< phantom::reflection::Class*(*)>(_a[4]))); break;
         default: ;
         }
     }
@@ -271,6 +271,67 @@ void *phantom::qt::AddDataAction::qt_metacast(const char *_clname)
 }
 
 int phantom::qt::AddDataAction::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+{
+    _id = Action::qt_metacall(_c, _id, _a);
+    if (_id < 0)
+        return _id;
+    return _id;
+}
+static const uint qt_meta_data_phantom__qt__RemoveDataAction[] = {
+
+ // content:
+       6,       // revision
+       0,       // classname
+       0,    0, // classinfo
+       0,    0, // methods
+       0,    0, // properties
+       0,    0, // enums/sets
+       0,    0, // constructors
+       0,       // flags
+       0,       // signalCount
+
+       0        // eod
+};
+
+static const char qt_meta_stringdata_phantom__qt__RemoveDataAction[] = {
+    "phantom::qt::RemoveDataAction\0"
+};
+
+void phantom::qt::RemoveDataAction::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+{
+    Q_UNUSED(_o);
+    Q_UNUSED(_id);
+    Q_UNUSED(_c);
+    Q_UNUSED(_a);
+}
+
+const QMetaObjectExtraData phantom::qt::RemoveDataAction::staticMetaObjectExtraData = {
+    0,  qt_static_metacall 
+};
+
+const QMetaObject phantom::qt::RemoveDataAction::staticMetaObject = {
+    { &Action::staticMetaObject, qt_meta_stringdata_phantom__qt__RemoveDataAction,
+      qt_meta_data_phantom__qt__RemoveDataAction, &staticMetaObjectExtraData }
+};
+
+#ifdef Q_NO_DATA_RELOCATION
+const QMetaObject &phantom::qt::RemoveDataAction::getStaticMetaObject() { return staticMetaObject; }
+#endif //Q_NO_DATA_RELOCATION
+
+const QMetaObject *phantom::qt::RemoveDataAction::metaObject() const
+{
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->metaObject : &staticMetaObject;
+}
+
+void *phantom::qt::RemoveDataAction::qt_metacast(const char *_clname)
+{
+    if (!_clname) return 0;
+    if (!strcmp(_clname, qt_meta_stringdata_phantom__qt__RemoveDataAction))
+        return static_cast<void*>(const_cast< RemoveDataAction*>(this));
+    return Action::qt_metacast(_clname);
+}
+
+int phantom::qt::RemoveDataAction::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = Action::qt_metacall(_c, _id, _a);
     if (_id < 0)

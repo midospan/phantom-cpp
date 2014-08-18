@@ -1,4 +1,5 @@
 #include "Unit.hxx"
+#include "phantom/variant.h"
 
 o_classNS((sc2), Marine, (Unit))
 {

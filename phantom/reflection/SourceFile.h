@@ -80,11 +80,10 @@ protected:
     void removeElementDeclaration(const CodeLocation& a_Location, LanguageElement* a_pLanguageElement);
 
 protected:
-    vector<std::pair<CodeLocation, LanguageElement*>> m_LanguageElements;
-    vector<std::pair<CodeLocation, LanguageElement*>> m_LanguageElementReferences;
-    vector<std::pair<CodeLocation, LanguageElement*>> m_LanguageElementDeclarations;
-    string                   m_strAbsoluteName;
-
+    vector<std::pair<CodeLocation, LanguageElement*>>   m_LanguageElements;
+    vector<std::pair<CodeLocation, LanguageElement*>>   m_LanguageElementReferences;
+    vector<std::pair<CodeLocation, LanguageElement*>>   m_LanguageElementDeclarations;
+    string                                              m_strAbsoluteName;
 };
 
 o_namespace_end(phantom, reflection)

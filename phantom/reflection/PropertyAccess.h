@@ -46,6 +46,7 @@ class o_export PropertyAccess : public Expression
 {
 public:
     PropertyAccess(Expression* a_pLeftExpression, Property* a_pProperty);
+    virtual void terminate();
 
     virtual void        getValue(void* dest) const;
 
@@ -58,11 +59,11 @@ public:
 
     Property*           getProperty() const { return m_pProperty; }
 
-    virtual void        flush() ;
+    virtual void        flush() const;
 
-    virtual void*       getAddress() const { return m_pBuffer; }
+    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers /* = 0 */) const;
 
-    virtual bool        isAddressable() const { return true; }
+    virtual PropertyAccess*     clone() const;
 
 protected:
     void referencedElementRemoved( LanguageElement* a_pElement );

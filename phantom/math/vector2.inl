@@ -14,7 +14,6 @@ inline vector2<t_Ty>::vector2 (const vector2<t_Ty>& vec)
 	m[1] = vec.m[1];
 }
 
-
 template<class t_Ty>
 inline vector2<t_Ty>::vector2 (t_Ty x, t_Ty y)
 {
@@ -22,6 +21,12 @@ inline vector2<t_Ty>::vector2 (t_Ty x, t_Ty y)
 	m[1] = y;
 }
 
+template<class t_Ty>
+inline vector2<t_Ty>::vector2 (t_Ty s)
+{
+    m[0] = s;
+    m[1] = s;
+}
 
 template<class t_Ty>
 inline vector2<t_Ty>& vector2<t_Ty>::operator= (const vector2<t_Ty>& vec)

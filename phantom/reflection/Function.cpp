@@ -40,17 +40,17 @@
 o_registerN((phantom, reflection), Function);
 
 
+int   __stdcall o_function_test_stdcall(int) { return 0; }
+int     __cdecl o_function_test_cdecl(int) { return 0; }
+int  __fastcall o_function_test_fastcall(int) { return 0; }
+
+o_function(int, o_function_test_stdcall, (int));
+o_function(int, o_function_test_cdecl, (int));
+o_function(int, o_function_test_fastcall, (int));
+
 o_namespace_begin(phantom, reflection) 
+
+Class* const Function::metaType = o_type_of(phantom::reflection::Function);
     
-void Function::call( void** a_pParams, void* a_pReturnAddress ) const
-{
-    o_assert(getReturnType() == typeOf<void>()); call(a_pParams);
-}
-
-void Function::call( void* a_pCallerAddress, void** a_pParams, void* a_pReturnAddress ) const
-{
-    o_assert(getReturnType() == typeOf<void>()); call(a_pParams, a_pReturnAddress);
-}
-
 
 o_namespace_end(phantom, reflection)

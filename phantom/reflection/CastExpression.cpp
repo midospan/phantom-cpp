@@ -41,13 +41,13 @@ o_registerN((phantom, reflection), CastExpression);
 o_namespace_begin(phantom, reflection) 
 
 CastExpression::CastExpression( Type* a_pCastType, Expression* a_pCastedExpression ) 
-    : Expression(a_pCastType, "("+a_pCastType->getQualifiedDecoratedName()+")"+a_pCastedExpression->getName(), a_pCastedExpression->getModifiers())
+    : Expression(a_pCastType, "("+a_pCastType->getQualifiedDecoratedName()+")("+a_pCastedExpression->getName()+")", a_pCastedExpression->getModifiers())
     , m_pCastedExpression(a_pCastedExpression)
     , m_pTempValue(nullptr)
 {
     addElement(m_pCastedExpression);
     o_assert(a_pCastedExpression->getValueType()->isCopyable());
-    if(NOT(a_pCastedExpression->isAddressable()))
+    if(NOT(a_pCastedExpression->hasValueStorage()))
     {
         m_pTempValue = a_pCastedExpression->getValueType()->allocate();
         m_pCastedExpression->getValueType()->construct(m_pTempValue);
@@ -58,13 +58,7 @@ CastExpression::CastExpression( Type* a_pCastType, Expression* a_pCastedExpressi
 
 CastExpression::~CastExpression()
 {
-    if(m_pTempValue)
-    {
-        m_pCastedExpression->getValueType()->terminate(m_pTempValue);
-        m_pCastedExpression->getValueType()->uninstall(m_pTempValue);
-        m_pCastedExpression->getValueType()->destroy(m_pTempValue);
-        m_pCastedExpression->getValueType()->deallocate(m_pTempValue);
-    }
+    
 }
 
 void CastExpression::getValue( void* a_pDest ) const
@@ -75,7 +69,24 @@ void CastExpression::getValue( void* a_pDest ) const
     }
     m_pCastedExpression->getValueType()->convertValueTo(getValueType(), a_pDest, m_pTempValue 
                                                                                     ? m_pTempValue 
-                                                                                    : m_pCastedExpression->getAddress());
+                                                                                    : m_pCastedExpression->getValueStorageAddress());
+}
+
+void CastExpression::terminate()
+{
+    if(m_pTempValue)
+    {
+        m_pCastedExpression->getValueType()->terminate(m_pTempValue);
+        m_pCastedExpression->getValueType()->uninstall(m_pTempValue);
+        m_pCastedExpression->getValueType()->destroy(m_pTempValue);
+        m_pCastedExpression->getValueType()->deallocate(m_pTempValue);
+    }
+    Expression::terminate();
+}
+
+CastExpression* CastExpression::clone() const
+{
+    return o_new(CastExpression)(m_pValueType, m_pCastedExpression->clone());
 }
 
 o_namespace_end(phantom, reflection)

@@ -33,7 +33,7 @@ namespace phantom { namespace qt {
 
     void ComponentDataComboBoxEditor::setValues( const void** a_ppSrc ) const
     {
-        for(size_t i = 0; i<m_pVariableNode->getVariableCount(); ++i)
+        for(size_t i = 0; i<m_pVariableNode->getExpressionCount(); ++i)
         {
             ((ComponentDataComboBox*)m_pWidget)->setCurrentData(i, *((void**)a_ppSrc[i]));
         }
@@ -41,7 +41,7 @@ namespace phantom { namespace qt {
 
     void ComponentDataComboBoxEditor::getValues( void** a_ppDest ) const
     {
-        for(size_t i = 0; i<m_pVariableNode->getVariableCount(); ++i)
+        for(size_t i = 0; i<m_pVariableNode->getExpressionCount(); ++i)
         {
             *((void**)a_ppDest[i]) = ((ComponentDataComboBox*)m_pWidget)->getCurrentData(i);
         }

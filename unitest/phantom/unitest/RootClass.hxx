@@ -16,7 +16,7 @@ o_classN((unitest), RootClass)
         o_data_member(phantom::uint, m_uiInstanceDataMember, o_no_range, o_protected);
         o_data_member(RootClass*, m_pStaticDataMember, o_no_range, o_static);
         o_data_member(phantom::vector<RootClass*>, m_SelfVector, o_no_range, o_protected);
-        o_typedef(self_map);
+        o_nested_typedef(self_map);
         o_data_member(self_map, m_SelfMap, o_no_range, o_protected);
         o_member_function(void, const_tester_member_function,(), o_noconst);
         o_member_function(void, const_tester_member_function,(), o_const);

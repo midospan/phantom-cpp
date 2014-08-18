@@ -69,6 +69,14 @@
     o_reflection_specialize_type_ofNT(_namespaces_,_template_types_,_template_params_,_name_)\
     o_reflection_specialize_template_specialization_adderNT(_namespaces_,_template_types_,_template_params_,_name_)\
     o_traits_specializeNT(is_template, (const static bool value = true), _namespaces_, _template_types_,_template_params_, _name_)
+/*
+
+#define o_type_specialize_traitsNTC(_namespaces_,_template_types_,_template_params_,_name_)  \
+    o_traits_specializeNTC(has_module, (const static bool value = true), _namespaces_, _template_types_,_template_params_, _class_, _name_)\
+    o_reflection_specialize_type_name_of_implNTC(_namespaces_,_template_types_,_template_params_, _class_,_name_) \
+    o_reflection_specialize_type_ofNTC(_namespaces_,_template_types_,_template_params_, _class_,_name_)\
+    o_traits_specializeNTC(is_template, (const static bool value = true), _namespaces_, _template_types_,_template_params_, _class_, _name_)
+*/
 
 #define o_type_specialize_traitsNTS(_namespaces_,_template_types_,_template_params_,_name_,_supers_)  \
     o_traits_specializeNT(has_module, (const static bool value = true), _namespaces_, _template_types_,_template_params_, _name_)\
@@ -154,7 +162,7 @@
     o_traits_specializeNC(has_module, (const static bool value = true), _namespaces_,_classes_, _name_)\
     o_reflection_specialize_type_name_of_implNC(_namespaces_,_classes_,_name_) \
     o_reflection_specialize_type_ofNC(_namespaces_,_classes_,_name_)\
-    o_traits_specialize_all_super_traitNS(_namespaces_, _name_,_supers_)
+    o_traits_specialize_all_super_traitNCS(_namespaces_, _classes_,_name_,_supers_)
 
 #define o_type_specialize_traitsS(_name_, _supers_)  \
     o_traits_specialize(has_module, (const static bool value = true), _name_)\
@@ -175,6 +183,8 @@
 #define o_declareNC( ... ) o_PP_CAT(o_PP_CAT(o_declareNC_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__) )
 #define o_declareT( ... ) o_PP_CAT(o_PP_CAT(o_declareT_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__) )
 #define o_declareNT( ... ) o_PP_CAT(o_PP_CAT(o_declareNT_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__) )
+#define o_declareTC( ... ) o_PP_CAT(o_PP_CAT(o_declareT_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__) )
+//#define o_declareNTC( ... ) o_PP_CAT(o_PP_CAT(o_declareNTC_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__) )
 #else
 #define o_declare( ... ) o_PP_CAT(o_declare_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
 #define o_declareN( ... ) o_PP_CAT(o_declareN_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
@@ -182,6 +192,8 @@
 #define o_declareNC( ... ) o_PP_CAT(o_declareNC_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
 #define o_declareT( ... ) o_PP_CAT(o_declareT_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
 #define o_declareNT( ... ) o_PP_CAT(o_declareNT_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
+#define o_declareTC( ... ) o_PP_CAT(o_declareCT_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
+//#define o_declareNTC( ... ) o_PP_CAT(o_declareNTC_, o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__) 
 #endif
 
 #define o_declare_1(_name_) \
@@ -232,6 +244,9 @@
     o_namespace_end _namespaces_\
         o_reflection_specialize_type_name_of_counterNT(_namespaces_, _template_types_,_template_params_, _name_)
 
+// #define o_declareNTC_5(_namespaces_, _template_types_,_template_params_, _class_, _name_) \
+//     o_inc_compilation_counter\
+//     o_reflection_specialize_type_name_of_counterNTC(_namespaces_, _template_types_,_template_params_, _class_, _name_)
 
 #define o_class(_name_,...) \
     o_inc_compilation_counter\
@@ -280,6 +295,12 @@
     o_type_specialize_traitsNT(_namespaces_,_template_types_,_template_params_,_name_) \
     o_traits_specializeNT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _template_types_,_template_params_, _name_)\
     o_class_moduleNT(_namespaces_,_template_types_,_template_params_,_name_)
+
+// #define o_classNTC(_namespaces_,_template_types_,_template_params_, _class_, _name_, ...) \
+//     o_inc_compilation_counter\
+//     o_type_specialize_traitsNTC(_namespaces_,_template_types_,_template_params_,_class_,_name_) \
+//     o_traits_specializeNTC(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _template_types_,_template_params_, _class_, _name_)\
+//     o_class_moduleNTC(_namespaces_,_template_types_,_template_params_,_name_)
 
 #define o_classNTS(_namespaces_,_template_types_,_template_params_,_name_,_supers_,...) \
     o_inc_compilation_counter\
@@ -430,6 +451,43 @@
     template<typename t_PHANTOM_RESERVED_statechart_objectclass> class enclosed_statechart \
     : public phantom::super_statechart<phantom_proxy_generator_statechart_self_type, t_PHANTOM_RESERVED_statechart_objectclass>
 
+#define o_nested_begin(_name_, ...)\
+class phantom_proxy_____##_name_\
+    : public _name_\
+    , public phantom_proxy_generator_base_____<_name_, phantom_proxy_____##_name_ >\
+{\
+    o_reflection \
+    {\
+        struct initializer\
+        {\
+            initializer()\
+            {\
+                phantom::reflection::Types::savedInstalledClass = phantom::reflection::Types::currentInstalledClass;\
+                phantom::reflection::Types::savedInstalledTemplateSpecialization = phantom::reflection::Types::currentInstalledTemplateSpecialization;\
+                typedef phantom::reflection::meta_class_type_of<_name_,##__VA_ARGS__>::type meta_type;\
+                meta_type* pMetaType = new (o__t1_class__default_class_allocator(meta_type)::allocate()) meta_type(#_name_);\
+                meta_type::metaType->install(pMetaType, 0);\
+                meta_type::metaType->initialize(pMetaType);\
+                phantom::reflection::Types::currentInstalledClass = pMetaType;\
+                phantom::reflection::Types::savedInstalledClass->addNestedType(phantom::reflection::Types::currentInstalledClass);\
+                phantom::reflection::Types::currentInstalledTemplateSpecialization = phantom::reflection::Types::currentInstalledClass ? phantom::reflection::Types::currentInstalledClass->getTemplateSpecialization() : nullptr;\
+            }\
+        } o_nested_begin_;
+
+#define o_nested_end(_name_)\
+        struct terminator\
+        {\
+            terminator()\
+            {\
+                phantom::reflection::Types::currentInstalledClass = phantom::reflection::Types::savedInstalledClass;\
+                phantom::reflection::Types::currentInstalledTemplateSpecialization = phantom::reflection::Types::savedInstalledTemplateSpecialization;\
+            };\
+        } o_nested_end_;\
+    };\
+};\
+o_NESTED_TYPE phantom_proxy_____##_name_::enclosed_reflection  phantom_proxy_____##_name_##_instance;
+
+
 #define o_class_moduleNT(_namespaces_,_template_types_,_template_params_,_name_)\
     o_namespace_begin _namespaces_\
     template<typename t_Ty>\
@@ -446,6 +504,26 @@ struct proxy_of<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) < o_PP_IDENTITY 
 class :: o_PP_CREATE_SCOPE _namespaces_::phantom_proxy_____##_name_<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) < o_PP_IDENTITY _template_params_ > >\
     : public o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)< o_PP_IDENTITY _template_params_ >\
     , public phantom_proxy_generator_base_____<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)< o_PP_IDENTITY _template_params_ >, :: o_PP_CREATE_SCOPE _namespaces_::phantom_proxy_____##_name_<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) < o_PP_IDENTITY _template_params_ > > >
+
+
+// #define o_class_moduleNTC(_namespaces_,_template_types_,_template_params_,_class_,_name_)\
+//     o_namespace_begin _namespaces_\
+//     template<typename t_Ty>\
+// class phantom_proxy_____##_class_##______##_name_;\
+//     o_namespace_end _namespaces_\
+//     namespace phantom {\
+//     template<o_PP_MIX(_template_types_,_template_params_)>\
+// struct proxy_of< o_NESTED_TYPE o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_class_) < o_PP_IDENTITY _template_params_ >::_name_ >\
+// {\
+//     typedef :: o_PP_CREATE_SCOPE _namespaces_::phantom_proxy_____##_class_##______##_name_< o_NESTED_TYPE o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_class_) < o_PP_IDENTITY _template_params_ >::_name_ > type;\
+// };\
+//     }\
+//     template<o_PP_MIX(_template_types_,_template_params_)>\
+// class :: o_PP_CREATE_SCOPE _namespaces_::phantom_proxy_____##_class_##______##_name_< o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_class_) < o_PP_IDENTITY _template_params_ >::_name_ >\
+//     : public o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_class_)< o_PP_IDENTITY _template_params_ >\
+//     , public o_NESTED_TYPE o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_class_)< o_PP_IDENTITY _template_params_ >::_name_\
+//     , public phantom_proxy_generator_base_____<o_NESTED_TYPE o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_class_)< o_PP_IDENTITY _template_params_ >::_name_, :: o_PP_CREATE_SCOPE _namespaces_::phantom_proxy_____##_class_##______##_name_< o_NESTED_TYPE o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_class_) < o_PP_IDENTITY _template_params_ >::_name_ > >
+
 
 #define o_class_moduleN(_namespaces_,_name_)\
     o_namespace_begin _namespaces_\

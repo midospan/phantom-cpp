@@ -42,6 +42,7 @@
 /* *********************************************** */
 o_namespace_begin(phantom, reflection)
 
+
 class o_export Class : public ClassType
 {
     o_declare_meta_type(Class);
@@ -56,11 +57,39 @@ public:
     template<typename t_Ty, bool t_value>
     friend class phantom::state::native::TNativeStateMachineHelper;
 
+    template<typename t_Ty, typename t_STy, int t_counter> friend struct detail::super_class_adder;
+
     template<typename t_Ty, phantom::extension::detail::default_installer_id t_default_installer_id>
     friend struct phantom::extension::detail::default_installer_helper;
     template<typename t_Ty, phantom::extension::detail::default_initializer_id t_default_initializer_id>
     friend struct phantom::extension::detail::default_initializer_helper;
 
+protected:
+    struct extra_data : ClassType::extra_data
+    {
+        extra_data() 
+            : m_uiClassPtrOffset(0)
+            , m_uiSuperSize(0)
+            , m_uiStateMachineDataPtrOffset(0)
+            , m_bHasVTablePtr(false)
+            , m_bHasStateMachineDataPtr(false)
+            , m_pInitializeClosure(0)
+            , m_pRestoreClosure(0)
+            , m_pTerminateClosure(0)
+        {
+
+        }
+        void*                   m_pInitializeClosure;
+        void*                   m_pRestoreClosure;
+        void*                   m_pTerminateClosure;
+        closure_call_delegate   m_ClosureCallDelegate;
+        size_t                  m_uiDataMemberMemoryOffset;
+        size_t                  m_uiClassPtrOffset;
+        size_t                  m_uiSuperSize;
+        size_t                  m_uiStateMachineDataPtrOffset;
+        bool                    m_bHasVTablePtr;
+        bool                    m_bHasStateMachineDataPtr;
+    };
 
 protected:
     typedef phantom::vector<Class*>                    class_vector; 
@@ -150,9 +179,13 @@ public:
         result_map        m_ResultMap;
     };
 
+    // Creates an empty class
     Class(const string& a_strName, bitfield a_Modifiers = 0);
+
+protected: // Reserved to native class derivation
     Class(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0);
 
+public:
     ~Class(void);
     
     virtual void        destroyContent();
@@ -269,7 +302,7 @@ public:
     void                getCollectionsCascade(vector<Collection*>& out) const;
 
     /**
-     * \fn InstanceMemberFunction* Class::findOverloadedMemberFunctions(InstanceMemberFunction* a_pOverloadMemberFunction, vector<InstanceMemberFunction*>& a_Result);
+     * \fn InstanceMemberFunction* Class::findOverriddenMemberFunctions(InstanceMemberFunction* a_pOverloadMemberFunction, vector<InstanceMemberFunction*>& a_Result);
      *
      * \brief Gets a base instance member_function.
      *
@@ -278,7 +311,7 @@ public:
      *
      */
 
-    void     findOverloadedMemberFunctions( InstanceMemberFunction* a_pOverloadedMemberFunction, vector<InstanceMemberFunction*>& a_Result );
+    void     findOverriddenMemberFunctions( InstanceMemberFunction* a_pOverloadedMemberFunction, vector<InstanceMemberFunction*>& a_Result );
 
     /**
      * \fn InstanceMemberFunction* Class::getInstanceMemberFunctionCascade(const string& a_strIdentifierString) const;
@@ -422,8 +455,7 @@ public:
      * \return The virtual member_function table count.
      */
 
-    inline uint         getVirtualMemberFunctionTableCount() const;
-    inline 
+    inline size_t         getVirtualMemberFunctionTableCount() const;
 
     /**
      * \fn VirtualMemberFunctionTable* Class::getVirtualMemberFunctionTable(uint i) const;
@@ -435,7 +467,7 @@ public:
      * \return the virtual member_function table at i.
      */
 
-    VirtualMemberFunctionTable* getVirtualMemberFunctionTable(uint i) const;
+    inline VirtualMemberFunctionTable* getVirtualMemberFunctionTable(size_t i) const;
 
     /**
      * \fn uint Class::getVirtualMemberFunctionTableSize(uint a_uiIndex) const
@@ -447,7 +479,7 @@ public:
      * \return The size.
      */
 
-    uint                getVirtualMemberFunctionTableSize(uint a_uiIndex) const    { return getVirtualMemberFunctionTable(a_uiIndex)->getSize();    }
+    size_t                      getVirtualMemberFunctionTableSize(size_t a_uiIndex) const    { return getVirtualMemberFunctionTable(a_uiIndex)->getMemberFunctionCount();    }
 
     /**
      * \fn InstanceMemberFunction** Class::getVirtualMemberFunctionTableData(uint a_uiIndex) const
@@ -459,19 +491,22 @@ public:
      * \return the virtual member_function table data as an InstanceMemberFunction* array.
      */
 
-    InstanceMemberFunction**    getVirtualMemberFunctionTableData(uint a_uiIndex) const    { return getVirtualMemberFunctionTable(a_uiIndex)->getMemberFunctions();    }
-
-    
-
     virtual boolean     acceptMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_vector* a_pOutConflictingMemberFunctions = NULL) const;
     virtual boolean     acceptsOverloadedMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_vector* a_pOutConflictingMemberFunctions) const;
 
     inline Class*       getSuperClass(size_t index) const    { return m_SuperClasses[index];    }
 
-    super_class_table::const_iterator superClassBegin() const { return m_SuperClasses.begin(); }
-    super_class_table::const_iterator superClassEnd() const { return m_SuperClasses.end(); } 
+    super_class_table::const_iterator beginSuperClasses() const { return m_SuperClasses.begin(); }
+    super_class_table::const_iterator endSuperClasses() const { return m_SuperClasses.end(); } 
+    
+    vector<VirtualMemberFunctionTable*>::const_iterator beginVirtualMemberFunctionsTables() const { return m_VirtualMemberFunctionTables.begin(); }
+    vector<VirtualMemberFunctionTable*>::const_iterator endVirtualMemberFunctionsTables() const { return m_VirtualMemberFunctionTables.end(); }
 
-    virtual void        addSuperClass(Class* a_pType, size_t a_uiOffset);
+    vector<InstanceMemberFunction*>::const_iterator beginMemberFunctions() const { return m_InstanceMemberFunctions.begin(); }
+    vector<InstanceMemberFunction*>::const_iterator endMemberFunctions() const { return m_InstanceMemberFunctions.end(); }
+
+    virtual void        addSuperClass(Class* a_pClass);
+
     const 
     super_class_table&  getSuperClasses() const { return m_SuperClasses; }
     uint                getSuperClassCount(void) const { return m_SuperClasses.size(); }
@@ -488,8 +523,8 @@ public:
     {
         return m_SuperClasses[a_uiClassIndex].m_uiOffset;
     }
-    o_forceinline int   getSuperClassOffset(Class* a_pSuperType) const;
-    inline int          getSuperClassOffsetCascade(Class* a_pSuperType) const;
+    inline size_t       getSuperClassOffset(Class* a_pSuperType) const;
+    inline size_t       getSuperClassOffsetCascade(Class* a_pSuperType) const;
     boolean             isRootClass() const { return m_SuperClasses.empty(); }
 
     virtual boolean     isKindOf( Class* a_pType ) const;
@@ -497,17 +532,10 @@ public:
     virtual ERelation   getRelationWith(Type* a_pType) const;
     boolean             doesInstanceDependOn(void* a_pInstance, void* a_pOther) const;
     
-    virtual 
-    InstanceMemberFunction**    getVfTable() const ;
-
     virtual void        setClass(void* a_pInstance, void* a_pClass) const    { throw exception::unsupported_member_function_exception("this member_function must be overloaded in specialized subclasses which support it"); }
     virtual void        setStateMachineData(void* a_pInstance, void* a_pSmdataptr) const { throw exception::unsupported_member_function_exception("this member_function must be overloaded in specialized subclasses which support it"); }
-    virtual void        setVftPtr(void* a_pInstance, InstanceMemberFunction** a_pVftPtr) const { throw exception::unsupported_member_function_exception("this member_function must be overloaded in specialized subclasses which support it"); }
   
-    virtual void        extractVirtualMemberFunctionTableInfos(const void* a_pInstance, vector<vtable_info>& vtables) = 0;
-    virtual uint        getVirtualMemberFunctionCount(uint a_uiIndex) const = 0;
-
-    // Signals and Extensions
+    virtual void        addInstanceMemberFunction(InstanceMemberFunction* a_pInstanceMemberFunction);
 
     virtual void        addSignal(Signal* a_pSignal);
     virtual void        removeSignal( Signal* a_pSignal );
@@ -515,20 +543,11 @@ public:
     Signal*             getSignalCascade(const string& a_strIdentifierString) const;
     InstanceMemberFunction* getSlot(const string& a_strIdentifierString) const;
     InstanceMemberFunction* getSlotCascade(const string& a_strIdentifierString) const;
+
     state::StateMachine*getStateMachine() const;
     state::StateMachine*getStateMachineCascade() const;
 
-    virtual boolean     isPolymorphic() const { return false; }
-
-    virtual void        initialize( void* a_pInstance ) const { initializeInstanceDataMembersCascade(a_pInstance); }
-    virtual void        terminate( void* a_pInstance ) const { terminateInstanceDataMembersCascade(a_pInstance); }
-    virtual void        initialize( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const {}
-    virtual void        terminate( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const {}
-
-    virtual restore_state restore(void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass) const 
-    {
-        return restoreInstanceDataMembersCascade(a_pInstance, a_uiSerializationFlag, a_uiPass); 
-    }
+    virtual bool        isPolymorphic() const;
 
     void                initializeInstanceDataMembers(void* a_pInstance) const;
     void                initializeInstanceDataMembersCascade(void* a_pInstance) const;
@@ -537,15 +556,48 @@ public:
     restore_state       restoreInstanceDataMembers( void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass ) const;
     restore_state       restoreInstanceDataMembersCascade( void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass ) const;
 
-    virtual void        install( void* a_pInstance, size_t a_uiLevel = 0 ) const { installInstanceDataMembers(a_pInstance, a_uiLevel); }
-    virtual void        uninstall( void* a_pInstance, size_t a_uiLevel = 0 ) const { uninstallInstanceDataMembers(a_pInstance, a_uiLevel); }
-    virtual void        install( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const {    }
-    virtual void        uninstall( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const     {}
-
     void                installInstanceDataMembers(void* a_pInstance, size_t a_uiLevel) const;
     void                uninstallInstanceDataMembers(void* a_pInstance, size_t a_uiLevel) const;
     void                installInstanceDataMembersCascade(void* a_pInstance, size_t a_uiLevel) const;
     void                uninstallInstanceDataMembersCascade(void* a_pInstance, size_t a_uiLevel) const;
+
+    // Construct               
+
+    static void InstallHelper(Class* a_pBaseClass, void* a_pBase, Class* a_pLayoutClass, void* a_pLayout, connection::slot_pool* sp, size_t a_uiLevel);
+    static void UninstallHelper(void* a_pLayout, Class* a_pLayoutClass, size_t a_uiLevel);
+
+    virtual void initialize( void* a_pInstance ) const;
+    virtual void initialize(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { ClassType::initialize(a_pChunk, a_uiCount, a_uiChunkSectionSize); }
+    virtual void terminate( void* a_pInstance ) const;
+    virtual void terminate(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { ClassType::terminate(a_pChunk, a_uiCount, a_uiChunkSectionSize); ; }
+
+    virtual void install( void* a_pInstance, size_t a_uiLevel = 0 ) const;
+    virtual void install(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const { ClassType::install(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_uiLevel); }
+    virtual void uninstall( void* a_pInstance, size_t a_uiLevel = 0) const;
+    virtual void uninstall(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const { ClassType::uninstall(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_uiLevel); ; }
+
+    virtual restore_state   restore(void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass) const;
+
+    virtual size_t  getVirtualMemberFunctionCount(size_t a_uiOffset) const;
+
+    virtual void*   allocate() const;
+    virtual void    deallocate(void* a_pInstance) const;
+    virtual void*   allocate(size_t a_uiCount) const;
+    virtual void    deallocate(void* a_pInstance, size_t a_uiCount) const;
+    virtual void    construct(void* a_pObject) const;
+    virtual void    destroy(void* a_pObject) const;
+    virtual void    construct(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize) const;
+    virtual void    destroy(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize) const;
+
+    virtual void    remember(void const* a_pInstance, byte*& a_pOutBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void    reset(void* a_pInstance, byte const*& a_pInBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void    remember(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void    reset(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+
+    // TODO : COMPILER
+    /*InstanceMemberFunction* addRestoreMemberFunction();
+    InstanceMemberFunction* addInitializeMemberFunction();
+    InstanceMemberFunction* addTerminateMemberFunction();*/
 
     // Build               
     virtual void        build(void* a_pInstance, size_t a_uiLevel = 0) const { construct(a_pInstance); install(a_pInstance, a_uiLevel); }
@@ -567,72 +619,22 @@ public:
     void                destroySingleton();
     
     // Serialization
-
-    /**
-     * \fn  virtual void Class::serializeLayout(void const* a_pInstance, byte*& a_pBuffer,
-     *      serialization::DataBase const* a_pDataBase) const = 0;
-     *
-     * \brief Serialize to a binary buffer the layout of this class only (not the base class ones). If you want to serialize
-     * 		  the complete layout of an instance, use serialize instead.
-     *
-     * \param   a_pInstance       The instance.
-     * \param [in,out]  a_pBuffer [in,out] If non-null, the binary buffer.
-     * \param   a_pDataBase       The guid data base.
-     */
-
-    virtual void        serializeLayout(void const* a_pInstance, byte*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-
-    /**
-     * \fn  virtual void Class::deserializeLayout(void* a_pInstance, byte const*& a_pBuffer,
-     *      serialization::DataBase const* a_pDataBase) const = 0;
-     *
-     * \brief Deserialize from a binary buffer the layout of this class only (not the base class ones). If you want to deserialize
-     * 		  the complete layout of an instance, use deserialize instead.
-     * \param [in,out]  a_pInstance If non-null, the instance.
-     * \param   a_pBuffer           The binary buffer.
-     * \param   a_pDataBase         The guid data base.
-     */
-
-    virtual void        deserializeLayout(void* a_pInstance, byte const*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-
-    /**
-     * \fn  virtual void Class::serializeLayout(void const* a_pInstance, size_t a_uiCount,
-     *      size_t a_uiChunkSectionSize, byte*& a_pBuffer,
-     *      serialization::DataBase const* a_pDataBase) const = 0;
-     *
-     * \brief Serialize to a binary buffer the layout of this class only (not the base class ones) for N instances 
-     * 		  contained inside the given memory chunk. 
-     *
-     * \param   a_pChunk                The chunk address.
-     * \param   a_uiCount               Number of instances in the chunk.
-     * \param   a_uiChunkSectionSize    Size of a chunk section (useful for memory aligned chunks).
-     * \param   [out]  a_pBuffer        [out] If non-null, the binary buffer.
-     * \param   a_pDataBase             The guid data base.
-     */
-
-    virtual void        serializeLayout(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-
-    /**
-     * \fn  virtual void Class::deserializeLayout(void* a_pInstance, size_t a_uiCount,
-     *      size_t a_uiChunkSectionSize, byte const*& a_pBuffer,
-     *      serialization::DataBase const* a_pDataBase) const = 0;
-     *
-     * \brief Deserialize from a binary buffer the layout of this class only (not the base class ones) for N instances 
-     * 		  contained inside the given memory chunk. 
-     *
-     * \param   a_pChunk                The chunk address.
-     * \param   a_uiCount               Number of instances in the chunk.
-     * \param   a_uiChunkSectionSize    Size of a chunk section (useful for memory aligned chunks).
-     * \param   [in] a_pBuffer          [in] The binary buffer.
-     * \param   a_pDataBase             The guid data base.
-     */
-
-    virtual void        deserializeLayout(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-
-    virtual void        serializeLayout(void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-    virtual void        deserializeLayout(void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-    virtual void        serializeLayout(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
-    virtual void        deserializeLayout(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const = 0;
+    virtual void        serialize(void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        deserialize(void* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        serialize(void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const ;
+    virtual void        deserialize(void* a_pInstance, const property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const ;
+    virtual void        serialize(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        deserialize(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        serialize(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        deserialize(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        serializeLayout(void const* a_pInstance, byte*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        deserializeLayout(void* a_pInstance, byte const*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        serializeLayout(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        deserializeLayout(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        serializeLayout(void const* a_pInstance, property_tree& a_Branch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const ;
+    virtual void        deserializeLayout(void* a_pInstance, const property_tree& a_Branch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
+    virtual void        serializeLayout(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_Branch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        deserializeLayout(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_Branch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
 
     /**
      * \fn  void Class::interpolate( void* a_src_start, void* a_src_end, real a_fPercent,
@@ -648,7 +650,6 @@ public:
     virtual void        smartCopy(void* a_Instance, void const* a_pSource, reflection::Type* a_pSourceType) const;
     void*               newInstance() const;
     void*               newInstance(Constructor* a_pConstructor, void** a_pArgs) const;
-    void*               newInstance(Constructor* a_pConstructor, argument::list* a_pArgs) const;
     void                deleteInstance(void* a_pInstance) const;
     virtual void        safeDeleteInstance(void* a_pObject) const;
     virtual 
@@ -659,10 +660,12 @@ public:
         , bitfield a_Modifiers = 0) const ;
 
     virtual Expression*   solveExpression( Expression* a_pLeftExpression
-        , const char* a_strName 
+        , const string& a_strName 
         , const vector<TemplateElement*>* 
         , const vector<LanguageElement*>*
         , bitfield a_Modifiers /*= 0*/ ) const;
+
+    virtual variant     compile(Compiler* a_pCompiler);
 
     size_t              getInstanceCount() const { return m_Instances.size(); }
     size_t              getKindCount() const;
@@ -673,19 +676,27 @@ public:
 
     virtual bool        referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
 
-    virtual void        fetchReferencedData( const void* a_pInstance, vector<phantom::data>& out, uint a_uiSerializationMask ) const;
+    virtual void        fetchPointerReferenceExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask ) const;
 
     virtual bool        isCopyable() const;
 
     virtual bool        isCopyConstructible() const { return true; }
+
+    virtual bool        hasNewVTable() const;
+
+    virtual void        finalize();
 
 protected:
     void                fireKindCreated(void* a_pObject) const;
     void                fireKindDestroyed(void* a_pObject) const;
 
 protected:
+    virtual void        addSuperClass(Class* a_pClass, size_t a_uiOffset);
     void                addDerivedClass(Class* a_pClass);
     void                removeDerivedClass(Class* a_pClass);
+    void                addNewVirtualMemberFunctionTable();
+    virtual VirtualMemberFunctionTable* createVirtualMemberFunctionTable() const;
+    virtual VirtualMemberFunctionTable* deriveVirtualMemberFunctionTable( VirtualMemberFunctionTable* a_pVirtualMemberFunctionTable ) const;
 
     void                referencedElementRemoved(LanguageElement* a_pElement);
 
@@ -722,6 +733,7 @@ protected:
     class_vector        m_DerivedClasses;
     vector<void*>       m_Instances;
     mutable vmt_vector  m_VirtualMemberFunctionTables;
+    mutable vector<vtable_info> m_VirtualTableInfos;
     state::StateMachine*m_pStateMachine;
     vector<Signal*>*    m_pSignals;
     size_t              m_uiInstanceCount;
@@ -730,7 +742,7 @@ protected:
 
 /// inlines
 
-o_forceinline int    Class::getSuperClassOffset(Class* a_pSuperClass) const
+inline size_t   Class::getSuperClassOffset(Class* a_pSuperClass) const
 {
     super_class_table::const_iterator it = m_SuperClasses.begin();
     super_class_table::const_iterator end = m_SuperClasses.end();
@@ -738,10 +750,10 @@ o_forceinline int    Class::getSuperClassOffset(Class* a_pSuperClass) const
     {
         if(it->m_pClass == a_pSuperClass) return it->m_uiOffset;
     }
-    return -1;
+    return ~size_t(0);
 }
 
-inline int            Class::getSuperClassOffsetCascade(Class* a_pSuperType) const
+inline size_t           Class::getSuperClassOffsetCascade(Class* a_pSuperType) const
 {
     if(this == a_pSuperType) return 0;
     super_class_table::const_iterator it = m_SuperClasses.begin();
@@ -749,21 +761,19 @@ inline int            Class::getSuperClassOffsetCascade(Class* a_pSuperType) con
     for(; it != end; ++it)
     {
         int sub_result = it->m_pClass->getSuperClassOffsetCascade(a_pSuperType);
-        if(sub_result != -1) return sub_result+it->m_uiOffset;
+        if(sub_result != ~size_t(0)) return sub_result+it->m_uiOffset;
     }
-    return -1;
+    return ~size_t(0);
 }
 
-inline uint                Class::getVirtualMemberFunctionTableCount() const
+inline size_t              Class::getVirtualMemberFunctionTableCount() const
 {
-    if(m_VirtualMemberFunctionTables.empty()) setupVirtualMemberFunctionTables();
     return m_VirtualMemberFunctionTables.size();
 }
 
-inline VirtualMemberFunctionTable*    Class::getVirtualMemberFunctionTable(uint i) const
+inline VirtualMemberFunctionTable*    Class::getVirtualMemberFunctionTable(size_t a_uiIndex) const
 {
-    if(m_VirtualMemberFunctionTables.empty()) setupVirtualMemberFunctionTables();
-    return m_VirtualMemberFunctionTables[i];
+    return m_VirtualMemberFunctionTables[a_uiIndex];
 }
 
 o_namespace_end(phantom, reflection)
@@ -773,7 +783,23 @@ o_namespace_begin(phantom)
 template<typename t_Ty>
 struct string_converter_helper<t_Ty, true, false>
 {
+    static void to(const reflection::ClassType* a_pClass, string& a_strOut, const t_Ty* a_pSrc)
+    {
+        a_pClass->reflection::ClassType::valueToString(a_strOut, a_pSrc);
+    }
+    static void toLiteral(const reflection::ClassType* a_pClass, string& a_strOut, const t_Ty* a_pSrc)
+    {
+        a_pClass->reflection::ClassType::valueToString(a_strOut, a_pSrc);
+    }
+    static void from(const reflection::ClassType* a_pClass, const string& a_strIn, t_Ty* a_pDest)
+    {
+        a_pClass->reflection::ClassType::valueFromString(a_strIn, a_pDest);
+    }
     static void to(const reflection::Class* a_pClass, string& a_strOut, const t_Ty* a_pSrc)
+    {
+        a_pClass->reflection::Class::valueToString(a_strOut, a_pSrc);
+    }
+    static void toLiteral(const reflection::Class* a_pClass, string& a_strOut, const t_Ty* a_pSrc)
     {
         a_pClass->reflection::Class::valueToString(a_strOut, a_pSrc);
     }

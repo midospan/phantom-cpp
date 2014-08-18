@@ -37,30 +37,22 @@
 #include <phantom/reflection/AddressExpression.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), AddressExpression);
+
 o_namespace_begin(phantom, reflection) 
-
-AddressExpression::AddressExpression(void* a_pAddress, Type* a_pType, Expression* a_pChildExpression /*= nullptr*/)
-    : Expression(a_pType, string("&")+lexical_cast<string>(a_pAddress))
-    , m_pAddress(a_pAddress)
+    
+AddressExpression::AddressExpression( Expression* a_pAddressedExpression ) 
+    : Expression(a_pAddressedExpression->getValueType()->removeReference()->pointerType()
+    , "&("+a_pAddressedExpression->getName()+")"
+    , 0)
+    , m_pAddressedExpression(a_pAddressedExpression)
 {
-    addReferencedElement(a_pType);
-    if(a_pChildExpression)
-        addElement(a_pChildExpression);
+    addElement(m_pAddressedExpression);
+    o_assert(m_pAddressedExpression->hasEffectiveAddress());
 }
 
-void AddressExpression::setValue( void const* a_pSrc ) const
+AddressExpression* AddressExpression::clone() const
 {
-    m_pValueType->copy(m_pAddress, a_pSrc);
-}
-
-void AddressExpression::getValue( void* a_pDest ) const
-{
-    m_pValueType->copy(a_pDest, m_pAddress);
-}
-
-void* AddressExpression::getAddress() const
-{
-    return m_pAddress;
+    return o_new(AddressExpression)(m_pAddressedExpression->clone());
 }
 
 o_namespace_end(phantom, reflection)
