@@ -377,9 +377,6 @@
     <ClCompile Include="..\..\..\phantom\qt\CompositionVariableNodeDelegate.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\CompositionAddVariableNodeDelegate.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\CompositionAddComponentDataCommand.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -671,12 +668,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\qt\CompositionVariableNodeDelegate.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\CompositionAddVariableNodeDelegate.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\CompositionAddVariableNodeDelegate.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\qt\CompositionAddComponentDataCommand.hxx">

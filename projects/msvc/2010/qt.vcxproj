@@ -38,9 +38,6 @@
     <ClCompile Include="..\..\..\phantom\qt\ComponentDataComboBox.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\ComponentDataComboBoxEditor.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\ComponentReferenceExpressionChangeCommand.cpp" />
-    <ClCompile Include="..\..\..\phantom\qt\CompositionAddVariableNodeDelegate.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\CompositionComponentVariableNodeDelegate.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\CompositionMoveComponentDataCommand.cpp" />
     <ClCompile Include="..\..\..\phantom\qt\CompositionVariableNodeDelegate.cpp" />
@@ -282,12 +279,6 @@
     <ClInclude Include="..\..\..\phantom\qt\ComponentDataComboBoxEditor.hxx" />
     <ClInclude Include="..\..\..\phantom\qt\ComponentReferenceExpressionChangeCommand.h" />
     <ClInclude Include="..\..\..\phantom\qt\ComponentReferenceExpressionChangeCommand.hxx" />
-    <ClInclude Include="..\..\..\phantom\qt\CompositionAddVariableNodeDelegate.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\CompositionAddVariableNodeDelegate.hxx">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
     <CustomBuild Include="..\..\..\phantom\qt\CompositionVariableNodeDelegate.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath);%(AdditionalInputs)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing %(Identity)...</Message>
