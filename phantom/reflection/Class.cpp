@@ -1694,7 +1694,7 @@ void Class::serialize( void const* a_pInstance, property_tree& a_OutBranch, uint
     }
     property_tree class_tree;
     serializeLayout(a_pInstance, class_tree, a_uiSerializationMask, a_pDataBase);
-    a_OutBranch.add_child(encodeQualifiedDecoratedNameToIdentifierName(getQualifiedDecoratedName()), class_tree);
+    a_OutBranch.add_child(/*encodeQualifiedDecoratedNameToIdentifierName*/(getQualifiedDecoratedName()), class_tree);
 }
 
 void Class::deserialize( void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
@@ -1715,7 +1715,7 @@ void Class::deserialize( void* a_pInstance, const property_tree& a_InBranch, uin
             // The test below could seem dirty but it's useful to deserialize typedefs or placeholder types 
             // which goal is to point to a type without having the same representation name (ex: my_vector2 could point to phantom::math::vector2<float>)
             // It's also useful is you have a type versionning (a script class rebuilt with a different name but you still want to deserialize from the older type name
-            reflection::Type* solvedType = a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(it->first));
+            reflection::Type* solvedType = a_pDataBase->solveTypeByName(/*decodeQualifiedDecoratedNameFromIdentifierName*/(it->first));
             if(solvedType == this)
             {
                 deserializeLayout(a_pInstance, it->second, a_uiSerializationMask, a_pDataBase);
@@ -1997,6 +1997,20 @@ void Class::addNewVirtualMemberFunctionTable()
 bool Class::hasNewVTable() const
 {
     return static_cast<extra_data*>(m_pExtraData)->m_bHasVTablePtr;
+}
+
+void Class::getDerivedClasses( vector<Class*>& out ) const
+{
+    out.insert(out.end(), m_DerivedClasses.begin(), m_DerivedClasses.end());
+}
+
+void Class::getDerivedClassesCascade( vector<Class*>& out ) const
+{
+    getDerivedClasses(out);
+    for(auto it = m_DerivedClasses.begin(); it != m_DerivedClasses.end(); ++it)
+    {
+        (*it)->getDerivedClassesCascade(out);
+    }
 }
 
 o_namespace_end(phantom, reflection)

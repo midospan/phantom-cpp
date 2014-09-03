@@ -42,9 +42,6 @@
     <CustomBuild Include="..\..\..\phantom\qt\qt.qrc">
       <Filter>src</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\phantom\qt\VariableAction.h">
-      <Filter>src</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\..\phantom\qt\VariableWidget.h">
       <Filter>src</Filter>
     </CustomBuild>
@@ -85,6 +82,24 @@
       <Filter>src</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\phantom\qt\UndoStackView.h">
+      <Filter>src</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\Menu.h">
+      <Filter>src</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\UndoCommandAction.h">
+      <Filter>src</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\VariableNodeDelegate.h">
+      <Filter>src</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\VariableActionWidget.h">
+      <Filter>src</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\CompositionVariableNodeDelegate.h">
+      <Filter>src</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\phantom\qt\CompositionComponentVariableNodeDelegate.h">
       <Filter>src</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -136,9 +151,6 @@
     </ClCompile>
     <ClCompile Include="GeneratedFiles\qrc_qt.cpp">
       <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\qt\VariableAction.cpp">
-      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\qt\VariableWidget.cpp">
       <Filter>src</Filter>
@@ -347,6 +359,66 @@
     <ClCompile Include="..\..\..\phantom\qt\UpdateComponentDataCommand.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_Menu.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_Menu.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\Menu.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\UndoCommandAction.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\VariableNodeDelegate.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\CompositionVariableNodeDelegate.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\CompositionAddVariableNodeDelegate.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\CompositionAddComponentDataCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\VariableActionWidget.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_VariableActionWidget.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_VariableActionWidget.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_CompositionVariableNodeDelegate.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_CompositionVariableNodeDelegate.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_VariableNodeDelegate.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_VariableNodeDelegate.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_CompositionComponentVariableNodeDelegate.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_CompositionComponentVariableNodeDelegate.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\CompositionComponentVariableNodeDelegate.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\CompositionMoveComponentDataCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\qt\ComponentReferenceExpressionChangeCommand.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\phantom\qt\qt.h">
@@ -392,9 +464,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\qt\VariableEditor.hxx">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\qt\VariableAction.hxx">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\qt\DataComboBoxEditor.hxx">
@@ -590,6 +659,48 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\qt\UpdateComponentDataCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\Menu.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\UndoCommandAction.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\VariableNodeDelegate.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\CompositionVariableNodeDelegate.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\CompositionAddVariableNodeDelegate.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\CompositionAddVariableNodeDelegate.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\CompositionAddComponentDataCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\CompositionAddComponentDataCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\VariableActionWidget.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\CompositionComponentVariableNodeDelegate.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\CompositionMoveComponentDataCommand.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\CompositionMoveComponentDataCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ComponentReferenceExpressionChangeCommand.hxx">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\qt\ComponentReferenceExpressionChangeCommand.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

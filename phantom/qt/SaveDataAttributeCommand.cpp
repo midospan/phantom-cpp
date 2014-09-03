@@ -48,4 +48,9 @@ void SaveDataAttributeCommand::undo()
     pParentNode->saveDataAttributes(m_pDataBase->getData(m_uiGuid));
 }
 
+SaveDataAttributeCommand* SaveDataAttributeCommand::clone() const
+{
+    return o_new(SaveDataAttributeCommand)(m_pDataBase->getNode(m_uiParentGuid), m_pDataBase->getData(m_uiGuid));
+}
+
 }}

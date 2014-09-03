@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'ClassComboBox.h'
 **
-** Created: Fri 11. Jul 18:46:51 2014
+** Created: Wed 3. Sep 14:52:01 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!

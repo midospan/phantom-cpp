@@ -36,7 +36,7 @@ public:
     bool loadLibrary(const string& a_strPath, Message* a_pMessage = nullptr);
     bool unloadLibrary(const string& a_strPath, Message* a_pMessage = nullptr);
 
-    void loadMain(Message* a_pMessage = nullptr);
+    void loadMain(const string& a_strFileName, Message* a_pMessage = nullptr);
     void unloadMain(Message* a_pMessage = nullptr);
 
     vector<Module*>::const_iterator beginLoadedModules() const { return m_LoadedModules.begin(); }
@@ -54,7 +54,7 @@ public:
     map<string, map<Module*, size_t>>::const_iterator beginLoadedLibraries() const { return m_LibraryModules.begin(); }
     map<string, map<Module*, size_t>>::const_iterator endLoadedLibraries() const { return m_LibraryModules.end(); }
 
-    bool                            libraryCanBeUnloaded(const string& a_strPath, phantom::Message* a_pMessage = nullptr) const;
+    bool                            libraryCanBeUnloaded(const string& a_strPath, phantom::Message* a_pMessage = nullptr, vector<reflection::LanguageElement*>* a_pBlockingElements = nullptr) const;
 
 protected:
     void moduleInstanciated(void* a_pModule);

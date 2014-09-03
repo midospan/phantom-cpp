@@ -5,10 +5,12 @@
 /* *********************************************** */
 o_registerN((phantom, reflection), CompositionClass);
 o_registerNC((phantom, reflection), (CompositionClass), GetSetExpression);
+o_registerNC((phantom, reflection), (CompositionClass), InsertRemoveExpression);
 
 o_namespace_begin(phantom, reflection)
 
 o_define_meta_type(CompositionClass) = o_type_of(CompositionClass);
+
 
 bool CompositionClass::referencesData( const void* a_pContainer, const phantom::data& a_Data ) const
 {
@@ -33,41 +35,47 @@ bool CompositionClass::referencesData( const void* a_pContainer, const phantom::
 
 Expression* CompositionClass::solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, bitfield a_Modifiers ) const
 {
-    Expression* pExpression = Class::solveExpression(a_pLeftExpression, a_strName, a_pTS, a_pFS, a_Modifiers);
-    if(pExpression) return pExpression;
     if(a_strName == "operator[]" AND a_pFS AND a_pFS->size() == 1 && a_pFS->back()->asExpression() && a_pFS->back()->asExpression()->getValueType()->isImplicitlyConvertibleTo(typeOf<size_t>()))
     {
         return o_new(GetSetExpression)(a_pLeftExpression, a_pFS->back()->asExpression()->implicitCast(typeOf<size_t>()), const_cast<CompositionClass*>(this));
     }
-    return nullptr;
+    else if(a_strName == "operator()" AND a_pFS AND a_pFS->size() == 1 && a_pFS->back()->asExpression() && a_pFS->back()->asExpression()->getValueType()->isImplicitlyConvertibleTo(typeOf<size_t>()))
+    {
+        return o_new(InsertRemoveExpression)(a_pLeftExpression, a_pFS->back()->asExpression()->implicitCast(typeOf<size_t>()), const_cast<CompositionClass*>(this));
+    }
+    return Class::solveExpression(a_pLeftExpression, a_strName, a_pTS, a_pFS, a_Modifiers);
 }
 
 CompositionClass::GetSetExpression::GetSetExpression( Expression* a_pLeftExpression, Expression* a_pIndexExpression, CompositionClass* a_pCompositionClass ) 
-    : Expression(a_pCompositionClass->getComponentClass()->pointerType(), a_pLeftExpression->getName()+"["+a_pIndexExpression->getName()+"]")
+    : Expression(a_pLeftExpression->isConstExpression() 
+                    ? a_pCompositionClass->getComponentClass()->pointerType()->constType()->referenceType()
+                    : a_pCompositionClass->getComponentClass()->pointerType()->referenceType()
+    , a_pLeftExpression->getName()+"["+a_pIndexExpression->getName()+"]", a_pLeftExpression->getModifiers())
     , m_pLeftExpression(a_pLeftExpression)
     , m_pIndexExpression(a_pIndexExpression)
     , m_pCompositionClass(a_pCompositionClass)
+    , m_pBufferedPointer(nullptr)
 {
     addElement(m_pLeftExpression);
     addElement(m_pIndexExpression);
+    reflection::Type* pPointerType = a_pCompositionClass->getComponentClass()->pointerType();
 }
 
 void CompositionClass::GetSetExpression::getValue( void* a_pDest ) const
 {
-    void* pCaller = 0;
-    m_pLeftExpression->getValue(&pCaller);
     size_t uiIndex = 0;
-    m_pIndexExpression->getValue(&uiIndex);
-    m_pCompositionClass->get(pCaller, uiIndex, a_pDest);
+    m_pIndexExpression->load(&uiIndex);
+    m_pCompositionClass->get(m_pLeftExpression->loadEffectiveAddress(), uiIndex, &m_pBufferedPointer);
+    *((void**)a_pDest) = &m_pBufferedPointer;
 }
 
 void CompositionClass::GetSetExpression::setValue( void const* a_pSrc ) const
 {
-    void* pCaller = 0;
-    m_pLeftExpression->getValue(&pCaller);
     size_t uiIndex = 0;
-    m_pIndexExpression->getValue(&uiIndex);
+    m_pIndexExpression->load(&uiIndex);
+    void* pCaller = m_pLeftExpression->loadEffectiveAddress();
     m_pCompositionClass->set(pCaller, uiIndex, a_pSrc);
+    m_pCompositionClass->get(pCaller, uiIndex, &m_pBufferedPointer); // store the value back in the buffer
 }
 
 CompositionClass::GetSetExpression* CompositionClass::GetSetExpression::clone() const
@@ -75,5 +83,93 @@ CompositionClass::GetSetExpression* CompositionClass::GetSetExpression::clone() 
     return o_new(GetSetExpression)(m_pLeftExpression->clone(), m_pIndexExpression->clone(), m_pCompositionClass);
 }
 
+void CompositionClass::GetSetExpression::flush() const
+{
+    size_t uiIndex = 0;
+    m_pIndexExpression->load(&uiIndex);
+    m_pCompositionClass->set(m_pLeftExpression->loadEffectiveAddress(), uiIndex, &m_pBufferedPointer);
+    m_pLeftExpression->flush();
+}
+
+string InsertRemoveExpression_formatIndexString(string a_Input, size_t a_CharCount)
+{
+    long long value = 0;
+    if(sscanf(a_Input.c_str(), "%d", &value))
+    {
+        while(a_Input.size() < a_CharCount)
+        {
+            a_Input = ' ' + a_Input;
+        }
+    }
+    return a_Input;
+}
+
+CompositionClass::InsertRemoveExpression::InsertRemoveExpression( Expression* a_pLeftExpression, Expression* a_pIndexExpression, CompositionClass* a_pCompositionClass ) 
+    : Expression(a_pLeftExpression->isConstExpression() 
+    ? a_pCompositionClass->getComponentClass()->pointerType()->constType()->referenceType()
+    : a_pCompositionClass->getComponentClass()->pointerType()->referenceType()
+    , a_pLeftExpression->getName()+"("+InsertRemoveExpression_formatIndexString(a_pIndexExpression->getName(), 10)+")", a_pLeftExpression->getModifiers())
+    , m_pLeftExpression(a_pLeftExpression)
+    , m_pIndexExpression(a_pIndexExpression)
+    , m_pCompositionClass(a_pCompositionClass)
+    , m_pBufferedPointer(nullptr)
+{
+    addElement(m_pLeftExpression);
+    addElement(m_pIndexExpression);
+    reflection::Type* pPointerType = a_pCompositionClass->getComponentClass()->pointerType();
+}
+
+void CompositionClass::InsertRemoveExpression::getValue( void* a_pDest ) const
+{
+    size_t uiIndex = 0;
+    m_pIndexExpression->load(&uiIndex);
+    void* pCaller = m_pLeftExpression->loadEffectiveAddress();
+    if(uiIndex < m_pCompositionClass->count(pCaller))
+    {
+        m_pCompositionClass->get(pCaller, uiIndex, &m_pBufferedPointer);
+    }
+    else 
+    {
+        m_pBufferedPointer = nullptr;
+    }
+    *((void**)a_pDest) = &m_pBufferedPointer;
+}
+
+void CompositionClass::InsertRemoveExpression::setValue( void const* a_pSrc ) const
+{
+    size_t uiIndex = 0;
+    m_pIndexExpression->load(&uiIndex);
+    void* pCaller = m_pLeftExpression->loadEffectiveAddress();
+    void* pComponent = *((void**)a_pSrc);
+    if(pComponent)
+    {
+        m_pCompositionClass->insert(pCaller, uiIndex, a_pSrc);
+    }
+    else 
+    {
+        m_pCompositionClass->remove(pCaller, uiIndex);
+    }
+}
+
+CompositionClass::InsertRemoveExpression* CompositionClass::InsertRemoveExpression::clone() const
+{
+    return o_new(InsertRemoveExpression)(m_pLeftExpression->clone(), m_pIndexExpression->clone(), m_pCompositionClass);
+}
+
+void CompositionClass::InsertRemoveExpression::flush() const
+{
+    size_t uiIndex = 0;
+    m_pIndexExpression->load(&uiIndex);
+    void* pCaller = m_pLeftExpression->loadEffectiveAddress();
+    if(m_pBufferedPointer)
+    {
+        m_pCompositionClass->insert(pCaller, uiIndex, &m_pBufferedPointer);
+    }
+    else 
+    {
+        m_pCompositionClass->remove(pCaller, uiIndex);
+    }
+    m_pLeftExpression->flush();
+}
 
 o_namespace_end(phantom, reflection)

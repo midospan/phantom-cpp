@@ -58,8 +58,7 @@ public:
     virtual void    saveIndex() ;
     virtual void    saveTypes() ;
     virtual void    saveAttributes() ;
-    virtual void    saveData(uint a_uiSerializationFlag) ;
-    virtual void    saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) ;
+    virtual void    saveDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) ;
     virtual void    saveDataAttributes();
     virtual void    saveDataAttributes(const phantom::data& a_Data, uint guid);
 
@@ -89,7 +88,7 @@ public:
 protected:
     void            saveDataAttributesHelper(vector<string>& a_Values, const phantom::data& a_Data);
     void            loadDataAttributesHelper(const vector<string>& a_Values, const phantom::data& a_Data);
-    void            loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid);
+    void            loadDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid);
 
 	void			readBinary(const string& a_strPath, byte* a_pBuffer, uint& a_uiBufferSize) const;
 	void			writeBinary(const string& a_strPath, const byte* a_pBuffer, uint a_uiBufferSize) const;

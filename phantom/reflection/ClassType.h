@@ -173,17 +173,13 @@ public:
     vector<Constructor*>::const_iterator            beginConstructors() const;
     vector<Constructor*>::const_iterator            endConstructors() const;
 
+    virtual bool            isImplicitlyConvertibleTo(Type* a_pType) const;
+
+    virtual bool            isConvertibleTo(Type* a_pType) const;
+    virtual void            convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;
+
     virtual void            construct(void* a_pInstance) const;
-    virtual void            destroy(void* a_pInstance) const
-    {
-        o_assert(m_pExtraData);
-        size_t i = 0;
-        Type::aligner aligner(reinterpret_cast<byte*>(a_pInstance)+m_pExtraData->m_uiDataMemberMemoryOffset);
-        for(;i<m_pExtraData->m_DataMemberTypes.size();++i)
-        {
-            aligner.destroy(m_pExtraData->m_DataMemberTypes[i]);
-        }
-    }
+    virtual void            destroy(void* a_pInstance) const;
 
     virtual void*           newInstance() const;
 

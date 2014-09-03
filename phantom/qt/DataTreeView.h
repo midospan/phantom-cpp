@@ -15,6 +15,7 @@ o_declareN(class, (phantom, qt), AddNodeAction);
 o_declareN(class, (phantom, qt), LoadNodeAction);
 o_declareN(class, (phantom, qt), UnloadNodeAction);
 o_declareN(class, (phantom, qt), RemoveDataAction);
+o_declareN(class, (phantom, qt), UndoStack);
 /* *********************************************** */
 
 namespace phantom { 
@@ -25,6 +26,7 @@ namespace qt {
 
 class DataTreeView;
 class Project;
+class UndoCommand;
 
 class DataTreeViewItem : public QTreeWidgetItem
 {
@@ -127,8 +129,11 @@ public:
 	o_initialize() {};
 
     serialization::DataBase* getDataBase() const {return m_pDataBase;}
-    void setDataBase(serialization::DataBase* a_pDataBase, size_t a_uiNameAttributeIndex = 0, size_t a_uiCategoryAttributeIndex = 0xffffffff);
-    
+    void setDataBase(serialization::DataBase* a_pDataBase, size_t a_uiNameAttributeIndex = 0);
+
+    UndoStack* getUndoStack() const {return m_pUndoStack;}
+    void setUndoStack(UndoStack* a_pUndoStack);
+
     void setMessage(Message* a_pMessage) { m_pMessage = a_pMessage; }
 
     DataTreeViewItem* getItem(void* a_pContent) const;
@@ -178,6 +183,7 @@ protected slots:
     void nodeLoaded();
     void nodeAboutToBeUnloaded();
     void dataAttributeValueChanged( const phantom::data& a_Data, size_t a_uiAttributeIndex, const string& a_strValue);
+    void dataModifiersChanged( const phantom::data& a_Data, bitfield a_Modifiers);
     void nodeAttributeValueChanged( phantom::serialization::Node* a_pNode, size_t a_uiAttributeIndex, const string& a_strValue);
 	void addClassComponentDataActionCascade( QMenu* a_pMenu, const phantom::data& a_Data, phantom::reflection::Collection* a_pCollection, phantom::reflection::Class* a_pComponentDataClass );
 
@@ -185,6 +191,7 @@ protected:
     void dragEnterEvent(QDragEnterEvent *event);
     void dragLeaveEvent(QDragLeaveEvent *event);
     void dropEvent(QDropEvent* event);
+    void mouseMoveEvent(QMouseEvent *event);
 
 signals:
     void dataClicked(const phantom::data& d);
@@ -201,12 +208,25 @@ signals:
 
 protected: // TODO : put this in Class
     phantom::reflection::Class* commonSuperClass(phantom::reflection::Class* a_pFirst, phantom::reflection::Class* a_pSecond) const;
+
+protected:
+    void undoableSetNodeAttribute(phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, size_t a_uiAttributeIndex, const phantom::string& a_Value);
+    void undoableSetDataAttribute(phantom::qt::DataTreeView* a_pDataTreeView, const phantom::data& a_Data, size_t a_uiAttributeIndex, const phantom::string& a_Value);
+    void undoableAddData( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pOwnerNode, phantom::reflection::Type* a_pType );
+    void undoableAddNode( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pParentNode );
+    bool undoableLoadNode( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, phantom::qt::UndoCommand* a_pParent );
+    void undoableLoadNode( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode );
+    bool undoableUnloadNode( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, phantom::qt::UndoCommand* a_pParent );
+    void undoableUnloadNode( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode );
+    void undoableLoadNodeRecursive( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode );
+    void undoableMoveToTrashbin(phantom::qt::DataTreeView* a_pDataTreeView, const phantom::vector<unsigned int>& a_Guids);
     
 private:
     virtual QMimeData* mimeData(const QList<QTreeWidgetItem*> list) const;
 
 protected:
     phantom::serialization::DataBase*									m_pDataBase;
+    UndoStack*                                                          m_pUndoStack;
     Message*                                                            m_pMessage;
     size_t                                                              m_uiNameAttributeIndex;
     size_t                                                              m_uiCategoryAttributeIndex;
@@ -224,7 +244,7 @@ protected:
     QIcon                                                               m_NodeLoadedIcon;
     QIcon                                                               m_NodeUnloadedIcon;
     QIcon                                                               m_NodeRootIcon;
-    bool														        m_bHideInternal;
+    bool														        m_bHidePrivate;
     bool														        m_bHideComponentData;
     bool														        m_bIsChangingSelection;
     bool                                                                m_bEditorOpened;

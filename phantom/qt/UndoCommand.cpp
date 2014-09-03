@@ -8,9 +8,10 @@ o_registerN((phantom, qt), UndoCommand);
 o_namespace_begin(phantom, qt)
 
 UndoCommand::UndoCommand( void ) 
-: m_pParent(nullptr), m_pUndoStack(nullptr), m_uiIndex(~size_t(0))
-, m_eRedoChildExecutionPolicy(e_ChildExecutionPolicy_ForwardAfterParent)
-, m_eUndoChildExecutionPolicy(e_ChildExecutionPolicy_BackwardBeforeParent)
+    : m_pParent(nullptr), m_pUndoStack(nullptr), m_uiIndex(~size_t(0))
+    , m_eRedoChildExecutionPolicy(e_ChildExecutionPolicy_ForwardAfterParent)
+    , m_eUndoChildExecutionPolicy(e_ChildExecutionPolicy_BackwardBeforeParent)
+    , m_bAborted(false)
 {
 
 }
@@ -19,18 +20,19 @@ UndoCommand::UndoCommand( const string& a_strName )
     : m_pParent(nullptr), m_pUndoStack(nullptr), m_uiIndex(~size_t(0))
     , m_eRedoChildExecutionPolicy(e_ChildExecutionPolicy_ForwardAfterParent)
     , m_eUndoChildExecutionPolicy(e_ChildExecutionPolicy_BackwardBeforeParent)
+    , m_bAborted(false)
 {
     setName(a_strName);
 }
 
 void UndoCommand::pushCommand( UndoCommand* a_pUndoCommand )
 {
-    o_assert(a_pUndoCommand->m_pParent == nullptr);
+    o_assert(a_pUndoCommand->m_pParent == nullptr AND (
+        (getUndoStack() == nullptr) OR (m_eRedoChildExecutionPolicy < e_ChildExecutionPolicy_ForwardBeforeParent))
+        );
     a_pUndoCommand->m_uiIndex = m_ChildCommands.size();
     m_ChildCommands.push_back(a_pUndoCommand);
     a_pUndoCommand->m_pParent = this;
-    if (getUndoStack())
-        a_pUndoCommand->redo();
     if(m_pUndoStack)
     {
         a_pUndoCommand->setUndoStack(m_pUndoStack);
@@ -83,94 +85,232 @@ void UndoCommand::setUndoStack( UndoStack* a_pUndoStack )
     }
 }
 
-void UndoCommand::internalUndo()
+class blabla
 {
-    // We need to iterate in reverse order
+public:
+    operator int()
+    {
+        return 0;
+    }
+};
+
+bool UndoCommand::internalUndo(const vector<UndoCommand*>& childCommands, bool executeThis, bool isAborting)
+{
+    m_bAborted = false;
+    vector<UndoCommand*> executed;
     switch(m_eUndoChildExecutionPolicy)
     {
     case e_ChildExecutionPolicy_BackwardAfterParent:
         {
-            undo();
-            for(auto it = m_ChildCommands.rbegin(); it != m_ChildCommands.rend(); ++it)
+            if(executeThis) undo();
+            if(m_bAborted) 
             {
-                (*it)->internalUndo();
+                o_error(!isAborting, "Failed on aborting");
+                return false;
+            }
+            size_t i = childCommands.size();
+            while(i--)
+            {
+                if(!childCommands[i]->internalUndo(isAborting))
+                {
+                    o_error(!isAborting, "Failed on aborting");
+                    std::reverse(executed.begin(), executed.end());
+                    internalRedo(executed, true, true);
+                    return false;
+                }
+                executed.push_back(childCommands[i]);
             }
         }
         break;
     case e_ChildExecutionPolicy_BackwardBeforeParent:
         {
-            for(auto it = m_ChildCommands.rbegin(); it != m_ChildCommands.rend(); ++it)
+            size_t i = childCommands.size(); 
+            while(i--)
             {
-                (*it)->internalUndo();
+                if(!childCommands[i]->internalUndo(isAborting))
+                {
+                    o_error(!isAborting, "Failed on aborting");
+                    std::reverse(executed.begin(), executed.end());
+                    internalRedo(executed, false, true);
+                    return false;
+                }
+                executed.push_back(childCommands[i]);
             }
-            undo();
+            if(executeThis) undo();
+            if(m_bAborted) 
+            {
+                o_error(!isAborting, "Failed on aborting");
+                std::reverse(executed.begin(), executed.end());
+                internalRedo(executed, false, true);
+                return false;
+            }
         }
         break;
     case e_ChildExecutionPolicy_ForwardAfterParent:
         {
-            undo();
-            for(auto it = m_ChildCommands.begin(); it != m_ChildCommands.end(); ++it)
+            if(executeThis) undo();
+            if(m_bAborted) 
             {
-                (*it)->internalUndo();
+                o_error(!isAborting, "Failed on aborting");
+                return false;
+            }
+            for(size_t i = 0; i<childCommands.size(); ++i)
+            {
+                if(!childCommands[i]->internalUndo(isAborting))
+                {
+                    o_error(!isAborting, "Failed on aborting");
+                    internalRedo(executed, true, true);
+                    return false;
+                }
+                executed.push_back(childCommands[i]);
             }
         }
         break;
     case e_ChildExecutionPolicy_ForwardBeforeParent:
         {
-            for(auto it = m_ChildCommands.begin(); it != m_ChildCommands.end(); ++it)
+            for(size_t i = 0; i<childCommands.size(); ++i)
             {
-                (*it)->internalUndo();
+                if(!childCommands[i]->internalUndo(isAborting))
+                {
+                    o_error(!isAborting, "Failed on aborting");
+                    internalRedo(executed, false, true);
+                    return false;
+                }
+                executed.push_back(childCommands[i]);
             }
-            undo();
+            if(executeThis) undo();
+            if(m_bAborted) 
+            {
+                o_error(!isAborting, "Failed on aborting");
+                internalRedo(executed, false, true);
+                return false;
+            }
         }
         break;
     }
     o_emit undone();
+    return true;
 }
 
-void UndoCommand::internalRedo()
+
+bool UndoCommand::internalRedo(const vector<UndoCommand*>& childCommands, bool executeThis, bool isAborting)
 {
-    // We need to iterate in reverse order
+    m_bAborted = false;
+    vector<UndoCommand*> executed;
     switch(m_eRedoChildExecutionPolicy)
     {
     case e_ChildExecutionPolicy_BackwardAfterParent:
         {
-            redo();
-            for(auto it = m_ChildCommands.rbegin(); it != m_ChildCommands.rend(); ++it)
+            if(executeThis) redo();
+            if(m_bAborted) 
             {
-                (*it)->internalRedo();
+                o_error(!isAborting, "Failed on aborting");
+                return false;
+            }
+            size_t i = childCommands.size(); 
+            while(i--)
+            {
+                if(!childCommands[i]->internalRedo(isAborting))
+                {
+                    o_error(!isAborting, "Failed on aborting");
+                    std::reverse(executed.begin(), executed.end());
+                    internalUndo(executed, true, true);
+                    return false;
+                }
+                executed.push_back(childCommands[i]);
             }
         }
         break;
     case e_ChildExecutionPolicy_BackwardBeforeParent:
         {
-            for(auto it = m_ChildCommands.rbegin(); it != m_ChildCommands.rend(); ++it)
+            size_t i = childCommands.size();
+            while(i--)
             {
-                (*it)->internalRedo();
+                if(!childCommands[i]->internalRedo(isAborting))
+                {
+                    o_error(!isAborting, "Failed on aborting");
+                    std::reverse(executed.begin(), executed.end());
+                    internalUndo(executed, false, true);
+                    return false;
+                }
+                executed.push_back(childCommands[i]);
             }
-            redo();
+            if(executeThis) redo();
+            if(m_bAborted) 
+            {
+                o_error(!isAborting, "Failed on aborting");
+                std::reverse(executed.begin(), executed.end());
+                internalUndo(executed, false, true);
+                return false;
+            }
         }
         break;
     case e_ChildExecutionPolicy_ForwardAfterParent:
         {
-            redo();
-            for(auto it = m_ChildCommands.begin(); it != m_ChildCommands.end(); ++it)
+            if(executeThis) redo();
+            if(m_bAborted) 
             {
-                (*it)->internalRedo();
+                o_error(!isAborting, "Failed on aborting");
+                return false;
+            }
+            for(size_t i = 0; i<childCommands.size(); ++i)
+            {
+                if(!childCommands[i]->internalRedo(isAborting))
+                {
+                    o_error(!isAborting, "Failed on aborting");
+                    internalUndo(executed, true, true);
+                    return false;
+                }
+                executed.push_back(childCommands[i]);
             }
         }
         break;
     case e_ChildExecutionPolicy_ForwardBeforeParent:
         {
-            for(auto it = m_ChildCommands.begin(); it != m_ChildCommands.end(); ++it)
+            for(size_t i = 0; i<childCommands.size(); ++i)
             {
-                (*it)->internalRedo();
+                if(!childCommands[i]->internalRedo(isAborting))
+                {
+                    o_error(!isAborting, "Failed on aborting");
+                    internalUndo(executed, false, true);
+                    return false;
+                }
+                executed.push_back(childCommands[i]);
             }
-            redo();
+            if(executeThis) redo();
+            if(m_bAborted) 
+            {
+                o_error(!isAborting, "Failed on aborting");
+                internalUndo(executed, false, true);
+                return false;
+            }
         }
         break;
     }
     o_emit redone();
+    return true;
+}
+
+void UndoCommand::abort()
+{
+    m_bAborted = true;
+}
+
+UndoCommand* UndoCommand::cloneCascade() const
+{
+    UndoCommand* pUndoCommand = clone();
+    for(auto it = m_ChildCommands.begin(); it != m_ChildCommands.end(); ++it)
+    {
+        pUndoCommand->pushCommand((*it)->cloneCascade());
+    }
+    pUndoCommand->setRedoChildExecutionPolicy(m_eRedoChildExecutionPolicy);
+    pUndoCommand->setUndoChildExecutionPolicy(m_eUndoChildExecutionPolicy);
+    return pUndoCommand;
+}
+
+UndoCommand* UndoCommand::clone() const
+{
+    return o_new(UndoCommand)(m_strName);
 }
 
 o_namespace_end(phantom, qt)

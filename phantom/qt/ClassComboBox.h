@@ -30,7 +30,8 @@ namespace phantom { namespace qt {
     public:
         ClassComboBox( reflection::Class* a_pBaseClass
             , reflection::Class*a_pCurrentClass
-            , FilterBits a_iFilter );
+            , FilterBits a_iFilter
+            , bool a_bAllowsNone = false);
         ~ClassComboBox(void) 
         {
         }

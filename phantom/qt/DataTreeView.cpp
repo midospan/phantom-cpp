@@ -10,6 +10,19 @@
 #include <QDragLeaveEvent>
 #include <QDragMoveEvent>
 #include <QMenu>
+#include "UndoStack.h"
+#include "AddNodeCommand.h"
+#include "LoadNodeCommand.h"
+#include "UnloadNodeCommand.h"
+#include "MoveToTrashbinCommand.h"
+#include "AddDataCommand.h"
+#include "SaveDataCommand.h"
+#include "NodeAttributeChangeCommand.h"
+#include "DataAttributeChangeCommand.h"
+#include "SaveNodeAttributeCommand.h"
+#include "SaveDataAttributeCommand.h"
+#include "AddComponentDataCommand.h"
+#include "UpdateComponentDataCommand.h"
 /* *********************************************** */
 o_registerN((phantom, qt), DataTreeView);
 o_registerN((phantom, qt), AddDataAction);
@@ -63,8 +76,8 @@ protected:
 DataTreeView::DataTreeView( Message* a_pRootMessage ) 
     : m_pDataBase(NULL)
     , m_pMessage(a_pRootMessage)
-    , m_bHideInternal(true)
-    , m_bHideComponentData(true)
+    , m_bHidePrivate(true)
+    , m_bHideComponentData(false)
 	, m_bIsChangingSelection(false)
     , m_AddDataActionDelegate(this, &DataTreeView::defaultAddDataActionDelegate)
     , m_AddNodeActionDelegate(this, &DataTreeView::defaultAddNodeActionDelegate)
@@ -75,11 +88,11 @@ DataTreeView::DataTreeView( Message* a_pRootMessage )
     , m_DataAttributeChangeDelegate(this, &DataTreeView::defaultDataAttributeChangeDelegate)
     , m_NodeAttributeChangeDelegate(this, &DataTreeView::defaultNodeAttributeChangeDelegate)
     , m_uiNameAttributeIndex(0xffffffff)
-    , m_uiCategoryAttributeIndex(0xffffffff)
     , m_NodeLoadedIcon(":/../../bin/resources/icons/folder.png")
     , m_NodeUnloadedIcon(":/../../bin/resources/icons/folder.png")
     , m_NodeRootIcon(":/../../bin/resources/icons/database.png")
     , m_bEditorOpened(false)
+    , m_pUndoStack(nullptr)
 {
 
 	QObject::connect(this, SIGNAL(itemSelectionChanged()), SLOT(slotSelectionChanged()));
@@ -87,6 +100,8 @@ DataTreeView::DataTreeView( Message* a_pRootMessage )
     QObject::connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), SLOT(slotItemDoubleClicked(QTreeWidgetItem*,int)));
 
     header()->setResizeMode(QHeaderView::ResizeToContents);
+
+    setEditTriggers(NoEditTriggers);
 
     QStringList headerLabels;
     headerLabels.append("data");
@@ -315,6 +330,37 @@ void DataTreeView::nodeAboutToBeRemoved( serialization::Node* a_pNode,serializat
     removeNodeItem(a_pNode);
 }
 
+void DataTreeView::dataModifiersChanged( const phantom::data& a_Data, bitfield a_Modifiers )
+{
+    DataTreeViewItem* pItem = getItem(a_Data.address());
+    if(pItem != nullptr)
+    {
+        if( a_Modifiers.matchesMask(o_component) )
+        {
+            pItem->setHidden(m_bHideComponentData); 
+        }
+        if( !a_Modifiers.matchesMask(o_public) AND !a_Modifiers.matchesMask(o_protected) )
+        {
+            pItem->setHidden(m_bHidePrivate); 
+        } 
+        Qt::ItemFlags flags = Qt::ItemIsSelectable|Qt::ItemIsDragEnabled|Qt::ItemIsDropEnabled;
+        if( !a_Modifiers.matchesMask(o_readonly) )
+        {
+            flags |= (Qt::ItemIsEnabled|Qt::ItemIsEditable);
+        }
+        if( a_Modifiers.matchesMask(o_singleton) )
+        {
+            QBrush b (Qt::darkGray);
+            pItem->setForeground( 0 , b );
+            pItem->setText(0, nameOf(a_Data.type()).c_str());
+            QFont font = pItem->font(0);
+            font.setBold(true);
+            pItem->setFont( 0, font );
+        }
+        pItem->setFlags(flags);
+    }
+}
+
 void DataTreeView::dataAttributeValueChanged( const phantom::data& a_Data, size_t a_uiAttributeIndex, const string& a_strValue )
 {
     if(m_bEditorOpened)
@@ -324,25 +370,13 @@ void DataTreeView::dataAttributeValueChanged( const phantom::data& a_Data, size_
     DataTreeViewItem* pItem = getItem(a_Data.address());
     if(pItem != NULL)
     {
-        if(m_uiCategoryAttributeIndex == a_uiAttributeIndex)
+        if(a_uiAttributeIndex == m_uiNameAttributeIndex)
         {
-            if( a_strValue == "internal" )
+            if(a_strValue.empty())
             {
-                pItem->setHidden(m_bHideInternal); 
+                pItem->setText(0, nameOf(a_Data.type()).c_str());
             }
-            else if( a_strValue == "subData" )
-            {
-                pItem->setHidden(m_bHideComponentData); 
-            }
-            else if( a_strValue == "default")
-            {
-                QBrush b (Qt::darkGray);
-                pItem->setForeground( 0 , b );
-            }
-        }
-        else if(a_uiAttributeIndex == m_uiNameAttributeIndex)
-        {
-            pItem->setText(0, a_strValue.c_str());
+            else pItem->setText(0, a_strValue.c_str());
         }
     }
     if(m_bEditorOpened)
@@ -360,21 +394,14 @@ void DataTreeView::nodeAttributeValueChanged( serialization::Node* a_pNode, size
     DataTreeViewItem* pItem = getItem(a_pNode);
     if(pItem != NULL)
     {
-        if(m_uiCategoryAttributeIndex == a_uiAttributeIndex)
+        if(a_pNode->getParentNode() == nullptr)
         {
-            if( a_strValue == "internal" )
-            {
-                pItem->setHidden(m_bHideInternal); 
-            }
-            else if( a_strValue == "subData" )
-            {
-                pItem->setHidden(m_bHideComponentData); 
-            }
-            else if( a_strValue == "default")
-            {
-                QBrush b (Qt::darkGray);
-                pItem->setForeground( 0 , b );
-            }
+            pItem->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled|Qt::ItemIsDragEnabled|Qt::ItemIsDropEnabled);
+//             QBrush b (Qt::darkGray);
+//             pItem->setForeground( 0 , b );
+            QFont font = pItem->font(0);
+            font.setBold(true);
+            pItem->setFont( 0, font );
         }
         else if(a_uiAttributeIndex == m_uiNameAttributeIndex)
         {
@@ -410,36 +437,13 @@ void DataTreeView::addDataItem( const phantom::data& a_Data )
 
     const string* values = m_pDataBase->getDataAttributeValues(a_Data);
     bool editable = false;
-    if(m_uiCategoryAttributeIndex != 0xffffffff)
-    {
-        editable = true;
-        string category = values[m_uiCategoryAttributeIndex];
-        if( category == "internal" )
-        {
-            pNewItem->setHidden(m_bHideInternal); 
-        }
-        else if( category == "subData" )
-        {
-            pNewItem->setHidden(m_bHideComponentData); 
-        }
-
-    }
-
-    string name = values[m_uiNameAttributeIndex];
-
-    pNewItem->setText(0, name.c_str());
+    dataAttributeValueChanged(a_Data, m_uiNameAttributeIndex, values[m_uiNameAttributeIndex]);
+    dataModifiersChanged(a_Data, m_pDataBase->getModifiers(a_Data));
 
     char buffer[64] = "";
     sprintf(buffer, "%08X", m_pDataBase->getGuid(a_Data));
     pNewItem->setText(2, buffer);
     pNewItem->setText(3, nameOf(a_Data.type()).c_str());
-    /*sprintf(buffer, "%08X", (size_t)a_Data.address());
-    pNewItem->setText(4, buffer);*/
-
-    if(editable)
-    {
-        pNewItem->setFlags(Qt::ItemIsEditable | pNewItem->flags());
-    }
 }
 
 void DataTreeView::addNodeItem( serialization::Node* a_pNode )
@@ -460,19 +464,6 @@ void DataTreeView::addNodeItem( serialization::Node* a_pNode )
     const string* values = getDataBase()->getNodeAttributeValues(a_pNode);
 
     bool editable = false;
-    if(m_uiCategoryAttributeIndex != 0xffffffff)
-    {
-        editable = true;
-        string category = values[m_uiCategoryAttributeIndex];
-        if( category == "internal" )
-        {
-            pNewItem->setHidden(m_bHideInternal); 
-        }
-        else if( category == "subData" )
-        {
-            pNewItem->setHidden(m_bHideComponentData); 
-        }
-    }
     string name = values[m_uiNameAttributeIndex];
 
     pNewItem->setText(0, name.c_str());
@@ -539,12 +530,46 @@ void DataTreeView::nodeLoaded()
     pNodeItem->setIcon(0, pNode->getParentNode() ? m_NodeLoadedIcon : m_NodeRootIcon);
 }
 
+struct data_sorter_component_data_first
+{
+    data_sorter_component_data_first(serialization::DataBase* a_pDataBase)
+        : m_pDataBase(a_pDataBase) {}
+    bool operator()(const phantom::data& d1, const phantom::data& d0)
+    {
+        phantom::data ownerD0 = m_pDataBase->getComponentDataOwner(d0);
+        phantom::data ownerD1 = m_pDataBase->getComponentDataOwner(d1);
+
+        // Compute the component order
+        uint uiOrderD0 = 0;
+        uint uiOrderD1 = 0;
+        while(NOT(ownerD0.isNull()))
+        {
+            uiOrderD0++;
+            ownerD0 = m_pDataBase->getComponentDataOwner(ownerD0);
+        }
+        while(NOT(ownerD1.isNull()))
+        {
+            uiOrderD1++;
+            ownerD1 = m_pDataBase->getComponentDataOwner(ownerD1);
+        }
+
+        if(uiOrderD0 == uiOrderD1) // by adress
+        {
+            return d0.address() < d1.address();
+        }
+
+        // by order
+        return uiOrderD0 < uiOrderD1;
+    }
+    serialization::DataBase* m_pDataBase;
+};
+
 void DataTreeView::nodeAboutToBeUnloaded()
 {
     serialization::Node* pNode = as<serialization::Node*>(phantom::connection::sender());
     phantom::vector<phantom::data> allData;
     pNode->fetchData(allData);
-    pNode->getOwnerDataBase()->sortComponentDataFirst(allData.begin(), allData.end());
+    std::sort(allData.begin(), allData.end(), data_sorter_component_data_first(m_pDataBase));
 	for (auto it = allData.begin(); it != allData.end(); it++)
 	{
 		DataTreeViewItem* pItem = getItem(it->address());
@@ -667,7 +692,7 @@ DataTreeView::~DataTreeView( void )
 
 void DataTreeView::keyPressEvent( QKeyEvent* a_pEvent )
 {
-    if(a_pEvent->key() == Qt::Key_F2 && selectedItems().size())
+    if(a_pEvent->key() == Qt::Key_F2 && selectedItems().size() && (selectedItems().back()->flags() & Qt::ItemIsEditable))
     {
         editItem(selectedItems().back(), 0);
     }
@@ -955,9 +980,8 @@ void DataTreeView::defaultRecursiveLoadNodeActionDelegate( DataTreeView* a_pData
     }
 }
 
-void DataTreeView::setDataBase( serialization::DataBase* a_pDataBase, size_t a_uiNameAttributeIndex, size_t a_uiCategoryAttributeIndex )
+void DataTreeView::setDataBase( serialization::DataBase* a_pDataBase, size_t a_uiNameAttributeIndex )
 {
-    o_assert(a_uiNameAttributeIndex != a_uiCategoryAttributeIndex);
     if(m_pDataBase == a_pDataBase) return;
     if(m_pDataBase)
     {
@@ -969,19 +993,18 @@ void DataTreeView::setDataBase( serialization::DataBase* a_pDataBase, size_t a_u
         o_disconnect(m_pDataBase, dataAboutToBeRemoved(const phantom::data&,serialization::Node*), this, dataAboutToBeRemoved(const phantom::data&,serialization::Node*));
         o_disconnect(m_pDataBase, nodeAdded(serialization::Node*,serialization::Node*), this, nodeAdded(serialization::Node*,serialization::Node*));
         o_disconnect(m_pDataBase, nodeAboutToBeRemoved(serialization::Node*,serialization::Node*), this, nodeAboutToBeRemoved(serialization::Node*,serialization::Node*));
+        o_disconnect(m_pDataBase, dataModifiersChanged( const phantom::data&, bitfield), this, dataModifiersChanged( const phantom::data&, bitfield));
         o_disconnect(m_pDataBase, dataAttributeValueChanged( const phantom::data&, size_t, const string&), this, dataAttributeValueChanged( const phantom::data&, size_t, const string&));
         o_disconnect(m_pDataBase, nodeAttributeValueChanged( serialization::Node*, size_t, const string&), this, nodeAttributeValueChanged( serialization::Node*, size_t, const string&));
         setColumnCount(0);
         clear();
         m_uiNameAttributeIndex = 0xffffffff;
-        m_uiCategoryAttributeIndex = 0xffffffff;
     }
     m_pDataBase = a_pDataBase;
     if(m_pDataBase)
     {
         o_assert(m_pDataBase->getAttributeName(a_uiNameAttributeIndex).size());
         m_uiNameAttributeIndex = a_uiNameAttributeIndex;
-        m_uiCategoryAttributeIndex = a_uiCategoryAttributeIndex;
         QStringList headerLabels;
         headerLabels.append("name");
         headerLabels.append("");
@@ -999,6 +1022,7 @@ void DataTreeView::setDataBase( serialization::DataBase* a_pDataBase, size_t a_u
         o_connect(m_pDataBase, dataAboutToBeRemoved(const phantom::data&,serialization::Node*), this, dataAboutToBeRemoved(const phantom::data&,serialization::Node*));
         o_connect(m_pDataBase, nodeAdded(serialization::Node*,serialization::Node*), this, nodeAdded(serialization::Node*,serialization::Node*));
         o_connect(m_pDataBase, nodeAboutToBeRemoved(serialization::Node*,serialization::Node*), this, nodeAboutToBeRemoved(serialization::Node*,serialization::Node*));
+        o_connect(m_pDataBase, dataModifiersChanged( const phantom::data&, bitfield), this, dataModifiersChanged( const phantom::data&, bitfield));
         o_connect(m_pDataBase, dataAttributeValueChanged( const phantom::data&, size_t, const string&), this, dataAttributeValueChanged( const phantom::data&, size_t, const string&));
         o_connect(m_pDataBase, nodeAttributeValueChanged( serialization::Node*, size_t, const string&), this, nodeAttributeValueChanged( serialization::Node*, size_t, const string&));
     }
@@ -1084,6 +1108,15 @@ bool DataTreeView::edit( const QModelIndex & index, EditTrigger trigger, QEvent 
         QObject::connect(this, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(slotItemChanged(QTreeWidgetItem*,int)));
     }
     return result;
+}
+
+void DataTreeView::mouseMoveEvent( QMouseEvent *event )
+{
+    QModelIndex index = indexAt(event->pos());
+    if(index.column() == 0 OR index.column() == 1)
+    {
+        QTreeWidget::mouseMoveEvent(event);
+    }
 }
 
 void DataTreeViewDataItem::replaceData( const phantom::data& d )
@@ -1185,6 +1218,171 @@ void RemoveDataAction::doAction()
         }
     }
     m_Delegate(m_pDataTreeView, guids);
+}
+
+void DataTreeView::undoableSetNodeAttribute( DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, size_t a_uiAttributeIndex, const phantom::string& a_Value )
+{
+    NodeAttributeChangeCommand* pCommand = o_new(NodeAttributeChangeCommand)(a_pNode, a_uiAttributeIndex, a_Value);
+    pCommand->setRedoChildExecutionPolicy(UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
+    pCommand->setUndoChildExecutionPolicy(UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
+    pCommand->pushCommand(o_new(SaveNodeAttributeCommand)(a_pNode));
+    m_pUndoStack->pushCommand(pCommand);
+}
+
+void DataTreeView::undoableSetDataAttribute( DataTreeView* a_pDataTreeView, const phantom::data& a_Data, size_t a_uiAttributeIndex, const phantom::string& a_Value )
+{
+    DataAttributeChangeCommand* pCommand = o_new(DataAttributeChangeCommand)(a_pDataTreeView->getDataBase(), a_Data, a_uiAttributeIndex, a_Value);
+    pCommand->setRedoChildExecutionPolicy(UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
+    pCommand->setUndoChildExecutionPolicy(UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
+    pCommand->pushCommand(o_new(SaveDataAttributeCommand)(a_pDataTreeView->getDataBase()->getNode(a_Data), a_Data));
+    m_pUndoStack->pushCommand(pCommand);
+}
+
+void DataTreeView::undoableAddData( DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pOwnerNode, phantom::reflection::Type* a_pType )
+{
+    UndoCommand* pCommand = o_new(UndoCommand)("Add '"+nameOf(a_pType)+"' data to node '"+m_pDataBase->getNodeAttributeValue(a_pOwnerNode, m_uiNameAttributeIndex)+"'");
+    uint guid = m_pDataBase->rootNode()->generateGuid();
+    AddDataCommand* pAddDataCommand = o_new(AddDataCommand)(a_pType, guid, a_pOwnerNode);
+    pAddDataCommand->setName("Insert data");
+    pCommand->pushCommand(pAddDataCommand);
+    UpdateComponentDataCommand* pUpdateComponentDataCommand = o_new(UpdateComponentDataCommand)(m_pDataBase, guid);
+    pUpdateComponentDataCommand->setName("Auto add missing components to data base");
+    pCommand->pushCommand(pUpdateComponentDataCommand);
+    m_pUndoStack->pushCommand(pCommand);
+}
+
+void DataTreeView::undoableAddNode( DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pParentNode )
+{
+    m_pUndoStack->pushCommand(o_new(AddNodeCommand)(a_pParentNode));
+}
+
+bool DataTreeView::undoableLoadNode( DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, UndoCommand* a_pParent )
+{
+    if(a_pNode->getParentNode() && !a_pNode->getParentNode()->isLoaded())
+    {
+        if(NOT(undoableLoadNode(a_pDataTreeView, a_pNode->getParentNode(), a_pParent)))
+        {
+            return false;
+        }
+    }
+    phantom::vector<phantom::string> missingTypes;
+    if(a_pNode->canLoad(&missingTypes))
+    {
+        a_pParent->pushCommand(o_new(LoadNodeCommand)(a_pNode));
+        return true;
+    }
+    else 
+    {
+        phantom::Message* pMessage = phantom::topMessage("data")->error(a_pDataTreeView, "Cannot load node : %s", a_pDataTreeView->getDataBase()->getNodeAttributeValue(a_pNode, "name").c_str());
+        for(auto it = missingTypes.begin(); it != missingTypes.end(); ++it)
+        {
+            pMessage->error(a_pDataTreeView, "Missing class : %s", (*it).c_str());
+        }
+    }
+    return false;
+}
+
+void DataTreeView::undoableLoadNode( DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode )
+{
+    UndoCommand* pCommand = o_new(UndoCommand)("Load node(s)");
+    if(undoableLoadNode(a_pDataTreeView, a_pNode, pCommand))
+    {
+        m_pUndoStack->pushCommand(pCommand);
+    }
+    else 
+    {
+        o_dynamic_delete pCommand;
+    }
+}
+
+bool DataTreeView::undoableUnloadNode( DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, UndoCommand* a_pParent )
+{
+    for(size_t i = 0; i<a_pNode->getChildNodeCount(); ++i)
+    {
+        phantom::serialization::Node* pNode = a_pNode->getChildNode(i);
+        if(pNode->isLoaded())
+        {
+            if(NOT(undoableUnloadNode(a_pDataTreeView, pNode, a_pParent)))
+            {
+                return false;
+            }
+        }
+    }
+    a_pParent->pushCommand(o_new(UnloadNodeCommand)(a_pNode));
+    return true;
+}
+
+void DataTreeView::undoableUnloadNode( DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode )
+{
+    UndoCommand* pCommand = o_new(UndoCommand)("Unload node(s)");
+    if(undoableUnloadNode(a_pDataTreeView, a_pNode, pCommand))
+    {
+        m_pUndoStack->pushCommand(pCommand);
+    }
+    else 
+    {
+        o_dynamic_delete pCommand;
+    }
+}
+
+void DataTreeView::undoableLoadNodeRecursive( DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode )
+{
+    if(a_pNode->getParentNode() && !a_pNode->getParentNode()->isLoaded())
+        undoableLoadNode(a_pDataTreeView, a_pNode->getParentNode());
+    phantom::vector<phantom::string> missingTypes;
+    if(a_pNode->getParentNode()->isLoaded() && a_pNode->canLoad(&missingTypes))
+    {
+        a_pNode->load();
+        for(size_t i = 0; i<a_pNode->getChildNodeCount(); ++i)
+        {
+            undoableLoadNodeRecursive(a_pDataTreeView, a_pNode->getChildNode(i));
+        }
+    }
+    else 
+    {
+        {
+            phantom::Message* pMessage = phantom::topMessage("data")->error(a_pDataTreeView, "Cannot load node : %s", a_pDataTreeView->getDataBase()->getNodeAttributeValue(a_pNode, "name").c_str());
+            for(auto it = missingTypes.begin(); it != missingTypes.end(); ++it)
+            {
+                pMessage->error(a_pDataTreeView, "Missing class : %s", (*it).c_str());
+            }
+        }
+    }
+}
+
+void DataTreeView::undoableMoveToTrashbin( DataTreeView* a_pDataTreeView, const phantom::vector<unsigned int>& a_Guids )
+{
+    m_pUndoStack->pushCommand(o_new(MoveToTrashbinCommand)(a_pDataTreeView->getDataBase(), a_Guids));
+}
+
+void DataTreeView::setUndoStack( UndoStack* a_pUndoStack )
+{
+    if(m_pUndoStack == a_pUndoStack)
+        return;
+    m_pUndoStack = a_pUndoStack;
+    if(m_pUndoStack)
+    {
+        // Use undoable delegates
+        m_AddDataActionDelegate = new_data_action_delegate(this, &DataTreeView::undoableAddData);
+        m_AddNodeActionDelegate = node_action_delegate(this, &DataTreeView::undoableAddNode);
+        m_RemoveDataActionDelegate = remove_data_action_delegate(this, &DataTreeView::undoableMoveToTrashbin);
+        m_LoadNodeActionDelegate = node_action_delegate(this, &DataTreeView::undoableLoadNode);
+        m_UnloadNodeActionDelegate = node_action_delegate(this, &DataTreeView::undoableUnloadNode);
+        m_RecursiveLoadNodeActionDelegate = node_action_delegate(this, &DataTreeView::undoableLoadNodeRecursive);
+        m_DataAttributeChangeDelegate = data_attribute_change_delegate(this, &DataTreeView::undoableSetDataAttribute);
+        m_NodeAttributeChangeDelegate = node_attribute_change_delegate(this, &DataTreeView::undoableSetNodeAttribute);
+    }
+    else 
+    {
+        m_AddDataActionDelegate = new_data_action_delegate(this, &DataTreeView::defaultAddDataActionDelegate);
+        m_AddNodeActionDelegate = node_action_delegate(this, &DataTreeView::defaultAddNodeActionDelegate);
+        m_RemoveDataActionDelegate = remove_data_action_delegate(this, &DataTreeView::defaultRemoveDataActionDelegate);
+        m_LoadNodeActionDelegate = node_action_delegate(this, &DataTreeView::defaultLoadNodeActionDelegate);
+        m_UnloadNodeActionDelegate = node_action_delegate(this, &DataTreeView::defaultUnloadNodeActionDelegate);
+        m_RecursiveLoadNodeActionDelegate = node_action_delegate(this, &DataTreeView::defaultRecursiveLoadNodeActionDelegate);
+        m_DataAttributeChangeDelegate = data_attribute_change_delegate(this, &DataTreeView::defaultDataAttributeChangeDelegate);
+        m_NodeAttributeChangeDelegate = node_attribute_change_delegate(this, &DataTreeView::defaultNodeAttributeChangeDelegate);
+    }
 }
 
 }}

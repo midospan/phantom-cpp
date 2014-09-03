@@ -189,7 +189,7 @@ boolean Node::containsData( const data& a_Data ) const
 void Node::registerData( const phantom::data& a_Data, uint guid )
 {
     storeData(a_Data);
-    m_pOwnerDataBase->registerData(a_Data, guid, this);
+    m_pOwnerDataBase->registerData(a_Data, guid, this, 0);
 }
 
 void Node::unregisterData( const phantom::data& a_Data )
@@ -302,19 +302,26 @@ void Node::addData( const data& a_Data )
     addData(a_Data, m_pOwnerDataBase->generateGuid());
 }
 
-void Node::addComponentData( const data& a_Data, const data& a_OwnerData, const string& a_ReferenceExpression )
+data Node::newComponentData( reflection::Type* a_pType, const data& a_OwnerData, const string& a_ReferenceExpression, bitfield a_ReferenceModifiers )
+{
+    phantom::data d(a_pType->newInstance(), a_pType);
+    addComponentData(d, a_OwnerData, a_ReferenceExpression, a_ReferenceModifiers);
+    return d;
+}
+
+void Node::addComponentData( const data& a_Data, const data& a_OwnerData, const string& a_ReferenceExpression, bitfield a_ReferenceModifiers )
 {
     o_assert(containsData(a_OwnerData));
     o_assert(!containsData(a_Data));
-    m_pOwnerDataBase->registerComponentData(a_Data, a_OwnerData, a_ReferenceExpression);
+    m_pOwnerDataBase->registerComponentData(a_Data, a_OwnerData, a_ReferenceExpression, a_ReferenceModifiers);
     addData(a_Data);
 }
 
-void Node::addComponentData( const data& a_Data, uint a_uiGuid, const data& a_OwnerData, const string& a_ReferenceExpression )
+void Node::addComponentData( const data& a_Data, uint a_uiGuid, const data& a_OwnerData, const string& a_ReferenceExpression, bitfield a_ReferenceModifiers )
 {
     o_assert(containsData(a_OwnerData));
     o_assert(!containsData(a_Data));
-    m_pOwnerDataBase->registerComponentData(a_Data, a_OwnerData, a_ReferenceExpression);
+    m_pOwnerDataBase->registerComponentData(a_Data, a_OwnerData, a_ReferenceExpression, a_ReferenceModifiers);
     addData(a_Data, a_uiGuid);
 }
 
@@ -322,8 +329,8 @@ void Node::removeComponentData( const data& a_Data, const data& a_OwnerData )
 {
     o_assert(containsData(a_OwnerData));
     o_assert(containsData(a_Data));
+    //m_pOwnerDataBase->unregisterComponentData(a_Data);
     removeData(a_Data);
-    m_pOwnerDataBase->unregisterComponentData(a_Data);
 }
 
 void Node::addData( const data& a_Data, uint a_uiGuid )
@@ -346,7 +353,7 @@ void Node::addData( const data& a_Data, size_t a_uiCount, size_t a_uiChunkSectio
         o_assert(guid != 0, "0 is reserved to the root node, fix your generateGuid() overloaded member_function so that is returns a guid > 0");
         data d(pChunk, pType);
         m_pOwnerDataBase->createDataEntry(d, guid, this);
-        m_pOwnerDataBase->registerData(d, guid, this);
+        m_pOwnerDataBase->registerData(d, guid, this, 0);
         o_emit m_pOwnerDataBase->dataAdded(d, this);
         pChunk += a_uiChunkSectionSize;
     }
@@ -488,8 +495,8 @@ void Node::save()
     // Be sure all components are added before saving
     saveTypes();
     saveIndex(); 
-    saveAttributes(); 
     saveData(); 
+    saveAttributes();
 }
 
 void Node::saveDataAttributes( const phantom::data& a_Data )
@@ -502,14 +509,24 @@ void Node::loadDataAttributes( const phantom::data& a_Data )
     loadDataAttributes(a_Data, m_pOwnerDataBase->getGuid(a_Data));
 }
 
-void Node::saveData( const phantom::data& a_Data)
+void Node::saveDataProperties( const phantom::data& a_Data)
 {
-    saveData(m_pOwnerDataBase->m_uiSerializationFlag, a_Data, m_pOwnerDataBase->getGuid(a_Data));
+    saveDataProperties(m_pOwnerDataBase->m_uiSerializationFlag, a_Data, m_pOwnerDataBase->getGuid(a_Data));
 }
 
 void Node::loadData( const phantom::data& a_Data )
 {
     loadData(m_pOwnerDataBase->m_uiSerializationFlag, a_Data, m_pOwnerDataBase->getGuid(a_Data));
+}
+
+void Node::loadData( uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid )
+{
+    loadDataProperties(a_uiSerializationFlag, a_Data, a_uiGuid);
+    if(m_pOwnerDataBase->getDataStateBase())
+    {
+        loadDataState(a_Data, m_pOwnerDataBase->getDataStateBase()->getCurrentStateId());
+    }
+    loadDataAttributes(a_Data, a_uiGuid);
 }
 
 void Node::saveStateCascade( DataStateBase* a_pDataStateBase, uint a_uiStateId )
@@ -807,7 +824,7 @@ void Node::clearDataReference( const vector<void*>& layout, vector<reflection::E
         {
             // Save if modified
             // TODO : clean this dirty hack by using const on saveData
-            ((Node*)this)->saveData(currentData);
+            ((Node*)this)->saveDataProperties(currentData);
         }
     }
 }
@@ -942,7 +959,7 @@ bool Node::replaceDataReference( const vector<void*>& a_OldLayout, const phantom
         }
         if(currentDataModified)
         {
-            ((Node*)this)->saveData(currentData);
+            ((Node*)this)->saveDataProperties(currentData);
         }
     }
     return complete;
@@ -953,10 +970,11 @@ void Node::fetchUpdatedData( const phantom::data& a_Data
                                 , vector<data_pair>& out_components_to_add
                                 , vector<data_pair>& out_components_to_remove
                                 , vector<string>& out_components_to_add_reference_expressions
+                                , vector<bitfield>& out_to_add_modifiers
                                 , vector<data>& a_TreatedData )
 {
     std::set<phantom::data> alreadyTreated;
-    fetchUpdatedData(a_Data, out_components_to_add, out_components_to_remove, out_components_to_add_reference_expressions, alreadyTreated);
+    fetchUpdatedData(a_Data, out_components_to_add, out_components_to_remove, out_components_to_add_reference_expressions, out_to_add_modifiers, alreadyTreated);
     for(auto it = alreadyTreated.begin(); it != alreadyTreated.end(); ++it)
     {
         a_TreatedData.push_back(*it);
@@ -967,6 +985,7 @@ void Node::fetchUpdatedData( const phantom::data& a_Data
                                 , vector<data_pair>& out_components_to_add /*= nullptr*/
                                 , vector<data_pair>& out_components_to_remove /*= nullptr*/
                                 , vector<string>& out_added_pointer_reference_expressions
+                                , vector<bitfield>& out_to_add_modifiers
                                 , std::set<phantom::data>& treatedData)
 {
     treatedData.insert(a_Data);
@@ -1008,7 +1027,7 @@ void Node::fetchUpdatedData( const phantom::data& a_Data
         else if(m_pOwnerDataBase->getGuid(referencedData) != 0xffffffff AND treatedData.find(referencedData) == treatedData.end())
         {
             // If data referenced exists in the data base, we treat it
-            fetchUpdatedData(referencedData, out_components_to_add, out_components_to_remove, out_added_pointer_reference_expressions, treatedData);
+            m_pOwnerDataBase->getNode(referencedData)->fetchUpdatedData(referencedData, out_components_to_add, out_components_to_remove, out_added_pointer_reference_expressions, out_to_add_modifiers, treatedData);
         }
     }
 
@@ -1042,7 +1061,7 @@ void Node::fetchUpdatedData( const phantom::data& a_Data
         // Component which are found both in current and old lists are the already existing components which wont be removed, we browse them for new components
         if(treatedData.find(*it) == treatedData.end())
         {
-            m_pOwnerDataBase->getNode(*it)->fetchUpdatedData(*it, out_components_to_add, out_components_to_remove, out_added_pointer_reference_expressions, treatedData);
+            m_pOwnerDataBase->getNode(*it)->fetchUpdatedData(*it, out_components_to_add, out_components_to_remove, out_added_pointer_reference_expressions, out_to_add_modifiers, treatedData);
         }
     }
 
@@ -1080,16 +1099,18 @@ void Node::fetchUpdatedData( const phantom::data& a_Data
             o_assert(NOT(m_pOwnerDataBase->containsData(*it))) // the data is a shared data
             {
                 out_components_to_add.push_back(data_pair(*it, d));
-                out_added_pointer_reference_expressions.push_back(dataReferenceExpressions[*it]->getName());
+                phantom::reflection::Expression* pExpression = dataReferenceExpressions[*it];
+                out_added_pointer_reference_expressions.push_back(pExpression->getName());
+                out_to_add_modifiers.push_back(pExpression->getModifiers());
                 //indexOutdated = true;
                 //internalAddData(*it, m_pOwnerDataBase->generateGuid());
             }
             //saveData(*it);
         }
     }
-    if(indexOutdated)
+    for(auto it = dataReferenceExpressions.begin(); it != dataReferenceExpressions.end(); ++it)
     {
-        //saveIndex();
+        phantom::deleteElement(it->second);
     }
 }
 /*
@@ -1141,6 +1162,29 @@ void Node::saveData()
     for(auto it = m_Data.begin(); it != m_Data.end(); ++it)
     {
         saveData(*it);
+    }
+}
+
+void Node::saveData( uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid )
+{
+    saveDataProperties(a_uiSerializationFlag, a_Data, a_uiGuid);
+    if(m_pOwnerDataBase->getDataStateBase())
+    {
+        saveDataState(a_Data, m_pOwnerDataBase->getDataStateBase()->getCurrentStateId());
+    }
+    saveDataAttributes(a_Data, a_uiGuid);
+}
+
+void Node::saveData( uint a_uiSerializationFlag )
+{
+    data_vector::iterator it = m_Data.begin();
+    data_vector::iterator end = m_Data.end();
+
+    for(;it != end; ++it)
+    {
+        void* pAddress = it->address();
+        uint guid = m_pOwnerDataBase->getGuid(pAddress);
+        saveData(a_uiSerializationFlag, *it, guid);
     }
 }
 
@@ -1338,6 +1382,7 @@ void Node::internalRemoveData( const data& a_Data )
             if( getOwnerDataBase()->getComponentDataOwner(allData[i]) == a_Data )
             {
                 removeData(allData[i]);
+                allData[i].destroy();
                 subDataRemovalPassNeeded = true;
                 break;
             }
@@ -1413,6 +1458,23 @@ void Node::replaceTypes( const map<reflection::Type*, reflection::Type*>& replac
 uint Node::generateGuid() const
 {
     return m_pOwnerDataBase->generateGuid();
+}
+
+void Node::fetchDataTypes( std::set<reflection::Type*>& a_Types ) const
+{
+    for(auto it = m_Data.begin(); it != m_Data.end(); ++it)
+    {
+        a_Types.insert(it->type());
+    }
+}
+
+void Node::fetchDataTypesCascade( std::set<reflection::Type*>& a_Types ) const
+{
+    fetchDataTypes(a_Types);
+    for(auto it = m_ChildNodes.begin(); it != m_ChildNodes.end(); ++it)
+    {
+        (*it)->fetchDataTypesCascade(a_Types);
+    }
 }
 
 o_namespace_end(phantom, serialization)

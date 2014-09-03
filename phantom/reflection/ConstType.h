@@ -61,6 +61,9 @@ public:
 
     virtual ConstType* asConstType() const { return const_cast<ConstType*>(this); }
 
+    virtual string          getQualifiedName() const;
+    virtual string          getDecoratedName() const;
+    virtual string          getQualifiedDecoratedName() const;
 
     virtual void*           cast(Type* a_pTargetType, void* a_pSrc) const { return m_pConstedType->cast(a_pTargetType, a_pSrc); }
 

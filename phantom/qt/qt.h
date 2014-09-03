@@ -34,8 +34,6 @@ o_qt_export string  iconOf(reflection::LanguageElement* a_pLanguageElement);
 
 o_qt_export reflection::Expression* expressionByName(const string& a_strName, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace()));
 
-o_qt_export void loadMetaData( const string& metaDataFile );
-
 enum EEvalPolicy
 {
     e_EvalPolicy_Local = 0x1,

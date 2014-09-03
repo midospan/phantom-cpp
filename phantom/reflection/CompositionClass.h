@@ -30,9 +30,13 @@ public:
 
     virtual void remove(void* a_pComposition, const void* a_pSrc) const = 0;
 
+    virtual void removeLast(void* a_pComposition, void* a_pDest) const = 0;
+
     virtual void set(void* a_pComposition, size_t a_uiIndex, const void* a_pSrc) const = 0;
 
     virtual void move(void* a_pComposition, const void* a_pSrc, size_t a_uiNewIndex) const = 0;
+
+    virtual void move(void* a_pComposition, size_t a_uiOldIndex, size_t a_uiNewIndex) const = 0;
 
     virtual void swap(void* a_pComposition, const void* a_pDestSrc, const void* a_pSrcSrc) const = 0;
 
@@ -73,7 +77,7 @@ public:
     virtual Expression* solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, bitfield a_Modifiers ) const;
 
 public:
-    class GetSetExpression : public Expression
+    class o_export GetSetExpression : public Expression
     {
     public:
         GetSetExpression(Expression* a_pLeftExpression, Expression* a_pIndexExpression, CompositionClass* a_pCompositionClass);
@@ -84,12 +88,36 @@ public:
 
         virtual bool hasValueStorage() const { return false; }
 
+        virtual void flush() const;
+
         virtual GetSetExpression*     clone() const;
 
     protected:
         Expression* m_pLeftExpression;
         Expression* m_pIndexExpression;
         CompositionClass* m_pCompositionClass;
+        mutable void* m_pBufferedPointer;
+    };
+    class o_export InsertRemoveExpression : public Expression
+    {
+    public:
+        InsertRemoveExpression(Expression* a_pLeftExpression, Expression* a_pIndexExpression, CompositionClass* a_pCompositionClass);
+
+        virtual void getValue(void* a_pDest) const;
+
+        virtual void setValue(void const* a_pSrc) const;
+
+        virtual bool hasValueStorage() const { return false; }
+
+        virtual void flush() const;
+
+        virtual InsertRemoveExpression*     clone() const;
+
+    protected:
+        Expression* m_pLeftExpression;
+        Expression* m_pIndexExpression;
+        CompositionClass* m_pCompositionClass;
+        mutable void* m_pBufferedPointer;
     };
 
 protected:

@@ -109,12 +109,18 @@ o_initialize_cpp(CallExpression)
     size_t i = m_Arguments.size();
     while(i--)
     {
-        Expression* pArgument = m_ConvertedArguments[i] = m_Arguments[i]->implicitCast( (isInstanceMemberFunction AND (i == 0)) 
-            ? pThisPointerType
-            : m_pSubroutine->getParameterType(i-isInstanceMemberFunction) );
+        Expression* pArgument;
+        if(isInstanceMemberFunction AND (i == 0))
+        {
+            pArgument = m_ConvertedArguments[i] = m_Arguments[i]->implicitCast(pThisPointerType)->address(); 
+        }
+        else 
+        {
+            pArgument = m_ConvertedArguments[i] = m_Arguments[i]->implicitCast(m_pSubroutine->getParameterType(i-isInstanceMemberFunction));
+        }
         o_assert(pArgument);
         addElement(pArgument); // add elements in evaluation order
-        if(NOT(pArgument->hasValueStorage()))
+        if(NOT(pArgument->hasValueStorage()) AND NOT(pArgument->isAddressable()))
         {
             pStorageType = storageType(pArgument->getValueType());
             void* pTempValue = pStorageType->allocate();
@@ -140,7 +146,7 @@ void CallExpression::terminate()
     for(size_t i = 0; i<m_ConvertedArguments.size(); ++i)
     {
         Expression* pArgument = m_ConvertedArguments[i];
-        if(NOT(pArgument->hasValueStorage()))
+        if(NOT(pArgument->hasValueStorage()) AND NOT(pArgument->isAddressable()))
         {
             void* pTempValue = m_TempValues[i];
             pStorageType = storageType(pArgument->getValueType());
@@ -161,7 +167,11 @@ void CallExpression::getValue( void* a_pDest ) const
     while(i--) // evaluate arguments from right to left
     {
         Expression* pArgument = m_ConvertedArguments[i];
-        if(pArgument->hasValueStorage())
+        if(pArgument->isAddressable())
+        {
+            pArgument->getValue(&addresses[i]);
+        }
+        else if(pArgument->hasValueStorage())
         {
             addresses[i] = pArgument->getValueStorageAddress();
         }
@@ -219,7 +229,11 @@ void CallExpression::call() const
     while(i--) // evaluate arguments from right to left
     {
         Expression* pArgument = m_ConvertedArguments[i];
-        if(pArgument->hasValueStorage())
+        if(pArgument->isAddressable())
+        {
+            pArgument->getValue(&addresses[i]);
+        }
+        else if(pArgument->hasValueStorage())
         {
             addresses[i] = pArgument->getValueStorageAddress();
         }

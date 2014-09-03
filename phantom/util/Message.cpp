@@ -261,6 +261,14 @@ void Message::emitDescendantRemovedCascade( Message* a_pMessage )
         m_pParent->emitDescendantRemovedCascade(a_pMessage); 
 }
 
+void Message::copyChildrenTo( Message* a_pMessage ) const
+{
+    for(auto it = m_Children.begin(); it != m_Children.end(); ++it)
+    {
+        a_pMessage->addChild((*it)->clone());
+    }
+}
+
 Message::messages_def Message::messages_def::operator()( EMessageType a_eType, const phantom::variant& a_Data, char* a_Format, ... )
 {
     va_list args;

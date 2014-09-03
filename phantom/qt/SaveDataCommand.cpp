@@ -3,6 +3,7 @@
 #include "SaveDataCommand.h"
 #include "SaveDataCommand.hxx"
 #include <phantom/serialization/Node.h>
+#include <phantom/serialization/DataStateBase.h>
 /* *********************************************** */
 o_registerN((phantom, qt), SaveDataCommand);
 
@@ -38,14 +39,34 @@ void SaveDataCommand::redo()
 {
     serialization::Node* pParentNode = m_pDataBase->getNode(m_uiParentGuid);
     o_assert(pParentNode);
-    pParentNode->saveData(m_pDataBase->getData(m_uiGuid));
+    phantom::data d = m_pDataBase->getData(m_uiGuid);
+    if(!d.isNull())
+    {
+        pParentNode->saveData(d);
+        if(m_pDataBase->getDataStateBase())
+        {
+            pParentNode->saveDataState(d, m_pDataBase->getDataStateBase()->getCurrentStateId());
+        }
+        pParentNode->saveDataAttributes(d);
+        pParentNode->saveIndex();
+    }
 }
 
 void SaveDataCommand::undo()
 {
     serialization::Node* pParentNode = m_pDataBase->getNode(m_uiParentGuid);
     o_assert(pParentNode);
-    pParentNode->saveData(m_pDataBase->getData(m_uiGuid));
+    phantom::data d = m_pDataBase->getData(m_uiGuid);
+    if(!d.isNull())
+    {
+        pParentNode->saveData(d);
+        if(m_pDataBase->getDataStateBase())
+        {
+            pParentNode->saveDataState(d, m_pDataBase->getDataStateBase()->getCurrentStateId());
+        }
+        pParentNode->saveDataAttributes(d);
+        pParentNode->saveIndex();
+    }
 }
 
 }}

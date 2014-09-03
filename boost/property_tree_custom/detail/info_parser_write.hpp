@@ -55,7 +55,7 @@ namespace boost { namespace property_tree_custom { namespace info_parser
     bool is_simple_key(const Str &key)
     {
 		typedef typename Str::value_type Ch;
-        const static Str chars = convert_chtype<Ch, char>(" \t{};\n\"");
+        const static Str chars = convert_chtype<typename Str::_Alloc, Ch, char>(" \t{};\n\"");
         return !key.empty() && key.find_first_of(chars) == key.npos;
     }
     
@@ -63,7 +63,7 @@ namespace boost { namespace property_tree_custom { namespace info_parser
     bool is_simple_data(const Str &data)
 	{
 		typedef typename Str::value_type Ch;
-        const static Str chars = convert_chtype<Ch, char>(" \t{};\n\"");
+        const static Str chars = convert_chtype<typename Str::_Alloc, Ch, char>(" \t{};\n\"");
         return !data.empty() && data.find_first_of(chars) == data.npos;
     }
 
@@ -75,14 +75,14 @@ namespace boost { namespace property_tree_custom { namespace info_parser
     {
 
         // Character type
-        typedef typename Ptree::key_type::value_type Ch;
+        typedef typename Ptree::string_type::value_type Ch;
         
         // Write data
         if (indent >= 0)
         {
             if (!pt.data().empty())
             {
-				typename Ptree::BOOST_NESTED_TEMPLATE for_char<Ch>::basic_string data = create_escapes(pt.template get_value<std::basic_string<Ch> >());
+				typename Ptree::BOOST_NESTED_TEMPLATE for_char<Ch>::basic_string data = create_escapes(pt.template get_value<typename Ptree::string_type>());
                 if (is_simple_data(data))
                     stream << Ch(' ') << data << Ch('\n');
                 else
@@ -142,7 +142,7 @@ namespace boost { namespace property_tree_custom { namespace info_parser
     {
         write_info_helper(stream, pt, -1, settings);
         if (!stream.good())
-            BOOST_PROPERTY_TREE_CUSTOM_THROW(info_parser_error("write error", filename, 0));
+            BOOST_PROPERTY_TREE_CUSTOM_THROW(info_parser_error<typename Ptree::string_type>("write error", filename, 0));
     }
 
 } } }

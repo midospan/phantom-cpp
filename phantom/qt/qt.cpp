@@ -1,7 +1,6 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
 #include <windows.h>
-#include <boost/property_tree_custom/xml_parser.hpp>
 /* *********************************************** */
 o_namespace_begin(phantom, qt)
     
@@ -45,38 +44,6 @@ o_qt_export string iconOf( reflection::LanguageElement* a_pLanguageElement )
     return name;
 }
 
-o_qt_export void loadMetaData( const string& metaDataFile )
-{
-    property_tree   propertyTree;
-    boost::property_tree_custom::read_xml(metaDataFile.c_str(), propertyTree);
-    boost::optional<property_tree&> root_opt = propertyTree.get_child_optional("metadata");
-    if(root_opt.is_initialized())
-    {
-        property_tree& root = *root_opt;
-        boost::optional<property_tree&> definition_opt = root.get_child_optional("definition");
-        if(definition_opt.is_initialized())
-        {
-            property_tree& definition = *definition_opt;
-            property_tree::const_iterator it = definition.begin();
-            property_tree::const_iterator end = definition.end();
-            for(;it!=end;++it)
-            {
-                const string& elementName = it->first;
-                phantom::reflection::LanguageElement* pElement = phantom::elementByName(elementName);
-                if(pElement == NULL) continue;
-                property_tree::const_iterator it2 = it->second.begin();
-                property_tree::const_iterator end2 = it->second.end();
-                for(;it2!=end2;++it2)
-                {
-                    size_t metaDataIndex = phantom::metaDataIndex(it2->first);
-                    if(metaDataIndex == 0xffffffff) continue;
-                    const string& value = it2->second.get_value<string>();
-                    pElement->setMetaDataValue(metaDataIndex, value)  ;
-                }
-            }
-        }
-    }
-}
 
 o_namespace_end(phantom, qt)
 

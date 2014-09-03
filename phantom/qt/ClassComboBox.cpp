@@ -8,11 +8,15 @@ namespace qt {
 
     ClassComboBox::ClassComboBox( reflection::Class* a_pBaseClass
         , reflection::Class* a_pCurrentClass
-        , FilterBits a_iFilter ) 
+        , FilterBits a_iFilter 
+        , bool a_bAllowsNone ) 
         : m_iFilter(a_iFilter)
     {
         m_pBaseClass = a_pBaseClass;
-        addItem(QIcon("resources/icons/famfamfam/null.png"), "none", 0);
+        if(a_bAllowsNone)
+        {
+            addItem(QIcon("resources/icons/famfamfam/null.png"), "none", 0);
+        }
         if(m_pBaseClass)
         {
             addClass(m_pBaseClass);

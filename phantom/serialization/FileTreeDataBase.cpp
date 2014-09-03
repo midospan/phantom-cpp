@@ -225,11 +225,11 @@ phantom::uint FileTreeDataBase::generateGuid()
 {
     boost::filesystem::path root_path = nodePath(rootNode(), 0, NULL).c_str();
     o_assert(boost::filesystem::exists(root_path));
-    map<uint,uint> guids;
-    guids[0] = 0;
+    std::set<uint> guids = m_GeneratedGuids;
+    guids.insert(0);
     generateGuidHelper(root_path, guids);
-    map<uint,uint>::const_iterator it = guids.begin();
-    map<uint,uint>::const_iterator end = guids.end();
+    auto it = guids.begin();
+    auto end = guids.end();
 
 	// Create guid
 	uint c = 0;
@@ -263,7 +263,7 @@ phantom::uint FileTreeDataBase::generateGuid()
 		bValid = true;
 		for(;it!=end;++it)
 		{
-			if(c == it->second)
+			if(c == *it)
 			{
 				it = guids.begin();
 				bValid = false;
@@ -272,10 +272,11 @@ phantom::uint FileTreeDataBase::generateGuid()
 			}
 		}
 	}
+    m_GeneratedGuids.insert(c);
     return c;
 }
 
-void FileTreeDataBase::generateGuidHelper( const boost::filesystem::path& a_Path, map<uint,uint>& guids )
+void FileTreeDataBase::generateGuidHelper( const boost::filesystem::path& a_Path, std::set<uint>& guids )
 {
     o_assert(boost::filesystem::is_directory(a_Path));      // is p a directory?
 
@@ -296,7 +297,7 @@ void FileTreeDataBase::generateGuidHelper( const boost::filesystem::path& a_Path
 
         if(guid == 0xFFFFFFFF) continue;
 
-        guids[guid] = guid;
+        guids.insert(guid);
         
         if(boost::filesystem::is_directory(child_path)) 
         {

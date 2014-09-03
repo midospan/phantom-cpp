@@ -117,7 +117,7 @@ void LanguageElement::terminate()
     o_assert(canBeDestroyed());
     if(m_pMetaData != nullptr)
     {
-        size_t count = phantom::Phantom::m_instance->m_meta_data_names.size();
+        size_t count = phantom::Phantom::m_meta_data_names->size();
         o_delete_n(count, string) m_pMetaData;
         m_pMetaData = nullptr;
     }
@@ -502,7 +502,18 @@ void LanguageElement::setModule( Module* a_pModule )
 
 void LanguageElement::moduleChanged( Module* a_pModule )
 {
-
+    // TODO : use polymorphism
+    if(asNamespace()) return;
+    if(m_pElements)
+    {
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            if((*it)->getModule() == nullptr AND ((*it)->asType() == nullptr))
+            {
+                a_pModule->addLanguageElement(*it);
+            }
+        }
+    }
 }
 
 bool LanguageElement::canBeDestroyed() const
@@ -619,6 +630,20 @@ boolean LanguageElement::isNative() const
         }
     }
     return true;
+}
+
+LanguageElement* LanguageElement::getHatchedElement() const
+{
+    return nullptr;
+}
+
+LanguageElement* LanguageElement::hatch()
+{
+    LanguageElement* pLanguageElement = getHatchedElement();
+    if(pLanguageElement == nullptr)
+        return this;
+    phantom::deleteElement(this);
+    return pLanguageElement;
 }
 
 o_namespace_end(phantom, reflection)

@@ -60,4 +60,10 @@ void AddNodeCommand::redo()
     pNode->saveAttributes();
 }
 
+
+UndoCommand* AddNodeCommand::clone() const
+{
+    return o_new(AddNodeCommand)(m_pDataBase->getNode(m_uiParentGuid));
+}
+
 }}

@@ -57,8 +57,6 @@ public:
 
     virtual void    saveIndex() ;
     virtual void    saveAttributes() ;
-    virtual void    saveData(uint a_uiSerializationFlag) ;
-    virtual void    saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid) ;
     virtual void    saveDataAttributes();
     virtual void    saveDataAttributes(const phantom::data& a_Data, uint a_uiGuid);
 
@@ -80,7 +78,8 @@ protected:
 
     void            saveDataAttributesHelper(const phantom::data& a_Data);
     void            loadDataAttributesHelper(const phantom::data& a_Data);
-    void            loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid);
+    virtual void    saveDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid);
+    virtual void    loadDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid);
     
 
 protected:

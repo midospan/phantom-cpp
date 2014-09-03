@@ -3,6 +3,7 @@
 #include "LoadNodeCommand.h"
 #include "LoadNodeCommand.hxx"
 #include <phantom/serialization/Node.h>
+#include <phantom/serialization/DataStateBase.h>
 /* *********************************************** */
 o_registerN((phantom, qt), LoadNodeCommand);
 
@@ -56,6 +57,15 @@ void LoadNodeCommand::redo()
     o_assert(pNode->getParentNode() == nullptr OR pNode->getParentNode()->isLoaded());
     o_assert(pNode->canLoad());
     pNode->load();
+    if(m_pDataBase->getDataStateBase())
+    {
+        pNode->loadState(m_pDataBase->getDataStateBase()->getCurrentStateId());
+    }
+}
+
+LoadNodeCommand* LoadNodeCommand::clone() const
+{
+    return o_new(LoadNodeCommand)(m_pDataBase->getNode(m_uiGuid));
 }
 
 }}

@@ -66,6 +66,8 @@ public:
 
     virtual InstanceDataMemberAccess*     clone() const;
 
+    virtual LanguageElement*    getHatchedElement() const;
+
 protected:
     void referencedElementRemoved( LanguageElement* a_pElement );
 

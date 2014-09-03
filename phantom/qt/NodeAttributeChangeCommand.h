@@ -24,7 +24,8 @@ public:
 	// Constructors / Destructor
 	//================================================
 
-	NodeAttributeChangeCommand(serialization::Node* a_pNode, size_t a_uiAttributeIndex, const string& a_NewValue);
+    NodeAttributeChangeCommand(serialization::Node* a_pNode, size_t a_uiAttributeIndex, const string& a_NewValue);
+    NodeAttributeChangeCommand(serialization::DataBase* a_pDataBase, uint a_uiGuid, size_t a_uiAttributeIndex, const string& a_NewValue, const string& a_OldValue);
 	~NodeAttributeChangeCommand();
 
 
@@ -34,7 +35,7 @@ public:
 
 	virtual void undo();
 	virtual void redo();
-
+    virtual NodeAttributeChangeCommand* clone() const;
 
 protected:
 	//================================================

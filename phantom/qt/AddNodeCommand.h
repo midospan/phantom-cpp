@@ -34,7 +34,7 @@ public:
 
 	virtual void undo();
 	virtual void redo();
-
+    virtual UndoCommand* clone() const;
 
 protected:
 	//================================================

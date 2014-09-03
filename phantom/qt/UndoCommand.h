@@ -4,6 +4,7 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/qt/qt.h>
+#include <QIcon>
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, qt), UndoCommand);
 /* *********************************************** */
@@ -70,11 +71,26 @@ public:
     vector<UndoCommand*>::const_iterator beginChildCommands() const { return m_ChildCommands.begin(); }
     vector<UndoCommand*>::const_iterator endChildCommands() const { return m_ChildCommands.end(); }
 
+    UndoCommand* cloneCascade() const;
+
+    QIcon       getIcon() const { return m_Icon; }
+    void        setIcon(const QIcon& a_Icon) { m_Icon = a_Icon; }
+
 protected:
+    virtual UndoCommand* clone() const;
     void setUndoStack(UndoStack* a_pUndoStack);
-    void internalUndo();
-    void internalRedo();
+    bool internalUndo(bool isAborting = false)
+    {
+        return internalUndo(m_ChildCommands, true, isAborting);
+    }
+    bool internalRedo(bool isAborting = false)
+    {
+        return internalRedo(m_ChildCommands, true, isAborting);
+    }
+    bool internalUndo(const vector<UndoCommand*>& a_ChildCommands, bool executeThis, bool isAborting);
+    bool internalRedo(const vector<UndoCommand*>& a_ChildCommands, bool executeThis, bool isAborting);
     void removeCommand( UndoCommand* a_pUndoCommand );
+    void abort();
 
 protected:
     o_signal_data(childCommandAdded, UndoCommand*);
@@ -90,6 +106,10 @@ protected:
     size_t                  m_uiIndex;
     EChildExecutionPolicy   m_eUndoChildExecutionPolicy;
     EChildExecutionPolicy   m_eRedoChildExecutionPolicy;
+    QIcon                   m_Icon;
+
+private:
+    bool m_bAborted;
 };
 
 o_namespace_end(phantom, qt)

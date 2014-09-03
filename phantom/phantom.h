@@ -858,7 +858,7 @@ private:
     static serialization::DataBase* m_current_data_base;
     static map<string, Module*>     m_modules;
     static vector<reflection::Constant*> m_Constants;
-    vector<string>                  m_meta_data_names;
+    static vector<string>*          m_meta_data_names;
     static map<string, reflection::SourceFile*> m_SourceFiles;
     static reflection::Type*		m_type_of_string;
 
@@ -911,7 +911,7 @@ o_export inline reflection::Type*                   stringType() { return Phanto
 
 o_export inline size_t                              metaDataIndex(const string& elementName)
 {
-    const vector<string>& metaData = phantom::Phantom::m_instance->m_meta_data_names;
+    const vector<string>& metaData = *phantom::Phantom::m_meta_data_names;
     size_t i = 0;
     size_t count = metaData.size();
     for(;i<count;++i)
@@ -933,11 +933,11 @@ o_export inline const string&                       metaDataValue(const string& 
 }
 o_export inline size_t                              metaDataCount() 
 {
-    return phantom::Phantom::m_instance->m_meta_data_names.size();
+    return phantom::Phantom::m_meta_data_names->size();
 }
 o_export inline const string&                       metaDataName(size_t index) 
 {
-    return phantom::Phantom::m_instance->m_meta_data_names[index];
+    return (*phantom::Phantom::m_meta_data_names)[index];
 }
 
 template<typename t_Ty>
@@ -1129,7 +1129,6 @@ t_Ty* phantom::data::as() const
 {
     reflection::Type* targetType = typeOf<t_Ty>();
     o_assert(targetType, "t_Ty must have reflection");
-    o_assert(m_type->isKindOf(targetType));
     if(m_type == targetType) return static_cast<t_Ty*>(m_address);
     return static_cast<t_Ty*>(m_type->cast(targetType, m_address));
 }
@@ -1355,6 +1354,8 @@ o_forceinline bool detail::dynamic_initializer_handle::dynamic_initializer_modul
 {
     return other.type->isKindOf(type);
 }
+
+o_export string conversionOperatorNameNormalizer(const string& a_strName, reflection::LanguageElement* a_pScope);
 
 struct variable
 {

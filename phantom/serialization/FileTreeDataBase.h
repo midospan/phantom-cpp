@@ -88,9 +88,10 @@ public:
 protected:
     virtual Trashbin*createTrashBin(const string& a_strUrl) const;
     void            loadNodeEntriesHelper(Node* a_pNode, const boost::filesystem::path& a_Path);
-    void            generateGuidHelper(const boost::filesystem::path& a_Path, map<uint,uint>& guids);
+    void            generateGuidHelper(const boost::filesystem::path& a_Path, std::set<uint>& guids);
+
 protected:
-        
+    std::set<uint> m_GeneratedGuids;
 };
 
 o_namespace_end(phantom, serialization)

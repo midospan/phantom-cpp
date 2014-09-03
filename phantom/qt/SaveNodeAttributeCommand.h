@@ -33,7 +33,8 @@ public:
 	//================================================
 
 	virtual void undo();
-	virtual void redo();
+    virtual void redo();
+    virtual SaveNodeAttributeCommand* clone() const;
 
 
 protected:

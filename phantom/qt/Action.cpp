@@ -9,13 +9,13 @@ namespace phantom { namespace qt {
     Action::Action( QIcon a_Icon, const QString& a_strName, QObject* a_pParent )
         : QAction(a_Icon, a_strName, a_pParent)
     {
-        connect(this, SIGNAL(triggered()), this, SLOT(doAction()));
+        connect(this, SIGNAL(triggered()), this, SLOT(internalDoAction()));
     }
 
     Action::Action( QObject* a_pParent )
         : QAction(a_pParent)
     {
-        connect(this, SIGNAL(triggered()), this, SLOT(doAction()));
+        connect(this, SIGNAL(triggered()), this, SLOT(internalDoAction()));
     }
 
     Action::~Action()

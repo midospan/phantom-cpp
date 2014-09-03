@@ -72,6 +72,8 @@ public:
 
     void    keyReleaseEvent(QKeyEvent * event);
 
+    QSize   sizeHint() const { return m_pStackedWidget->sizeHint(); }
+
 protected slots:
     void                        setCurrentIndex(int index)
     {

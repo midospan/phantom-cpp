@@ -52,6 +52,21 @@ bool ConstType::isImplicitlyConvertibleTo( Type* a_pType ) const
     return m_pConstedType->isImplicitlyConvertibleTo(a_pType->removeConst());
 }
 
+string ConstType::getQualifiedName() const
+{
+    return m_pConstedType->getQualifiedName()+" const";
+}
+
+string ConstType::getDecoratedName() const
+{
+    return m_pConstedType->getDecoratedName()+" const";
+}
+
+string ConstType::getQualifiedDecoratedName() const
+{
+    return m_pConstedType->getQualifiedDecoratedName()+" const";
+}
+
 o_namespace_end(phantom, reflection)
 
 

@@ -5,6 +5,13 @@
 #include "VariableNode.h"
 #include "phantom/reflection/CompositionClass.h"
 #include "phantom/reflection/CompositionClass.hxx"
+#include "AddComponentDataCommand.h"
+#include "UndoCommandAction.h"
+#include "UndoCommand.h"
+#include "VariableModel.h"
+#include "CompositionVariableNodeDelegate.h"
+#include "CompositionComponentVariableNodeDelegate.h"
+#include "Menu.h"
 /* *********************************************** */
 o_registerN((phantom, qt), CompositionVisualizerNode);
  
@@ -13,26 +20,19 @@ namespace qt {
 
 void CompositionVisualizerNode::expand(VariableNode* a_pVariableNode, const vector<reflection::Expression*>& a_LeftExpressions) const 
 {
-    /*if(!a_pVariableNode->hasModifier(o_readonly))
-    {
-        vector<reflection::Expression*> groupedVariables;
-        for(auto it = a_LeftExpressions.begin(); it != a_LeftExpressions.end(); ++it)
-        {
-            groupedVariables.push_back((*it)+".add");
-        }
-        a_pVariableNode->addChildNode(o_new(VariableNode)("<add>", groupedVariables));
-    }*/
+    a_pVariableNode->setDelegate(o_new(CompositionVariableNodeDelegate));
     vector<vector<reflection::Expression*>> groupedVariables;
-    for(auto it = a_LeftExpressions.begin(); it != a_LeftExpressions.end(); ++it)
+    for(size_t i = 0; i<a_LeftExpressions.size(); ++i)
     {
-        reflection::Expression* pLeftExpression = *it;
+        reflection::Expression* pLeftExpression = a_LeftExpressions[i];
         reflection::CompositionClass* pCompositionClass = as<reflection::CompositionClass*>(pLeftExpression->getValueType()->removeReference());
         o_assert(pCompositionClass);
         vector<reflection::LanguageElement*> signature;
-        reflection::Expression* pSizeExpression = pLeftExpression->clone()->solveElement("size", nullptr, &signature)->asExpression();
+        reflection::Expression* pSizeExpression = pLeftExpression->clone()->solveElement("count", nullptr, &signature)->asExpression();
         bool ok;
         size_t count = pSizeExpression->get().as<size_t>(&ok);
         o_assert(ok);
+
         groupedVariables.resize(std::max(groupedVariables.size(), count));
         for(size_t i = 0; i<count; ++i)
         {
@@ -46,7 +46,9 @@ void CompositionVisualizerNode::expand(VariableNode* a_pVariableNode, const vect
     size_t i = 0;
     for(;i<groupedVariables.size(); ++i)
     {
-        a_pVariableNode->addChildNode(o_new(VariableNode)(lexical_cast<string>(i), groupedVariables[i]));
+        VariableNode* pChild = o_new(VariableNode)(lexical_cast<string>(i), groupedVariables[i]);
+        pChild->setDelegate(o_new(CompositionComponentVariableNodeDelegate)(i, groupedVariables.size()));
+        a_pVariableNode->addChildNode(pChild);
     }
 }
 

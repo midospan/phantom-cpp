@@ -53,12 +53,24 @@ protected:
     DataStateBase(const string& a_Url, uint a_uiSerializationFlag)
         : m_strUrl(a_Url)
         , m_uiSerializationFlag(a_uiSerializationFlag)
+        , m_uiCurrentStateId(0)
     {
     }
 
+public:
     const string& getUrl() const { return m_strUrl; }
 
     virtual bool hasStateSaved(Node* a_pNode, uint a_uiStateId) const = 0;
+
+    void setCurrentStateId(uint a_uiStateId) 
+    { 
+        m_uiCurrentStateId = a_uiStateId; 
+    }
+
+    uint getCurrentStateId() const 
+    { 
+        return m_uiCurrentStateId; 
+    }
 
 protected:
     virtual void loadState(Node* a_pNode, uint a_uiStateId) = 0;
@@ -69,6 +81,7 @@ protected:
 protected:
     string  m_strUrl;
     uint    m_uiSerializationFlag;
+    uint    m_uiCurrentStateId;
 };
 
 o_namespace_end(phantom, serialization)

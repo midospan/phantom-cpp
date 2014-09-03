@@ -1297,6 +1297,42 @@
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeFunctionProvider.h">
       <Filter>reflection\native</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\JsonFileTreeNode.h">
+      <Filter>serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\JsonFileTreeNode.hxx">
+      <Filter>serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\JsonFileTreeDataBase.h">
+      <Filter>serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\JsonFileTreeDataBase.hxx">
+      <Filter>serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\JsonFileTreeDataStateBase.h">
+      <Filter>serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\JsonFileTreeDataStateBase.hxx">
+      <Filter>serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\InfoFileTreeDataStateBase.hxx">
+      <Filter>serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\InfoFileTreeNode.h">
+      <Filter>serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\InfoFileTreeNode.hxx">
+      <Filter>serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\InfoFileTreeDataBase.h">
+      <Filter>serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\InfoFileTreeDataBase.hxx">
+      <Filter>serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\serialization\InfoFileTreeDataStateBase.h">
+      <Filter>serialization</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\phantom\reflection\TemplateSpecialization.cpp">
@@ -1811,6 +1847,27 @@
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\serialization\FileTreeTrashBin.cpp">
       <Filter>serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\serialization\JsonFileTreeNode.cpp">
+      <Filter>serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\serialization\JsonFileTreeDataBase.cpp">
+      <Filter>serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\serialization\JsonFileTreeDataStateBase.cpp">
+      <Filter>serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\serialization\InfoFileTreeNode.cpp">
+      <Filter>serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\serialization\InfoFileTreeDataBase.cpp">
+      <Filter>serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\serialization\InfoFileTreeDataStateBase.cpp">
+      <Filter>serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\util\composition.cpp">
+      <Filter>util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -58,6 +58,9 @@ struct converter<s>\
     static bool isConvertibleTo(reflection::Type* a_pType, reflection::Type* a_pDestType)\
 {\
     if(a_pDestType == a_pType) return true;\
+    reflection::ReferenceType* pRefDestType = a_pDestType->asReferenceType();\
+    if(pRefDestType AND pRefDestType->getReferencedType()->asConstType())\
+        return isConvertibleTo(a_pType, a_pDestType->removeReference()->removeConst());\
             else o_phantom_extension_fundamental_converter_can_case(bool)\
             else o_phantom_extension_fundamental_converter_can_case(char)\
             else o_phantom_extension_fundamental_converter_can_case(unsigned char)\
@@ -78,6 +81,9 @@ struct converter<s>\
     static bool isImplicitlyConvertibleTo(reflection::Type* a_pType, reflection::Type* a_pDestType)\
 {\
     if(a_pDestType == a_pType) return true;\
+    reflection::ReferenceType* pRefDestType = a_pDestType->asReferenceType();\
+    if(pRefDestType AND pRefDestType->getReferencedType()->asConstType())\
+    return isImplicitlyConvertibleTo(a_pType, a_pDestType->removeReference()->removeConst());\
             else o_phantom_extension_fundamental_converter_can_case(bool)\
             else o_phantom_extension_fundamental_converter_can_case(char)\
             else o_phantom_extension_fundamental_converter_can_case(unsigned char)\

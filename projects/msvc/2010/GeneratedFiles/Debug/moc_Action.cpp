@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Action.h'
 **
-** Created: Fri 11. Jul 18:46:53 2014
+** Created: Tue 2. Sep 20:06:39 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -38,7 +38,7 @@ static const uint qt_meta_data_phantom__qt__Action[] = {
 };
 
 static const char qt_meta_stringdata_phantom__qt__Action[] = {
-    "phantom::qt::Action\0\0doAction()\0"
+    "phantom::qt::Action\0\0internalDoAction()\0"
 };
 
 void phantom::qt::Action::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -47,7 +47,7 @@ void phantom::qt::Action::qt_static_metacall(QObject *_o, QMetaObject::Call _c, 
         Q_ASSERT(staticMetaObject.cast(_o));
         Action *_t = static_cast<Action *>(_o);
         switch (_id) {
-        case 0: _t->doAction(); break;
+        case 0: _t->internalDoAction(); break;
         default: ;
         }
     }

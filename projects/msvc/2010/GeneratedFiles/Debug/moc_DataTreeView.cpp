@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'DataTreeView.h'
 **
-** Created: Fri 11. Jul 18:46:54 2014
+** Created: Tue 2. Sep 20:06:40 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -24,7 +24,7 @@ static const uint qt_meta_data_phantom__qt__DataTreeView[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      23,   14, // methods
+      24,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -55,8 +55,9 @@ static const uint qt_meta_data_phantom__qt__DataTreeView[] = {
      936,   26,   26,   26, 0x09,
      949,   26,   26,   26, 0x09,
     1010,  973,   26,   26, 0x09,
-    1103, 1065,   26,   26, 0x09,
-    1225, 1174,   26,   26, 0x09,
+    1084, 1065,   26,   26, 0x09,
+    1167, 1129,   26,   26, 0x09,
+    1289, 1238,   26,   26, 0x09,
 
        0        // eod
 };
@@ -88,6 +89,8 @@ static const char qt_meta_stringdata_phantom__qt__DataTreeView[] = {
     "nodeLoaded()\0nodeAboutToBeUnloaded()\0"
     "a_Data,a_uiAttributeIndex,a_strValue\0"
     "dataAttributeValueChanged(phantom::data,size_t,string)\0"
+    "a_Data,a_Modifiers\0"
+    "dataModifiersChanged(phantom::data,bitfield)\0"
     "a_pNode,a_uiAttributeIndex,a_strValue\0"
     "nodeAttributeValueChanged(phantom::serialization::Node*,size_t,string)\0"
     "a_pMenu,a_Data,a_pCollection,a_pComponentDataClass\0"
@@ -122,8 +125,9 @@ void phantom::qt::DataTreeView::qt_static_metacall(QObject *_o, QMetaObject::Cal
         case 18: _t->nodeLoaded(); break;
         case 19: _t->nodeAboutToBeUnloaded(); break;
         case 20: _t->dataAttributeValueChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
-        case 21: _t->nodeAttributeValueChanged((*reinterpret_cast< phantom::serialization::Node*(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
-        case 22: _t->addClassComponentDataActionCascade((*reinterpret_cast< QMenu*(*)>(_a[1])),(*reinterpret_cast< const phantom::data(*)>(_a[2])),(*reinterpret_cast< phantom::reflection::Collection*(*)>(_a[3])),(*reinterpret_cast< phantom::reflection::Class*(*)>(_a[4]))); break;
+        case 21: _t->dataModifiersChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< bitfield(*)>(_a[2]))); break;
+        case 22: _t->nodeAttributeValueChanged((*reinterpret_cast< phantom::serialization::Node*(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
+        case 23: _t->addClassComponentDataActionCascade((*reinterpret_cast< QMenu*(*)>(_a[1])),(*reinterpret_cast< const phantom::data(*)>(_a[2])),(*reinterpret_cast< phantom::reflection::Collection*(*)>(_a[3])),(*reinterpret_cast< phantom::reflection::Class*(*)>(_a[4]))); break;
         default: ;
         }
     }
@@ -161,9 +165,9 @@ int phantom::qt::DataTreeView::qt_metacall(QMetaObject::Call _c, int _id, void *
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 23)
+        if (_id < 24)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 23;
+        _id -= 24;
     }
     return _id;
 }

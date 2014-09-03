@@ -3,6 +3,7 @@
 #include "VariableNode.h"
 #include "VariableNode.hxx"
 #include "VariableModel.h"
+#include "VariableNodeDelegate.h"
 #include "phantom/std/string.h"
 #include "phantom/reflection/Expression.h"
 /* *********************************************** */
@@ -18,7 +19,9 @@ VariableNode::VariableNode( const string& a_strName )
     , m_Modifiers(0)
     , m_bChangeStructure(false)
     , m_pRange(nullptr)
+    , m_pDelegate(o_new(VariableNodeDelegate))
 {
+    m_pDelegate->m_pVariableNode = this;
 }
 
 VariableNode::VariableNode( const string& a_strName, const vector<reflection::Expression*>& a_Expressions, reflection::Range* a_pRange, bitfield a_Modifiers ) 
@@ -29,12 +32,20 @@ VariableNode::VariableNode( const string& a_strName, const vector<reflection::Ex
     , m_Modifiers(a_Modifiers)
     , m_bChangeStructure(false)
     , m_pRange(a_pRange)
+    , m_pDelegate(o_new(VariableNodeDelegate))
 {
-    for(auto it = a_Expressions.begin(); it != a_Expressions.end(); ++it)
+    m_pDelegate->m_pVariableNode = this;
+    if(a_Expressions.size())
     {
-        o_assert((*it)->getOwner() == nullptr);
+        bitfield expressionModifiers = 0xffffffff;
+        for(auto it = a_Expressions.begin(); it != a_Expressions.end(); ++it)
+        {
+            o_assert((*it)->getOwner() == nullptr);
+            expressionModifiers &= (*it)->getModifiers();
+        }
+        m_Modifiers |= expressionModifiers;
+        m_ExpressionUndoStacks.resize(m_Expressions.size());
     }
-    m_ExpressionUndoStacks.resize(m_Expressions.size());
     updateType();
 }
 
@@ -330,6 +341,51 @@ VariableNode* VariableNode::FromData( serialization::DataBase* a_pDataBase, cons
         return o_new(VariableNode)("", expressions);
     }
     return nullptr;
+}
+
+UndoCommand* VariableNode::createValueSetUndoCommand( const void* a_pValue ) const
+{
+    return m_pDelegate->createValueSetUndoCommand(a_pValue);
+}
+
+void VariableNode::setDelegate( VariableNodeDelegate* a_pDelegate )
+{
+    if(m_pDelegate == a_pDelegate)
+        return;
+    o_assert(a_pDelegate);
+    o_dynamic_delete m_pDelegate;
+    m_pDelegate = a_pDelegate;
+    m_pDelegate->m_pVariableNode = this;
+}
+
+VariableWidgetEditor* VariableNode::createEditor() const
+{
+    return m_pDelegate->createEditor();
+}
+
+Menu* VariableNode::createMenu() const
+{
+    return m_pDelegate->createMenu();
+}
+
+string VariableNode::valueText() const
+{
+    return m_pDelegate->valueText();
+}
+
+QIcon VariableNode::valueIcon() const
+{
+    return m_pDelegate->valueIcon();
+}
+
+QWidget* VariableNode::createActionWidget() const
+{
+    return m_pDelegate->createActionWidget();
+}
+
+void VariableNode::invalidate()
+{
+    m_pVariableModel->reset();
 }
 
 // 

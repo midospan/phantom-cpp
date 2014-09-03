@@ -16,11 +16,22 @@ class VariableAction;
 class VariableDecorator;
 class VariableNode;
 class TypeVisualizerNode;
+class UndoStack;
+class Menu;
 
 class o_qt_export VariableModel 
 {
     friend class VariableAction;
     friend class VariableEditor;
+    friend class VariableNode;
+
+public:
+    typedef fastdelegate::FastDelegate< void ( VariableNode* a_pVariable, void const* a_ppValueSources ) > variable_value_set_delegate;
+
+public:
+
+    void defaultSetVariable(VariableNode* a_pVariable, void const* a_pValue) const;
+    void undoableSetVariable(VariableNode* a_pVariableNode, void const* a_pValue) const;
 
 public:
     VariableModel(void);
@@ -28,12 +39,23 @@ public:
 
     o_initialize();
     o_terminate();
+
+    UndoStack*  getUndoStack() const {return m_pUndoStack;}
+    void        setUndoStack(UndoStack* a_pUndoStack);
     
     VariableNode* getRootNode() const { return m_pRootNode; }
+
+    reflection::Class* getVariableWidgetEditorClass(reflection::Type* a_pType) const 
+    {
+        auto found = m_VariableTypeToEditorClass.find(a_pType);
+        return found == m_VariableTypeToEditorClass.end() ? nullptr : found->second;
+    }
 
     void setData(const vector<data>& a_Data);
 
     void clear();
+
+    void reset();
 
     void registerTypeVisualizerNode(reflection::Class* a_pClass, TypeVisualizerNode* a_pVisualizerNode)
     {
@@ -46,12 +68,17 @@ public:
 
     void findTypeVisualizerNodes(reflection::Class* a_pClass, vector<TypeVisualizerNode*>& out) const;
 
+    void registerVariableTypeEditorClass(reflection::Type* a_pType, reflection::Class* a_pClass);
+
     void expand(VariableNode* a_pVariableNode);
 
     serialization::DataBase* getDataBase() const { return m_pDataBase; }
     void setDataBase(serialization::DataBase* a_pDataBase) { m_pDataBase = a_pDataBase; }
 
     const vector<data>& getData() const { return m_Data; }
+
+protected:
+    void setVariableValue(VariableNode* a_pVariableNode, void const * a_pSrc);
 
 protected:
     void registerVariableNode(VariableNode* a_pVariableNode);
@@ -66,6 +93,7 @@ protected:
     o_signal_data(variableNodeExpressionsAssigned, VariableNode*);
     o_signal_data(variableNodeAboutToBeAccessed, VariableNode*);
     o_signal_data(variableNodeAccessed, VariableNode*);
+    o_signal_data(changed);
 
 protected:
     o_signal_data(rootNodeAdded, VariableNode*);
@@ -75,7 +103,11 @@ protected:
     vector<data>    m_Data;
     VariableNode*   m_pRootNode;
     serialization::DataBase* m_pDataBase;
+    UndoStack*               m_pUndoStack;
     map<reflection::Class*, TypeVisualizerNode*> m_TypeVisualizerNodes;
+    variable_value_set_delegate                 m_variable_value_set_delegate;
+
+    map<reflection::Type*, reflection::Class*> m_VariableTypeToEditorClass;
 };
 
 } // qt 

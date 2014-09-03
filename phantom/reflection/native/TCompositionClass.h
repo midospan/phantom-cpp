@@ -3,6 +3,7 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/CompositionClass.h>
+#include <phantom/reflection/ConstantExpression.h>
 /* **************** Declarations ***************** */
 o_declareNT(class, (phantom, reflection, native), (typename), (t_Ty), TCompositionIterator);
 o_declareNT(class, (phantom, reflection, native), (typename), (t_Ty), TCompositionReverseIterator);
@@ -124,7 +125,12 @@ public:
     virtual void        remove(void* a_pComposition, const void* a_pSrc) const 
 	{
 		static_cast<composition_type*>(a_pComposition)->remove(*static_cast< component_type*const*>(a_pSrc));
-	}
+    }
+
+    virtual void        removeLast(void* a_pComposition, void* a_pDest) const 
+    {
+        *static_cast< component_type**>(a_pDest) = static_cast<composition_type*>(a_pComposition)->removeLast();
+    }
 
     virtual void        set(void* a_pComposition, size_t a_uiIndex, const void* a_pSrc) const 
 	{
@@ -134,7 +140,12 @@ public:
     virtual void        move(void* a_pComposition, const void* a_pSrc, size_t a_uiNewIndex) const
 	{
 		static_cast<composition_type*>(a_pComposition)->move(*static_cast<component_type*const*>(a_pSrc), a_uiNewIndex);
-	}
+    }
+
+    virtual void move(void* a_pComposition, size_t a_uiOldIndex, size_t a_uiNewIndex) const 
+    {
+        static_cast<composition_type*>(a_pComposition)->move(a_uiOldIndex, a_uiNewIndex);
+    }
 
     virtual void        swap(void* a_pComposition, const void* a_pDestSrc, const void* a_pSrcSrc) const
 	{
@@ -186,6 +197,16 @@ public:
     virtual Signal* getMovedSignal() const             { return getSignal("moved(t_Component*, size_t, size_t)"); }
     virtual Signal* getAboutToBeSwappedSignal() const  { return getSignal("aboutToBeSwapped(t_Component*, t_Component*)"); }
     virtual Signal* getSwappedSignal() const           { return getSignal("swapped(t_Component*, t_Component*)"); }
+
+    virtual void fetchPointerReferenceExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask ) const 
+    {
+        void* pInstance = a_pInstanceExpression->loadEffectiveAddress();
+        size_t count = static_cast<const composition_type*>(pInstance)->count();
+        for(size_t i = 0; i<count; ++i)
+        {
+            out.push_back(o_new(InsertRemoveExpression)(a_pInstanceExpression->clone(), o_new(ConstantExpression)(phantom::constant<size_t>(i), nullptr, true), const_cast<TCompositionClass<t_Ty>*>(this)));
+        }
+    }
 
 };
 

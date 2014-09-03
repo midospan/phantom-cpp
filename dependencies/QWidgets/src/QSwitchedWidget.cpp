@@ -5,6 +5,7 @@
 QSwitchedWidget::QSwitchedWidget( void )
 {
     m_pStackedWidget  = new QStackedWidget();
+    setSizePolicy(m_pStackedWidget->sizePolicy());
     m_pSwitch3D = new QSwitch3D;
     addWidget(m_pStackedWidget);
     addWidget(m_pSwitch3D);

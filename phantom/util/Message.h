@@ -93,6 +93,7 @@ public:
 
     messages_def            messages() { return messages_def(this); }
     
+    void                    copyChildrenTo(Message* a_pMessage) const;
 
 protected:
 

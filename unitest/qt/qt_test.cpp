@@ -6,6 +6,7 @@
 #include "phantom/qt/ModuleExplorer.h"
 #include "phantom/qt/MessageDisplay.h" 
 #include "phantom/qt/DataTreeView.h"
+#include "phantom/qt/UndoStackDelegate.h"
 #include "phantom/math/math.h"
 #include "phantom/std/map.h"
 #include "phantom/std/map.hxx"
@@ -165,276 +166,10 @@ qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
     pEditor2->setVariableModel(m_pModel2);
     pEditor3->setVariableModel(m_pModel3);
 
-    struct undostack_delegate
-    {
-        undostack_delegate(phantom::qt::UndoStack* a_pUndoStack, phantom::Message* a_pMessage)
-            : m_pUndoStack(a_pUndoStack)
-            , m_pMessage(a_pMessage)
-        {
-
-        }
-        void setVariable(phantom::qt::VariableEditor* a_pVariableEditor, phantom::qt::VariableNode* a_pVariableNode, void const* a_pValue) const 
-        {
-            size_t count = a_pVariableNode->getExpressionCount();
-            phantom::string newValueStr;
-            phantom::string newValueDisplayStr;
-            phantom::vector<phantom::string> newValueStrs;
-            phantom::qt::VariableModel* pVariableModel = a_pVariableEditor->getVariableModel();
-            phantom::reflection::Type* pEffectiveType = a_pVariableNode->getValueType()->removeReference();
-            phantom::serialization::DataBase* pDataBase = pVariableModel->getDataBase();
-            phantom::reflection::Type* pComponentType = nullptr;
-            phantom::qt::UndoCommand* pGroup = o_new(phantom::qt::UndoCommand);
-            pGroup->setRedoChildExecutionPolicy(phantom::qt::UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
-            pGroup->setUndoChildExecutionPolicy(phantom::qt::UndoCommand::e_ChildExecutionPolicy_BackwardAfterParent);
-            phantom::vector<phantom::qt::UndoCommand*> componentAddCommands;
-            if(pEffectiveType->asDataPointerType())
-            {
-                void* pValue = *((void* const*)a_pValue);
-                if(a_pVariableNode->hasModifier(o_component)) 
-                {
-                    if(pValue)
-                    {
-                        phantom::reflection::Type* pType = phantom::as<phantom::reflection::Type*>(pValue);
-                        o_assert(pType);
-                        for(size_t i = 0; i<count; ++i)
-                        {
-                            void* pValue = pType->newInstance();
-                            pValue = pType->cast(a_pVariableNode->getExpression(i)->getValueType()->removeReference()->removeConst()->removePointer()->removeConst(), pValue);
-                            a_pVariableNode->getExpression(i)->store(&pValue);
-                            phantom::data d = pVariableModel->getData()[i];
-                            phantom::uint guid = pDataBase->getGuid(d);
-                            phantom::qt::UpdateComponentDataCommand* pDataCommand = o_new(phantom::qt::UpdateComponentDataCommand)(pDataBase, d);
-                            pDataCommand->setName("In data : '"+ pDataBase->getDataAttributeValue(d, "name") + "' ("+phantom::lexical_cast<phantom::string>((void*)guid)+")");
-                            pGroup->pushCommand(pDataCommand);
-                        }
-                        pGroup->setName("Property changed : '" + a_pVariableNode->getQualifiedName()+ " = new "+phantom::qt::nameOf(pType)+" component'");
-                    }
-                    else 
-                    {
-                        for(size_t i = 0; i<count; ++i)
-                        {
-                            a_pVariableNode->getExpression(i)->store(&pValue);
-                            phantom::data d = pVariableModel->getData()[i];
-                            phantom::uint guid = pDataBase->getGuid(d);
-                            phantom::qt::UpdateComponentDataCommand* pDataCommand = o_new(phantom::qt::UpdateComponentDataCommand)(pDataBase, d);
-                            pDataCommand->setName("In data : '"+ pDataBase->getDataAttributeValue(d, "name") + "' ("+phantom::lexical_cast<phantom::string>((void*)guid)+")");
-                            pGroup->pushCommand(pDataCommand);
-                        }
-                        pGroup->setName("Property changed : '" + a_pVariableNode->getQualifiedName()+ " = none'");
-                    }
-                    m_pUndoStack->pushCommand(pGroup);
-                    return;
-                }
-                else
-                {
-                    uint guid = a_pVariableEditor->getVariableModel()->getDataBase()->getGuid(pValue);
-                    if(guid != 0xffffffff)
-                    {
-                        newValueStr = "&@"+phantom::lexical_cast<phantom::string>(guid);
-                        newValueDisplayStr = pDataBase->getDataAttributeValue(pDataBase->getData(guid), "name");
-                    }
-                    else pEffectiveType->valueToLiteral(newValueStr, a_pValue);
-                }
-            }
-            else pEffectiveType->valueToLiteral(newValueStr, a_pValue);
-
-            if(newValueDisplayStr.empty()) newValueDisplayStr = newValueStr;
-
-            pGroup->setName("Property changed : '" + a_pVariableNode->getQualifiedName()+ " = "+newValueDisplayStr+"'");
-
-            for(size_t i = 0; i<count; ++i)
-            {
-                phantom::reflection::Expression* pExpression = a_pVariableNode->getExpression(i);
-                phantom::data d = pVariableModel->getData()[i];
-                uint guid = pDataBase->getGuid(d);
-                phantom::serialization::Node* pNode = pDataBase->getNode(d);
-
-                if(newValueStr.empty() AND pComponentType) // component
-                {
-                    newValueStr = newValueStrs[i];
-                }
-
-                phantom::variant value = pExpression->get();
-                o_assert(pEffectiveType == value.type());
-
-                phantom::string oldValueStr;
-                pEffectiveType->valueToLiteral(oldValueStr, value.buffer());
-                phantom::reflection::Expression* pUndoExpression = pExpression->clone()->solveBinaryOperator("=", phantom::expressionByName(oldValueStr));
-
-                phantom::reflection::Expression* pRedoExpression = pExpression->clone()->solveBinaryOperator("=", phantom::expressionByName(newValueStr));
-
-                phantom::qt::ExpressionCommand* pCommand = o_new(phantom::qt::ExpressionCommand)(pUndoExpression, pRedoExpression);
-                phantom::qt::UpdateComponentDataCommand* pDataCommand = o_new(phantom::qt::UpdateComponentDataCommand)(pDataBase, d);
-                pDataCommand->setName("Update");
-                pCommand->pushCommand(pDataCommand);
-                pCommand->setName( "In data : '"+ pDataBase->getDataAttributeValue(d, "name") + "' ("+phantom::lexical_cast<phantom::string>((void*)guid)+")");
-                o_connect(pCommand, undone(), a_pVariableEditor, refresh());
-                o_connect(pCommand, redone(), a_pVariableEditor, refresh());
-
-                // Change undo/redo child execution policy so that save command is executed always after parent
-                pCommand->setRedoChildExecutionPolicy(phantom::qt::UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
-                pCommand->setUndoChildExecutionPolicy(phantom::qt::UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
-                // pCommand->pushCommand(o_new(phantom::qt::SaveDataCommand)(pNode, d));
-                pGroup->pushCommand(pCommand);
-                /*phantom::vector<std::pair<phantom::data, phantom::data>> to_add;
-                phantom::vector<std::pair<phantom::data, phantom::data>> to_remove;
-                for(auto it = to_remove.begin(); it != to_remove.end(); ++it)
-                {
-                    pCommand
-                }
-                pNode->addDataComponentsCascade(&to_add, &to_remove);
-                int o = 0;
-                ++o;*/
-            }
-            m_pUndoStack->pushCommand(pGroup);
-        }
-
-        void setNodeAttribute(phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, size_t a_uiAttributeIndex, const phantom::string& a_Value)
-        {
-            phantom::qt::NodeAttributeChangeCommand* pCommand = o_new(phantom::qt::NodeAttributeChangeCommand)(a_pNode, a_uiAttributeIndex, a_Value);
-            pCommand->setRedoChildExecutionPolicy(phantom::qt::UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
-            pCommand->setUndoChildExecutionPolicy(phantom::qt::UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
-            pCommand->pushCommand(o_new(phantom::qt::SaveNodeAttributeCommand)(a_pNode));
-            m_pUndoStack->pushCommand(pCommand);
-        }
-
-        void setDataAttribute(phantom::qt::DataTreeView* a_pDataTreeView, const phantom::data& a_Data, size_t a_uiAttributeIndex, const phantom::string& a_Value)
-        {
-            phantom::qt::DataAttributeChangeCommand* pCommand = o_new(phantom::qt::DataAttributeChangeCommand)(a_pDataTreeView->getDataBase(), a_Data, a_uiAttributeIndex, a_Value);
-            pCommand->setRedoChildExecutionPolicy(phantom::qt::UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
-            pCommand->setUndoChildExecutionPolicy(phantom::qt::UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
-            pCommand->pushCommand(o_new(phantom::qt::SaveDataAttributeCommand)(a_pDataTreeView->getDataBase()->getNode(a_Data), a_Data));
-            m_pUndoStack->pushCommand(pCommand);
-        }
-
-        void addData( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pOwnerNode, phantom::reflection::Type* a_pType )
-        {
-            m_pUndoStack->pushCommand(o_new(phantom::qt::AddDataCommand)(a_pType, a_pOwnerNode));
-        }
-
-        void addNode( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pParentNode )
-        {
-            m_pUndoStack->pushCommand(o_new(phantom::qt::AddNodeCommand)(a_pParentNode));
-        }
-
-        bool loadNode( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, phantom::qt::UndoCommand* a_pParent )
-        {
-            if(a_pNode->getParentNode() && !a_pNode->getParentNode()->isLoaded())
-            {
-                if(NOT(loadNode(a_pDataTreeView, a_pNode->getParentNode(), a_pParent)))
-                {
-                    return false;
-                }
-            }
-            phantom::vector<phantom::string> missingTypes;
-            if(a_pNode->canLoad(&missingTypes))
-            {
-                a_pParent->pushCommand(o_new(phantom::qt::LoadNodeCommand)(a_pNode));
-                return true;
-            }
-            else 
-            {
-                phantom::Message* pMessage = phantom::topMessage("data")->error(a_pDataTreeView, "Cannot load node : %s", a_pDataTreeView->getDataBase()->getNodeAttributeValue(a_pNode, "name").c_str());
-                for(auto it = missingTypes.begin(); it != missingTypes.end(); ++it)
-                {
-                    pMessage->error(a_pDataTreeView, "Missing class : %s", (*it).c_str());
-                }
-            }
-            return false;
-        }
-
-        void loadNode( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode )
-        {
-            phantom::qt::UndoCommand* pCommand = o_new(phantom::qt::UndoCommand)("Load node(s)");
-            if(loadNode(a_pDataTreeView, a_pNode, pCommand))
-            {
-                m_pUndoStack->pushCommand(pCommand);
-            }
-            else 
-            {
-                o_dynamic_delete pCommand;
-            }
-        }
-
-        bool unloadNode( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, phantom::qt::UndoCommand* a_pParent )
-        {
-            for(size_t i = 0; i<a_pNode->getChildNodeCount(); ++i)
-            {
-                phantom::serialization::Node* pNode = a_pNode->getChildNode(i);
-                if(pNode->isLoaded())
-                {
-                    if(NOT(unloadNode(a_pDataTreeView, pNode, a_pParent)))
-                    {
-                        return false;
-                    }
-                }
-            }
-            a_pParent->pushCommand(o_new(phantom::qt::UnloadNodeCommand)(a_pNode));
-            return true;
-        }
-
-        void unloadNode( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode )
-        {
-            phantom::qt::UndoCommand* pCommand = o_new(phantom::qt::UndoCommand)("Unload node(s)");
-            if(unloadNode(a_pDataTreeView, a_pNode, pCommand))
-            {
-                m_pUndoStack->pushCommand(pCommand);
-            }
-            else 
-            {
-                o_dynamic_delete pCommand;
-            }
-        }
-
-        void loadNodeRecursive( phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode )
-        {
-            if(a_pNode->getParentNode() && !a_pNode->getParentNode()->isLoaded())
-                loadNode(a_pDataTreeView, a_pNode->getParentNode());
-            phantom::vector<phantom::string> missingTypes;
-            if(a_pNode->getParentNode()->isLoaded() && a_pNode->canLoad(&missingTypes))
-            {
-                a_pNode->load();
-                for(size_t i = 0; i<a_pNode->getChildNodeCount(); ++i)
-                {
-                    loadNodeRecursive(a_pDataTreeView, a_pNode->getChildNode(i));
-                }
-            }
-            else 
-            {
-                {
-                    phantom::Message* pMessage = phantom::topMessage("data")->error(a_pDataTreeView, "Cannot load node : %s", a_pDataTreeView->getDataBase()->getNodeAttributeValue(a_pNode, "name").c_str());
-                    for(auto it = missingTypes.begin(); it != missingTypes.end(); ++it)
-                    {
-                        pMessage->error(a_pDataTreeView, "Missing class : %s", (*it).c_str());
-                    }
-                }
-            }
-        }
-
-        void loadLibrary(phantom::qt::ModuleExplorer* a_pModuleExplorer, const phantom::string& a_strPath) 
-        {
-            m_pUndoStack->pushCommand(o_new(phantom::qt::LoadLibraryCommand)(a_strPath));
-        }
-        void unloadLibrary(phantom::qt::ModuleExplorer* a_pModuleExplorer, const phantom::string& a_strPath) 
-        {
-            m_pUndoStack->pushCommand(o_new(phantom::qt::UnloadLibraryCommand)(a_strPath));
-        }
-        void moveToTrashbin(phantom::qt::DataTreeView* a_pDataTreeView, const phantom::vector<unsigned int>& a_Guids) 
-        {
-            m_pUndoStack->pushCommand(o_new(phantom::qt::MoveToTrashbinCommand)(a_pDataTreeView->getDataBase(), a_Guids));
-        }
-
-    protected:
-        phantom::qt::UndoStack*  m_pUndoStack;
-        phantom::qt::VariableEditor*  m_pVariableEditor;
-        phantom::Message* m_pMessage;
-    };
-    undostack_delegate* undostack_delegate_ = new undostack_delegate(pUndoStack, pMessage);
-
-    pEditor0->setVariableValueSetDelegate(phantom::qt::VariableEditor::variable_value_set_delegate(undostack_delegate_, &undostack_delegate::setVariable)); 
-    pEditor1->setVariableValueSetDelegate(phantom::qt::VariableEditor::variable_value_set_delegate(undostack_delegate_, &undostack_delegate::setVariable)); 
-    pEditor2->setVariableValueSetDelegate(phantom::qt::VariableEditor::variable_value_set_delegate(undostack_delegate_, &undostack_delegate::setVariable)); 
-    pEditor3->setVariableValueSetDelegate(phantom::qt::VariableEditor::variable_value_set_delegate(undostack_delegate_, &undostack_delegate::setVariable)); 
+    m_pModel0->setUndoStack(pUndoStack); 
+    m_pModel1->setUndoStack(pUndoStack);
+    m_pModel2->setUndoStack(pUndoStack);
+    m_pModel3->setUndoStack(pUndoStack);
 
     pDataBase->addAttribute("name");
     pDataBase->addAttribute("category");
@@ -495,25 +230,18 @@ qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
     pHLayout->addLayout(pVLayout1);
     phantom::qt::DataTreeView* pDataTreeView = o_new(phantom::qt::DataTreeView)(pMessage);
 
-    pDataTreeView->setAddDataActionDelegate(phantom::qt::DataTreeView::new_data_action_delegate(undostack_delegate_, &undostack_delegate::addData)) ;
-    pDataTreeView->setAddNodeActionDelegate(phantom::qt::DataTreeView::node_action_delegate(undostack_delegate_, &undostack_delegate::addNode));
-    pDataTreeView->setLoadNodeActionDelegate(phantom::qt::DataTreeView::node_action_delegate(undostack_delegate_, &undostack_delegate::loadNode));
-    pDataTreeView->setUnloadNodeActionDelegate(phantom::qt::DataTreeView::node_action_delegate(undostack_delegate_, &undostack_delegate::unloadNode));
-    pDataTreeView->setRecursiveLoadNodeActionDelegate(phantom::qt::DataTreeView::node_action_delegate(undostack_delegate_, &undostack_delegate::loadNodeRecursive)) ;
-    pDataTreeView->setRemoveDataActionDelegate(phantom::qt::DataTreeView::remove_data_action_delegate(undostack_delegate_, &undostack_delegate::moveToTrashbin)) ;
-    pDataTreeView->setNodeAttributeChangeDelegate(phantom::qt::DataTreeView::node_attribute_change_delegate(undostack_delegate_, &undostack_delegate::setNodeAttribute)) ;
-    pDataTreeView->setDataAttributeChangeDelegate(phantom::qt::DataTreeView::data_attribute_change_delegate(undostack_delegate_, &undostack_delegate::setDataAttribute)) ;
+    pDataTreeView->setUndoStack(pUndoStack) ;
 
-    pDataTreeView->setDataBase(pDataBase, 0, 1);
+    pDataTreeView->setDataBase(pDataBase, 0);
     connect(pDataTreeView, SIGNAL(selectionChanged(const phantom::vector<phantom::data>&)), this, SLOT(edit(const phantom::vector<phantom::data>&)));
     pVLayout1->addWidget(pDataTreeView);
     phantom::qt::ModuleExplorer* pModuleExplorer = o_new(phantom::qt::ModuleExplorer);
+    pModuleExplorer->setUndoStack(pUndoStack);
     pModuleExplorer->setPath(".");
     pModuleExplorer->setModuleLoader(phantom::moduleLoader());
     pModuleExplorer->setMessage(pMessage);
 
-    pModuleExplorer->setLoadLibraryDelegate(phantom::qt::ModuleExplorer::delegate_t(undostack_delegate_, &undostack_delegate::loadLibrary));
-    pModuleExplorer->setUnloadLibraryDelegate(phantom::qt::ModuleExplorer::delegate_t(undostack_delegate_, &undostack_delegate::unloadLibrary)); 
+    pModuleExplorer->setUndoStack(pUndoStack);
     pVLayout1->addWidget(pModuleExplorer);
 /*
 

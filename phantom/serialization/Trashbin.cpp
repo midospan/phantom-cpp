@@ -38,11 +38,100 @@
 #include "DataBase.h"
 #include "Node.h"
 #include "phantom/reflection/Expression.h"
+#include <phantom/serialization/DataStateBase.h>
 /* *********************************************** */
 o_registerN((phantom, serialization), Trashbin);
 
 o_namespace_begin(phantom, serialization)
-   
+
+struct add_sorter
+{
+    add_sorter(DataBase* a_pDataBase)
+        : m_pDataBase(a_pDataBase) {}
+
+    bool operator()(const phantom::data& d0, const phantom::data& d1)
+    {
+        phantom::data ownerD0 = m_pDataBase->getComponentDataOwner(d0);
+        phantom::data ownerD1 = m_pDataBase->getComponentDataOwner(d1);
+
+        // Compute the component order
+        uint uiOrderD0 = 0;
+        uint uiOrderD1 = 0;
+        while(NOT(ownerD0.isNull()))
+        {
+            uiOrderD0++;
+            ownerD0 = m_pDataBase->getComponentDataOwner(ownerD0);
+        }
+        while(NOT(ownerD1.isNull()))
+        {
+            uiOrderD1++;
+            ownerD1 = m_pDataBase->getComponentDataOwner(ownerD1);
+        }
+
+        if(uiOrderD0 == uiOrderD1) 
+        {
+            if(uiOrderD0)
+            {
+                return m_pDataBase->getComponentDataReferenceExpression(d0) > m_pDataBase->getComponentDataReferenceExpression(d1);
+            }
+            return d0.address() < d1.address();
+        }
+
+        // by order
+        return uiOrderD0 > uiOrderD1;
+    }
+    DataBase* m_pDataBase;
+};
+
+struct restore_sorter
+{
+    restore_sorter(const map<uint, uint>& a_Parents, const map<uint, string>& a_ReferenceExpressions)
+        : m_Parents(a_Parents)
+        , m_ReferenceExpressions(a_ReferenceExpressions)
+    {
+
+    }
+    bool operator()(uint a_Guid0, uint a_Guid1) const 
+    {
+        auto found = m_Parents.find(a_Guid0);
+        if((found != m_Parents.end()) AND (found->second == a_Guid1))
+        {
+            return false;
+        }
+        else 
+        {
+            found = m_Parents.find(a_Guid1);
+            if((found != m_Parents.end()) AND (found->second == a_Guid0))
+            {
+                return true;
+            }
+            else 
+            {
+                auto foundRef0 = m_ReferenceExpressions.find(a_Guid0);
+                auto foundRef1 = m_ReferenceExpressions.find(a_Guid1);
+                if(foundRef0 == m_ReferenceExpressions.end() AND foundRef1 == m_ReferenceExpressions.end())
+                {
+                    return a_Guid0 < a_Guid1;
+                }
+                else if(foundRef0 == m_ReferenceExpressions.end())
+                {
+                    return true;
+                }
+                else if(foundRef1 == m_ReferenceExpressions.end())
+                {
+                    return false;
+                }
+                else 
+                {
+                    return foundRef0->second < foundRef1->second;
+                }
+            }
+        }
+    }
+    const map<uint, uint>& m_Parents;
+    const map<uint, string>& m_ReferenceExpressions;
+};
+
 Trashbin::Trashbin(DataBase* a_pDataBase, const string& a_strUrl)
     : m_pDataBase(a_pDataBase)
     , m_strUrl(a_strUrl)
@@ -60,12 +149,13 @@ void Trashbin::add( const vector<uint>& guids, vector<reflection::Expression*>* 
     addEntries(guids);
     vector<Node*> nodesToDelete;
     std::set<Node*> nodesWithIndexToSave;
+    phantom::vector<phantom::data> datas;
+    const string* strings;
     for(auto it = guids.begin(); it != guids.end(); ++it)
     {
         uint guid = *it;
         o_assert(guid, "cannot add root node to trash bin");
         Node* pNode = m_pDataBase->getNode(guid);
-        const string* strings;
         if(pNode)
         {
             m_Parents[guid] = pNode->getParentNode()->getGuid();
@@ -82,40 +172,61 @@ void Trashbin::add( const vector<uint>& guids, vector<reflection::Expression*>* 
         }
         else 
         {
-            phantom::data d(m_pDataBase->getData(guid));
-            o_assert(NOT(d.isNull()), "Guid is not used in the data base, neither for node or data");
-            Node* pParentNode = m_pDataBase->getNode(d);
-            o_emit m_pDataBase->dataAboutToBeRemoved(d, pParentNode);
-            phantom::data owner = m_pDataBase->getComponentDataOwner(d);
-            if(owner.isNull())
-            {
-                m_Parents[guid] = m_pDataBase->getNode(d)->getGuid();
-            }
-            else
-            {
-                m_ReferenceExpressions[guid] = m_pDataBase->getComponentDataReferenceExpression(d);
-                m_Parents[guid] = m_pDataBase->getGuid(owner);
-                m_pDataBase->unregisterComponentData(d);
-            }
-            m_Types[guid] = d.type()->getQualifiedDecoratedName();
-            strings = m_pDataBase->getAttributeValues(d.address()); 
-            for(size_t i = 0; i<m_pDataBase->getAttributeCount(); ++i)
-            {
-                m_Attributes[guid].push_back(strings[i]);
-            }
-            vector<reflection::Expression*> restoreExpressions;
-            m_pDataBase->clearDataReference(d, &restoreExpressions);
-            for(auto it = restoreExpressions.begin(); it != restoreExpressions.end(); ++it)
-            {
-                m_RestoreExpressions[guid].push_back((*it)->getName()); // store expression by name (to be reevaluated and be updated to any reflection internal state change)
-                phantom::deleteElement(*it); // then delete it
-            }
-            m_pDataBase->unregisterData(d);
-            pParentNode->eraseData(d);
-            d.destroy();
-            nodesWithIndexToSave.insert(pParentNode);
-            m_Nodes[guid] = false;
+            datas.push_back(m_pDataBase->getData(guid));
         }
+    }
+    
+    std::sort(datas.begin(), datas.end(), add_sorter(m_pDataBase));
+    for(auto it = datas.begin(); it != datas.end(); ++it)
+    {
+        phantom::data d = *it;
+        uint guid = m_pDataBase->getGuid(d);
+        o_assert(NOT(d.isNull()), "Guid is not used in the data base, neither for node or data");
+        Node* pParentNode = m_pDataBase->getNode(d);
+        o_emit m_pDataBase->dataAboutToBeRemoved(d, pParentNode);
+        phantom::data owner = m_pDataBase->getComponentDataOwner(d);
+        uint ownerGuid = m_pDataBase->getGuid(owner);
+        if(owner.isNull())
+        {
+            m_Parents[guid] = m_pDataBase->getNode(d)->getGuid();
+        }
+        else
+        {
+            m_ReferenceExpressions[guid] = m_pDataBase->getComponentDataReferenceExpression(d);
+            m_Parents[guid] = m_pDataBase->getGuid(owner);
+            m_pDataBase->unregisterComponentData(d);
+
+            if(std::find(guids.begin(), guids.end(), ownerGuid) == guids.end())
+            {
+                // Remove component from its owner memory
+                reflection::Expression* pExpression = phantom::expressionByName(m_ReferenceExpressions[guid]);
+                o_assert(pExpression);
+                phantom::data castedData = d.cast(pExpression->getValueType()->removeReference()->removeConst()->removePointer());
+                void* pAddress = nullptr;
+                pExpression->store(&pAddress);
+                phantom::deleteElement(pExpression);
+                pParentNode->saveData(owner);
+            }
+        }
+        m_Modifiers[guid] = m_pDataBase->getModifiers(d);
+        m_Types[guid] = d.type()->getQualifiedDecoratedName();
+        strings = m_pDataBase->getAttributeValues(d.address()); 
+        for(size_t i = 0; i<m_pDataBase->getAttributeCount(); ++i)
+        {
+            m_Attributes[guid].push_back(strings[i]);
+        }
+        vector<reflection::Expression*> restoreExpressions;
+        m_pDataBase->clearDataReference(d, &restoreExpressions);
+        for(auto it = restoreExpressions.begin(); it != restoreExpressions.end(); ++it)
+        {
+            m_RestoreExpressions[guid].push_back((*it)->getName()); // store expression by name (to be reevaluated and be updated to any reflection internal state change)
+            phantom::deleteElement(*it); // then delete it
+        }
+        m_pDataBase->unregisterData(d);
+        pParentNode->eraseData(d);
+        d.destroy();
+        nodesWithIndexToSave.insert(pParentNode);
+        m_Nodes[guid] = false;
     }
     for(auto it = nodesToDelete.begin(); it != nodesToDelete.end(); ++it)
     {
@@ -139,56 +250,8 @@ void Trashbin::restore( const vector<uint>& guids )
     restoreEntries(guids);
     vector<uint> sortedGuids = guids;
 
-    struct sorter_parent_to_child
-    {
-        sorter_parent_to_child(const map<uint, uint>& a_Parents)
-            : m_Parents(a_Parents)
-        {
-
-        }
-        bool operator()(uint a_Guid0, uint a_Guid1) const 
-        {
-            auto found = m_Parents.find(a_Guid0);
-            if((found != m_Parents.end()) AND (found->second == a_Guid1))
-            {
-                return false;
-            }
-            else 
-            {
-                found = m_Parents.find(a_Guid1);
-                if((found != m_Parents.end()) AND (found->second == a_Guid0))
-                {
-                    return true;
-                }
-                else 
-                {
-                    return a_Guid0 < a_Guid1;
-                }
-            }
-        }
-        const map<uint, uint>& m_Parents;
-    };
-
-    struct node_sorter_parent_to_child
-    {
-        bool operator()(Node* a_pNode0, Node* a_pNode1) const 
-        {
-            if(a_pNode0->hasParentNodeCascade(a_pNode1))
-            {
-                return false;
-            }
-            else if(a_pNode1->hasParentNodeCascade(a_pNode0))
-            {
-                return true;
-            }
-            else 
-            {
-                return a_pNode0 < a_pNode1;
-            }
-        }
-    };
-
-    std::sort(sortedGuids.begin(), sortedGuids.end(), sorter_parent_to_child(m_Parents));
+    
+    std::sort(sortedGuids.begin(), sortedGuids.end(), restore_sorter(m_Parents, m_ReferenceExpressions));
     map<Node*, vector<data>> dataToLoad;
     map<Node*, vector<uint>> guidToLoad;
     map<uint, data> guidToData;
@@ -215,19 +278,27 @@ void Trashbin::restore( const vector<uint>& guids )
             o_assert(pType);
             void* pData = pType->allocate();
             phantom::data restoredData(pData, pType);
-            Node* pParentNode = m_pDataBase->getNode(m_Parents[guid]);
-            if(pParentNode == nullptr)
+            Node* pParentNode = nullptr;
+            auto parentIt = m_Parents.begin();
+            uint curGuid = guid;
+            while(pParentNode == nullptr AND (((parentIt = m_Parents.find(curGuid)) != m_Parents.end())))
             {
-                phantom::data ownerData = m_pDataBase->getData(m_Parents[guid]);
-                if(ownerData.isNull())
+                uint parentGuid = parentIt->second;
+                pParentNode = m_pDataBase->getNode(parentGuid);
+                if(pParentNode == nullptr)
                 {
-                    ownerData = guidToData[m_Parents[guid]];
+                    phantom::data ownerData = m_pDataBase->getData(parentGuid);
+                    if(ownerData.isNull())
+                    {
+                        ownerData = guidToData[parentGuid];
+                    }
+                    o_assert(!ownerData.isNull());
+                    guidToOwnerData[guid] = ownerData;
+                    pParentNode = m_pDataBase->getNode(ownerData);
                 }
-                o_assert(!ownerData.isNull());
-                guidToOwnerData[guid] = ownerData;
-                pParentNode = m_pDataBase->getNode(ownerData);
-                o_assert(pParentNode);
+                curGuid = parentIt->second;
             }
+            o_assert(pParentNode);
             guidToData[guid] = restoredData;
             dataToLoad[pParentNode].push_back(restoredData); // simply load data individualy with siblings (not node)
             guidToLoad[pParentNode].push_back(guid);
@@ -240,6 +311,7 @@ void Trashbin::restore( const vector<uint>& guids )
         o_assert(pNode->getParentNode()->isLoaded() AND pNode->canLoad());
         pNode->load();
     }*/
+    std::set<data> dataToSave;
     for(auto it = dataToLoad.begin(); it != dataToLoad.end(); ++it)
     {
         Node* pNode = it->first;
@@ -254,21 +326,26 @@ void Trashbin::restore( const vector<uint>& guids )
             phantom::data d = datas[i];
             uint guid = guids[i];
             const string& expression = m_ReferenceExpressions[guid];
-            m_pDataBase->registerData(d, guid, pNode);
+            bitfield modifiers = m_Modifiers[guid];
+            m_pDataBase->registerData(d, guid, pNode, modifiers);
             pNode->storeData(d);
             phantom::data ownerData = guidToOwnerData[guid];
             if(!ownerData.isNull())
             {
-                m_pDataBase->registerComponentData(d, ownerData, expression);
+                m_pDataBase->registerComponentData(d, ownerData, expression, 0);
+                if(std::find(datas.begin(), datas.end(), ownerData) == datas.end())
+                {
+                    // If owner data is not in trashbin 
+                    // -> restore its component reference and save it
+                    reflection::Expression* pExpression = phantom::expressionByName(expression);
+                    o_assert(pExpression);
+                    phantom::data castedData = d.cast(pExpression->getValueType()->removeReference()->removeConst()->removePointer());
+                    void* pAddress = castedData.address();
+                    pExpression->store(&pAddress);
+                    phantom::deleteElement(pExpression);
+                    dataToSave.insert(ownerData);
+                }
             }
-
-            // Restore component on its owner memory
-            reflection::Expression* pExpression = phantom::expressionByName(expression);
-            o_assert(pExpression);
-            phantom::data castedData = d.cast(pExpression->getValueType()->removeReference()->removeConst()->removePointer());
-            void* pAddress = castedData.address();
-            pExpression->store(&pAddress);
-            phantom::deleteElement(pExpression);
 
             for(size_t i = 0; i<m_pDataBase->getAttributeCount(); ++i)
             {
@@ -283,6 +360,13 @@ void Trashbin::restore( const vector<uint>& guids )
             o_emit m_pDataBase->dataAdded(datas[i], pNode);
         }
         pNode->saveIndex();
+        if(m_pDataBase->getDataStateBase())
+        {
+            for(size_t i = 0; i<datas.size(); ++i)
+            {
+                pNode->loadDataState(datas[i], m_pDataBase->getDataStateBase()->getCurrentStateId());
+            }
+        }
     }
     for(auto it = sortedGuids.begin(); it != sortedGuids.end(); ++it)
     {
@@ -300,6 +384,11 @@ void Trashbin::restore( const vector<uint>& guids )
         m_Nodes.erase(guid);
         m_Attributes.erase(guid);
         m_ReferenceExpressions.erase(guid);
+        m_Modifiers.erase(guid);
+    }
+    for(auto it = dataToSave.begin(); it != dataToSave.end(); ++it)
+    {
+        m_pDataBase->saveData(*it);
     }
 }
 

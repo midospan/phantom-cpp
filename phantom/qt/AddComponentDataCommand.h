@@ -24,7 +24,8 @@ public:
 	// Constructors / Destructor
 	//================================================
 
-    AddComponentDataCommand(serialization::DataBase* a_pDataBase, reflection::Type* a_pType, uint a_uiGuid, const phantom::data& a_OwnerData);
+    AddComponentDataCommand(serialization::DataBase* a_pDataBase, reflection::Type* a_pType, const phantom::data& a_OwnerData, reflection::Expression* a_pExpression);
+    AddComponentDataCommand(serialization::DataBase* a_pDataBase, const string& a_strTypeName, uint a_uiOwnerGuid, const string& a_strReferenceExpression);
 	~AddComponentDataCommand();
 
 
@@ -34,7 +35,7 @@ public:
 
 	virtual void undo();
 	virtual void redo();
-
+    virtual AddComponentDataCommand* clone() const;
 
 protected:
 	//================================================
@@ -42,8 +43,10 @@ protected:
 	//================================================
     serialization::DataBase*        m_pDataBase;
     string                          m_strTypeName;
+    string                          m_strReferenceExpression;
     uint                            m_uiGuid;
     uint                            m_uiOwnerGuid;
+    bitfield                        m_Modifiers;
 
 };
 

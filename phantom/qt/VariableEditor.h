@@ -20,6 +20,7 @@ class VariableModel;
 class VariableEditorFactory;
 class CollectionElementVariable;
 class VariableWidgetEditor;
+class UndoStack;
 class VariableEditorManager;
 
 class o_qt_export VariableEditor : public QtTreePropertyBrowser 
@@ -30,20 +31,19 @@ class o_qt_export VariableEditor : public QtTreePropertyBrowser
     friend class VariableAction;
     friend class VariableModel;
 
-public:
-    typedef fastdelegate::FastDelegate< void ( VariableEditor* a_pVariableEditor, VariableNode* a_pVariable, void const* a_ppValueSources ) > variable_value_set_delegate;
-
-    static void     defaultVariableValueSetDelegate(VariableEditor* a_pVariableEditor, VariableNode* a_pVariable, void const* a_pValue);
+    enum EColumn
+    {
+        e_Column_Name,
+        e_Column_Value,
+        e_Column_Actions,
+        e_Column_Type,
+    };
 
 public:
     VariableEditor(const QString& variableColumnName);
     ~VariableEditor(void);
 
 	o_initialize() {};
-
-    void    setVariableValueSetDelegate(variable_value_set_delegate d);
-
-    void    registerVariableTypeEditorClass(reflection::Type* a_pType, reflection::Class* a_pClass);
 
     VariableModel* getVariableModel() const { return m_pVariableModel; }
     void setVariableModel(VariableModel* a_pVariableModel);
@@ -61,15 +61,8 @@ public:
     bool isAutoSaveStateEnabled() const { return m_bAutoSaveStateEnabled; }
     void setAutoSaveStateEnabled(bool a_bEnabled) { m_bAutoSaveStateEnabled = a_bEnabled; }
 
-
-    void registerProperty(QtProperty* property, VariableNode* a_pVariable);
-
-    QtProperty* unregisterProperty(VariableNode* a_pVariable);
-
     QString valueText(const QtProperty *property) const;
-    QString valueText( VariableNode* a_pVariable ) const;
     QIcon   valueIcon(const QtProperty *property) const;
-    QIcon   valueIcon( VariableNode* a_pVariable ) const;
 
     VariableNode*  getVariableNode(QtProperty* property) const;
 
@@ -80,6 +73,11 @@ protected:
     void variableNodeExpressionsAssigned(VariableNode* a_pVariableNode);
     void variableNodeAboutToBeAccessed(VariableNode* a_pVariableNode);
     void variableNodeAccessed(VariableNode* a_pVariableNode);
+
+
+    void registerProperty(QtProperty* property, VariableNode* a_pVariable);
+    QtProperty* unregisterProperty(VariableNode* a_pVariable);
+    void createActionWidget(QtProperty* property, VariableNode* a_pVariable);
 
 public slots:
     void refresh();
@@ -92,7 +90,7 @@ protected:
     QWidget* createEditor(VariableEditor*a_pThis, QtProperty *property, QWidget *parent);
 
 protected slots:
-    void createPropertyPopupMenu(const QPoint& pos);
+    void showPopup(const QPoint&);
     virtual void slotVariableChanged(VariableNode* a_pVariable);
     virtual void slotEditorDestroyed();
     virtual void slotEditorValueChanged();
@@ -112,11 +110,7 @@ protected:
     VariableEditorManager*              m_pManager;
     map<QtProperty*, VariableNode*>     m_Variables;
     map<VariableNode*, QtProperty*>     m_Properties;
-    vector<phantom::data>               m_EditedData;
     reflection::Type*                   m_pEditedType;
-
-    QMap<reflection::Type*, reflection::Class*> m_VariableTypeToEditorClass;
-    variable_value_set_delegate                 m_variable_value_set_delegate;
     int                                 m_iUserValueColumnWidth;
     bool m_bChangingPropertyValue;
     bool m_bAutoSaveEnabled;

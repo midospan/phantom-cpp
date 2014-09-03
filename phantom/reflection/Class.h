@@ -514,6 +514,8 @@ public:
 
     Class*              getDerivedClass(uint a_uiIndex) const { return m_DerivedClasses[a_uiIndex]; }
     uint                getDerivedClassCount(void) const { return m_DerivedClasses.size(); }
+    void                getDerivedClasses(vector<Class*>& out) const;
+    void                getDerivedClassesCascade(vector<Class*>& out) const;
     boolean             hasDerivedClass( Class* a_pClass ) const;
 
     void                homonymousMemberFunctionSearch( member_function_search_data* a_pMemberFunctionRequest );

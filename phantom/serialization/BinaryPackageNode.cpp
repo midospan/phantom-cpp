@@ -81,29 +81,16 @@ void BinaryPackageNode::loadDataAttributes(const phantom::data& a_Data, uint a_u
     loadDataAttributesHelper(a_Data);
 }
 
-void BinaryPackageNode::saveData(uint a_uiSerializationFlag)
-{
-	data_vector::iterator it = m_Data.begin();
-	data_vector::iterator end = m_Data.end();
-
-	for(;it != end; ++it)
-	{
-		void* pAddress = it->address();
-		uint guid = m_pOwnerDataBase->getGuid(pAddress);
-		saveData(a_uiSerializationFlag, *it, guid);
-	}
-}
-
-void BinaryPackageNode::saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid) 
+void BinaryPackageNode::saveDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid) 
 {
 	BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
 	PackageDataBase::PackageDataBaseBuffer* pBuffer = pDB->getBuffer();
 
-    //a_Data.type()->serialize(a_Data.address(), pBuffer->m_pCurrent, a_uiSerializationFlag, m_pOwnerDataBase);
-    saveDataAttributesHelper(a_Data);
+    // a_Data.type()->serialize(a_Data.address(), pBuffer->m_pCurrent, a_uiSerializationFlag, m_pOwnerDataBase);
+    // saveDataAttributesHelper(a_Data);
 }
 
-void BinaryPackageNode::loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid) 
+void BinaryPackageNode::loadDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid) 
 {
 	BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
 	PackageDataBase::PackageDataBaseBuffer* pBuffer = pDB->getBuffer();

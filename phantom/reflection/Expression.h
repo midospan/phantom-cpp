@@ -119,8 +119,6 @@ public:
 
     virtual Expression*     clone() const = 0;
 
-    virtual LanguageElement*getHatchedElement() const { return nullptr; }
-
 protected:
     virtual void            ancestorChanged(LanguageElement* a_pLanguageElement) 
     {

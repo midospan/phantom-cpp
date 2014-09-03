@@ -62,6 +62,7 @@ boolean ReferenceType::isConvertibleTo( Type* a_pType ) const
 
 boolean ReferenceType::isImplicitlyConvertibleTo( Type* a_pType ) const
 {
+    if(a_pType == this) return true;
     return m_pReferencedType->isImplicitlyConvertibleTo(a_pType) 
         OR (a_pType->asReferenceType() 
             AND m_pReferencedType->pointerType()->isImplicitlyConvertibleTo(a_pType->removeReference()->pointerType()));
@@ -69,6 +70,11 @@ boolean ReferenceType::isImplicitlyConvertibleTo( Type* a_pType ) const
 
 void ReferenceType::convertValueTo( Type* a_pDestType, void* a_pDestValue, const void* a_pSrcValue ) const
 {
+    if(a_pDestType == this)
+    {
+        *((void**)a_pDestValue) = *((void**)a_pSrcValue);
+        return;
+    }
     if(a_pDestType->asReferenceType())
     {
         // Reference to reference convertion is same as pointer to pointer convertion

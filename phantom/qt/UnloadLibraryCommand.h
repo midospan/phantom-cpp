@@ -36,6 +36,8 @@ public:
 	virtual void redo();
 
 
+    virtual UnloadLibraryCommand* clone() const;
+
 protected:
 	//================================================
 	// Fields

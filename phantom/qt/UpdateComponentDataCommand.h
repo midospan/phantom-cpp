@@ -19,12 +19,13 @@ namespace phantom { namespace qt {
 class o_qt_export UpdateComponentDataCommand : public UndoCommand
 {
 public:
-
+    typedef fastdelegate::FastDelegate<string(serialization::DataBase*, phantom::data)> namer_delegate;
 	//================================================
 	// Constructors / Destructor
 	//================================================
 
     UpdateComponentDataCommand(serialization::DataBase* a_pDataBase, const phantom::data& a_Data);
+    UpdateComponentDataCommand(serialization::DataBase* a_pDataBase, uint guid);
 	~UpdateComponentDataCommand();
 
 
@@ -35,6 +36,12 @@ public:
 	virtual void undo();
 	virtual void redo();
 
+    void setNamerDelegate(namer_delegate a_Delegate)
+    {
+        m_Delegate = a_Delegate;
+    }
+
+    virtual UpdateComponentDataCommand* clone() const;
 
 protected:
 	//================================================
@@ -43,7 +50,10 @@ protected:
     serialization::DataBase*        m_pDataBase;
     vector<uint>                    m_RemovedGuids;
     vector<uint>                    m_AddedGuids;
+    vector<uint>                    m_SavedDataGuids;
+    vector<uint>                    m_SavedNodeIndexGuids;
     uint                            m_uiGuid;
+    namer_delegate                  m_Delegate;
     bool                            m_bInitialized;
 
 };

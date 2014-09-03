@@ -9,6 +9,7 @@ o_classN((phantom, serialization), DataBase, o_deferred|o_abstract)
         o_signal(dataAboutToBeAborted, (const phantom::data&, Node*));
         o_signal(dataMoved, (const phantom::data&, Node*, Node*));
         o_signal(dataAttributeValueChanged, (const phantom::data&, size_t, const string&));
+        o_signal(dataModifiersChanged, (const phantom::data&, bitfield));
         o_signal(dataReplaced, (const phantom::data&, const phantom::data&));
         o_signal(dataErased, (uint));
         o_signal(dataRestored, (uint));

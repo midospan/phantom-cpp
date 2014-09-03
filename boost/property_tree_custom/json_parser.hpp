@@ -66,7 +66,7 @@ namespace boost { namespace property_tree_custom { namespace json_parser
         typename Ptree::key_basic_ifstream
             stream(filename.c_str());
         if (!stream)
-            BOOST_PROPERTY_TREE_CUSTOM_THROW(json_parser_error(
+            BOOST_PROPERTY_TREE_CUSTOM_THROW(json_parser_error<typename Ptree::string_type>(
                 "cannot open file", filename, 0));
         stream.imbue(loc);
         read_json_internal(stream, pt, filename);
@@ -87,7 +87,7 @@ namespace boost { namespace property_tree_custom { namespace json_parser
      *               compatibility.
      */
     template<class Ptree>
-    void write_json(typename Ptree::for_char<typename Ptree::key_type::value_type> basic_ostream &stream,
+    void write_json(typename Ptree::for_char<typename Ptree::key_type::value_type>::basic_ostream &stream,
                     const Ptree &pt,
                     bool pretty = true)
     {
@@ -117,7 +117,7 @@ namespace boost { namespace property_tree_custom { namespace json_parser
         typename Ptree::key_basic_ofstream
             stream(filename.c_str());
         if (!stream)
-            BOOST_PROPERTY_TREE_CUSTOM_THROW(json_parser_error(
+            BOOST_PROPERTY_TREE_CUSTOM_THROW(json_parser_error<typename Ptree::string_type>(
                 "cannot open file", filename, 0));
         stream.imbue(loc);
         write_json_internal(stream, pt, filename, pretty);

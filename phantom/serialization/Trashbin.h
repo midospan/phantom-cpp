@@ -73,6 +73,7 @@ protected:
     map<uint, bool>             m_Nodes;
     map<uint, uint>             m_Parents;
     map<uint, string>           m_ReferenceExpressions;
+    map<uint, bitfield>         m_Modifiers;
     map<uint, vector<string>>   m_RestoreExpressions;
 };
 

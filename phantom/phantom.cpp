@@ -58,6 +58,7 @@
 #include "phantom/reflection/Interpreter.h"
 #include "phantom/reflection/Interpreter.hxx"
 #include "phantom/util/Message.h"
+#include <boost/property_tree_custom/info_parser.hpp>
 
 o_registerN((phantom, memory), malloc_free_allocator_for_boost)
 o_registerNT((phantom, memory), (typename, typename), (T, UserAllocator), malloc_free_allocator)
@@ -69,6 +70,42 @@ o_declareN(class, (phantom, reflection), SourceFile)
 o_declareN(class, (phantom, reflection), Signature)
 
 o_namespace_begin(phantom) 
+
+void loadMetaDataDefinition( const string& a_Key, const property_tree& a_PropertyTree, reflection::LanguageElement* a_pScope, Module* a_pModule )
+{
+    string value = a_PropertyTree.get_value<string>();
+    if(a_PropertyTree.size())
+    {
+        phantom::reflection::LanguageElement* pElement = a_Key.empty() ? rootNamespace() : phantom::elementByName(a_Key, a_pScope);
+        if(pElement == NULL/* OR ((pElement->asNamespace() == nullptr) AND (pElement->getModule() != a_pModule))*/) 
+            return;
+        property_tree::const_iterator it = a_PropertyTree.begin();
+        property_tree::const_iterator end = a_PropertyTree.end();
+        for(;it!=end;++it)
+        {
+            loadMetaDataDefinition(it->first, it->second, pElement, a_pModule);
+        }
+    }
+    else 
+    {
+        size_t metaDataIndex = phantom::metaDataIndex(a_Key);
+        if(metaDataIndex != 0xffffffff) 
+        {
+            a_pScope->setMetaDataValue(metaDataIndex, value)  ;
+        }
+    }
+}
+
+void loadMetaData( const string& metaDataFile, Module* a_pModule )
+{
+    property_tree   propertyTree;
+    boost::property_tree_custom::read_info(metaDataFile.c_str(), propertyTree);
+    boost::optional<property_tree&> root_opt = propertyTree.get_child_optional("metadata");
+    if(root_opt.is_initialized())
+    {
+        loadMetaDataDefinition("", *root_opt, rootNamespace(), a_pModule);
+    }
+}
 
 connection::pair connection::pair::stack[connection::pair::eMaxStackSize];
 int32 connection::pair::stack_pointer = -1;
@@ -100,6 +137,8 @@ phantom::map<phantom::string, phantom::Module*> Phantom::m_modules;
 phantom::Phantom*                               Phantom::m_instance = nullptr;
 phantom::Phantom::dynamic_pool_type_map         Phantom::m_DynamicPoolAllocators;
 phantom::vector<phantom::reflection::Constant*> Phantom::m_Constants;
+phantom::vector<phantom::string>*               Phantom::m_meta_data_names;
+
 
 
 map<string, reflection::SourceFile*>            phantom::Phantom::m_SourceFiles;
@@ -109,8 +148,6 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
 {
     o_assert(m_instance == NULL, "Only one instance allowed and initialized once, the best is to use your main function scope and RAII");
     m_instance = this;
-
-    int i = 003;
 
     //o_assert(m_eState == eState_NotInstalled, "Phantom has already been installed and can only be installed once per application");
     typeByName("phantom::reflection::Namespace")->install(Phantom::m_pRootNamespace);
@@ -134,17 +171,17 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
     // was setup (for instance, Native meta-types objects)
     dynamic_initializer()->installReflection();
 
+    setState(eState_Installed);
+#endif
+
     m_type_of_string = typeByName("phantom::string");
 
     int i = 0;
     for(;i<metadatasize;++i)
     {
-        m_meta_data_names.push_back(metadata[i]);
+        m_meta_data_names->push_back(metadata[i]);
     }
-
-    setState(eState_Installed);
-#endif
-    moduleLoader()->loadMain();
+    moduleLoader()->loadMain(argv[0]);
 }
 
 Phantom::~Phantom()
@@ -167,7 +204,7 @@ Phantom::~Phantom()
     }
     m_SourceFiles.clear();
 
-    rootNamespace()->teardownMetaDataCascade(m_meta_data_names.size());
+    rootNamespace()->teardownMetaDataCascade(m_meta_data_names->size());
     // Deleting all the registered singletons
     /*{
         singleton_container::reverse_iterator it = m_singleton_container->rbegin();
@@ -224,7 +261,10 @@ detail::dynamic_initializer_handle::dynamic_initializer_handle()
     new (Phantom::m_rtti_data_map) Phantom::rtti_data_map; 
 
 	Phantom::m_elements = o_allocate(Phantom::element_container);
-	new (Phantom::m_elements) Phantom::element_container; 
+    new (Phantom::m_elements) Phantom::element_container; 
+
+    Phantom::m_meta_data_names = o_allocate(vector<string>);
+    new (Phantom::m_meta_data_names) vector<string>; 
 
     connection::slot_pool::m_allocation_controller_map= o_allocate(connection::slot_pool::allocation_controller_map);
     new (connection::slot_pool::m_allocation_controller_map) connection::slot_pool::allocation_controller_map; 
@@ -260,6 +300,13 @@ detail::dynamic_initializer_handle::~dynamic_initializer_handle()
     Phantom::m_module_loader->~ModuleLoader();
     o_deallocate(Phantom::m_module_loader, ModuleLoader) ;
     o_delete(reflection::CPlusPlus) Phantom::m_pCPlusPlus;
+
+    typedef vector<string> vector_string;
+    Phantom::m_meta_data_names->~vector_string();
+    o_deallocate(Phantom::m_meta_data_names, vector<string>);
+
+    connection::slot_pool::m_allocation_controller_map= o_allocate(connection::slot_pool::allocation_controller_map);
+    new (connection::slot_pool::m_allocation_controller_map) connection::slot_pool::allocation_controller_map; 
 }
 
 void Phantom::setState(EState s) 
@@ -519,6 +566,12 @@ void detail::dynamic_initializer_handle::installReflection(const string& a_strNa
     {
         m_auto_loaded_modules->push_back(pModule); // Module needs auto loading
     }
+    boost::filesystem::path p(pModule->getFileName().c_str());
+    string metaDataFile(string(p.parent_path().generic_string().c_str())+"/"+p.stem().generic_string().c_str()+".cfg");
+    if(boost::filesystem::exists(metaDataFile.c_str()))
+    {
+        loadMetaData(metaDataFile, pModule);
+    }
     phantom::popModule();
     m_RegisteredTypes.clear();
     pModule->checkCompleteness();
@@ -727,7 +780,12 @@ boolean canConnect( reflection::Signal* a_pSignal, reflection::InstanceMemberFun
         {
             reflection::Type* pMemberFunctionParamType = pMemberFunctionSignature->getParameterType(i);
             reflection::Type* pSignalParamType = pSignalSignature->getParameterType(i);
-            if(NOT(pSignalParamType->hasTrivialCastTo(pMemberFunctionParamType)))
+            reflection::ReferenceType* pRefType = pMemberFunctionParamType->asReferenceType();
+            if(pRefType AND pRefType->getReferencedType()->asConstType() AND pSignalParamType->asReferenceType() == nullptr)
+            {
+                pMemberFunctionParamType = pMemberFunctionParamType->removeReference()->removeConst();
+            }
+            if(pSignalParamType != pMemberFunctionParamType)
             {
                 return false;
             }
@@ -1434,8 +1492,18 @@ o_export phantom::reflection::Interpreter* interpreter()
     return Phantom::m_pInterpreter;
 }
 
+o_export string conversionOperatorNameNormalizer( const string& a_strName, reflection::LanguageElement* a_pScope )
+{
+    if(a_strName.compare(0, 9, "operator ") == 0)
+    {
+        reflection::Type* pType = phantom::typeByName(a_strName.substr(9), a_pScope);
+        if(pType)
+        return "operator "+pType->getQualifiedDecoratedName();
+    }
+    return a_strName;
+}
 
 o_namespace_end(phantom)
 
 
-o_module("")
+o_module("phantom")

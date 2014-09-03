@@ -1991,8 +1991,20 @@ Expression* precompiler::precompile_call_expression(call_expression& e, Language
                                                      ? precompile_qualified_name(a_pLHS, *p_qualified_name, (vector<LanguageElement*>*)&argumentList, false, a_pScope)
                                                      : precompile_qualified_name_recursive(*p_qualified_name, (vector<LanguageElement*>*)&argumentList, false, a_pScope);
                 if(pQualifiedName == nullptr)
-                    return nullptr;
-                pExpression = (pQualifiedName->asExpression());
+                {
+                    pQualifiedName = a_pLHS 
+                                        ? precompile_qualified_name(a_pLHS, *p_qualified_name, nullptr, false, a_pScope)
+                                        : precompile_qualified_name_recursive(*p_qualified_name, nullptr, false, a_pScope);
+                    if(pQualifiedName)
+                    {
+                        Expression* pAsExpression = pQualifiedName->asExpression();
+                        if(pAsExpression == nullptr) return nullptr;
+                        pAsExpression = pAsExpression->solveOperator("()", argumentList);
+                        if(pAsExpression == nullptr) return nullptr;
+                        pExpression = pAsExpression;
+                    }
+                }
+                else pExpression = (pQualifiedName->asExpression());
                 o_assert(pExpression);
             }
         }

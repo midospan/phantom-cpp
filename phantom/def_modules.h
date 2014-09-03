@@ -411,7 +411,7 @@
     break;\
     case DLL_PROCESS_DETACH:\
     phantom::uninstallReflection(name);\
-    if(strcmp(name, "") == 0) phantom::release();\
+    if(strcmp(name, "phantom") == 0) phantom::release();\
     break;\
     case DLL_THREAD_ATTACH:\
     break;\

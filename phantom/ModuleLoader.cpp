@@ -289,12 +289,12 @@ bool Module_derivedClassHasDifferentModule(const string& moduleName, Module* a_p
     return bResult;
 }
 
-bool ModuleLoader::libraryCanBeUnloaded( const string& a_strPath, Message* a_pMessage ) const
+bool ModuleLoader::libraryCanBeUnloaded( const string& a_strPath, Message* a_pMessage, vector<reflection::LanguageElement*>* a_pBlockingElements /*= nullptr*/ ) const
 {
     string moduleName = a_strPath.substr(a_strPath.find_last_of("/\\")+1);
     Message* pMessageUnloadFailed = nullptr;
     bool canUnload = true;
-    phantom::vector<Module*> modulesAboutToBeUnloaded;
+    vector<Module*> modulesAboutToBeUnloaded;
 
     for(auto it = beginLoadedLibraryModules(a_strPath); it != endLoadedLibraryModules(a_strPath); ++it)
     {
@@ -314,6 +314,10 @@ bool ModuleLoader::libraryCanBeUnloaded( const string& a_strPath, Message* a_pMe
             {
                 if(pClass->getInstanceCount())
                 {
+                    if(a_pBlockingElements)
+                    {
+                        a_pBlockingElements->push_back(pClass);
+                    }
                     canUnload = false;
                     if(a_pMessage)
                     {
@@ -324,6 +328,10 @@ bool ModuleLoader::libraryCanBeUnloaded( const string& a_strPath, Message* a_pMe
                 }
                 if(Module_derivedClassHasDifferentModule(moduleName, pModule, modulesAboutToBeUnloaded, pClass, pMessageUnloadFailed, a_pMessage)) 
                 {
+                    if(a_pBlockingElements)
+                    {
+                        a_pBlockingElements->push_back(pClass);
+                    }
                     if(a_pMessage)
                         canUnload = false;
                     else return false;
@@ -343,10 +351,10 @@ size_t ModuleLoader::getLibraryModuleLoadCount( const string& a_strPath, Module*
     return foundModule->second;
 }
 
-void ModuleLoader::loadMain( Message* a_pMessage /*= nullptr*/ )
+void ModuleLoader::loadMain( const string& a_strFileName, Message* a_pMessage )
 {
     m_OperationCounter++;
-    phantom::installReflection("main", "", (size_t)GetModuleHandle(0));
+    phantom::installReflection("main", a_strFileName, (size_t)GetModuleHandle(0));
     m_OperationCounter--;
 }
 

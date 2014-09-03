@@ -255,7 +255,7 @@ void DataPointerType::serialize( void const* a_pInstance, property_tree& a_OutBr
     a_OutBranch.put<string>("guid", phantom::lexical_cast<string>(guid));
     if((guid == 0xffffffff) AND (ptr_base != NULL))
     {
-        a_OutBranch.put<string>("type", encodeQualifiedDecoratedNameToIdentifierName(rttiData.object_class->getQualifiedDecoratedName())); 
+        a_OutBranch.put<string>("type", /*encodeQualifiedDecoratedNameToIdentifierName*/(rttiData.object_class->getQualifiedDecoratedName())); 
         property_tree data_tree;
         rttiData.object_class->serialize(ptr_base, data_tree, a_uiSerializationMask, a_pDataBase);
         a_OutBranch.add_child("data", data_tree);
@@ -272,7 +272,7 @@ void DataPointerType::deserialize( void* a_pInstance, const property_tree& a_InB
         if(typeName_opt.is_initialized())
         {
             const string& typeName = *typeName_opt;
-            reflection::Type* pType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
+            reflection::Type* pType = a_pDataBase ? a_pDataBase->solveTypeByName(/*decodeQualifiedDecoratedNameFromIdentifierName*/(typeName)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
             o_assert(pType AND pType->asClass(), "The class associated with the given serialized data cannot be found, "
                 "ensure all the class are registered correctly before deserializing data");
             reflection::Class* pClass = static_cast<reflection::Class*>(pType);
@@ -441,7 +441,7 @@ void        DataPointerType::serialize(void const* a_pChunk, size_t a_uiCount, s
         index_tree.put<string>("guid", phantom::lexical_cast<string>(guid));
         if((guid == 0xffffffff) AND (ptr_base != NULL))
         {
-            index_tree.put<string>("type", encodeQualifiedDecoratedNameToIdentifierName(rttiData.object_class->getQualifiedDecoratedName())); 
+            index_tree.put<string>("type", /*encodeQualifiedDecoratedNameToIdentifierName*/(rttiData.object_class->getQualifiedDecoratedName())); 
             property_tree data_tree; 
             rttiData.object_class->serialize(ptr_base, data_tree, a_uiSerializationMask, a_pDataBase);
             index_tree.add_child("data", data_tree);
@@ -471,7 +471,7 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
                 if(typeName_opt.is_initialized())
                 {
                     const string& typeName = *typeName_opt;
-                    reflection::Type* pType = a_pDataBase ? a_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
+                    reflection::Type* pType = a_pDataBase ? a_pDataBase->solveTypeByName(/*decodeQualifiedDecoratedNameFromIdentifierName*/(typeName)) : phantom::typeByName(decodeQualifiedDecoratedNameFromIdentifierName(typeName));
                     o_assert(pType AND pType->asClass(), "The class associated with the given serialized data cannot be found, "
                         "ensure all the class are registered correctly before deserializing data");
                     reflection::Class* pClass = static_cast<reflection::Class*>(pType);

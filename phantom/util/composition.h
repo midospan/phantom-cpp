@@ -6,14 +6,98 @@
 #include <phantom/phantom.h>
 /* **************** Declarations ***************** */
 o_declareNT(class, (phantom), (typename), (t_Component), composition);
+o_declareNT(class, (phantom), (typename), (t_Component), composition_replacer);
+o_declareNT(class, (phantom), (typename), (t_Component), composition_inserter);
 /* *********************************************** */
 
 o_namespace_begin(phantom)
+
+
+    template<typename t_Component>
+class composition_replacer
+{
+public:
+    composition_replacer(const composition_replacer& other)
+        : m_pComposition(other.m_pComposition)
+        , m_uiIndex(other.m_uiIndex)
+    {
+
+    }
+    composition_replacer(composition<t_Component>* a_pComposition, size_t a_uiIndex)
+        : m_pComposition(a_pComposition)
+        , m_uiIndex(a_uiIndex)
+    {
+
+    }
+    void operator=(const composition_replacer& other)
+    {
+        m_pComposition = other.m_pComposition;
+        m_uiIndex = other.m_uiIndex;
+    }
+    void operator=(t_Component* a_pComponent)
+    {
+        m_pComposition->set(m_uiIndex, a_pComponent);
+    }
+
+    t_Component* operator->() const
+    {
+        return m_pComposition->get(m_uiIndex);
+    }
+
+    operator t_Component*() 
+    {
+        return m_pComposition->get(m_uiIndex);
+    }
+
+protected:
+    composition<t_Component>* m_pComposition;
+    size_t m_uiIndex;
+};
+
+template<typename t_Component>
+class composition_inserter
+{
+public:
+    composition_inserter(const composition_inserter& other)
+        : m_pComposition(other.m_pComposition)
+        , m_uiIndex(other.m_uiIndex)
+    {
+
+    }
+    composition_inserter(composition<t_Component>* a_pComposition, size_t a_uiIndex)
+        : m_pComposition(a_pComposition)
+        , m_uiIndex(a_uiIndex)
+    {
+
+    }
+    void operator=(const composition_inserter& other)
+    {
+        m_pComposition = other.m_pComposition;
+        m_uiIndex = other.m_uiIndex;
+    }
+    void operator=(t_Component* a_pComponent)
+    {
+        if(a_pComponent)
+        {
+            m_pComposition->insert(m_uiIndex, a_pComponent);
+        }
+        else 
+        {
+            m_pComposition->remove(m_uiIndex);
+        }
+    }
+
+protected:
+    composition<t_Component>* m_pComposition;
+    size_t m_uiIndex;
+};
     
 template <typename t_Component>
 class composition
 {
 public:
+    typedef composition_inserter<t_Component> inserter;
+    typedef composition_replacer<t_Component> replacer;
     typedef vector<t_Component*> sequence_type;
     typedef t_Component component_type;
     typedef typename sequence_type::const_iterator const_iterator;
@@ -61,7 +145,7 @@ public:
         {
             for(auto it = begin(); it != end(); ++it)
             {
-                ((*it)->*m_OwnerSetMemberFunctionPtr)(this);
+                ((*it)->*m_OwnerSetMemberFunctionPtr)(m_pOwner);
             }
         }
         return restore_complete;
@@ -84,6 +168,14 @@ public:
         assert(m_OwnerSetMemberFunctionPtr == nullptr || (a_pComponent->*m_OwnerGetMemberFunctionPtr)() == nullptr);
 
         o_emit aboutToBeInserted(a_uiIndex, a_pComponent);
+        // Increment all index of components after the new inserted component
+        if(m_IndexInOwnerDataMemberPtr)
+        {
+            for(size_t i = a_uiIndex; i<m_Components.size(); ++i)
+            {
+                (m_Components[i]->*m_IndexInOwnerDataMemberPtr)++;
+            }
+        }
         m_Components.insert(m_Components.begin()+a_uiIndex, a_pComponent);
         if(m_OwnerSetMemberFunctionPtr)
         {
@@ -109,6 +201,10 @@ public:
         if(m_IndexInOwnerDataMemberPtr)
         {
             pComponent->*m_IndexInOwnerDataMemberPtr = std::numeric_limits<size_t>::max();
+            for(size_t i = a_uiIndex+1; i<m_Components.size(); ++i)
+            {
+                (m_Components[i]->*m_IndexInOwnerDataMemberPtr)--;
+            }
         }
         m_Components.erase(m_Components.begin()+a_uiIndex);
         o_emit removed(a_uiIndex, pComponent);
@@ -120,59 +216,96 @@ public:
         remove(indexOf(a_pComponent));
     }
 
+    t_Component* removeLast()
+    {
+        t_Component* pLast = m_Components.back();
+        remove(m_Components.size()-1);
+        return pLast;
+    }
+
     void set(size_t a_uiIndex, t_Component* a_pComponent)
     {
         assert(a_uiIndex < m_Components.size());
         if(m_Components[a_uiIndex] == a_pComponent) 
             return;
         assert(!has(a_pComponent));
-        o_emit aboutToBeReplaced(a_uiIndex, a_pComponent, m_Components[a_uiIndex]);
-
-        if(m_OwnerSetMemberFunctionPtr)
+        if(a_pComponent == nullptr)
         {
-            (m_Components[a_uiIndex]->*m_OwnerSetMemberFunctionPtr)(nullptr);
+            remove(a_uiIndex);
         }
-        if(m_IndexInOwnerDataMemberPtr)
+        else
         {
-            m_Components[a_uiIndex]->*m_IndexInOwnerDataMemberPtr = std::numeric_limits<size_t>::max();
-        }
+            o_emit aboutToBeReplaced(a_uiIndex, a_pComponent, m_Components[a_uiIndex]);
 
-        m_Components[a_uiIndex] = a_pComponent;
+            if(m_OwnerSetMemberFunctionPtr)
+            {
+                (m_Components[a_uiIndex]->*m_OwnerSetMemberFunctionPtr)(nullptr);
+            }
+            if(m_IndexInOwnerDataMemberPtr)
+            {
+                m_Components[a_uiIndex]->*m_IndexInOwnerDataMemberPtr = std::numeric_limits<size_t>::max();
+            }
 
-        if(m_OwnerSetMemberFunctionPtr)
-        {
-            (m_Components[a_uiIndex]->*m_OwnerSetMemberFunctionPtr)(m_pOwner);
-        }
-        if(m_IndexInOwnerDataMemberPtr)
-        {
-            m_Components[a_uiIndex]->*m_IndexInOwnerDataMemberPtr = a_uiIndex;
-        }
+            m_Components[a_uiIndex] = a_pComponent;
 
-        o_emit replaced(a_uiIndex, a_pComponent, m_Components[a_uiIndex]);
+            if(m_OwnerSetMemberFunctionPtr)
+            {
+                (m_Components[a_uiIndex]->*m_OwnerSetMemberFunctionPtr)(m_pOwner);
+            }
+            if(m_IndexInOwnerDataMemberPtr)
+            {
+                m_Components[a_uiIndex]->*m_IndexInOwnerDataMemberPtr = a_uiIndex;
+            }
+
+            o_emit replaced(a_uiIndex, a_pComponent, m_Components[a_uiIndex]);
+        }
     }
 
-    void move(t_Component* a_pComponent, size_t a_uiNewIndex)
+    void move(size_t a_uiOldIndex, size_t a_uiNewIndex)
     {
-        o_assert(has(a_pComponent));
-        size_t uiOldIndex = indexOf(a_pComponent);
-        if(uiOldIndex == a_uiNewIndex) 
+        if(a_uiOldIndex == a_uiNewIndex) 
             return;
-        o_emit aboutToBeMoved(a_pComponent, a_uiNewIndex, uiOldIndex);
         o_assert(a_uiNewIndex < m_Components.size());
-        auto it = m_Components.begin() + uiOldIndex;
-        auto to = m_Components.begin() + a_uiNewIndex;
-        if(it == to) return;
-        if(it < to)
+        o_assert(a_uiOldIndex < m_Components.size());
+        o_assert(a_uiNewIndex >= 0);
+        o_assert(a_uiOldIndex >= 0);
+        t_Component* pComponent = m_Components[a_uiOldIndex];
+        o_emit aboutToBeMoved(pComponent, a_uiOldIndex, a_uiNewIndex);
+        if(m_IndexInOwnerDataMemberPtr)
         {
+            if(a_uiOldIndex < a_uiNewIndex)
+            {
+                for(size_t i = a_uiOldIndex+1; i<=a_uiNewIndex; ++i)
+                {
+                    (m_Components[i]->*m_IndexInOwnerDataMemberPtr)--;
+                }
+            }
+            else 
+            {
+                for(size_t i = a_uiNewIndex; i<a_uiOldIndex; ++i)
+                {
+                    (m_Components[i]->*m_IndexInOwnerDataMemberPtr)++;
+                }
+            }
+        }
+        if(a_uiOldIndex < a_uiNewIndex)
+        {
+            auto it = m_Components.begin() + a_uiOldIndex;
+            auto to = m_Components.begin() + a_uiNewIndex+1;
             std::rotate(it, it+1, to);
         }
         else
         {
-            auto rit = m_Components.rbegin() + m_Components.size()-uiOldIndex;
+            auto rit = m_Components.rbegin() + m_Components.size()-1-a_uiOldIndex;
             auto rto = m_Components.rbegin() + m_Components.size()-a_uiNewIndex;
             std::rotate(rit, rit+1, rto);
         }
-        o_emit moved(a_pComponent, a_uiNewIndex, uiOldIndex);
+        o_emit moved(pComponent, a_uiOldIndex, a_uiNewIndex);
+    }
+
+    void move(t_Component* a_pComponent, size_t a_uiNewIndex)
+    {
+        move(indexOf(a_pComponent), a_uiNewIndex);
     }
 
     void swap(t_Component* a_pDest, t_Component* a_pSrc)
@@ -216,7 +349,8 @@ public:
     const_reverse_iterator rbegin() const { return m_Components.rbegin(); }
     const_reverse_iterator rend() const { return m_Components.rend(); }
 
-    t_Component*    operator[](size_t i) const { return m_Components[i]; }
+    replacer    operator[](size_t i) { return replacer(this, i); }
+    inserter    operator()(size_t i) { return inserter(this, i); }
 
 protected:
     o_signal_data(aboutToBeInserted, size_t, t_Component*);

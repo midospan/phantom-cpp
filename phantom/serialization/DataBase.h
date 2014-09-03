@@ -236,6 +236,13 @@ public:
         return found == m_ComponentReferenceExpressionMap.end() ? null_string : found->second;
     }
 
+    void                    setComponentDataReferenceExpression( const phantom::data& a_Data, const string& a_Expression )
+    {
+        component_data_reference_expression_map::iterator found = m_ComponentReferenceExpressionMap.find(a_Data.address());
+        o_assert(found != m_ComponentReferenceExpressionMap.end());
+        found->second = a_Expression;
+    }
+
 	bool                    isComponentDataOwner(const phantom::data& a_Data) const
 	{
 		component_data_owner_map::const_iterator it = m_ComponentDataOwnerMap.begin();
@@ -252,6 +259,10 @@ public:
 
     uint            getGuid( Node* a_pNode ) const;
     uint            getGuid( const phantom::data& a_Data ) const;
+    bitfield        getModifiers( const phantom::data& a_Data ) const;
+    void            setModifiers( const phantom::data& a_Data, bitfield a_Modifiers);
+    void            addModifiers( const phantom::data& a_Data, bitfield a_Modifiers);
+    void            removeModifiers( const phantom::data& a_Data, bitfield a_Modifiers);
     void*           getDataAddress( uint guid ) const { return m_GuidBase.dataAddress(guid); }
     reflection::Type*getDataType( uint guid ) const { return m_GuidBase.dataType(guid); }
     const data&     getData( uint guid ) const { return m_GuidBase.getData(guid); }
@@ -272,7 +283,7 @@ public:
         return a_Data.type()->referencesData(a_Data.address(), a_CandidateDependency);
     }
 
-    void            registerData( const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode );
+    void            registerData( const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode, bitfield modifiers );
     void            unregisterData( const phantom::data& a_Data);
 
     void            registerNode(Node* a_pNode);
@@ -345,6 +356,7 @@ protected:
     o_signal_data(dataAboutToBeAborted, const phantom::data&, Node*);
     o_signal_data(dataMoved, const phantom::data&, Node*, Node*);
     o_signal_data(dataAttributeValueChanged, const phantom::data&, size_t, const string&);
+    o_signal_data(dataModifiersChanged, const phantom::data&, bitfield);
 
     o_signal_data(subDataOwnershipLost, const phantom::data&);
 
@@ -386,7 +398,7 @@ protected:
     void            rebuildData( phantom::data& a_inOutData, reflection::Type* a_pOld, reflection::Type* a_pNewType, vector<data>& a_Old, vector<data>& a_New, uint a_uiStateId /*= 0xffffffff*/ );  
 
 protected:
-    void            registerComponentData(const data& a_Data, const data& a_Owner, const string& a_ReferenceExpression);
+    void            registerComponentData(const data& a_Data, const data& a_Owner, const string& a_ReferenceExpression, bitfield a_Modifiers);
     void            unregisterComponentData(const data& a_Data);
     reflection::Collection* getCollectionContainingComponentData(const phantom::data& d) const;
 
@@ -396,6 +408,8 @@ protected:
 
     typedef map<void*, string*>     attribute_map;
     typedef vector<string>          attribute_name_container;
+
+    typedef map<void*, bitfield>    modifier_map;
 
     typedef map<void*,  data>       component_data_owner_map;
     typedef map<void*, string>      component_data_reference_expression_map;
@@ -407,6 +421,7 @@ protected:
     component_data_reference_expression_map m_ComponentReferenceExpressionMap;
     attribute_map                   m_AttributeValues;
     attribute_name_container        m_AttributeNames;
+    modifier_map                    m_DataModifiers;
     DataTypeManager*                m_pDataTypeManager;
     DataStateBase*                  m_pDataStateBase;
 	Trashbin*						m_pTrashbin;

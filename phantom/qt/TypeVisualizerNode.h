@@ -6,9 +6,12 @@
 #include "phantom/qt/qt.h"
 /* **************** Declarations ***************** */
 o_fwd(class, phantom, qt, VariableNode);
+o_declareN(class, (phantom, qt), TypeVisualizerNode);
 /* *********************************************** */
 
 namespace phantom { namespace qt {
+
+class Menu;
 
 class o_qt_export TypeVisualizerNode
 {

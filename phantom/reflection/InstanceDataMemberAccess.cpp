@@ -49,7 +49,7 @@ InstanceDataMemberAccess::InstanceDataMemberAccess( Expression* a_pLeftExpressio
     , m_pLeftExpression(a_pLeftExpression)
     , m_pInstanceDataMember(a_pInstanceDataMember)
 {
-    o_assert(a_pLeftExpression->getValueType()->asReferenceType());
+    o_assert(a_pLeftExpression->hasEffectiveAddress());
     addElement(a_pLeftExpression);
     addReferencedElement(m_pInstanceDataMember);
 }
@@ -74,6 +74,11 @@ void InstanceDataMemberAccess::setValue( void const* src ) const
 InstanceDataMemberAccess* InstanceDataMemberAccess::clone() const
 {
     return o_new(InstanceDataMemberAccess)(m_pLeftExpression->clone(), m_pInstanceDataMember);
+}
+
+LanguageElement* InstanceDataMemberAccess::getHatchedElement() const
+{
+    return m_pInstanceDataMember;
 }
 
 o_namespace_end(phantom, reflection)

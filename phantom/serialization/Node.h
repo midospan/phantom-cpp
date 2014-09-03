@@ -112,6 +112,7 @@ public:
 
     void            load();
     void            loadData(const phantom::data& a_Data);
+    void            loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid);
     void            loadDataState(const phantom::data& a_Data, uint a_uiStateId);
     virtual void    loadTypes() = 0;
     virtual void    loadAttributes() = 0;
@@ -120,8 +121,15 @@ public:
     virtual bool    canLoad(vector<string>* missing_types = nullptr) const = 0;
     
     void            save();
-    void            saveData(const phantom::data& a_Data);
+    void            saveDataProperties(const phantom::data& a_Data);
+    void            saveData(const phantom::data& a_Data)
+    {
+        saveData(m_pOwnerDataBase->m_uiSerializationFlag, a_Data, m_pOwnerDataBase->getGuid(a_Data));
+    }
     void            saveData();
+    void            saveData(uint a_uiSerializationFlag);
+    void            saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid);
+
     void            saveDataState(const phantom::data& a_Data, uint a_uiStateId);
     virtual void    saveTypes() = 0;
     virtual void    saveDataAttributes() = 0;
@@ -166,6 +174,8 @@ public:
     phantom::data   getData(void* a_pAddress) const;
     void            fetchData(vector<data>& a_DataVector) const;
     void            fetchDataCascade(vector<data>& a_DataVector) const;
+    void            fetchDataTypes(std::set<reflection::Type*>& a_Types) const;
+    void            fetchDataTypesCascade(std::set<reflection::Type*>& a_Types) const;
     void            fetchDataOfType(reflection::Type* a_pType, vector<data>& a_DataVector) const;
     void            fetchDataOfTypeCascade(reflection::Type* a_pType, vector<data>& a_DataVector) const;
 
@@ -195,16 +205,20 @@ public:
      *   /brief add a new data to the given node
     */
     void            addData(const data& a_Data);
+    /*
+     *   /brief add a new component data to the given node
+    */
+    data            newComponentData(reflection::Type* a_pType, const data& a_OwnerData, const string& a_ReferenceExpression, bitfield a_ReferenceModifiers);
 
     /*
      *   /brief add a new component data to the given node
     */
-    void            addComponentData(const data& a_Data, const data& a_OwnerData, const string& a_ReferenceExpression);
+    void            addComponentData(const data& a_Data, const data& a_OwnerData, const string& a_ReferenceExpression, bitfield a_ReferenceModifiers);
 
     /*
      *   /brief add a new component data to the given node with choosen guid
     */
-    void            addComponentData(const data& a_Data, uint a_uiGuid, const data& a_OwnerData, const string& a_ReferenceExpression);
+    void            addComponentData(const data& a_Data, uint a_uiGuid, const data& a_OwnerData, const string& a_ReferenceExpression, bitfield a_ReferenceModifiers);
 
     /*
      *   /brief add a new data of given type to the given node (node instanciate the data)
@@ -260,8 +274,8 @@ public:
 
     bool            isEmpty() const { return m_Data.empty(); }
 
-    void            fetchUpdatedData(const phantom::data& a_Data, vector<data_pair>& out_to_add, vector<data_pair>& out_to_remove, vector<string>& out_to_add_reference_expressions, vector<phantom::data>& a_TreatedData);
-    void            fetchUpdatedData(const phantom::data& a_Data, vector<data_pair>& out_to_add, vector<data_pair>& out_to_remove, vector<string>& out_to_add_reference_expressions, std::set<phantom::data>& a_TreatedData);
+    void            fetchUpdatedData(const phantom::data& a_Data, vector<data_pair>& out_to_add, vector<data_pair>& out_to_remove, vector<string>& out_to_add_reference_expressions, vector<bitfield>& out_to_add_modifiers, vector<phantom::data>& a_TreatedData);
+    void            fetchUpdatedData(const phantom::data& a_Data, vector<data_pair>& out_to_add, vector<data_pair>& out_to_remove, vector<string>& out_to_add_reference_expressions, vector<bitfield>& out_to_add_modifiers, std::set<phantom::data>& a_TreatedData);
 
     reflection::Type* getType(const string& a_strQualifiedDecoratedName) const;
 
@@ -301,8 +315,8 @@ protected:
     o_signal_data(aboutToBeUnloaded);
 
 protected:
-    virtual void    saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) = 0;
-    virtual void    loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) = 0;
+    virtual void    saveDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) = 0;
+    virtual void    loadDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) = 0;
     virtual void    saveDataAttributes(const phantom::data& a_Data, uint guid) = 0;
     virtual void    loadDataAttributes(const phantom::data& a_Data, uint guid) = 0;
     virtual void    cache() = 0;

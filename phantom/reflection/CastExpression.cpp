@@ -44,6 +44,7 @@ CastExpression::CastExpression( Type* a_pCastType, Expression* a_pCastedExpressi
     : Expression(a_pCastType, "("+a_pCastType->getQualifiedDecoratedName()+")("+a_pCastedExpression->getName()+")", a_pCastedExpression->getModifiers())
     , m_pCastedExpression(a_pCastedExpression)
     , m_pTempValue(nullptr)
+    , m_pIntermediateBuffer(nullptr)
 {
     addElement(m_pCastedExpression);
     o_assert(a_pCastedExpression->getValueType()->isCopyable());
@@ -53,6 +54,16 @@ CastExpression::CastExpression( Type* a_pCastType, Expression* a_pCastedExpressi
         m_pCastedExpression->getValueType()->construct(m_pTempValue);
         m_pCastedExpression->getValueType()->install(m_pTempValue);
         m_pCastedExpression->getValueType()->initialize(m_pTempValue);
+    }
+    reflection::ReferenceType* pRefCastType = a_pCastType->asReferenceType();
+    if(pRefCastType AND m_pCastedExpression->getValueType()->asReferenceType() == nullptr AND pRefCastType->getReferencedType()->asConstType())
+    {
+        // Conversion from non-ref to const ref, need intermediate buffer
+        Type* pType = pRefCastType->removeReference()->removeConst();
+        m_pIntermediateBuffer = pType->allocate();
+        pType->construct(m_pIntermediateBuffer);
+        pType->install(m_pIntermediateBuffer);
+        pType->initialize(m_pIntermediateBuffer);
     }
 }
 
@@ -67,9 +78,20 @@ void CastExpression::getValue( void* a_pDest ) const
     {
         m_pCastedExpression->getValue(m_pTempValue);
     }
-    m_pCastedExpression->getValueType()->convertValueTo(getValueType(), a_pDest, m_pTempValue 
+    if(m_pIntermediateBuffer)
+    {
+        m_pCastedExpression->getValueType()->convertValueTo(getValueType()->removeReference()->removeConst(), m_pIntermediateBuffer, 
+            m_pTempValue 
+                ? m_pTempValue 
+                : m_pCastedExpression->getValueStorageAddress());
+        *((void**)a_pDest) = m_pIntermediateBuffer;
+    }
+    else 
+    {
+        m_pCastedExpression->getValueType()->convertValueTo(getValueType(), a_pDest, m_pTempValue 
                                                                                     ? m_pTempValue 
                                                                                     : m_pCastedExpression->getValueStorageAddress());
+    }
 }
 
 void CastExpression::terminate()

@@ -24,7 +24,8 @@ public:
 	// Constructors / Destructor
 	//================================================
 
-	DataAttributeChangeCommand(serialization::DataBase* a_pDataBase, const phantom::data& a_Data, size_t a_uiAttributeIndex, const string& a_NewValue);
+    DataAttributeChangeCommand(serialization::DataBase* a_pDataBase, const phantom::data& a_Data, size_t a_uiAttributeIndex, const string& a_NewValue);
+    DataAttributeChangeCommand(serialization::DataBase* a_pDataBase, uint a_uiGuid, size_t a_uiAttributeIndex, const string& a_NewValue, const string& a_OldValue);
 	~DataAttributeChangeCommand();
 
 
@@ -35,6 +36,7 @@ public:
 	virtual void undo();
 	virtual void redo();
 
+    virtual UndoCommand* clone() const;
 
 protected:
 	//================================================

@@ -63,7 +63,9 @@ public:
 
     virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers /* = 0 */) const;
 
-    virtual PropertyAccess*     clone() const;
+    virtual PropertyAccess*  clone() const;
+
+    virtual LanguageElement* getHatchedElement() const;
 
 protected:
     void referencedElementRemoved( LanguageElement* a_pElement );

@@ -68,6 +68,7 @@ public:
 
     virtual LanguageElement* hatch();   
 
+    virtual LanguageElement* getHatchedElement() const { return m_pConstant; }
     virtual ConstantExpression*     clone() const;
 
 protected:

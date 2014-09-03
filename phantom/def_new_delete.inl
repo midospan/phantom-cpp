@@ -330,20 +330,6 @@ struct proxy_delete_helper
 
 };
 
-o_namespace_end(phantom, extension, detail)
-
-o_namespace_begin(phantom, extension)
-template<typename t_Ty>
-struct dynamic_deleter
-{
-    o_forceinline static void dynamicDelete(void* a_pBase o_memory_stat_append_parameters)
-    {
-        phantom::extension::detail::delete_helper<t_Ty>(o_memory_stat_insert_parameters_use) >> a_pBase;
-    }
-};
-
-o_namespace_end(phantom, extension)
-
 
 
     /// Phantom strongly typed "new" / "delete" "operators" (note the quotes ... for more about that, just check the code bellow)

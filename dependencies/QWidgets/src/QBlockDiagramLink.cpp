@@ -8,11 +8,11 @@
 #include <qmath.h>
 
 QBlockDiagramLink::QBlockDiagramLink()
-    : m_DefaultColor(200,150,150)
-    , m_ConnectColor(180,180,180)
-    , m_MoveColor(20,190,150)
-    , m_SnapColor(150,200,150)
+    : m_States(0)
 {
+    m_Pens[e_State_Default].setColor(QColor(255,255,255));
+    m_Pens[e_State_Default].setWidth(2);
+    m_Brushes[e_State_Default] = QBrush(QColor(255,255,255,192));
     setZValue(-1);
     m_Ends[eFirst] = new QBlockDiagramLinkEnd(this);
     m_Ends[eSecond] = new QBlockDiagramLinkEnd(this);
@@ -44,11 +44,8 @@ void QBlockDiagramLink::paint( QPainter * painter, const QStyleOptionGraphicsIte
                     : m_Ends[eSecond]->getConnectedSlot() 
                         ? QColor(200,150,0)
                         : QColor(200,70,0);*/
-  QPen pen(getCurrentColor());
-  pen.setWidth(2.f);
-  painter->setPen(pen);
+  painter->setPen(m_Pens[dominantPenState()]);
   painter->drawPath(m_Path);
-  painter->setPen(QColor(255,0,0));
 
   //painter->drawPath(m_DebugPath);
 }
@@ -59,9 +56,24 @@ void QBlockDiagramLink::prepareGeometryChangeSlot()
     m_Path = m_DebugPath = QPainterPath();
     QPointF start_pos = m_Ends[eFirst]->scenePos ();
     QPointF end_pos = m_Ends[eSecond]->scenePos ();
-
     QVector2D start_dir = m_Ends[eFirst]->computeDir();
     QVector2D end_dir = m_Ends[eSecond]->computeDir();
+
+    QPointF dir_between_p = end_pos - start_pos;
+    QVector2D dir_between(dir_between_p.x(), dir_between_p.y());
+    dir_between.normalize();
+    QVector2D refdir = start_dir.isNull() ? -end_dir : start_dir;
+    refdir.normalize();
+
+    QVector2D dir_start = QVector2D::dotProduct(dir_between, refdir) >= 0 ? refdir : -refdir;
+    QVector2D dir_end = QVector2D::dotProduct(-dir_between, refdir) >= 0 ? refdir : -refdir;
+
+    qreal start_w = m_Ends[eFirst]->boundingRect().width();
+    qreal end_w = m_Ends[eSecond]->boundingRect().width();
+    start_pos.setX(start_pos.x() + dir_start.x()*start_w*0.5f);
+    start_pos.setY(start_pos.y() + dir_start.y()*start_w*0.5f);
+    end_pos.setX(end_pos.x() + dir_end.x()*end_w*0.5f);
+    end_pos.setY(end_pos.y() + dir_end.y()*end_w*0.5f);
 
     m_Path.moveTo(start_pos);
     m_DebugPath.moveTo(start_pos);
@@ -217,12 +229,12 @@ bool QBlockDiagramLink::isSnaped() const
     return (m_Ends[eFirst]->getSnapedSlot() || m_Ends[eSecond]->getSnapedSlot());
 }
 
-bool QBlockDiagramLink::isConnected() const
+bool QBlockDiagramLink::testConnected() const
 {
     return m_Ends[eFirst]->getConnectedSlot() && m_Ends[eSecond]->getConnectedSlot();
 }
 
-bool QBlockDiagramLink::isSemiConnected() const
+bool QBlockDiagramLink::testSemiConnected() const
 {
     return m_Ends[eFirst]->getConnectedSlot() && !m_Ends[eSecond]->getConnectedSlot()
         || !m_Ends[eFirst]->getConnectedSlot() && m_Ends[eSecond]->getConnectedSlot();
@@ -231,17 +243,6 @@ bool QBlockDiagramLink::isSemiConnected() const
 bool QBlockDiagramLink::hasEndMoving() const
 {
     return m_Ends[eFirst]->isMoving() || m_Ends[eSecond]->isMoving();
-}
-
-QColor QBlockDiagramLink::getCurrentColor() const
-{
-    return isSnaped()
-        ? m_SnapColor
-        : hasEndMoving() 
-        ? m_MoveColor
-        : isConnected() 
-        ? m_ConnectColor 
-        : m_DefaultColor;
 }
 
 void QBlockDiagramLink::linkEndDestroyed()
@@ -256,5 +257,49 @@ void QBlockDiagramLink::linkEndDestroyed()
         disconnect(m_Ends[eSecond], SIGNAL(destroyed()), this, SLOT(linkEndDestroyed()));*/
         m_Ends[eFirst] = NULL;
         m_Ends[eSecond] = NULL;
+    }
+}
+
+void QBlockDiagramLink::updateState()
+{
+    setConnected(testConnected());
+    setSemiConnected(testSemiConnected());
+}
+
+void QBlockDiagramLink::setHovered( bool value )
+{
+    setState(e_State_Hovered, value);
+}
+
+void QBlockDiagramLink::setPressed( bool value )
+{
+    setState(e_State_Pressed, value);
+}
+
+void QBlockDiagramLink::setHighlighted( bool value )
+{
+    setState(e_State_Highlighted, value);
+}
+
+void QBlockDiagramLink::setConnected( bool value )
+{
+    setState(e_State_Connected, value);
+}
+
+void QBlockDiagramLink::setSemiConnected( bool value )
+{
+    setState(e_State_SemiConnected, value);
+}
+
+void QBlockDiagramLink::setState( EState state, bool value )
+{
+    if(value == ((m_States & state) != 0)) return;
+    if(value) 
+    {
+        m_States |= state;
+    }
+    else 
+    {
+        m_States &= ~state;
     }
 }

@@ -124,7 +124,12 @@ void XmlFileTreeDataStateBase::saveDataState(const phantom::data& a_Data, uint g
 	}
 
 	if (bHasStateValueMember)
-	{
+    {
+        const string & nodePath = statePath(a_pNode, a_uiStateId);
+        if(NOT(boost::filesystem::exists(nodePath.c_str())))
+        {
+            boost::filesystem::create_directories(nodePath.c_str());
+        }
 		XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(a_pNode->getOwnerDataBase());
 		property_tree state_tree;
 		property_tree valueMembers_tag;

@@ -51,7 +51,7 @@ public:
     TNativeInstanceMemberFunctionBase(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
         : InstanceMemberFunction(a_strName, a_pSignature, a_Modifiers)
     {
-
+        m_strName = conversionOperatorNameNormalizer(a_strName, this);
     }
     virtual bool isNative() const { return true; }
     virtual void call( void* a_pCaller, void** a_pArgs ) const = 0;

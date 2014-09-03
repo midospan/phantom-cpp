@@ -18,3 +18,11 @@ o_classNCS((phantom, reflection), (CompositionClass), GetSetExpression, (Express
 
     };
 };
+
+o_classNCS((phantom, reflection), (CompositionClass), InsertRemoveExpression, (Expression))
+{
+    o_reflection
+    {
+
+    };
+};

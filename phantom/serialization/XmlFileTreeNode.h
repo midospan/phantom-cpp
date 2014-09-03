@@ -57,7 +57,7 @@ protected:
     virtual void    saveIndex();
     virtual void    saveTypes();
     virtual void    saveAttributes();
-    virtual void    saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) ;
+    virtual void    saveDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) ;
     virtual void    saveDataAttributes();
     virtual void    saveDataAttributes(const phantom::data& a_Data, uint guid);
 
@@ -85,7 +85,7 @@ protected:
     virtual bool    restoreOne(const phantom::data& a_Data, uint a_uiSerializationFlag, uint a_uiPass);
     virtual void    saveDataAttributesHelper(property_tree& tree, const phantom::data& a_Data);
     virtual void    loadDataAttributesHelper( const property_tree& tree, const phantom::data& a_Data );
-    virtual void    loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid);
+    virtual void    loadDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid);
     
 protected:
     list<data>      m_DataAbortQueue;

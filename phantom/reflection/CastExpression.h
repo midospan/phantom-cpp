@@ -63,7 +63,7 @@ public:
 protected:
     Expression*     m_pCastedExpression;
     void*           m_pTempValue;
-
+    void*           m_pIntermediateBuffer;
 };
 
 o_namespace_end(phantom, reflection)

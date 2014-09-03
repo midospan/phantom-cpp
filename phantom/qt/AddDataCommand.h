@@ -24,7 +24,8 @@ public:
 	// Constructors / Destructor
 	//================================================
 
-	AddDataCommand(reflection::Type* a_pType, phantom::serialization::Node* a_pNode);
+    AddDataCommand(reflection::Type* a_pType, uint guid, phantom::serialization::Node* a_pNode);
+    AddDataCommand(const string& a_strTypeName, uint guid, phantom::serialization::Node* a_pNode);
 	~AddDataCommand();
 
 
@@ -35,6 +36,7 @@ public:
 	virtual void undo();
 	virtual void redo();
 
+    virtual UndoCommand* clone() const;
 
 protected:
 	//================================================
@@ -43,7 +45,8 @@ protected:
 	serialization::DataBase*        m_pDataBase;
     string                          m_strTypeName;
 	uint							m_uiGuid;
-    uint                            m_uiParentGuid;
+    uint                            m_uiNodeGuid;
+    bool                            m_bInitialized;
 
 };
 

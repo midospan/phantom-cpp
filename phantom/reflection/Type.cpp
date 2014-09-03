@@ -553,6 +553,7 @@ void Type::moduleChanged( Module* a_pModule )
             a_pModule->addLanguageElement(*it);
         }
     }
+    LanguageElement::moduleChanged(a_pModule);
 }
 
 DataPointerType* Type::getDataPointerType() const

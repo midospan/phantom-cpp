@@ -233,6 +233,7 @@ Constructor* ClassType::getConstructor( const vector<Type*>& a_Types, vector<siz
                 const_cast<vector<Constructor*>*&>(m_pConstructors) = new vector<Constructor*>;
             }
             const_cast<vector<Constructor*>*&>(m_pConstructors)->push_back(pDefaultConstructor);
+            if(m_pModule) m_pModule->addLanguageElement(pDefaultConstructor);
             const_cast<ClassType*>(this)->addElement(pDefaultConstructor);
             return pDefaultConstructor;
         }
@@ -541,6 +542,7 @@ Expression* ClassType::solveOperator( const string& a_strOp, const vector<Expres
 
 InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/ ) const
 {
+    string name = conversionOperatorNameNormalizer(a_strName, const_cast<ClassType*>(this));
     if(a_pPartialMatchesIndexes)
     {
         vector<std::pair<InstanceMemberFunction*, vector<size_t>>> matching;
@@ -552,7 +554,7 @@ InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_st
         {
             partialMatches.clear();
             InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>((*it));
-            if(pMemberFunction->matches(a_strName, a_Types, &partialMatches, a_Modifiers))
+            if(pMemberFunction->matches(name, a_Types, &partialMatches, a_Modifiers))
             {
                 matching.push_back(std::pair<InstanceMemberFunction*, vector<size_t>>(pMemberFunction, partialMatches));
             }
@@ -570,7 +572,7 @@ InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_st
         for(; it != end; ++it)
         {
             InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>((*it));
-            if(pMemberFunction->matches(a_strName, a_Types, nullptr, a_Modifiers))
+            if(pMemberFunction->matches(name, a_Types, nullptr, a_Modifiers))
             {
                 return pMemberFunction;
             }
@@ -760,6 +762,7 @@ void                    ClassType::addConstructor( Constructor* a_pConstructor )
     }
     if(m_pConstructors == nullptr) m_pConstructors = new vector<Constructor*>;
     m_pConstructors->push_back(a_pConstructor);
+    if(m_pModule) m_pModule->addLanguageElement(a_pConstructor);
     addElement(a_pConstructor);
 }
 
@@ -798,6 +801,7 @@ void                ClassType::addProperty( Property* a_pProperty )
     }
     m_Properties.push_back(a_pProperty);
     m_ValueMembers.insert(m_ValueMembers.begin()+(m_Properties.size()-1), a_pProperty);
+    if(m_pModule) m_pModule->addLanguageElement(a_pProperty);
     addElement(a_pProperty);
 }
 
@@ -823,6 +827,7 @@ void                ClassType::addInstanceDataMember(InstanceDataMember* a_pData
     }
     m_InstanceDataMembers.push_back(a_pDataMember);
     m_ValueMembers.push_back(a_pDataMember);
+    if(m_pModule) m_pModule->addLanguageElement(a_pDataMember);
     addElement(a_pDataMember);
 }
 
@@ -830,6 +835,7 @@ void                ClassType::addStaticDataMember(StaticDataMember* a_pDataMemb
 {
     if(m_pStaticDataMembers == nullptr) m_pStaticDataMembers = new vector<StaticDataMember*>;
     m_pStaticDataMembers->push_back(a_pDataMember);
+    if(m_pModule) m_pModule->addLanguageElement(a_pDataMember);
     addElement(a_pDataMember);
 }
 
@@ -861,6 +867,7 @@ void                ClassType::addCollection( Collection* a_pCollection)
     }
     if(m_pCollections == nullptr) m_pCollections = new vector<Collection*>;
     m_pCollections->push_back(a_pCollection);
+    if(m_pModule) m_pModule->addLanguageElement(a_pCollection);
     addElement(a_pCollection);
 }
 
@@ -882,6 +889,7 @@ void                ClassType::addInstanceMemberFunction(InstanceMemberFunction*
     o_assert(pElement == nullptr OR pElement->getOwner() != this OR pElement->isConst() != a_pInstanceMemberFunction->isConst());
 #endif
     m_InstanceMemberFunctions.push_back(a_pInstanceMemberFunction);
+    if(m_pModule) m_pModule->addLanguageElement(a_pInstanceMemberFunction);
     addElement(a_pInstanceMemberFunction);
 }
 
@@ -893,6 +901,7 @@ void                ClassType::addStaticMemberFunction(StaticMemberFunction* a_p
 #endif
     if(m_pStaticMemberFunctions == nullptr) m_pStaticMemberFunctions = new vector<StaticMemberFunction*>;
     m_pStaticMemberFunctions->push_back(a_pStaticMemberFunction);
+    if(m_pModule) m_pModule->addLanguageElement(a_pStaticMemberFunction);
     addElement(a_pStaticMemberFunction);
 }
 
@@ -1315,6 +1324,60 @@ InstanceMemberFunction* ClassType::createDestructor() const
     Signature* pSignature = o_new(Signature);
     pSignature->setReturnType(typeOf<void>());
     return o_new(InstanceMemberFunction)("~"+m_strName, pSignature, 0);
+}
+
+void ClassType::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const
+{
+    reflection::ReferenceType* pRefType = a_pDestType->asReferenceType();
+    if(pRefType)
+    {
+        pRefType->getReferencedType()->copy(a_pDestValue, a_pSrcValue); // for references, copy address to dest
+    }
+    else if(a_pDestType->removeConst() == this) 
+    {
+        copy(a_pDestValue, a_pSrcValue);
+    }
+    else
+    {
+        
+        vector<Type*> types;
+        vector<size_t> partial;
+        InstanceMemberFunction* pFunc = getInstanceMemberFunction("operator "+a_pDestType->getQualifiedDecoratedName(), types, &partial, 0);
+        o_assert(pFunc);
+        pFunc->call((void*)a_pSrcValue, nullptr, a_pDestValue);
+    }
+}
+
+void ClassType::destroy( void* a_pInstance ) const
+{
+    o_assert(m_pExtraData);
+    size_t i = 0;
+    Type::aligner aligner(reinterpret_cast<byte*>(a_pInstance)+m_pExtraData->m_uiDataMemberMemoryOffset);
+    for(;i<m_pExtraData->m_DataMemberTypes.size();++i)
+    {
+        aligner.destroy(m_pExtraData->m_DataMemberTypes[i]);
+    }
+}
+
+bool ClassType::isImplicitlyConvertibleTo( Type* a_pType ) const
+{
+    if(a_pType->removeConst() == this) return !hasCopyDisabled();
+    reflection::ReferenceType* pRefDestType = a_pType->asReferenceType();
+    if(pRefDestType AND pRefDestType->getReferencedType()->asConstType())
+        return isImplicitlyConvertibleTo(a_pType->removeReference()->removeConst());
+    vector<Type*> types;
+    vector<size_t> partial;
+    InstanceMemberFunction* pFunc = getInstanceMemberFunction("operator "+a_pType->getQualifiedDecoratedName(), types, &partial, 0);
+    return pFunc != nullptr;
+}
+
+bool ClassType::isConvertibleTo( Type* a_pType ) const
+{
+    if(a_pType->removeConst() == this) return !hasCopyDisabled();
+    reflection::ReferenceType* pRefDestType = a_pType->asReferenceType();
+    if(pRefDestType AND pRefDestType->getReferencedType()->asConstType())
+        return isImplicitlyConvertibleTo(a_pType->removeReference()->removeConst());
+    return isImplicitlyConvertibleTo(a_pType);
 }
 
 o_namespace_end(phantom, reflection)

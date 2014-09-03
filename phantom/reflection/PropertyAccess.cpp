@@ -137,4 +137,9 @@ PropertyAccess* PropertyAccess::clone() const
     return o_new(PropertyAccess)(m_pLeftExpression->clone(), m_pProperty);
 }
 
+LanguageElement* PropertyAccess::getHatchedElement() const
+{
+    return m_pProperty;
+}
+
 o_namespace_end(phantom, reflection)

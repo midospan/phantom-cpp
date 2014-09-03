@@ -47,4 +47,9 @@ void SaveNodeAttributeCommand::undo()
     pNode->saveAttributes();
 }
 
+SaveNodeAttributeCommand* SaveNodeAttributeCommand::clone() const
+{
+    return o_new(SaveNodeAttributeCommand)(m_pDataBase->getNode(m_uiGuid));
+}
+
 }}

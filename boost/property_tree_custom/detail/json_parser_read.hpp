@@ -238,8 +238,8 @@ namespace boost { namespace property_tree_custom { namespace json_parser
                     =   !ch_p("-") >>
                         (ch_p("0") | (range_p(Ch('1'), Ch('9')) >> *digit_p)) >>
                         !(ch_p(".") >> +digit_p) >>
-                        !(chset_p(detail::widen<Ch>("eE").c_str()) >>
-                          !chset_p(detail::widen<Ch>("-+").c_str()) >>
+                        !(chset_p(detail::widen<typename Ptree::string_type>("eE").c_str()) >>
+                          !chset_p(detail::widen<typename Ptree::string_type>("-+").c_str()) >>
                           +digit_p)
                         ;
 
@@ -254,7 +254,7 @@ namespace boost { namespace property_tree_custom { namespace json_parser
                     ;
 
                 escape
-                    =   chset_p(detail::widen<Ch>("\"\\/bfnrt").c_str())
+                    =   chset_p(detail::widen<typename Ptree::string_type>("\"\\/bfnrt").c_str())
                             [typename Context::a_escape(self.c)]
                     |   'u' >> uint_parser<unsigned long, 16, 4, 4>()
                             [typename Context::a_unicode(self.c)]
@@ -303,7 +303,7 @@ namespace boost { namespace property_tree_custom { namespace json_parser
        typename Ptree::BOOST_NESTED_TEMPLATE for_anytype<Ch>::vector v(std::istreambuf_iterator<Ch>(stream.rdbuf()),
                           std::istreambuf_iterator<Ch>());
         if (!stream.good())
-            BOOST_PROPERTY_TREE_CUSTOM_THROW(json_parser_error("read error", filename, 0));
+            BOOST_PROPERTY_TREE_CUSTOM_THROW(json_parser_error<typename Ptree::string_type>("read error", filename, 0));
         
         // Prepare grammar
         json_grammar<Ptree> g;
@@ -314,11 +314,11 @@ namespace boost { namespace property_tree_custom { namespace json_parser
             parse_info<It> pi = parse(v.begin(), v.end(), g, 
                                       space_p | comment_p("//") | comment_p("/*", "*/"));
             if (!pi.hit || !pi.full)
-                BOOST_PROPERTY_TREE_CUSTOM_THROW((parser_error<std::string, It>(v.begin(), "syntax error")));
+                BOOST_PROPERTY_TREE_CUSTOM_THROW((parser_error<typename Ptree::string_type, It>(v.begin(), "syntax error")));
         }
-        catch (parser_error<std::string, It> &e)
+        catch (parser_error<typename Ptree::string_type, It> &e)
         {
-            BOOST_PROPERTY_TREE_CUSTOM_THROW(json_parser_error(e.descriptor, filename, count_lines<It, Ch>(v.begin(), e.where)));
+            BOOST_PROPERTY_TREE_CUSTOM_THROW(json_parser_error<typename Ptree::string_type>(e.descriptor, filename, count_lines<It, Ch>(v.begin(), e.where)));
         }
 
         // Swap grammar context root and pt

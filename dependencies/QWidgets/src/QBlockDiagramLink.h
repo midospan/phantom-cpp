@@ -2,6 +2,8 @@
 #define QWIDGETSLINK_H
 
 #include "QBlockDiagramItem.h"
+#include <QPen>
+#include <QBrush>
 
 class QBlockDiagramLinkEnd;
 class QBlockDiagramNodeSlot;
@@ -15,16 +17,26 @@ class QWIDGETS_EXPORT QBlockDiagramLink : public QBlockDiagramItem
     friend class QBlockDiagramLinkEnd;
 
 public:
-  enum EEnd
-  {
-    eFirst,
-    eSecond,
-    eCount
-  };
-  enum EProperty
-  {
-    destroyOnDisconnectedEnd = 0x1,
-  };
+    enum EEnd
+    {
+        eFirst,
+        eSecond,
+        eCount
+    };
+    enum EProperty
+    {
+        destroyOnDisconnectedEnd = 0x1,
+    };
+
+    enum EState
+    {
+        e_State_Default = 0x0,
+        e_State_SemiConnected = 0x1,
+        e_State_Connected = 0x2,
+        e_State_Highlighted = 0x4,
+        e_State_Hovered = 0x8,
+        e_State_Pressed = 0x10,
+    };
 
 public:
     QBlockDiagramLink();
@@ -55,19 +67,29 @@ public:
 
     bool        isSnaped() const;
 
-    bool        isConnected() const;
-    bool        isSemiConnected() const;
+    bool        testConnected() const;
+    bool        testSemiConnected() const;
     bool        hasEndMoving() const;
 
-    void        setDefaultColor(const QColor& a_Color) { m_DefaultColor = a_Color; }
-    void        setConnectColor(const QColor& a_Color) { m_ConnectColor = a_Color; }
-    void        setSnapColor(const QColor& a_Color) { m_SnapColor = a_Color; }
-    void        setMoveColor(const QColor& a_Color) { m_MoveColor = a_Color; }
+    void        setStatePen(EState state, const QPen& pen) { m_Pens[state] = pen; }
+    void        setStateBrush(EState state, const QBrush& brush) { m_Brushes[state] = brush; }
 
-    const QColor&        getConnectColor(void) const { return m_ConnectColor ; }
-    const QColor&        getSnapColor(void) const { return m_SnapColor ; }
-    const QColor&        getMoveColor(void) const { return m_MoveColor ; }
-    virtual QColor       getCurrentColor() const;
+    bool isHovered() const { return (m_States & e_State_Hovered) != 0; }
+    void setHovered(bool value);
+
+    bool isPressed() const { return (m_States & e_State_Pressed) != 0; }
+    void setPressed(bool value);
+
+    bool isSemiConnected() const { return (m_States & e_State_SemiConnected) != 0; }
+    void setSemiConnected(bool value);
+
+    bool isConnected() const { return (m_States & e_State_Connected) != 0; }
+    void setConnected(bool value);
+
+    bool isHighlighted() const { return (m_States & e_State_Highlighted) != 0; }
+    void setHighlighted(bool value);
+
+    void setState(EState state, bool value);
 
     QBlockDiagramLinkEnd* getEndTwin(QBlockDiagramLinkEnd const* a_pEnd) const 
     { 
@@ -85,12 +107,45 @@ protected slots:
 
 protected:
     bool            isValid() const { return m_Ends[eFirst] != NULL && m_Ends[eSecond] != NULL; }
+    void            updateState();
+protected:
+    EState dominantPenState() const 
+    {
+        EState majorState = e_State_Pressed;
+        while(majorState)
+        {
+            if(m_States & majorState)
+            {
+                if(m_Pens.find(majorState) != m_Pens.end())
+                    return majorState;
+            }
+            majorState = (EState)(majorState >> 1);
+        }
+        return majorState;
+    }
+    EState dominantBrushState() const 
+    {
+        EState majorState = e_State_Pressed;
+        while(majorState)
+        {
+            if(m_States & majorState)
+            {
+                if(m_Brushes.find(majorState) != m_Brushes.end())
+                    return majorState;
+            }
+            majorState = (EState)(majorState >> 1);
+        }
+        return majorState;
+    }
 
 private:
     QColor                  m_DefaultColor;
     QColor                  m_SnapColor;
     QColor                  m_ConnectColor;
     QColor                  m_MoveColor;
+    QMap<EState, QBrush>    m_Brushes;
+    QMap<EState, QPen>      m_Pens;
+    int                     m_States;
     QBlockDiagramLinkEnd*   m_Ends[eCount];
     QPainterPath            m_Path;
     QFlags<EProperty>       m_Properties;

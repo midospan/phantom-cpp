@@ -4,6 +4,7 @@
 
 /* ****************** Includes ******************* */
 #include "phantom/qt/qt.h"
+#include <QIcon>
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, qt), VariableNode);
 /* *********************************************** */
@@ -13,6 +14,10 @@ namespace phantom { namespace qt {
 class VariableModel;
 class VariableAction;
 class UndoStack;
+class UndoCommand;
+class VariableNodeDelegate;
+class Menu;
+class VariableWidgetEditor;
 
 enum EVariableNodeProperty
 {
@@ -42,6 +47,18 @@ public:
     o_terminate();
 
     // void eval(EEvalPolicies a_eEvalPolicy);
+    void setDelegate(VariableNodeDelegate* a_pDelegate);
+
+    VariableWidgetEditor* createEditor() const;
+    QWidget* createActionWidget() const;
+    Menu* createMenu() const;
+
+    string valueText() const;
+    QIcon valueIcon() const;
+
+    VariableModel* getVariableModel() const { return m_pVariableModel; }
+
+    virtual UndoCommand* createValueSetUndoCommand(const void* a_pValue) const;
 
     bool hasModifier(bitfield a_Modifier) const { return m_Modifiers.matchesMask(a_Modifier); }
 
@@ -134,6 +151,13 @@ public:
 
     void clear();
 
+    void addAction(VariableAction* a_pAction, const string& a_strCategory = "")
+    {
+        m_Actions[a_strCategory].push_back(a_pAction);
+    }
+
+    void invalidate();
+
 protected:
     o_signal_data(nameChanged, const string&);
     o_signal_data(valueChanged);
@@ -146,13 +170,16 @@ protected:
 protected:
     void updateType();
     void destroyExpressions();
+
 protected:
     string                          m_strName;
     vector<reflection::Expression*> m_Expressions;
     vector<UndoStack*>              m_ExpressionUndoStacks;
+    map<string, vector<VariableAction*>> m_Actions;
     reflection::Type*               m_pValueType;
     reflection::Range*              m_pRange;
     VariableNode*                   m_pParentNode;
+    VariableNodeDelegate*           m_pDelegate;
     VariableModel*                  m_pVariableModel;
     vector<VariableNode*>           m_ChildNodes;
     vector<VariableAction*>         m_VariableActions;

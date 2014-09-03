@@ -16,10 +16,12 @@ QBlockDiagramNode::QBlockDiagramNode()
   , m_PreferredSize(50.f,50.f)
   , m_pLayout(NULL)
   , m_pEmbeddedWidget(NULL)
-  , m_BackgroundBrush(QColor(255,255,255,192))
   , m_bHeaderVisible(true)
-  
+  , m_States(0)
 {
+    m_Pens[e_State_Default].setWidth(4);
+    m_Pens[e_State_Default].setColor(QColor(255,255,255));
+    m_Brushes[e_State_Default] = QBrush(QColor(255,255,255,192));
     setFlag (QGraphicsItem::ItemIsSelectable);
     m_pHeaderItem = new QGraphicsRectItem;
     m_pHeaderTextItem = new QGraphicsSimpleTextItem;
@@ -41,19 +43,9 @@ QBlockDiagramNode::~QBlockDiagramNode()
 
 void QBlockDiagramNode::paint( QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget /*= 0 */ )
 {
-    QPen pen;
-    pen.setWidth(4);
-    if(isSelected())
-    {
-        pen.setColor(QColor(255,255,255));
-    }
-    else
-    {
-        pen.setColor(QColor(200,200,200));
-    }
-    painter->setPen(pen);
-    painter->fillRect(4,4,m_Size.width()-8,m_Size.height()-8, m_BackgroundBrush);
-    painter->setBrush(m_BackgroundBrush);
+    painter->setPen(m_Pens[dominantPenState()]);
+    painter->fillRect(4,4,m_Size.width()-8,m_Size.height()-8, m_Brushes[dominantBrushState()]);
+    painter->setBrush(m_Brushes[dominantBrushState()]);
     painter->drawRoundedRect(2,2,m_Size.width()-4,m_Size.height()-4,8,8);
 }
 
@@ -101,6 +93,14 @@ QVariant QBlockDiagramNode::itemChange( GraphicsItemChange change, const QVarian
   {
   case ItemSelectedChange:
     setFlag(ItemIsMovable, value.toBool());
+    if(value.toBool())
+    {
+        selected();
+    }
+    else 
+    {
+        deselected();
+    }
     break;
   }
   return QBlockDiagramItem::itemChange(change, value);;
@@ -233,3 +233,46 @@ void QBlockDiagramNode::setHeaderBrush( const QBrush& brush )
     m_pHeaderItem->setBrush(brush);
 }
 
+
+void QBlockDiagramNode::setHovered( bool value )
+{
+    setState(e_State_Hovered, value);
+}
+
+void QBlockDiagramNode::setPressed( bool value )
+{
+    setState(e_State_Pressed, value);
+}
+
+void QBlockDiagramNode::setInvalid( bool value )
+{
+    setState(e_State_Invalid, value);
+}
+
+void QBlockDiagramNode::setHighlighted( bool value )
+{
+    setState(e_State_Highlighted, value);
+}
+
+void QBlockDiagramNode::setCustomized( bool value )
+{
+    setState(e_State_Customized, value);
+}
+
+void QBlockDiagramNode::setPreselected( bool value ) /* used by generic template SelectionModel */
+{
+    setState(e_State_Preselected, value);
+}
+
+void QBlockDiagramNode::setState( EState state, bool value )
+{
+    if(value == ((m_States & state) != 0)) return;
+    if(value) 
+    {
+        m_States |= state;
+    }
+    else 
+    {
+        m_States &= ~state;
+    }
+}

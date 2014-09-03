@@ -65,12 +65,12 @@ namespace boost { namespace property_tree_custom { namespace info_parser
         typename Ptree::key_basic_ifstream
             stream(filename.c_str());
         if (!stream) {
-            BOOST_PROPERTY_TREE_CUSTOM_THROW(info_parser_error(
+            BOOST_PROPERTY_TREE_CUSTOM_THROW(info_parser_error<typename Ptree::string_type>(
                 "cannot open file for reading", filename, 0));
         }
         stream.imbue(loc);
         Ptree local;
-        read_info_internal(stream, local, filename, 0);
+        read_info_internal<Ptree, Ptree::string_type::value_type>(stream, local, filename, 0);
         pt.swap(local);
     }
 
@@ -130,7 +130,7 @@ namespace boost { namespace property_tree_custom { namespace info_parser
        typename Ptree::key_basic_ofstream
             stream(filename.c_str());
         if (!stream) {
-            BOOST_PROPERTY_TREE_CUSTOM_THROW(info_parser_error(
+            BOOST_PROPERTY_TREE_CUSTOM_THROW(info_parser_error<typename Ptree::string_type>(
                 "cannot open file for writing", filename, 0));
         }
         stream.imbue(loc);

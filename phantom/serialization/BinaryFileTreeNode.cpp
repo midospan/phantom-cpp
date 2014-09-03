@@ -61,7 +61,7 @@ void BinaryFileTreeNode::saveDataAttributes(const phantom::data& a_Data, uint gu
 
 }
 
-void BinaryFileTreeNode::saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) 
+void BinaryFileTreeNode::saveDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) 
 {   
 	// Serialize the data
 	byte buffer[1000000];
@@ -73,7 +73,7 @@ void BinaryFileTreeNode::saveData(uint a_uiSerializationFlag, const phantom::dat
     writeBinary(path.c_str(), &(buffer[0]), pBuffer - &(buffer[0]));
 }
 
-void BinaryFileTreeNode::loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) 
+void BinaryFileTreeNode::loadDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) 
 {
 	// Read the data file
 	byte buffer[1000000];
@@ -85,19 +85,6 @@ void BinaryFileTreeNode::loadData(uint a_uiSerializationFlag, const phantom::dat
 	// Deserialize the data
 	pBuffer = &(buffer[0]);
     a_Data.type()->deserialize(a_Data.address(), (const byte*&)pBuffer, a_uiSerializationFlag, m_pOwnerDataBase);
-}
-
-void BinaryFileTreeNode::saveData(uint a_uiSerializationFlag)
-{
-    data_vector::iterator it = m_Data.begin();
-    data_vector::iterator end = m_Data.end();
-
-    for(;it != end; ++it)
-    {
-        void* pAddress = it->address();
-        uint guid = m_pOwnerDataBase->getGuid(pAddress);
-        saveData(a_uiSerializationFlag, *it, guid);
-    }
 }
 
 void BinaryFileTreeNode::saveIndex()
@@ -258,7 +245,7 @@ void BinaryFileTreeNode::cache()
 			phantom::data the_data(pType->allocate(),pType);
 			storeData(the_data);
 			m_DataRestoreQueue.push_back(the_data);
-			pDB->registerData(the_data, uiGuid, this);
+			pDB->registerData(the_data, uiGuid, this, 0);
 		}
 		size_t j = 0;
 		size_t count = m_Data.size();
@@ -269,7 +256,7 @@ void BinaryFileTreeNode::cache()
 			{
 				const phantom::data& parentData = pDB->getData(parentGuid);
 				o_assert(NOT(parentData.isNull()));
-				pDB->registerComponentData(m_Data[j], parentData, "");
+				pDB->registerComponentData(m_Data[j], parentData, "", 0);
 			}
 		}
 	}
@@ -493,7 +480,7 @@ bool BinaryFileTreeNode::cacheOne(uint a_uiIndex)
 		phantom::data the_data(pType->allocate(),pType);
 		storeData(the_data);
 		m_DataRestoreQueue.push_back(the_data);
-		pDB->registerData(the_data, uiGuid, this);
+		pDB->registerData(the_data, uiGuid, this, 0);
 
 		return false;
 	}
@@ -514,7 +501,7 @@ void BinaryFileTreeNode::postCache()
 		{
 			const phantom::data& parentData = pDB->getData(parentGuid);
 			o_assert(NOT(parentData.isNull()));
-			pDB->registerComponentData(m_Data[i], parentData, "");
+			pDB->registerComponentData(m_Data[i], parentData, "", 0);
 		}
 	}
 

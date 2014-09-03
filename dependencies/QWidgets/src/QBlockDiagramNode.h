@@ -4,6 +4,7 @@
 #include "QBlockDiagramItem.h"
 #include <QMap>
 #include <QComboBox>
+#include <QPen>
 
 class QBlockDiagramNodeSlot;
 class QBlockDiagramNodeLayout;
@@ -23,9 +24,22 @@ class QGraphicsPixmapItem;
 
 class QWIDGETS_EXPORT QBlockDiagramNode : public QBlockDiagramItem
 {
-  Q_OBJECT
+    Q_OBJECT
 
     typedef QVector<QBlockDiagramNodeSlot*> SlotContainer;
+
+public:
+    enum EState
+    {
+        e_State_Default = 0x0,
+        e_State_Selected = 0x1,
+        e_State_Highlighted = 0x2,
+        e_State_Hovered = 0x4,
+        e_State_Pressed = 0x8,
+        e_State_Preselected = 0x10,
+        e_State_Invalid = 0x20,
+        e_State_Customized = 0x40,
+    };
 
 public:
     QBlockDiagramNode();
@@ -73,12 +87,73 @@ public:
     void    setEmbeddedWidget(QWidget* a_pEmbeddedWidget, int zValue = 100000);
     void    setEmbeddedWidgetZValue(int zValue);
 
-    void setBackgroundBrush(const QBrush& brush) { m_BackgroundBrush = brush; }
+    void setStatePen(EState state, const QPen& pen) { m_Pens[state] = pen; }
+    void setStateBrush(EState state, const QBrush& brush) { m_Brushes[state] = brush; }
     void setHeaderBrush(const QBrush& brush);
 
     QGraphicsRectItem* getHeaderItem() const { return m_pHeaderItem; }
     QGraphicsSimpleTextItem* getHeaderTextItem() const { return m_pHeaderTextItem; }
     QGraphicsPixmapItem* getHeaderIconItem() const { return m_pHeaderIconItem; }
+
+    bool isPreselected() const { return (m_States & e_State_Preselected) != 0; }
+    void setPreselected(bool value); // used by selection rectangle;
+
+    bool isHovered() const { return (m_States & e_State_Hovered) != 0; }
+    void setHovered(bool value);
+
+    bool isPressed() const { return (m_States & e_State_Pressed) != 0; }
+    void setPressed(bool value);
+
+    bool isCustomized() const { return (m_States & e_State_Customized) != 0; }
+    void setCustomized(bool value);
+
+    bool isInvalid() const { return (m_States & e_State_Invalid) != 0; }
+    void setInvalid(bool value);
+
+    bool isHighlighted() const { return (m_States & e_State_Highlighted) != 0; }
+    void setHighlighted(bool value);
+
+    void setState(EState state, bool value);
+
+protected:
+    EState dominantPenState() const 
+    {
+        EState majorState = e_State_Invalid;
+        while(majorState)
+        {
+            if(m_States & majorState)
+            {
+                if(m_Pens.find(majorState) != m_Pens.end())
+                    return majorState;
+            }
+            majorState = (EState)(majorState >> 1);
+        }
+        return majorState;
+    }
+    EState dominantBrushState() const 
+    {
+        EState majorState = e_State_Invalid;
+        while(majorState)
+        {
+            if(m_States & majorState)
+            {
+                if(m_Brushes.find(majorState) != m_Brushes.end())
+                    return majorState;
+            }
+            majorState = (EState)(majorState >> 1);
+        }
+        return majorState;
+    }
+
+protected:
+    virtual void selected() 
+    {
+        setState(e_State_Selected, true);
+    }
+    virtual void deselected() 
+    {
+        setState(e_State_Selected, false);
+    }
 
 private:
     QBlockDiagramNodeFlags      m_NodeFlags;
@@ -91,7 +166,9 @@ private:
     QBlockDiagramNodeLayout*    m_pLayout;
     QGraphicsProxyWidget*       m_pGraphicsProxyWidget;
     QWidget*                    m_pEmbeddedWidget;
-    QBrush                      m_BackgroundBrush;
+    QMap<EState, QBrush>        m_Brushes;
+    QMap<EState, QPen>          m_Pens;
+    int                         m_States;
     bool                        m_bHeaderVisible;
 
     

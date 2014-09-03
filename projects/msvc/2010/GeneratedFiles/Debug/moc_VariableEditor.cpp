@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'VariableEditor.h'
 **
-** Created: Fri 11. Jul 18:46:51 2014
+** Created: Tue 2. Sep 20:06:37 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -40,13 +40,13 @@ static const uint qt_meta_data_phantom__qt__VariableEditor[] = {
  // slots: signature, parameters, type, tag, flags
      185,   28,   28,   28, 0x0a,
      195,   28,   28,   28, 0x0a,
-     208,  204,   28,   28, 0x09,
-     240,   29,   28,   28, 0x09,
-     275,   28,   28,   28, 0x09,
-     297,   28,   28,   28, 0x09,
-     338,  322,   28,   28, 0x09,
-     376,  322,   28,   28, 0x09,
-     454,  425,   28,   28, 0x09,
+     204,   28,   28,   28, 0x09,
+     222,   29,   28,   28, 0x09,
+     257,   28,   28,   28, 0x09,
+     279,   28,   28,   28, 0x09,
+     320,  304,   28,   28, 0x09,
+     358,  304,   28,   28, 0x09,
+     436,  407,   28,   28, 0x09,
 
        0        // eod
 };
@@ -57,7 +57,7 @@ static const char qt_meta_stringdata_phantom__qt__VariableEditor[] = {
     "variableAccessed(VariableNode*)\0"
     "variableAboutToBeChanged(VariableNode*)\0"
     "variableChanged(VariableNode*)\0refresh()\0"
-    "reedit()\0pos\0createPropertyPopupMenu(QPoint)\0"
+    "reedit()\0showPopup(QPoint)\0"
     "slotVariableChanged(VariableNode*)\0"
     "slotEditorDestroyed()\0slotEditorValueChanged()\0"
     "a_pVariableNode\0variableChildNodeAdded(VariableNode*)\0"
@@ -78,7 +78,7 @@ void phantom::qt::VariableEditor::qt_static_metacall(QObject *_o, QMetaObject::C
         case 3: _t->variableChanged((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
         case 4: _t->refresh(); break;
         case 5: _t->reedit(); break;
-        case 6: _t->createPropertyPopupMenu((*reinterpret_cast< const QPoint(*)>(_a[1]))); break;
+        case 6: _t->showPopup((*reinterpret_cast< const QPoint(*)>(_a[1]))); break;
         case 7: _t->slotVariableChanged((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
         case 8: _t->slotEditorDestroyed(); break;
         case 9: _t->slotEditorValueChanged(); break;

@@ -3,6 +3,7 @@
 #include "UnloadNodeCommand.h"
 #include "UnloadNodeCommand.hxx"
 #include <phantom/serialization/Node.h>
+#include <phantom/serialization/DataStateBase.h>
 /* *********************************************** */
 o_registerN((phantom, qt), UnloadNodeCommand);
 
@@ -41,6 +42,10 @@ void UnloadNodeCommand::undo()
     o_assert(pNode->getParentNode() == nullptr OR pNode->getParentNode()->isLoaded());
     o_assert(pNode->canLoad());
     pNode->load();
+    if(m_pDataBase->getDataStateBase())
+    {
+        pNode->loadState(m_pDataBase->getDataStateBase()->getCurrentStateId());
+    }
 }
 
 void UnloadNodeCommand::redo()
@@ -56,6 +61,11 @@ void UnloadNodeCommand::redo()
     }
 #endif
     pNode->unload();
+}
+
+UnloadNodeCommand* UnloadNodeCommand::clone() const
+{
+    return o_new(UnloadNodeCommand)(m_pDataBase->getNode(m_uiGuid));
 }
 
 }}

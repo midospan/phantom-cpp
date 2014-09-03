@@ -256,7 +256,9 @@ public:
 
     virtual variant compile(Compiler* a_pCompiler);
 
-    virtual LanguageElement* hatch() { return this; }
+    virtual LanguageElement* hatch();
+
+    virtual LanguageElement* getHatchedElement() const;
 
     Extension*  getExtension() const { return m_pExtension; }
 

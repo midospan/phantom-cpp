@@ -2,7 +2,6 @@
 #include "phantom/qt/qt.h"
 #include "VariableWidget.h"
 #include "VariableWidgetEditor.h"
-#include "VariableAction.h"
 #include "VariableNode.h"
 #include "VariableModel.h"
 #include "phantom/std/string.h"
@@ -32,9 +31,9 @@ VariableWidget::~VariableWidget()
 
 void VariableWidget::addVariableAction( VariableAction* a_pAction )
 {
-    m_Actions.append(a_pAction);
-    a_pAction->setParent(this);
-    rebuildLayout();
+//     m_Actions.append(a_pAction);
+//     a_pAction->setParent(this);
+//     rebuildLayout();
 }
 
 void VariableWidget::rebuildLayout()
@@ -44,15 +43,15 @@ void VariableWidget::rebuildLayout()
     layout->setMargin(0);
     layout->setSpacing(0);
     layout->addWidget(m_pVariableWidgetEditor->getWidget());
-    for(auto it = m_Actions.begin(); it != m_Actions.end(); ++it)
-    {
-        QToolButton* pButton = new QToolButton(this);
-        pButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
-        pButton->setIconSize(QSize(16,16));
-        pButton->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding));
-        pButton->setDefaultAction(*it);
-        layout->addWidget(pButton);
-    }
+//     for(auto it = m_Actions.begin(); it != m_Actions.end(); ++it)
+//     {
+//         QToolButton* pButton = new QToolButton(this);
+//         pButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+//         pButton->setIconSize(QSize(16,16));
+//         pButton->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding));
+//         pButton->setDefaultAction(*it);
+//         layout->addWidget(pButton);
+//     }
     setFocusProxy(m_pVariableWidgetEditor->getWidget());
 }
 

@@ -40,7 +40,6 @@ public:
 protected:
     virtual void variableChanged(VariableNode* a_pVariable);
 
-
 signals:
     void valueChanged();
 

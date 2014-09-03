@@ -42,6 +42,54 @@ o_registerN((phantom, serialization), XmlFileTreeNode);
 
 o_namespace_begin(phantom, serialization)
 
+void encodeSpecialXmlCharacters(property_tree& tree)
+{
+    bool encodingDone = true;
+    do 
+    {
+        encodingDone = false;
+        for(property_tree::iterator it = tree.begin(); it != tree.end(); ++it)
+        {
+            string name = it->first;
+            string encodedName = encodeQualifiedDecoratedNameToIdentifierName(it->first);
+            if(name != encodedName)
+            {
+                encodingDone = true;
+                tree.add_child(encodedName, it->second);
+                tree.erase(name);
+                break;
+            }
+            else encodeSpecialXmlCharacters(it->second);
+        }
+    } 
+    while(encodingDone);
+    tree.put_value(encodeQualifiedDecoratedNameToIdentifierName(tree.get_value<string>()));
+}
+
+void decodeSpecialXmlCharacters(property_tree& tree)
+{
+    bool encodingDone = true;
+    do 
+    {
+        encodingDone = false;
+        for(property_tree::iterator it = tree.begin(); it != tree.end(); ++it)
+        {
+            string name = it->first;
+            string encodedName = decodeQualifiedDecoratedNameFromIdentifierName(it->first);
+            if(name != encodedName)
+            {
+                encodingDone = true;
+                tree.add_child(encodedName, it->second);
+                tree.erase(name);
+                break;
+            }
+            else decodeSpecialXmlCharacters(it->second);
+        }
+    } 
+    while(encodingDone);
+    tree.put_value(decodeQualifiedDecoratedNameFromIdentifierName(tree.get_value<string>()));
+}
+
 XmlFileTreeNode::XmlFileTreeNode(XmlFileTreeDataBase* a_pOwnerDataBase, uint guid, XmlFileTreeNode* a_pParentNode)
     : FileTreeNode(a_pOwnerDataBase, guid, a_pParentNode) 
 {
@@ -67,6 +115,7 @@ void XmlFileTreeNode::saveDataAttributes(const phantom::data& a_Data, uint guid)
 
     // First read the data file
     boost::property_tree_custom::read_xml(path.c_str(), p_tree);
+    decodeSpecialXmlCharacters(p_tree);
 
     boost::optional<property_tree&> attribute_tree_opt = p_tree.get_child_optional("data.attributes");
     if(attribute_tree_opt.is_initialized())
@@ -80,10 +129,11 @@ void XmlFileTreeNode::saveDataAttributes(const phantom::data& a_Data, uint guid)
         saveDataAttributesHelper(attribute_tree, a_Data);
         p_tree.add_child("data.attributes", attribute_tree);
     }
+    encodeSpecialXmlCharacters(p_tree);
     boost::property_tree_custom::write_xml(path.c_str(), p_tree, std::locale(), boost::property_tree_custom::xml_parser::xml_writer_settings<string>(' ', 1));
 }
 
-void XmlFileTreeNode::saveData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) 
+void XmlFileTreeNode::saveDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) 
 {
     property_tree p_tree;
     property_tree valueMembers_tree;
@@ -93,14 +143,16 @@ void XmlFileTreeNode::saveData(uint a_uiSerializationFlag, const phantom::data& 
     saveDataAttributesHelper(attribute_tree, a_Data);
     p_tree.add_child("data.valueMembers", valueMembers_tree);
     p_tree.add_child("data.attributes", attribute_tree);
+    encodeSpecialXmlCharacters(p_tree);
     boost::property_tree_custom::write_xml(path.c_str(), p_tree, std::locale(), boost::property_tree_custom::xml_parser::xml_writer_settings<property_tree::key_basic_string>(' ', 1));
 }
 
-void XmlFileTreeNode::loadData(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) 
+void XmlFileTreeNode::loadDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) 
 {
     property_tree p_tree;
     const string& path = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase)->dataPath(a_Data, guid, this);
     boost::property_tree_custom::read_xml(path.c_str(), p_tree);
+    decodeSpecialXmlCharacters(p_tree);
     property_tree valueMembers_tree = p_tree.get_child("data.valueMembers");
     a_Data.type()->deserialize(a_Data.address(), valueMembers_tree, a_uiSerializationFlag, m_pOwnerDataBase);
     property_tree attribute_tree;
@@ -123,20 +175,23 @@ void XmlFileTreeNode::saveIndex()
         void* pAddress = it->address();
         reflection::Type* pType = it->type();
         uint guid = getOwnerDataBase()->getGuid(pAddress);
+        uint modifiers = getOwnerDataBase()->getModifiers(pAddress);
         property_tree dataPath;
-        dataPath.put<string>("typename", encodeQualifiedDecoratedNameToIdentifierName(pType->getQualifiedDecoratedName()));
+        dataPath.put<string>("typename", /*encodeQualifiedDecoratedNameToIdentifierName*/(pType->getQualifiedDecoratedName()));
         dataPath.put<string>("guid", phantom::lexical_cast<string>(reinterpret_cast<void*>(guid)));
+        dataPath.put<string>("modifiers", phantom::lexical_cast<string>(reinterpret_cast<void*>(modifiers)));
         const data& parent = m_pOwnerDataBase->getComponentDataOwner(pAddress);
         if(NOT(parent.isNull()))
         {
             uint parentGuid = m_pOwnerDataBase->getGuid(parent);
             dataPath.put<string>("parent", phantom::lexical_cast<string>(reinterpret_cast<void*>(parentGuid)));
-            dataPath.put<string>("reference_expression", encodeQualifiedDecoratedNameToIdentifierName(m_pOwnerDataBase->getComponentDataReferenceExpression(*it)));
+            dataPath.put<string>("reference_expression", /*encodeQualifiedDecoratedNameToIdentifierName*/(m_pOwnerDataBase->getComponentDataReferenceExpression(*it)));
         }
         index_tree.add_child("index.data", dataPath);
     }
 
     const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
+    encodeSpecialXmlCharacters(index_tree);
     boost::property_tree_custom::write_xml(self_path+'/'+"index", index_tree, std::locale(), boost::property_tree_custom::xml_parser::xml_writer_settings<string>(' ', 1));
     
 }
@@ -155,10 +210,10 @@ void XmlFileTreeNode::saveTypes()
     {
         const string& qualifiedDecoratedName = it->first;
         property_tree typeTree;
-        typeTree.put<string>("typename", encodeQualifiedDecoratedNameToIdentifierName(qualifiedDecoratedName));
+        typeTree.put<string>("typename", /*encodeQualifiedDecoratedNameToIdentifierName*/(qualifiedDecoratedName));
         reflection::Class* pClass = classOf(it->second);
         o_assert(pClass);
-        typeTree.put<string>("typeClassName", encodeQualifiedDecoratedNameToIdentifierName(pClass->getQualifiedDecoratedName()));
+        typeTree.put<string>("typeClassName", /*encodeQualifiedDecoratedNameToIdentifierName*/(pClass->getQualifiedDecoratedName()));
         property_tree dataTree;
         pClass->serialize(it->second, dataTree, 0xffffffff, nullptr);
         typeTree.add_child("data", dataTree);
@@ -166,6 +221,7 @@ void XmlFileTreeNode::saveTypes()
     }
 
     const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
+    encodeSpecialXmlCharacters(types_tree);
     boost::property_tree_custom::write_xml(self_path+'/'+"types", types_tree, std::locale(), boost::property_tree_custom::xml_parser::xml_writer_settings<string>(' ', 1));
 }
 
@@ -189,6 +245,7 @@ void XmlFileTreeNode::saveAttributes()
     }
 
     const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
+    encodeSpecialXmlCharacters(attribute_tree);
     boost::property_tree_custom::write_xml(self_path+'/'+"attributes", attribute_tree, std::locale(), boost::property_tree_custom::xml_parser::xml_writer_settings<string>(' ', 1));
 }
 
@@ -234,6 +291,7 @@ void XmlFileTreeNode::loadAttributes()
     const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
     boost::property_tree_custom::read_xml(self_path+'/'+"attributes", attribute_tree);
     if(attribute_tree.empty()) return;
+    decodeSpecialXmlCharacters(attribute_tree);
 
     boost::optional<property_tree&> opt_datalist_tree = attribute_tree.get_child_optional("attributes");
     if(opt_datalist_tree.is_initialized())
@@ -270,6 +328,7 @@ void XmlFileTreeNode::loadDataAttributes(const phantom::data& a_Data, uint guid)
 
     // First read the data file
     boost::property_tree_custom::read_xml(path.c_str(), p_tree);
+    decodeSpecialXmlCharacters(p_tree);
     
     property_tree attribute_tree;
     boost::optional<property_tree&> attribute_tree_opt = p_tree.get_child_optional("data.attributes");
@@ -287,6 +346,7 @@ bool XmlFileTreeNode::canLoad(vector<string>* missing_types) const
     property_tree types_root_tree;
 
     boost::property_tree_custom::read_xml(self_path+'/'+"types", types_root_tree);
+    decodeSpecialXmlCharacters(types_root_tree);
 
     std::set<string> types;
 
@@ -297,7 +357,7 @@ bool XmlFileTreeNode::canLoad(vector<string>* missing_types) const
         for(;it != end; ++it)
         {
             const property_tree& sub_tree = it->second;
-            string typeName = decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("typename"));
+            string typeName = /*decodeQualifiedDecoratedNameFromIdentifierName*/(sub_tree.get<string>("typename"));
             o_assert(typeName.size());
             types.insert(typeName);
         }
@@ -308,6 +368,8 @@ bool XmlFileTreeNode::canLoad(vector<string>* missing_types) const
     boost::property_tree_custom::read_xml(self_path+'/'+"index", index_tree);
     
     if(index_tree.empty()) return true;
+
+    decodeSpecialXmlCharacters(index_tree);
     
     boolean result = true;
     vector<uint>    parentGuids;
@@ -318,7 +380,7 @@ bool XmlFileTreeNode::canLoad(vector<string>* missing_types) const
     for(;it != end; ++it)
     {
         const property_tree& sub_tree = it->second;
-        string typeName = decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("typename"));
+        string typeName = /*decodeQualifiedDecoratedNameFromIdentifierName*/(sub_tree.get<string>("typename"));
         if(types.find(typeName) == types.end()) // Not found in local serialized types 
         {
             reflection::Type* pType = m_pOwnerDataBase->solveTypeByName(typeName);
@@ -346,6 +408,8 @@ void XmlFileTreeNode::cache()
 
     if(index_tree.empty()) return;
 
+    decodeSpecialXmlCharacters(index_tree);
+
     vector<uint>    parentGuids;
     vector<string>  referenceExpressions;
 
@@ -356,17 +420,20 @@ void XmlFileTreeNode::cache()
     {
         const property_tree& sub_tree = it->second;
         const string& strGuid = sub_tree.get<string>("guid");
-        ulong guid = 0xFFFFFFFF;
+        const string& strModifiers = sub_tree.get<string>("modifiers");
+        uint guid = 0xFFFFFFFF;
+        uint modifiers = 0;
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(disable:4996)
 #endif
         sscanf(strGuid.c_str(), "%x", &guid);
+        sscanf(strModifiers.c_str(), "%x", &modifiers);
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(default:4996)
 #endif        
         o_assert(guid != 0xFFFFFFFF);
         
-        reflection::Type* pType = m_pOwnerDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("typename")));
+        reflection::Type* pType = m_pOwnerDataBase->solveTypeByName(/*decodeQualifiedDecoratedNameFromIdentifierName*/(sub_tree.get<string>("typename")));
         if(pType == NULL)
         {
             switch(m_pOwnerDataBase->getActionOnMissingType())
@@ -386,7 +453,7 @@ void XmlFileTreeNode::cache()
         // TODO : specialize lexical_cast for : uint guid = reinterpret_cast<uint>(phantom::lexical_cast<void*>(strGuid));
         phantom::data the_data(pType->allocate(),pType);
         storeData(the_data);
-        pDB->registerData(the_data, guid, this);
+        pDB->registerData(the_data, guid, this, modifiers);
 
         boost::optional<string> strParentGuid_opt = sub_tree.get_optional<string>("parent");
         uint parentGuid = 0xFFFFFFFF;
@@ -400,7 +467,7 @@ void XmlFileTreeNode::cache()
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(default:4996)
 #endif        
-            referenceExpressions.push_back(decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("reference_expression")));
+            referenceExpressions.push_back(/*decodeQualifiedDecoratedNameFromIdentifierName*/(sub_tree.get<string>("reference_expression")));
         }
         else 
         {
@@ -418,7 +485,7 @@ void XmlFileTreeNode::cache()
         {
             const phantom::data& parentData = pDB->getData(parentGuid);
             o_assert(NOT(parentData.isNull()));
-            pDB->registerComponentData(m_Data[i], parentData, referenceExpressions[i]);
+            pDB->registerComponentData(m_Data[i], parentData, referenceExpressions[i], 0);
         }
     }
 }
@@ -452,6 +519,7 @@ void XmlFileTreeNode::deserialize(uint a_uiSerializationFlag, vector<data>& a_Da
         uint guid = pDB->getGuid(pAddress);
         const string& path = pDB->dataPath(*it, guid, pDB->getNode(pAddress));
         boost::property_tree_custom::read_xml(path.c_str(), p_tree);
+        decodeSpecialXmlCharacters(p_tree);
         boost::optional<property_tree&> valueMembers_tree_opt = p_tree.get_child_optional("data.valueMembers");
         if(valueMembers_tree_opt.is_initialized())
         {
@@ -550,7 +618,8 @@ void XmlFileTreeNode::preCache()
 {
 	XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
 	const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
-	boost::property_tree_custom::read_xml(self_path+'/'+"index", m_CacheTree);
+    boost::property_tree_custom::read_xml(self_path+'/'+"index", m_CacheTree);
+    decodeSpecialXmlCharacters(m_CacheTree);
 }
 
 bool XmlFileTreeNode::cacheOne(uint a_uiIndex)
@@ -564,19 +633,22 @@ bool XmlFileTreeNode::cacheOne(uint a_uiIndex)
 		{
 			XmlFileTreeDataBase* pDB = static_cast<XmlFileTreeDataBase*>(m_pOwnerDataBase);
 
-			const property_tree& sub_tree = it->second;
-			const string& strGuid = sub_tree.get<string>("guid");
-            ulong guid = 0xFFFFFFFF;
+            const property_tree& sub_tree = it->second;
+            const string& strGuid = sub_tree.get<string>("guid");
+            const string& strModifiers = sub_tree.get<string>("modifiers");
+            uint guid = 0xFFFFFFFF;
+            uint modifiers = 0;
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(disable:4996)
 #endif
-			sscanf(strGuid.c_str(), "%x", &guid);
+            sscanf(strGuid.c_str(), "%x", &guid);
+            sscanf(strModifiers.c_str(), "%x", &modifiers);
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(default:4996)
 #endif        
 			o_assert(guid != 0xFFFFFFFF);
 
-			reflection::Type* pType = m_pOwnerDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("typename")));
+			reflection::Type* pType = m_pOwnerDataBase->solveTypeByName(/*decodeQualifiedDecoratedNameFromIdentifierName*/(sub_tree.get<string>("typename")));
 			/*if(pType == NULL)
 			{
 				switch(m_pOwnerDataBase->getActionOnMissingType())
@@ -593,7 +665,7 @@ bool XmlFileTreeNode::cacheOne(uint a_uiIndex)
 			// TODO : specialize lexical_cast for : uint guid = reinterpret_cast<uint>(phantom::lexical_cast<void*>(strGuid));
 			phantom::data the_data(pType->allocate(),pType);
 			storeData(the_data);
-			pDB->registerData(the_data, guid, this);
+			pDB->registerData(the_data, guid, this, modifiers);
 
 			boost::optional<string> strParentGuid_opt = sub_tree.get_optional<string>("parent");
 			uint parentGuid = 0xFFFFFFFF;
@@ -606,7 +678,7 @@ bool XmlFileTreeNode::cacheOne(uint a_uiIndex)
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(default:4996)
 #endif        
-                m_ReferenceExpressions.push_back(decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("reference_expression")));
+                m_ReferenceExpressions.push_back(/*decodeQualifiedDecoratedNameFromIdentifierName*/(sub_tree.get<string>("reference_expression")));
             }
             else 
             {
@@ -637,7 +709,7 @@ void XmlFileTreeNode::postCache()
 		{
 			const phantom::data& parentData = pDB->getData(parentGuid);
 			o_assert(NOT(parentData.isNull()));
-			pDB->registerComponentData(m_Data[i], parentData, m_ReferenceExpressions[i]);
+            pDB->registerComponentData(m_Data[i], parentData, m_ReferenceExpressions[i], 0);
 		}
 	}
 }
@@ -674,7 +746,8 @@ void XmlFileTreeNode::deserializeOne(const phantom::data& a_Data, uint a_uiSeria
 	property_tree p_tree;
 	uint guid = pDB->getGuid(pAddress);
 	const string& path = pDB->dataPath(a_Data, guid, pDB->getNode(pAddress));
-	boost::property_tree_custom::read_xml(path.c_str(), p_tree);
+    boost::property_tree_custom::read_xml(path.c_str(), p_tree);
+    decodeSpecialXmlCharacters(p_tree);
 	boost::optional<property_tree&> valueMembers_tree_opt = p_tree.get_child_optional("data.valueMembers");
 	if(valueMembers_tree_opt.is_initialized())
 	{
@@ -696,6 +769,7 @@ void XmlFileTreeNode::loadTypes()
     property_tree types_root_tree;
 
     boost::property_tree_custom::read_xml(self_path+'/'+"types", types_root_tree);
+    decodeSpecialXmlCharacters(types_root_tree);
 
     std::set<string> types;
 
@@ -705,7 +779,7 @@ void XmlFileTreeNode::loadTypes()
     for(;it != end; ++it)
     {
         const property_tree& sub_tree = it->second;
-        const string& className = decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("typeClassName"));
+        const string& className = /*decodeQualifiedDecoratedNameFromIdentifierName*/(sub_tree.get<string>("typeClassName"));
         reflection::Type* pTypeType = getOwnerDataBase()->solveTypeByName(className);
         o_assert(pTypeType);
         reflection::Class* pTypeClass = pTypeType->asClass();

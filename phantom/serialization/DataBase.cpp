@@ -115,12 +115,13 @@ void            DataBase::moveData(const phantom::data& a_Data, Node* a_pNewOwne
     o_emit dataMoved(a_Data, pOldOwnerNode, a_pNewOwnerNode);
 }
 
-void DataBase::registerData( const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode )
+void DataBase::registerData( const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode, bitfield modifiers )
 {
     o_assert(hasDataEntry(a_Data, a_Guid, a_pOwnerNode), "Data must have an entry created to be registered");
     o_assert(NOT(isDataRegistered(a_Data.address())), "Data already registered");
     o_assert(a_Guid != e_Constant_InvalidGuidValue);
     o_assert(isDataCompatibleWithNode(a_Data, a_pOwnerNode));
+    m_DataModifiers[a_Data.address()] |= modifiers;
     m_uiLoadedDataSize += a_Data.type()->getSize();
     m_uiLoadedDataResetSize += a_Data.type()->getResetSize();
     m_uiLoadedDataSerializedSize += a_Data.type()->getSerializedSize();
@@ -143,6 +144,8 @@ void DataBase::registerData( const phantom::data& a_Data, uint a_Guid, Node* a_p
 void DataBase::unregisterData( const phantom::data& a_Data )
 {
     o_assert(isDataRegistered(a_Data.address()), "Data not registered");
+    if(!getComponentDataOwner(a_Data).isNull())
+        unregisterComponentData(a_Data);
     m_uiLoadedDataSize -= a_Data.type()->getSize();
     m_uiLoadedDataResetSize -= a_Data.type()->getResetSize();
     m_uiLoadedDataSerializedSize -= a_Data.type()->getSerializedSize();
@@ -850,12 +853,13 @@ const string& DataBase::getAttributeName( size_t attributeIndex ) const
     return m_AttributeNames[attributeIndex];
 }
 
-void DataBase::registerComponentData( const data& a_Data, const data& a_Owner, const string& a_ReferenceExpression )
+void DataBase::registerComponentData( const data& a_Data, const data& a_Owner, const string& a_ReferenceExpression, bitfield a_Modifiers )
 {
     o_assert(m_ComponentDataOwnerMap.find(a_Data.address()) == m_ComponentDataOwnerMap.end());
     o_assert(m_ComponentReferenceExpressionMap.find(a_Data.address()) == m_ComponentReferenceExpressionMap.end());
     m_ComponentDataOwnerMap[a_Data.address()] = a_Owner;
     m_ComponentReferenceExpressionMap[a_Data.address()] = a_ReferenceExpression;
+    m_DataModifiers[a_Data.address()] |= a_Modifiers;
 }
 
 void DataBase::unregisterComponentData( const data& a_Data )
@@ -879,6 +883,30 @@ void DataBase::saveDataState( const phantom::data& a_Data, uint a_uiState )
 uint DataBase::getGuid( const phantom::data& a_Data ) const
 {
     return m_GuidBase.getGuid(a_Data.address());
+}
+
+bitfield DataBase::getModifiers( const phantom::data& a_Data ) const
+{
+    auto found = m_DataModifiers.find(a_Data.address());
+    return found == m_DataModifiers.end() ? bitfield() : found->second;
+}
+
+void DataBase::setModifiers( const phantom::data& a_Data, bitfield a_Modifiers)
+{
+    m_DataModifiers[a_Data.address()] = a_Modifiers;
+    o_emit dataModifiersChanged(a_Data, a_Modifiers);
+}
+
+void DataBase::addModifiers( const phantom::data& a_Data, bitfield a_Modifiers)
+{
+    m_DataModifiers[a_Data.address()] |= a_Modifiers;
+    o_emit dataModifiersChanged(a_Data, a_Modifiers);
+}
+
+void DataBase::removeModifiers( const phantom::data& a_Data, bitfield a_Modifiers)
+{
+    m_DataModifiers[a_Data.address()] &= ~a_Modifiers;
+    o_emit dataModifiersChanged(a_Data, a_Modifiers);
 }
 
 uint DataBase::getGuid( Node* a_pNode ) const
@@ -926,7 +954,7 @@ void DataBase::internalAddNewData( const phantom::data& a_Data, uint a_uiGuid, N
 
 void DataBase::internalAddData( const phantom::data& a_Data, uint a_uiGuid, Node* a_pOwnerNode )
 {
-    registerData(a_Data, a_uiGuid, a_pOwnerNode);
+    registerData(a_Data, a_uiGuid, a_pOwnerNode, a_Data.type()->getModifiers());
     o_emit dataAdded(a_Data, a_pOwnerNode);
 }
 

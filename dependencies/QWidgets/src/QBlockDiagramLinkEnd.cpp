@@ -26,12 +26,14 @@ void QBlockDiagramLinkEnd::connect( QBlockDiagramNodeSlot* a_pSlot )
 {
   Q_ASSERT(m_pConnectedSlot == NULL && a_pSlot != NULL);
   a_pSlot->connectLinkEnd(this);
+  m_pOwnerLink->updateState();
 }
 
 void QBlockDiagramLinkEnd::disconnect()
 {
   Q_ASSERT(m_pConnectedSlot != NULL);
   m_pConnectedSlot->disconnectLinkEnd(this);
+  m_pOwnerLink->updateState();
 }
 
 QRectF QBlockDiagramLinkEnd::boundingRect() const
@@ -110,10 +112,8 @@ QBlockDiagramLinkEnd* QBlockDiagramLinkEnd::getTwin() const
 
 void QBlockDiagramLinkEnd::paint( QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget /*= 0 */ )
 {
-    QPen pen(QColor(200,200,200));
-    pen.setWidthF(2);
-    painter->setPen(pen);
-    painter->setBrush(m_pOwnerLink->getCurrentColor());
+    painter->setPen(m_pOwnerLink->m_Pens[m_pOwnerLink->dominantPenState()]);
+    painter->setBrush(m_pOwnerLink->m_Brushes[m_pOwnerLink->dominantBrushState()]);
     painter->drawEllipse(boundingRect());
     if(getConnectedSlot() && !isMoving() && !getTwin()->isMoving())
     {

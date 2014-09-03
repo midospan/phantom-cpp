@@ -32,13 +32,24 @@ UnloadLibraryCommand::~UnloadLibraryCommand()
 
 void UnloadLibraryCommand::undo()
 {
-    phantom::moduleLoader()->loadLibrary(m_strPath, phantom::topMessage("modules"));
+    if(!phantom::moduleLoader()->loadLibrary(m_strPath, phantom::topMessage("")))
+    {
+        abort();
+    }
 }
 
 void UnloadLibraryCommand::redo()
 {
-    o_assert(phantom::moduleLoader()->libraryCanBeUnloaded(m_strPath));
-    phantom::moduleLoader()->unloadLibrary(m_strPath, phantom::topMessage("modules"));
+    o_assert(phantom::moduleLoader()->libraryCanBeUnloaded(m_strPath), "Library cannot be unloaded");
+    if(!phantom::moduleLoader()->unloadLibrary(m_strPath, phantom::topMessage("")))
+    {
+        abort();
+    }
+}
+
+UnloadLibraryCommand* UnloadLibraryCommand::clone() const
+{
+    return o_new(UnloadLibraryCommand)(m_strPath);
 }
 
 }}

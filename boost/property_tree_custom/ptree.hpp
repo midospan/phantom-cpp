@@ -85,7 +85,7 @@ namespace boost { namespace property_tree_custom
 		{
 		public:
 			typedef std::vector<T, typename StrAlloc::BOOST_NESTED_TEMPLATE rebind<T>::other> vector;
-			typedef std::stack<T, typename StrAlloc::BOOST_NESTED_TEMPLATE rebind<T>::other> stack;
+			typedef std::stack<T> stack;
 
 		};
 

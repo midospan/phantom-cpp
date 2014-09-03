@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'QBlockDiagramNode.h'
 **
-** Created: Mon 30. Jun 18:08:52 2014
+** Created: Tue 19. Aug 17:55:11 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!

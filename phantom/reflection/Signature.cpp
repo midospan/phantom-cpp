@@ -259,7 +259,11 @@ bool Signature::matches( const vector<Type*>& a_FunctionSignature, vector<size_t
     bool result = true;
     for(;i<count;++i)
     {
-        if(NOT(a_FunctionSignature[i]->isImplicitlyConvertibleTo(m_ParametersTypes[i]))) 
+        Type* pParamType = m_ParametersTypes[i];
+        ReferenceType* pRefType = m_ParametersTypes[i]->asReferenceType();
+        if(pRefType AND pRefType->getReferencedType()->asConstType())
+            pParamType = pParamType->removeReference()->removeConst();
+        if(NOT(a_FunctionSignature[i]->isImplicitlyConvertibleTo(pParamType))) 
         {
             if(a_pPartialMatchesIndexes) 
             {

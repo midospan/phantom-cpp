@@ -17,8 +17,7 @@ public:
         : TypeVisualizerNode(a_Condition)
     {
     }
-    virtual void expand(VariableNode* a_pVariableNode, const vector<reflection::Expression*>& a_LeftExpressions) const;
-
+    virtual void    expand(VariableNode* a_pVariableNode, const vector<reflection::Expression*>& a_LeftExpressions) const;
 };
 
 }}

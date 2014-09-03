@@ -27,19 +27,28 @@ void UndoStack::pushCommand( UndoCommand* a_pUndoCommand )
     o_assert(a_pUndoCommand->m_uiIndex == ~size_t(0));
     o_assert(a_pUndoCommand->m_pUndoStack == nullptr);
     o_assert(std::find(m_UndoCommands.begin(), m_UndoCommands.end(), a_pUndoCommand) == m_UndoCommands.end());
-    while(m_UndoCommands.size() > (size_t)(m_iStackIndex+1))
-    {
-        o_emit undoCommandAboutToBeRemoved(m_UndoCommands.back());
-        o_dynamic_delete m_UndoCommands.back();
-        m_UndoCommands.pop_back();
-    }
-    a_pUndoCommand->m_uiIndex = m_UndoCommands.size();
+    a_pUndoCommand->m_uiIndex = m_iStackIndex+1;
     a_pUndoCommand->setUndoStack(this);
-    m_UndoCommands.push_back(a_pUndoCommand);
-    a_pUndoCommand->internalRedo();
-    m_iStackIndex++;
-    o_emit undoCommandAdded(a_pUndoCommand);
-    o_emit stackIndexChanged(m_iStackIndex);
+    auto where = m_UndoCommands.begin()+(m_iStackIndex+1);
+    m_UndoCommands.insert(where, a_pUndoCommand);
+    if(a_pUndoCommand->internalRedo())
+    {
+        m_iStackIndex++;
+        // Delete command after the current stack index
+        while(m_UndoCommands.size() > (size_t)(m_iStackIndex+1))
+        {
+            o_emit undoCommandAboutToBeRemoved(m_UndoCommands.back());
+            o_dynamic_delete m_UndoCommands.back();
+            m_UndoCommands.pop_back();
+        }
+        o_emit undoCommandAdded(a_pUndoCommand);
+        o_emit stackIndexChanged(m_iStackIndex);
+    }
+    else 
+    {
+        m_UndoCommands.erase(m_UndoCommands.begin()+(m_iStackIndex+1));
+        o_dynamic_delete a_pUndoCommand;
+    }
 }
 
 
@@ -98,6 +107,11 @@ bool UndoStack::isUndoable() const
 bool UndoStack::isRedoable() const
 {
     return m_iStackIndex < ((int)m_UndoCommands.size())-1;
+}
+
+void UndoStack::abortInProgressCommand()
+{
+
 }
 
 o_namespace_end(phantom, qt)

@@ -3,6 +3,10 @@
 #include "ModuleExplorer.h"
 #include "ModuleExplorer.hxx"
 #include "phantom/ModuleLoader.h"
+#include "phantom/qt/LoadLibraryCommand.h"
+#include "phantom/qt/UnloadLibraryCommand.h"
+#include "phantom/serialization/Node.h"
+#include "UndoStack.h"
 #include <QDir>
 #include <QFileInfo>
 #include <windows.h>
@@ -33,8 +37,10 @@ namespace phantom { namespace qt {
         , m_UnloadedIcon(":/../../bin/resources/icons/plugin_disabled.png")
         , m_pRootMessage(nullptr)
         , m_pModuleLoader(nullptr)
-        , m_LoadDelegate(&ModuleExplorer::defaultLoadLibraryDelegate)
-        , m_UnloadDelegate(&ModuleExplorer::defaultUnloadLibraryDelegate)
+        , m_pUndoStack(nullptr)
+        , m_LoadDelegate(this, &ModuleExplorer::defaultLoadLibrary)
+        , m_UnloadDelegate(this, &ModuleExplorer::defaultUnloadLibrary)
+        , m_pDataBase(nullptr)
     {
         setColumnCount(2);
         QStringList headerLabels;
@@ -76,14 +82,24 @@ namespace phantom { namespace qt {
 
     }
 
-    void ModuleExplorer::defaultUnloadLibraryDelegate(ModuleExplorer* a_pModuleExplorer, const string& a_strPath)
+    void ModuleExplorer::defaultUnloadLibrary(const string& a_strPath) const
     {
-        phantom::moduleLoader()->unloadLibrary(a_strPath, a_pModuleExplorer->getMessage());
+        phantom::moduleLoader()->unloadLibrary(a_strPath, getMessage());
     }
 
-    void ModuleExplorer::defaultLoadLibraryDelegate(ModuleExplorer* a_pModuleExplorer, const string& a_strPath)
+    void ModuleExplorer::defaultLoadLibrary( const string& a_strPath) const
     {
-        phantom::moduleLoader()->loadLibrary(a_strPath, a_pModuleExplorer->getMessage());
+        phantom::moduleLoader()->loadLibrary(a_strPath, getMessage());
+    }
+
+    void ModuleExplorer::undoableLoadLibrary( const phantom::string& a_strPath ) const
+    {
+        m_pUndoStack->pushCommand(o_new(phantom::qt::LoadLibraryCommand)(a_strPath));
+    }
+
+    void ModuleExplorer::undoableUnloadLibrary( const phantom::string& a_strPath ) const
+    {
+        m_pUndoStack->pushCommand(o_new(phantom::qt::UnloadLibraryCommand)(a_strPath));
     }
 
     void ModuleExplorer::slotItemDoubleClicked( QTreeWidgetItem* a_pItem, int )
@@ -91,13 +107,14 @@ namespace phantom { namespace qt {
         if(a_pItem == nullptr || m_pModuleLoader == nullptr) return;
 
         LibraryItem* pItem = ((LibraryItem*)a_pItem);
-        if(m_pModuleLoader->isLibraryLoaded(pItem->m_strAbsolutePath.toAscii().constData()))
+        string path = pItem->m_strAbsolutePath.toAscii().constData();
+        if(m_pModuleLoader->isLibraryLoaded(path))
         {
-            m_UnloadDelegate(this, pItem->m_strAbsolutePath.toAscii().constData());
+            unloadLibrary(path);
         }
         else 
         {
-            m_LoadDelegate(this, pItem->m_strAbsolutePath.toAscii().constData());
+            loadLibrary(path);
         }
     }
 
@@ -186,6 +203,51 @@ namespace phantom { namespace qt {
     void ModuleExplorer::setLoadLibraryDelegate( delegate_t a_Delegate )
     {
         m_LoadDelegate = a_Delegate;
+    }
+
+    void ModuleExplorer::setUndoStack( UndoStack* a_pUndoStack )
+    {
+        if(m_pUndoStack == a_pUndoStack)
+            return;
+        m_pUndoStack = a_pUndoStack;
+        if(m_pUndoStack)
+        {
+            // Use undoable delegates
+            m_LoadDelegate = delegate_t(this, &ModuleExplorer::undoableLoadLibrary);
+            m_UnloadDelegate = delegate_t(this, &ModuleExplorer::undoableUnloadLibrary);
+        }
+        else 
+        {
+            m_LoadDelegate = delegate_t(this, &ModuleExplorer::defaultLoadLibrary);
+            m_UnloadDelegate = delegate_t(this, &ModuleExplorer::defaultUnloadLibrary);
+        }
+    }
+
+    void ModuleExplorer::setDataBase( serialization::DataBase* a_pDataBase )
+    {
+        m_pDataBase = a_pDataBase;
+    }
+
+    void ModuleExplorer::loadLibrary( const string& a_strPath )
+    {
+        m_LoadDelegate(a_strPath);
+    }
+
+    void ModuleExplorer::unloadLibrary( const string& a_strPath )
+    {
+        if(!m_PreUnloadLibraryDelegate.empty())
+        {
+            m_PreUnloadLibraryDelegate(a_strPath);
+        }
+        if(m_pModuleLoader->libraryCanBeUnloaded(a_strPath, m_pRootMessage))
+        {
+            m_UnloadDelegate(a_strPath);
+        }
+    }
+
+    void ModuleExplorer::setPreUnloadLibraryDelegate( delegate_t a_Delegate )
+    {
+        m_PreUnloadLibraryDelegate = a_Delegate;
     }
 
     LibraryItem::LibraryItem( ModuleExplorer* a_pModuleExplorer, const QString& a_strAbsolutePath ) 

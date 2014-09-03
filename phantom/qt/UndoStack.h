@@ -64,6 +64,9 @@ protected:
     o_signal_data(stackIndexChanged, int);
 
 protected:
+    void abortInProgressCommand();
+
+protected:
     vector<UndoCommand*> m_UndoCommands;
     int                  m_iStackIndex;
 

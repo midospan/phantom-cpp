@@ -24,7 +24,7 @@ namespace boost { namespace property_tree_custom { namespace json_parser
     template<class Str>
     Str create_escapes(const Str &s)
     {
-		typedef typename::Str::value_type Ch;
+		typedef typename Str::value_type Ch;
         Str result;
         typename Str::const_iterator b = s.begin();
         typename Str::const_iterator e = s.end();
@@ -159,11 +159,11 @@ namespace boost { namespace property_tree_custom { namespace json_parser
                              bool pretty)
     {
         if (!verify_json(pt, 0))
-            BOOST_PROPERTY_TREE_CUSTOM_THROW(json_parser_error("ptree contains data that cannot be represented in JSON format", filename, 0));
+            BOOST_PROPERTY_TREE_CUSTOM_THROW(json_parser_error<typename Ptree::string_type>("ptree contains data that cannot be represented in JSON format", filename, 0));
         write_json_helper(stream, pt, 0, pretty);
         stream << std::endl;
         if (!stream.good())
-            BOOST_PROPERTY_TREE_CUSTOM_THROW(json_parser_error("write error", filename, 0));
+            BOOST_PROPERTY_TREE_CUSTOM_THROW(json_parser_error<typename Ptree::string_type>("write error", filename, 0));
     }
 
 } } }
