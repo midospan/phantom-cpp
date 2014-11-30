@@ -14,8 +14,7 @@ namespace phantom { namespace qt {
 //================================================
 
 AddNodeCommand::AddNodeCommand(phantom::serialization::Node* a_pParentNode)
-: UndoCommand()
-, m_pDataBase(a_pParentNode->getOwnerDataBase())
+: DataBaseCommand(a_pParentNode->getDataBase())
 , m_uiParentGuid(a_pParentNode->getGuid())
 , m_uiGuid(0xffffffff)
 {
@@ -33,31 +32,31 @@ AddNodeCommand::~AddNodeCommand()
 // Operations
 //================================================
 
-void AddNodeCommand::undo()
-{
-    serialization::Node* pParentNode = m_pDataBase->getNode(m_uiParentGuid);
-    o_assert(pParentNode);
-    o_assert(m_uiGuid != 0xffffffff);
-    serialization::Node* pNode = m_pDataBase->getNode(m_uiGuid);
-    pParentNode->removeChildNode(pNode);
-}
-
-void AddNodeCommand::redo()
+void AddNodeCommand::redoReplayed()
 {
     serialization::Node* pParentNode = m_pDataBase->getNode(m_uiParentGuid);
     o_assert(pParentNode);
     serialization::Node* pNode = nullptr; 
-	if(m_uiGuid != 0xffffffff)
+    if(m_uiGuid != 0xffffffff)
     {
         pNode = pParentNode->newChildNode(m_uiGuid);
-	}
-	else
+    }
+    else
     {
         pNode = pParentNode->newChildNode();
     }
     m_uiGuid = pNode->getGuid();
     m_pDataBase->setNodeAttributeValue(pNode, "name", "Node");
     pNode->saveAttributes();
+}
+
+void AddNodeCommand::undoReplayed()
+{
+    serialization::Node* pParentNode = m_pDataBase->getNode(m_uiParentGuid);
+    o_assert(pParentNode);
+    o_assert(m_uiGuid != 0xffffffff);
+    serialization::Node* pNode = m_pDataBase->getNode(m_uiGuid);
+    pParentNode->removeChildNode(pNode);
 }
 
 

@@ -22,7 +22,7 @@ o_registerNT((phantom), (typename, typename, typename), (t_Kty, t_Ty, t_Pr), mul
 // o_registerNTI((phantom), map, (phantom::string, char));
 // o_registerNTI((phantom), map, (phantom::string, unsigned char));
 // o_registerNTI((phantom), map, (phantom::string, signed char));
-// #if o_BUILT_IN_WCHAR_T
+// #if o_HAS_BUILT_IN_WCHAR_T
 // o_registerNTI((phantom), map, (phantom::string, wchar_t));
 // #endif
 // o_registerNTI((phantom), map, (phantom::string, short));

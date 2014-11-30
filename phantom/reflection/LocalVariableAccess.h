@@ -56,6 +56,8 @@ public:
 
     virtual LocalVariableAccess*     clone() const;
 
+    virtual bool            isPersistent() const;
+
 protected:
     LocalVariable* m_pLocalVariable;
 

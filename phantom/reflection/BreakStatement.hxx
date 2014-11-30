@@ -2,14 +2,10 @@
 
 #include "Statement.hxx"
 
-o_classNS((phantom, reflection), BreakStatement, (Statement)) 
-{ 
-    o_reflection 
-    {
+o_classNB((phantom, reflection), BreakStatement, (Statement)) 
+(
+);
 
-    }; 
-};
-o_exposeN((phantom, reflection), BreakStatement);
 
 
 

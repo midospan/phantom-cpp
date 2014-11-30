@@ -49,12 +49,13 @@
 #include <phantom/std/string.h>
 #include <phantom/std/vector.h>
 #include <phantom/std/vector.hxx>
-#include <phantom/util/composition.h>
-#include <phantom/util/composition.hxx>
+#include <phantom/composition.h>
+#include <phantom/composition.hxx>
 #include <windows.h>
 
 using namespace sc2;
 using namespace unitest;
+namespace wakhan {}
 
 o_static_assert((phantom::setup_steps_mask_of<std::vector<char>>::value & o_global_value_SetupStepBit_TemplateSignature) != 0); 
 
@@ -74,17 +75,15 @@ namespace test_struct
 
 o_static_assert(boost::has_less<test_struct::TestStruct>::value);
 
-o_register_namespace_alias(unitest, alias_sc2, sc2)
+o_namespace_aliasN((unitest), alias_sc2, sc2)
 
 o_classN((test_struct), TestStruct)
-{
-    o_reflection 
-    {
-        o_data_member(int, a, o_no_range, o_public);
-        o_member_function(void, test_met, (int));
-    };
-};
-o_exposeN((test_struct), TestStruct);
+(
+o_public:
+    o_data_member(int, a, o_no_range);
+    o_member_function(void, test_met, (int));
+);
+
 o_registerN((test_struct), TestStruct);
 
 o_namespace_begin(unitest)
@@ -270,106 +269,139 @@ TEST(PhantomTest, namespaceAlias) {
  
 o_namespace_end(unitest)
 
-    class AutoReflectedClass
+class AutoReflectedClass
+{
+public:
+    AutoReflectedClass()
     {
-    public:
-        AutoReflectedClass()
+        int i = 0;
+        int c = 0;
+        for(;i<4;++i)
         {
-            int i = 0;
-            int c = 0;
-            for(;i<4;++i)
+            int j = 0;
+            for(;j<4;++j)
             {
-                int j = 0;
-                for(;j<4;++j)
-                {
-                    m[i][j] = (float)c++;
-                }
+                m[i][j] = (float)c++;
             }
         }
-        void member_function() {}
+    }
+    void member_function() {}
 
 
-    protected:
-        float m[4][4];
-    };
+protected:
+    float m[4][4];
+};
 
-    o_class(AutoReflectedClass)
+o_class(AutoReflectedClass)
+(
+o_public:
+    o_member_function(void, member_function, ());
+    o_data_member(float[4][4], m);
+);
+
+
+
+o_register(AutoReflectedClass);
+
+
+class Sender
+{
+protected:
+    o_signal_data(testSignal, int);
+};
+
+o_class(Sender)
+(
+    o_signal(testSignal, (int));
+);
+
+
+enum TestGlobal
+{
+    TestGlobal0,
+    TestGlobal1,
+    TestGlobal2,
+};
+
+class GlobalEmbedded
+{
+public:
+    enum TestGlobalEmbedded
     {
-        o_reflection
-        {
-            o_member_function(void, member_function, ());
-            o_data_member(float[4][4], m, o_no_range, o_public);
-        };
+        TestGlobalEmbedded0,
+        TestGlobalEmbedded1,
+        TestGlobalEmbedded2
     };
+};
 
+o_class(GlobalEmbedded)
+(
+    );
 
+o_register(GlobalEmbedded)
 
-    o_register(AutoReflectedClass);
+o_namespace_begin(phantom, anyns)
 
+    enum TestNamespace
+{
+    TestNamespace0,
+    TestNamespace1,
+    TestNamespace2,
+};
 
-    class Sender
+class NestingEnumClass
+{
+public:
+    enum ENestedEnum
     {
-    protected:
-        o_signal_data(testSignal, int);
+        NestedEnum0,
+        NestedEnum1,
+        NestedEnum2,
     };
+};
 
-    o_class(Sender)
+o_namespace_end(phantom, anyns)
+
+o_enum(TestGlobal)(TestGlobal0,TestGlobal1,TestGlobal2)
+o_enumN((phantom,anyns), TestNamespace)(TestNamespace0,TestNamespace1,TestNamespace2)
+o_enumC((GlobalEmbedded), TestGlobalEmbedded)(TestGlobalEmbedded0,TestGlobalEmbedded1,TestGlobalEmbedded2)
+o_enumNC((phantom,anyns), (NestingEnumClass),ENestedEnum)(NestedEnum0,NestedEnum1,NestedEnum2)
+
+o_register(TestGlobal)
+o_registerC((GlobalEmbedded),TestGlobalEmbedded)
+o_registerN((phantom,anyns),TestNamespace)
+
+union TestUnion;
+
+union TestUnion 
+{
+    void method() {}
+    int a;
+    float b;
+    struct 
     {
-        o_reflection
-        {
-            o_signal(testSignal, (int));
-        };
-
+        int x;
+        int y;
     };
+};
 
+void met()
+{
+    TestUnion c;
+    c.method();
+}
 
-    enum TestGlobal
-    {
-        TestGlobal0,
-        TestGlobal1,
-        TestGlobal2,
-    };
+o_union(TestUnion)
+(
+    o_data_member(int, a);
+    o_data_member(float, b);
+    o_anonymous_struct(
+        o_data_member(int, x);
+        o_data_member(int, y);
+    );
+);
 
-    class GlobalEmbedded
-    {
-    public:
-        enum TestGlobalEmbedded
-        {
-            TestGlobalEmbedded0,
-            TestGlobalEmbedded1,
-            TestGlobalEmbedded2
-        };
-    };
-
-    o_class(GlobalEmbedded)
-    {
-        o_reflection
-        {
-
-        };
-    };
-
-    o_register(GlobalEmbedded)
-
-    o_namespace_begin(phantom, prout)
-
-        enum TestNamespace
-    {
-        TestNamespace0,
-        TestNamespace1,
-        TestNamespace2,
-    };
-
-    o_namespace_end(phantom, prout)
-
-    o_enum(TestGlobal, (TestGlobal0,TestGlobal1,TestGlobal2))
-    o_enumN((phantom,prout),TestNamespace, (TestNamespace0,TestNamespace1,TestNamespace2))
-    o_enumC((GlobalEmbedded),TestGlobalEmbedded, (TestGlobalEmbedded0,TestGlobalEmbedded1,TestGlobalEmbedded2))
-
-    o_register(TestGlobal)
-    o_registerC((GlobalEmbedded),TestGlobalEmbedded)
-    o_registerN((phantom,prout),TestNamespace)
-
+o_register(TestUnion);
 
 template<typename T>
 void test_lexical_cast()
@@ -390,13 +422,11 @@ public:
 };
 
 o_classT((typename), (t_Ty), TClass)
-{
-    o_reflection 
-    {
-        o_data_member(t_Ty, m_DataMember, o_no_range, o_public); 
-    };
-};
-o_exposeT((typename), (t_Ty), TClass);
+(
+o_public:
+    //o_data_member(t_Ty, m_DataMember); 
+);
+
 
 o_registerT((typename), (t_Ty), TClass);
 o_registerTI(TClass, (int));
@@ -439,7 +469,7 @@ class OwnerTest
 {
 public:
     OwnerTest() 
-        : m_ComponentTests(this, &ComponentTest::setOwnerTest, &ComponentTest::getOwnerTest)
+        : m_ComponentTests(&ComponentTest::setOwnerTest, &ComponentTest::getOwnerTest)
     {
 
     }
@@ -448,20 +478,14 @@ public:
 };
 
 o_class(ComponentTest)
-{
-    o_reflection
-    {
-    };
-};
+(
+        );
 o_register(ComponentTest);
 
 o_class(OwnerTest)
-{
-    o_reflection
-    {
-        o_data_member(phantom::composition<ComponentTest>, m_ComponentTests, o_no_range, o_public);
-    };
-};
+(
+        o_data_member(phantom::composition<ComponentTest>, m_ComponentTests, o_no_range, o_public_access);
+);
 o_register(OwnerTest);
 o_registerNTI((phantom), composition, (ComponentTest));
 
@@ -471,6 +495,22 @@ o_registerNTI((phantom), vector, (int));
 o_registerNTI((phantom), map, (phantom::string, phantom::string));
 
 
+class TEST_OFFSET_A { int a; };
+class TEST_OFFSET_B { int b; virtual void a() { } };
+class TEST_OFFSET_C : public TEST_OFFSET_A, public TEST_OFFSET_B { int c; };
+
+o_class(TEST_OFFSET_A) (
+        );
+o_class(TEST_OFFSET_B) (
+        );
+o_classB(TEST_OFFSET_C, (TEST_OFFSET_A, TEST_OFFSET_B)) (
+        );
+
+
+o_static_assert(sizeof(TEST_OFFSET_C) == 16);
+o_static_assert(phantom::has_new_vtable<TEST_OFFSET_C>::value);
+o_static_assert(phantom::base_class_offset_of<TEST_OFFSET_C, TEST_OFFSET_B>::value == 8);
+o_static_assert(phantom::base_class_offset_of<TEST_OFFSET_C, TEST_OFFSET_A>::value == 4);
 
 int main(int argc, char **argv) 
 {
@@ -478,8 +518,13 @@ int main(int argc, char **argv)
 
     phantom::Phantom app(argc, argv);
 
+    phantom::set<int> s;
+
     char moduleFileName[512];
     GetModuleFileName(GetModuleHandle(NULL), moduleFileName, 512);
+
+    phantom::property_tree class_save;
+    phantom::typeOf<phantom::reflection::Class>()->serialize(o_new(phantom::reflection::Class), class_save, 0xffffffff, nullptr);
 
     //phantom::installReflection("unitest", moduleFileName, (size_t)GetModuleHandle(NULL));
 
@@ -505,6 +550,8 @@ int main(int argc, char **argv)
     OwnerTest* pOwnerTest0 = o_new(OwnerTest);
     
     OwnerTest* pOwnerTest1 = o_new(OwnerTest);
+
+    phantom::string ownerTestRefString = phantom::rttiDataOf(&pOwnerTest0->m_ComponentTests).referenceExpressionString(nullptr);
     
     phantom::reflection::CompositionClass* pCompositionClass = phantom::as<phantom::reflection::CompositionClass*>(phantom::classOf(&pOwnerTest0->m_ComponentTests));
     o_assert(pCompositionClass->getAboutToBeInsertedSignal());
@@ -518,7 +565,7 @@ int main(int argc, char **argv)
     o_assert(pCompositionClass->getAboutToBeSwappedSignal() ); 
     o_assert(pCompositionClass->getSwappedSignal() );          
 
-    auto composition_ADD_exp = phantom::expressionByName("((OwnerTest*)0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+")->m_ComponentTests.add");
+    auto composition_ADD_exp = phantom::expressionByName("static_cast<OwnerTest*>(0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+")->m_ComponentTests.add");
 
     auto composition_ADD_exp_reeval = phantom::expressionByName(composition_ADD_exp->getName());
 
@@ -526,9 +573,9 @@ int main(int argc, char **argv)
 
     composition_ADD_exp->store(&pComponentTestAddedViaExp);
 
-    phantom::deleteElement(composition_ADD_exp);
+    o_dynamic_delete (composition_ADD_exp);
 
-    phantom::deleteElement(composition_ADD_exp_reeval);
+    o_dynamic_delete (composition_ADD_exp_reeval);
 
     o_assert(pCompositionClass);
 
@@ -542,7 +589,7 @@ int main(int argc, char **argv)
 
     ComponentTest* pSettedComponentTest = o_new(ComponentTest);
 
-    auto composition_GetSet_exp = phantom::expressionByName("(*(OwnerTest*)0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+").m_ComponentTests[0]");
+    auto composition_GetSet_exp = phantom::expressionByName("(*static_cast<OwnerTest*>(0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+")).m_ComponentTests[0]");
 
 
     auto stringLiteral = phantom::expressionByName("\"I'm a string in a string\\n\\t\\r\"");
@@ -552,11 +599,7 @@ int main(int argc, char **argv)
     composition_GetSet_exp->load(&pGettedComponentTest);
     composition_GetSet_exp->store(&pSettedComponentTest);
 
-    phantom::deleteElement(composition_GetSet_exp);
-
-    o_delete(ComponentTest) pComponentTestAddedViaExp;
-    
-    o_delete(ComponentTest) pSettedComponentTest;
+    o_dynamic_delete (composition_GetSet_exp);
 
     o_delete(ComponentTest) pComponentTest;
 
@@ -611,10 +654,10 @@ int main(int argc, char **argv)
 
     phantom::reflection::LanguageElement* pEnumNC = phantom::elementByName("phantom::reflection::Type::eRelation_None");
     phantom::reflection::LanguageElement* pEnumC = phantom::elementByName("GlobalEmbedded::TestGlobalEmbedded");
-    phantom::reflection::LanguageElement* pEnumN = phantom::elementByName("phantom::prout::TestNamespace");
+    phantom::reflection::LanguageElement* pEnumN = phantom::elementByName("phantom::anyns::TestNamespace");
     phantom::reflection::LanguageElement* pEnum = phantom::elementByName("TestGlobal");
     phantom::reflection::LanguageElement* pEnumValue = phantom::elementByName("TestGlobal1");
-    phantom::reflection::LanguageElement* pEnumValueN = phantom::elementByName("phantom::prout::TestNamespace2");
+    phantom::reflection::LanguageElement* pEnumValueN = phantom::elementByName("phantom::anyns::TestNamespace2");
     phantom::reflection::LanguageElement* pEnumValueC = phantom::elementByName("GlobalEmbedded::TestGlobalEmbedded0");
 
     phantom::math::vector2<float>* vector2_float = o_new(phantom::math::vector2<float>);
@@ -623,8 +666,8 @@ int main(int argc, char **argv)
 
     phantom::string ptr_hex = phantom::lexical_cast<phantom::string>((void*)vector2_float);
 
-    auto vector2_float_y = phantom::expressionByName("(*((phantom::math::vector2<float>*)0x"+ptr_hex+")).y");
-    auto vector2_float_x = phantom::expressionByName("(*((phantom::math::vector2<float>*)0x"+ptr_hex+")).x");
+    auto vector2_float_y = phantom::expressionByName("(*static_cast<phantom::math::vector2<float>*>(0x"+ptr_hex+")).y");
+    auto vector2_float_x = phantom::expressionByName("(*static_cast<phantom::math::vector2<float>*>(0x"+ptr_hex+")).x");
 
     float float_value_x = 0;
     float float_value_y = 0;
@@ -640,8 +683,8 @@ int main(int argc, char **argv)
     o_assert(float_value_x == 9.f);
     o_assert(vector2_float->x == 8.f);
 
-    phantom::deleteElement(vector2_float_y);
-    phantom::deleteElement(vector2_float_x);
+    o_dynamic_delete (vector2_float_y);
+    o_dynamic_delete (vector2_float_x);
 
     o_static_assert(phantom::has_initializer_member_functions_cascade<Marine>::value);
   
@@ -656,13 +699,13 @@ int main(int argc, char **argv)
         "class CompiledClass "                                                                     "\n"
         "{"                                                                                         "\n"
         "   phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_signalName; "       "\n"
-        "   phantom::signal_t signalName(int a_0) const                                     "       "\n"
+        "   phantom::signal_t signalName(int a_0)                                     "       "\n"
         "   {                                                                                          "       "\n"
         "       phantom::connection::slot* pSlot = nullptr;                                            "       "\n"
         "       while(pSlot)                                                                           "       "\n"
         "       {                                                                                      "       "\n"
         "           phantom::connection::pair::push(this, pSlot);                                      "       "\n"
-        "           void* args[1] = {(void*)&a_0};                                                        "       "\n"
+        "           void* args[1] = {static_cast<void*>(&a_0)};                                                        "       "\n"
         "           pSlot->subroutine()->call( pSlot->receiver(), args );                              "       "\n"
         "           pSlot = pSlot->next();                                                             "       "\n"
         "           phantom::connection::pair::pop();                                                  "       "\n"
@@ -723,20 +766,20 @@ int main(int argc, char **argv)
     phantom::math::vector2<int> coords;
     
     /* SERIALIZATION */
-
+    
     Marine* pDBMarine1 = o_new(Marine);
 
     phantom::constant<int>(0.f);
     phantom::constant(0.f);
 
     phantom::string pDBMarine1Hex = phantom::lexical_cast<phantom::string>((void*)pDBMarine1);
-    phantom::reflection::Expression* pDBMarine1PositionXExp = phantom::expressionByName("((sc2::Marine*)0x"+pDBMarine1Hex+")->position");
+    phantom::reflection::Expression* pDBMarine1PositionXExp = phantom::expressionByName("static_cast<sc2::Marine*>(0x"+pDBMarine1Hex+")->position");
 
     pDBMarine1PositionXExp->set(phantom::math::vector2<float>(10.f, 20.f));
 
-    phantom::deleteElement(pDBMarine1PositionXExp);
+    o_dynamic_delete (pDBMarine1PositionXExp);
 
-    pDBMarine1PositionXExp = phantom::expressionByName("((sc2::Marine*)0x"+pDBMarine1Hex+")->position.x");
+    pDBMarine1PositionXExp = phantom::expressionByName("static_cast<sc2::Marine*>(0x"+pDBMarine1Hex+")->position.x");
 
     int a = 0;
     int b = 12;
@@ -746,15 +789,15 @@ int main(int argc, char **argv)
     phantom::string bstr = phantom::lexical_cast<phantom::string>((void*)&b);
     phantom::string cstr = phantom::lexical_cast<phantom::string>((void*)&c);
 
-    auto pAssignmentExpression = phantom::expressionByName("*((int*)0x"+astr+") = *((int*)0x"+bstr+")+18+*((float*)0x"+cstr+")");
+    auto pAssignmentExpression = phantom::expressionByName("*static_cast<int*>(0x"+astr+") = *static_cast<int*>(0x"+bstr+")+18+*static_cast<float*>(0x"+cstr+")");
 
     pAssignmentExpression->eval();
 
-    auto pPrecedenceAssignmentExpression = phantom::expressionByName("*((int*)0x"+astr+") = (*((int*)0x"+bstr+")=18)=*((float*)0x"+cstr+")");
+    auto pPrecedenceAssignmentExpression = phantom::expressionByName("*static_cast<int*>(0x"+astr+") = (*static_cast<int*>(0x"+bstr+")=18)=*static_cast<float*>(0x"+cstr+")");
 
     pPrecedenceAssignmentExpression->eval();
 
-    auto pPrecedenceAssignmentExpression2 = phantom::expressionByName("*((int*)0x"+astr+") = (*((int*)0x"+bstr+")>>=18)=*((float*)0x"+cstr+")");
+    auto pPrecedenceAssignmentExpression2 = phantom::expressionByName("*static_cast<int*>(0x"+astr+") = (*static_cast<int*>(0x"+bstr+")>>=18)=*static_cast<float*>(0x"+cstr+")");
 
     pPrecedenceAssignmentExpression2->eval();
 
@@ -762,7 +805,7 @@ int main(int argc, char **argv)
 
     pDBMarine1PositionXExp->set(5.f);
 
-    phantom::deleteElement(pDBMarine1PositionXExp);
+    o_dynamic_delete (pDBMarine1PositionXExp);
 
     o_statemachine_post(pDBMarine1, Spawn);
     Marine* pDBMarine2 = o_new(Marine);
@@ -780,6 +823,7 @@ int main(int argc, char **argv)
         pDataBase->rootNode()->addData(pDBMarine1);
         phantom::serialization::Node* pChildNode = pDataBase->rootNode()->newChildNode();
         pChildNode->load();
+        //pChildNode->addType(o_new(phantom::reflection::Class));
         pChildNode->addData(pDBMarine2);
         pChildNode->addData(pDBMarine3);
         pChildNode->addData(pString);
@@ -855,7 +899,7 @@ int main(int argc, char **argv)
         phantom::variant variant_class_ptr = o_new(RootClass);
         phantom::variant variant_void_ptr = (void*)nullptr;
         phantom::variant variant_double = 3.0;
-        phantom::variant variant_string = "blabla proutiprout";
+        phantom::variant variant_string = "blabla anynsianyns";
         phantom::variant variant_generic_struct = generic_struct_ptr;
 
 

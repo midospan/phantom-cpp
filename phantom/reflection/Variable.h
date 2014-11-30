@@ -44,12 +44,12 @@
 
 o_namespace_begin(phantom, reflection)
 
-class o_export Variable : public Constant
+class o_export Variable : public LanguageElement
 {
 public:
     Variable();
-    Variable(const string& a_strName, bitfield a_Modifiers = 0);
-    Variable(const string& a_strName, Range* a_pRange, bitfield a_Modifiers = 0);
+    Variable(const string& a_strName, modifiers_t a_Modifiers = 0);
+    Variable(const string& a_strName, Range* a_pRange, modifiers_t a_Modifiers = 0);
 
     virtual void            getValue(void* a_pDest) const = 0;
 
@@ -59,9 +59,11 @@ public:
 
     virtual Variable*       asVariable() const  { return (Variable*)this; }
 
+    virtual Variable*       clone() const = 0;
+
 protected:
-    mutable connection::slot::list        PHANTOM_CODEGEN_m_slot_list_of_valueChanged;
-    phantom::signal_t valueChanged() const;
+    connection::slot::list        PHANTOM_CODEGEN_m_slot_list_of_valueChanged;
+    phantom::signal_t valueChanged();
 
 protected:
     Range* m_pRange;

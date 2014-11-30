@@ -33,8 +33,6 @@
 
 #ifndef state_TTrack_h__
 #define state_TTrack_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
 
@@ -90,7 +88,7 @@ public:
             static placeholder_type*    s_Instance = NULL;
             if(s_Instance == NULL)
             {
-                s_Instance = o_dynamic_proxy_new(phantom::state::Track, phantom::state::Track::metaType, placeholder_type)(o_CS("Root"), 0, 0);
+                s_Instance = o_dynamic_proxy_new(placeholder_type)(o_CS("Root"), 0, 0);
                 TNativeStateMachine<t_ObjectClass>::Instance()->setRootTrack(s_Instance);
             }
             return s_Instance;
@@ -127,33 +125,23 @@ public:
     typedef TNativeTrack<t_ObjectClass>         self_type;
     typedef t_ObjectClass                       object_class;
     typedef TNativeStateMachine<t_ObjectClass>    statemachine_class;
-    typedef o_NESTED_TYPE first_super_statechart_class_of<t_ObjectClass>::type        root_object_class;
+    typedef o_NESTED_TYPE first_base_statechart_class_of<t_ObjectClass>::type        root_object_class;
     typedef phantom::state::native::state_machine_data<t_ObjectClass> instance_data;
 
     friend class State;
     friend class TNativeStateMachine<t_ObjectClass>;
 
     TNativeTrack( const string& a_strName
-        , bitfield bf )
-            : Track(a_strName
+        , uint a_uiSerializationMask
+        , modifiers_t bf )
+            : Track(a_strName, a_uiSerializationMask
             , bf)
-    {
-
-    }
-    TNativeTrack( const string& a_strName
-        , int a_iIndex
-        , bitfield bf )
-        : Track(a_strName
-        , a_iIndex
-        , bf)
     {
 
     }
     o_destructor ~TNativeTrack(void)     {}
 
     o_forceinline State*    parent_state() const { return static_cast<State*>(m_pParentState); }
-
-    virtual void deleteNow() { o_dynamic_proxy_delete(phantom::state::Track, phantom::state::Track::metaType, self_type) this; }
 
     void transit(instance_data* smdataptr, state_class* a_pNextState)
     {
@@ -239,13 +227,5 @@ public:
 #undef TNativeTrack_smdataptr
 
 o_namespace_end(phantom, state, native)
-
-    /*o_traits_specialize_all_super_traitNTS(
-    (phantom,state,native)
-    , (typename)
-    , (t_Ty)
-    , TNativeTrack
-    , (Track)
-    )*/
 
 #endif

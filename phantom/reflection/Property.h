@@ -33,11 +33,8 @@
 
 #ifndef o_phantom_reflection_Property_h__
 #define o_phantom_reflection_Property_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
-
 
 /* **************** Declarations ***************** */
 
@@ -60,24 +57,25 @@ public:
     static Class* const metaType;
 
 public:
-    Property(const string& a_strName
-        , Type* a_pValueType
+    Property();
+    Property(Type* a_pValueType
+        , const string& a_strName
         , InstanceMemberFunction* a_pSetMemberFunction
         , InstanceMemberFunction* a_pGetMemberFunction
         , Signal* a_pSignal
         , Range* a_pRange
     , uint a_uiSerializationMask
-    , bitfield a_Modifiers = 0);
+    , modifiers_t a_Modifiers = 0);
 
 protected:
-    Property(const string& a_strName
-        , Type* a_pValueType
+    Property(Type* a_pValueType
+        , const string& a_strName
         , InstanceMemberFunction* a_pSetMemberFunction
         , InstanceMemberFunction* a_pGetMemberFunction
         , Signal* a_pSignal
         , Range* a_pRange
         , uint a_uiSerializationMask
-        , bitfield a_Modifiers
+        , modifiers_t a_Modifiers
         , int protectedCtorTag);
 
 public:
@@ -86,6 +84,7 @@ public:
     virtual void            getValue(void const* a_pObject, void* a_pDest) const;
     virtual void            setValue(void* a_pObject, void const* a_pSrc) const;
     Type*                   getValueType() const { return m_pValueType; }
+    Type*                   getEffectiveValueType() const { return m_pValueType ? m_pValueType->removeConstReference() : nullptr; }
     virtual Property*       asProperty() const { return const_cast<Property*>(this); }
         
     InstanceMemberFunction* getSetMemberFunction() const { return m_pSetMemberFunction; }
@@ -96,13 +95,33 @@ public:
 
     virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
 
+    void                    addInstanceDataMember(InstanceDataMember* a_pInstanceDataMember);
+
+    vector<InstanceDataMember*>::const_iterator beginInstanceDataMembers() const { return m_InstanceDataMembers.begin(); }
+    vector<InstanceDataMember*>::const_iterator endInstanceDataMembers() const { return m_InstanceDataMembers.end(); }
+
+    size_t                  getInstanceDataMemberCount() const { return m_InstanceDataMembers.size(); }
+
 protected:
     virtual void            referencedElementRemoved(LanguageElement* a_pElement);
 
+    void    setSignalString(string str);
+    string  getSignalString() const;
+    void    setSetMemberFunctionString(string str);
+    string  getSetMemberFunctionString() const;
+    void    setGetMemberFunctionString(string str);
+    string  getGetMemberFunctionString() const;
+
+    virtual void finalize();
+
 protected:
+    vector<InstanceDataMember*> m_InstanceDataMembers;
     Signal* m_pSignal;
     InstanceMemberFunction* m_pSetMemberFunction;
     InstanceMemberFunction* m_pGetMemberFunction;
+    string* m_pSignalString;
+    string* m_pSetMemberFunctionString;
+    string* m_pGetMemberFunctionString;
     property_compilation_data* m_pCompilationData;
 };
 

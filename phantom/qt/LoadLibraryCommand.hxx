@@ -1,6 +1,8 @@
 #pragma once
 
-o_classNS((phantom, qt), LoadLibraryCommand, (UndoCommand))
+#include "UndoCommand.hxx"
+
+o_classNB((phantom, qt), LoadLibraryCommand, (UndoCommand))
 {
     o_reflection 
     {

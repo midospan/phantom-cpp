@@ -45,8 +45,8 @@ o_registerN((phantom, serialization), BinaryFileTreeNode);
 
 o_namespace_begin(phantom, serialization)
     
-BinaryFileTreeNode::BinaryFileTreeNode(BinaryFileTreeDataBase* a_pOwnerDataBase, uint guid, BinaryFileTreeNode* a_pParentNode)
-    : FileTreeNode(a_pOwnerDataBase, guid, a_pParentNode) 
+BinaryFileTreeNode::BinaryFileTreeNode(BinaryFileTreeDataBase* a_pDataBase, uint guid, BinaryFileTreeNode* a_pParentNode)
+    : FileTreeNode(a_pDataBase, guid, a_pParentNode) 
 {
 
 }
@@ -66,10 +66,10 @@ void BinaryFileTreeNode::saveDataProperties(uint a_uiSerializationFlag, const ph
 	// Serialize the data
 	byte buffer[1000000];
 	byte* pBuffer = &(buffer[0]);
-	a_Data.type()->serialize(a_Data.address(), pBuffer, a_uiSerializationFlag, m_pOwnerDataBase);
+	a_Data.type()->serialize(a_Data.address(), pBuffer, a_uiSerializationFlag, m_pDataBase);
 
 	// Write the data file
-	const string& path = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase)->dataPath(a_Data, guid, this);
+	const string& path = static_cast<BinaryFileTreeDataBase*>(m_pDataBase)->dataPath(a_Data, guid, this);
     writeBinary(path.c_str(), &(buffer[0]), pBuffer - &(buffer[0]));
 }
 
@@ -79,12 +79,12 @@ void BinaryFileTreeNode::loadDataProperties(uint a_uiSerializationFlag, const ph
 	byte buffer[1000000];
 	byte* pBuffer = &(buffer[0]);
 	uint uiBufferSize = 0;
-    const string& path = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase)->dataPath(a_Data, guid, this);
+    const string& path = static_cast<BinaryFileTreeDataBase*>(m_pDataBase)->dataPath(a_Data, guid, this);
     readBinary(path.c_str(), pBuffer, uiBufferSize);
 
 	// Deserialize the data
 	pBuffer = &(buffer[0]);
-    a_Data.type()->deserialize(a_Data.address(), (const byte*&)pBuffer, a_uiSerializationFlag, m_pOwnerDataBase);
+    a_Data.type()->deserialize(a_Data.address(), (const byte*&)pBuffer, a_uiSerializationFlag, m_pDataBase);
 }
 
 void BinaryFileTreeNode::saveIndex()
@@ -94,12 +94,12 @@ void BinaryFileTreeNode::saveIndex()
 
 	byte buffer[1000000];
 	byte* pBuffer = &(buffer[0]);
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
     for(;it != end; ++it)
     {
         void* pAddress = it->address();
         reflection::Type* pType = it->type();
-        uint guid = getOwnerDataBase()->getGuid(pAddress);
+        uint guid = getDataBase()->getGuid(pAddress);
 		uint typeGuid = pType->getGuid();
 
 		// Add type guid to buffer
@@ -111,14 +111,14 @@ void BinaryFileTreeNode::saveIndex()
 		pBuffer += sizeof(uint);
 
 		// Add parent guid to buffer
-		const data& parent = m_pOwnerDataBase->getComponentDataOwner(pAddress);
+		const data& parent = m_pDataBase->getComponentDataOwner(pAddress);
         if(NOT(parent.isNull()))
         {
 			// Add separator to buffer
 			*reinterpret_cast<char*>(pBuffer) = '|';
 			pBuffer += sizeof(char);
 
-            uint parentGuid = m_pOwnerDataBase->getGuid(parent);
+            uint parentGuid = m_pDataBase->getGuid(parent);
 			*reinterpret_cast<uint*>(pBuffer) = parentGuid;
 			pBuffer += sizeof(uint);
         }
@@ -159,12 +159,12 @@ void BinaryFileTreeNode::loadDataAttributes(const phantom::data& a_Data, uint gu
 
 }
 
-bool BinaryFileTreeNode::canLoad(vector<string>* missing_types) const
+bool BinaryFileTreeNode::canLoad(map<string, vector<string>>* missing_types_per_module) const
 {
 	byte buffer[1000000];
 	byte* pBuffer = &(buffer[0]);
 	uint uiBufferSize = 0;
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);    
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);    
     const string& self_path = pDB->nodePath(const_cast<BinaryFileTreeNode*>(this), getGuid(), getParentNode());
     readBinary(self_path+'/'+"index", pBuffer, uiBufferSize);
         
@@ -176,7 +176,7 @@ bool BinaryFileTreeNode::canLoad(vector<string>* missing_types) const
     {
         const property_tree& sub_tree = it->second;
         string typeName = decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("typename"));
-        reflection::Type* pType = m_pOwnerDataBase->solveTypeByName(typeName);
+        reflection::Type* pType = m_pDataBase->solveTypeByName(typeName);
         if(pType == NULL)
         {
             missing_types.push_back(typeName);
@@ -193,7 +193,7 @@ void BinaryFileTreeNode::cache()
 	byte buffer[1000000];
 	byte* pBuffer = &(buffer[0]);
 	uint uiBufferSize = 0;
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
     const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
     readBinary(self_path+'/'+"index", pBuffer, uiBufferSize);
 
@@ -215,7 +215,7 @@ void BinaryFileTreeNode::cache()
 			i += sizeof(uint);
 
 			// Separator ?
-			uint uiParentGuid = 0xFFFFFFFF;
+			uint uiParentGuid = o_invalid_guid;
 			if (pBuffer[i] == '|')
 			{
 				i += sizeof(char);
@@ -225,12 +225,12 @@ void BinaryFileTreeNode::cache()
 			}
 			parentGuids.push_back(uiParentGuid);
 
-			o_assert(uiGuid != 0xFFFFFFFF);
+			o_assert(uiGuid != o_invalid_guid);
         
-			reflection::Type* pType = phantom::typeByGuid(uiTypeGuid);//m_pOwnerDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(strTypename));
+			reflection::Type* pType = phantom::typeByGuid(uiTypeGuid);//m_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(strTypename));
 			if(pType == NULL)
 			{
-				switch(m_pOwnerDataBase->getActionOnMissingType())
+				switch(m_pDataBase->getActionOnMissingType())
 				{
 				case DataBase::e_ActionOnMissingType_IgnoreAndDestroyData:
 					continue;
@@ -252,11 +252,11 @@ void BinaryFileTreeNode::cache()
 		for(;j<count;++j)
 		{
 			uint parentGuid = parentGuids[j];
-			if(parentGuid != 0xffffffff)
+			if(parentGuid != o_invalid_guid)
 			{
 				const phantom::data& parentData = pDB->getData(parentGuid);
 				o_assert(NOT(parentData.isNull()));
-				pDB->registerComponentData(m_Data[j], parentData, "", 0);
+				pDB->registerComponentData(m_Data[j], parentData, "");
 			}
 		}
 	}
@@ -264,7 +264,7 @@ void BinaryFileTreeNode::cache()
 
 void BinaryFileTreeNode::build(vector<data>& a_Data)
 {
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
   
     data_vector::iterator end = m_Data.end();
     // Build ( Construction + Installation)
@@ -279,7 +279,7 @@ void BinaryFileTreeNode::build(vector<data>& a_Data)
 void BinaryFileTreeNode::deserialize(uint a_uiSerializationFlag, vector<data>& a_Data)
 {
     // Deserialization
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
     data_vector::iterator it = m_Data.begin();
     data_vector::iterator end = m_Data.end();
     for(;it != end; ++it)
@@ -300,12 +300,12 @@ void BinaryFileTreeNode::deserialize(uint a_uiSerializationFlag, vector<data>& a
 
 void BinaryFileTreeNode::restore(uint a_uiSerializationFlag, vector<data>& a_Data)
 {
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
 
-    uint pass = 0;
+    restore_pass pass = restore_pass_local;
     int counter = 0;
     int cycle_count = m_DataRestoreQueue.size();
-    while(cycle_count)
+    while(cycle_count AND pass <= restore_pass_global_5)
     {
         // extract the data from the queue
         phantom::data d = m_DataRestoreQueue.front();
@@ -328,7 +328,7 @@ void BinaryFileTreeNode::restore(uint a_uiSerializationFlag, vector<data>& a_Dat
         }
         if((++counter) == cycle_count) // reached the cycle end => increment pass, reset counters
         {
-            ++pass;
+            pass = restore_pass(pass+1);
             cycle_count = m_DataRestoreQueue.size();
             counter = 0;
         }
@@ -337,7 +337,7 @@ void BinaryFileTreeNode::restore(uint a_uiSerializationFlag, vector<data>& a_Dat
 
 void BinaryFileTreeNode::unbuild()
 {
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
 
     data_vector::iterator end = m_Data.end();
     // teardown ( Destruction + Uninstallation + Termination )
@@ -352,7 +352,7 @@ void BinaryFileTreeNode::unbuild()
 
 void BinaryFileTreeNode::uncache()
 {
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
 
     data_vector::iterator it = m_Data.begin();
     data_vector::iterator end = m_Data.end();
@@ -439,7 +439,7 @@ void BinaryFileTreeNode::preCache()
 	m_pBuffer = (byte*)malloc(1000000 * sizeof(byte));
 	byte* pBuffer = &(m_pBuffer[0]);
 	m_uiBufferSize = 0;
-	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
 	const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
 	readBinary(self_path+'/'+"index", pBuffer, m_uiBufferSize);
 	m_uiBufferPos = 0;
@@ -447,7 +447,7 @@ void BinaryFileTreeNode::preCache()
 
 bool BinaryFileTreeNode::cacheOne(uint a_uiIndex)
 {
-	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
 	byte* pBuffer = &(m_pBuffer[0]);
 	if (m_uiBufferPos < m_uiBufferSize-1)
 	{
@@ -462,7 +462,7 @@ bool BinaryFileTreeNode::cacheOne(uint a_uiIndex)
 		m_uiBufferPos += sizeof(uint);
 
 		// Separator ?
-		uint uiParentGuid = 0xFFFFFFFF;
+		uint uiParentGuid = o_invalid_guid;
 		if (pBuffer[m_uiBufferPos] == '|')
 		{
 			m_uiBufferPos += sizeof(char);
@@ -472,7 +472,7 @@ bool BinaryFileTreeNode::cacheOne(uint a_uiIndex)
 		}
 		m_ParentGuids.push_back(uiParentGuid);
 
-		o_assert(uiGuid != 0xFFFFFFFF);
+		o_assert(uiGuid != o_invalid_guid);
 
 		reflection::Type* pType = phantom::typeByGuid(uiTypeGuid);
 
@@ -490,18 +490,18 @@ bool BinaryFileTreeNode::cacheOne(uint a_uiIndex)
 
 void BinaryFileTreeNode::postCache()
 {
-	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
 
 	size_t i = 0;
 	size_t count = m_Data.size();
 	for(;i<count;++i)
 	{
 		uint parentGuid = m_ParentGuids[i];
-		if(parentGuid != 0xffffffff)
+		if(parentGuid != o_invalid_guid)
 		{
 			const phantom::data& parentData = pDB->getData(parentGuid);
 			o_assert(NOT(parentData.isNull()));
-			pDB->registerComponentData(m_Data[i], parentData, "", 0);
+			pDB->registerComponentData(m_Data[i], parentData, "");
 		}
 	}
 
@@ -516,26 +516,26 @@ void BinaryFileTreeNode::uncacheOne(const phantom::data& a_Data)
 	{
 		m_Data.erase(it);
 	}
-	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
 	pDB->unregisterData(a_Data);
 	a_Data.type()->deallocate(a_Data.address());
 }
 
 void BinaryFileTreeNode::buildOne(const phantom::data& a_Data)
 {
-	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
 	a_Data.type()->build(a_Data.address());
 }
 
 void BinaryFileTreeNode::unbuildOne(const phantom::data& a_Data)
 {
-	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
 	a_Data.type()->teardown(a_Data.address());
 }
 
 void BinaryFileTreeNode::deserializeOne(const phantom::data& a_Data, uint a_uiSerializationFlag)
 {
-	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
 	void* pAddress = a_Data.address();
 	reflection::Type* pType = a_Data.type();
 	uint guid = pDB->getGuid(pAddress);
@@ -549,83 +549,11 @@ void BinaryFileTreeNode::deserializeOne(const phantom::data& a_Data, uint a_uiSe
 	pType->deserialize(pAddress, (const byte*&)pBuffer, a_uiSerializationFlag, pDB);
 }
 
-bool BinaryFileTreeNode::restoreOne(const phantom::data& a_Data, uint a_uiSerializationFlag, uint a_uiPass)
+bool BinaryFileTreeNode::restoreOne(const phantom::data& a_Data, uint a_uiSerializationFlag, restore_pass a_uiPass)
 {
-	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
+	BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pDataBase);
 	restore_state state = a_Data.type()->restore(a_Data.address(), a_uiSerializationFlag, a_uiPass);
 	return state == restore_complete;
-}
-
-void BinaryFileTreeNode::saveTypes()
-{ 
-    byte buffer[1000000];
-    byte* pBuffer = &(buffer[0]);
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
-    uint count = m_Types.size();
-
-    extension::serializer<uint>::serialize(typeOf<uint>(), &count, pBuffer, 0xffffffff, nullptr);
-
-    auto it = m_Types.begin();
-    auto end = m_Types.end();
-    for(;it != end; ++it)
-    {
-        reflection::Class* pClass = classOf(it->second);
-        uint classGuid = pClass->getGuid();
-
-        // Add type guid to buffer
-        extension::serializer<uint>::serialize(typeOf<uint>(), &classGuid, pBuffer, 0xffffffff, 0);
-
-        // Add guid to buffer
-        const string & typeName = it->first;
-        typeOf<string>()->serialize(&typeName, pBuffer, 0xffffffff, nullptr);
-
-        pClass->serialize(it->second, pBuffer, 0xffffffff, nullptr);
-    }
-
-    uint uiBufferSize = pBuffer - &(buffer[0]);
-    const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
-    writeBinary(self_path+'/'+"types", &(buffer[0]), uiBufferSize);
-}
-
-void BinaryFileTreeNode::loadTypes()
-{
-    byte* pBaseBuffer = (byte*)malloc(1000000 * sizeof(byte));
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(m_pOwnerDataBase);
-    const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
-    size_t bufferSize = 0;
-    readBinary(self_path+'/'+"types", pBaseBuffer, bufferSize);
-
-    const byte* pBuffer = pBaseBuffer;
-    const byte*& pBufferRef = pBuffer;
-    m_uiBufferSize = 0;
-    uint count;
-    extension::serializer<uint>::deserialize(typeOf<uint>(), &count, pBufferRef, 0xffffffff, nullptr);
-
-    for(size_t i = 0; i<count; ++i)
-    {
-        uint classGuid;
-
-        // Add type guid to buffer
-
-        // Add type guid to buffer
-        extension::serializer<uint>::deserialize(typeOf<uint>(), &classGuid, pBufferRef, 0xffffffff, 0);
-
-        reflection::Class* pClass = pDB->solveTypeById(classGuid)->asClass();
-
-        // Add guid to buffer
-        string typeName;
-        typeOf<string>()->deserialize(&typeName, pBufferRef, 0xffffffff, nullptr);
-
-        void* pType = pClass->allocate();
-        pClass->construct(pType);
-        pClass->install(pType, 0);
-        pClass->deserialize(pType, pBufferRef, 0xffffffff, nullptr);
-        uint pass = 0;
-        restore_state state;  
-        while((state = pClass->restore(pType, 0xffffffff, pass++)) == restore_incomplete);
-        addType(as<reflection::Type*>(pType));
-    }
-    free(pBaseBuffer);
 }
 
 o_namespace_end(phantom, serialization)

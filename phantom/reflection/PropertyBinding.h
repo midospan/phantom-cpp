@@ -68,6 +68,8 @@ public:
 
     Property*           getProperty() const { return m_pProperty; }
 
+    virtual PropertyBinding* clone() const;
+
 protected:
     void referencedElementRemoved( LanguageElement* a_pElement );
 

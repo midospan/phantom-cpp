@@ -36,7 +36,11 @@
 
 // FEATURES activation / deactivation
 #define o__int__reflection_template_use_level             1     /// All symbol resolution will be made via parsing instead of meta programming where possible (quicker compilation / slower runtime). Switch from Dynamic to Static is straightforward, opposite requires more reflection declaration such as template instances and typedefs in .cpp. 
-#define o__bool__nedalloc                                 1     /// Uses nedmalloc
+#define o__int__bitset_bit_count                          64    /// Number of bit in a phantom::modifiers_t
+#define o__bool__nedalloc                                 0     /// Uses nedmalloc
+#define o__bool__use_custom_stl_contiguous_allocator      0     /// For vector and string and other contigous memory container
+#define o__bool__use_custom_stl_partioned_allocator       0     /// For maps and other node based containers
+#define o__bool__use_custom_default_allocator             0     /// Change the default allocator for all phantom allocated classes
 #define o__bool__enable_reflection_feature                1     /// Enable type reflection generation
 #define o__bool__enable_signal_connection_feature         1     /// Enable connection between objects via signals
 #define o__bool__enable_nested_state_machine_feature      1     /// Enable statemachine system
@@ -56,37 +60,47 @@
 
 
 // ALLOCATION / CONSTRUCTION / INSTALLATION customization
-#if defined(o_USE_POOL_ALLOCATORS)
-#define o__func__malloc(_memsize_)                          ::nedalloc::nedmalloc(_memsize_)
-#define o__func__realloc(_ptr_,_memsize_)                   ::nedalloc::nedrealloc(_ptr_,_memsize_)
-#define o__func__free(_ptr_)                                ::nedalloc::nedfree(_ptr_)
+#if o__bool__nedalloc
 
-#define o__t1_class__raii_allocator(_type_)                 ::boost::object_pool<_type_, phantom::memory::malloc_free_allocator_for_boost>
-#define o__t1_class__slot_allocator(_type_)                 o__t1_class__raii_allocator(_type_)
-#define o__t1_class__default_allocator(_type_)              ::boost::fast_pool_allocator<_type_, phantom::memory::malloc_free_allocator_for_boost>
-#define o__t1_class__default_class_allocator(_type_)        o__t1_class__default_allocator(_type_)
-#define o__t1_class__contiguous_memory_allocator(_type_)    ::boost::pool_allocator<_type_, phantom::memory::malloc_free_allocator_for_boost>
-#define o__t1_class__partioned_memory_allocator(_type_)     o__t1_class__default_allocator(_type_)
-#define o__t1_class__default_constructor(_class_)           phantom::extension::constructor<_class_>
-#define o__t1_class__default_serializer(_class_)            phantom::extension::serializer<_class_>
-#define o__t1_class__default_installer(_class_)             phantom::extension::installer<_class_>
+#   define o__func__malloc(_memsize_)                          ::nedalloc::nedmalloc(_memsize_)
+#   define o__func__realloc(_ptr_,_memsize_)                   ::nedalloc::nedrealloc(_ptr_,_memsize_)
+#   define o__func__free(_ptr_)                                ::nedalloc::nedfree(_ptr_)
 
 #else 
 
-#define o__func__malloc(_memsize_)                          ::malloc(_memsize_)//::nedalloc::nedmalloc(_memsize_)
-#define o__func__realloc(_ptr_,_memsize_)                   ::realloc(_ptr_,_memsize_)//::nedalloc::nedrealloc(_ptr_,_memsize_)
-#define o__func__free(_ptr_)                                ::free(_ptr_)//::nedalloc::nedfree(_ptr_)
+#   define o__func__malloc(_memsize_)                          ::malloc(_memsize_)//::nedalloc::nedmalloc(_memsize_)
+#   define o__func__realloc(_ptr_,_memsize_)                   ::realloc(_ptr_,_memsize_)//::nedalloc::nedrealloc(_ptr_,_memsize_)
+#   define o__func__free(_ptr_)                                ::free(_ptr_)//::nedalloc::nedfree(_ptr_)
 
-#define o__t1_class__raii_allocator(_type_)                 ::boost::object_pool<_type_, phantom::memory::malloc_free_allocator_for_boost>
-#define o__t1_class__slot_allocator(_type_)                 o__t1_class__raii_allocator(_type_)//o__t1_class__raii_allocator(_type_)
-#define o__t1_class__default_allocator(_type_)              ::phantom::memory::malloc_free_allocator<_type_>//::boost::fast_pool_allocator<_type_, phantom::memory::malloc_free_allocator_for_boost>
-#define o__t1_class__default_class_allocator(_type_)        o__t1_class__default_allocator(_type_)
-#define o__t1_class__contiguous_memory_allocator(_type_)    ::phantom::memory::malloc_free_allocator<_type_>//::boost::pool_allocator<_type_, phantom::memory::malloc_free_allocator_for_boost>
-#define o__t1_class__partioned_memory_allocator(_type_)     ::phantom::memory::malloc_free_allocator<_type_>//::boost::fast_pool_allocator<_type_, phantom::memory::malloc_free_allocator_for_boost>
-#define o__t1_class__default_constructor(_class_)           phantom::extension::constructor<_class_>
-#define o__t1_class__default_serializer(_class_)            phantom::extension::serializer<_class_>
-#define o__t1_class__default_installer(_class_)             phantom::extension::installer<_class_>
 #endif
+
+#if o__bool__use_custom_stl_contiguous_allocator 
+#    define o__t1_class__contiguous_memory_allocator(...)       // to define
+#else
+#    define o__t1_class__contiguous_memory_allocator(...)       ::std::allocator<__VA_ARGS__>//::boost::pool_allocator<_type_, phantom::memory::malloc_free_allocator_for_boost>
+#endif
+
+#if o__bool__use_custom_stl_partioned_allocator 
+#    define o__t1_class__partioned_memory_allocator(...)        // define
+#else
+#    define o__t1_class__partioned_memory_allocator(...)        ::std::allocator<__VA_ARGS__>//::boost::pool_allocator<_type_, phantom::memory::malloc_free_allocator_for_boost>
+#endif
+
+#if o__bool__use_custom_default_allocator
+#   define o__t1_class__default_allocator(...)                 // define
+#else
+#   define o__t1_class__default_allocator(...)                 ::phantom::memory::malloc_free_allocator<__VA_ARGS__>//::boost::fast_pool_allocator<_type_, phantom::memory::malloc_free_allocator_for_boost>
+#endif
+
+#define o__t1_class__raii_allocator(...)                     ::boost::object_pool<__VA_ARGS__, ::phantom::memory::malloc_free_allocator_for_boost>
+#define o__t1_class__slot_allocator(...)                     o__t1_class__raii_allocator(__VA_ARGS__)//o__t1_class__raii_allocator(_type_)
+
+#define o__t1_class__default_class_allocator(...)           o__t1_class__default_allocator(__VA_ARGS__)
+
+#define o__t1_class__default_constructor(...)               phantom::constructor<__VA_ARGS__>
+#define o__t1_class__default_serializer(...)                phantom::serializer<__VA_ARGS__>
+#define o__t1_class__default_installer(...)                 phantom::installer<__VA_ARGS__>
+#define o__t1_class__default_initializer(...)               phantom::initializer<__VA_ARGS__>
 
 // EXPERTS ONLY
 #define o__t1_class__native_class_tag(_modifiers_)            phantom::reflection::native::native_class_default_tag_filter<_modifiers_>::tag /// Allow full native class content redefinition by partial specialization of TNativeType<t_Class, o__t1_class__native_class_tag(_modifiers_)>

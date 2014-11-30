@@ -15,9 +15,9 @@ namespace phantom { namespace qt {
 
 SaveDataAttributeCommand::SaveDataAttributeCommand(phantom::serialization::Node* a_pNode, const phantom::data& a_Data)
 : UndoCommand()
-, m_pDataBase(a_pNode->getOwnerDataBase())
+, m_pDataBase(a_pNode->getDataBase())
 , m_uiParentGuid(a_pNode->getGuid())
-, m_uiGuid(a_pNode->getOwnerDataBase()->getGuid(a_Data))
+, m_uiGuid(a_pNode->getDataBase()->getGuid(a_Data))
 {
     o_assert(m_pDataBase);
     setName("Save attributes of data '"+boost::lexical_cast<string>((void*)m_uiGuid)+"'");

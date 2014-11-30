@@ -42,7 +42,7 @@ o_registerN((phantom, reflection), TemplateSpecialization);
 o_namespace_begin(phantom, reflection) 
 
 TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate )
-    : LanguageElement(o_CS("<>"), bitfield())
+    : LanguageElement(o_CS("<>"), modifiers_t())
     , m_pTemplate(a_pTemplate)
     , m_DefaultArgumentsCount(0)
 {
@@ -202,12 +202,6 @@ bool TemplateSpecialization::canBeDestroyed() const
     return LanguageElement::canBeDestroyed();
 }
 
-void TemplateSpecialization::terminate()
-{
-    LanguageElement::terminate();
-}
-
-
 TemplateElement* TemplateSpecialization::getDefaultArgument(const string& a_strParameterName) const 
 {
     for(auto it = m_Arguments.begin(); it != m_Arguments.end(); ++it)
@@ -253,6 +247,26 @@ size_t TemplateSpecialization::getArgumentIndex( const string& a_strParameterNam
     }
     o_assert(false);
     return 0xffffffff;
+}
+
+void TemplateSpecialization::elementAdded( LanguageElement* a_pElement )
+{
+    LanguageElement::elementAdded(a_pElement);
+}
+
+void TemplateSpecialization::elementRemoved( LanguageElement* a_pElement )
+{
+    for(auto it = m_Arguments.begin(); it != m_Arguments.end(); )
+    {
+        if(it->defaultElement && it->defaultElement->asLanguageElement() == a_pElement)
+            it->defaultElement = nullptr;
+        if(it->element->asLanguageElement() == a_pElement)
+        {
+            it = m_Arguments.erase(it);
+        }
+        else ++it;
+    }
+    LanguageElement::elementRemoved(a_pElement);
 }
 
 o_namespace_end(phantom, reflection)

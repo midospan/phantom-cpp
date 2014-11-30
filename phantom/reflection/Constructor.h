@@ -49,7 +49,8 @@ public:
     static Class* const metaType;
 
 public:
-    Constructor(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
+    Constructor();
+    Constructor(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers = 0);
 
     virtual void        construct(void* a_pInstance, void** a_pParams) const 
     {

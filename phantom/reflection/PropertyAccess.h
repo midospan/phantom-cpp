@@ -46,7 +46,8 @@ class o_export PropertyAccess : public Expression
 {
 public:
     PropertyAccess(Expression* a_pLeftExpression, Property* a_pProperty);
-    virtual void terminate();
+
+    o_terminate();
 
     virtual void        getValue(void* dest) const;
 
@@ -61,7 +62,9 @@ public:
 
     virtual void        flush() const;
 
-    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers /* = 0 */) const;
+    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers /* = 0 */) const;
+
+    virtual bool        isPersistent() const;
 
     virtual PropertyAccess*  clone() const;
 

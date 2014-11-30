@@ -45,10 +45,9 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Signal : public InstanceMemberFunction
 {
-    o_friend(class, phantom, reflection, Class)
-    o_friend(class, phantom, Phantom)
-    friend o_export void internalConnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction );
-    friend o_export void internalDisconnect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
+    friend struct phantom::PIMPL;
+    friend class phantom::reflection::Class;
+    friend class Property;
     
 public:
     static Class* const metaType;
@@ -56,15 +55,28 @@ public:
     class return_type {};
 
 public:
-    Signal(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
+    Signal();
+    Signal(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers = 0);
 
     virtual connection::slot::list* getSlotList( void* a_pCaller ) const;
 
+    inline void block(void* a_pInstance) 
+    {
+         getSlotList(a_pInstance)->block(); 
+    }
+
+    inline void unblock(void* a_pInstance) 
+    {
+        getSlotList(a_pInstance)->unblock();
+    }
+
     virtual Signal* asSignal() const  { return (Signal*)this; }
+
+    Property* getProperty() const { return m_pProperty; }
 
     virtual variant compile(Compiler* a_pCompiler);
 
-    void setSlotListDataMemberOffset(size_t a_uiOffset) { m_uiSlotListDataMemberOffset = a_uiOffset; }
+    size_t getSlotListDataMemberOffset() const;
 
 private:
     class object_destruction_guard_private
@@ -87,10 +99,18 @@ private:
     };
     friend class object_destruction_guard_private;
 
+    virtual void finalize();
+
 protected:
+    Signal(InstanceDataMember* a_pInstanceDataMember, const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers);
+    void generateCode();
+    virtual void ancestorChanged(LanguageElement* a_pLanguageElement);
+
+protected:
+    InstanceDataMember*     m_pSlotListDataMember;
     uint                    m_uiNodeDestructionGuardLevel;
     uint                    m_uiConnectionCount;
-    size_t                  m_uiSlotListDataMemberOffset;
+    Property*               m_pProperty;
 
 };
 

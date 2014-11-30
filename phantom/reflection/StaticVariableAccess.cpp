@@ -45,7 +45,7 @@ StaticVariableAccess::StaticVariableAccess(StaticVariable* a_pStaticVariable, Ex
 {
     addReferencedElement(a_pStaticVariable);
     if(a_pChildExpression)
-        addElement(a_pChildExpression);
+        addSubExpression(a_pChildExpression);
 }
 
 void StaticVariableAccess::getValue( void* a_pDest ) const
@@ -55,7 +55,7 @@ void StaticVariableAccess::getValue( void* a_pDest ) const
 
 StaticVariableAccess* StaticVariableAccess::clone() const
 {
-    return o_new(StaticVariableAccess)(m_pStaticVariable, getElementCount() ? getElement(0)->asExpression()->clone() : nullptr);
+    return o_new(StaticVariableAccess)(m_pStaticVariable, getElementCount() ? getElement(0)->asExpression() : nullptr);
 }
 
 o_namespace_end(phantom, reflection)

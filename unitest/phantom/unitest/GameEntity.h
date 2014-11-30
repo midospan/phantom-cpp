@@ -51,16 +51,16 @@ public:
 
     o_initialize() 
     {
-        o_statemachine_initialize();
+
     }
+
     o_terminate() 
     {
-        o_statemachine_terminate();
+
     }
 
     o_restore(filter, pass) 
     {
-        o_statemachine_initialize();
         return phantom::restore_complete;
     }
 

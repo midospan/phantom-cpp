@@ -70,6 +70,7 @@
 #define o_math_2_Sqrt_Pi    1.12837916709551257390
 #define o_math_Sqrt_2        1.41421356237309504880
 #define o_math_Sqrt_1_2        0.707106781186547524401
+#define o_math_inv_Sqrt_2        (1/o_math_Sqrt_2)
 #define o_math_real_Epsilon         DBL_EPSILON
 #define o_math_real_Max             DBL_MAX
 #define o_math_real_Min             DBL_MIN
@@ -92,6 +93,7 @@
 #define o_math_2_Sqrt_Pi    1.12837916709551257390f
 #define o_math_Sqrt_2        1.41421356237309504880f
 #define o_math_Sqrt_1_2        0.707106781186547524401f
+#define o_math_inv_Sqrt_2        (1/o_math_Sqrt_2)
 #define o_math_real_Epsilon         FLT_EPSILON
 #define o_math_real_Max             FLT_MAX
 #define o_math_real_Min             FLT_MIN

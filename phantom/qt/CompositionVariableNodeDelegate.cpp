@@ -4,7 +4,6 @@
 #include <phantom/reflection/CompositionClass.h>
 #include <phantom/serialization/Node.h>
 #include "CompositionAddComponentDataCommand.h"
-#include "UpdateComponentDataCommand.h"
 #include "VariableNode.h"
 #include "VariableModel.h"
 #include "UndoCommandAction.h"
@@ -54,15 +53,11 @@ void CompositionVariableNodeDelegate::createActions( vector<Action*>& out ) cons
             {
                 UndoCommand* pCommand = o_new(UndoCommand);
                 pCommand->setName("Add new component to composition");
-                uint guid = pDataBase->rootNode()->generateGuid();
                 CompositionAddComponentDataCommand* pCompositionAddComponentDataCommand = o_new(CompositionAddComponentDataCommand)(pDataBase
-                    , it->first, guid
+                    , it->first
                     , m_pVariableNode->getVariableModel()->getData()[i], pLeftExpression);
                 pCompositionAddComponentDataCommand->setName("Add new component to composition");
                 pCommand->pushCommand(pCompositionAddComponentDataCommand);
-                UpdateComponentDataCommand* pUpdateComponentDataCommand = o_new(UpdateComponentDataCommand)(pDataBase, guid);
-                pUpdateComponentDataCommand->setName("Auto add missing components");
-                pCommand->pushCommand(pUpdateComponentDataCommand);
                 it->second->pushCommand(pCommand);
             }
         }

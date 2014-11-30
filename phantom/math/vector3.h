@@ -224,7 +224,7 @@ o_namespace_end(phantom, math)
 #include "vector3ui.h"
 #include "vector3b.h"
 
-o_namespace_begin(phantom, extension, detail)
+o_namespace_begin(phantom, detail)
 
 template<typename t_Ty>
 struct safe_constructor_ <math::vector3<t_Ty>>
@@ -237,6 +237,6 @@ struct safe_constructor_ <math::vector3<t_Ty>>
     }
 };
 
-o_namespace_end(phantom, extension, detail)
+o_namespace_end(phantom, detail)
 
 #endif // o_math_vector3_h__

@@ -2,8 +2,9 @@
 
 #include "Expression.hxx"
 
-o_classNS((phantom, reflection), PointerArithmeticExpression, (Expression)) { o_reflection {}; };
-o_exposeN((phantom, reflection), PointerArithmeticExpression);
+o_classNB((phantom, reflection), PointerArithmeticExpression, (Expression)) (
+        );
+
 
 
 

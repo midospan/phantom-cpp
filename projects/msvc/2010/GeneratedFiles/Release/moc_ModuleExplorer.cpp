@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'ModuleExplorer.h'
 **
-** Created: Mon 30. Jun 18:40:40 2014
+** Created: Wed 29. Oct 19:57:00 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -24,7 +24,7 @@ static const uint qt_meta_data_phantom__qt__ModuleExplorer[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       1,   14, // methods
+       4,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -33,6 +33,9 @@ static const uint qt_meta_data_phantom__qt__ModuleExplorer[] = {
 
  // slots: signature, parameters, type, tag, flags
       31,   29,   28,   28, 0x09,
+      92,   82,   75,   28, 0x09,
+     120,   28,   28,   28, 0x09,
+     148,  135,   28,   28, 0x09,
 
        0        // eod
 };
@@ -40,6 +43,9 @@ static const uint qt_meta_data_phantom__qt__ModuleExplorer[] = {
 static const char qt_meta_stringdata_phantom__qt__ModuleExplorer[] = {
     "phantom::qt::ModuleExplorer\0\0,\0"
     "slotItemDoubleClicked(QTreeWidgetItem*,int)\0"
+    "string\0a_pModule\0moduleMetaDataPath(Module*)\0"
+    "loadMetaData()\0metaDataFile\0"
+    "reloadMetaData(QString)\0"
 };
 
 void phantom::qt::ModuleExplorer::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -49,6 +55,10 @@ void phantom::qt::ModuleExplorer::qt_static_metacall(QObject *_o, QMetaObject::C
         ModuleExplorer *_t = static_cast<ModuleExplorer *>(_o);
         switch (_id) {
         case 0: _t->slotItemDoubleClicked((*reinterpret_cast< QTreeWidgetItem*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
+        case 1: { string _r = _t->moduleMetaDataPath((*reinterpret_cast< Module*(*)>(_a[1])));
+            if (_a[0]) *reinterpret_cast< string*>(_a[0]) = _r; }  break;
+        case 2: _t->loadMetaData(); break;
+        case 3: _t->reloadMetaData((*reinterpret_cast< const QString(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -86,9 +96,9 @@ int phantom::qt::ModuleExplorer::qt_metacall(QMetaObject::Call _c, int _id, void
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 1)
+        if (_id < 4)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 1;
+        _id -= 4;
     }
     return _id;
 }

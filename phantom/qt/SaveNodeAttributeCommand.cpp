@@ -15,7 +15,7 @@ namespace phantom { namespace qt {
 
 SaveNodeAttributeCommand::SaveNodeAttributeCommand(phantom::serialization::Node* a_pNode)
 : UndoCommand()
-, m_pDataBase(a_pNode->getOwnerDataBase())
+, m_pDataBase(a_pNode->getDataBase())
 , m_uiGuid(a_pNode->getGuid())
 {
     o_assert(m_pDataBase);

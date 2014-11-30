@@ -78,7 +78,7 @@ public:
     static reflection::Class* const metaType;
 
 public:
-    State(const string& a_strName, bitfield modifiers = 0);
+    State(const string& a_strName, modifiers_t modifiers = 0);
     o_destructor ~State(void);
 
     virtual State* asState() const { return (State*)this; }
@@ -169,13 +169,13 @@ public:
         return m_pCompilationData->m_pLeaveClosure;
     }
 
-    inline void enter( dynamic_state_machine_data* smdataptr );
-    inline void update( dynamic_state_machine_data* smdataptr );
-    inline void leave( dynamic_state_machine_data* smdataptr );
+    void enter( dynamic_state_machine_data* smdataptr );
+    void update( dynamic_state_machine_data* smdataptr );
+    void leave( dynamic_state_machine_data* smdataptr );
     virtual variant compile(reflection::Compiler* a_pCompiler);
 
 protected:
-    State(const string& a_strName, uint a_uiOrderingFactor, bitfield modifiers = 0);
+    State(const string& a_strName, uint a_uiOrderingFactor, modifiers_t modifiers = 0);
     
     void            setOrderingFactor(uint a_uiOrderingFactor)
     {

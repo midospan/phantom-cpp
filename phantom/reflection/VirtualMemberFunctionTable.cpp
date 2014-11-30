@@ -43,7 +43,7 @@ o_namespace_begin(phantom, reflection)
 o_define_meta_type(VirtualMemberFunctionTable);  
 
 VirtualMemberFunctionTable::VirtualMemberFunctionTable() 
-    : m_pSuperTable(NULL)
+    : m_pBaseTable(NULL)
     , m_pMemberFunctions(new vector<InstanceMemberFunction*>)
     , m_ppClosures(nullptr)
     , m_bClosuresExtracted(false)
@@ -51,7 +51,7 @@ VirtualMemberFunctionTable::VirtualMemberFunctionTable()
 
 }
 VirtualMemberFunctionTable::VirtualMemberFunctionTable(size_t a_uiSize) 
-    : m_pSuperTable(NULL)
+    : m_pBaseTable(NULL)
     , m_pMemberFunctions(new vector<InstanceMemberFunction*>(a_uiSize))
     , m_ppClosures(nullptr)
     , m_bClosuresExtracted(false)
@@ -59,25 +59,36 @@ VirtualMemberFunctionTable::VirtualMemberFunctionTable(size_t a_uiSize)
 
 }
 
-VirtualMemberFunctionTable::VirtualMemberFunctionTable( VirtualMemberFunctionTable* a_pSuperTable )
-    : m_pSuperTable(a_pSuperTable)
-    , m_pMemberFunctions(a_pSuperTable->m_pMemberFunctions)
+VirtualMemberFunctionTable::VirtualMemberFunctionTable( VirtualMemberFunctionTable* a_pBaseTable )
+    : m_pBaseTable(a_pBaseTable)
+    , m_pMemberFunctions(a_pBaseTable->m_pMemberFunctions)
     , m_ppClosures(nullptr)
     , m_bClosuresExtracted(false)
 {
-
+    m_pBaseTable->m_DerivedTables.push_back(this);
 }
 
-VirtualMemberFunctionTable::VirtualMemberFunctionTable( VirtualMemberFunctionTable* a_pSuperTable, size_t a_uiSize )
-    : m_pSuperTable(a_pSuperTable)
+VirtualMemberFunctionTable::VirtualMemberFunctionTable( VirtualMemberFunctionTable* a_pBaseTable, size_t a_uiSize )
+    : m_pBaseTable(a_pBaseTable)
     , m_pMemberFunctions(new vector<InstanceMemberFunction*>(a_uiSize))
     , m_ppClosures(nullptr)
     , m_bClosuresExtracted(false)
 {
-    for(size_t i = 0; i<a_pSuperTable->m_pMemberFunctions->size(); ++i)
+    m_pBaseTable->m_DerivedTables.push_back(this);
+    for(size_t i = 0; i<a_pBaseTable->m_pMemberFunctions->size(); ++i)
     {
-        (*m_pMemberFunctions)[i] = (*(a_pSuperTable->m_pMemberFunctions))[i];
+        (*m_pMemberFunctions)[i] = (*(a_pBaseTable->m_pMemberFunctions))[i];
     }
+}
+
+o_destructor VirtualMemberFunctionTable::~VirtualMemberFunctionTable( void )
+{
+    if(m_pBaseTable)
+        m_pBaseTable->m_DerivedTables.erase(std::find(m_pBaseTable->m_DerivedTables.begin(), m_pBaseTable->m_DerivedTables.end(), this));
+    if(NOT(sharesMemberFunctions()))
+        delete m_pMemberFunctions;
+    if(m_ppClosures)
+        o_free(m_ppClosures);
 }
 
 size_t VirtualMemberFunctionTable::getIndexOf( InstanceMemberFunction* a_pMemberFunction ) const
@@ -88,14 +99,6 @@ size_t VirtualMemberFunctionTable::getIndexOf( InstanceMemberFunction* a_pMember
         if((*m_pMemberFunctions)[i] == a_pMemberFunction) return i;
     }
     return ~size_t(0);
-}
-
-o_destructor VirtualMemberFunctionTable::~VirtualMemberFunctionTable( void )
-{
-    if(NOT(sharesMemberFunctions()))
-        delete m_pMemberFunctions;
-    if(m_ppClosures)
-        o_free(m_ppClosures);
 }
 
 VirtualMemberFunctionTable* VirtualMemberFunctionTable::derive(size_t a_uiSize  /*= 0*/) const
@@ -111,8 +114,8 @@ VirtualMemberFunctionTable* VirtualMemberFunctionTable::derive(size_t a_uiSize  
 size_t VirtualMemberFunctionTable::getOffset() const
 {
     if(m_pOwner == nullptr) return ~size_t(0);
-    return m_pSuperTable 
-        ? getOwnerClass()->getSuperClassOffset(m_pSuperTable->getOwnerClass())
+    return m_pBaseTable 
+        ? getOwnerClass()->getBaseClassOffset(m_pBaseTable->getOwnerClass())
         : 0;
 }
 
@@ -140,7 +143,7 @@ void VirtualMemberFunctionTable::insertMemberFunction( InstanceMemberFunction* a
             if(a_pMemberFunction->canOverride(*it))
             {
                 a_pMemberFunction->setVirtual(); // Set virtual if not (indeed, even if not explicitely virtual, a member function which overrides a virtual becomes virtual 
-                *it = a_pMemberFunction; // replace super class member function by this one (overrides entry)
+                *it = a_pMemberFunction; // replace base class member function by this one (overrides entry)
                 return;
             }
         }
@@ -168,16 +171,16 @@ void VirtualMemberFunctionTable::construct( void* a_pInstance )
 {
     if(sharesMemberFunctions())
     {
-        m_pSuperTable->construct(a_pInstance);
+        m_pBaseTable->construct(a_pInstance);
         return; 
     }
     void*** pppWhere = (void***)((byte*)a_pInstance + getOffset());
     size_t count = getMemberFunctionCount();
     if(m_ppClosures == nullptr)
     {
-        if(m_pSuperTable) 
+        if(m_pBaseTable) 
         {
-            size_t size = std::max(count, m_pSuperTable->getMemberFunctionCount());
+            size_t size = std::max(count, m_pBaseTable->getMemberFunctionCount());
             m_ppClosures = (void**)o_malloc(size * sizeof(void*));
         }
         else 
@@ -186,7 +189,7 @@ void VirtualMemberFunctionTable::construct( void* a_pInstance )
         }
         void* non_init_ptr;
         memset(&non_init_ptr, 0xda, sizeof(void*));
-        if(memcmp(pppWhere, &non_init_ptr, sizeof(void*)) != 0) // memory not equals 0xdadadada => closures already present => a super vtable has been installed here
+        if(memcmp(pppWhere, &non_init_ptr, sizeof(void*)) != 0) // memory not equals 0xdadadada => closures already present => a base vtable has been installed here
         {
             memcpy(m_ppClosures, *pppWhere, count*sizeof(void*)); // extract native vtable closures
         }
@@ -194,11 +197,15 @@ void VirtualMemberFunctionTable::construct( void* a_pInstance )
         {
             if((*m_pMemberFunctions)[i])
             {
-                m_ppClosures[i] = (*m_pMemberFunctions)[i]->getVTableClosure(getOffset()); // write (resp. overwrite) closures (resp. super closures)
-                o_assert(m_ppClosures[i], "No vtable closure found for given vtable offset, ensure your compiler has provided all the closures for each possible multi-inheritance this adjustment (thunk)");
+                void* pVTableClosure = (*m_pMemberFunctions)[i]->getVTableClosure(getOffset());
+                if(pVTableClosure)
+                {
+                    m_ppClosures[i] = pVTableClosure; // write (resp. overwrite) closures (resp. base closures)
+                }
+                // o_assert(m_ppClosures[i], "No vtable closure found for given vtable offset, ensure your compiler has provided all the closures for each possible multi-inheritance this adjustment (thunk)");
             }
         }
-        *pppWhere = m_ppClosures; // write (resp. overwrite) vtable pointer (resp. super vtable pointer)
+        *pppWhere = m_ppClosures; // write (resp. overwrite) vtable pointer (resp. base vtable pointer)
     }
 }
 
@@ -206,10 +213,10 @@ InstanceMemberFunction* VirtualMemberFunctionTable::getRootMemberFunction( size_
 {
     if(a_uiIndex >= m_pMemberFunctions->size()) 
         return nullptr;
-    if(m_pSuperTable)
+    if(m_pBaseTable)
     {
-        InstanceMemberFunction* pSuper = m_pSuperTable->getRootMemberFunction(a_uiIndex);
-        if(pSuper) return pSuper;
+        InstanceMemberFunction* pBase = m_pBaseTable->getRootMemberFunction(a_uiIndex);
+        if(pBase) return pBase;
     }
     return (*m_pMemberFunctions)[a_uiIndex];
 }
@@ -217,8 +224,8 @@ InstanceMemberFunction* VirtualMemberFunctionTable::getRootMemberFunction( size_
 InstanceMemberFunction* VirtualMemberFunctionTable::getRootMemberFunction( InstanceMemberFunction* a_pInstanceMemberFunction ) const
 {
     if(getOwnerClass() != a_pInstanceMemberFunction->getOwnerClass()) 
-        return m_pSuperTable 
-                ? m_pSuperTable->getRootMemberFunction(a_pInstanceMemberFunction) 
+        return m_pBaseTable 
+                ? m_pBaseTable->getRootMemberFunction(a_pInstanceMemberFunction) 
                 : nullptr;
     for(size_t i = 0; i<m_pMemberFunctions->size(); ++i)
     {
@@ -226,6 +233,18 @@ InstanceMemberFunction* VirtualMemberFunctionTable::getRootMemberFunction( Insta
             return getRootMemberFunction(i);
     }
     return nullptr;
+}
+
+bool VirtualMemberFunctionTable::canBeDestroyed() const
+{
+    return LanguageElement::canBeDestroyed() AND m_DerivedTables.empty();
+}
+
+void VirtualMemberFunctionTable::copyOnWrite()
+{
+    o_assert(sharesMemberFunctions());
+    m_pMemberFunctions = new vector<InstanceMemberFunction*>;
+    *m_pMemberFunctions = *(m_pBaseTable->m_pMemberFunctions);
 }
 
 o_namespace_end(phantom, reflection)

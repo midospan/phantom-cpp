@@ -1,5 +1,10 @@
 #include "phantom/phantom.h"
 #include "segment2.h"
+#include "segment2.hxx"
+
+o_registerNT((phantom, math), (typename), (t_Ty), segment2);
+o_registerNTI((phantom, math), segment2, (float));
+o_registerNTI((phantom, math), segment2, (double));
 
 o_namespace_begin(phantom, math)
 

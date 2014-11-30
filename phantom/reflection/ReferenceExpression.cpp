@@ -45,13 +45,13 @@ ReferenceExpression::ReferenceExpression( Expression* a_pReferencedExpression )
                 , a_pReferencedExpression->getName())
     , m_pReferencedExpression(a_pReferencedExpression)
 {
-    addElement(m_pReferencedExpression);
+    addSubExpression(m_pReferencedExpression);
     o_assert(m_pReferencedExpression->hasEffectiveAddress());
 }
 
 ReferenceExpression* ReferenceExpression::clone() const
 {
-    return o_new(ReferenceExpression)(m_pReferencedExpression->clone());
+    return o_new(ReferenceExpression)(m_pReferencedExpression);
 }
 
 o_namespace_end(phantom, reflection)

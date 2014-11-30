@@ -30,6 +30,7 @@ public:
     virtual VariableWidgetEditor*   createEditor() const;
     virtual string                  valueText() const;
     virtual QIcon                   valueIcon() const;
+    virtual QWidget*                createValueWidget() const { return nullptr; }
     virtual QWidget*                createActionWidget() const { return nullptr; }
 
 protected slots:

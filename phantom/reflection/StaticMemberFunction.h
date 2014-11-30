@@ -49,7 +49,8 @@ class o_export StaticMemberFunction : public Function, public MemberFunction
 public:
     static Class* const metaType;
 
-    StaticMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
+    StaticMemberFunction();
+    StaticMemberFunction(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers = 0);
 
     virtual void                    call( void* a_pCallerAddress, void** a_pArgs ) const { Subroutine::call(a_pCallerAddress, a_pArgs); }
     virtual void                    call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const { Subroutine::call(a_pCallerAddress, a_pArgs, a_pReturnAddress); }
@@ -72,6 +73,7 @@ public:
     }
 
 protected:
+    StaticMemberFunction(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers, int);
 
 };
 

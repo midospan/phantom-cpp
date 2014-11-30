@@ -51,12 +51,9 @@ public:
 
 o_namespace_end(unitest, plugin)
 
-o_classN((unitest, plugin), Plugin, o_public)
-{
-    o_reflection 
-    {
-    };
-};
-o_exposeN((unitest, plugin), Plugin);
+o_classN((unitest, plugin), Plugin, o_public_access)
+(
+);
+
 
 #endif

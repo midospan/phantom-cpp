@@ -40,15 +40,30 @@
 o_registerN((phantom, reflection), ConstantExpression);
 o_namespace_begin(phantom, reflection) 
 
-ConstantExpression::ConstantExpression(Constant* a_pConstant, Expression* a_pChildExpression /*= nullptr*/, bool a_bOwnsConstant /*= false*/)
-    : Expression(a_pConstant->getValueType(), a_pConstant->getQualifiedDecoratedName(), 0)
+string ConstantExpression_formatConstantName(Constant* a_pConstant)
+{
+    LanguageElement* pOwner = a_pConstant->getOwner();
+    Enum* pEnum = pOwner ? pOwner->asEnum() : nullptr;
+    return (pEnum AND pEnum->getOwner()) ? pEnum->getOwner()->getQualifiedName() + "::" + a_pConstant->getName() : a_pConstant->getName();
+}
+
+ConstantExpression::ConstantExpression(Constant* a_pConstant, Expression* a_pChildExpression /*= nullptr*/)
+    : Expression(a_pConstant->getValueType(), a_pConstant ? ConstantExpression_formatConstantName(a_pConstant) : "", 0)
     , m_pConstant(a_pConstant)
 {
-    //addReferencedElement(m_pConstant); // TODO : add o_native to Constant instead
     if(a_pChildExpression)
-        addElement(a_pChildExpression);
-//     if(a_bOwnsConstant) // TODO : fix the native constant thing to avoid this leak
-//         addElement(m_pConstant);
+        addSubExpression(a_pChildExpression);
+    if(m_pConstant)
+    {
+        if(m_pConstant->getOwner() == nullptr) 
+            addElement(m_pConstant);
+        else 
+            addReferencedElement(m_pConstant);
+    }
+    else 
+    {
+        setInvalid();
+    }
 }
 
 void ConstantExpression::setValue( void const* a_pSrc ) const
@@ -68,14 +83,43 @@ LanguageElement* ConstantExpression::hatch()
     {
         removeElement(pConstant);
     }
-    phantom::deleteElement(this);
+    o_dynamic_delete (this);
     return pConstant;
 }
 
 ConstantExpression* ConstantExpression::clone() const
 {
     // TODO : add clone function to Constant
-    return o_new(ConstantExpression)(m_pConstant, (getElementCount() == 2) ? getElement(0)->asExpression()->clone() : nullptr, false);
+    Constant* pConstant = m_pConstant;
+    bool bOwnsConstant = pConstant AND pConstant->getOwner() == this;
+    if(bOwnsConstant)
+    {
+        pConstant = pConstant->clone();
+    }
+    return o_new(ConstantExpression)(pConstant, (getElementCount() == 2) ? getElement(0)->asExpression() : nullptr);
+}
+
+void ConstantExpression::elementRemoved( LanguageElement* a_pElement )
+{
+    Expression::elementRemoved(a_pElement);
+    if(a_pElement == m_pConstant) 
+    {
+        m_pConstant = nullptr;
+    }
+}
+
+void ConstantExpression::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    Expression::referencedElementRemoved(a_pElement);
+    if(a_pElement == m_pConstant)
+    {
+        m_pConstant = nullptr;
+    }
+}
+
+bool ConstantExpression::isPersistent() const
+{
+    return Expression::isPersistent() AND (m_pConstant->getOwner() == this OR m_pConstant->isNative());
 }
 
 o_namespace_end(phantom, reflection)

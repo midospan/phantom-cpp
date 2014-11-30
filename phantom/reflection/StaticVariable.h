@@ -46,18 +46,27 @@ o_namespace_begin(phantom, reflection)
 
 class o_export StaticVariable : public LanguageElement
 {
+    o_declare_meta_type(StaticVariable);
 
 public:
-    StaticVariable(void* a_pAddress, Range* a_pRange = nullptr, bitfield a_Modifiers = 0);
-    StaticVariable(void* a_pAddress, Type* a_pValueType, Range* a_pRange = nullptr, bitfield a_Modifiers = 0);
-    StaticVariable(void* a_pAddress, Type* a_pValueType, const string& a_strName, Range* a_pRange = nullptr, bitfield a_Modifiers = 0);
-    o_destructor ~StaticVariable(void)     {}
+    StaticVariable();
+    StaticVariable(Type* a_pValueType, const string& a_strName, modifiers_t a_Modifiers = 0);
+    StaticVariable(Type* a_pValueType, const string& a_strName, Range* a_pRange = nullptr, modifiers_t a_Modifiers = 0);
+
+protected:
+    StaticVariable(void* a_pAddress, Range* a_pRange = nullptr, modifiers_t a_Modifiers = 0);
+    StaticVariable(void* a_pAddress, Type* a_pValueType, Range* a_pRange = nullptr, modifiers_t a_Modifiers = 0);
+    StaticVariable(void* a_pAddress, Type* a_pValueType, const string& a_strName, Range* a_pRange = nullptr, modifiers_t a_Modifiers = 0);
+
+public:
+    o_destructor ~StaticVariable(void);
     
     virtual StaticVariable* asStaticVariable() const  { return (StaticVariable*)this; }
 
     void*           getAddress() const { return m_pAddress; }
     Type*           getValueType() const { return m_pValueType; }
     Range*          getRange() const { return m_pRange; }
+    void            setRange(Range* a_pRange);
 
     void            setValue(void const* a_pSrc) const 
     {
@@ -74,12 +83,15 @@ protected:
 
 protected:
     virtual void    referencedElementRemoved(LanguageElement* a_pElement);
+    void            setValueTypeName(string str);
+    string          getValueTypeName() const;
+    virtual void    finalize();
 
 protected:
     Type*       m_pValueType;
     Range*      m_pRange;
     void*       m_pAddress;
-    
+    string*     m_pValueTypeName;
 };
 
 o_namespace_end(phantom, reflection)

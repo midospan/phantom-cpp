@@ -1,5 +1,5 @@
 
-o_namespace_begin(phantom, state, detail)
+o_namespace_begin(phantom, state)
     
 template<typename t_Ty>
 void state_machine_serializer<t_Ty>::serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const * a_pDataBase)
@@ -115,10 +115,6 @@ void state_machine_resetter<t_Ty>::reset(t_Ty* a_pInstance, byte const*& a_pInBu
         }
     }
 }
-o_namespace_end(phantom, state, detail)
-
-
-o_namespace_begin(phantom, state)
 
 o_forceinline void          base_state_machine_data::initialize() const 
 {

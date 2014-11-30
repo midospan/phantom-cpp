@@ -1,5 +1,10 @@
 #include "phantom/phantom.h"
 #include "line3.h"
+#include "line3.hxx"
+
+o_registerNT((phantom, math), (typename), (t_Ty), line3);
+o_registerNTI((phantom, math), line3, (float));
+o_registerNTI((phantom, math), line3, (double));
 
 o_namespace_begin(phantom, math)
 

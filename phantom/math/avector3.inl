@@ -6,6 +6,7 @@ with its agreement
 For the latest info, see http://www.ogre3d.org/
 -----------------------------------------------------------------------------
 */
+#if 0
 
 #if defined(X)
 #undef X
@@ -14,6 +15,8 @@ For the latest info, see http://www.ogre3d.org/
 #if defined(Y)
 #undef Y
 #endif
+
+#error rename X Y Z to other macronames with less collision
 
 #define X chunk[0]
 #define Y chunk[1]
@@ -537,3 +540,4 @@ template<typename t_Ty>
 	//-----------------------------------------------------------------------------------
 
 }
+#endif

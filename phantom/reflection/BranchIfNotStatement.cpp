@@ -43,9 +43,10 @@ o_registerN((phantom, reflection), BranchIfNotStatement);
 o_namespace_begin(phantom, reflection) 
 
 BranchIfNotStatement::BranchIfNotStatement( Expression* a_pExpression ) 
-    : m_pExpression(a_pExpression)
-    , m_pConvertedExpression(a_pExpression ? a_pExpression->implicitCast(typeOf<bool>()) : nullptr)
+    : m_pExpression((a_pExpression AND a_pExpression->getOwner()) ? a_pExpression->clone() : a_pExpression)
+    , m_pExpressionString(nullptr)
 {
+    m_pConvertedExpression = m_pExpression ? m_pExpression->implicitCast(typeOf<bool>()) : nullptr;
     if(m_pExpression)
     {
         if(m_pConvertedExpression == nullptr)
@@ -75,5 +76,49 @@ variant BranchIfNotStatement::compile( Compiler* a_pCompiler )
     return a_pCompiler->compile(this);
 }
 
+void BranchIfNotStatement::setExpressionString( string a_Expression )
+{
+    if(a_Expression.size())
+    {
+        m_pExpressionString = new string(a_Expression);
+    }
+}
+
+string BranchIfNotStatement::getExpressionString() const
+{
+    return m_pExpression->getName();
+}
+
+void BranchIfNotStatement::restore()
+{
+    BranchStatement::restore();
+    if(m_pExpression == nullptr AND m_pExpressionString)
+    {
+        m_pExpression = phantom::expressionByName(*m_pExpressionString, this);
+        m_pConvertedExpression = m_pExpression ? m_pExpression->implicitCast(typeOf<bool>()) : nullptr;
+        if(m_pExpression)
+        {
+            if(m_pConvertedExpression == nullptr)
+                setInvalid();
+            else
+                addElement(m_pConvertedExpression);
+        }
+        else 
+        {
+            setInvalid();
+        }
+        delete m_pExpressionString;
+        m_pExpressionString = nullptr;
+    }
+}
+
+void BranchIfNotStatement::elementRemoved( LanguageElement* a_pElement )
+{
+    BranchStatement::elementRemoved(a_pElement);
+    if(a_pElement == m_pExpression) // Type destroyed => expression cannot exist anymore
+    {
+        m_pExpression = nullptr;
+    }
+}
 
 o_namespace_end(phantom, reflection)

@@ -286,7 +286,7 @@ inline t_Ty vector3<t_Ty>::normalize ()
 {
     t_Ty len = length();
 
-    if (len > std::numeric_limits<T>::epsilon())
+    if (len > std::numeric_limits<t_Ty>::epsilon())
     {
         t_Ty invLength = ((t_Ty)1)/len;
         m[0] *= invLength;
@@ -393,7 +393,7 @@ inline void vector3<t_Ty>::orthonormalize (vector3<t_Ty>& u, vector3<t_Ty>& v, v
     u.normalize();
 
     // compute u1
-    t_Ty dot0 = u.dot(v); 
+    t_Ty dot0 = u.dot(v);
     v -= dot0*u;
     v.normalize();
 
@@ -491,7 +491,7 @@ inline bool vector3<t_Ty>::barycentrics (const vector3<t_Ty>& v0, const vector3<
 template<class t_Ty>
 inline bool vector3<t_Ty>::isCollinearTo(const vector3<t_Ty>& v) const
 {
-	return fabs(dot(v) - 1) <= EPSILON;
+	return fabs(dot(v) - 1) <= std::numeric_limits<t_Ty>::epsilon();
 }
 
 template<class t_Ty>

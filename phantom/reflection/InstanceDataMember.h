@@ -47,13 +47,15 @@ class o_export InstanceDataMember : public ValueMember, public DataMember
 {
     friend class Class;
     friend class ClassType;
+    friend class AnonymousSection;
 
 public:
     static Class* const metaType;
 
 public:
-    InstanceDataMember(const string& a_strName, Type* a_pValueType, Range* a_pRange = nullptr, uint a_uiSerializationMask = 0xffffffff, bitfield a_uiModifiers = 0);
-    InstanceDataMember(const string& a_strName, Type* a_pValueType, size_t a_uiOffset, Range* a_pRange = nullptr, uint a_uiSerializationMask = 0xffffffff, bitfield a_uiModifiers = 0);
+    InstanceDataMember();
+    InstanceDataMember(Type* a_pValueType, const string& a_strName, Range* a_pRange = nullptr, uint a_uiSerializationMask = 0xffffffff, modifiers_t a_uiModifiers = 0);
+    InstanceDataMember(Type* a_pValueType, const string& a_strName, size_t a_uiOffset, Range* a_pRange = nullptr, uint a_uiSerializationMask = 0xffffffff, modifiers_t a_uiModifiers = 0);
     o_destructor ~InstanceDataMember()
     {
 
@@ -69,12 +71,12 @@ public:
     // overloadings
     virtual    void         getValue(void const* a_pObject, void* a_pDest) const 
     {
-        getValueType()->copy(a_pDest, getAddress(a_pObject));
+        m_pValueType->copy(a_pDest, getAddress(a_pObject));
     }
 
     virtual    void         setValue(void* a_pObject, void const* a_pSrc) const 
     {
-        getValueType()->copy(getAddress(a_pObject), a_pSrc);
+        m_pValueType->copy(getAddress(a_pObject), a_pSrc);
     }
 
     virtual LanguageElement*    asLanguageElement() const  { return const_cast<InstanceDataMember*>(this); }
@@ -82,9 +84,17 @@ public:
     virtual StaticDataMember*   asStaticDataMember() const  { return nullptr; }
     virtual DataMember*         asDataMember() const { return const_cast<InstanceDataMember*>(this); }
 
-    virtual Expression*       createAccessExpression(Expression* a_pLeftExpression) const;
+    virtual Expression*         createAccessExpression(Expression* a_pLeftExpression) const;
 
-    virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
+    virtual bool                referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
+
+    o_forceinline bool          hasPlacementExtension() const 
+    { 
+        return NOT(testModifiers(o_no_placement_extension)) 
+                AND ((m_pValueType->getTypeId() >= e_array AND m_pValueType->hasPlacementExtension()));
+    }
+
+    AnonymousSection*           getAnonymousSection() const { return m_pAnonymousSection; }
     
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);
@@ -92,6 +102,7 @@ protected:
 
 protected:
     size_t  m_uiOffset;
+    AnonymousSection* m_pAnonymousSection;
 
 };
 o_namespace_end(phantom, reflection)

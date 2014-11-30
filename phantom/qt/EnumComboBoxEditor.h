@@ -16,34 +16,13 @@ class o_qt_export EnumComboBox : public QComboBox
     Q_OBJECT
 
 public:
-	EnumComboBox(phantom::reflection::Enum* a_pEnum) 
-        : m_pEnum(a_pEnum)
-    {
-        connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(currentEnumIndexChanged(int)));
-
-        size_t i = 0;
-        size_t count = a_pEnum->getConstantCount();
-        for(;i<count;++i)
-        {
-            size_t constantValue = 0;
-            phantom::reflection::Constant* pConstant = a_pEnum->getConstant(i);
-            pConstant->getValue(&constantValue);
-            addItem(QIcon(iconOf(pConstant).c_str())
-                , nameOf(pConstant).c_str()
-                , constantValue); 
-        }
-    }
+	EnumComboBox(phantom::reflection::Enum* a_pEnum);
 	~EnumComboBox(void) 
     {
 
     }
 
-    void setCurrentEnumValue(size_t a_uiEnumValue)
-    {
-        int index = findData(a_uiEnumValue);
-        o_assert(index != -1);
-        setCurrentIndex(index);
-    }
+    void setCurrentEnumValue(size_t a_uiEnumValue);
 
     size_t getCurrentEnumValue() const 
     { 

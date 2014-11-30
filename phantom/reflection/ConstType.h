@@ -45,38 +45,36 @@ class o_export ConstType : public Type
 {
     o_declare_meta_type(ConstType);
 
-    o_friend(class, phantom, reflection, Namespace);
+    friend class phantom::reflection::Namespace;
 
 public:
-    ConstType(Type* a_pType)
-        : Type(a_pType->getTypeId(), a_pType->getName()+" const", a_pType->getSize(), a_pType->getAlignment(), a_pType->getModifiers()|o_const)
-        , m_pConstedType(a_pType)
-    {
-        addReferencedElement(a_pType);
-    }
+    ConstType(Type* a_pType);
+    ~ConstType();
 
-    Type* getConstedType() const { return m_pConstedType; }
+    Type*                   getConstedType() const { return m_pConstedType; }
 
-    virtual Type* removeConst() const { return m_pConstedType; }
+    virtual Type*           removeConst() const { return m_pConstedType; }
 
-    virtual ConstType* asConstType() const { return const_cast<ConstType*>(this); }
+    virtual ConstType*      asConstType() const { return const_cast<ConstType*>(this); }
 
     virtual string          getQualifiedName() const;
     virtual string          getDecoratedName() const;
     virtual string          getQualifiedDecoratedName() const;
 
     virtual void*           cast(Type* a_pTargetType, void* a_pSrc) const { return m_pConstedType->cast(a_pTargetType, a_pSrc); }
+    virtual void*           upcast(Type* a_pTargetType, void* a_pSrc) const { return m_pConstedType->upcast(a_pTargetType, a_pSrc); }
+    virtual void*           downcast(Type* a_pTargetType, void* a_pSrc) const { return m_pConstedType->downcast(a_pTargetType, a_pSrc); }
 
     /// Construction
     virtual void            construct(void* a_pBuffer) const { m_pConstedType->construct(a_pBuffer); }
     virtual void            destroy(void* a_pBuffer) const { m_pConstedType->destroy(a_pBuffer); }
 
     /// Build (for classes but implemented in Type and empty to make it more generic
-    virtual void            build(void* a_pBuffer, size_t a_uiLevel = 0) const { m_pConstedType->build(a_pBuffer, a_uiLevel); }
+    virtual void            build(void* a_pBuffer, const rtti_data* a_pOwner = 0) const { m_pConstedType->build(a_pBuffer, a_pOwner); }
     virtual void            unbuild(void* a_pBuffer, size_t a_uiLevel = 0) const { m_pConstedType->unbuild(a_pBuffer, a_uiLevel); }
 
     /// Installation (for classes but implemented in Type and empty to make it more generic
-    virtual void            install(void* a_pBuffer, size_t a_uiLevel = 0) const { m_pConstedType->install(a_pBuffer, a_uiLevel); }
+    virtual void            install(void* a_pBuffer, const rtti_data* a_pOwner = 0) const { m_pConstedType->install(a_pBuffer, a_pOwner); }
     virtual void            uninstall(void* a_pBuffer, size_t a_uiLevel = 0) const { m_pConstedType->uninstall(a_pBuffer, a_uiLevel); }
 
     /// Initialization (for classes but implemented in Type and empty to make it more generic
@@ -84,8 +82,8 @@ public:
     virtual void            terminate(void* a_pBuffer) const { m_pConstedType->terminate(a_pBuffer); }
 
     /// Setup (Construction by default (+ installation + initialization for classes))
-    virtual void            setup(void* a_pBuffer, size_t a_uiLevel = 0) const { m_pConstedType->install(a_pBuffer, a_uiLevel); }
-    virtual void            safeSetup(void* a_pBuffer, size_t a_uiLevel = 0) const  { m_pConstedType->safeSetup(a_pBuffer, a_uiLevel); }
+    virtual void            setup(void* a_pBuffer, const rtti_data* a_pOwner = 0) const { m_pConstedType->install(a_pBuffer, a_pOwner); }
+    virtual void            safeSetup(void* a_pBuffer, const rtti_data* a_pOwner = 0) const  { m_pConstedType->safeSetup(a_pBuffer, a_pOwner); }
     virtual void            teardown(void* a_pBuffer, size_t a_uiLevel = 0) const { m_pConstedType->teardown(a_pBuffer, a_uiLevel); }
 
     /// Serialization
@@ -108,8 +106,8 @@ public:
     virtual void            deserializeLayout(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { m_pConstedType->deserializeLayout(a_pInstance, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase); }
 
     // Restoration (replace initialization in case of deserialization)
-    virtual restore_state   restore(void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass) const { return m_pConstedType->restore(a_pInstance, a_uiSerializationFlag, a_uiPass); }
-    virtual restore_state   restore(void* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { return m_pConstedType->restore(a_pChunk, a_uiSerializationFlag, a_uiPass, a_uiCount, a_uiChunkSectionSize); }
+    virtual restore_state   restore(void* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass) const { return m_pConstedType->restore(a_pInstance, a_uiSerializationFlag, a_uiPass); }
+    virtual restore_state   restore(void* a_pChunk, uint a_uiSerializationFlag, restore_pass a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { return m_pConstedType->restore(a_pChunk, a_uiSerializationFlag, a_uiPass, a_uiCount, a_uiChunkSectionSize); }
 
     /// Reset
     virtual void            remember(void const* a_pInstance, byte*& a_pBuffer) const { m_pConstedType->remember(a_pInstance, a_pBuffer); }
@@ -133,49 +131,26 @@ public:
     virtual void            valueToString( string& a_str, const void* src) const { m_pConstedType->valueToString(a_str, src);  }
     virtual void            interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode = 0) const { m_pConstedType->interpolate(a_src_start, a_src_end, a_fPercent, a_pDest, mode); }
     virtual void            copy(void* a_pDest, void const* a_pSrc) const { m_pConstedType->copy(a_pDest, a_pSrc); }
-    virtual void            smartCopy(void* a_pDest, void const* a_pSource, reflection::Type* a_pSourceType) const { m_pConstedType->smartCopy(a_pDest, a_pSource, a_pSourceType); }
+    virtual void            smartCopy(reflection::Type* a_pDestType, void* a_pDest, void const* a_pSrc) const { m_pConstedType->smartCopy(a_pDestType, a_pDest, a_pSrc); }
 
-    virtual LanguageElement*            solveElement(
+    virtual LanguageElement*solveElement(
         const string& a_strName
         , const vector<TemplateElement*>* a_pTS
         , const vector<LanguageElement*>* a_pFS
-        , bitfield a_Modifiers = 0) const
-    {
-        return m_pConstedType->solveElement(a_strName, a_pTS, a_pFS, a_Modifiers|o_const);
-    }
+        , modifiers_t a_Modifiers = 0) const;
 
-    virtual void getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr ) const
-    {
-        m_pConstedType->getElements(out, a_pClass);
-    }
+    virtual void            getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr ) const;
 
-    // Operators
-    virtual bool less(const void* a_pLHS, const void* a_pRHS) const 
-    {
-        return m_pConstedType->less(a_pLHS, a_pRHS);
-    }
     virtual Expression*     solveExpression( Expression* a_pLeftExpression
         , const string& a_strName
         , const vector<TemplateElement*>* a_pTS
         , const vector<LanguageElement*>* a_pFS
-        , bitfield a_Modifiers = 0) const 
-    { 
-        return m_pConstedType->solveExpression(a_pLeftExpression, a_strName, a_pTS, a_pFS, a_Modifiers|o_const ); 
-    }
+        , modifiers_t a_Modifiers = 0) const;
 
-    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const
-    {
-        return m_pConstedType->solveOperator(a_strOp, a_Expressions, a_Modifiers|o_const); 
-    }
+    virtual Expression*     solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const;
 
-    virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const 
-    { 
-        return m_pConstedType->referencesData(a_pInstance, a_Data);   
-    }
-    virtual void            fetchPointerReferenceExpressions(Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask) const 
-    { 
-        m_pConstedType->fetchPointerReferenceExpressions(a_pInstanceExpression, out, a_uiSerializationMask);
-    }
+    virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
+    virtual void            fetchExpressions(Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter, uint a_uiSerializationMask) const;
     virtual ConstType*      createConstType() const { return nullptr; }
 
     // Traits
@@ -228,6 +203,9 @@ public:
     virtual bool            hasRightShiftAssign() const { return m_pConstedType->hasRightShiftAssign(); }
 
     virtual bool            hasTrivialCastTo(Type* a_pType) const { return m_pConstedType->hasTrivialCastTo(a_pType); }
+
+protected:
+    virtual void            referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
     Type* m_pConstedType;

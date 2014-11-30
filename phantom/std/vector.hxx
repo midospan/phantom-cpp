@@ -2,7 +2,7 @@
 
 #include "utility.hxx"
 
-o_namespace_begin(phantom, extension, detail)
+o_namespace_begin(phantom)
 
 template <>
 struct default_serializer<vector<bool>>
@@ -211,25 +211,26 @@ public:
     }
 };
 
-o_namespace_end(phantom, extension, detail)
+o_namespace_end(phantom)
+
+// vector
+o_traits_specializeNT(has_has_something, (static const bool value = false;), (std), (typename, typename), (t_Ty, t_Alloc), vector);
+
+
+#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 
 // _Vector_val
 o_classNT((std), (typename, typename), (_Ty, _Alloc), _Vector_val)
-{
-    o_reflection 
-    {
+(
         o_nested_typedef(pointer);
-        o_data_member(pointer, _Myfirst, o_no_range, o_protected);	// pointer to beginning of array
-        o_data_member(pointer, _Mylast, o_no_range, o_protected);	// pointer to current end of sequence
-        o_data_member(pointer, _Myend, o_no_range, o_protected);	// pointer to end of array
-    };
-};
+        o_data_member(pointer, _Myfirst, o_no_range, o_protected_access);	// pointer to beginning of array
+        o_data_member(pointer, _Mylast, o_no_range, o_protected_access);	// pointer to current end of sequence
+        o_data_member(pointer, _Myend, o_no_range, o_protected_access);	// pointer to end of array
+);
 
 // _Vector_const_iterator
 o_classNT((std), (typename), (_Ty), _Vector_const_iterator)
-{
-    o_reflection 
-    {
+(
         o_nested_typedef(_Myiter);
         o_nested_typedef(reference);
         o_nested_typedef(pointer);
@@ -253,66 +254,76 @@ o_classNT((std), (typename), (_Ty), _Vector_const_iterator)
         o_member_function(bool , operator>, (const _Myiter&));
         o_member_function(bool , operator<=, (const _Myiter&));
         o_member_function(bool , operator>=, (const _Myiter&));
-    };
-};
+);
 
 // _Vector_iterator
-o_classNTS((std), (typename), (_Ty), _Vector_iterator, (_Vector_const_iterator<_Ty>))
-{
-    o_reflection 
-    {
-        o_nested_typedef(_Myiter);
-        o_nested_typedef(_Mybase);
-        o_nested_typedef(reference);
-        o_nested_typedef(pointer);
-        o_nested_typedef(difference_type);
+o_classNTB((std), (typename), (_Ty), _Vector_iterator, (_Vector_const_iterator<_Ty>))
+(
+    o_nested_typedef(_Myiter);
+    o_nested_typedef(_Mybase);
+    o_nested_typedef(reference);
+    o_nested_typedef(pointer);
+    o_nested_typedef(difference_type);
 
-        o_member_function(reference , operator*, ());
-        o_member_function(pointer   , operator->, ());
-        o_member_function(_Myiter&  , operator++, ());
-        o_member_function(_Myiter   , operator++, (int));
-        o_member_function(_Myiter&  , operator--, ());
-        o_member_function(_Myiter   , operator--, (int));
-        o_member_function(_Myiter&  , operator+=, (difference_type));
-        o_member_function(_Myiter   , operator+, (difference_type));
-        o_member_function(_Myiter&  , operator-=, (difference_type));
-        o_member_function(_Myiter   , operator-, (difference_type));
-        o_member_function(difference_type,  operator-, (const _Mybase&));
-        o_member_function(reference,  operator[], (difference_type));
-    };
-};
+    o_member_function(reference , operator*, ());
+    o_member_function(pointer   , operator->, ());
+    o_member_function(_Myiter&  , operator++, ());
+    o_member_function(_Myiter   , operator++, (int));
+    o_member_function(_Myiter&  , operator--, ());
+    o_member_function(_Myiter   , operator--, (int));
+    o_member_function(_Myiter&  , operator+=, (difference_type));
+    o_member_function(_Myiter   , operator+, (difference_type));
+    o_member_function(_Myiter&  , operator-=, (difference_type));
+    o_member_function(_Myiter   , operator-, (difference_type));
+    o_member_function(difference_type,  operator-, (const _Mybase&));
+    o_member_function(reference,  operator[], (difference_type));
+);
 
-// vector
-o_traits_specializeNT(has_has_something, (static const bool value = false;), (std), (typename, typename), (t_Ty, t_Alloc), vector);
+o_classNTB((std), (typename, typename), (t_Ty, t_Alloc), vector, (_Vector_val<t_Ty, t_Alloc>))
+(
+o_public:
+    o_default_template_argument_type(t_Alloc, std::allocator<t_Ty>);
+    o_nested_typedef(iterator);
+    o_nested_typedef(const_iterator);
+    o_nested_typedef(reverse_iterator);
+    o_nested_typedef(const_reverse_iterator);
+    o_nested_typedef(reference);
+    o_nested_typedef(const_reference);
+    o_nested_typedef(pointer);
+    o_nested_typedef(const_pointer);
+    o_nested_typedef(size_type);
+    o_member_function(size_type, size, ());
+    o_member_function(bool, empty, ());
+    o_member_function(void, push_back, (const_reference));
+);
 
-o_classNTS((std), (typename, typename), (t_Ty, t_Alloc), vector, (_Vector_val<t_Ty, t_Alloc>))
-{
-    o_reflection 
-    {
-        o_default_template_argument_type(t_Alloc, std::allocator<t_Ty>);
-        o_nested_typedef(iterator);
-        o_nested_typedef(const_iterator);
-        o_nested_typedef(reverse_iterator);
-        o_nested_typedef(const_reverse_iterator);
-        o_nested_typedef(reference);
-        o_nested_typedef(const_reference);
-        o_nested_typedef(pointer);
-        o_nested_typedef(const_pointer);
-        o_nested_typedef(size_type);
-        o_member_function(size_type, size, (), o_public);
-        o_member_function(bool, empty, (), o_public);
-        o_member_function(void, push_back, (const_reference), o_public);
-    };
-};
-o_exposeNT((std), (typename, typename), (t_Ty, t_Alloc), vector);
+#elif o_COMPILER == o_COMPILER_GCC
+
+o_classNT((std), (typename, typename), (t_Ty, t_Alloc), vector)
+(
+o_public:
+    o_default_template_argument_type(t_Alloc, std::allocator<t_Ty>);
+    o_nested_typedef(iterator);
+    o_nested_typedef(const_iterator);
+    o_nested_typedef(reverse_iterator);
+    o_nested_typedef(const_reverse_iterator);
+    o_nested_typedef(reference);
+    o_nested_typedef(const_reference);
+    o_nested_typedef(pointer);
+    o_nested_typedef(const_pointer);
+    o_nested_typedef(size_type);
+    o_member_function(size_type, size, ());
+    o_member_function(bool, empty, ());
+    o_member_function(void, push_back, (const_reference));
+);
+
+#else
+#   error std::vector reflection is not declared for this compiler
+#endif
+
 
 o_traits_specializeNT(has_has_something, (static const bool value = false;), (phantom), (typename), (t_Ty), vector);
 
-o_classNTS((phantom), (typename), (t_Ty), vector, (std::vector<t_Ty, o__t1_class__contiguous_memory_allocator(t_Ty)>))
-{
-    o_reflection
-    {
-
-    };
-};
-o_exposeNT((phantom), (typename), (t_Ty), vector);
+o_classNTB((phantom), (typename), (t_Ty), vector, (std::vector<t_Ty, o__t1_class__contiguous_memory_allocator(t_Ty)>))
+(
+);

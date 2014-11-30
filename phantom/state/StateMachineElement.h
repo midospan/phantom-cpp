@@ -54,7 +54,7 @@ public:
 
     StateMachineElement() {}
     StateMachineElement(const string& a_strName 
-        , bitfield bf = 0)
+        , modifiers_t bf = 0)
         : LanguageElement(a_strName, bf)
     {
 

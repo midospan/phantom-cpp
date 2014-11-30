@@ -48,8 +48,8 @@ class TNativeInstanceMemberFunctionBase : public InstanceMemberFunction
 {
 public:
     typedef void (t_Class::*simplest_member_function_ptr)();
-    TNativeInstanceMemberFunctionBase(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
-        : InstanceMemberFunction(a_strName, a_pSignature, a_Modifiers)
+    TNativeInstanceMemberFunctionBase(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers = 0)
+        : InstanceMemberFunction(a_strName, a_pSignature, a_Modifiers|o_native, (int)0)
     {
         m_strName = conversionOperatorNameNormalizer(a_strName, this);
     }
@@ -70,14 +70,5 @@ public:
 
 
 o_namespace_end(phantom, reflection, native)
-
-
-    /*o_traits_specialize_all_super_traitNTS(
-    (phantom,reflection,native)
-    , (typename)
-    , (t_Ty)
-    , TNativeInstanceMemberFunctionBase
-    , (InstanceMemberFunction)
-    )*/
 
 #endif // reflection_native_TNativeInstanceMemberFunctionBase_h__

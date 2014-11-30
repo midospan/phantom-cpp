@@ -53,7 +53,7 @@ class o_export BinaryPackageNode : public PackageNode
 
 public:
 
-    BinaryPackageNode(BinaryPackageDataBase* a_pOwnerDataBase, uint a_uiGuid, BinaryPackageNode* a_pParentNode);
+    BinaryPackageNode(BinaryPackageDataBase* a_pDataBase, uint a_uiGuid, BinaryPackageNode* a_pParentNode);
 
     virtual void    saveIndex() ;
     virtual void    saveAttributes() ;
@@ -63,7 +63,7 @@ public:
     virtual void    loadAttributes();
     virtual void    loadDataAttributes();
     virtual void    loadDataAttributes(const phantom::data& a_Data, uint a_uiGuid);
-    virtual boolean canLoad(vector<string>& a_MissingTypes);
+    virtual boolean canLoad(map<string, vector<string>>* missing_types_per_module);
     virtual void    cache();
     virtual void    build();
     virtual void    deserialize(uint a_uiSerializationFlag);

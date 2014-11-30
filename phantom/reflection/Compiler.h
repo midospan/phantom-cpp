@@ -7,8 +7,7 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/phantom.h>
-#include "phantom/util/MessageTree.h"
-#include "phantom/util/Message.h"
+#include "phantom/Message.h"
 #include <queue>
 #include <stack>
 /* **************** Declarations ***************** */

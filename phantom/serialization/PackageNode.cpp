@@ -42,8 +42,8 @@ o_registerN((phantom, serialization), PackageNode);
 o_namespace_begin(phantom, serialization)
 
 
-PackageNode::PackageNode(PackageDataBase* a_pOwnerDataBase, uint a_uiGuid, PackageNode* a_pParentNode)
-: Node(a_pOwnerDataBase, a_uiGuid, a_pParentNode) 
+PackageNode::PackageNode(PackageDataBase* a_pDataBase, uint a_uiGuid, PackageNode* a_pParentNode)
+: Node(a_pDataBase, a_uiGuid, a_pParentNode) 
 {
 
 }

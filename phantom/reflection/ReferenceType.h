@@ -33,11 +33,8 @@
 
 #ifndef o_phantom_reflection_ReferenceType_h__
 #define o_phantom_reflection_ReferenceType_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
-
 
 /* **************** Declarations ***************** */
 
@@ -58,7 +55,7 @@ protected:
     virtual ReferenceType* asReferenceType() const { return (ReferenceType*)this; }
 
 public:
-    o_destructor ~ReferenceType(void)     {}
+    o_destructor ~ReferenceType(void) ;
 
     virtual void*   allocate() const;
     virtual void    deallocate(void* a_pInstance) const;
@@ -158,9 +155,9 @@ public:
 
     virtual bool    isCopyable() const { return true; }
 
-    virtual Expression* solveExpression(Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTemplateSignature, const vector<LanguageElement*>* a_pFunctionSignature, bitfield a_Modifiers /* = 0 */) const;
+    virtual Expression* solveExpression(Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTemplateSignature, const vector<LanguageElement*>* a_pFunctionSignature, modifiers_t a_Modifiers /* = 0 */) const;
 
-    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const;
+    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const;
 
 protected:
     virtual DataPointerType* createDataPointerType() const { return nullptr; } // cannot create reference pointers

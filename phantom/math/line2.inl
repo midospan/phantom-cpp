@@ -5,7 +5,7 @@ inline line2<t_Ty>::line2() : point(0, 0), direction(1, 0) {};
 template<class t_Ty>
 inline t_Ty line2<t_Ty>::getParameter(vector2_type v, t_Ty epsilon) const
 {
-    math::vector2_type n2 = point - v;
+    vector2_type n2 = point - v;
     float det = fabs(direction.x*n2.y - direction.y*n2.x);
     o_assert(det < epsilon);
     return (v - point).dot(direction)/(direction.lengthSquared());

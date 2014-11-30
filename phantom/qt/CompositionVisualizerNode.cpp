@@ -5,7 +5,6 @@
 #include "VariableNode.h"
 #include "phantom/reflection/CompositionClass.h"
 #include "phantom/reflection/CompositionClass.hxx"
-#include "AddComponentDataCommand.h"
 #include "UndoCommandAction.h"
 #include "UndoCommand.h"
 #include "VariableModel.h"

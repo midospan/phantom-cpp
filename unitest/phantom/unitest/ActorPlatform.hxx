@@ -1,13 +1,9 @@
 #include "GameEntity.hxx"
 
-o_classNS((sc2), ActorPlatform, (GameEntity))
-{
-    o_reflection 
-    {
-
-    };
+o_classNB((sc2), ActorPlatform, (GameEntity))
+(
     o_statechart
-    {
+    (
         o_track(Behavior, Spawned);
 
         o_state(OnGround, Behavior);
@@ -63,9 +59,9 @@ o_classNS((sc2), ActorPlatform, (GameEntity))
         o_transition(Jump, Fell, Fall);
         o_transition(Fall, Landed, Land);
         o_transition(Land, AnimationEnded, Static);
-    };
-};
-o_exposeN((sc2), ActorPlatform);
+    );
+);
+
 
 o_static_assert(!phantom::has_initializer_member_function_initialize_declared<sc2::ActorPlatform>::value);
 o_static_assert(phantom::has_initializer_member_function_initialize<sc2::ActorPlatform>::value);

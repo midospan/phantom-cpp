@@ -72,13 +72,13 @@ inline vector2<t_Ty> vector2<t_Ty>::operator* (t_Ty scalar) const
 
 
 template<class t_Ty>
-inline vector2<t_Ty> vector2<t_Ty>::operator*( const vector2<t_Ty>& vec ) const 
+inline vector2<t_Ty> vector2<t_Ty>::operator*( const vector2<t_Ty>& vec ) const
 {
-    vector2<t_Ty> result; 
-    
+    vector2<t_Ty> result;
+
     result.m[0] = m[0]*vec.m[0];
     result.m[1] = m[1]*vec.m[1];
-    
+
     return result;
 }
 
@@ -108,7 +108,7 @@ template<class t_Ty>
 inline vector2<t_Ty> vector2<t_Ty>::operator/ ( const vector2<t_Ty>& vec ) const
 {
     vector2<t_Ty> result;
-    
+
     result.m[0] = m[0]/vec.m[0];
     result.m[1] = m[1]/vec.m[1];
 
@@ -361,7 +361,7 @@ inline void vector2<t_Ty>::orthonormalize (vector2<t_Ty>& u, vector2<t_Ty>& v)
     u.normalize();
 
     // Compute u1.
-    t_Ty dot0 = u.dot(v); 
+    t_Ty dot0 = u.dot(v);
     v -= u*dot0;
     v.normalize();
 }
@@ -418,7 +418,7 @@ inline bool vector2<t_Ty>::isBetweenPoints(const vector2<t_Ty>& start, const vec
 	}
 	// Parameter
 	t_Ty t = (n.dot(*this - start))/n.lengthSquared();
-	
+
 	return t > (t_Ty)epsilon && t < (t_Ty)(1 - epsilon);
 }
 
@@ -443,7 +443,7 @@ template<class t_Ty>
 inline vector2<t_Ty> vector2<t_Ty>::normalizedApproximated() const
 {
     t_Ty len = lengthApproximated();
-    if(len == 0) 
+    if(len == 0)
     {
         return self_type(0,0);
     }
@@ -455,13 +455,13 @@ template<class t_Ty>
 inline t_Ty vector2<t_Ty>::normalizeApproximated()
 {
     t_Ty len = lengthApproximated();
-    if(len == 0) 
+    if(len == 0)
     {
         x = 0;
         y = 0;
         return 0;
     }
-    o_NESTED_TYPE make_float<t_Ty>::type invLen = make_float<t_Ty>::type(1.)/len;
+    o_NESTED_TYPE make_float<t_Ty>::type invLen = o_NESTED_TYPE make_float<t_Ty>::type(1.)/len;
     x *= invLen;
     y *= invLen;
     return len;

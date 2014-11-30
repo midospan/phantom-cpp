@@ -4,7 +4,7 @@
 #define BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
 
 ///////////////////////////////////////////////////////////////////////////////
-// Uncomment this if you want to enable debugging
+// Comment/Uncomment this if you want to disable/enable debugging
 // #define BOOST_SPIRIT_QI_DEBUG 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -14,7 +14,7 @@
 #include <boost/fusion/adapted/struct.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include "ast_adapted_structs.h"
-#include "phantom/util/Message.h"
+#include "phantom/Message.h"
 
 #define o_reflection_cpp_grammar_rule(name) \
     BOOST_SPIRIT_DEBUG_NODE(name); \
@@ -165,6 +165,7 @@ struct grammar
     qi::rule<t_Iterator, ast::binary_right_expression() >               r_member_pointer_expression ;
     qi::rule<t_Iterator, ast::pre_unary_expression() >                  r_reference_expression ;
     qi::rule<t_Iterator, ast::pre_unary_expression() >                  r_dereference_expression ;
+    qi::rule<t_Iterator, ast::cast_expression() >                       r_static_cast_expression ;
     qi::rule<t_Iterator, ast::cast_expression() >                       r_cast_expression ;
     qi::rule<t_Iterator, ast::cast_type() >                             r_cast_type ;
     qi::rule<t_Iterator, ast::pre_unary_expression() >                  r_unary_logical_expression ;
@@ -246,8 +247,8 @@ struct grammar
     qi::rule<t_Iterator, ast::class_inheritances()>                     r_class_inheritances;
     qi::rule<t_Iterator, ast::class_scope()>                            r_class_scope;
     qi::rule<t_Iterator, ast::parameter()>                              r_parameter;
-    qi::rule<t_Iterator, ast::fundamental_node<int>()>                  r_access_specifier;
-    qi::rule<t_Iterator, ast::fundamental_node<int>()>                  r_access_declaration;
+    qi::rule<t_Iterator, ast::fundamental_node<unsigned long long>()>   r_access_specifier;
+    qi::rule<t_Iterator, ast::fundamental_node<unsigned long long>()>   r_access_declaration;
     qi::rule<t_Iterator, ast::member_declaration()>                     r_member_declaration;
     qi::rule<t_Iterator, ast::namespace_member_declaration()>           r_namespace_member_declaration;
     qi::rule<t_Iterator, ast::string_node()>                             r_namespace_declarator;
@@ -420,16 +421,16 @@ grammar<t_Iterator, t_Lexer>::grammar(t_Lexer const& l)
 
         r_reference_expression %= (+tkm(op_category::reference) >> r_reference_expression) | r_dereference_expression;
 
-        r_dereference_expression %= (+tkm(op::times) >> r_reference_expression) | r_cast_expression;
+        r_dereference_expression %= (+tkm(op::times) >> r_reference_expression) | r_unary_logical_expression/*r_cast_expression*/;
     }
     else 
     {
-        r_multiplicative_expression %= r_cast_expression >> *(tkm(op_category::multiplicative) >> r_member_pointer_expression);
+        r_multiplicative_expression %= r_unary_logical_expression/*r_cast_expression*/ >> *(tkm(op_category::multiplicative) >> r_member_pointer_expression);
     }
 
-    r_cast_type %= '(' >> r_type >> ')';
-
-    r_cast_expression %= (+r_cast_type >> r_reference_expression) | r_unary_logical_expression;
+//     r_cast_type %= '(' >> r_type >> ')';
+// 
+//     r_cast_expression %= (+r_cast_type >> -r_reference_expression) | r_unary_logical_expression;
 
     r_unary_logical_expression %= (+tkm(op_category::unary_binary_logical) >> r_reference_expression) | r_unary_arithmetic_expression;
 
@@ -462,7 +463,11 @@ grammar<t_Iterator, t_Lexer>::grammar(t_Lexer const& l)
 
     r_literal %= r_fundamental_literal | r_string_literal; 
 
-    r_complex_primary_expression %= r_qualified_name | r_this | r_grouped_expression;
+    r_static_cast_expression %= m_lexer("static_cast") > omit[tk(token_ids::less)] > r_type > omit[tk(token_ids::greater)] > '(' > r_expression > ')';
+
+    r_cast_expression %= r_static_cast_expression;
+
+    r_complex_primary_expression %= r_qualified_name | r_this | r_grouped_expression | r_cast_expression;
 
     r_grouped_expression %= '(' >> r_expression >> ')';
 
@@ -564,8 +569,8 @@ grammar<t_Iterator, t_Lexer>::grammar(t_Lexer const& l)
 
     r_virtual_member_function_declaration %= m_lexer("virtual") >> r_type >> r_identifier >> r_member_function_signature >> -(omit[tk(token_ids::assign)] >> l.t_uint) >> (';'|r_block);
 
-    r_access_specifier %= m_lexer("public")   [qi::_val = o_public] 
-    | m_lexer("protected")[qi::_val = o_protected] 
+    r_access_specifier %= m_lexer("public")   [qi::_val = o_public_access] 
+    | m_lexer("protected")[qi::_val = o_protected_access] 
     | m_lexer("private")  [qi::_val = 0];
 
     r_access_declaration %= r_access_specifier >> ':';

@@ -15,7 +15,7 @@ namespace phantom { namespace qt {
 
 NodeAttributeChangeCommand::NodeAttributeChangeCommand(serialization::Node* a_pNode, size_t a_uiAttributeIndex, const string& a_NewValue)
 : UndoCommand()
-, m_pDataBase(a_pNode->getOwnerDataBase())
+, m_pDataBase(a_pNode->getDataBase())
 , m_uiGuid(a_pNode->getGuid())
 , m_uiAttributeIndex(a_uiAttributeIndex)
 , m_strNewValue(a_NewValue)

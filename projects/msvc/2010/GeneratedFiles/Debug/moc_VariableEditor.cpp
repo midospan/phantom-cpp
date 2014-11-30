@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'VariableEditor.h'
 **
-** Created: Tue 2. Sep 20:06:37 2014
+** Created: Sat 8. Nov 18:05:15 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -24,7 +24,7 @@ static const uint qt_meta_data_phantom__qt__VariableEditor[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      13,   14, // methods
+      16,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -41,12 +41,15 @@ static const uint qt_meta_data_phantom__qt__VariableEditor[] = {
      185,   28,   28,   28, 0x0a,
      195,   28,   28,   28, 0x0a,
      204,   28,   28,   28, 0x09,
-     222,   29,   28,   28, 0x09,
-     257,   28,   28,   28, 0x09,
-     279,   28,   28,   28, 0x09,
-     320,  304,   28,   28, 0x09,
-     358,  304,   28,   28, 0x09,
-     436,  407,   28,   28, 0x09,
+     222,   28,   28,   28, 0x09,
+     242,   29,   28,   28, 0x09,
+     277,   28,   28,   28, 0x09,
+     299,   28,   28,   28, 0x09,
+     324,   28,   28,   28, 0x09,
+     361,  345,   28,   28, 0x09,
+     423,  399,   28,   28, 0x09,
+     466,  345,   28,   28, 0x09,
+     544,  515,   28,   28, 0x09,
 
        0        // eod
 };
@@ -58,9 +61,13 @@ static const char qt_meta_stringdata_phantom__qt__VariableEditor[] = {
     "variableAboutToBeChanged(VariableNode*)\0"
     "variableChanged(VariableNode*)\0refresh()\0"
     "reedit()\0showPopup(QPoint)\0"
+    "closeOpenedEditor()\0"
     "slotVariableChanged(VariableNode*)\0"
     "slotEditorDestroyed()\0slotEditorValueChanged()\0"
-    "a_pVariableNode\0variableChildNodeAdded(VariableNode*)\0"
+    "slotEditorCanceled()\0a_pVariableNode\0"
+    "variableChildNodeAdded(VariableNode*)\0"
+    "a_pVariableNode,a_bRoot\0"
+    "variableChildNodeAdded(VariableNode*,bool)\0"
     "variableChildNodeAboutToBeRemoved(VariableNode*)\0"
     "logicalIndex,oldSize,newSize\0"
     "columnSectionResized(int,int,int)\0"
@@ -79,12 +86,15 @@ void phantom::qt::VariableEditor::qt_static_metacall(QObject *_o, QMetaObject::C
         case 4: _t->refresh(); break;
         case 5: _t->reedit(); break;
         case 6: _t->showPopup((*reinterpret_cast< const QPoint(*)>(_a[1]))); break;
-        case 7: _t->slotVariableChanged((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
-        case 8: _t->slotEditorDestroyed(); break;
-        case 9: _t->slotEditorValueChanged(); break;
-        case 10: _t->variableChildNodeAdded((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
-        case 11: _t->variableChildNodeAboutToBeRemoved((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
-        case 12: _t->columnSectionResized((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< int(*)>(_a[3]))); break;
+        case 7: _t->closeOpenedEditor(); break;
+        case 8: _t->slotVariableChanged((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
+        case 9: _t->slotEditorDestroyed(); break;
+        case 10: _t->slotEditorValueChanged(); break;
+        case 11: _t->slotEditorCanceled(); break;
+        case 12: _t->variableChildNodeAdded((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
+        case 13: _t->variableChildNodeAdded((*reinterpret_cast< VariableNode*(*)>(_a[1])),(*reinterpret_cast< bool(*)>(_a[2]))); break;
+        case 14: _t->variableChildNodeAboutToBeRemoved((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
+        case 15: _t->columnSectionResized((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< int(*)>(_a[3]))); break;
         default: ;
         }
     }
@@ -122,9 +132,9 @@ int phantom::qt::VariableEditor::qt_metacall(QMetaObject::Call _c, int _id, void
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 13)
+        if (_id < 16)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 13;
+        _id -= 16;
     }
     return _id;
 }

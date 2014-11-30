@@ -7,7 +7,7 @@
 
 /* ****************** Includes ******************* */
 #include <QTreeWidget>
-#include <phantom/util/Message.h>
+#include <phantom/Message.h>
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, qt), MessageDisplay);
 /* *********************************************** */

@@ -31,63 +31,31 @@ class UndoCommand;
 class DataTreeViewItem : public QTreeWidgetItem
 {
 public:
-    enum Type
+    DataTreeViewItem(serialization::DataBase* a_pDataBase, uint a_uiGuid) 
+        : m_pDataBase(a_pDataBase), m_uiGuid(a_uiGuid) 
     {
-        e_Type_Node,
-        e_Type_Data,
-    };
+    }
 
-    virtual void*   getContent() const = 0;
-    virtual Type    getType() const = 0;
-};
-
-class DataTreeViewNodeItem : public DataTreeViewItem
-{
-public:
-    DataTreeViewNodeItem(phantom::serialization::Node* a_pNode)
-        : m_pNode(a_pNode) {}
-
-    phantom::serialization::Node*   getNode() const { return m_pNode; }
-    virtual void*   getContent() const { return m_pNode; }
-    virtual Type    getType() const { return e_Type_Node; }
+    virtual uint   getGuid() const { return m_uiGuid; }
+    
     bool operator<(const QTreeWidgetItem & other) const
     {
-        const DataTreeViewItem* dataTreeViewItem = static_cast<const DataTreeViewItem*>(&other);
-        if(dataTreeViewItem->getType() == e_Type_Data)
+        const DataTreeViewItem* pOther = static_cast<const DataTreeViewItem*>(&other);
+        if(m_pDataBase->getNode(m_uiGuid)
+            AND (m_pDataBase->getNode(pOther->m_uiGuid) == nullptr))
         {
             return true;
         }
-        return DataTreeViewItem::operator<(other);
-    }
-
-protected:
-    phantom::serialization::Node* m_pNode;
-
-};
-
-class DataTreeViewDataItem : public DataTreeViewItem
-{
-public:
-    DataTreeViewDataItem(const phantom::data& a_Data)
-        : m_Data(a_Data) {}
-
-    const phantom::data&   getData() const { return m_Data; }
-    virtual void*   getContent() const { return m_Data.address(); }
-    virtual Type    getType() const { return e_Type_Data; }
-    bool operator<(const QTreeWidgetItem & other) const
-    {
-        const DataTreeViewItem* dataTreeViewItem = static_cast<const DataTreeViewItem*>(&other);
-        if(dataTreeViewItem->getType() == e_Type_Node)
+        else if((m_pDataBase->getNode(m_uiGuid) == nullptr)
+            AND m_pDataBase->getNode(pOther->m_uiGuid))
         {
             return false;
         }
-        return DataTreeViewItem::operator<(other);
+        return QTreeWidgetItem::operator<(other);
     }
-
-    void replaceData(const phantom::data& d);
-
 protected:
-    phantom::data   m_Data;
+    serialization::DataBase* m_pDataBase;
+    uint m_uiGuid;
 };
 
 class DataTreeViewItemAdder;
@@ -136,8 +104,10 @@ public:
 
     void setMessage(Message* a_pMessage) { m_pMessage = a_pMessage; }
 
-    DataTreeViewItem* getItem(void* a_pContent) const;
-    DataTreeViewItem* getItem(void* a_pContent, DataTreeViewItem* a_pParentItem) const;
+    DataTreeViewItem* getItem(uint a_uiGuid) const;
+    DataTreeViewItem* getItem(const phantom::data& a_Data) const;
+    DataTreeViewItem* getItem(serialization::Node* a_pNode) const;
+    DataTreeViewItem* getItem(uint a_uiGuid, DataTreeViewItem* a_pParentItem) const;
 
 	void displayData(const phantom::data& d) { emit dataDisplayed(d); }
 	void hideData(const phantom::data& d) { emit dataHidden(d); }
@@ -176,7 +146,8 @@ protected slots:
     void showPopup(const QPoint & pos);
     
     void dataAdded(const phantom::data&,phantom::serialization::Node*);
-    void dataReplaced(const phantom::data&,const phantom::data&);
+    void dataAboutToBeUnloaded(const phantom::data&, phantom::serialization::Node*);
+    void dataReloaded(const phantom::data&, phantom::serialization::Node*);
     void dataAboutToBeRemoved(const phantom::data&,phantom::serialization::Node*);
     void nodeAdded(phantom::serialization::Node* a_pNode,phantom::serialization::Node*);
     void nodeAboutToBeRemoved(phantom::serialization::Node* a_pNode,phantom::serialization::Node*);
@@ -185,7 +156,6 @@ protected slots:
     void dataAttributeValueChanged( const phantom::data& a_Data, size_t a_uiAttributeIndex, const string& a_strValue);
     void dataModifiersChanged( const phantom::data& a_Data, bitfield a_Modifiers);
     void nodeAttributeValueChanged( phantom::serialization::Node* a_pNode, size_t a_uiAttributeIndex, const string& a_strValue);
-	void addClassComponentDataActionCascade( QMenu* a_pMenu, const phantom::data& a_Data, phantom::reflection::Collection* a_pCollection, phantom::reflection::Class* a_pComponentDataClass );
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);
@@ -207,7 +177,7 @@ signals:
 
 
 protected: // TODO : put this in Class
-    phantom::reflection::Class* commonSuperClass(phantom::reflection::Class* a_pFirst, phantom::reflection::Class* a_pSecond) const;
+    phantom::reflection::Class* commonBaseClass(phantom::reflection::Class* a_pFirst, phantom::reflection::Class* a_pSecond) const;
 
 protected:
     void undoableSetNodeAttribute(phantom::qt::DataTreeView* a_pDataTreeView, phantom::serialization::Node* a_pNode, size_t a_uiAttributeIndex, const phantom::string& a_Value);
@@ -233,7 +203,7 @@ protected:
 	phantom::vector<phantom::serialization::Node*>						m_NodeLoaded;
 	phantom::vector<std::pair<DataTreeViewItem*, DataTreeViewItem*>>	m_DataItemToRemove;
     QList<QTreeWidgetItem*> m_SelectedItems; // TODO : remove and use SelectionManager ?
-    new_data_action_delegate                                                m_AddDataActionDelegate;
+    new_data_action_delegate                                            m_AddDataActionDelegate;
     node_action_delegate                                                m_AddNodeActionDelegate;
     remove_data_action_delegate                                         m_RemoveDataActionDelegate;
     node_action_delegate                                                m_LoadNodeActionDelegate;

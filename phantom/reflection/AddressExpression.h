@@ -62,8 +62,7 @@ public:
     {
         Expression* pExp = m_pAddressedExpression;
         const_cast<AddressExpression*>(this)->removeElement(pExp);
-        const_cast<AddressExpression*>(this)->terminate();
-        const_cast<AddressExpression*>(this)->deleteNow();
+        o_dynamic_delete const_cast<AddressExpression*>(this);
         return pExp;
     }
 

@@ -51,9 +51,6 @@ class o_export Template : public LanguageElement
     friend class TemplateSpecialization;
 
 public:
-
-
-public:
     Template(const string& a_strName);
     o_destructor ~Template();
 
@@ -61,6 +58,8 @@ public:
 
     vector<TemplateSpecialization*>::const_iterator beginSpecializations() const { return m_Specializations.begin(); }
     vector<TemplateSpecialization*>::const_iterator endSpecializations() const { return m_Specializations.end(); }
+
+    virtual Template* asTemplate() const { return const_cast<Template*>(this); }
 
 protected:
     virtual bool canBeDestroyed() const { return m_Specializations.empty(); }

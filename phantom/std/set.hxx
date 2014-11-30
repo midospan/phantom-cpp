@@ -2,17 +2,36 @@
 
 #include "utility.hxx"
 
-// _Uset_traits
-o_classNTS((std, tr1), (typename, typename, typename, bool), (t_Kty, t_Tr, t_Alloc, t_Mfl), _Uset_traits, (_Container_base)){o_reflection{};};
-o_exposeNT((std, tr1), (typename, typename, typename, bool), (t_Kty, t_Tr, t_Alloc, t_Mfl), _Uset_traits);
-// set
-o_classNTS((std), (typename, typename, typename), (t_Ty, t_Pr, t_Alloc), set, (_Tree<_Tset_traits<t_Ty, t_Pr, t_Alloc, false>>)) {o_reflection {};};
-o_exposeNT((std), (typename, typename, typename), (t_Ty, t_Pr, t_Alloc), set);
+#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 
-// _Tset_traits
-o_classNTS((std), (typename, typename, typename, bool), (t_Kty, t_Tr, t_Alloc, t_Mfl), _Tset_traits, (_Container_base)) {o_reflection{};};
-o_exposeNT((std), (typename, typename, typename, bool), (t_Kty, t_Tr, t_Alloc, t_Mfl), _Tset_traits);
+/// std::_Uset_traits
+o_classNTB((std, tr1), (typename, typename, typename, bool), (t_Kty, t_Tr, t_Alloc, t_Mfl), _Uset_traits, (_Container_base))(
+);
 
-// multiset
-o_classNTS((std), (typename, typename, typename), (t_Kty, t_Pr, t_Alloc), multiset, (_Tree<_Tset_traits<t_Kty, t_Pr, t_Alloc, true>>)) {o_reflection {};};
-o_exposeNT((std), (typename, typename, typename), (t_Kty, t_Pr, t_Alloc), multiset);
+/// std::set
+o_classNTB((std), (typename, typename, typename), (t_Ty, t_Pr, t_Alloc), set, (_Tree<_Tset_traits<t_Ty, t_Pr, t_Alloc, false>>)) (
+);
+
+
+/// std::_Tset_traits
+o_classNTB((std), (typename, typename, typename, bool), (t_Kty, t_Tr, t_Alloc, t_Mfl), _Tset_traits, (_Container_base)) (
+);
+
+
+/// std::multiset
+o_classNTB((std), (typename, typename, typename), (t_Kty, t_Pr, t_Alloc), multiset, (_Tree<_Tset_traits<t_Kty, t_Pr, t_Alloc, true>>)) (
+);
+
+#elif o_COMPILER == o_COMPILER_GCC
+
+/// std::set
+o_classNT((std), (typename, typename, typename), (t_Ty, t_Pr, t_Alloc), set) (
+    );
+
+/// std::multiset
+o_classNT((std), (typename, typename, typename), (t_Kty, t_Pr, t_Alloc), multiset)(
+    );
+
+#else
+#   error std::set/multiset reflection is not declared for this compiler
+#endif

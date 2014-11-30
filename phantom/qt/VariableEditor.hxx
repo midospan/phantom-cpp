@@ -12,4 +12,3 @@ o_classN((phantom, qt), VariableEditor, o_no_copy)
         o_slot(void, variableNodeExpressionsAboutToBeAssigned, (VariableNode*), o_protected);
     };
 };
-o_exposeN((phantom, qt), VariableEditor);

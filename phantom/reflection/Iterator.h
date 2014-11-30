@@ -33,10 +33,9 @@
 
 #ifndef reflection_Iterator_h__
 #define reflection_Iterator_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
+
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, reflection), Iterator)
 /* *********************************************** */
@@ -45,6 +44,7 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Iterator : public LanguageElement
 {
+    o_declare_meta_type(Iterator);
 
 public:
     Iterator(void)              {}

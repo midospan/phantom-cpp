@@ -2,11 +2,10 @@
 
 #include "VariableWidgetEditor.hxx"
 
-o_classNS((phantom, qt), EnumComboBoxEditor, (VariableWidgetEditor))
+o_classNB((phantom, qt), EnumComboBoxEditor, (VariableWidgetEditor))
 {
     o_reflection
     {
 
     };
 };
-o_exposeN((phantom, qt), EnumComboBoxEditor);

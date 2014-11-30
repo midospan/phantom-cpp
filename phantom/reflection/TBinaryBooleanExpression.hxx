@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Expression.hxx"
+#include "BinaryOperationExpression.hxx"
 
-o_classNTS((phantom, reflection), (typename), (t_Ty), TBinaryBooleanExpression, (BinaryOperationExpression)) { o_reflection {}; };
+o_classNTB((phantom, reflection), (typename), (t_Ty), TBinaryBooleanExpression, (BinaryOperationExpression)) (
+        );
 
 
 

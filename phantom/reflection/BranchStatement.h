@@ -57,10 +57,15 @@ public:
     virtual variant compile(Compiler* a_pCompiler);
 
     void setLabelStatement(LabelStatement* a_pLabelStatement);
+    
+protected:
+    virtual void restore();
+    virtual void elementRemoved( LanguageElement* a_pElement );
+    virtual void ancestorChanged(LanguageElement* a_pOwner);
 
 protected:
     LabelStatement* m_pLabelStatement;
-
+    size_t m_uiLabelStatementIndex;
 };
 
 o_namespace_end(phantom, reflection)

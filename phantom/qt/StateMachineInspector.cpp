@@ -155,12 +155,22 @@ StateMachineTreeWidgetItem* StateMachineInspector::getItem( void* a_pContent, St
     return NULL;
 }
 
-void StateMachineInspector::dataReplaced( const phantom::data& a_Old, const phantom::data& a_New )
+void StateMachineInspector::dataReloaded( const phantom::data& a_Data, phantom::serialization::Node* )
 {
-    auto found = std::find(m_EditedData.begin(), m_EditedData.end(), a_Old);
+    auto found = std::find(m_ReloadedData.begin(), m_ReloadedData.end(), a_Data);
+    if(found == m_ReloadedData.end())
+        return;
+    m_EditedData.push_back(*found);
+    m_ReloadedData.erase(found);
+    editData(m_EditedData);
+}
+void StateMachineInspector::dataAboutToBeUnloaded(const phantom::data& a_Data, phantom::serialization::Node*)
+{
+    auto found = std::find(m_EditedData.begin(), m_EditedData.end(), a_Data);
     if(found == m_EditedData.end())
         return;
-    *found = a_New;
+    m_EditedData.erase(found);
+    m_ReloadedData.push_back(a_Data);
     editData(m_EditedData);
 }
 
@@ -179,13 +189,15 @@ void StateMachineInspector::setDataBase( serialization::DataBase* a_pDataBase )
     if(m_pDataBase)
     {
         o_disconnect(m_pDataBase, dataAboutToBeRemoved(const phantom::data&, serialization::Node*), this, dataAboutToBeRemoved(const phantom::data&, serialization::Node*));
-        o_disconnect(m_pDataBase, dataReplaced(const phantom::data&, const phantom::data&), this, dataReplaced(const phantom::data&, const phantom::data&));
+        o_disconnect(m_pDataBase, dataAboutToBeUnloaded(const phantom::data&, serialization::Node*), this, dataAboutToBeUnloaded(const phantom::data&, serialization::Node*));
+        o_disconnect(m_pDataBase, dataReloaded(const phantom::data&, serialization::Node*), this, dataReloaded(const phantom::data&, serialization::Node*));
     }
     m_pDataBase = a_pDataBase;
     if(m_pDataBase)
     {
         o_connect(m_pDataBase, dataAboutToBeRemoved(const phantom::data&, serialization::Node*), this, dataAboutToBeRemoved(const phantom::data&, serialization::Node*));
-        o_connect(m_pDataBase, dataReplaced(const phantom::data&, const phantom::data&), this, dataReplaced(const phantom::data&, const phantom::data&));
+        o_connect(m_pDataBase, dataAboutToBeUnloaded(const phantom::data&, serialization::Node*), this, dataAboutToBeUnloaded(const phantom::data&, serialization::Node*));
+        o_connect(m_pDataBase, dataReloaded(const phantom::data&, serialization::Node*), this, dataReloaded(const phantom::data&, serialization::Node*));
     }
 }
 

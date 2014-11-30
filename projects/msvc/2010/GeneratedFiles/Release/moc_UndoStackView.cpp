@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'UndoStackView.h'
 **
-** Created: Wed 2. Jul 11:44:21 2014
+** Created: Wed 29. Oct 19:56:59 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!

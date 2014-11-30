@@ -67,8 +67,7 @@ public:
     {
         Expression* pExp = m_pReferencedExpression;
         const_cast<ReferenceExpression*>(this)->removeElement(pExp);
-        const_cast<ReferenceExpression*>(this)->terminate();
-        const_cast<ReferenceExpression*>(this)->deleteNow();
+        o_dynamic_delete const_cast<ReferenceExpression*>(this);
         return pExp;
     }
 

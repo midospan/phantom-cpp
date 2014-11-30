@@ -33,32 +33,29 @@
 
 #ifndef o_phantom_reflection_Union_h__
 #define o_phantom_reflection_Union_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
-
 
 /* **************** Declarations ***************** */
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection)
 
-class o_export Union : public Class
+class o_export Union : public ClassType
 {
     o_declare_meta_type(Union);
 
 public:
 
-    Union(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
-        : Class(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) 
+    Union(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
+        : ClassType(e_union, a_strName, a_uiSize, a_uiAlignment, a_Modifiers) 
     {}
 
     o_destructor ~Union(void)     
     {
     }
 
-    virtual Type*    asUnion() const { return (Type*)this; }
+    virtual Union*    asUnion() const { return (Union*)this; }
 
 };
 

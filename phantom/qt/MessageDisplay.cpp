@@ -2,7 +2,7 @@
 #include <phantom/qt/qt.h>
 #include "MessageDisplay.h"
 #include "MessageDisplay.hxx"
-#include <phantom/util/Message.h>
+#include <phantom/Message.h>
 /* *********************************************** */
 o_registerN((phantom, qt), MessageDisplay);
 

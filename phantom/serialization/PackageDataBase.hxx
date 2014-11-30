@@ -1,11 +1,7 @@
 #pragma once
 #include "DataBase.hxx"
-o_classNS((phantom, serialization), PackageDataBase, (DataBase))
-{
-    o_reflection
-	{
+o_classNB((phantom, serialization), PackageDataBase, (DataBase))
+(
+        );
 
-	};
-};
-o_exposeN((phantom, serialization), PackageDataBase);
 

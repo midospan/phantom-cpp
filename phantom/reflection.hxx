@@ -11,7 +11,6 @@
 #include "phantom\reflection\ConstReferenceType.hxx"
 #include "phantom\reflection\Constant.hxx"
 #include "phantom\reflection\ClassExtension.hxx"
-#include "phantom\reflection\Collection.hxx"
 #include "phantom\reflection\Constructor.hxx"
 #include "phantom\reflection\ContainerClass.hxx"
 #include "phantom\reflection\DataMember.hxx"

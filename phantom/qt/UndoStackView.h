@@ -25,8 +25,8 @@ public:
     void setUndoStack(UndoStack* a_pUndoStack);
 
 protected:
-    void undoCommandAdded(UndoCommand* a_pUndoCommand);
-    void undoCommandAboutToBeRemoved(UndoCommand* a_pUndoCommand);
+    void commandAdded(UndoCommand* a_pUndoCommand);
+    void commandAboutToBeRemoved(UndoCommand* a_pUndoCommand);
 
     QTreeWidgetItem* findCommandItem(UndoCommand* a_pUndoCommand, QTreeWidgetItem* a_pParentItem = nullptr) const;
 

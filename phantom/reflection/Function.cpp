@@ -51,6 +51,27 @@ o_function(int, o_function_test_fastcall, (int));
 o_namespace_begin(phantom, reflection) 
 
 Class* const Function::metaType = o_type_of(phantom::reflection::Function);
-    
+
+Function::Function()
+{
+
+}
+
+Function::Function( EABI a_eABI ) : Subroutine(a_eABI)
+{
+
+}
+
+Function::Function( const string& a_strName, Signature* a_pSignature, EABI a_eABI, modifiers_t a_Modifiers /*= 0*/ ) 
+    : Subroutine(a_strName, a_pSignature, a_eABI, a_Modifiers)
+{
+
+}
+
+Function::Function( const string& a_strName, Signature* a_pSignature, EABI a_eABI, modifiers_t a_Modifiers, int )
+    : Subroutine(a_strName, a_pSignature, a_eABI, a_Modifiers)
+{
+
+}
 
 o_namespace_end(phantom, reflection)

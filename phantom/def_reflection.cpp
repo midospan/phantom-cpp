@@ -11,11 +11,19 @@
 #include "phantom/reflection/TBinaryIntegralExpression.h"
 #include "phantom/reflection/TUnaryArithmeticExpression.h"
 #include "phantom/reflection/TBinaryArithmeticExpression.h"
+#include "phantom/reflection/TEqualityExpression.h"
 #include "phantom/reflection/TBinaryBooleanExpression.h"
 #include "phantom/reflection/TPreIncrementExpression.h"
 #include "phantom/reflection/TPostIncrementExpression.h"
 #include "phantom/reflection/TShiftExpression.h"
 #include "phantom/reflection/DataExpression.h"
+
+o_enumN((phantom, reflection), EABI)(e_ABI_stdcall,
+    e_ABI_fastcall,
+    e_ABI_cdecl,
+    e_ABI_thiscall);
+
+o_registerN((phantom, reflection), EABI);
 
 o_namespace_begin(phantom, reflection, native)
 
@@ -23,8 +31,8 @@ template<typename t_Ty>
 class TFundamentalType : public TPrimitiveType<t_Ty>
 {
 public:
-    TFundamentalType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
-        : TPrimitiveType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
+    TFundamentalType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
+        : TPrimitiveType<t_Ty>(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
 
     virtual PrimitiveType* asFundamentalType() const { return (PrimitiveType*)this; }
 
@@ -34,20 +42,24 @@ template<typename t_Ty>
 class TArithmeticType : public TFundamentalType<t_Ty>
 {
 public:
-    TArithmeticType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
-        : TFundamentalType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
+    TArithmeticType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
+        : TFundamentalType<t_Ty>(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
 
     virtual PrimitiveType* asArithmeticType() const { return (PrimitiveType*)this; }
 
-    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const
+    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const
     {
         o_assert(a_Expressions.size());
         o_assert(a_Expressions[0]->getValueType()->isImplicitlyConvertibleTo(const_cast<TArithmeticType<t_Ty>*>(this)));
         if(a_Expressions.size() == 2)
         {
-            if(a_strOp.size() == 2) 
+            if(a_strOp.size() == 2)
             {
-                if(a_strOp[1] == '=') // Assignment operation or equality test
+                if(a_strOp == "==" OR a_strOp == "!=")
+                {
+                    return o_new(TEqualityExpression<t_Ty>)(a_strOp, a_Expressions[0], a_Expressions[1]);
+                }
+                else if(a_strOp[1] == '=') // Assignment operation or equality test
                 {
                     Expression* pSubExpression = nullptr;
                     switch(a_strOp[0])
@@ -113,8 +125,8 @@ template<typename t_Ty>
 class TFloatingPointType : public TArithmeticType<t_Ty>
 {
 public:
-    TFloatingPointType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
-        : TArithmeticType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
+    TFloatingPointType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
+        : TArithmeticType<t_Ty>(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
 
     virtual PrimitiveType* asFloatingPointType() const { return (PrimitiveType*)this; }
 };
@@ -123,12 +135,12 @@ template<typename t_Ty>
 class TIntegralType : public TArithmeticType<t_Ty>
 {
 public:
-    TIntegralType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
-        : TArithmeticType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
+    TIntegralType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
+        : TArithmeticType<t_Ty>(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
 
     virtual PrimitiveType* asIntegralType() const { return (PrimitiveType*)this; }
 
-    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const
+    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const
     {
         o_assert(a_Expressions.size());
         o_assert(a_Expressions[0]->getValueType()->isImplicitlyConvertibleTo((Type*)this));
@@ -229,6 +241,7 @@ public:
 o_namespace_end(phantom, reflection, native)
 
 /// META META TYPES
+#include "phantom/reflection/VirtualMemberFunctionTable.hxx"
 #include "phantom/reflection/Class.hxx"
 #include "phantom/reflection/Enum.hxx"
 #include "phantom/reflection/Type.hxx"
@@ -246,12 +259,10 @@ o_namespace_end(phantom, reflection, native)
 #include "phantom/reflection/MapContainerClass.hxx"
 #include "phantom/reflection/SequentialContainerClass.hxx"
 #include "phantom/reflection/SetContainerClass.hxx"
-#include "phantom/reflection/VirtualMemberFunctionTable.hxx"
 #include "phantom/std/string.h"
 #include "phantom/std/string.hxx"
 
-
-o_static_assert((boost::is_same<phantom::reflection::ClassType, phantom::super_class_of<phantom::reflection::Class, 0>::type>::value));
+o_static_assert((boost::is_same<phantom::reflection::ClassType, phantom::base_class_of<phantom::reflection::Class, 0>::type>::value));
 o_static_assert(boost::is_polymorphic<phantom::reflection::ClassType>::value);
 o_static_assert(!phantom::has_new_vtable<phantom::reflection::Class>::value);
 
@@ -268,24 +279,16 @@ void fundamental_type_installer(Type* a_pType, uint step /*(not used)*/)
 void Types::Install()
 {
     /// META-META-... TYPES :) (or type representation of the type representation of the type representation ... to INFINITY !
-/*
 
-#define o_create_meta_meta_type(_type_)\
-    {_type_::metaType = new (o__t1_class__default_class_allocator(native::TType<_type_>)::allocate()) native::TType<_type_>;\
-    native::TType<_type_>::metaType->install(_type_::metaType);\
-    native::TType<_type_>::metaType->initialize(_type_::metaType);\
-    Phantom::dynamic_initializer()->registerType("phantom::reflection::"#_type_, _type_::metaType); \
-    phantom::detail::dynamic_initializer_module_installer_registrer< _type_, o_read_compilation_counter > register_meta_meta_type;}
-*/
 
 #define o_register_fundamental(type) \
-    Phantom::dynamic_initializer()->registerType(#type, get<type>()); \
-    Phantom::dynamic_initializer()->registerModule( get<type>(), fundamental_type_installer<type>, 0x1 );
+    dynamic_initializer()->registerType(#type, get<type>()); \
+    dynamic_initializer()->registerModule( get<type>(), fundamental_type_installer<type>, 0x1 );
 
     static bool installed = false;
     if(installed) return;
     installed = true;
-    
+
     Class::metaType = nullptr;
     type_of<Class>::object();
     VirtualMemberFunctionTable::metaType = nullptr;
@@ -308,50 +311,49 @@ void Types::Install()
     SetContainerClass::metaType = type_of<SetContainerClass>::object();
 
 #define o_build_fundamental_meta_type(_var_, _type_)\
-    _var_ = new (o__t1_class__default_class_allocator(meta_class_type_of<_type_>::type)::allocate()) meta_class_type_of<_type_>::type(typeNameOf<_type_>());\
-    meta_class_type_of<_type_>::type::metaType->install(_var_, 0);\
-    meta_class_type_of<_type_>::type::metaType->initialize(_var_);\
+    _var_ = o_dynamic_proxy_new(meta_class_type_of<_type_>::type)(typeNameOf<_type_>());\
 
-    Phantom::dynamic_initializer()->setActive(true);
-    o_build_fundamental_meta_type(VOID, void);
-    o_build_fundamental_meta_type(CHAR, char);
-    o_build_fundamental_meta_type(UNSIGNED_CHAR, unsigned char);
-    o_build_fundamental_meta_type(SIGNED_CHAR, signed char);
-    o_build_fundamental_meta_type(SHORT, short);
-    o_build_fundamental_meta_type(UNSIGNED_SHORT, unsigned short);
-    o_build_fundamental_meta_type(INT, int);
-    o_build_fundamental_meta_type(UNSIGNED_INT, unsigned int);
-    o_build_fundamental_meta_type(LONG, long);
-    o_build_fundamental_meta_type(UNSIGNED_LONG, unsigned long);
-    o_build_fundamental_meta_type(LONG_LONG, long long);
-    o_build_fundamental_meta_type(UNSIGNED_LONG_LONG, unsigned long long);
-    o_build_fundamental_meta_type(FLOAT, float);
-    o_build_fundamental_meta_type(DOUBLE, double);
-    o_build_fundamental_meta_type(LONG_DOUBLE, long double);
-    o_build_fundamental_meta_type(BOOL, bool);
-    o_build_fundamental_meta_type(NULLPTR_T, std::nullptr_t);
-    STRING = type_of<string>::object();
-    SIGNAL_T = type_of<phantom::signal_t>::object();
-#if o_BUILT_IN_WCHAR_T == 1
-    o_build_fundamental_meta_type(WCHAR_T, wchar_t);
+    dynamic_initializer()->setActive(true);
+    o_build_fundamental_meta_type(TYPE_VOID, void);
+    o_build_fundamental_meta_type(TYPE_CHAR, char);
+    o_build_fundamental_meta_type(TYPE_UNSIGNED_CHAR, unsigned char);
+    o_build_fundamental_meta_type(TYPE_SIGNED_CHAR, signed char);
+    o_build_fundamental_meta_type(TYPE_SHORT, short);
+    o_build_fundamental_meta_type(TYPE_UNSIGNED_SHORT, unsigned short);
+    o_build_fundamental_meta_type(TYPE_INT, int);
+    o_build_fundamental_meta_type(TYPE_UNSIGNED_INT, unsigned int);
+    o_build_fundamental_meta_type(TYPE_LONG, long);
+    o_build_fundamental_meta_type(TYPE_UNSIGNED_LONG, unsigned long);
+    o_build_fundamental_meta_type(TYPE_LONG_LONG, long long);
+    o_build_fundamental_meta_type(TYPE_UNSIGNED_LONG_LONG, unsigned long long);
+    o_build_fundamental_meta_type(TYPE_FLOAT, float);
+    o_build_fundamental_meta_type(TYPE_DOUBLE, double);
+    o_build_fundamental_meta_type(TYPE_LONG_DOUBLE, long double);
+    o_build_fundamental_meta_type(TYPE_BOOL, bool);
+    o_build_fundamental_meta_type(TYPE_NULLPTR_T, std::nullptr_t);
+    TYPE_STRING = type_of<string>::object();
+    TYPE_SIGNAL_T = type_of<phantom::signal_t>::object();
+#if o_HAS_BUILT_IN_WCHAR_T == 1
+    o_build_fundamental_meta_type(TYPE_WCHAR_T, wchar_t);
 #else
-        WCHAR_T = Types::UNSIGNED_SHORT;
+        TYPE_WCHAR_T = Types::TYPE_UNSIGNED_SHORT;
 #endif
-    VOID_PTR = VOID->pointerType();
+    TYPE_VOID_PTR = TYPE_VOID->pointerType();
 
 
-    Phantom::dynamic_initializer()->setActive(false);
+    dynamic_initializer()->setActive(false);
 }
 
 void Types::Register()
 {
-    Phantom::dynamic_initializer()->setActive(true);
+    dynamic_initializer()->setActive(true);
     currentInstalledTemplateSpecialization = 0;
     currentInstalledNamespace = 0;
     currentInstalledClass = 0;
+    currentModifiers = 0;
 
     o_register_fundamental(char);
-#if o_BUILT_IN_WCHAR_T
+#if o_HAS_BUILT_IN_WCHAR_T
     o_register_fundamental(wchar_t);
 #endif
     o_register_fundamental(short);
@@ -369,41 +371,45 @@ void Types::Register()
     o_register_fundamental(long double);
     o_register_fundamental(long long);
     o_register_fundamental(unsigned long long);
-    Phantom::dynamic_initializer()->registerType("::std::nullptr_t", "::std", "", get<std::nullptr_t>()); 
-    Phantom::dynamic_initializer()->registerModule( get<std::nullptr_t>(), fundamental_type_installer<std::nullptr_t>, 0x1 );
-    Phantom::dynamic_initializer()->setActive(false);
-    
+    dynamic_initializer()->registerType("std::nullptr_t", "std", get<std::nullptr_t>());
+    dynamic_initializer()->registerModule( get<std::nullptr_t>(), fundamental_type_installer<std::nullptr_t>, 0x1 );
+    dynamic_initializer()->setActive(false);
+
     o_typedef(size_t);
 
-    o_typedefN(phantom, uchar);
-    o_typedefN(phantom, schar);
-    o_typedefN(phantom, ushort);
-    o_typedefN(phantom, uint);
-    o_typedefN(phantom, ulong);
-    o_typedefN(phantom, longlong);
-    o_typedefN(phantom, ulonglong);
-    o_typedefN(phantom, longdouble);
-    o_typedefN(phantom, character);
-    o_typedefN(phantom, byte);
-    o_typedefN(phantom, boolean);
-    o_typedefN(phantom, int8);
-    o_typedefN(phantom, int16);
-    o_typedefN(phantom, int32);
-    o_typedefN(phantom, int64);
-    o_typedefN(phantom, uint8);
-    o_typedefN(phantom, uint16);
-    o_typedefN(phantom, uint32);
-    o_typedefN(phantom, uint64);
-    o_typedefN(phantom, sint8);
-    o_typedefN(phantom, sint16);
-    o_typedefN(phantom, sint32);
-    o_typedefN(phantom, sint64);
-    o_typedefN(phantom, real);
+    o_typedefN((phantom), uchar);
+    o_typedefN((phantom), schar);
+    o_typedefN((phantom), ushort);
+    o_typedefN((phantom), uint);
+    o_typedefN((phantom), ulong);
+    o_typedefN((phantom), longlong);
+    o_typedefN((phantom), ulonglong);
+    o_typedefN((phantom), longdouble);
+    o_typedefN((phantom), character);
+    o_typedefN((phantom), byte);
+    o_typedefN((phantom), boolean);
+    o_typedefN((phantom), int8);
+    o_typedefN((phantom), int16);
+    o_typedefN((phantom), int32);
+    o_typedefN((phantom), int64);
+    o_typedefN((phantom), uint8);
+    o_typedefN((phantom), uint16);
+    o_typedefN((phantom), uint32);
+    o_typedefN((phantom), uint64);
+    o_typedefN((phantom), sint8);
+    o_typedefN((phantom), sint16);
+    o_typedefN((phantom), sint32);
+    o_typedefN((phantom), sint64);
+    o_typedefN((phantom), real);
 }
+
+phantom::modifiers_t Types::currentModifiers;
 
 phantom::reflection::TemplateSpecialization* Types::currentInstalledTemplateSpecialization;
 
 phantom::reflection::ClassType* Types::currentInstalledClass;
+
+phantom::reflection::AnonymousSection* Types::currentInstalledAnonymousSection;
 
 phantom::reflection::Namespace* Types::currentInstalledNamespace;
 
@@ -411,49 +417,58 @@ phantom::reflection::TemplateSpecialization* Types::savedInstalledTemplateSpecia
 
 phantom::reflection::ClassType* Types::savedInstalledClass;
 
+phantom::modifiers_t Types::savedModifiers;
+
 phantom::reflection::Namespace* Types::savedInstalledNamespace;
 
-Type* Types::VOID = nullptr;
-Type* Types::CHAR = nullptr;
-Type* Types::UNSIGNED_CHAR = nullptr;
-Type* Types::SIGNED_CHAR = nullptr;
-Type* Types::SHORT = nullptr;
-Type* Types::UNSIGNED_SHORT = nullptr;
-Type* Types::INT = nullptr;
-Type* Types::UNSIGNED_INT = nullptr;
-Type* Types::LONG = nullptr;
-Type* Types::UNSIGNED_LONG = nullptr;
-Type* Types::LONG_LONG = nullptr;
-Type* Types::UNSIGNED_LONG_LONG = nullptr;
-Type* Types::FLOAT = nullptr;
-Type* Types::DOUBLE = nullptr;
-Type* Types::LONG_DOUBLE = nullptr;
-Type* Types::BOOL = nullptr;
-Type* Types::STRING = nullptr;
-Type* Types::SIGNAL_T = nullptr;
-Type* Types::NULLPTR_T = nullptr;
-Type* Types::WCHAR_T = 
-#if o_BUILT_IN_WCHAR_T == 1
+Type* Types::TYPE_VOID = nullptr;
+Type* Types::TYPE_CHAR = nullptr;
+Type* Types::TYPE_UNSIGNED_CHAR = nullptr;
+Type* Types::TYPE_SIGNED_CHAR = nullptr;
+Type* Types::TYPE_SHORT = nullptr;
+Type* Types::TYPE_UNSIGNED_SHORT = nullptr;
+Type* Types::TYPE_INT = nullptr;
+Type* Types::TYPE_UNSIGNED_INT = nullptr;
+Type* Types::TYPE_LONG = nullptr;
+Type* Types::TYPE_UNSIGNED_LONG = nullptr;
+Type* Types::TYPE_LONG_LONG = nullptr;
+Type* Types::TYPE_UNSIGNED_LONG_LONG = nullptr;
+Type* Types::TYPE_FLOAT = nullptr;
+Type* Types::TYPE_DOUBLE = nullptr;
+Type* Types::TYPE_LONG_DOUBLE = nullptr;
+Type* Types::TYPE_BOOL = nullptr;
+Type* Types::TYPE_STRING = nullptr;
+Type* Types::TYPE_SIGNAL_T = nullptr;
+Type* Types::TYPE_NULLPTR_T = nullptr;
+Type* Types::TYPE_WCHAR_T =
+#if o_HAS_BUILT_IN_WCHAR_T == 1
     nullptr;
 #else
-    Types::UNSIGNED_SHORT;
+    Types::TYPE_UNSIGNED_SHORT;
 #endif
-Type* Types::VOID_PTR = nullptr;
-    
+Type* Types::TYPE_VOID_PTR = nullptr;
+
 namespace_alias_registrer::namespace_alias_registrer( const char* a_strNamespace, const char* a_strAlias, const char* a_strAliasedNamespace )
 {
-    Phantom::dynamic_initializer()->setActive(true);
+    dynamic_initializer()->setActive(true);
     Namespace* pNamespace = phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
     Namespace* pAliasedNamespace = phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strAliasedNamespace);
     pNamespace->addNamespaceAlias(a_strAlias, pAliasedNamespace);
-    Phantom::dynamic_initializer()->setActive(false);
+    dynamic_initializer()->setActive(false);
 }
 
 namespace_alias_registrer::namespace_alias_registrer( const char* a_strAlias, const char* a_strAliasedNamespace )
 {
-    Phantom::dynamic_initializer()->setActive(true);
+    dynamic_initializer()->setActive(true);
     phantom::rootNamespace()->addNamespaceAlias(a_strAlias, phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strAliasedNamespace));
-    Phantom::dynamic_initializer()->setActive(false);
+    dynamic_initializer()->setActive(false);
+}
+
+namespace_registrer::namespace_registrer( const char* a_strNamespace )
+{
+    dynamic_initializer()->setActive(true);
+    phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
+    dynamic_initializer()->setActive(false);
 }
 
 o_export void initializeSystem()
@@ -463,7 +478,26 @@ o_export void initializeSystem()
     phantom::reflection::Types::Register();
 }
 
+using_registrer::using_registrer( const char* a_strWhere, const char* a_strElement )
+{
+    LanguageElement* pWhere = elementByName(a_strWhere);
+    o_assert(pWhere);
+    LanguageElement* pElement = elementByName(a_strElement, pWhere);
+    o_assert(pElement);
+    pWhere->addUsing(pElement);
+}
+
+friend_registrer::friend_registrer( const char* a_strWhere, const char* a_strFriend )
+{
+    LanguageElement* pWhere = elementByName(a_strWhere);
+    o_assert(pWhere);
+    LanguageElement* pElement = elementByName(a_strFriend, pWhere);
+    o_assert(pElement);
+    pWhere->addFriend(pElement);
+}
+
 o_namespace_end(phantom, reflection)
+
 
 
 

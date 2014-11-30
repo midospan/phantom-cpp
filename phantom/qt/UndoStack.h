@@ -58,9 +58,16 @@ public:
     vector<UndoCommand*>::const_iterator beginCommands() const { return m_UndoCommands.begin(); }
     vector<UndoCommand*>::const_iterator endCommands() const { return m_UndoCommands.end(); }
 
+
 protected:
-    o_signal_data(undoCommandAdded, UndoCommand*);
-    o_signal_data(undoCommandAboutToBeRemoved, UndoCommand*);
+    void slotCommandUndone();
+    void slotCommandRedone();
+
+protected:
+    o_signal_data(commandAdded, UndoCommand*);
+    o_signal_data(commandAboutToBeRemoved, UndoCommand*);
+    o_signal_data(commandRedone, UndoCommand*);
+    o_signal_data(commandUndone, UndoCommand*);
     o_signal_data(stackIndexChanged, int);
 
 protected:

@@ -1,11 +1,11 @@
 /*
     This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
+         P reprocessed
+         H igh-level
+         A llocator
+         N ested state-machines and
+         T emplate
+         O riented
          M eta-programming
 
     For the latest infos and sources, see http://code.google.com/p/phantom-cpp
@@ -40,23 +40,37 @@
 #include <phantom/variant.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), Class);
-o_namespace_begin(phantom, reflection) 
 
-o_static_assert((boost::is_same<phantom::reflection::ClassType, phantom::super_class_of<phantom::reflection::Class, 0>::type>::value));
+o_namespace_begin(phantom, reflection)
+
+o_static_assert((boost::is_same<phantom::reflection::ClassType, phantom::base_class_of<phantom::reflection::Class, 0>::type>::value));
 // Set by reflection::Types::Install because Class meta type is a recursive meta type, indeed it's its own meta type (meta meta type)
 
 o_define_meta_type(Class);
 
-Class::Class(const string& a_strName, bitfield a_Modifiers)
-: ClassType(new extra_data, a_strName, a_Modifiers)
+void runtime_dynamic_delete_func(void* a_pInstance o_memory_stat_append_parameters)
+{
+    classOf(a_pInstance)->deleteInstance(a_pInstance);
+}
+
+Class::Class()
+: ClassType(e_class, new extra_data)
+    , m_pStateMachine(NULL)
+    , m_pSingleton(nullptr)
+    , m_pSignals(nullptr)
+{
+}
+
+Class::Class(const string& a_strName, modifiers_t a_Modifiers)
+: ClassType(e_class, new extra_data, a_strName, a_Modifiers)
 , m_pStateMachine(NULL)
 , m_pSingleton(nullptr)
 , m_pSignals(nullptr)
 {
 }
 
-Class::Class(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers)
-: ClassType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+Class::Class(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers)
+: ClassType(e_class, a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
 , m_pStateMachine(NULL)
 , m_pSingleton(nullptr)
 , m_pSignals(nullptr)
@@ -65,6 +79,14 @@ Class::Class(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bit
 
 Class::~Class()
 {
+}
+
+o_terminate_cpp(Class)
+{
+    if(m_Instances.size())
+    {
+        o_exception(exception::base_exception, "Some class instances have not been deleted");
+    }
     m_VirtualMemberFunctionTables.clear();
     if(m_pSignals)
     {
@@ -73,33 +95,32 @@ Class::~Class()
 
     while(m_DerivedClasses.size())
     {
-        Class* pDerivedClass = m_DerivedClasses.back();
-        pDerivedClass->ClassType::terminate();
-        pDerivedClass->deleteNow();
+        o_dynamic_delete m_DerivedClasses.back();
     }
-    super_class_table::iterator it = m_SuperClasses.begin();
-    super_class_table::iterator end = m_SuperClasses.end();
+
+    base_class_table::iterator it = m_BaseClasses.begin();
+    base_class_table::iterator end = m_BaseClasses.end();
     for(; it != end; ++it)
     {
         it->m_pClass->removeDerivedClass(this);
     }
-}    
+}
 
 DataMember* Class::getDataMemberCascade( const string& a_strName) const
 {
     DataMember* pDataMember = getDataMember(a_strName);
     if(pDataMember != NULL) return pDataMember;
-    o_foreach(Class* pClass, m_SuperClasses)
+    o_foreach(Class* pClass, m_BaseClasses)
     {
-        DataMember* pSuperDataMember = pClass->getDataMemberCascade(a_strName);
-        if(pSuperDataMember != NULL)
+        DataMember* pBaseDataMember = pClass->getDataMemberCascade(a_strName);
+        if(pBaseDataMember != NULL)
         {
-            if(pDataMember != NULL) 
+            if(pDataMember != NULL)
             {
                 // ambiguous access, so we return nothing
                 return NULL;
             }
-            pDataMember = pSuperDataMember;
+            pDataMember = pBaseDataMember;
         }
     }
     return pDataMember;
@@ -109,37 +130,59 @@ InstanceDataMember* Class::getInstanceDataMemberCascade( const string& a_strName
 {
     InstanceDataMember* pDataMember = getInstanceDataMember(a_strName);
     if(pDataMember != NULL) return pDataMember;
-    o_foreach(Class* pClass, m_SuperClasses)
+    o_foreach(Class* pClass, m_BaseClasses)
     {
-        InstanceDataMember* pSuperDataMember = pClass->getInstanceDataMemberCascade(a_strName);
-        if(pSuperDataMember != NULL)
+        InstanceDataMember* pBaseDataMember = pClass->getInstanceDataMemberCascade(a_strName);
+        if(pBaseDataMember != NULL)
         {
-            if(pDataMember != NULL) 
+            if(pDataMember != NULL)
             {
                 // ambiguous access, so we return nothing
                 return NULL;
             }
-            pDataMember = pSuperDataMember;
+            pDataMember = pBaseDataMember;
         }
     }
     return pDataMember;
 }
 
-StaticDataMember* Class::getStaticDataMemberCascade( const string& a_strName ) const
+Property* Class::getPropertyCascade( const string& a_strPropertyName ) const
 {
-    StaticDataMember* pDataMember = getStaticDataMember(a_strName);
-    if(pDataMember != NULL) return pDataMember;
-    o_foreach(Class* pClass, m_SuperClasses)
+    Property* pProperty = getProperty(a_strPropertyName);
+    if(pProperty != NULL) return pProperty;
+    o_foreach(Class* pClass, m_BaseClasses)
     {
-        StaticDataMember* pSuperDataMember = pClass->getStaticDataMemberCascade(a_strName);
-        if(pSuperDataMember != NULL)
+        Property* pBaseProperty = pClass->getPropertyCascade(a_strPropertyName);
+        if(pBaseProperty != NULL)
         {
-            if(pDataMember != NULL) 
+            if(pProperty != NULL)
             {
                 // ambiguous access, so we return nothing
                 return NULL;
             }
-            pDataMember = pSuperDataMember;
+            pProperty = pBaseProperty;
+        }
+    }
+    return pProperty;
+
+}
+
+
+StaticDataMember* Class::getStaticDataMemberCascade( const string& a_strName ) const
+{
+    StaticDataMember* pDataMember = getStaticDataMember(a_strName);
+    if(pDataMember != NULL) return pDataMember;
+    o_foreach(Class* pClass, m_BaseClasses)
+    {
+        StaticDataMember* pBaseDataMember = pClass->getStaticDataMemberCascade(a_strName);
+        if(pBaseDataMember != NULL)
+        {
+            if(pDataMember != NULL)
+            {
+                // ambiguous access, so we return nothing
+                return NULL;
+            }
+            pDataMember = pBaseDataMember;
         }
     }
     return pDataMember;
@@ -156,6 +199,21 @@ void Class::addInstanceMemberFunction(InstanceMemberFunction* a_pInstanceMemberF
         (*it)->insertMemberFunction(a_pInstanceMemberFunction);
     }
     ClassType::addInstanceMemberFunction(a_pInstanceMemberFunction);
+}
+
+void Class::setInstanceMemberFunctions(vector<InstanceMemberFunction*> list)
+{
+    for(auto it = list.begin(); it != list.end(); ++it)
+    {
+        if((*it)->asSignal())
+        {
+            addSignal((*it)->asSignal());
+        }
+        else
+        {
+            addInstanceMemberFunction(*it);
+        }
+    }
 }
 
 void Class::addSignal( Signal* a_pSignal )
@@ -183,17 +241,17 @@ Signal* Class::getSignalCascade( const string& a_strIdentifierString ) const
 {
     Signal* pSignal = getSignal(a_strIdentifierString);
     if(pSignal != NULL) return pSignal;
-    o_foreach(Class* pClass, m_SuperClasses)
+    o_foreach(Class* pClass, m_BaseClasses)
     {
-        Signal* pSuperSignal = pClass->getSignalCascade(a_strIdentifierString);
-        if(pSuperSignal != NULL)
+        Signal* pBaseSignal = pClass->getSignalCascade(a_strIdentifierString);
+        if(pBaseSignal != NULL)
         {
-            if(pSignal != NULL) 
+            if(pSignal != NULL)
             {
                 // ambiguous access, so we return nothing
                 return NULL;
             }
-            pSignal = pSuperSignal;
+            pSignal = pBaseSignal;
         }
     }
     return pSignal;
@@ -209,17 +267,17 @@ InstanceMemberFunction* Class::getSlotCascade( const string& a_strIdentifierStri
 {
     InstanceMemberFunction* pSlot = getSlot(a_strIdentifierString);
     if(pSlot != NULL) return pSlot;
-    o_foreach(Class* pClass, m_SuperClasses)
+    o_foreach(Class* pClass, m_BaseClasses)
     {
-        InstanceMemberFunction* pSuperSlot = pClass->getSlotCascade(a_strIdentifierString);
-        if(pSuperSlot != NULL)
+        InstanceMemberFunction* pBaseSlot = pClass->getSlotCascade(a_strIdentifierString);
+        if(pBaseSlot != NULL)
         {
-            if(pSlot != NULL) 
+            if(pSlot != NULL)
             {
                 // ambiguous access, so we return nothing
                 return NULL;
             }
-            pSlot = pSuperSlot;
+            pSlot = pBaseSlot;
         }
     }
     return pSlot;
@@ -231,7 +289,7 @@ boolean Class::doesInstanceDependOn( void* a_pInstance, void* a_pOther ) const
     o_assert(classOf(a_pInstance)->isKindOf(const_cast<Class*>(this)));
     o_assert(a_pOther);
 
-    o_foreach(Class* pClass, m_SuperClasses)
+    o_foreach(Class* pClass, m_BaseClasses)
     {
         if(pClass->doesInstanceDependOn(a_pInstance, a_pOther)) return true;
     }
@@ -246,7 +304,7 @@ boolean Class::doesInstanceDependOn( void* a_pInstance, void* a_pOther ) const
             Type*    pDataMemberType = pInstanceDataMember->getValueType();
             if(pDataMemberType->asClass())
             {
-                if(*static_cast<void**>(pInstanceDataMember->getAddress(a_pInstance)) == a_pOther) 
+                if(*static_cast<void**>(pInstanceDataMember->getAddress(a_pInstance)) == a_pOther)
                     return true;
             }
         }
@@ -262,28 +320,28 @@ state::StateMachine* Class::getStateMachine() const
 state::StateMachine* Class::getStateMachineCascade() const
 {
     if(m_pStateMachine) return m_pStateMachine;
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(; it != end; ++it)
     {
-        state::StateMachine* pSuperStateMachine = it->m_pClass->getStateMachineCascade();
-        if(pSuperStateMachine) // Get the first available super state machine
+        state::StateMachine* pBaseStateMachine = it->m_pClass->getStateMachineCascade();
+        if(pBaseStateMachine) // Get the first available base state machine
         {
-            return pSuperStateMachine;
+            return pBaseStateMachine;
         }
     }
     return NULL;
 }
 
-void Class::addSuperClass(Class* a_pClass)
+void Class::addBaseClass(Class* a_pClass)
 {
     o_assert(m_pExtraData);
     extra_data* pExtraData = static_cast<extra_data*>(m_pExtraData);
-    if(NOT(m_SuperClasses.empty())) 
+    if(NOT(m_BaseClasses.empty()))
     {
-        size_t modulo = pExtraData->m_uiSuperSize % pExtraData->m_AlignmentComputer.maxAlignment();
+        size_t modulo = pExtraData->m_uiBaseSize % pExtraData->m_AlignmentComputer.maxAlignment();
         if(modulo)
-            pExtraData->m_uiSuperSize += (pExtraData->m_AlignmentComputer.maxAlignment() - modulo);
+            pExtraData->m_uiBaseSize += (pExtraData->m_AlignmentComputer.maxAlignment() - modulo);
         o_assert(pExtraData->m_bHasStateMachineDataPtr OR a_pClass->getStateMachine() == nullptr, "Cannot inherit from two classes which have both a state machine");
     }
     else
@@ -296,17 +354,17 @@ void Class::addSuperClass(Class* a_pClass)
 
     if(a_pClass->getStateMachine() != nullptr)
     {
-        pExtraData->m_uiStateMachineDataPtrOffset = a_pClass->getStateMachine()->getDataPtrOffset() + pExtraData->m_uiSuperSize;
+        pExtraData->m_uiStateMachineDataPtrOffset = a_pClass->getStateMachine()->getDataPtrOffset() + pExtraData->m_uiBaseSize;
         pExtraData->m_bHasStateMachineDataPtr = false;
     }
 
-    size_t superClassOffset = pExtraData->m_uiSuperSize;
+    size_t baseClassOffset = pExtraData->m_uiBaseSize;
 
-    addSuperClass(a_pClass, superClassOffset);
+    addBaseClass(a_pClass, baseClassOffset);
 
-    pExtraData->m_uiSuperSize += a_pClass->getSize();
+    pExtraData->m_uiBaseSize += a_pClass->getSize();
 
-    // we update the max alignment from the new super class
+    // we update the max alignment from the new base class
     pExtraData->m_AlignmentComputer.setMaxAlignement(
 
         pExtraData->m_AlignmentComputer.maxAlignment() > a_pClass->getAlignment()
@@ -316,22 +374,23 @@ void Class::addSuperClass(Class* a_pClass)
         );
 }
 
-void Class::addSuperClass( Class* a_pClass, size_t a_uiOffset )
+void Class::addBaseClass( Class* a_pClass, size_t a_uiOffset )
 {
-    o_assert(NOT(hasSuperClass(a_pClass)));
-    m_SuperClasses.push_back(super_class_data(a_pClass, a_uiOffset));
+    o_assert(NOT(hasBaseClass(a_pClass)));
+    m_BaseClasses.push_back(base_class_data(a_pClass, a_uiOffset));
     a_pClass->addDerivedClass(const_cast<Class*>(this));
     for(auto it = a_pClass->beginVirtualMemberFunctionsTables(); it != a_pClass->endVirtualMemberFunctionsTables(); ++it)
     {
         m_VirtualMemberFunctionTables.push_back(deriveVirtualMemberFunctionTable(*it));
         addElement(m_VirtualMemberFunctionTables.back());
     }
+    addReferencedElement(a_pClass);
 }
 
-boolean Class::hasSuperClass( Class* a_pClass ) const
+boolean Class::hasBaseClass( Class* a_pClass ) const
 {
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(; it != end; ++it)
     {
         if(it->m_pClass == a_pClass)
@@ -345,7 +404,6 @@ boolean Class::hasSuperClass( Class* a_pClass ) const
 void Class::addDerivedClass( Class* a_pType )
 {
     m_DerivedClasses.push_back(a_pType);
-    addReferencedElement(a_pType);
 }
 
 boolean Class::hasDerivedClass( Class* a_pClass ) const
@@ -422,12 +480,12 @@ void Class::homonymousMemberFunctionSearch( member_function_search_data* a_pMemb
     }
 }
 
-void Class::sortSuperAndRootMemberFunctions( VirtualMemberFunctionTable* a_pSuperVMT, instance_member_function_list* a_OutSuperMemberFunctions, instance_member_function_list* a_OutRootMemberFunctions ) const
+void Class::sortBaseAndRootMemberFunctions( VirtualMemberFunctionTable* a_pBaseVMT, instance_member_function_list* a_OutBaseMemberFunctions, instance_member_function_list* a_OutRootMemberFunctions ) const
 {
     uint i = 0;
-    for(; i<a_pSuperVMT->getMemberFunctionCount(); ++i)
+    for(; i<a_pBaseVMT->getMemberFunctionCount(); ++i)
     {
-        InstanceMemberFunction* pSuperMemberFunction = a_pSuperVMT->getMemberFunction(i);
+        InstanceMemberFunction* pBaseMemberFunction = a_pBaseVMT->getMemberFunction(i);
         auto it = m_InstanceMemberFunctions.begin();
         auto end = m_InstanceMemberFunctions.end();
         for(;it != end; ++it)
@@ -435,7 +493,7 @@ void Class::sortSuperAndRootMemberFunctions( VirtualMemberFunctionTable* a_pSupe
             InstanceMemberFunction* pMemberFunction = *it;
             if(pMemberFunction->isVirtual())
             {
-                InstanceMemberFunction::EOverrideRelation eIR = pMemberFunction->getOverrideRelationWith(pSuperMemberFunction);
+                InstanceMemberFunction::EOverrideRelation eIR = pMemberFunction->getOverrideRelationWith(pBaseMemberFunction);
                 o_assert(        eIR != InstanceMemberFunction::e_OverrideRelation_Contravariant
                                     AND eIR != InstanceMemberFunction::e_OverrideRelation_Forbidden);
                 if(eIR == InstanceMemberFunction::e_OverrideRelation_None)
@@ -444,7 +502,7 @@ void Class::sortSuperAndRootMemberFunctions( VirtualMemberFunctionTable* a_pSupe
                 }
                 else
                 {
-                    a_OutSuperMemberFunctions->push_back(pMemberFunction);
+                    a_OutBaseMemberFunctions->push_back(pMemberFunction);
                 }
             }
         }
@@ -531,12 +589,12 @@ void     Class::getInvokableMemberFunctionsCascade(const string& a_strName, cons
             a_pResultMemberFunctions->push_back(*it);
     }
 
-    // We browse the super types and treat recursively
-    super_class_table::iterator it_super = m_SuperClasses.begin();
-    super_class_table::iterator it_super_end = m_SuperClasses.end();
-    for(;it_super != it_super_end; ++it_super)
+    // We browse the base types and treat recursively
+    base_class_table::iterator it_base = m_BaseClasses.begin();
+    base_class_table::iterator it_base_end = m_BaseClasses.end();
+    for(;it_base != it_base_end; ++it_base)
     {
-        it_super->m_pClass->getInvokableMemberFunctionsCascade(a_strName, a_ArgumentTypeList, a_pOutPerfectMatchMemberFunction, a_pResultMemberFunctions);
+        it_base->m_pClass->getInvokableMemberFunctionsCascade(a_strName, a_ArgumentTypeList, a_pOutPerfectMatchMemberFunction, a_pResultMemberFunctions);
     }
 }
 
@@ -556,9 +614,9 @@ void Class::findOverriddenMemberFunctions( InstanceMemberFunction* a_pOverriding
             {
                 InstanceMemberFunction* pResult = (*it_result);
                 o_assert(pResult->getOwnerClass());
-                if( pResult->getOwnerClass()->getSuperClassOffsetCascade((Class*)this) == 0 // in the same vtable
-                    AND pResult->canOverride(*it_member_function))  // a result member_function can overload the current tested member_function, 
-                                                                                                // which means that for the current VTable, 
+                if( pResult->getOwnerClass()->getBaseClassOffsetCascade((Class*)this) == 0 // in the same vtable
+                    AND pResult->canOverride(*it_member_function))  // a result member_function can overload the current tested member_function,
+                                                                                                // which means that for the current VTable,
                                                                                                 // we already have found an overloaded member_function
                 {
                     bOverloadedAlreadyAddedForCurrentVTable = true;
@@ -571,8 +629,8 @@ void Class::findOverriddenMemberFunctions( InstanceMemberFunction* a_pOverriding
             }
         }
     }
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         it->m_pClass->findOverriddenMemberFunctions(a_pOverridingCandidate, a_Result);
@@ -601,8 +659,8 @@ boolean Class::acceptMemberFunction( const string& a_strName, Signature* a_pSign
         return false;
     }
     {
-        super_class_table::const_iterator it = m_SuperClasses.begin();
-        super_class_table::const_iterator end = m_SuperClasses.end();
+        base_class_table::const_iterator it = m_BaseClasses.begin();
+        base_class_table::const_iterator end = m_BaseClasses.end();
         for(;it != end; ++it)
         {
             if(NOT(it->m_pClass->acceptsOverloadedMemberFunction(a_strName,a_pSignature, a_pOutConflictingMemberFunctions)))
@@ -619,8 +677,8 @@ boolean Class::acceptsOverloadedMemberFunction( const string& a_strName, Signatu
     member_function_vector prevMemberFunctions;
     boolean bResult = true;
     {
-        super_class_table::const_iterator it = m_SuperClasses.begin();
-        super_class_table::const_iterator end = m_SuperClasses.end();
+        base_class_table::const_iterator it = m_BaseClasses.begin();
+        base_class_table::const_iterator end = m_BaseClasses.end();
         for(;it != end; ++it)
         {
             if(NOT(it->m_pClass->acceptsOverloadedMemberFunction(a_strName, a_pSignature, &prevMemberFunctions)))
@@ -658,8 +716,8 @@ boolean Class::acceptsOverloadedMemberFunction( const string& a_strName, Signatu
 
 void Class::filtersNonOverloadedPureVirtualMemberFunctionsCascade( instance_member_function_vector& a_Result ) const
 {
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(; it != end; ++it)
     {
         it->m_pClass->filtersNonOverloadedPureVirtualMemberFunctionsCascade(a_Result);
@@ -710,23 +768,15 @@ void Class::findPureVirtualMemberFunctions( instance_member_function_vector& a_R
 
 void Class::removeDerivedClass( Class* a_pType )
 {
-    class_vector::iterator it = m_DerivedClasses.begin();
-    for(; it != m_DerivedClasses.end(); ++it)
-    {
-        if( (*it) == a_pType ) break;
-    }
-    if(it != m_DerivedClasses.end())
-    {
-        m_DerivedClasses.erase(it);
-    }
+    m_DerivedClasses.erase(std::find(m_DerivedClasses.begin(), m_DerivedClasses.end(), a_pType));
 }
 
 StaticMemberFunction*    Class::getStaticMemberFunctionCascade( const string& a_strIdentifierString ) const
 {
     StaticMemberFunction* pMemberFunction = getStaticMemberFunction(a_strIdentifierString);
     if(pMemberFunction != NULL) return pMemberFunction;
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         pMemberFunction = it->m_pClass->getStaticMemberFunctionCascade(a_strIdentifierString);
@@ -736,12 +786,12 @@ StaticMemberFunction*    Class::getStaticMemberFunctionCascade( const string& a_
     return NULL;
 }
 
-StaticMemberFunction* Class::getStaticMemberFunctionCascade( const char* a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/ ) const
+StaticMemberFunction* Class::getStaticMemberFunctionCascade( const char* a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes, modifiers_t a_Modifiers /*= 0*/ ) const
 {
     StaticMemberFunction* pMemberFunction = getStaticMemberFunction(a_strName, a_FunctionSignature, a_pPartialMatchesIndexes, a_Modifiers);
     if(pMemberFunction != NULL) return pMemberFunction;
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         pMemberFunction = it->m_pClass->getStaticMemberFunctionCascade(a_strName, a_FunctionSignature, a_pPartialMatchesIndexes, a_Modifiers);
@@ -755,8 +805,8 @@ InstanceMemberFunction*    Class::getInstanceMemberFunctionCascade( const string
 {
     InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strIdentifierString);
     if(pMemberFunction != NULL) return pMemberFunction;
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         pMemberFunction = it->m_pClass->getInstanceMemberFunctionCascade(a_strIdentifierString);
@@ -770,8 +820,8 @@ MemberFunction* Class::getMemberFunctionCascade( const string& a_strIdentifierSt
 {
     MemberFunction* pMemberFunction = getMemberFunction(a_strIdentifierString);
     if(pMemberFunction != NULL) return pMemberFunction;
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         pMemberFunction = it->m_pClass->getMemberFunctionCascade(a_strIdentifierString);
@@ -781,12 +831,12 @@ MemberFunction* Class::getMemberFunctionCascade( const string& a_strIdentifierSt
     return NULL;
 }
 
-MemberFunction* Class::getMemberFunctionCascade(const string& a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/) const
+MemberFunction* Class::getMemberFunctionCascade(const string& a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes, modifiers_t a_Modifiers /*= 0*/) const
 {
     MemberFunction* pMemberFunction = getMemberFunction(a_strName, a_FunctionSignature, a_pPartialMatchesIndexes, a_Modifiers);
     if(pMemberFunction != NULL) return pMemberFunction;
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         pMemberFunction = it->m_pClass->getMemberFunctionCascade(a_strName, a_FunctionSignature, a_pPartialMatchesIndexes, a_Modifiers);
@@ -798,8 +848,8 @@ MemberFunction* Class::getMemberFunctionCascade(const string& a_strName, const v
 
 void Class::getMembersCascade( vector<LanguageElement*>& a_out ) const
 {
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         it->m_pClass->getMembersCascade(a_out);
@@ -809,17 +859,17 @@ void Class::getMembersCascade( vector<LanguageElement*>& a_out ) const
 }
 
 #if o__bool__use_kind_creation_signal
-void                Class::fireKindCreated(void* a_pObject) const
+void                Class::fireKindCreated(void* a_pObject)
 {
     // TODO : move this singleton code in a better place
     if(isSingleton())
     {
-        o_assert(m_pSingleton == nullptr);
-        ((Class*)this)->m_pSingleton = a_pObject;
+        //o_assert(m_pSingleton == nullptr);
+        m_pSingleton = a_pObject;
     }
     {
-        super_class_table::const_iterator it = m_SuperClasses.begin();
-        super_class_table::const_iterator end = m_SuperClasses.end();
+        base_class_table::const_iterator it = m_BaseClasses.begin();
+        base_class_table::const_iterator end = m_BaseClasses.end();
         for(;it != end; ++it)
         {
             it->m_pClass->fireKindCreated((byte*)a_pObject + it->m_uiOffset);
@@ -830,12 +880,12 @@ void                Class::fireKindCreated(void* a_pObject) const
 #endif
 
 #if o__bool__use_kind_destruction_signal
-void                Class::fireKindDestroyed(void* a_pObject) const
+void                Class::fireKindDestroyed(void* a_pObject)
 {
     o_emit kindDestroyed(a_pObject);
     {
-        super_class_table::const_iterator it = m_SuperClasses.begin();
-        super_class_table::const_iterator end = m_SuperClasses.end();
+        base_class_table::const_iterator it = m_BaseClasses.begin();
+        base_class_table::const_iterator end = m_BaseClasses.end();
         for(;it != end; ++it)
         {
             it->m_pClass->fireKindDestroyed((byte*)a_pObject + it->m_uiOffset);
@@ -845,7 +895,7 @@ void                Class::fireKindDestroyed(void* a_pObject) const
     if(isSingleton())
     {
         o_assert(m_pSingleton == a_pObject);
-        ((Class*)this)->m_pSingleton = nullptr;
+        m_pSingleton = nullptr;
     }
 }
 #endif
@@ -856,8 +906,8 @@ ValueMember* Class::getValueMemberCascade(const string& a_strIdentifierString) c
     ValueMember* pFound = getValueMember(a_strIdentifierString);
     if(pFound != NULL) return pFound;
 
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         ValueMember* pValueMember = it->m_pClass->getValueMemberCascade(a_strIdentifierString);
@@ -867,48 +917,16 @@ ValueMember* Class::getValueMemberCascade(const string& a_strIdentifierString) c
     return nullptr;
 }
 
-Collection* Class::getCollectionCascade(const string& a_strCollectionName) const
-{
-    Collection* pFound = getCollection(a_strCollectionName);
-    if(pFound != nullptr) return pFound;
-
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
-    for(;it != end; ++it)
-    {
-        Collection* pCollection = it->m_pClass->getCollectionCascade(a_strCollectionName);
-        if(pCollection != nullptr)
-            return pCollection;
-    }
-    return nullptr;
-}
-
-
 void Class::getValueMembersCascade(vector<ValueMember*>& out) const
 {
     out.insert(out.end(), m_ValueMembers.begin(), m_ValueMembers.end());
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         it->m_pClass->getValueMembersCascade(out);
     }
 }
-
-void Class::getCollectionsCascade(vector<Collection*>& out) const
-{
-    if(m_pCollections)
-    {
-        out.insert(out.end(), m_pCollections->begin(), m_pCollections->end());
-    }
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
-    for(;it != end; ++it)
-    {
-        it->m_pClass->getCollectionsCascade(out);
-    }
-}
-
 
 InstanceMemberFunction* Class::getInstanceMemberFunctionCascade( const string& a_strName, type_vector* a_pParameterTypes ) const
 {
@@ -944,8 +962,8 @@ InstanceMemberFunction* Class::getInstanceMemberFunctionCascade( const string& a
         return pMemberFunction;
     }
     {
-        super_class_table::const_iterator it = m_SuperClasses.begin();
-        super_class_table::const_iterator end = m_SuperClasses.end();
+        base_class_table::const_iterator it = m_BaseClasses.begin();
+        base_class_table::const_iterator end = m_BaseClasses.end();
         for(;it != end; ++it)
         {
             InstanceMemberFunction* pResultMemberFunction = it->m_pClass->getInstanceMemberFunctionCascade(a_strName, a_pParameterTypes);
@@ -958,8 +976,8 @@ InstanceMemberFunction* Class::getInstanceMemberFunctionCascade( const string& a
 
 void Class::interpolate( void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode /*= 0*/ ) const
 {
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         it->m_pClass->interpolate(a_src_start, a_src_end, a_fPercent, a_pDest, mode);
@@ -1005,13 +1023,38 @@ void Class::elementRemoved(LanguageElement* a_pElement)
     ClassType::elementRemoved(a_pElement);
 }
 
-void* Class::cast( Class* a_pSuperClass, void* a_pBaseAddress ) const
+void* Class::upcast( Class* a_pBaseClass, void* a_pBaseAddress ) const
 {
-    if(a_pSuperClass == this) return a_pBaseAddress;
-    int offset = getSuperClassOffsetCascade(a_pSuperClass);
-    return (offset == -1) 
-        ? NULL 
-        : static_cast<byte*>(a_pBaseAddress)+offset;
+    if(a_pBaseClass == this) return a_pBaseAddress;
+    int offset = getBaseClassOffsetCascade(a_pBaseClass);
+    if(offset == -1)
+    {
+        return nullptr;
+    }
+    return static_cast<byte*>(a_pBaseAddress)+offset;
+}
+
+void* Class::downcast( Class* a_pDerivedClass, void* a_pBaseAddress ) const
+{
+    if(a_pDerivedClass == this) return a_pBaseAddress;
+    int rev_offset = a_pDerivedClass->getBaseClassOffsetCascade(const_cast<Class*>(this));
+    if(rev_offset == -1)
+        return nullptr;
+    return static_cast<byte*>(a_pBaseAddress)-rev_offset;
+}
+
+void* Class::cast( Class* a_pBaseClass, void* a_pBaseAddress ) const
+{
+    if(a_pBaseClass == this) return a_pBaseAddress;
+    int offset = getBaseClassOffsetCascade(a_pBaseClass);
+    if(offset == -1)
+    {
+        int rev_offset = a_pBaseClass->getBaseClassOffsetCascade(const_cast<Class*>(this));
+        if(rev_offset == -1)
+            return nullptr;
+        return static_cast<byte*>(a_pBaseAddress)-rev_offset;
+    }
+    return static_cast<byte*>(a_pBaseAddress)+offset;
 }
 
 void* Class::cast( Type* a_pTarget, void* a_pBase ) const
@@ -1020,11 +1063,22 @@ void* Class::cast( Type* a_pTarget, void* a_pBase ) const
     return nullptr;
 }
 
+void* Class::upcast( Type* a_pTarget, void* a_pBase ) const
+{
+    if(a_pTarget->asClass()) return upcast(static_cast<Class*>(a_pTarget), a_pBase);
+    return nullptr;
+}
+
+void* Class::downcast( Type* a_pTarget, void* a_pBase ) const
+{
+    if(a_pTarget->asClass()) return downcast(static_cast<Class*>(a_pTarget), a_pBase);
+    return nullptr;
+}
 
 void Class::valueToString( string& s, const void* src ) const
 {
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         it->m_pClass->valueToString(s, ((byte*)src)+it->m_uiOffset);
@@ -1039,7 +1093,7 @@ void Class::valueFromString( const string& cs, void* dest ) const
 
 void* Class::newInstance() const
 {
-    void* pInstance = allocate(); 
+    void* pInstance = allocate();
     construct(pInstance);
     install(pInstance);
     initialize(pInstance);
@@ -1048,7 +1102,7 @@ void* Class::newInstance() const
 
 void* Class::newInstance(Constructor* a_pConstructor, void** a_pArgs) const
 {
-    void* pInstance = allocate(); 
+    void* pInstance = allocate();
     a_pConstructor->construct(pInstance, a_pArgs);
     install(pInstance);
     initialize(pInstance);
@@ -1068,12 +1122,12 @@ void Class::safeDeleteInstance( void* a_pObject ) const
     deleteInstance(phantom::rttiDataOf(a_pObject).cast(const_cast<Class*>(this)));
 }
 
-InstanceMemberFunction*        Class::getInstanceMemberFunctionCascade(const char* a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/) const
+InstanceMemberFunction*        Class::getInstanceMemberFunctionCascade(const char* a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes, modifiers_t a_Modifiers /*= 0*/) const
 {
     InstanceMemberFunction* pMemberFunction = getInstanceMemberFunction(a_strName, a_FunctionSignature, a_pPartialMatchesIndexes, a_Modifiers);
     if(pMemberFunction != NULL) return pMemberFunction;
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         pMemberFunction = it->m_pClass->getInstanceMemberFunctionCascade(a_strName, a_FunctionSignature, a_pPartialMatchesIndexes, a_Modifiers);
@@ -1083,15 +1137,15 @@ InstanceMemberFunction*        Class::getInstanceMemberFunctionCascade(const cha
 }
 
 LanguageElement* Class::solveElement(
-    const string& a_strName 
+    const string& a_strName
     , const vector<TemplateElement*>* a_TemplateSpecialization
     , const vector<LanguageElement*>* a_FunctionSignature
-    , bitfield a_Modifiers /*= 0*/) const 
+    , modifiers_t a_Modifiers /*= 0*/) const
 {
     LanguageElement* pElement = ClassType::solveElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
     if(pElement) return pElement;
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         if(pElement = it->m_pClass->solveElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers))
@@ -1105,38 +1159,33 @@ LanguageElement* Class::solveElement(
     return NULL;
 }
 
-void Class::destroyContent()
+void Class::registerRttiImpl( void* a_pThis, void* a_pBase, Class* a_pObjectClass, connection::slot_pool* a_pSlotPool, dynamic_delete_func_t a_dynamic_delete_func, const rtti_data* a_pOwner )
 {
-    ClassType::destroyContent();
-    // remove from super
-    for(auto it = m_VirtualMemberFunctionTables.begin(); it!=m_VirtualMemberFunctionTables.end(); it++)
-    {
-        (*it)->deleteNow();
-    }
-    m_VirtualMemberFunctionTables.clear();
-
-    if(m_pStateMachine)
-    {
-        m_pStateMachine->deleteNow();
-        m_pStateMachine = nullptr;
-    }
+    phantom::addRttiData(a_pThis, phantom::rtti_data(a_pObjectClass, this, a_pBase, a_pThis, a_pSlotPool, a_dynamic_delete_func, a_pOwner));
+    a_pObjectClass->registerInstance(a_pThis);
 }
 
-void Class::registerRtti( void* a_pThis, void* a_pBase, Class* a_pObjectClass, connection::slot_pool* a_pSlotPool, dynamic_delete_func_t a_dynamic_delete_func, size_t a_uiLevel )
+void Class::registerRtti( void* a_pThis, void* a_pBase, Class* a_pObjectClass, connection::slot_pool* a_pSlotPool, dynamic_delete_func_t a_dynamic_delete_func, const rtti_data* a_pOwner )
 {
-    if(m_SuperClasses.empty()) // Root class
+    if(m_BaseClasses.empty()) // Root class
     {
-        registerRttiImpl(a_pThis, a_pBase, a_pObjectClass, a_pSlotPool, a_dynamic_delete_func, a_uiLevel);
+        registerRttiImpl(a_pThis, a_pBase, a_pObjectClass, a_pSlotPool, a_dynamic_delete_func, a_pOwner);
     }
     else
     {
-        super_class_table::const_iterator it = m_SuperClasses.begin();
-        super_class_table::const_iterator end = m_SuperClasses.end();
+        base_class_table::const_iterator it = m_BaseClasses.begin();
+        base_class_table::const_iterator end = m_BaseClasses.end();
         for(;it != end; ++it)
         {
-            it->m_pClass->registerRtti(cast(it->m_pClass, a_pThis), a_pBase, a_pObjectClass, a_pSlotPool, a_dynamic_delete_func, a_uiLevel);
+            it->m_pClass->registerRtti(upcast(it->m_pClass, a_pThis), a_pBase, a_pObjectClass, a_pSlotPool, a_dynamic_delete_func, a_pOwner);
         }
     }
+}
+
+void Class::unregisterRttiImpl( void* a_pThis, size_t a_uiLevel )
+{
+    phantom::rttiDataOf(a_pThis, a_uiLevel).object_class->unregisterInstance(a_pThis);
+    phantom::removeRttiData(a_pThis, a_uiLevel);
 }
 
 void Class::unregisterRtti( void* a_pThis, size_t a_uiLevel )
@@ -1145,46 +1194,49 @@ void Class::unregisterRtti( void* a_pThis, size_t a_uiLevel )
     {
         m_pSingleton = nullptr;
     }
-    if(m_SuperClasses.empty()) // Root class
+    if(m_BaseClasses.empty()) // Root class
     {
         unregisterRttiImpl(a_pThis, a_uiLevel);
     }
     else
     {
-        super_class_table::const_iterator it = m_SuperClasses.begin();
-        super_class_table::const_iterator end = m_SuperClasses.end();
+        base_class_table::const_iterator it = m_BaseClasses.begin();
+        base_class_table::const_iterator end = m_BaseClasses.end();
         for(;it != end; ++it)
         {
-            it->m_pClass->unregisterRtti(cast(it->m_pClass, a_pThis), a_uiLevel);
+            it->m_pClass->unregisterRtti(upcast(it->m_pClass, a_pThis), a_uiLevel);
         }
     }
 }
 
-void Class::smartCopy(void* a_pInstance, void const* a_pSource, reflection::Type* a_pSourceType) const
+void Class::smartCopy(reflection::Type* a_pDestType, void* a_pDest, void const* a_pSrc) const
 {
-    Class* pSourceClass = a_pSourceType->asClass();
-    o_assert(pSourceClass);
+    Class* pDestClass = a_pDestType->asClass();
+    if(pDestClass == nullptr)
+    {
+        o_exception(exception::reflection_runtime_exception, "Smart copy incompatible");
+    }
     vector<ValueMember*> valueMembers;
-    pSourceClass->getValueMembersCascade(valueMembers);
+    getValueMembersCascade(valueMembers);
     auto it = valueMembers.begin();
     auto end = valueMembers.end();
     for(; it!=end; ++it)
     {
         ValueMember* pOldValueMember = (*it);
-        ValueMember* pNewValueMember = getValueMemberCascade(pOldValueMember->getName());
+        ValueMember* pNewValueMember = pDestClass->getValueMemberCascade(pOldValueMember->getName());
         Type* pOldValueMemberType = pOldValueMember->getValueType()->removeReference()->removeConst();
         Type* pNewValueMemberType = nullptr;
-        if(pNewValueMember != nullptr 
+        if(pNewValueMember != nullptr
             AND pOldValueMemberType->isImplicitlyConvertibleTo((pNewValueMemberType = pNewValueMember->getValueType()->removeReference()->removeConst())))
         {
             // Create temp buffers
             void* sourceBuffer = pOldValueMemberType->newInstance();
             void* newBuffer = pNewValueMemberType->newInstance();
-            
+
             // Apply conversion
-            pOldValueMember->getValue(pSourceClass->cast(pOldValueMember->getOwnerClass(), (void*)a_pSource), sourceBuffer);
+            pOldValueMember->getValue(cast(pOldValueMember->getOwnerClass(), (void*)a_pSrc), sourceBuffer);
             pOldValueMemberType->convertValueTo(pNewValueMemberType, newBuffer, sourceBuffer);
-            pNewValueMember->setValue(cast(pNewValueMember->getOwnerClass(), a_pInstance), newBuffer);
+            pNewValueMember->setValue(pDestClass->cast(pNewValueMember->getOwnerClass(), a_pDest), newBuffer);
 
             // Destroy temp buffers
             pOldValueMemberType->deleteInstance(sourceBuffer);
@@ -1197,9 +1249,8 @@ void Class::smartCopy(void* a_pInstance, void const* a_pSource, reflection::Type
 boolean            Class::isKindOf( Class* a_pType ) const
 {
     if(this == a_pType) return true;
-    //o_check_phantom_setup_step(o_global_value_SetupStepIndex_Inheritance);
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(; it != end; ++it)
     {
         if(it->m_pClass->isKindOf(a_pType)) return true;
@@ -1211,7 +1262,7 @@ const variant& Class::getAttributeCascade( const string& a_strName ) const
 {
     const variant& v = getAttribute(a_strName);
     if(v.isValid()) return v;
-    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    for(auto it = m_BaseClasses.begin(); it != m_BaseClasses.end(); ++it)
     {
         const variant& v = it->m_pClass->getAttributeCascade(a_strName);
         if(v.isValid()) return v;
@@ -1228,19 +1279,24 @@ void Class::destroySingleton()
 
 bool Class::canBeDestroyed() const
 {
-    return ClassType::canBeDestroyed() 
-        AND m_DerivedClasses.empty() 
+    return ClassType::canBeDestroyed()
+        AND m_DerivedClasses.empty()
         AND (getInstanceCount() == 0 || (this == typeOf<Class>() && getInstanceCount() == 1));
 }
 
 void Class::referencedElementRemoved( LanguageElement* a_pElement )
 {
-    for(auto it = m_DerivedClasses.begin(); it != m_DerivedClasses.end(); ++it)
+    auto foundDerived = std::find(m_DerivedClasses.begin(), m_DerivedClasses.end(), a_pElement);
+    if(foundDerived != m_DerivedClasses.end())
     {
-        if(*it == a_pElement)
+        m_DerivedClasses.erase(foundDerived);
+    }
+    else
+    {
+        auto foundBase = std::find(m_BaseClasses.begin(), m_BaseClasses.end(), a_pElement);
+        if(foundBase != m_BaseClasses.end())
         {
-            m_DerivedClasses.erase(it);
-            break;
+            m_BaseClasses.erase(foundBase);
         }
     }
 }
@@ -1270,35 +1326,41 @@ size_t Class::getKindCount() const
     return count;
 }
 
-void Class::installInstanceDataMembers( void* a_pInstance, size_t a_uiLevel ) const
+void Class::installInstanceDataMembers( void* a_pInstance, const rtti_data* a_pOwner ) const
 {
     for(auto it = m_InstanceDataMembers.begin(); it != m_InstanceDataMembers.end(); ++it)
     {
-        (*it)->m_pValueType->install((byte*)a_pInstance+(*it)->m_uiOffset, a_uiLevel+1);
+        if((*it)->hasPlacementExtension())
+        {
+            (*it)->m_pValueType->install((byte*)a_pInstance+(*it)->m_uiOffset, a_pOwner);
+        }
     }
 }
 
-void Class::installInstanceDataMembersCascade( void* a_pInstance, size_t a_uiLevel ) const
+void Class::installInstanceDataMembersCascade( void* a_pInstance, const rtti_data* a_pOwner ) const
 {
-    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    for(auto it = m_BaseClasses.begin(); it != m_BaseClasses.end(); ++it)
     {
-        it->m_pClass->installInstanceDataMembersCascade((byte*)a_pInstance+it->m_uiOffset, a_uiLevel);
+        it->m_pClass->installInstanceDataMembersCascade((byte*)a_pInstance+it->m_uiOffset, a_pOwner);
     }
-    installInstanceDataMembers(a_pInstance, a_uiLevel);
+    installInstanceDataMembers(a_pInstance, a_pOwner);
 }
 
 void Class::uninstallInstanceDataMembers( void* a_pInstance, size_t a_uiLevel ) const
 {
     for(auto it = m_InstanceDataMembers.begin(); it != m_InstanceDataMembers.end(); ++it)
     {
-        (*it)->m_pValueType->uninstall((byte*)a_pInstance+(*it)->m_uiOffset, a_uiLevel+1);
+        if((*it)->hasPlacementExtension())
+        {
+            (*it)->m_pValueType->uninstall((byte*)a_pInstance+(*it)->m_uiOffset, a_uiLevel);
+        }
     }
 }
 
 void Class::uninstallInstanceDataMembersCascade( void* a_pInstance, size_t a_uiLevel ) const
 {
     uninstallInstanceDataMembers(a_pInstance, a_uiLevel);
-    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    for(auto it = m_BaseClasses.begin(); it != m_BaseClasses.end(); ++it)
     {
         it->m_pClass->uninstallInstanceDataMembersCascade((byte*)a_pInstance+it->m_uiOffset, a_uiLevel);
     }
@@ -1314,7 +1376,7 @@ void Class::initializeInstanceDataMembers( void* a_pInstance ) const
 
 void Class::initializeInstanceDataMembersCascade( void* a_pInstance ) const
 {
-    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    for(auto it = m_BaseClasses.begin(); it != m_BaseClasses.end(); ++it)
     {
         it->m_pClass->initializeInstanceDataMembersCascade((byte*)a_pInstance+it->m_uiOffset);
     }
@@ -1332,13 +1394,13 @@ void Class::terminateInstanceDataMembers( void* a_pInstance ) const
 void Class::terminateInstanceDataMembersCascade( void* a_pInstance ) const
 {
     terminateInstanceDataMembers(a_pInstance);
-    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    for(auto it = m_BaseClasses.begin(); it != m_BaseClasses.end(); ++it)
     {
         it->m_pClass->terminateInstanceDataMembersCascade((byte*)a_pInstance+it->m_uiOffset);
     }
 }
 
-restore_state Class::restoreInstanceDataMembers( void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass ) const
+restore_state Class::restoreInstanceDataMembers( void* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass ) const
 {
     restore_state result = restore_complete;
     for(auto it = m_InstanceDataMembers.begin(); it != m_InstanceDataMembers.end(); ++it)
@@ -1348,10 +1410,10 @@ restore_state Class::restoreInstanceDataMembers( void* a_pInstance, uint a_uiSer
     return result;
 }
 
-restore_state Class::restoreInstanceDataMembersCascade( void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass ) const
+restore_state Class::restoreInstanceDataMembersCascade( void* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass ) const
 {
     restore_state result = restore_complete;
-    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    for(auto it = m_BaseClasses.begin(); it != m_BaseClasses.end(); ++it)
     {
         result = combine_restore_states(result, it->m_pClass->restoreInstanceDataMembersCascade((byte*)a_pInstance+it->m_uiOffset, a_uiSerializationFlag, a_uiPass));
     }
@@ -1360,20 +1422,36 @@ restore_state Class::restoreInstanceDataMembersCascade( void* a_pInstance, uint 
 }
 
 Expression* Class::solveExpression( Expression* a_pLeftExpression
-                                 , const string& a_strName 
+                                 , const string& a_strName
                                  , const vector<TemplateElement*>* a_pTemplateSpecialization
                                  , const vector<LanguageElement*>* a_pFunctionSignature
-                                 , bitfield a_Modifiers /*= 0*/ ) const
+                                 , modifiers_t a_Modifiers /*= 0*/ ) const
 {
-    o_assert(a_pLeftExpression->getValueType()->removeReference()->removeConst() == removeConst());
+    if((a_pLeftExpression->getValueType()->removeReference()->asConstType() != nullptr) != ((a_Modifiers & o_const) == o_const))
+    {
+        o_exception(exception::reflection_runtime_exception, "Incoherency between const modifier and expression const type");
+    }
+    if(a_pLeftExpression->getValueType()->removeReference()->removeConst() != removeConst())
+    {
+        o_exception(exception::reflection_runtime_exception, "LHS Expression type doesn't match current class");
+    }
     Expression* pExpression = ClassType::solveExpression(a_pLeftExpression, a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers);
     if(pExpression) return pExpression;
-    auto it = m_SuperClasses.begin();
-    auto end = m_SuperClasses.end();
+    a_pLeftExpression->detach();
+    auto it = m_BaseClasses.begin();
+    auto end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
-        if(pExpression = it->m_pClass->solveExpression(a_pLeftExpression->implicitCast(it->m_pClass->referenceType()), a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers))
+        Expression* pCast = a_pLeftExpression->implicitCast(it->m_pClass->referenceType());
+        if(pExpression = it->m_pClass->solveExpression(pCast, a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers))
+        {
             return pExpression;
+        }
+        else
+        {
+            a_pLeftExpression->detach(); // ensure left expression is detached from owner before destroying pCast
+            o_dynamic_delete (pCast);
+        }
     }
     return nullptr;
 }
@@ -1382,8 +1460,8 @@ bool Class::referencesData(const void* a_pInstance, const phantom::data& a_Data)
 {
     if(ClassType::referencesData(a_pInstance, a_Data))
         return true;
-    auto it = m_SuperClasses.begin();
-    auto end = m_SuperClasses.end();
+    auto it = m_BaseClasses.begin();
+    auto end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
         if(it->m_pClass->referencesData((byte*)a_pInstance + it->m_uiOffset, a_Data))
@@ -1392,30 +1470,36 @@ bool Class::referencesData(const void* a_pInstance, const phantom::data& a_Data)
     return false;
 }
 
-void Class::fetchPointerReferenceExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask ) const
+void Class::fetchExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter, uint a_uiSerializationMask ) const
 {
-    ClassType::fetchPointerReferenceExpressions(a_pInstanceExpression, out, a_uiSerializationMask);
-    auto it = m_SuperClasses.begin();
-    auto end = m_SuperClasses.end();
+    ClassType::fetchExpressions(a_pInstanceExpression, out, a_Filter, a_uiSerializationMask);
+    auto it = m_BaseClasses.begin();
+    auto end = m_BaseClasses.end();
     for(;it != end; ++it)
     {
-        Expression* pClone = a_pInstanceExpression->clone()->implicitCast(it->m_pClass->referenceType());
-        it->m_pClass->fetchPointerReferenceExpressions(pClone, out, a_uiSerializationMask);
-        phantom::deleteElement(pClone);
+        Expression* pCast = a_pInstanceExpression->implicitCast(it->m_pClass->referenceType());
+        it->m_pClass->fetchExpressions(pCast, out, a_Filter, a_uiSerializationMask);
+        if(pCast->getOwner() == nullptr)
+        {
+            a_pInstanceExpression = a_pInstanceExpression->clone();
+            o_dynamic_delete (pCast);
+        }
     }
 }
 
 bool Class::isCopyable() const
 {
+    if(NOT(m_pStateMachine == nullptr && isCopyConstructible() && !hasCopyDisabled()))
+        return false;
     for(auto it = m_InstanceDataMembers.begin(); it != m_InstanceDataMembers.end(); ++it)
     {
         if(NOT((*it)->getValueType()->isCopyable())) return false;
     }
-    for(auto it = m_SuperClasses.begin(); it != m_SuperClasses.end(); ++it)
+    for(auto it = m_BaseClasses.begin(); it != m_BaseClasses.end(); ++it)
     {
         if(NOT(it->m_pClass->isCopyable())) return false;
     }
-    return  m_pSignals == nullptr && m_pStateMachine == nullptr && isCopyConstructible() && !hasCopyDisabled();
+    return true;
 }
 
 bool Class::isPolymorphic() const
@@ -1452,10 +1536,10 @@ void Class::construct( void* a_pInstance ) const
     o_assert(m_pExtraData);
     o_assert(m_pExtraData->m_iState == extra_data::e_State_Finalized);
 
-    // Construct super classes
+    // Construct base classes
     {
-        super_class_table::const_iterator it = m_SuperClasses.begin();
-        super_class_table::const_iterator end = m_SuperClasses.end();
+        base_class_table::const_iterator it = m_BaseClasses.begin();
+        base_class_table::const_iterator end = m_BaseClasses.end();
         for(;it!=end;++it)
         {
             it->m_pClass->construct(((byte*)a_pInstance) + it->m_uiOffset);
@@ -1472,17 +1556,17 @@ void Class::construct( void* a_pInstance ) const
     {
         int vtable_info_index = 0;
         bool bVTableRequired = false;
-        super_class_table::const_iterator it = m_SuperClasses.begin();
-        super_class_table::const_iterator end = m_SuperClasses.end();
+        base_class_table::const_iterator it = m_BaseClasses.begin();
+        base_class_table::const_iterator end = m_BaseClasses.end();
         for(;it!=end;++it)
         {
-            Class* pSuperClass = it->m_pClass;
-            size_t uiSuperClassOffset = it->m_uiOffset;
-            byte* address = (byte*)a_pInstance + uiSuperClassOffset;
+            Class* pBaseClass = it->m_pClass;
+            size_t uiBaseClassOffset = it->m_uiOffset;
+            byte* address = (byte*)a_pInstance + uiBaseClassOffset;
 
-            if(m_SuperClasses.begin() == it AND uiSuperClassOffset != 0)
+            if(m_BaseClasses.begin() == it AND uiBaseClassOffset != 0)
             {
-                // first super class and offset > 0 => new vtable required
+                // first base class and offset > 0 => new vtable required
                 vector<void*> virtualMemberFunctionCallAddresses;
                 size_t virtualMemberFunctionIndexAcc = 0;
                 auto it = m_InstanceMemberFunctions.begin();
@@ -1492,8 +1576,8 @@ void Class::construct( void* a_pInstance ) const
                     InstanceMemberFunction* pMemberFunction = *it;
                     vector<InstanceMemberFunction*> overloadeds;
                     {
-                        super_class_table::const_iterator it = m_SuperClasses.begin();
-                        super_class_table::const_iterator end = m_SuperClasses.end();
+                        base_class_table::const_iterator it = m_BaseClasses.begin();
+                        base_class_table::const_iterator end = m_BaseClasses.end();
                         for(;it!=end;++it)
                         {
                             it->m_pClass->findOverriddenMemberFunctions(pMemberFunction, overloadeds);
@@ -1504,7 +1588,7 @@ void Class::construct( void* a_pInstance ) const
                         bool needToAddToTheFirstVtable = overloadeds.empty() AND pMemberFunction->isVirtual();
                         o_foreach(InstanceMemberFunction* pOverloaded, overloadeds)
                         {
-                            if(getSuperClassOffsetCascade(pOverloaded->getOwnerClass()) != 0)
+                            if(getBaseClassOffsetCascade(pOverloaded->getOwnerClass()) != 0)
                             {
                                 needToAddToTheFirstVtable = true;
                                 break;
@@ -1537,11 +1621,11 @@ void Class::construct( void* a_pInstance ) const
                 vtable_info_index++;
             }
 
-            vector<vtable_info> super_vtables;
-            pSuperClass->extractVirtualMemberFunctionTableInfos(a_pInstance, super_vtables);
-            
-            vector<vtable_info>::iterator it = super_vtables.begin();
-            vector<vtable_info>::iterator end = super_vtables.end();
+            vector<vtable_info> base_vtables;
+            pBaseClass->extractVirtualMemberFunctionTableInfos(a_pInstance, base_vtables);
+
+            vector<vtable_info>::iterator it = base_vtables.begin();
+            vector<vtable_info>::iterator end = base_vtables.end();
             for(;it!=end;++it)
             {
                 size_t vtable_offset = it->offset;
@@ -1549,11 +1633,11 @@ void Class::construct( void* a_pInstance ) const
                 address += vtable_offset;
 
                 void** vptr = *((void***)address);
-                
+
                 // copy vtable pointers (each one may be replaced on the next step by overloading member_functions vtable pointer)
 
                 vector<void*> virtualMemberFunctionCallAddresses;
-                
+
                 size_t i = 0;
                 for(;i<vtable_count;++i)
                 {
@@ -1568,11 +1652,11 @@ void Class::construct( void* a_pInstance ) const
                 {
                     InstanceMemberFunction* pMemberFunction = *it;
                     vector<InstanceMemberFunction*> overloadeds;
-                    pSuperClass->findOverriddenMemberFunctions(pMemberFunction, overloadeds);
+                    pBaseClass->findOverriddenMemberFunctions(pMemberFunction, overloadeds);
                     size_t i = 0;
                     size_t count = overloadeds.size();
                     // no overloaded method + virtual => new virtual method => we add it to the 0-offset vtable
-                    if(count == 0 AND pMemberFunction->isVirtual() AND uiSuperClassOffset == 0)
+                    if(count == 0 AND pMemberFunction->isVirtual() AND uiBaseClassOffset == 0)
                     {
                         virtualMemberFunctionCallAddresses.push_back(pMemberFunction->getThisShiftClosure(0));
                     }
@@ -1580,16 +1664,16 @@ void Class::construct( void* a_pInstance ) const
                     else for(;i<count;++i)
                     {
                         InstanceMemberFunction* pOverloaded = overloadeds[i];
-                        size_t class_offset = pSuperClass->getSuperClassOffsetCascade(pOverloaded->getOwnerClass());
-                        if(class_offset == vtable_offset) // if the overloaded belongs to the current vtable/superclass offset
+                        size_t class_offset = pBaseClass->getBaseClassOffsetCascade(pOverloaded->getOwnerClass());
+                        if(class_offset == vtable_offset) // if the overloaded belongs to the current vtable/baseclass offset
                         {
                             size_t vtable_index = pOverloaded->getVirtualTableIndex();
-                            if(uiSuperClassOffset == 0)
+                            if(uiBaseClassOffset == 0)
                             {
                                 pMemberFunction->setVirtualTableIndex(vtable_index);
                             }
                             virtualMemberFunctionCallAddresses.resize(std::max(virtualMemberFunctionCallAddresses.size(), size_t(vtable_index+1)));
-                            virtualMemberFunctionCallAddresses[vtable_index] = pMemberFunction->getThisShiftClosure(uiSuperClassOffset);
+                            virtualMemberFunctionCallAddresses[vtable_index] = pMemberFunction->getThisShiftClosure(uiBaseClassOffset);
                         }
                     }
                 }
@@ -1600,7 +1684,7 @@ void Class::construct( void* a_pInstance ) const
                     newVTable = o_allocate_n(virtualMemberFunctionCallAddresses.size(), void*);
                     memcpy(newVTable, virtualMemberFunctionCallAddresses.data(), virtualMemberFunctionCallAddresses.size()*sizeof(void*));
                 }
-                vtable_info vti(vtable_offset+uiSuperClassOffset, newVTable, virtualMemberFunctionCallAddresses.size());
+                vtable_info vti(vtable_offset+uiBaseClassOffset, newVTable, virtualMemberFunctionCallAddresses.size());
                 m_VirtualTableInfos.push_back(vti);
             }
         }
@@ -1617,7 +1701,7 @@ void Class::construct( void* a_pInstance ) const
     }*/
 
     ClassType::construct(a_pInstance);
-    
+
 }
 
 void Class::construct( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const
@@ -1628,8 +1712,8 @@ void Class::construct( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSection
 void Class::destroy( void* a_pObject ) const
 {
     ClassType::destroy(a_pObject);
-    auto it = m_SuperClasses.rbegin();
-    auto end = m_SuperClasses.rend();
+    auto it = m_BaseClasses.rbegin();
+    auto end = m_BaseClasses.rend();
     for(; it != end; ++it)
     {
         it->m_pClass->destroy((byte*)a_pObject+it->m_uiOffset);
@@ -1641,56 +1725,56 @@ void Class::destroy( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSi
     Type::destroy(a_pChunk, a_uiCount, a_uiChunkSectionSize);
 }
 
-void Class::InstallHelper( Class* a_pBaseClass, void* a_pBase, Class* a_pLayoutClass, void* a_pLayout, connection::slot_pool* sp, size_t a_uiLevel )
+void Class::installRTTI( Class* a_pLayoutClass, void* a_pLayout, Class* a_pBaseClass, void* a_pBase, connection::slot_pool* sp, const rtti_data* a_pOwner, const rtti_data* a_pRTTI )
 {
     rtti_data rd;
     rd.base = a_pBase;
+    rd.layout = a_pLayout;
     rd.object_class = a_pBaseClass;
     rd.layout_class = a_pLayoutClass;
-    rd.dynamic_delete_func = 0;
+    rd.dynamic_delete_func = runtime_dynamic_delete_func;
     rd.connection_slot_allocator = sp;
-    rd.level = a_uiLevel;
-    phantom::addRttiData(a_pLayout, rd);
-    auto it = a_pLayoutClass->beginSuperClasses();
-    auto end = a_pLayoutClass->endSuperClasses();
+    rd.owner = a_pOwner;
+    const rtti_data* pThisRtti = a_pRTTI ? a_pRTTI : phantom::addRttiData(a_pLayout, rd);
+    a_pLayoutClass->installInstanceDataMembers(a_pLayout, pThisRtti);
+    auto it = a_pLayoutClass->beginBaseClasses();
+    auto end = a_pLayoutClass->endBaseClasses();
     for(; it != end; ++it)
     {
-        Class* pSuperClass = it->m_pClass;
-        size_t superClassOffset = it->m_uiOffset;
-        if(superClassOffset != 0)
-        {
-            void* this_layout = (byte*)a_pLayout + superClassOffset;
-            InstallHelper(a_pBaseClass, a_pBase, pSuperClass, this_layout, sp, a_uiLevel);
-        }
+        Class* pBaseClass = it->m_pClass;
+        size_t baseClassOffset = it->m_uiOffset;
+        void* this_layout = (byte*)a_pLayout + baseClassOffset;
+        installRTTI(pBaseClass, this_layout, a_pBaseClass, a_pBase, sp, a_pOwner, (baseClassOffset != 0) ? 0 : pThisRtti);
     }
 }
 
-void Class::UninstallHelper( void* a_pLayout, Class* a_pLayoutClass, size_t a_uiLevel )
+void Class::uninstallRTTI( void* a_pLayout, Class* a_pLayoutClass, size_t a_uiLevel, bool a_bRemoveRTTI )
 {
-    phantom::removeRttiData(a_pLayout, a_uiLevel);
-    auto it = a_pLayoutClass->beginSuperClasses();
-    auto end = a_pLayoutClass->endSuperClasses();
+    auto it = a_pLayoutClass->beginBaseClasses();
+    auto end = a_pLayoutClass->endBaseClasses();
     for(; it != end; ++it)
     {
-        Class* pSuperClass = it->m_pClass;
-        size_t superClassOffset = it->m_uiOffset;
-        if(superClassOffset != 0)
-        {
-            void* this_layout = (byte*)a_pLayout + superClassOffset;
-            UninstallHelper(this_layout, pSuperClass, a_uiLevel);
-        }
+        Class* pBaseClass = it->m_pClass;
+        size_t baseClassOffset = it->m_uiOffset;
+        void* this_layout = (byte*)a_pLayout + baseClassOffset;
+        uninstallRTTI(this_layout, pBaseClass, a_uiLevel, (baseClassOffset != 0));
+    }
+    a_pLayoutClass->uninstallInstanceDataMembers(a_pLayout, a_uiLevel+1);
+    if(a_bRemoveRTTI)
+    {
+        phantom::removeRttiData(a_pLayout, a_uiLevel);
     }
 }
 
 void Class::serialize( void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
 {
     o_assert(m_pExtraData);
-    auto it = beginSuperClasses();
-    auto end = endSuperClasses();
+    auto it = beginBaseClasses();
+    auto end = endBaseClasses();
     for(; it != end; ++it)
     {
-        Class* pSuperClass = it->m_pClass;
-        pSuperClass->serialize((byte*)a_pInstance + it->m_uiOffset, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        Class* pBaseClass = it->m_pClass;
+        pBaseClass->serialize((byte*)a_pInstance + it->m_uiOffset, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
     property_tree class_tree;
     serializeLayout(a_pInstance, class_tree, a_uiSerializationMask, a_pDataBase);
@@ -1700,19 +1784,19 @@ void Class::serialize( void const* a_pInstance, property_tree& a_OutBranch, uint
 void Class::deserialize( void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
 {
     o_assert(m_pExtraData);
-    auto it = beginSuperClasses();
-    auto end = endSuperClasses();
+    auto it = beginBaseClasses();
+    auto end = endBaseClasses();
     for(; it != end; ++it)
     {
-        Class* pSuperClass = it->m_pClass;
-        pSuperClass->deserialize((byte*)a_pInstance + it->m_uiOffset, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        Class* pBaseClass = it->m_pClass;
+        pBaseClass->deserialize((byte*)a_pInstance + it->m_uiOffset, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
     {
         auto it = a_InBranch.begin();
         auto end = a_InBranch.end();
         for(;it!=end;++it)
         {
-            // The test below could seem dirty but it's useful to deserialize typedefs or placeholder types 
+            // The test below could seem dirty but it's useful to deserialize typedefs or placeholder types
             // which goal is to point to a type without having the same representation name (ex: my_vector2 could point to phantom::math::vector2<float>)
             // It's also useful is you have a type versionning (a script class rebuilt with a different name but you still want to deserialize from the older type name
             reflection::Type* solvedType = a_pDataBase->solveTypeByName(/*decodeQualifiedDecoratedNameFromIdentifierName*/(it->first));
@@ -1743,7 +1827,7 @@ void Class::deserializeLayout( void* a_pInstance, const property_tree& a_InBranc
     for(;it != end; ++it)
     {
         reflection::ValueMember* const pValueMember = static_cast<reflection::ValueMember*const>(*it);
-        if(pValueMember->isSaved(a_uiSerializationMask)) 
+        if(pValueMember->isSaved(a_uiSerializationMask))
             pValueMember->deserializeValue(a_pInstance, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 }
@@ -1753,8 +1837,8 @@ void Class::initialize( void* a_pInstance ) const
 {
     o_assert(m_pExtraData);
     extra_data* pCompilationData = static_cast<extra_data*>(m_pExtraData);
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it!=end;++it)
     {
         it->m_pClass->initialize((byte*)a_pInstance+it->m_uiOffset);
@@ -1770,10 +1854,12 @@ void Class::initialize( void* a_pInstance ) const
     {
         m_pStateMachine->getInstanceData(a_pInstance)->initialize();
     }
+    const_cast<Class*>(this)->fireKindCreated(a_pInstance);
 }
 
 void Class::terminate( void* a_pInstance ) const
 {
+    const_cast<Class*>(this)->fireKindDestroyed(a_pInstance);
     o_assert(m_pExtraData);
     extra_data* pCompilationData = static_cast<extra_data*>(m_pExtraData);
     if(pCompilationData->m_bHasStateMachineDataPtr)
@@ -1786,21 +1872,21 @@ void Class::terminate( void* a_pInstance ) const
         pCompilationData->m_ClosureCallDelegate(pCompilationData->m_pTerminateClosure, args, 1, nullptr);
     }
     terminateInstanceDataMembers(a_pInstance);
-    super_class_table::const_iterator it = m_SuperClasses.begin();
-    super_class_table::const_iterator end = m_SuperClasses.end();
+    base_class_table::const_iterator it = m_BaseClasses.begin();
+    base_class_table::const_iterator end = m_BaseClasses.end();
     for(;it!=end;++it)
     {
         it->m_pClass->terminate((byte*)a_pInstance+it->m_uiOffset);
     }
 }
 
-phantom::restore_state Class::restore( void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass ) const
+phantom::restore_state Class::restore( void* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass ) const
 {
     o_assert(m_pExtraData);
     extra_data* pCompilationData = static_cast<extra_data*>(m_pExtraData);
     restore_state result = restore_complete;
-    super_class_table::const_iterator it = beginSuperClasses();
-    super_class_table::const_iterator end = endSuperClasses();
+    base_class_table::const_iterator it = beginBaseClasses();
+    base_class_table::const_iterator end = endBaseClasses();
     for(; it != end; ++it)
     {
         result = combine_restore_states(result, it->m_pClass->restore(((byte*)a_pInstance)+it->m_uiOffset, a_uiSerializationFlag, a_uiPass));
@@ -1815,9 +1901,13 @@ phantom::restore_state Class::restore( void* a_pInstance, uint a_uiSerialization
         result = combine_restore_states(result, func_result);
     }
 
-    if(result == restore_complete AND pCompilationData->m_bHasStateMachineDataPtr)
+    if(result == restore_complete)
     {
-        m_pStateMachine->getInstanceData(a_pInstance)->initialize();
+        if(pCompilationData->m_bHasStateMachineDataPtr)
+        {
+            m_pStateMachine->getInstanceData(a_pInstance)->initialize();
+        }
+        const_cast<Class*>(this)->fireKindCreated(a_pInstance);
     }
 
     return result;
@@ -1832,7 +1922,7 @@ InstanceMemberFunction* Class::addInitializeMemberFunction()
     o_assert(pCompilationData->m_pInitializeClosure == nullptr);
     Signature* pSignature = o_new(Signature);
     pSignature->setReturnType(phantom::typeOf<void>());
-    auto pInstanceMemberFunction= o_new(InstanceMemberFunction)("PHANTOM_CODEGEN_initialize", pSignature, o_protected);
+    auto pInstanceMemberFunction= o_new(InstanceMemberFunction)("PHANTOM_CODEGEN_initialize", pSignature, o_protected_access);
     addInstanceMemberFunction(pCompilationData->m_pInitializeMemberFunction);
     return pCompilationData->m_pInitializeMemberFunction;
 }
@@ -1844,7 +1934,7 @@ InstanceMemberFunction* Class::addTerminateMemberFunction()
     o_assert(pCompilationData->m_pTerminateClosure == nullptr);
     Signature* pSignature = o_new(Signature);
     pSignature->setReturnType(phantom::typeOf<void>());
-    auto pInstanceMemberFunction = o_new(InstanceMemberFunction)("PHANTOM_CODEGEN_terminate", pSignature, o_protected);
+    auto pInstanceMemberFunction = o_new(InstanceMemberFunction)("PHANTOM_CODEGEN_terminate", pSignature, o_protected_access);
     addInstanceMemberFunction(pCompilationData->m_pTerminateMemberFunction);
     return pCompilationData->m_pTerminateMemberFunction;
 }
@@ -1856,9 +1946,9 @@ InstanceMemberFunction* Class::addRestoreMemberFunction()
     o_assert(pCompilationData->m_pRestoreClosure == nullptr);
     Signature* pSignature = o_new(Signature);
     pSignature->setReturnType(phantom::typeOf<uint>());
-    pSignature->addParameterType(phantom::typeOf<uint>());
-    pSignature->addParameterType(phantom::typeOf<uint>());
-    auto pInstanceMemberFunction = o_new(InstanceMemberFunction)("PHANTOM_CODEGEN_restore", pSignature, o_protected);
+    pSignature->addParameter(phantom::typeOf<uint>());
+    pSignature->addParameter(phantom::typeOf<uint>());
+    auto pInstanceMemberFunction = o_new(InstanceMemberFunction)("PHANTOM_CODEGEN_restore", pSignature, o_protected_access);
     addInstanceMemberFunction(pCompilationData->m_pRestoreMemberFunction);
     return pCompilationData->m_pRestoreMemberFunction;
 }*/
@@ -1889,11 +1979,11 @@ void Class::finalize()
                 break;
             }
         }
-        // Shift super class offset depending on if we have a vtableptr
+        // Shift base class offset depending on if we have a vtableptr
         if(pCompilationData->m_bHasVTablePtr)
         {
-            super_class_table::iterator it = m_SuperClasses.begin();
-            super_class_table::iterator end = m_SuperClasses.end();
+            base_class_table::iterator it = m_BaseClasses.begin();
+            base_class_table::iterator end = m_BaseClasses.end();
             for(;it!=end;++it)
             {
                 it->m_uiOffset += sizeof(void*);
@@ -1908,14 +1998,14 @@ void Class::finalize()
         if(getStateMachine())
         {
             pCompilationData->m_uiStateMachineDataPtrOffset = pCompilationData->m_bHasVTablePtr*sizeof(void*)
-                + pCompilationData->m_uiSuperSize;
+                + pCompilationData->m_uiBaseSize;
         }
         else
         {
             pCompilationData->m_bHasStateMachineDataPtr = false;
         }
     }
-    else 
+    else
     {
         o_assert(pCompilationData->m_uiStateMachineDataPtrOffset != 0xffffffff);
         pCompilationData->m_uiStateMachineDataPtrOffset += pCompilationData->m_bHasVTablePtr*sizeof(void*);
@@ -1923,15 +2013,15 @@ void Class::finalize()
     if(m_pStateMachine)
         m_pStateMachine->setDataPtrOffset(pCompilationData->m_uiStateMachineDataPtrOffset);
 
-    m_uiSize = pCompilationData->m_uiSuperSize + pCompilationData->m_bHasVTablePtr*sizeof(void*) 
-        + pCompilationData->m_bHasStateMachineDataPtr *sizeof(void*); 
+    m_uiSize = pCompilationData->m_uiBaseSize + pCompilationData->m_bHasVTablePtr*sizeof(void*)
+        + pCompilationData->m_bHasStateMachineDataPtr *sizeof(void*);
 
     ClassType::finalize();
 }
 
 variant Class::compile(Compiler* a_pCompiler)
 {
-    // layout : [vtableptr] [superlayout] [smdataptr] [data_members]
+    // layout : [vtableptr] [baselayout] [smdataptr] [data_members]
     ClassType::compile(a_pCompiler);
 
     if(m_pStateMachine)
@@ -1940,11 +2030,10 @@ variant Class::compile(Compiler* a_pCompiler)
     return a_pCompiler->compile(this);
 }
 
-void Class::install( void* a_pInstance, size_t a_uiLevel ) const
+void Class::install( void* a_pInstance, const rtti_data* a_pOwner ) const
 {
     connection::slot_pool& ac = connection::slot_pool::allocationController(a_pInstance, const_cast<Class*>(this));
-    InstallHelper(const_cast<Class*>(this), a_pInstance, const_cast<Class*>(this), a_pInstance, &ac, a_uiLevel);
-    installInstanceDataMembers(a_pInstance, a_uiLevel);
+    installRTTI(const_cast<Class*>(this), a_pInstance, const_cast<Class*>(this), a_pInstance, &ac, a_pOwner, 0);
     state::StateMachine* pStateMachine = getStateMachineCascade();
     if(pStateMachine)
     {
@@ -1959,8 +2048,7 @@ void Class::uninstall( void* a_pInstance, size_t a_uiLevel ) const
     {
         pStateMachine->uninstall(cast(pStateMachine->getOwnerClass(), a_pInstance));
     }
-    uninstallInstanceDataMembers(a_pInstance, a_uiLevel);
-    UninstallHelper(a_pInstance, const_cast<Class*>(this), a_uiLevel);
+    uninstallRTTI(a_pInstance, const_cast<Class*>(this), a_uiLevel, true);
     connection::slot_pool::eraseAllocationController(a_pInstance, const_cast<Class*>(this));
 }
 
@@ -1986,10 +2074,9 @@ size_t Class::getVirtualMemberFunctionCount( size_t a_uiOffset ) const
 
 void Class::addNewVirtualMemberFunctionTable()
 {
-    o_assert(NOT(testModifiers(o_native))
-        AND m_VirtualMemberFunctionTables.empty() 
-        AND ( (getSuperClassCount() == 0) OR NOT(getSuperClass(0)->isPolymorphic()) )
-    ); 
+    o_assert(m_VirtualMemberFunctionTables.empty()
+        AND ( (getBaseClassCount() == 0) OR NOT(getBaseClass(0)->isPolymorphic()) )
+    );
     m_VirtualMemberFunctionTables.push_back(createVirtualMemberFunctionTable());
     addElement(m_VirtualMemberFunctionTables.back());
 }
@@ -2011,6 +2098,36 @@ void Class::getDerivedClassesCascade( vector<Class*>& out ) const
     {
         (*it)->getDerivedClassesCascade(out);
     }
+}
+
+vector<string> Class::getBaseClasseNames() const
+{
+    vector<string> table;
+    for(auto it = m_BaseClasses.begin(); it != m_BaseClasses.end(); ++it)
+    {
+        table.push_back(it->m_pClass->getQualifiedDecoratedName());
+    }
+    return table;
+}
+
+void Class::setBaseClasseNames( vector<string> table )
+{
+    for(auto it = table.begin(); it != table.end(); ++it)
+    {
+        addBaseClass(phantom::classByName(*it));
+    }
+}
+
+InstanceDataMember* Class::getInstanceDataMemberByOffset( size_t a_uiOffset ) const
+{
+    InstanceDataMember* pInstanceDataMember = ClassType::getInstanceDataMemberByOffset(a_uiOffset);
+    if(pInstanceDataMember) return pInstanceDataMember;
+    for(auto it = m_BaseClasses.begin(); it != m_BaseClasses.end(); ++it)
+    {
+        pInstanceDataMember = it->m_pClass->getInstanceDataMemberByOffset(a_uiOffset-(it->m_uiOffset));
+        if(pInstanceDataMember) return pInstanceDataMember;
+    }
+    return nullptr;
 }
 
 o_namespace_end(phantom, reflection)

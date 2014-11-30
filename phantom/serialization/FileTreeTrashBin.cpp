@@ -36,6 +36,7 @@
 #include "FileTreeTrashbin.h"
 #include "FileTreeTrashbin.hxx"
 #include "FileTreeDataBase.h"
+#include "FileTreeNode.h"
 #include <boost/filesystem.hpp>
 /* *********************************************** */
 o_registerN((phantom, serialization), FileTreeTrashbin);
@@ -81,6 +82,12 @@ FileTreeTrashbin::FileTreeTrashbin(FileTreeDataBase* a_pDataBase, const string& 
     if(NOT(boost::filesystem::exists(url_c_str)))
     {
         boost::filesystem::create_directories(url_c_str);
+    }
+
+    // Create backup directory
+    if(NOT(boost::filesystem::exists((a_strUrl+"/backup").c_str())))
+    {
+        boost::filesystem::create_directories((a_strUrl+"/backup").c_str());
     }
 }
 
@@ -179,6 +186,41 @@ void FileTreeTrashbin::restoreEntries( const vector<uint>& guids )
 FileTreeDataBase* FileTreeTrashbin::getFileTreeDataBase() const
 {
     return static_cast<FileTreeDataBase*>(m_pDataBase);
+}
+
+
+void FileTreeTrashbin::replaceBackup( Node* a_pNode, uint a_uiBackup )
+{
+    string strBackupPath = getUrl()+"/backup";
+    string strNodePath = static_cast<FileTreeNode*>(a_pNode)->path();
+    string strNodeRelativePath = static_cast<FileTreeNode*>(a_pNode)->relativePath();
+    string strNodeBackupPath = strBackupPath;
+    strNodeBackupPath += "/[";
+    strNodeBackupPath += phantom::lexical_cast<string>(reinterpret_cast<void*>(a_uiBackup));
+    strNodeBackupPath += "]/";
+    strNodeBackupPath += strNodeRelativePath;
+
+    if(!boost::filesystem::exists(strNodeBackupPath.c_str()))
+    {
+        o_exception(std::exception, "Backup not found");
+    }
+
+    // Copy each data in the node to its backup equivalent
+    {
+        boost::filesystem::directory_iterator it(strNodePath.c_str());
+        boost::filesystem::directory_iterator end;
+
+        for(;it != end; ++it)
+        {
+            const boost::filesystem::path& entryPath = it->path();
+            if(!boost::filesystem::is_directory(entryPath))
+            {
+                boost::filesystem::copy_file(entryPath
+                    , (strNodeBackupPath + "/" + entryPath.filename().generic_string().c_str()).c_str()
+                    , boost::filesystem::copy_option::overwrite_if_exists);
+            }
+        }
+    }
 }
 
 o_namespace_end(phantom, serialization)

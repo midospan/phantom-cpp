@@ -49,8 +49,11 @@ class o_export Enum : public PrimitiveType
     o_declare_meta_type(Enum);
 
 public:
+    typedef phantom::vector<NumericConstant*>   value_vector;
+
+public:
     Enum(); // anonymous enum;
-    Enum(const string& a_strName, PrimitiveType* a_pIntType, bitfield a_Modifiers = 0);
+    Enum(const string& a_strName, PrimitiveType* a_pIntType, modifiers_t a_Modifiers = 0);
     o_destructor ~Enum();
 
     inline NumericConstant* getConstant(size_t i) const  { return m_Constants[i]; }
@@ -65,7 +68,7 @@ public:
         const string& a_strName
         , const vector<TemplateElement*>* ts
         , const vector<LanguageElement*>* fs
-        , bitfield a_Modifiers = 0) const;
+        , modifiers_t a_Modifiers = 0) const;
 
     virtual Enum*           asEnum() const { return const_cast<Enum*>(this); }
     virtual PrimitiveType*  asIntegralType() const { return const_cast<Enum*>(this); }
@@ -104,45 +107,28 @@ public:
     {
         m_pIntType->interpolate(a_src_start, a_src_end, a_fPercent, a_pDest, mode );
     }
-    virtual void copy(void* a_pDest, void const* a_pSrc) const 
+
+    virtual void            copy(void* a_pDest, void const* a_pSrc) const 
     { 
         m_pIntType->copy(a_pDest, a_pSrc); 
     }
 
+    void            findConstantsWithValue(void* a_pSrc, vector<Constant*>& out) const;
+
+    value_vector::const_iterator beginConstants() const { return m_Constants.begin(); }
+    value_vector::const_iterator endConstants() const { return m_Constants.end(); }
+
 protected:
     virtual void elementAdded(LanguageElement* a_pElement);
     virtual void elementRemoved(LanguageElement* a_pElement);
-    Enum(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0);
-    Enum(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers = 0);
+    Enum(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0);
 
 protected:
-    typedef phantom::vector<NumericConstant*>   value_vector;
     value_vector                                m_Constants;
     reflection::Type*                           m_pIntType;
 };
 
 o_namespace_end(phantom, reflection)
-
-o_namespace_begin(phantom)
-
-template<typename t_Ty>
-struct string_converter_helper<t_Ty, false, true>
-{
-    static void toLiteral(const reflection::Enum* a_pEnum, string& a_strOut, const t_Ty* a_pSrc)
-    {
-        a_pEnum->reflection::Enum::valueToLiteral(a_strOut, a_pSrc);
-    }
-    static void to(const reflection::Enum* a_pEnum, string& a_strOut, const t_Ty* a_pSrc)
-    {
-        a_pEnum->reflection::Enum::valueToString(a_strOut, a_pSrc);
-    }
-    static void from(const reflection::Enum* a_pEnum, const string& a_strIn, t_Ty* a_pDest)
-    {
-        a_pEnum->reflection::Enum::valueFromString(a_strIn, a_pDest);
-    }
-};
-
-o_namespace_end(phantom)
 
 
 #endif

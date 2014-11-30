@@ -45,18 +45,18 @@ BinaryOperationExpression::BinaryOperationExpression( Type* a_pType, const strin
     , "("+a_pLHSExpression->getName()+a_strOperator+a_pRHSExpression->getName()+')'
                 , a_pLHSExpression->getModifiers())
     , m_strOperator(a_strOperator)
-    , m_pLHSExpression(a_pLHSExpression)
-    , m_pRHSExpression(a_pRHSExpression)
-    , m_pLHSConvertedExpression(a_pLHSExpression->implicitCast(a_pType))
-    , m_pRHSConvertedExpression(a_pRHSExpression->implicitCast(a_pType))
+    , m_pLHSExpression((a_pLHSExpression AND a_pLHSExpression->getOwner()) ? a_pLHSExpression->clone() : a_pLHSExpression)
+    , m_pRHSExpression((a_pRHSExpression AND a_pRHSExpression->getOwner()) ? a_pRHSExpression->clone() : a_pRHSExpression)
 {
+    m_pLHSConvertedExpression = m_pLHSExpression->implicitCast(a_pType);
+    m_pRHSConvertedExpression = m_pRHSExpression->implicitCast(a_pType);
     o_assert(m_pLHSExpression);
     o_assert(m_pRHSExpression);
     o_assert(m_pLHSConvertedExpression);
     o_assert(m_pRHSConvertedExpression);
     o_assert(m_strOperator.size());
-    addElement(m_pLHSConvertedExpression);
-    addElement(m_pRHSConvertedExpression);
+    addSubExpression(m_pLHSConvertedExpression);
+    addSubExpression(m_pRHSConvertedExpression);
 }
 
 BinaryOperationExpression::BinaryOperationExpression( Type* a_pLHSType, Type* a_pRHSType, const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression ) 
@@ -74,8 +74,8 @@ BinaryOperationExpression::BinaryOperationExpression( Type* a_pLHSType, Type* a_
     o_assert(m_pLHSConvertedExpression);
     o_assert(m_pRHSConvertedExpression);
     o_assert(m_strOperator.size());
-    addElement(m_pLHSConvertedExpression);
-    addElement(m_pRHSConvertedExpression);
+    addSubExpression(m_pLHSConvertedExpression);
+    addSubExpression(m_pRHSConvertedExpression);
 }
 
 BinaryOperationExpression::BinaryOperationExpression( Type* a_pValueType, Type* a_pLHSType, Type* a_pRHSType, const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression ) 
@@ -93,8 +93,8 @@ BinaryOperationExpression::BinaryOperationExpression( Type* a_pValueType, Type* 
     o_assert(m_pLHSConvertedExpression);
     o_assert(m_pRHSConvertedExpression);
     o_assert(m_strOperator.size());
-    addElement(m_pLHSConvertedExpression);
-    addElement(m_pRHSConvertedExpression);
+    addSubExpression(m_pLHSConvertedExpression);
+    addSubExpression(m_pRHSConvertedExpression);
 }
 
 BinaryOperationExpression::~BinaryOperationExpression()

@@ -43,7 +43,7 @@ o_namespace_begin(phantom, state)
 
 reflection::Class* const State::metaType = o_type_of(phantom::state::State);
 
-State::State( const string& a_strName , bitfield modifiers /*= 0*/) 
+State::State( const string& a_strName , modifiers_t modifiers /*= 0*/) 
     : StateMachineElement(a_strName, modifiers)
     , m_pParentTrack(NULL)
     , m_uiKey(0xffffffff)
@@ -53,7 +53,7 @@ State::State( const string& a_strName , bitfield modifiers /*= 0*/)
     m_pCompilationData = new state_compilation_data;
 }
 
-State::State(const string& a_strName, uint a_uiOrderingFactor, bitfield modifiers /*= 0*/)
+State::State(const string& a_strName, uint a_uiOrderingFactor, modifiers_t modifiers /*= 0*/)
     : StateMachineElement(a_strName, modifiers)
     , m_pParentTrack(NULL)
     , m_uiOrderingFactor(a_uiOrderingFactor)
@@ -118,7 +118,7 @@ Track* State::getTrack( const string& a_strName ) const
 bool State::equals( reflection::LanguageElement* a_pOther ) const
 {
     if(a_pOther == this) return true;
-    if(NOT(is<State>(a_pOther))) return false;
+    if(NOT(as<State*>(a_pOther))) return false;
     if(static_cast<State*>(a_pOther)->getName() != getName()) return false;
     reflection::Class* pThisOwner = getOwnerStateMachine()->getOwnerClass();
     reflection::Class* pOtherOwner = static_cast<State*>(a_pOther)->getOwnerStateMachine()->getOwnerClass();

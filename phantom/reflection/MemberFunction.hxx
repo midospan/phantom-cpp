@@ -1,7 +1,8 @@
 #pragma once
 #include "Member.hxx"
-o_classNS((phantom, reflection), MemberFunction, (Member), o_deferred|o_abstract) { o_reflection {}; };
-o_exposeN((phantom, reflection), MemberFunction);
+o_classNB((phantom, reflection), MemberFunction, (Member), o_deferred|o_abstract) (
+        );
+
 
 
 

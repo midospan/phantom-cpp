@@ -56,10 +56,9 @@ public:
     static reflection::Class* const metaType;
 
 public:
-
     Track(const string& a_strName
         , uint a_uiSerializationMask
-        , bitfield bf = 0)
+        , modifiers_t bf = 0)
             : StateMachineElement(a_strName, bf)
             , m_uiIndex(0xffffffff)
             , m_pParentState(NULL)

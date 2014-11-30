@@ -45,13 +45,22 @@ InstanceDataMemberAccess::InstanceDataMemberAccess( Expression* a_pLeftExpressio
                     ? a_pInstanceDataMember->getValueType()->constType()->referenceType()
                     : a_pInstanceDataMember->getValueType()->referenceType()
                 , "("+a_pLeftExpression->getName() + ")." + a_pInstanceDataMember->getName()
-                        , a_pInstanceDataMember->getModifiers())
+                        , a_pInstanceDataMember->getModifiers() & ~o_native)
     , m_pLeftExpression(a_pLeftExpression)
     , m_pInstanceDataMember(a_pInstanceDataMember)
 {
-    o_assert(a_pLeftExpression->hasEffectiveAddress());
-    addElement(a_pLeftExpression);
-    addReferencedElement(m_pInstanceDataMember);
+    if(m_pLeftExpression)
+    {
+        addSubExpression(m_pLeftExpression);
+        if(NOT(m_pLeftExpression->hasEffectiveAddress()))
+            setInvalid();
+    }
+    else setInvalid();
+    if(m_pInstanceDataMember)
+    {
+        addReferencedElement(m_pInstanceDataMember);
+    } 
+    else setInvalid();
 }
 
 void InstanceDataMemberAccess::referencedElementRemoved( LanguageElement* a_pElement )
@@ -73,12 +82,17 @@ void InstanceDataMemberAccess::setValue( void const* src ) const
 
 InstanceDataMemberAccess* InstanceDataMemberAccess::clone() const
 {
-    return o_new(InstanceDataMemberAccess)(m_pLeftExpression->clone(), m_pInstanceDataMember);
+    return o_new(InstanceDataMemberAccess)(m_pLeftExpression, m_pInstanceDataMember);
 }
 
 LanguageElement* InstanceDataMemberAccess::getHatchedElement() const
 {
     return m_pInstanceDataMember;
+}
+
+bool InstanceDataMemberAccess::isPersistent() const
+{
+    return Expression::isPersistent() AND m_pInstanceDataMember->isNative();
 }
 
 o_namespace_end(phantom, reflection)

@@ -260,10 +260,8 @@ public:
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType()>::type function_pointer;
     typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
 
-    TNativeFunction0(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc){}
-
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
+    TNativeFunction0(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc){}
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -301,12 +299,11 @@ public:
 
     typedef typename native_function_pointer_type<t_eConvention, void()>::type function_pointer;
 
-    TNativeFunction0(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction0(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -334,13 +331,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
 
 
-    TNativeFunction1(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction1(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
-
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -380,13 +375,11 @@ public:
     typedef typename native_function_pointer_type<t_eConvention, void(t_Param0)>::type function_pointer;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
 
-    TNativeFunction1(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction1(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
-
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -415,12 +408,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
 
-    TNativeFunction2(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction2(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -465,12 +457,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
 
-    TNativeFunction2(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction2(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -506,12 +497,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
 
 
-    TNativeFunction3(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction3(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -560,12 +550,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
 
-    TNativeFunction3(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction3(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -608,12 +597,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
 
-    TNativeFunction4(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction4(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -669,12 +657,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
 
-    TNativeFunction4(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction4(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -719,12 +706,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
 
-    TNativeFunction5(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction5(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -786,12 +772,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
 
-    TNativeFunction5(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction5(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -842,12 +827,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
 
-    TNativeFunction6(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction6(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -914,12 +898,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
 
-    TNativeFunction6(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction6(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -973,12 +956,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
 
-    TNativeFunction7(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction7(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -1051,12 +1033,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
 
-    TNativeFunction7(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction7(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -1111,12 +1092,11 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param7>::type t_Param7_noref;
 
-    TNativeFunction8(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction8(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -1194,12 +1174,11 @@ public:
 
 
 
-    TNativeFunction8(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
+    TNativeFunction8(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -1237,12 +1216,11 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType()>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType()>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
+    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
         : TNativeFunction0<t_eConvention, t_ReturnType>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 };
 
 template<int t_eConvention, typename t_ReturnType, typename t_Param0>
@@ -1253,12 +1231,11 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
+    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
         :TNativeFunction1<t_eConvention, t_ReturnType,t_Param0>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 };
 
 template<int t_eConvention, typename t_ReturnType, typename t_Param0, typename t_Param1>
@@ -1269,12 +1246,11 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
+    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
         :TNativeFunction2<t_eConvention, t_ReturnType,t_Param0,t_Param1>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
 };
 
@@ -1290,12 +1266,11 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1, t_Param2)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1,t_Param2)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
+    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
         :TNativeFunction3<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
 };
 
@@ -1313,12 +1288,11 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1,t_Param2,t_Param3)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
+    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
         :TNativeFunction4<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
 };
 
@@ -1336,12 +1310,11 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1,t_Param2,t_Param3,t_Param4)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
+    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
         :TNativeFunction5<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
 };
 
@@ -1360,12 +1333,11 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
+    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
         :TNativeFunction6<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
 };
 
@@ -1385,12 +1357,11 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
+    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
         :TNativeFunction7<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
 
 };
 
@@ -1412,20 +1383,26 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, bitfield a_Modifiers = 0)
+    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
         :TNativeFunction8<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::Function, phantom::reflection::Function::metaType, self_type) this; }
-
 };
 
 #endif
 
 o_namespace_end(phantom, reflection, native)
 
-
-    //o_traits_specialize_all_super_traitNTS_TNativeMemberFunctionRTXXX(TNativeFunction)
+o_namespace_begin(phantom)
+template<int t_eConvention, typename t_Signature> 
+struct dynamic_deleter<phantom::reflection::native::TNativeFunction<t_eConvention, t_Signature>> 
+{
+    o_forceinline static void dynamicDelete(void* a_pBase o_memory_stat_append_parameters)
+    {
+        o_dynamic_proxy_delete(phantom::reflection::native::TNativeFunction<t_eConvention, t_Signature>) a_pBase;
+    }
+};
+o_namespace_end(phantom)
 
 #endif // TNativeFunction_h__

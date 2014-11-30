@@ -5,7 +5,8 @@
 #include "VariableModel.h"
 #include "VariableNodeDelegate.h"
 #include "phantom/std/string.h"
-#include "phantom/reflection/Expression.h"
+#include "phantom/reflection/ConstantExpression.h"
+#include "phantom/reflection/DataExpression.h"
 /* *********************************************** */
 o_registerN((phantom, qt), VariableNode);
  
@@ -70,6 +71,10 @@ o_terminate_cpp(VariableNode)
 VariableNode::~VariableNode()
 {
     destroyExpressions();
+    if(m_pDelegate)
+    {
+        o_dynamic_delete m_pDelegate;
+    }
 }
 
 void VariableNode::destroyExpressions()
@@ -107,7 +112,7 @@ bool VariableNode::hasMultipleValues() const
             pBufferTest = (*it)->loadEffectiveAddress();
         }
         else (*it)->load(pBufferTest);
-        if(pType->hasLess())
+        /*if(pType->hasLess())
         {
             if(pType->less(pBufferTest, pBufferMain) || pType->less(pBufferMain, pBufferTest))
             {
@@ -119,7 +124,7 @@ bool VariableNode::hasMultipleValues() const
                 return true;
             }
         }
-        else if(!pType->areValueEqual(pBufferTest, pBufferMain)) 
+        else */if(!pType->areValueEqual(pBufferTest, pBufferMain)) 
         {
             if(!hasEffectiveAddress)
             {
@@ -319,23 +324,24 @@ VariableNode* VariableNode::FromData( serialization::DataBase* a_pDataBase, cons
         {
             const phantom::data& data = *it;
             string dataExpressionStr;
+            reflection::Expression* pExpression = nullptr;
             if(a_pDataBase)
             {
                 uint guid = a_pDataBase->getGuid(data);
-                dataExpressionStr = "(@"+lexical_cast<string>(guid)+")";
+                pExpression = o_new(reflection::DataExpression)(a_pDataBase, o_new(reflection::ConstantExpression)(constant<uint>(guid)));
             }
             else 
             {
                 dataExpressionStr = lexical_cast<string>(data.address());
-                dataExpressionStr = "(("+(data.type()->getQualifiedDecoratedName()+"*")+")"+dataExpressionStr+")";
+                pExpression = o_new(reflection::ConstantExpression)(constant<size_t>((size_t)data.address()));
+                pExpression = pExpression->cast(data.type()->referenceType());
             }
             if(pType != data.type())
             {
-                dataExpressionStr = "(("+(pType->getQualifiedDecoratedName()+"&")+")"+dataExpressionStr+")";
+                pExpression = pExpression->cast(pType->referenceType());
             }
-            phantom::setCurrentDataBase(a_pDataBase);
-            reflection::Expression* pExpression = phantom::expressionByName(dataExpressionStr);
             o_assert(pExpression);
+            phantom::setCurrentDataBase(a_pDataBase);
             expressions.push_back(pExpression);
         }
         return o_new(VariableNode)("", expressions);
@@ -386,6 +392,11 @@ QWidget* VariableNode::createActionWidget() const
 void VariableNode::invalidate()
 {
     m_pVariableModel->reset();
+}
+
+QWidget* VariableNode::createValueWidget() const
+{
+    return m_pDelegate->createValueWidget();
 }
 
 // 

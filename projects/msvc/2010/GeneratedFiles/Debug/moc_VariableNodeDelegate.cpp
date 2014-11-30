@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'VariableNodeDelegate.h'
 **
-** Created: Tue 2. Sep 20:06:38 2014
+** Created: Wed 29. Oct 19:57:10 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!

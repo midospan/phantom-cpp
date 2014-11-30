@@ -1,6 +1,8 @@
 #pragma once
 
-o_classNS((phantom, qt), CompositionAddComponentDataCommand, (UndoCommand))
+#include "DataBaseCommand.hxx"
+
+o_classNB((phantom, qt), CompositionAddComponentDataCommand, (DataBaseCommand))
 {
     o_reflection 
     {

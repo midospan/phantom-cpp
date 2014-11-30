@@ -3,7 +3,7 @@
 #include "ArrayTypeVisualizerNode.h"
 #include "ArrayTypeVisualizerNode.hxx"
 #include "VariableNode.h"
-#include "phantom/reflection/Expression.h"
+#include "phantom/reflection/ConstantExpression.h"
 /* *********************************************** */
 o_registerN((phantom, qt), ArrayTypeVisualizerNode);
  
@@ -21,10 +21,10 @@ void ArrayTypeVisualizerNode::expand(VariableNode* a_pVariableNode, const vector
         size_t i = 0;
         size_t count = pArrayType->getElementCount();
         groupedVariables.resize(std::max(groupedVariables.size(), count));
-        reflection::Expression* pIndexExpression = phantom::expressionByName(lexical_cast<string>(i));
         for(;i<count;++i)
         {
-            reflection::Expression* pExpression = pLeftExpression->solveBinaryOperator("[]", pIndexExpression);
+            reflection::Expression* pIndexExpression = o_new(reflection::ConstantExpression)(constant<size_t>(i));
+            reflection::Expression* pExpression = pLeftExpression->clone()->solveBinaryOperator("[]", pIndexExpression);
             o_assert(pExpression);
             groupedVariables[i].push_back(pExpression);
         }

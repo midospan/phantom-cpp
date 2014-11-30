@@ -49,14 +49,11 @@ o_namespace_begin(phantom, reflection)
 
 class o_export SourceFile
 {
-    friend class phantom::Phantom;
     friend class LanguageElement;
-
     
-protected:
+public:
     SourceFile(const string& a_strAbsoluteName);
 
-public:
     const string& getAbsoluteName() const { return m_strAbsoluteName; }
 
     void clearCodeLocations();

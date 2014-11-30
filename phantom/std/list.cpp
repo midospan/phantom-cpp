@@ -19,7 +19,7 @@ o_registerNT((std), (typename, typename), (t_Ty, t_Alloc), list);
 // o_registerNTI((phantom), list, (char));
 // o_registerNTI((phantom), list, (unsigned char));
 // o_registerNTI((phantom), list, (signed char));
-// #if o_BUILT_IN_WCHAR_T
+// #if o_HAS_BUILT_IN_WCHAR_T
 // o_registerNTI((phantom), list, (wchar_t));
 // #endif
 // o_registerNTI((phantom), list, (short));

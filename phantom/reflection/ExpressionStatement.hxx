@@ -2,14 +2,11 @@
 
 #include "Statement.hxx"
 
-o_classNS((phantom, reflection), ExpressionStatement, (Statement)) 
-{ 
-    o_reflection 
-    {
+o_classNB((phantom, reflection), ExpressionStatement, (Statement)) 
+(
+        o_property(string, expressionString, setExpressionString, getExpressionString, o_no_signal, o_no_range, o_protected_access);
+);
 
-    }; 
-};
-o_exposeN((phantom, reflection), ExpressionStatement);
 
 
 

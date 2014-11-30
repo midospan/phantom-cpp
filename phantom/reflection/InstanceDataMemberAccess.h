@@ -62,11 +62,13 @@ public:
 
     InstanceDataMember*         getInstanceDataMember() const { return m_pInstanceDataMember; }
 
-    virtual void flush() const { m_pLeftExpression->flush(); }
-
-    virtual InstanceDataMemberAccess*     clone() const;
+    virtual void                flush() const { m_pLeftExpression->flush(); }
 
     virtual LanguageElement*    getHatchedElement() const;
+
+    virtual bool                isPersistent() const;
+
+    virtual InstanceDataMemberAccess* clone() const;
 
 protected:
     void referencedElementRemoved( LanguageElement* a_pElement );

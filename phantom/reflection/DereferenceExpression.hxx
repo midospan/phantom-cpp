@@ -2,14 +2,10 @@
 
 #include "Expression.hxx"
 
-o_classNS((phantom, reflection), DereferenceExpression, (Expression)) 
-{ 
-    o_reflection 
-    {
+o_classNB((phantom, reflection), DereferenceExpression, (Expression)) 
+(
+        );
 
-    }; 
-};
-o_exposeN((phantom, reflection), DereferenceExpression);
 
 
 

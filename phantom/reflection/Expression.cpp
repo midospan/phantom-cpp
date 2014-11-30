@@ -44,21 +44,33 @@ o_registerN((phantom, reflection), Expression);
 
 o_namespace_begin(phantom, reflection) 
 
-Expression::Expression( Type* a_pType, bitfield a_Modifiers /*= 0*/) 
+Expression::Expression( Type* a_pType, modifiers_t a_Modifiers /*= 0*/) 
     : Evaluable("", a_Modifiers)
     , m_pValueType(a_pType)
+    , m_pSubExpressions(nullptr)
+    , m_bSignalsBlocked(false)
 {
-    addReferencedElement(a_pType);
+    if(m_pValueType)
+    {
+        addReferencedElement(m_pValueType);
+    }
+    else setInvalid();
 }
 
-Expression::Expression( Type* a_pType, const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
+Expression::Expression( Type* a_pType, const string& a_strName, modifiers_t a_Modifiers /*= 0*/ ) 
     : Evaluable(a_strName, a_Modifiers)
     , m_pValueType(a_pType)
+    , m_pSubExpressions(nullptr)
+    , m_bSignalsBlocked(false)
 {
-    addReferencedElement(a_pType);
+    if(m_pValueType)
+    {
+        addReferencedElement(m_pValueType);
+    }
+    else setInvalid();
 }
 
-Expression* Expression::solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const 
+Expression* Expression::solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const 
 {
     vector<Expression*> newExpressions;
     newExpressions.push_back(const_cast<Expression*>(this));
@@ -67,7 +79,7 @@ Expression* Expression::solveOperator(const string& a_strOp, const vector<Expres
         newExpressions.insert(newExpressions.end(), a_Expressions.begin(), a_Expressions.end());
 
         // Use 'strongest' type to solve operation
-        if(m_pValueType->getTypeId() == e_struct OR (m_pValueType->removeReference()->getTypeId() >= a_Expressions.back()->getValueType()->removeReference()->getTypeId()))
+        if((m_pValueType->removeReference()->getTypeId() >= e_struct) OR (m_pValueType->removeReference()->getTypeId() >= a_Expressions.back()->getValueType()->removeReference()->getTypeId()))
         {
             return m_pValueType->solveOperator(a_strOp, newExpressions, a_Modifiers);
         }
@@ -115,8 +127,12 @@ void Expression::store( void const* a_pSrc ) const
     flush();
 }
 
-LanguageElement* Expression::solveElement( const string& a_strName, const vector<TemplateElement*>* a_pTemplateSignature, const vector<LanguageElement*>* a_pFunctionSignature, bitfield a_Modifiers /*= 0*/ ) const
+LanguageElement* Expression::solveElement( const string& a_strName, const vector<TemplateElement*>* a_pTemplateSignature, const vector<LanguageElement*>* a_pFunctionSignature, modifiers_t a_Modifiers /*= 0*/ ) const
 {
+    if(m_pValueType == nullptr)
+    {
+        return nullptr;
+    }
     if(hasEffectiveAddress())
     {
         Type* pType = m_pValueType;
@@ -149,7 +165,7 @@ Expression* Expression::implicitCast( Type* a_pTargetType ) const
         return const_cast<Expression*>(this);
     if(m_pValueType->isImplicitlyConvertibleTo(a_pTargetType) && m_pValueType->isCopyable())
     {
-        return o_new(CastExpression)(a_pTargetType, const_cast<Expression*>(this));
+        return o_new(CastExpression)(a_pTargetType, const_cast<Expression*>(this), true);
     }
     return nullptr;
 }
@@ -158,8 +174,8 @@ Expression* Expression::cast( Type* a_pTargetType ) const
 {
     if(m_pValueType == a_pTargetType) 
         return const_cast<Expression*>(this);
-    if(m_pValueType->isConvertibleTo(a_pTargetType))
-        return o_new(CastExpression)(a_pTargetType, const_cast<Expression*>(this));
+    if(m_pValueType->isConvertibleTo(a_pTargetType) && m_pValueType->isCopyable())
+        return o_new(CastExpression)(a_pTargetType, const_cast<Expression*>(this), false);
     return nullptr;
 }
 
@@ -182,7 +198,8 @@ Expression* Expression::address() const
     {
         return o_new(AddressExpression)(const_cast<Expression*>(this));
     }
-    return nullptr;
+    vector<LanguageElement*> empty;
+    return getValueType()->solveExpression(const_cast<Expression*>(this), "operator&", nullptr, &empty, 0);
 }
 
 Expression* Expression::dereference() const
@@ -191,13 +208,15 @@ Expression* Expression::dereference() const
     {
         return o_new(DereferenceExpression)(const_cast<Expression*>(this));
     }
-    return nullptr;
+    vector<LanguageElement*> empty;
+    return getValueType()->solveExpression(const_cast<Expression*>(this), "operator*", nullptr, &empty, 0);
 }
 
 Type* Expression::storageType(Type* a_pType) const
 {
     Type* pStorageType = a_pType;
     if(pStorageType == typeOf<void>()) return nullptr;
+    if(pStorageType == typeOf<signal_t>()) return nullptr;
     if(pStorageType->asReferenceType())
     {
         pStorageType = pStorageType->asReferenceType()->getReferencedType()->pointerType();
@@ -240,5 +259,109 @@ bool Expression::isDereferenceable() const
     return m_pValueType->removeReference()->removeConst()->asDataPointerType() != nullptr;
 }
 
+void Expression::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    if(a_pElement == m_pValueType) // Type destroyed => expression cannot exist anymore
+    {
+        m_pValueType = nullptr;
+    }
+    Evaluable::referencedElementRemoved(a_pElement);
+}
+
+void Expression::addSubExpression( Expression*& a_prExpression )
+{
+    if(a_prExpression->isInvalid())
+        setInvalid();
+    if(a_prExpression->getOwner())
+    {
+        addElement(a_prExpression = a_prExpression->clone());
+    }
+    else 
+    {
+        addElement(a_prExpression);
+    }
+    if(m_pSubExpressions == nullptr)
+    {
+        m_pSubExpressions = new vector<Expression*>;
+    }
+    m_pSubExpressions->push_back(a_prExpression);
+}
+
+void Expression::elementRemoved( LanguageElement* a_pElement )
+{
+    if(m_pSubExpressions)
+    {
+        auto found = std::find(m_pSubExpressions->begin(), m_pSubExpressions->end(), a_pElement);
+        if(found != m_pSubExpressions->end())
+        {
+            m_pSubExpressions->erase(found);
+        }
+        if(m_pSubExpressions->empty())
+        {
+            delete m_pSubExpressions;
+            m_pSubExpressions = nullptr;
+        }
+    }
+}
+
+bool Expression::isPersistent() const
+{
+    if(isInvalid()) return false;
+
+    if(m_pSubExpressions)
+    {
+        for(auto it = m_pSubExpressions->begin(); it != m_pSubExpressions->end(); ++it)
+        {
+            if(NOT((*it)->isPersistent()))
+                return false;
+        }
+    }
+    return m_pValueType->isNative();
+}
+
+void Expression::setSignalBlockedCascade( bool a_bSignalsBlocked )
+{
+    setSignalBlocked(a_bSignalsBlocked);
+    if(m_pSubExpressions)
+    {
+        for(auto it = m_pSubExpressions->begin(); it != m_pSubExpressions->end(); ++it)
+        {
+            (*it)->setSignalBlockedCascade(a_bSignalsBlocked);
+        }
+    }
+}
+
+void Expression::setSignalBlocked( bool a_bSignalsBlocked )
+{
+    m_bSignalsBlocked = a_bSignalsBlocked;
+}
+
+bool Expression::hasValueStorageCascade() const
+{
+    if(hasValueStorage())
+        return true;
+    if(m_pSubExpressions)
+    {
+        for(auto it = m_pSubExpressions->begin(); it != m_pSubExpressions->end(); ++it)
+        {
+            if((*it)->hasValueStorageCascade()) return true;
+        }
+    }
+    return false;
+}
+
+void Expression::removeSubExpression( Expression* a_pExpression )
+{
+    o_assert(m_pSubExpressions);
+    removeElement(a_pExpression);
+}
+
+void Expression::detach()
+{
+    if(m_pOwner)
+    {
+        static_cast<Expression*>(m_pOwner)->removeElement(this);
+    }
+}
 
 o_namespace_end(phantom, reflection)

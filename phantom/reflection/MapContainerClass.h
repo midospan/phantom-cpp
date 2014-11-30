@@ -13,7 +13,7 @@ o_declareN(class, (phantom, reflection), MapContainerClass);
 
 o_namespace_begin(phantom, reflection)
 
-class MapIterator : public Iterator
+class o_export MapIterator : public Iterator
 {
     o_declare_meta_type(MapIterator);
 public:
@@ -29,7 +29,7 @@ public:
 
 };
 
-class MapConstIterator : public ConstIterator
+class o_export MapConstIterator : public ConstIterator
 {
     o_declare_meta_type(MapConstIterator);
 public:
@@ -46,7 +46,7 @@ class o_export MapContainerClass : public ContainerClass
     o_declare_meta_type(MapContainerClass);
 
 public:
-    MapContainerClass(Type* a_pKeyType, Type* a_pMappedType, Type* a_pValueType, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
+    MapContainerClass(Type* a_pKeyType, Type* a_pMappedType, Type* a_pValueType, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
         : ContainerClass(a_pValueType, a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
         , m_pKeyType(a_pKeyType) 
         , m_pMappedType(a_pMappedType) 

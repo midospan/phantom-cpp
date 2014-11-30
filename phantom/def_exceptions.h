@@ -45,7 +45,7 @@ o_namespace_begin(phantom, exception)
 #if (o_COMPILER == o_COMPILER_VISUAL_STUDIO)
 typedef std::exception base_exception;
 #else
-class base_exception : std::exception
+class base_exception : public std::exception
 {
 public:
     base_exception(void) {}

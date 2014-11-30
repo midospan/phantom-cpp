@@ -40,7 +40,7 @@ o_registerN((phantom, reflection), Evaluable);
 
 o_namespace_begin(phantom, reflection) 
 
-Evaluable::Evaluable( const string& a_strName, bitfield modifiers ) 
+Evaluable::Evaluable( const string& a_strName, modifiers_t modifiers ) 
     : LanguageElement(a_strName, modifiers)
 {
 }

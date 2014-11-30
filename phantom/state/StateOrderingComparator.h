@@ -33,8 +33,6 @@
 
 #ifndef StateMachineNodeOrderingComparator_h__
 #define StateMachineNodeOrderingComparator_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
 #include <phantom/util/Comparator.h>

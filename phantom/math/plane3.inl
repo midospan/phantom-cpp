@@ -154,7 +154,7 @@ template<class t_Ty>
 bool plane3<t_Ty>::intersects(const line3<t_Ty>& l, vector3<t_Ty>& intersectionPoint) const
 {
 	t_Ty dotProd = l.direction.normalized().dot(normal.normalized());
-	if (fabs(dotProd) <= EPSILON)
+	if (fabs(dotProd) <= std::numeric_limits<t_Ty>::epsilon())
 		return false;
 	vector3<t_Ty> planePt = -d * normal.normalized();
 	t_Ty param = (planePt - l.point).dot(normal.normalized()) / (dotProd);
@@ -166,7 +166,7 @@ template<class t_Ty>
 t_Ty plane3<t_Ty>::intersectionParameter(const line3<t_Ty>& l) const
 {
 	t_Ty dotProd = l.direction.normalized().dot(normal.normalized());
-	if (fabs(dotProd) <= EPSILON)
+	if (fabs(dotProd) <= std::numeric_limits<t_Ty>::epsilon())
 		return std::numeric_limits<t_Ty>::max();
 	vector3<t_Ty> planePt = -d * normal.normalized();
 	return (planePt - l.point).dot(normal.normalized()) / (dotProd);

@@ -50,7 +50,7 @@ public:
     {
 
     }
-    Constant(const string& a_strName, bitfield modifiers = 0)
+    Constant(const string& a_strName, modifiers_t modifiers = 0)
         : LanguageElement(a_strName, modifiers)
     {
 
@@ -58,11 +58,14 @@ public:
 
     virtual Type*                   getValueType() const = 0;
     virtual void                    getValue(void* dest) const = 0;
+    virtual bool                    hasValue(void* a_pSrc) const = 0;
     virtual Constant*               asConstant() const { return const_cast<Constant*>(this); }
 
     virtual string                  getQualifiedName() const { return m_strName; }
     virtual string                  getQualifiedDecoratedName() const { return m_strName; }
     virtual string                  getDecoratedName() const { return m_strName; }
+
+    virtual Constant*               clone() const = 0;
 
 protected:
 };

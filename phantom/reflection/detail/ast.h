@@ -384,9 +384,7 @@ typedef phantom::vector<cast_type> cast_types;
 
 struct cast_expression : node
 {
-    cast_expression() {}
-    cast_expression(const expression& a_expression) : m_casted_expression(a_expression) {}
-    cast_types m_types;
+    type m_type;
     boost::recursive_wrapper<expression> m_casted_expression;
 };
 
@@ -708,7 +706,7 @@ inline std::ostream&  operator<<(std::ostream& stream, const member_declaration&
 
 struct class_inheritance : node
 {
-    fundamental_node<int> m_access_specifier;
+    fundamental_node<unsigned long long> m_access_specifier;
     qualified_name m_qualified_name;
 };
 
@@ -750,7 +748,7 @@ struct typedef_declaration : node
 
 inline std::ostream&  operator<<(std::ostream& stream, const typedef_declaration& arg) { return stream; }
 
-typedef boost::variant<fundamental_node<int>, typedef_declaration, member_declaration, class_declaration> class_member_declaration;
+typedef boost::variant<fundamental_node<unsigned long long>, typedef_declaration, member_declaration, class_declaration> class_member_declaration;
 
 inline std::ostream&  operator<<(std::ostream& stream, const class_member_declaration& expr)
 {

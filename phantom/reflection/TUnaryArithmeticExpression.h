@@ -79,7 +79,7 @@ public:
 
     virtual TUnaryArithmeticExpression<t_Ty>*     clone() const 
     {
-        return o_new(TUnaryArithmeticExpression<t_Ty>)(m_strOperator, m_pExpression->clone());
+        return o_new(TUnaryArithmeticExpression<t_Ty>)(m_strOperator, m_pExpression);
     }
 };
 

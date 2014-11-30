@@ -2,6 +2,7 @@
 #include "phantom/qt/qt.h"
 #include "phantom/serialization/Node.h"
 #include "DataComboBox.h"
+#include <QStyledItemDelegate>
 /* *********************************************** */
 
  
@@ -13,16 +14,21 @@ namespace qt {
         , phantom::reflection::Type* a_pType
         , const phantom::vector<phantom::data>& currentData  
         , const phantom::vector<phantom::data>& editedData
-        , DataValueFilter* a_pDataValueFilter /*= NULL*/) 
+        , DataValueFilter* a_pDataValueFilter /*= NULL*/
+        , bool a_bAllowsNone /*= true*/) 
 
     : m_pDataBase(a_pDataBase)
         , m_pType(a_pType)
         , m_EditedData(editedData)
         , m_pDataValueFilter(a_pDataValueFilter)
     {
+        setItemDelegate(new QStyledItemDelegate());
         connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(currentDataIndexChanged(int)));
 
-        addItem(QIcon("resources/icons/famfamfam/null.png"), "none", 0);
+        if(a_bAllowsNone)
+        {
+            addItem(QIcon("resources/icons/famfamfam/null.png"), "none", 0);
+        }
         computeCommonParentNode();
         addNodeDataCascade(m_pParentNode);
         

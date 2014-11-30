@@ -33,8 +33,6 @@
 
 #ifndef state_native_TNativeStateMachine_h__
 #define state_native_TNativeStateMachine_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
 
@@ -57,7 +55,7 @@ public:
     typedef TNativeTrack<t_Ty>        track_class;
     typedef TNativeStateMachine<t_Ty>        self_type;
     typedef t_Ty                    object_class;
-    typedef o_NESTED_TYPE first_super_statechart_class_of<t_Ty>::type        root_object_class;
+    typedef o_NESTED_TYPE first_base_statechart_class_of<t_Ty>::type        root_object_class;
 
     typedef native::state_machine_data<object_class>    instance_data;
 
@@ -81,13 +79,11 @@ public:
             }
             else
             {
-                s_Instance = o_dynamic_proxy_new(phantom::state::StateMachine, phantom::state::StateMachine::metaType, self_type);
+                s_Instance = o_dynamic_proxy_new(self_type);
             }
         }
         return s_Instance;
     }    
-
-    virtual void deleteNow() { o_dynamic_proxy_delete(phantom::state::StateMachine, phantom::state::StateMachine::metaType, self_type) this; }
 
     static int        NextTrackIndex() 
     {
@@ -282,13 +278,5 @@ protected:
 #undef TNativeStateMachine_smdataptr_const
 
 o_namespace_end(phantom, state, native)
-
-    /*o_traits_specialize_all_super_traitNTS(
-    (phantom,state,native)
-    , (typename)
-    , (t_Ty)
-    , TNativeStateMachine
-    , (StateMachine)
-    )*/
 
 #endif

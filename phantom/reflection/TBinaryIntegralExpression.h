@@ -80,7 +80,7 @@ public:
 
     virtual TBinaryIntegralExpression<t_Ty>*     clone() const 
     {
-        return o_new(TBinaryIntegralExpression<t_Ty>)(m_strOperator, m_pLHSExpression->clone(), m_pRHSExpression->clone());
+        return o_new(TBinaryIntegralExpression<t_Ty>)(m_strOperator, m_pLHSExpression, m_pRHSExpression);
     }
 
 };

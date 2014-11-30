@@ -1,8 +1,7 @@
 #pragma once
 #include "Node.hxx"
-o_classNS((phantom, serialization), FileTreeNode, (Node))
-{
-    o_reflection {};
-};
-o_exposeN((phantom, serialization), FileTreeNode);
+o_classNB((phantom, serialization), FileTreeNode, (Node))
+(
+        );
+
 

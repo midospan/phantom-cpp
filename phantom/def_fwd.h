@@ -36,6 +36,9 @@ o_fwd(class, phantom, reflection, InstanceMemberFunction)
 o_fwd(class, phantom, reflection, Signal)
 o_fwd(class, phantom, reflection, DataMember)
 o_fwd(class, phantom, reflection, InstanceDataMember)
+o_fwd(class, phantom, reflection, AnonymousSection)
+o_fwd(class, phantom, reflection, AnonymousStruct)
+o_fwd(class, phantom, reflection, AnonymousUnion)
 o_fwd(class, phantom, reflection, StaticDataMember)
 o_fwd(class, phantom, reflection, Property)
 o_fwd(class, phantom, reflection, ValueMember)
@@ -54,6 +57,9 @@ o_fwd(class, phantom, reflection, ContainerClass)
 o_fwd(class, phantom, reflection, SequentialContainerClass)
 o_fwd(class, phantom, reflection, MapContainerClass)
 o_fwd(class, phantom, reflection, SetContainerClass)
+o_fwd(class, phantom, reflection, ComponentClass)
+o_fwd(class, phantom, reflection, CompositionClass)
+o_fwd(class, phantom, reflection, AggregationClass)
 o_fwd(class, phantom, reflection, ConstIterator)
 o_fwd(class, phantom, reflection, Iterator)
 o_fwd(class, phantom, reflection, PODUnion)
@@ -63,7 +69,20 @@ o_fwd(class, phantom, reflection, LanguageElement)
 o_fwd(class, phantom, reflection, TemplateElement)
 o_fwd(class, phantom, reflection, Evaluable)
 o_fwd(class, phantom, reflection, Statement)
+o_fwd(class, phantom, reflection, LabelStatement)
+o_fwd(class, phantom, reflection, BreakStatement)
+o_fwd(class, phantom, reflection, ContinueStatement)
+o_fwd(class, phantom, reflection, BranchIfStatement)
+o_fwd(class, phantom, reflection, BranchIfNotStatement)
+o_fwd(class, phantom, reflection, BranchStatement)
+o_fwd(class, phantom, reflection, ReturnStatement)
+o_fwd(class, phantom, reflection, ExpressionStatement)
 o_fwd(class, phantom, reflection, Expression)
+o_fwd(class, phantom, reflection, CallExpression)
+o_fwd(class, phantom, reflection, CastExpression)
+o_fwd(class, phantom, reflection, ReferenceExpression)
+o_fwd(class, phantom, reflection, AddressExpression)
+o_fwd(class, phantom, reflection, BinaryLogicalExpression)
 o_fwd(class, phantom, reflection, VirtualMemberFunctionTable)
 o_fwd(class, phantom, reflection, Namespace)
 o_fwd(class, phantom, reflection, TemplateSpecialization)
@@ -134,6 +153,7 @@ o_fwdT(class, phantom, reflection, native, (typename, typename), TNativeInstance
 o_fwdT(class, phantom, reflection, native, (typename, typename), TNativeStaticMemberFunction)
 o_fwdT(class, phantom, reflection, native, (typename, typename), TNativeInstanceDataMember)
 o_fwdT(class, phantom, reflection, native, (typename, typename), TNativeStaticDataMember)
+o_fwdT(class, phantom, reflection, native, (typename), TNativeVariable)
 
 o_fwdT(class, phantom, reflection, native, (typename, uint, typename), TNativeDataMemberProvider)
 
@@ -146,5 +166,124 @@ o_fwdT(class, phantom, reflection, native, (int, typename), TNativeSignatureProv
 #endif
 
 o_fwdT(class, phantom, state, native, (typename), root_statechart)
+
+o_fwd(struct, phantom, reflection, Types);
+
+o_namespace_begin(phantom, reflection, detail)
+
+template<typename t_Ty> 
+struct type_of_builder;
+
+template<typename t_Ty, typename t_STy>
+struct base_class_adder;
+
+o_namespace_end(phantom, reflection, detail);
+
+
+o_namespace_begin(phantom, detail);
+
+template<typename t_Ty, int>
+struct default_constructor_helper;
+
+template<typename t_Ty, int>
+struct default_installer_helper;
+
+template<typename t_Ty, int>
+struct default_initializer_helper;
+
+template<typename t_Ty, int>
+struct default_serializer_helper;
+
+template<typename t_Ty, int>
+struct default_resetter_helper;
+
+o_namespace_end(phantom, detail);
+
+o_namespace_begin(phantom)
+
+struct empty_struct {};
+
+template< typename >
+struct constructor;
+
+template< typename >
+struct allocator;
+
+template< typename >
+struct serializer;
+
+template< typename >
+struct resetter;
+
+template< typename >
+struct initializer;
+
+template< typename >
+struct installer;
+
+template<typename t_Ty>
+struct rtti_data_registrer;
+
+template<typename t_Ty>
+struct dynamic_deleter;
+
+template<typename t_Ty>
+struct default_allocator;
+
+template <typename t_Ty>
+struct default_constructor;
+
+template <typename t_Ty>
+struct default_initializer;
+
+template <typename t_Ty>
+struct default_installer;
+
+template <typename t_Ty>
+struct default_serializer;
+
+template <typename t_Ty>
+struct default_resetter;
+
+class dynamic_initializer_handle;
+
+template<typename>
+struct proxy_new_helper;
+
+template<typename>
+struct proxy_delete_helper;
+
+struct dynamic_new_helper;
+
+template<typename t_Ty>
+struct dynamic_delete_helper;
+
+template<typename t_Ty>
+struct dynamic_proxy_deleter;
+
+namespace state
+{
+    template<typename t_Ty>
+    struct state_machine_serializer;
+    template<typename t_Ty>
+    struct state_machine_initializer;
+    template<typename t_Ty>
+    struct root_class_state_machine_serializer;
+    template<typename t_Ty>
+    struct state_machine_resetter;
+    template<typename t_Ty>
+    struct root_class_state_machine_resetter;
+}
+
+namespace reflection
+{
+    template<typename> 
+    struct type_reflection_registrer;
+
+    template<typename t_Ty>
+    struct type_infos_of;
+}
+
+o_namespace_end(phantom)
 
 #endif // o_phantom_fwd_h__

@@ -1,11 +1,11 @@
 /*
     This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
+         P reprocessed
+         H igh-level
+         A llocator
+         N ested state-machines and
+         T emplate
+         O riented
          M eta-programming
 
     For the latest infos and sources, see http://code.google.com/p/phantom-cpp
@@ -53,25 +53,20 @@ public:
     typedef TRange<t_Ty> self_type;
 
 public:
-    TRange(t_Ty a_Min, t_Ty a_Default, t_Ty a_Max) 
-        : Range(typeOf<t_Ty>()) 
+    TRange(t_Ty a_Min, t_Ty a_Default, t_Ty a_Max)
+        : Range(typeOf<t_Ty>())
         , m_Min(a_Min)
         , m_Default(a_Default)
         , m_Max(a_Max)
     {
 
     }
-    virtual Range* clone() const 
+    virtual Range* clone() const
     {
-        return o_dynamic_proxy_new(phantom::reflection::Range, phantom::reflection::Range::metaType, self_type)(m_Min, m_Default, m_Max);
+        return o_dynamic_proxy_new(self_type)(m_Min, m_Default, m_Max);
     }
 
-    virtual void deleteNow() 
-    {
-        o_dynamic_proxy_delete(phantom::reflection::Range, phantom::reflection::Range::metaType, self_type) this;   
-    }
-
-    virtual void getMin(void* a_pDest) const 
+    virtual void getMin(void* a_pDest) const
     {
         *((t_Ty*)a_pDest) = m_Min;
     }
@@ -118,7 +113,7 @@ template<typename t_Ty>
 inline Range* CreateRange(t_Ty a_Default)
 {
     o_static_assert(!(boost::is_same<t_Ty, null_range>::value));
-    return o_dynamic_proxy_new(phantom::reflection::Range, phantom::reflection::Range::metaType, TRange<t_Ty>)(std::numeric_limits<t_Ty>::min(), a_Default, std::numeric_limits<t_Ty>::max());
+    return o_dynamic_proxy_new(TRange<t_Ty>)(std::numeric_limits<t_Ty>::min(), a_Default, std::numeric_limits<t_Ty>::max());
 }
 
 template<>
@@ -130,27 +125,17 @@ inline Range* CreateRange<null_range>(null_range )
 template<typename t_Ty>
 inline TRange<t_Ty>* CreateRange(t_Ty a_Min, t_Ty a_Default, t_Ty a_Max)
 {
-    typedef boost::remove_cv<boost::remove_reference<t_Ty>::type>::type type;
+    typedef o_NESTED_TYPE boost::remove_cv<o_NESTED_TYPE boost::remove_reference<t_Ty>::type>::type type;
     o_static_assert(boost::has_less<type>::value && boost::has_equal_to<type>::value);
-    return o_dynamic_proxy_new(phantom::reflection::Range, phantom::reflection::Range::metaType, TRange<t_Ty>)(a_Min, a_Default, a_Max);
+    return o_dynamic_proxy_new(TRange<t_Ty>)(a_Min, a_Default, a_Max);
 }
 
 template<typename t_Ty>
 TRange<t_Ty>* CreateRange(t_Ty a_Min, t_Ty a_Max)
 {
-    return o_dynamic_proxy_new(phantom::reflection::Range, phantom::reflection::Range::metaType, TRange<t_Ty>)(a_Min, t_Ty(), a_Max);
+    return o_dynamic_proxy_new(TRange<t_Ty>)(a_Min, t_Ty(), a_Max);
 }
 
 o_namespace_end(phantom, reflection, native)
-
-    /*o_traits_specialize_all_super_traitNTS(
-    (phantom,reflection,native)
-    , (typename)
-    , (t_Ty)
-    , TRange
-    , (Range)
-    )*/
-
-
 
 #endif

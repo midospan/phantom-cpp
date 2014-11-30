@@ -41,19 +41,32 @@ o_registerN((phantom, reflection), AssignmentExpression);
 o_namespace_begin(phantom, reflection) 
 
 AssignmentExpression::AssignmentExpression( Expression* a_pLHSExpression, Expression* a_pRHSExpression ) 
-    : Expression(a_pLHSExpression->getValueType(), "("+a_pLHSExpression->getName()+'='+a_pRHSExpression->getName()+')'
+    : Expression(a_pLHSExpression->getValueType(), "("+a_pLHSExpression->getName()+")=("+a_pRHSExpression->getName()+')'
                 , a_pLHSExpression->getModifiers())
     , m_pLHSExpression(a_pLHSExpression)
-    , m_pRHSExpression(a_pRHSExpression)
-    , m_pRHSConvertedExpression(a_pRHSExpression->implicitCast(a_pLHSExpression->getValueType()->removeReference()))
+    , m_pRHSExpression((a_pRHSExpression AND a_pRHSExpression->getOwner()) ? a_pRHSExpression->clone() : a_pRHSExpression)
 {
-    o_assert(a_pLHSExpression->isAddressable());
-    o_assert(m_pRHSConvertedExpression);
-    if(m_pLHSExpression->getOwner() == nullptr) // In case of assigment operation of kind '+=' which uses LHS two times
+    m_pRHSConvertedExpression = (m_pLHSExpression AND m_pRHSExpression AND m_pLHSExpression->getValueType())
+                                    ? m_pRHSExpression->implicitCast(m_pLHSExpression->getValueType()->removeReference())
+                                    : nullptr;
+    if(m_pLHSExpression)
     {
-        addElement(m_pLHSExpression);
+        addSubExpression(m_pLHSExpression);
     }
-    addElement(m_pRHSConvertedExpression);
+    else setInvalid();
+    if(m_pRHSExpression == nullptr)
+    {
+        setInvalid();
+    }
+    if(m_pRHSConvertedExpression)
+    {
+        addSubExpression(m_pRHSConvertedExpression);
+    }
+    else setInvalid();
+    if(!m_pLHSExpression->isAddressable())
+    {
+        setInvalid();
+    }
 }
 
 AssignmentExpression::~AssignmentExpression()
@@ -63,7 +76,7 @@ AssignmentExpression::~AssignmentExpression()
 
 AssignmentExpression* AssignmentExpression::clone() const
 {
-    return o_new(AssignmentExpression)(m_pLHSExpression->clone(), m_pRHSExpression->clone());
+    return o_new(AssignmentExpression)(m_pLHSExpression, m_pRHSExpression);
 }
 
 

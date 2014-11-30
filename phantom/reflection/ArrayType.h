@@ -55,7 +55,7 @@ protected:
     ArrayType(Type* a_pElementType, size_t a_uiCount);
 
 public:
-    o_destructor ~ArrayType(void)     {}
+    o_destructor ~ArrayType(void);
 
     virtual boolean     isPOD() const { return m_pElementType->isPOD(); }
     virtual boolean     isArrayType() const { return true; }
@@ -139,15 +139,9 @@ public:
 
     virtual void        convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;
 
-    virtual void        valueFromString(const string& a_str, void* dest) const
-    {
-        *reinterpret_cast<void**>(dest) = ::phantom::lexical_cast<void*>(a_str);
-    }
+    virtual void        valueFromString(const string& a_str, void* dest) const;
 
-    virtual void        valueToString(string& a_str, const void* src) const
-    {
-        a_str += ::phantom::lexical_cast<string>(*((void**)src));
-    }
+    virtual void        valueToString(string& a_str, const void* src) const;
 
     virtual void        serialize(void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
@@ -233,18 +227,19 @@ public:
 
     virtual Type*                   removeArray() const { return m_pElementType; }
 
-    virtual string          getDecoratedName() const { return m_pElementType->getDecoratedName()+'['+phantom::lexical_cast<string>(m_uiCount)+']'; }
-    virtual string          getQualifiedDecoratedName() const { return m_pElementType->getQualifiedDecoratedName()+'['+phantom::lexical_cast<string>(m_uiCount)+']'; }
+    virtual string          getDecoratedName() const;
+    virtual string          getQualifiedDecoratedName() const;
 
     virtual void            copy(void* a_pDest, void const* a_pSrc) const;
     virtual bool            isCopyable() const { return m_pElementType->isCopyable(); }
 
     virtual Type*           asPOD() const { return m_pElementType->asPOD() ? (Type*)this : nullptr; }
 
-    virtual Expression*     solveOperator(const string& a_strOperator, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const;
+    virtual Expression*     solveOperator(const string& a_strOperator, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const;
 
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);
+
 protected:
     Type*       m_pElementType;
     size_t      m_uiCount;

@@ -72,7 +72,7 @@ public:
 
     virtual TUnaryBitExpression<t_Ty>*     clone() const 
     {
-        return o_new(TUnaryBitExpression<t_Ty>)(m_strOperator, m_pExpression->clone());
+        return o_new(TUnaryBitExpression<t_Ty>)(m_strOperator, m_pExpression);
     }
 };
 

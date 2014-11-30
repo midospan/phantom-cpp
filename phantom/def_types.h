@@ -94,7 +94,7 @@ typedef signed long long        slonglong;
 typedef __int128                int128;
 typedef unsigned __int128       uint128;
 typedef signed  __int128        sint128;
-typedef unsigned __int128       double_size_t;            
+typedef unsigned __int128       double_size_t;
 #else
 typedef unsigned long long      double_size_t;
 #endif
@@ -157,7 +157,7 @@ public:
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 struct generic_member_func_ptr
 {
-    generic_member_func_ptr() 
+    generic_member_func_ptr()
         : pointer(NULL) {}
 
     void setClosurePointer(void* ptr)
@@ -207,6 +207,101 @@ struct generic_member_func_ptr
 
 protected:
     void* pointer;
+};
+
+#elif o_COMPILER == o_COMPILER_GCC
+
+struct generic_member_func_ptr
+{
+    generic_member_func_ptr()
+    {
+        funcaddress = 0;
+        delta = 0;
+    }
+
+    void setClosurePointer(void* ptr)
+    {
+        funcaddress = ptr;
+    }
+
+    template<typename t_MemberPtr>
+    generic_member_func_ptr(t_MemberPtr ptr)
+    {
+        o_static_assert_msg(boost::is_member_function_pointer<t_MemberPtr>::value, "must be a member function pointer");
+        union
+        {
+            t_MemberPtr mptr;
+            struct {
+                union {
+                    void* funcaddress; // always even
+                    int vtable_index_2; //  = vindex*2+1, always odd
+                };
+                int delta;
+            };
+        } un;
+//         adjustedthis = this + delta
+//             if (funcadr & 1) CALL (* ( *delta + (vindex+1)/2) + 4)
+//             else CALL funcadr
+        un.mptr = ptr;
+        funcaddress = un.funcaddress;
+        vtable_index_2 = un.vtable_index_2;
+        delta = un.delta;
+    }
+    template<typename t_MemberPtr>
+    generic_member_func_ptr& operator = (t_MemberPtr ptr)
+    {
+        o_static_assert_msg(boost::is_member_function_pointer<t_MemberPtr>::value, "must be a member function pointer");
+        union
+        {
+            t_MemberPtr mptr;
+            struct {
+                union {
+                    void* funcaddress; // always even
+                    int vtable_index_2; //  = vindex*2+1, always odd
+                };
+                int delta;
+            };
+        } un;
+        //         adjustedthis = this + delta
+        //             if (funcadr & 1) CALL (* ( *delta + (vindex+1)/2) + 4)
+        //             else CALL funcadr
+        un.mptr = ptr;
+        funcaddress = un.funcaddress;
+        vtable_index_2 = un.vtable_index_2;
+        delta = un.delta;
+        return *this;
+    }
+    template<typename t_MemberPtr>
+    operator t_MemberPtr() const
+    {
+        o_static_assert_msg(boost::is_member_function_pointer<t_MemberPtr>::value, "must be a member function pointer");
+        union
+        {
+            t_MemberPtr mptr;
+            struct {
+                union {
+                    void* funcaddress; // always even
+                    int vtable_index_2; //  = vindex*2+1, always odd
+                };
+                int delta;
+            };
+        } un;
+        un.funcaddress = funcaddress;
+        un.delta = delta;
+        un.vtable_index_2 = vtable_index_2;
+        return un.mptr;
+    }
+
+    operator void*() const { return funcaddress; }
+
+protected:
+    struct {
+        union {
+            void* funcaddress; // always even
+            int vtable_index_2; //  = vindex*2+1, always odd
+        };
+        int delta;
+    };
 };
 
 #else
@@ -276,90 +371,91 @@ typedef std::basic_istream<wchar_t, std::char_traits<wchar_t> > wistream;
 #include <phantom/def_export.h>
 
 template<typename t_Ty>
-class vector : public std::vector<t_Ty, o__t1_class__contiguous_memory_allocator(t_Ty)>    
+class vector : public std::vector<t_Ty, o__t1_class__contiguous_memory_allocator(t_Ty)>
 {
 public:
-    typedef std::vector<t_Ty, o__t1_class__contiguous_memory_allocator(t_Ty)> _Mybase;
-    typedef phantom::vector<t_Ty> _Myt;
+    typedef std::vector<t_Ty, o__t1_class__contiguous_memory_allocator(t_Ty)> base_type;
+    typedef o_NESTED_TYPE base_type::size_type size_type;
+    typedef phantom::vector<t_Ty> self_type;
 
     vector()
-        : _Mybase()
+        : base_type()
     {	// construct empty vector
     }
 
     explicit vector(size_type _Count)
-        : _Mybase(_Count)
+        : base_type(_Count)
     {	// construct from _Count * _Ty()
     }
 
     vector(size_type _Count, const t_Ty& _Val)
-        : _Mybase(_Count, _Val)
+        : base_type(_Count, _Val)
     {	// construct from _Count * _Val
     }
 
-    vector(const _Myt& _Right)
-        : _Mybase(_Right)
+    vector(const self_type& _Right)
+        : base_type(_Right)
     {	// construct by copying _Right
-     
+
     }
 
     template<class _Iter>
     vector(_Iter _First, _Iter _Last)
-        : _Mybase(_First, _Last)
+        : base_type(_First, _Last)
     {	// construct from [_First, _Last)
     }
 
 };
 
 template<typename t_Ty>
-class list : public std::list<t_Ty, o__t1_class__partioned_memory_allocator(t_Ty)> 
+class list : public std::list<t_Ty, o__t1_class__partioned_memory_allocator(t_Ty)>
 {
 public:
-    typedef std::list<t_Ty, o__t1_class__partioned_memory_allocator(t_Ty)> _Mybase;
+    typedef std::list<t_Ty, o__t1_class__partioned_memory_allocator(t_Ty)> base_type;
     typedef o__t1_class__partioned_memory_allocator(t_Ty) allocator_type;
-    typedef typename _Mybase::size_type size_type;
-    typedef phantom::list<t_Ty> _Myt;
-    list()        
-        : _Mybase()
-    {	
+    typedef o_NESTED_TYPE base_type::size_type size_type;
+    typedef phantom::list<t_Ty> self_type;
+    list()
+        : base_type()
+    {
     }
 
     explicit list(const allocator_type& _Al)
-        : _Mybase(_Al)
-    {	
+        : base_type(_Al)
+    {
     }
 
     explicit list(size_type _Count)
-        : _Mybase(_Count)
-    {	
+        : base_type(_Count)
+    {
     }
 
     list(size_type _Count, const t_Ty& _Val)
-        : _Mybase(_Count, _Val)
-    {	
+        : base_type(_Count, _Val)
+    {
     }
 
     list(size_type _Count, const t_Ty& _Val, const allocator_type& _Al)
-        : _Mybase(_Count, _Val, _Al)
-    {	
+        : base_type(_Count, _Val, _Al)
+    {
     }
 
-    list(const _Myt& _Right)
-        : _Mybase(_Right)
-    {	
+    list(const self_type& _Right)
+        : base_type(_Right)
+    {
     }
 
-    template<class _Iter>
-    list(_Iter _First, _Iter _Last)
-        : _Mybase(_First, _Last)
+    template<class t_Iter>
+    list(t_Iter _First, t_Iter _Last)
+        : base_type(_First, _Last)
     {	// construct list from [_First, _Last)
-        
+
     }
 
-    template<class _Iter>
-    list(_Iter _First, _Iter _Last, const allocator_type& _Al)
-        : _Mybase(_First, _Last, _Al)
-    {	
+    template<class t_Iter>
+    list(t_Iter _First, t_Iter _Last, const allocator_type& _Al)
+        : base_type(_First, _Last, _Al)
+    {
     }
 
 };
@@ -372,7 +468,7 @@ public:
     typedef std::deque<t_Ty, allocator_type> base_type;
     typedef typename std::deque<t_Ty, o__t1_class__contiguous_memory_allocator(t_Ty)>::size_type size_type;
 
-    typedef deque<t_Ty> _Myt;
+    typedef deque<t_Ty> self_type;
 
 public:
     o_forceinline deque()
@@ -400,7 +496,7 @@ public:
     {	// construct from _Count * _Val with allocator
     }
 
-    o_forceinline deque(const _Myt& a_Right)
+    o_forceinline deque(const self_type& a_Right)
         : base_type(a_Right)
     {	// construct by copying _Right
     }
@@ -423,60 +519,128 @@ template<typename _KeyTy, typename _ValueTy, typename _Pr = std::less<_KeyTy> >
 class map : public std::map<_KeyTy
     , _ValueTy
     , _Pr
-    , o__t1_class__partioned_memory_allocator(o_TT(std::pair, const _KeyTy, _ValueTy))>
+    , o__t1_class__partioned_memory_allocator(std::pair<const _KeyTy, _ValueTy>)>
 
 {
 public:
     typedef std::map<_KeyTy
         , _ValueTy
         , _Pr
-        , o__t1_class__partioned_memory_allocator(o_TT(std::pair, const _KeyTy, _ValueTy))> _Mybase;
+        , o__t1_class__partioned_memory_allocator(std::pair<const _KeyTy, _ValueTy>)> base_type;
 
-    map() : _Mybase() {}
-    map(const _Myt& _Right)
-        : _Mybase(_Right)
+    typedef map<_KeyTy, _ValueTy, _Pr> self_type;
+    typedef o_NESTED_TYPE base_type::key_compare key_compare;
+    typedef o_NESTED_TYPE base_type::allocator_type allocator_type;
+
+    map() : base_type() {}
+    map(const self_type& _Right)
+        : base_type(_Right)
     {	// construct map by copying _Right
     }
 
     explicit map(const key_compare& _Pred)
-        : _Mybase(_Pred)
+        : base_type(_Pred)
     {	// construct empty map from comparator
     }
 
     map(const key_compare& _Pred, const allocator_type& _Al)
-        : _Mybase(_Pred, _Al)
+        : base_type(_Pred, _Al)
     {	// construct empty map from comparator and allocator
     }
 
     template<class _Iter>
     map(_Iter _First, _Iter _Last)
-        : _Mybase(_First, _Last)
+        : base_type(_First, _Last)
     {	// construct map from [_First, _Last), defaults
     }
 
     template<class _Iter>
     map(_Iter _First, _Iter _Last,
         const key_compare& _Pred)
-        : _Mybase(_First, _Last, _Pred)
+        : base_type(_First, _Last, _Pred)
     {	// construct map from [_First, _Last), comparator
     }
 
     template<class _Iter>
     map(_Iter _First, _Iter _Last,
         const key_compare& _Pred, const allocator_type& _Al)
-        : _Mybase(_First, _Last, _Pred, _Al)
+        : base_type(_First, _Last, _Pred, _Al)
     {	// construct map from [_First, _Last), comparator, and allocator
     }
 
-    _Myt& operator=(const _Myt& _Right)
+    self_type& operator=(const self_type& _Right)
     {	// assign by copying _Right
-        _Mybase::operator=(_Right);
+        base_type::operator=(_Right);
         return (*this);
     }
 
-    map(_Myt&& _Right)
-        : _Mybase(_Right)
+    map(self_type&& _Right)
+        : base_type(_Right)
     {	// construct map by moving _Right
+    }
+};
+
+template<typename _KeyTy, typename _Pr = std::less<_KeyTy> >
+class set : public std::set<_KeyTy
+    , _Pr
+    , o__t1_class__partioned_memory_allocator(_KeyTy)>
+
+{
+public:
+    typedef std::set<_KeyTy
+        , _Pr
+        , o__t1_class__partioned_memory_allocator(_KeyTy)> base_type;
+
+    typedef o_NESTED_TYPE base_type::key_compare key_compare;
+    typedef o_NESTED_TYPE base_type::allocator_type allocator_type;
+
+    typedef set<_KeyTy, _Pr> self_type;
+
+    set() : base_type() {}
+    set(const self_type& _Right)
+        : base_type(_Right)
+    {	// construct map by copying _Right
+    }
+
+    explicit set(const key_compare& _Pred)
+        : base_type(_Pred)
+    {	// construct empty map from comparator
+    }
+
+    set(const key_compare& _Pred, const allocator_type& _Al)
+        : base_type(_Pred, _Al)
+    {	// construct empty map from comparator and allocator
+    }
+
+    template<class _Iter>
+    set(_Iter _First, _Iter _Last)
+        : base_type(_First, _Last)
+    {	// construct map from [_First, _Last), defaults
+    }
+
+    template<class _Iter>
+    set(_Iter _First, _Iter _Last,
+        const key_compare& _Pred)
+        : base_type(_First, _Last, _Pred)
+    {	// construct map from [_First, _Last), comparator
+    }
+
+    template<class _Iter>
+    set(_Iter _First, _Iter _Last,
+        const key_compare& _Pred, const allocator_type& _Al)
+        : base_type(_First, _Last, _Pred, _Al)
+    {	// construct map from [_First, _Last), comparator, and allocator
+    }
+
+    self_type& operator=(const self_type& _Right)
+    {	// assign by copying _Right
+        base_type::operator=(_Right);
+        return (*this);
+    }
+
+    set(self_type&& _Right)
+        : base_type(_Right)
+    {	// construct set by moving _Right
     }
 };
 
@@ -489,7 +653,7 @@ class t_Hasher = std::tr1::hash<t_Kty>,
 #endif
 class t_Keyeq = std::equal_to<t_Kty>,
 class t_Alloc = o__t1_class__partioned_memory_allocator(o_TT(std::pair, const t_Kty, t_Ty)) >
-class unordered_map 
+class unordered_map
 
 #if o_HAS_CPP0X
     : public std::unordered_map<t_Kty,t_Ty,t_Hasher,t_Keyeq,t_Alloc>
@@ -504,7 +668,7 @@ template<typename _KeyTy, typename _ValueTy, typename _Pr = std::less<_KeyTy> >
 class multimap : public std::multimap<_KeyTy
     , _ValueTy
     , _Pr
-    , o__t1_class__partioned_memory_allocator(o_TT(std::pair, _KeyTy, _ValueTy))>
+    , o__t1_class__partioned_memory_allocator(std::pair<_KeyTy, _ValueTy>)>
 {};
 
 
@@ -513,60 +677,28 @@ class multimap : public std::multimap<_KeyTy
  * \brief Customized version of boost::property_tree::ptree (handles custom allocations)
  *
  */
+
+#if o__bool__use_custom_stl_partioned_allocator OR o__bool__use_custom_stl_contiguous_allocator
+
 typedef boost::property_tree_custom::basic_ptree<
     string
     , string
     , o__t1_class__partioned_memory_allocator(character)
-
-
     , o__t1_class__contiguous_memory_allocator(character)> property_tree;
 
+namespace property_tree_namespace = boost::property_tree_custom;
 
-/**
- * \brief Association of a path with a valueMember tree object
- *
- */
-class property_branch
-{
-public:
-    property_branch(void) : m_pTree(NULL) {}
-    property_branch(const string& a_strTreePath, property_tree*    a_pTree) :
-    m_strTreePath(a_strTreePath), m_pTree(a_pTree) {}
+#else 
 
-    inline void setValue(const string& a_strValue) const
-    {
-        m_pTree->put(m_strTreePath, a_strValue);
-    }
+typedef boost::property_tree::basic_ptree<string, string> property_tree;
 
-    inline string getValue() const
-    {
-        return m_pTree->get<string>(m_strTreePath);
-    }
+namespace property_tree_namespace = boost::property_tree;
 
-    inline boost::optional<string> getOptionalValue() const
-    {
-        return m_pTree->get_optional<string>(m_strTreePath);
-    }
+#endif
 
-    inline property_branch   subBranch(const string& a_strSubPath) const
-    {
-        return property_branch(m_strTreePath+'.'+a_strSubPath, m_pTree);
-    }
 
-protected:
-    string            m_strTreePath;
-    property_tree*    m_pTree;
-};
-
-template<typename _Type>
-class o_export Delegates
-{
-public:
-    typedef fastdelegate::FastDelegate<void(_Type&)>        Filler;
-    typedef fastdelegate::FastDelegate<const _Type&()>        Getter;
-    typedef fastdelegate::FastDelegate<void(const _Type&)>    Setter;
-    typedef fastdelegate::FastDelegate<boolean(_Type)>            Selector;
-};
+typedef std::pair<string, string>               string_string;
+typedef std::pair<string, string_string>        string_string_string;
 
 namespace reflection { class Type; }
 
@@ -576,10 +708,31 @@ typedef void (*dynamic_delete_func_t)(void* o_memory_stat_append_parameters);
 
 enum restore_state
 {
-    restore_complete = 0,
+    restore_complete ,
     restore_incomplete,
     restore_failed
 };
+
+enum restore_pass
+{
+    restore_pass_local,
+    restore_pass_global_1,
+    restore_pass_global_2,
+    restore_pass_global_3,
+    restore_pass_global_4,
+    restore_pass_global_5,
+};
+
+#define o_restore_pass_local    phantom::restore_pass_local
+#define o_restore_pass_global_1 phantom::restore_pass_global_1
+#define o_restore_pass_global_2 phantom::restore_pass_global_2
+#define o_restore_pass_global_3 phantom::restore_pass_global_3
+#define o_restore_pass_global_4 phantom::restore_pass_global_4
+#define o_restore_pass_global_5 phantom::restore_pass_global_5
+
+#define o_restore_complete      phantom::restore_complete
+#define o_restore_incomplete    phantom::restore_incomplete
+#define o_restore_failed        phantom::restore_failed
 
 struct vtable_info
 {
@@ -603,8 +756,13 @@ o_namespace_end(phantom)
 
 
 //#if defined(o_USE_POOL_ALLOCATORS)
-
+#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 _STD_BEGIN
+#else
+namespace std {
+#endif
+
+#if o__bool__use_custom_stl_contiguous_allocator
     template<>
 class hash<phantom::string>
     : public unary_function<phantom::string, size_t>
@@ -644,15 +802,19 @@ public:
         return (_Val);
     }
 };
+#endif // #if o__bool__use_custom_stl_contiguous_allocator
 
+#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 _STD_END
-
+#else
+}
+#endif
 
 o_namespace_begin(phantom)
 
-inline astring to_astring(const string& str) 
+inline astring to_astring(const string& str)
 {
-#if defined(_UNICODE) 
+#if defined(_UNICODE)
     phantom::wstringstream ws;
     ws << str.c_str();
     return ws.str();
@@ -661,9 +823,9 @@ inline astring to_astring(const string& str)
 #endif
 }
 
-inline astring to_astring(const wstring& wstr) 
+inline astring to_astring(const wstring& wstr)
 {
-#if defined(_UNICODE) 
+#if defined(_UNICODE)
     return wstr;
 #else
     astring str;
@@ -685,9 +847,11 @@ inline string to_string(const wstring& astr)
     return "";
 }
 
+typedef ulonglong modifiers_t;
+
 o_namespace_end(phantom)
 
-namespace boost 
+namespace boost
 {
     template<typename t_Key, typename t_Value>
     struct is_copy_constructible<std::pair<const t_Key, t_Value>>
@@ -697,7 +861,6 @@ namespace boost
 }
 
 
-#include <phantom/bitfield.h>
 #include <phantom/flags.h>
 
 //#endif // defined(o_USE_POOL_ALLOCATORS)

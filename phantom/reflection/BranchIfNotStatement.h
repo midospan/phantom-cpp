@@ -47,6 +47,7 @@ o_namespace_begin(phantom, reflection)
 class o_export BranchIfNotStatement : public BranchStatement
 {
 public:
+    BranchIfNotStatement() : m_pExpression(nullptr), m_pConvertedExpression(nullptr), m_pExpressionString(nullptr) {}
     BranchIfNotStatement(Expression* a_pExpression);
 
     virtual void eval() const;
@@ -60,9 +61,15 @@ public:
     virtual variant compile(Compiler* a_pCompiler);
 
 protected:
+    void setExpressionString(string a_Expression);
+    string getExpressionString() const;
+    virtual void restore();
+    virtual void elementRemoved(LanguageElement* a_pElement);
+
+protected:
     Expression* m_pExpression;
     Expression* m_pConvertedExpression;
-
+    string* m_pExpressionString;
 };
 
 o_namespace_end(phantom, reflection)

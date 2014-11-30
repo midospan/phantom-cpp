@@ -57,25 +57,25 @@ public:
     static Function* CreateFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__stdcall*a_pFunc)(), 
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_stdcall, t_ReturnType()>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType()>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 
     static Function* CreateFunction(const string& a_strName, 
                                     Signature* a_pSignature, 
                                     t_ReturnType (__cdecl*a_pFunc)(), 
-                                    bitfield a_Modifiers = 0)
+                                    modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_cdecl, t_ReturnType()>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_cdecl, t_ReturnType()>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__fastcall*a_pFunc)(), 
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_fastcall, t_ReturnType()>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType()>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -86,23 +86,23 @@ public:
     static Function* CreateFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__stdcall*a_pFunc)(t_Param0), 
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0), 
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__fastcall*a_pFunc)(t_Param0), 
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -113,23 +113,23 @@ public:
     static Function* CreateFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__stdcall*a_pFunc)(t_Param0, t_Param1),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__fastcall*a_pFunc)(t_Param0, t_Param1),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -140,23 +140,23 @@ public:
     static Function* CreateFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__stdcall*a_pFunc)(t_Param0, t_Param1, t_Param2),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1, t_Param2),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__fastcall*a_pFunc)(t_Param0, t_Param1, t_Param2),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -167,23 +167,23 @@ public:
     static Function* CreateFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__stdcall*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__fastcall*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -194,23 +194,23 @@ public:
     static Function* CreateFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__stdcall*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__fastcall*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -221,23 +221,23 @@ public:
     static Function* CreateFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__stdcall*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__fastcall*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -248,23 +248,23 @@ public:
     static Function* CreateFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__stdcall*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__fastcall*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 
@@ -275,23 +275,23 @@ public:
     static Function* CreateFunction(    const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__stdcall*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
     static Function* CreateFunction(const string& a_strName, 
         Signature* a_pSignature, 
         t_ReturnType (__fastcall*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7),
-        bitfield a_Modifiers = 0)
+        modifiers_t a_Modifiers = 0)
     {
-        return o_dynamic_proxy_new(phantom::reflection::Function, phantom::reflection::Function::metaType, TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
+        return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 };
 

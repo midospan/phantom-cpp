@@ -13,9 +13,12 @@ template<class t_Ty>
 class axis_angle
 {
 public:
+    typedef axis_angle<t_Ty> self_type;
     axis_angle() : axis(0, 1, 0), angle(0.f) {} // default rotate around Y (arbitrary, but chosen to fit most common cases in 3D
-    axis_angle(const vector3<t_Ty>& ax, t_Ty ag) : axis(ax), angle(ag) {} 
-    axis_angle(const vector3<t_Ty>& ax, math::angle<t_Ty> ag) : axis(ax), angle(ag) {} 
+    axis_angle(const vector3<t_Ty>& ax, t_Ty ag) : axis(ax), angle(ag) {}
+    axis_angle(const vector3<t_Ty>& ax, math::angle<t_Ty> ag) : axis(ax), angle(ag) {}
+    inline bool operator== (const self_type& aa) const { return aa.axis == axis AND aa.angle == angle; }
+    inline bool operator!= (const self_type& aa) const { return !operator==(aa); }
     vector3<t_Ty>      axis;
     math::angle<t_Ty>  angle;
 };
@@ -24,6 +27,7 @@ template<class t_Ty>
 class quaternion
 {
 public:
+    typedef quaternion<t_Ty> self_type;
 	// A quaternion is q = w + x*i + y*j + z*k where (w,x,y,z) is not
 	// necessarily a unit-length vector in 4D.
 
@@ -97,8 +101,8 @@ public:
         fromAxisAngle(axis_angle.axis, axis_angle.angle.getRadian());
     }
 
-    inline axis_angle<t_Ty> getAxisAngle () const 
-    { 
+    inline axis_angle<t_Ty> getAxisAngle () const
+    {
         t_Ty angle;
         vector3<t_Ty> axis;
         toAxisAngle(axis, angle);
@@ -145,7 +149,7 @@ public:
 	inline t_Ty length () const;  // length of 4-tuple
 	inline t_Ty lengthSquared () const;  // squared length of 4-tuple
 	inline t_Ty dot (const quaternion<t_Ty>& q) const;  // dot product of 4-tuples
-	inline t_Ty normalize (t_Ty epsilon = ZERO_TOLERANCE);
+	inline t_Ty normalize (t_Ty epsilon = std::numeric_limits<t_Ty>::epsilon());
 	quaternion<t_Ty> inverse () const;  // apply to non-zero quaternion
 	quaternion<t_Ty> conjugate () const;  // negate x, y, and z terms
 	quaternion<t_Ty> exp () const;  // apply to quaternion with w = 0
@@ -266,8 +270,8 @@ public:
 			void SetAngles (t_Ty minAngle, t_Ty maxAngle);
 			bool IsValid (t_Ty x, t_Ty y) const;
 
-			t_Ty MinAngle;       // in [-PI/2,PI/2]
-			t_Ty MaxAngle;       // in [m_fMinAngle/2,PI/2]
+			t_Ty MinAngle;       // in [-o_math_Pi/2,o_math_Pi/2]
+			t_Ty MaxAngle;       // in [m_fMinAngle/2,o_math_Pi/2]
 			t_Ty CosMinAngle;    // = cos(m_fMinAngle)
 			t_Ty SinMinAngle;    // = sin(m_fMinAngle)
 			t_Ty CosMaxAngle;    // = cos(m_fMaxAngle)
@@ -296,22 +300,22 @@ public:
 			const constraints& xCon) const;
 
 	// Closest constrained quaternion of the form (cz + sz*k)*(cx + sx*i).
-			
+
 	quaternion<t_Ty> closestZX (const constraints& zCon,
 			const constraints& xCon) const;
 
 	// Closest constrained quaternion of the form (cx + sx*i)*(cz + sz*k).
-			
+
 	quaternion<t_Ty> closestXZ (const constraints& xCon,
 			const constraints& zCon) const;
 
 	// Closest constrained quaternion of the form (cz + sz*k)*(cy + sy*j).
-			
+
 	quaternion<t_Ty> closestZY (const constraints& zCon,
 			const constraints& yCon) const;
 
 	// Closest constrained quaternion of the form (cy + sy*j)*(cz + sz*k).
-			
+
 	quaternion<t_Ty> closestYZ (const constraints& yCon,
 			const constraints& zCon) const;
 
@@ -330,7 +334,7 @@ private:
 	//   (cx + sx*i) when axis = 1,
 	//   (cy + sy*j) when axis = 2,
 	//   (cz + sz*k) when axis = 3
-			
+
 	quaternion<t_Ty> closest (int axis, const constraints& con) const;
 
 public:
@@ -351,7 +355,7 @@ public:
 /** typedefs **/
 typedef quaternion<float32> quaternionf;
 typedef quaternion<float64> quaterniond;
-	
+
 #	include "quaternion.inl"
 
 o_namespace_end(phantom, math)

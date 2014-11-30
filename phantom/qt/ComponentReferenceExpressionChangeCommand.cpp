@@ -50,14 +50,14 @@ void ComponentReferenceExpressionChangeCommand::redo()
 {
     phantom::data d = m_pDataBase->getData(m_uiGuid);
     o_assert(!d.isNull());
-    m_pDataBase->setComponentDataReferenceExpression(d, m_strNewValue);
+    //m_pDataBase->setComponentDataReferenceExpression(d, m_strNewValue);
 }
 
 void ComponentReferenceExpressionChangeCommand::undo()
 {
     phantom::data d = m_pDataBase->getData(m_uiGuid);
     o_assert(!d.isNull());
-    m_pDataBase->setComponentDataReferenceExpression(d, m_strOldValue);
+    //m_pDataBase->setComponentDataReferenceExpression(d, m_strOldValue);
 }
 
 UndoCommand* ComponentReferenceExpressionChangeCommand::clone() const

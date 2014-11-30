@@ -60,7 +60,7 @@ o_initialize_cpp(PropertyBinding)
     if(m_pProperty->getSignal())
     {
         auto thisRtti = rttiDataOf(this);
-        phantom::connect(rttiDataOf(m_pObject, getProperty()->getOwnerClass()), getProperty()->getSignal(), thisRtti, thisRtti.object_class->getSignalCascade("valueChanged()"));
+        phantom::connect(rttiDataOf(m_pObject, getProperty()->getOwnerClass()), getProperty()->getSignal(), thisRtti, thisRtti.object_class->getSignalCascade("valueChanged()"), __FILE__, __LINE__);
     }
 }
 
@@ -69,6 +69,11 @@ void PropertyBinding::referencedElementRemoved( LanguageElement* a_pElement )
     Variable::referencedElementRemoved(a_pElement);
     if(m_pProperty == a_pElement)
         m_pProperty = nullptr;
+}
+
+PropertyBinding* PropertyBinding::clone() const
+{
+    return o_new(PropertyBinding)(m_pObject, m_pProperty);
 }
 
 o_namespace_end(phantom, reflection)

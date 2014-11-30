@@ -43,14 +43,14 @@ o_namespace_begin(phantom, reflection)
 DataExpression::DataExpression(serialization::DataBase* a_pDataBase, Expression* a_pGuidExpression)
     : Expression(a_pDataBase->getData(a_pGuidExpression->get().as<uint>()).type()->referenceType()
                 , "@("+a_pGuidExpression->getName()+")")
-                , m_pGuidExpression(a_pGuidExpression)
+                , m_pGuidExpression((a_pGuidExpression AND a_pGuidExpression->getOwner()) ? a_pGuidExpression->clone() : a_pGuidExpression)
     , m_pDataBase(a_pDataBase)
 {
-    o_assert(a_pGuidExpression->getValueType()->isImplicitlyConvertibleTo(typeOf<uint>()));
     if(m_pGuidExpression)
     {
+        o_assert(m_pGuidExpression->getValueType()->isImplicitlyConvertibleTo(typeOf<uint>()));
         m_pConvertedGuidExpression = m_pGuidExpression->implicitCast(typeOf<uint>());
-        addElement(m_pConvertedGuidExpression);
+        addSubExpression(m_pConvertedGuidExpression);
     }
 }
 
@@ -63,7 +63,7 @@ void DataExpression::getValue( void* a_pDest ) const
 
 DataExpression* DataExpression::clone() const
 {
-    return o_new(DataExpression)(m_pDataBase, m_pGuidExpression->clone());
+    return o_new(DataExpression)(m_pDataBase, m_pGuidExpression);
 }
 
 o_namespace_end(phantom, reflection)

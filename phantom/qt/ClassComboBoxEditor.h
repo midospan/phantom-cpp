@@ -15,13 +15,10 @@ class o_qt_export ClassComboBoxEditor : public VariableWidgetEditor
 {
 public:
     ClassComboBoxEditor(reflection::Class* a_pBaseClass
-                                , const vector<reflection::Class*>& a_CurrentValues);
+                                , reflection::Class* a_pCurrentClass, bool a_bAllowsNone);
 
     virtual void setValue(const void* a_pSrc) const;
     virtual void getValue(void* a_pDest) const;
-
-    virtual void setValues(const void** a_pSrc) const;
-    virtual void getValues(void** a_pDest) const;
 };
 
 

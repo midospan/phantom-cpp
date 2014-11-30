@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'QBlockDiagramLink.h'
 **
-** Created: Mon 30. Jun 18:08:51 2014
+** Created: Tue 28. Oct 21:02:31 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!

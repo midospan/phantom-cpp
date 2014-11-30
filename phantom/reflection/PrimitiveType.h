@@ -52,8 +52,7 @@ class o_export PrimitiveType : public Type
 
 public:
     PrimitiveType(ETypeId a_eTypeId);
-    PrimitiveType(ETypeId a_eTypeId, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0);
-    PrimitiveType(ETypeId a_eTypeId, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers = 0);
+    PrimitiveType(ETypeId a_eTypeId, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0);
 
     o_destructor ~PrimitiveType(void) {}
 

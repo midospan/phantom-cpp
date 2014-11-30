@@ -17,7 +17,8 @@ VariableWidget::VariableWidget( VariableWidgetEditor* a_pVariableWidgetEditor, V
     layout->setMargin(0);
     layout->setSpacing(0);
     setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
-    setAutoFillBackground(true);
+    setAutoFillBackground(false);
+    setAttribute(Qt::WA_NoBackground);
     rebuildLayout();
 }
 
@@ -55,18 +56,9 @@ void VariableWidget::rebuildLayout()
     setFocusProxy(m_pVariableWidgetEditor->getWidget());
 }
 
-void VariableWidget::setVariableNode( VariableNode* a_pVariableNode )
+QSize VariableWidget::sizeHint() const
 {
-    if(m_pVariableNode == a_pVariableNode) 
-        return; 
-    m_pVariableNode = a_pVariableNode;
-    m_pVariableWidgetEditor->setVariableNode(a_pVariableNode);
-/*
-
-    if (m_pVariableNode->getRange()) 
-    {
-        addVariableAction(o_new(ResetAction)(m_pVariableNode, this));
-    }*/
+    return m_pVariableWidgetEditor->getWidget()->sizeHint();
 }
 
 }}

@@ -50,11 +50,18 @@ public:
     ConstructorCallExpression(Constructor* a_pConstructor, const vector<Expression*>& a_Expressions);
     ~ConstructorCallExpression();
 
-    virtual void  getValue(void* a_pDest) const ;
+    o_terminate();
+
+    virtual void getValue(void* a_pDest) const ;
+
+    virtual void eval() const;
 
     virtual variant compile(Compiler* a_pCompiler);
 
     virtual bool hasValueStorage() const { return true; }
+
+    virtual void referencedElementRemoved( LanguageElement* a_pElement );
+    
 };
 
 o_namespace_end(phantom, reflection)

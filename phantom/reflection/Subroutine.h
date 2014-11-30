@@ -38,11 +38,19 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/LanguageElement.h>
-
 /* **************** Declarations ***************** */
+
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection)
+
+enum EABI
+{
+    e_ABI_stdcall,
+    e_ABI_fastcall,
+    e_ABI_cdecl,
+    e_ABI_thiscall,
+};
 
 typedef fastdelegate::FastDelegate4<void*, void**, size_t, void*> closure_call_delegate;
 
@@ -135,12 +143,17 @@ protected:
 class o_export Subroutine : public LanguageElement
 {
     friend class Block;
+    friend class LabelStatement;
+    friend class ClassType;
+    friend class Class;
 
 public:
-    Subroutine(const string& a_strName, Signature* a_pSignature, EABI a_eABI, bitfield a_Modifiers = 0);
+    Subroutine();
+    Subroutine(EABI a_eABI);
+    Subroutine(const string& a_strName, Signature* a_pSignature, EABI a_eABI, modifiers_t a_Modifiers = 0);
     o_destructor ~Subroutine();
 
-    virtual void        terminate();
+    o_terminate();
 
     EABI                getABI() const { return m_eABI; }
 
@@ -158,7 +171,7 @@ public:
 
     Type*               getReturnType() const    {        return m_pSignature ? m_pSignature->getReturnType() : nullptr;    }
     
-    bool                matches( const string& a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatches, bitfield a_Modifiers /*= 0*/ ) const;
+    bool                matches( const string& a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatches, modifiers_t a_Modifiers /*= 0*/ ) const;
 
     virtual void        call( void* a_pCallerAddress, void** a_pArgs ) const;
     virtual void        call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const;
@@ -200,7 +213,7 @@ public:
     void                setBlock(Block* a_pBlock);
 
     virtual 
-    LanguageElement*    solveElement( const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, bitfield a_Modifiers /* = bitfield */ ) const;
+    LanguageElement*    solveElement( const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, modifiers_t a_Modifiers /* = modifiers_t */ ) const;
     
     bool                containsMemoryAddress(const byte* a_pAddress);
 
@@ -226,13 +239,20 @@ public:
 
     size_t              getFrameSize() const { return m_uiFrameSize; }
 
+    LabelStatement*     getLabelStatement(size_t a_uiIndex) const { return m_pLabelStatements ? (*m_pLabelStatements)[a_uiIndex] : nullptr; }
+
 protected:
-    virtual void referencedElementRemoved(LanguageElement* a_pElement);
+    virtual void        referencedElementRemoved(LanguageElement* a_pElement);
+    void                registerLabelStatement(LabelStatement* a_pLabelStatement);
+    void                unregisterLabelStatement(LabelStatement* a_pLabelStatement);
+    virtual void        finalize();
+    void                createBlock(LocalVariable* a_pThis);
 
 protected:
     Signature*                      m_pSignature;
     EABI                            m_eABI;
     vector<Instruction*>*           m_pInstructions;
+    vector<LabelStatement*>*        m_pLabelStatements;
     Block*                          m_pBlock;
     MemoryLocation                  m_MemoryLocation;
     void*                           m_pClosure;
@@ -242,6 +262,8 @@ protected:
 
 o_namespace_end(phantom, reflection)
 
+
+    o_declareN((phantom, reflection), EABI);
 
 
 #endif

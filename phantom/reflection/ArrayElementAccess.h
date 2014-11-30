@@ -61,9 +61,11 @@ public:
 
     Expression*                 getIndexExpression() const { return m_pIndexExpression; }
 
-    virtual void flush() const { m_pIndexExpression->flush(); m_pLeftExpression->flush(); }
+    virtual bool                isPersistent() const;
 
-    virtual ArrayElementAccess*     clone() const;
+    virtual void                flush() const;
+
+    virtual ArrayElementAccess* clone() const;
 
 protected:
     void referencedElementRemoved( LanguageElement* a_pElement );

@@ -47,8 +47,8 @@ template<typename t_Class>
 class TNativeStaticMemberFunctionBase : public StaticMemberFunction
 {
 public:
-    TNativeStaticMemberFunctionBase(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
-        : StaticMemberFunction(a_strName, a_pSignature, a_Modifiers)
+    TNativeStaticMemberFunctionBase(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers)
+        : StaticMemberFunction(a_strName, a_pSignature, a_Modifiers|o_native, (int)0)
     {
 
     }
@@ -58,7 +58,7 @@ public:
 o_namespace_end(phantom, reflection, native)
 
 
-/*o_traits_specialize_all_super_traitNTS(
+/*o_traits_specialize_all_base_traitNTB(
 (phantom,reflection,native)
 , (typename)
 , (t_Ty)

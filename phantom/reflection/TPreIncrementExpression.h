@@ -73,7 +73,7 @@ public:
 
     virtual TPreIncrementExpression<t_Ty>*     clone() const 
     {
-        return o_new(TPreIncrementExpression<t_Ty>)(m_strOperator, m_pExpression->clone());
+        return o_new(TPreIncrementExpression<t_Ty>)(m_strOperator, m_pExpression);
     }
 };
 

@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'DataTreeView.h'
 **
-** Created: Tue 2. Sep 20:06:40 2014
+** Created: Sat 8. Nov 18:05:16 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -49,15 +49,15 @@ static const uint qt_meta_data_phantom__qt__DataTreeView[] = {
      591,  587,   26,   26, 0x09,
      611,  609,   26,   26, 0x09,
      666,  609,   26,   26, 0x09,
-     708,  609,   26,   26, 0x09,
-     783,  774,   26,   26, 0x09,
-     854,  774,   26,   26, 0x09,
-     936,   26,   26,   26, 0x09,
-     949,   26,   26,   26, 0x09,
-    1010,  973,   26,   26, 0x09,
-    1084, 1065,   26,   26, 0x09,
-    1167, 1129,   26,   26, 0x09,
-    1289, 1238,   26,   26, 0x09,
+     733,  609,   26,   26, 0x09,
+     791,  609,   26,   26, 0x09,
+     866,  857,   26,   26, 0x09,
+     937,  857,   26,   26, 0x09,
+    1019,   26,   26,   26, 0x09,
+    1032,   26,   26,   26, 0x09,
+    1093, 1056,   26,   26, 0x09,
+    1167, 1148,   26,   26, 0x09,
+    1250, 1212,   26,   26, 0x09,
 
        0        // eod
 };
@@ -80,7 +80,8 @@ static const char qt_meta_stringdata_phantom__qt__DataTreeView[] = {
     "slotCurrentChanged(QTreeWidgetItem*,QTreeWidgetItem*)\0"
     "slotSelectionChanged()\0pos\0showPopup(QPoint)\0"
     ",\0dataAdded(phantom::data,phantom::serialization::Node*)\0"
-    "dataReplaced(phantom::data,phantom::data)\0"
+    "dataAboutToBeUnloaded(phantom::data,phantom::serialization::Node*)\0"
+    "dataReloaded(phantom::data,phantom::serialization::Node*)\0"
     "dataAboutToBeRemoved(phantom::data,phantom::serialization::Node*)\0"
     "a_pNode,\0"
     "nodeAdded(phantom::serialization::Node*,phantom::serialization::Node*)\0"
@@ -93,9 +94,6 @@ static const char qt_meta_stringdata_phantom__qt__DataTreeView[] = {
     "dataModifiersChanged(phantom::data,bitfield)\0"
     "a_pNode,a_uiAttributeIndex,a_strValue\0"
     "nodeAttributeValueChanged(phantom::serialization::Node*,size_t,string)\0"
-    "a_pMenu,a_Data,a_pCollection,a_pComponentDataClass\0"
-    "addClassComponentDataActionCascade(QMenu*,phantom::data,phantom::refle"
-    "ction::Collection*,phantom::reflection::Class*)\0"
 };
 
 void phantom::qt::DataTreeView::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -118,16 +116,16 @@ void phantom::qt::DataTreeView::qt_static_metacall(QObject *_o, QMetaObject::Cal
         case 11: _t->slotSelectionChanged(); break;
         case 12: _t->showPopup((*reinterpret_cast< const QPoint(*)>(_a[1]))); break;
         case 13: _t->dataAdded((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< phantom::serialization::Node*(*)>(_a[2]))); break;
-        case 14: _t->dataReplaced((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< const phantom::data(*)>(_a[2]))); break;
-        case 15: _t->dataAboutToBeRemoved((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< phantom::serialization::Node*(*)>(_a[2]))); break;
-        case 16: _t->nodeAdded((*reinterpret_cast< phantom::serialization::Node*(*)>(_a[1])),(*reinterpret_cast< phantom::serialization::Node*(*)>(_a[2]))); break;
-        case 17: _t->nodeAboutToBeRemoved((*reinterpret_cast< phantom::serialization::Node*(*)>(_a[1])),(*reinterpret_cast< phantom::serialization::Node*(*)>(_a[2]))); break;
-        case 18: _t->nodeLoaded(); break;
-        case 19: _t->nodeAboutToBeUnloaded(); break;
-        case 20: _t->dataAttributeValueChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
-        case 21: _t->dataModifiersChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< bitfield(*)>(_a[2]))); break;
-        case 22: _t->nodeAttributeValueChanged((*reinterpret_cast< phantom::serialization::Node*(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
-        case 23: _t->addClassComponentDataActionCascade((*reinterpret_cast< QMenu*(*)>(_a[1])),(*reinterpret_cast< const phantom::data(*)>(_a[2])),(*reinterpret_cast< phantom::reflection::Collection*(*)>(_a[3])),(*reinterpret_cast< phantom::reflection::Class*(*)>(_a[4]))); break;
+        case 14: _t->dataAboutToBeUnloaded((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< phantom::serialization::Node*(*)>(_a[2]))); break;
+        case 15: _t->dataReloaded((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< phantom::serialization::Node*(*)>(_a[2]))); break;
+        case 16: _t->dataAboutToBeRemoved((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< phantom::serialization::Node*(*)>(_a[2]))); break;
+        case 17: _t->nodeAdded((*reinterpret_cast< phantom::serialization::Node*(*)>(_a[1])),(*reinterpret_cast< phantom::serialization::Node*(*)>(_a[2]))); break;
+        case 18: _t->nodeAboutToBeRemoved((*reinterpret_cast< phantom::serialization::Node*(*)>(_a[1])),(*reinterpret_cast< phantom::serialization::Node*(*)>(_a[2]))); break;
+        case 19: _t->nodeLoaded(); break;
+        case 20: _t->nodeAboutToBeUnloaded(); break;
+        case 21: _t->dataAttributeValueChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
+        case 22: _t->dataModifiersChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< bitfield(*)>(_a[2]))); break;
+        case 23: _t->nodeAttributeValueChanged((*reinterpret_cast< phantom::serialization::Node*(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
         default: ;
         }
     }

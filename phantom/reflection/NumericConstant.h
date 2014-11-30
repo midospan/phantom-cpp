@@ -50,7 +50,7 @@ public:
     {
 
     }
-    NumericConstant(const string& a_strName, bitfield modifiers = 0)
+    NumericConstant(const string& a_strName, modifiers_t modifiers = 0)
         : Constant(a_strName, modifiers)
     {
 

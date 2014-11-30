@@ -41,7 +41,7 @@ o_registerN((phantom, reflection), Template);
 o_namespace_begin(phantom, reflection) 
 
 Template::Template(const string& a_strName)
-: LanguageElement(a_strName, bitfield())
+: LanguageElement(a_strName, modifiers_t())
 {
 }
 

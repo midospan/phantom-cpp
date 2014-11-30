@@ -37,6 +37,7 @@
 #include <phantom/reflection/DataPointerType.hxx>
 #include <phantom/reflection/Expression.h>
 #include <phantom/reflection/AssignmentExpression.h>
+#include <phantom/reflection/ConstantExpression.h>
 #include <phantom/reflection/BinaryLogicalExpression.h>
 #include <phantom/reflection/PointerArithmeticExpression.h>
 #include <phantom/reflection/TBinaryBooleanExpression.h>
@@ -47,31 +48,52 @@ o_namespace_begin(phantom, reflection)
 
 o_define_meta_type(DataPointerType);
 
-DataPointerType::DataPointerType( Type* a_pType ) 
-: PointerType(a_pType->getName()+'*'
+DataPointerType::DataPointerType( Type* a_pPointedType ) 
+: PointerType(a_pPointedType->getName()
             , sizeof(void*)
             , boost::alignment_of<void*>::value
-            , 0xFFFFFFFF
-            , 0)    
-, m_pPointedType(a_pType)
+            , a_pPointedType->isNative() ? modifiers_t(o_native) : modifiers_t())    
+            , m_pPointedType(a_pPointedType)
 {
-    addReferencedElement(a_pType);
+    addReferencedElement(m_pPointedType);
 }
 
 DataPointerType::~DataPointerType()
 {
+    if(m_pPointedType)
+    {
+        m_pPointedType->removeExtendedType(this);
+    }
+}
+
+void*   DataPointerType::allocate() const
+{
+    return o_allocate(void*);
+}
+
+void    DataPointerType::deallocate(void* a_pInstance) const
+{
+    o_deallocate(static_cast<void**>(a_pInstance), void*);
+}
+
+void*   DataPointerType::allocate(size_t a_uiCount) const
+{
+    return o_allocate_n(a_uiCount, void*);
+}
+
+void    DataPointerType::deallocate(void* a_pChunk, size_t a_uiCount) const
+{
+    o_deallocate_n(static_cast<void**>(a_pChunk), a_uiCount, void*);
 }
 
 boolean DataPointerType::isConvertibleTo( Type* a_pType ) const
 {
     o_assert(a_pType);
     return a_pType->asIntegralType() OR a_pType->asPointerType() OR isImplicitlyConvertibleTo(a_pType);
-    
 }
 
 bool DataPointerType::hasTrivialCastTo( Type* a_pType ) const
 {
-    
     return isImplicitlyConvertibleTo(a_pType);
 }
 
@@ -100,53 +122,64 @@ boolean DataPointerType::isImplicitlyConvertibleTo( Type* a_pType ) const
         }
         return false;
     }
-    return false;
+    return Type::isImplicitlyConvertibleTo(a_pType);
 }
 
 void DataPointerType::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const
 {
     o_assert(isConvertibleTo(a_pDestType));
-    if(m_pPointedType->removeConst() == typeOf<void>())
+    if(a_pDestType == this OR m_pPointedType->removeConst() == typeOf<void>())
     {
         *((void**)a_pDestValue) = *((void**)a_pSrcValue);
+        return;
+    }
+    if(a_pDestType->removeConst() == typeOf<bool>())
+    {
+        *((bool*)a_pDestValue) = (*((void* const*)a_pSrcValue) != nullptr);
         return;
     }
     reflection::Class* pPointedClass = m_pPointedType->removeConst()->asClass();
     if(pPointedClass == nullptr) 
     {
-        Type::convertValueTo(a_pDestType, a_pDestValue, a_pSrcValue);
-        return;
-    }
-    reflection::Type* pDestPointedType = a_pDestType->asDataPointerType()->getPointedType();
-    if(a_pDestType == this OR pDestPointedType->removeConst() == typeOf<void>())
-    {
-        *((void**)a_pDestValue) = *((void**)a_pSrcValue);
-    }
-    else if(a_pDestType == typeOf<bool>())
-    {
-        *((bool*)a_pDestValue) = (*((void* const*)a_pSrcValue) != nullptr);
-    }
-    else
-    {
-        reflection::Class* pDestPointedClass = pDestPointedType->removeConst()->asClass();
-        o_assert(pDestPointedClass);
-        if(pPointedClass == pDestPointedClass) return Type::convertValueTo(a_pDestType, a_pDestValue, a_pSrcValue);
-        size_t offset = pPointedClass->getSuperClassOffsetCascade(pDestPointedClass);
-        if(offset != 0xffffffff) 
+        if(a_pDestType->removeConst()->asDataPointerType())
         {
-            byte* ptr = *((byte**)a_pSrcValue);
-            *((byte**)a_pDestValue) = (ptr == nullptr) ? nullptr : ptr+offset;
+            *((void**)a_pDestValue) = *((void**)a_pSrcValue);
         }
-        else 
+        else Type::convertValueTo(a_pDestType, a_pDestValue, a_pSrcValue);
+    }
+    else 
+    {
+        reflection::Type* pDestPointedType = a_pDestType->asDataPointerType()->getPointedType();
+        if( pDestPointedType->removeConst() == typeOf<void>())
         {
-            offset = pDestPointedClass->getSuperClassOffsetCascade(pPointedClass);
-            if(offset == 0xffffffff)
+            *((void**)a_pDestValue) = *((void**)a_pSrcValue);
+        }
+        else
+        {
+            reflection::Class* pDestPointedClass = pDestPointedType->removeConst()->asClass();
+            o_assert(pDestPointedClass);
+            if(pPointedClass == pDestPointedClass) 
             {
-                o_assert(pPointedClass->isKindOf(pDestPointedClass));
-                offset = 0;
+                *((void**)a_pDestValue) = *((void**)a_pSrcValue);
+                return;
             }
-            byte* ptr = *((byte**)a_pSrcValue);
-            *((byte**)a_pDestValue) = (ptr == nullptr) ? nullptr : ptr-offset;
+            size_t offset = pPointedClass->getBaseClassOffsetCascade(pDestPointedClass);
+            if(offset != 0xffffffff) 
+            {
+                byte* ptr = *((byte**)a_pSrcValue);
+                *((byte**)a_pDestValue) = (ptr == nullptr) ? nullptr : ptr+offset;
+            }
+            else 
+            {
+                offset = pDestPointedClass->getBaseClassOffsetCascade(pPointedClass);
+                if(offset == 0xffffffff)
+                {
+                    o_assert(pPointedClass->isKindOf(pDestPointedClass));
+                    offset = 0;
+                }
+                byte* ptr = *((byte**)a_pSrcValue);
+                *((byte**)a_pDestValue) = (ptr == nullptr) ? nullptr : ptr-offset;
+            }
         }
     }
 }
@@ -159,12 +192,12 @@ void        DataPointerType::serialize(void const* a_pInstance, byte*& a_pOutBuf
     void* ptr_base = rttiData.base;
     // save the offset from the base address to restore the correct inheritance layout address later
     size_t offset = reinterpret_cast<size_t>(ptr)-reinterpret_cast<size_t>(ptr_base);
-    uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : (uint)ptr_base;
+    uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : o_invalid_guid;
     *reinterpret_cast<uint*>(a_pOutBuffer) = guid;
     a_pOutBuffer += sizeof(uint);
     *reinterpret_cast<size_t*>(a_pOutBuffer) = offset;
     a_pOutBuffer += sizeof(size_t);
-    if(guid == 0xffffffff) // Object not stored in database, we try to save it
+    if(guid == o_invalid_guid) // Object not stored in database, we try to save it
     {
         if(ptr_base)
         {
@@ -195,7 +228,7 @@ void        DataPointerType::deserialize(void* a_pInstance, byte const*& a_pInBu
     size_t offset = *reinterpret_cast<size_t const*>(a_pInBuffer);
     a_pInBuffer += sizeof(size_t);
 
-    if(guid == 0xffffffff) // Object not stored in database, we try to rebuild it
+    if(guid == o_invalid_guid) // Object not stored in database, we try to rebuild it
     {
         // We find the instance class thanks to the stored guid 
         uint classGuid = *reinterpret_cast<uint const*>(a_pInBuffer);
@@ -214,13 +247,14 @@ void        DataPointerType::deserialize(void* a_pInstance, byte const*& a_pInBu
 
             // we restore all the pass here, because we can't do it later, 
             // we won't have any pointer to this object after this member_function
-            uint pass = 0;
+            restore_pass pass = restore_pass_local;
             restore_state restored = restore_incomplete;
-            while(restored == restore_incomplete)
+            while(restored == restore_incomplete AND pass <= restore_pass_global_5)
             {
                 // be sure for this kind of objects that you don't have dependencies 
                 // with other stored object which couln't be totally restored at this point
-                restored = pClass->restore(newInstance, a_uiSerializationMask, pass++);
+                restored = pClass->restore(newInstance, a_uiSerializationMask, pass);
+                pass = restore_pass(pass+1);
             }
             if(restored == restore_failed)
             {
@@ -251,9 +285,9 @@ void DataPointerType::serialize( void const* a_pInstance, property_tree& a_OutBr
     const rtti_data& rttiData = phantom::rttiDataOf(ptr);
     o_assert(ptr == nullptr OR NOT(rttiData.isNull()));
     void* ptr_base = rttiData.base;
-    uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : (uint)ptr_base;
+    uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : o_invalid_guid;
     a_OutBranch.put<string>("guid", phantom::lexical_cast<string>(guid));
-    if((guid == 0xffffffff) AND (ptr_base != NULL))
+    if((guid == o_invalid_guid) AND (ptr_base != NULL))
     {
         a_OutBranch.put<string>("type", /*encodeQualifiedDecoratedNameToIdentifierName*/(rttiData.object_class->getQualifiedDecoratedName())); 
         property_tree data_tree;
@@ -266,7 +300,7 @@ void DataPointerType::deserialize( void* a_pInstance, const property_tree& a_InB
 {
     string guid_str = a_InBranch.get<string>("guid");
     uint guid = phantom::lexical_cast<uint>(guid_str);
-    if(guid == 0xffffffff)
+    if(guid == o_invalid_guid)
     {
         boost::optional<string> typeName_opt = a_InBranch.get_optional<string>("type"); 
         if(typeName_opt.is_initialized())
@@ -283,13 +317,14 @@ void DataPointerType::deserialize( void* a_pInstance, const property_tree& a_InB
 
             // we restore all the pass here, because we can't do it later, 
             // we won't have any pointer to this object after this member_function
-            uint pass = 0;
+            restore_pass pass = restore_pass_local;
             restore_state restored = restore_incomplete;
-            while(restored == restore_incomplete)
+            while(restored == restore_incomplete AND pass <= restore_pass_global_5)
             {
                 // be sure for this kind of objects that you don't have dependencies 
                 // with other stored object which couln't be totally restored at this point
-                restored = pClass->restore(newInstance, a_uiSerializationMask, pass++);
+                restored = pClass->restore(newInstance, a_uiSerializationMask, pass);
+                pass = restore_pass(pass+1);
             }
             if(restored == restore_failed)
             {
@@ -331,12 +366,12 @@ void        DataPointerType::serialize(void const* a_pChunk, size_t a_uiCount, s
         void* ptr_base = rttiData.base;
         // save the offset from the base address to restore the correct inheritance layout address later
         size_t offset = reinterpret_cast<size_t>(ptr)-reinterpret_cast<size_t>(ptr_base);
-        uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : (uint)ptr_base;
+        uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : o_invalid_guid;
         *reinterpret_cast<uint*>(a_pOutBuffer) = guid; // TODO : little/big endian managment
         a_pOutBuffer += sizeof(uint);
         *reinterpret_cast<size_t*>(a_pOutBuffer) = offset; // TODO : little/big endian managment
         a_pOutBuffer += sizeof(size_t);
-        if(guid == 0xffffffff) // Object not stored in database, we try to save it
+        if(guid == o_invalid_guid) // Object not stored in database, we try to save it
         {
             if(ptr_base)
             {
@@ -372,7 +407,7 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
         size_t offset = *reinterpret_cast<size_t const*>(a_pInBuffer);
         a_pInBuffer += sizeof(size_t);
 
-        if(guid == 0xffffffff) // Object not stored in database, we try to rebuild it
+        if(guid == o_invalid_guid) // Object not stored in database, we try to rebuild it
         {
             // We find the instance class thanks to the stored guid 
             uint classGuid = *reinterpret_cast<uint const*>(a_pInBuffer);
@@ -392,13 +427,14 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
 
                 // we restore all the pass here, because we can't do it later, 
                 // we won't have any pointer to this object after this member_function
-                uint pass = 0;
+                restore_pass pass = restore_pass_local;
                 restore_state restored = restore_incomplete;
-                while(restored == restore_incomplete)
+                while(restored == restore_incomplete AND pass <= restore_pass_global_5)
                 {
                     // be sure for this kind of objects that you don't have dependencies 
                     // with other stored object which couln't be totally restored at this point
-                    restored = pClass->restore(newInstance, a_uiSerializationMask, pass++);
+                    restored = pClass->restore(newInstance, a_uiSerializationMask, pass);
+                    pass = restore_pass(pass+1);
                 }
                 if(restored == restore_failed)
                 {
@@ -439,7 +475,7 @@ void        DataPointerType::serialize(void const* a_pChunk, size_t a_uiCount, s
         uint guid = a_pDataBase ? a_pDataBase->getGuid(ptr_base) : (uint)ptr_base;
         property_tree index_tree;
         index_tree.put<string>("guid", phantom::lexical_cast<string>(guid));
-        if((guid == 0xffffffff) AND (ptr_base != NULL))
+        if((guid == o_invalid_guid) AND (ptr_base != NULL))
         {
             index_tree.put<string>("type", /*encodeQualifiedDecoratedNameToIdentifierName*/(rttiData.object_class->getQualifiedDecoratedName())); 
             property_tree data_tree; 
@@ -465,7 +501,7 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
             const property_tree& index_tree = *index_tree_opt;
             const string& guid_str = index_tree.get<string>("guid");
             uint guid = phantom::lexical_cast<uint>(guid_str);
-            if(guid == 0xffffffff)
+            if(guid == o_invalid_guid)
             {
                 boost::optional<string> typeName_opt = index_tree.get_optional<string>("type"); 
                 if(typeName_opt.is_initialized())
@@ -481,12 +517,13 @@ void        DataPointerType::deserialize(void* a_pChunk, size_t a_uiCount, size_
                     pClass->deserialize(newInstance, data_tree, a_uiSerializationMask, a_pDataBase);
                     // we restore all the pass here, because we can't do it later, 
                     // we won't have any pointer to this object after this member_function
-                    uint pass = 0;
+                    restore_pass pass = restore_pass_local;
                     restore_state restored = restore_incomplete;
-                    while(restored == restore_incomplete)
+                    while(restored == restore_incomplete AND pass <= restore_pass_global_5)
                     {   // be sure for this kind of objects that you don't have dependencies 
                         // with other stored object which couln't be totally restored at this point
-                        restored = pClass->restore(newInstance, a_uiSerializationMask, pass++);
+                        restored = pClass->restore(newInstance, a_uiSerializationMask, pass);
+                        pass = restore_pass(pass+1);
                     }
                     if(restored == restore_failed)
                     {
@@ -531,7 +568,10 @@ void DataPointerType::referencedElementRemoved( LanguageElement* a_pElement )
 {
     Type::referencedElementRemoved(a_pElement);
     if(m_pPointedType == a_pElement)
+    {
+        m_pPointedType->removeExtendedType(this);
         m_pPointedType = nullptr;
+    }
 }
 
 bool DataPointerType::referencesData( const void* a_pInstance, const phantom::data& a_Data ) const
@@ -542,14 +582,9 @@ bool DataPointerType::referencesData( const void* a_pInstance, const phantom::da
     return m_pPointedType->cast(a_Data.type(), (void*)pointerValue) == a_Data.address();
 }
 
-void DataPointerType::fetchPointerReferenceExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask ) const
+Expression* DataPointerType::solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const
 {
-    out.push_back(a_pInstanceExpression);
-}
-
-Expression* DataPointerType::solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const
-{
-    o_assert(a_Expressions[0]->getValueType()->removeReference() == this);
+    o_assert(a_Expressions[0]->getValueType()->removeReference()->removeConst() == this);
     if(a_strOp == "*" && a_Expressions.size() == 1)
     {
         return a_Expressions.back()->dereference();
@@ -601,19 +636,25 @@ Expression* DataPointerType::solveOperator(const string& a_strOp, const vector<E
     }
     else if(a_strOp.size() == 1 && a_Expressions.size() == 2)
     {
+        Expression* pRightExpression = a_Expressions[1];
+        ConstantExpression* pConstantRightExpression = as<ConstantExpression*>(pRightExpression);
+        if(pConstantRightExpression AND pConstantRightExpression->getValueType()->asIntegralType())
+        {
+            pRightExpression = pConstantRightExpression->cast(a_Expressions[0]->getValueType()->removeReference());
+        }
         switch(a_strOp[0])
         {
         case '=': // Assignment operation
             {
-                if(a_Expressions[1]->getValueType()->isImplicitlyConvertibleTo(a_Expressions[0]->getValueType()->removeReference()))
+                if(pRightExpression->getValueType()->isImplicitlyConvertibleTo(a_Expressions[0]->getValueType()->removeReference()))
                 {
-                    return o_new(AssignmentExpression)(a_Expressions[0], a_Expressions[1]);
+                    return o_new(AssignmentExpression)(a_Expressions[0], pRightExpression);
                 }
             }
     
         case '<':
         case '>':
-            return o_new(TBinaryBooleanExpression<void*>)(a_strOp, a_Expressions[0], a_Expressions[1]);
+            return o_new(TBinaryBooleanExpression<void*>)(a_strOp, a_Expressions[0], pRightExpression);
         }
     }
     return PointerType::solveOperator(a_strOp, a_Expressions, a_Modifiers);
@@ -638,6 +679,25 @@ void DataPointerType::valueFromString( const string& a_str, void* dest ) const
 void DataPointerType::copy( void* a_pDest, void const* a_pSrc ) const
 {
     *static_cast<void**>(a_pDest) = *static_cast<void* const*>(a_pSrc);
+}
+void        DataPointerType::remember(void const* a_pInstance, byte*& a_pOutBuffer) const
+{
+    phantom::resetter<void*>::remember(const_cast<DataPointerType*>(this), (void* const*)a_pInstance, a_pOutBuffer);
+}
+
+void        DataPointerType::reset(void* a_pInstance, byte const*& a_pInBuffer) const
+{
+    phantom::resetter<void*>::reset(const_cast<DataPointerType*>(this), (void**)a_pInstance, a_pInBuffer);
+}
+
+void        DataPointerType::remember(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) const
+{
+    phantom::resetter<void*>::remember(const_cast<DataPointerType*>(this), (void* const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
+}
+
+void        DataPointerType::reset(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) const
+{
+    phantom::resetter<void*>::reset(const_cast<DataPointerType*>(this), (void**)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
 }
 
 o_namespace_end(phantom, reflection)

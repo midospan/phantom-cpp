@@ -33,8 +33,6 @@
 
 #ifndef serialization_BinaryFileTreeNode_h__
 #define serialization_BinaryFileTreeNode_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
 #include "phantom/serialization/FileTreeNode.h"
@@ -51,22 +49,21 @@ o_namespace_begin(phantom, serialization)
 class o_export BinaryFileTreeNode : public FileTreeNode
 {
     friend class BinaryFileTreeDataStateBase;
+    friend class BinaryFileTreeDataBase;
 
 public:
-    BinaryFileTreeNode(BinaryFileTreeDataBase* a_pOwnerDataBase, uint guid, BinaryFileTreeNode* a_pParentNode);
+    BinaryFileTreeNode(BinaryFileTreeDataBase* a_pDataBase, uint guid, BinaryFileTreeNode* a_pParentNode);
 
     virtual void    saveIndex() ;
-    virtual void    saveTypes() ;
     virtual void    saveAttributes() ;
     virtual void    saveDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) ;
     virtual void    saveDataAttributes();
     virtual void    saveDataAttributes(const phantom::data& a_Data, uint guid);
 
-    virtual void    loadTypes();
     virtual void    loadAttributes();
     virtual void    loadDataAttributes();
     virtual void    loadDataAttributes(const phantom::data& a_Data, uint guid);
-    virtual bool    canLoad(vector<string>* missing_types) const;
+    virtual bool    canLoad(map<string, vector<string>>* missing_types_per_module) const;
     virtual void    cache();
     virtual void    build(vector<data>& a_Data);
     virtual void    deserialize(uint a_uiSerializationFlag, vector<data>& a_Data);
@@ -83,7 +80,7 @@ public:
 	virtual void    buildOne(const phantom::data& a_Data);
 	virtual void    unbuildOne(const phantom::data& a_Data);
 	virtual void    deserializeOne(const phantom::data& a_Data, uint a_uiSerializationFlag);
-	virtual bool    restoreOne(const phantom::data& a_Data, uint a_uiSerializationFlag, uint a_uiPass);
+	virtual bool    restoreOne(const phantom::data& a_Data, uint a_uiSerializationFlag, restore_pass a_uiPass);
 
 protected:
     void            saveDataAttributesHelper(vector<string>& a_Values, const phantom::data& a_Data);

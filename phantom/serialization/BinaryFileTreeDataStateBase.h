@@ -33,8 +33,6 @@
 
 #ifndef serialization_BinaryFileTreeDataStateBase_h__
 #define serialization_BinaryFileTreeDataStateBase_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
 #include <phantom/serialization/FileTreeDataStateBase.h>
@@ -48,8 +46,8 @@ class o_export BinaryFileTreeDataStateBase : public FileTreeDataStateBase
     friend class BinaryFileTreeNode;
 
 public:
-    BinaryFileTreeDataStateBase(const string& a_Url, uint a_uiSerializationFlag)
-        : FileTreeDataStateBase(a_Url, a_uiSerializationFlag) {}
+    BinaryFileTreeDataStateBase(BinaryFileTreeDataBase* a_pDataBase, const string& a_Url, uint a_uiSerializationFlag)
+        : FileTreeDataStateBase(a_pDataBase, a_Url, a_uiSerializationFlag) {}
     o_destructor ~BinaryFileTreeDataStateBase(void)     {}
 
 protected:

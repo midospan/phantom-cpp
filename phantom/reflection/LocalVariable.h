@@ -23,15 +23,19 @@ public:
     {
         e_InvalidFrameOffset = 0x7FFFFFFF
     };
+    static bool Parse(const string& a_strCode, Type*& a_OutType, string& a_OutName, Expression*& a_OutExpression, LanguageElement* a_pScope);
 
 public:
-    LocalVariable(Type* a_pType, const string& a_strName, bitfield modifiers = 0);
+    LocalVariable();
+    LocalVariable(Type* a_pType, const string& a_strName, modifiers_t modifiers = 0);
 	~LocalVariable(void) 	{}
 
     virtual LocalVariable*  asLocalVariable() const { return (LocalVariable*)this; }
 
     reflection::Type*   getValueType() const { return m_pValueType; }
     Block*              getBlock() const;
+
+    Expression*         createAccess() const;
 
     bool isAccessibleAtCodePosition(const CodePosition& position) const;
 
@@ -43,12 +47,20 @@ public:
 
     int getFrameOffset() const { return m_iFrameOffset; }
 
-    virtual LanguageElement* solveElement( const string& a_strName , const vector<TemplateElement*>* , const vector<LanguageElement*>* , bitfield a_Modifiers /*= 0*/ ) const;
+    virtual LanguageElement* solveElement( const string& a_strName , const vector<TemplateElement*>* , const vector<LanguageElement*>* , modifiers_t a_Modifiers /*= 0*/ ) const;
+
+protected:
+    string getValueTypeName() const { return m_pValueType ? m_pValueType->getQualifiedDecoratedName() : ""; }
+    void setValueTypeName(string name);
+    virtual void restore();
+    void referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
     Type*   m_pValueType;
     size_t  m_uiIndexInBlock;
     int     m_iFrameOffset;	
+    string* m_pValueTypeName;
+    size_t  m_uiSize;
 };
 
 o_namespace_end(phantom, reflection)

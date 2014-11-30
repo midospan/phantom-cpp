@@ -10,7 +10,6 @@ o_declareN(class, (phantom, qt), UndoCommandAction);
 namespace phantom { namespace qt {
 
 class VariableEditor;
-class CollectionElementVariable;
 class VariableNode;
 class UndoCommand;
 class UndoStack;

@@ -36,17 +36,30 @@
 #include <phantom/reflection/StaticMemberFunction.h>
 #include <phantom/reflection/StaticMemberFunction.hxx>
 #include <phantom/reflection/CallExpression.h>
+#include <phantom/std/vector.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), StaticMemberFunction);
+o_registerNTI((phantom), vector, (phantom::reflection::StaticMemberFunction*));
 
 o_namespace_begin(phantom, reflection) 
 
 Class* const StaticMemberFunction::metaType = o_type_of(phantom::reflection::StaticMemberFunction);
 
-
-StaticMemberFunction::StaticMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers /*= 0*/ )
-: Function(a_strName, a_pSignature, e_ABI_stdcall, a_Modifiers ) // TODO : remove this stdcall
+StaticMemberFunction::StaticMemberFunction()
+    : Function(e_ABI_stdcall)
 {
+
+}
+
+StaticMemberFunction::StaticMemberFunction(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers /*= 0*/ )
+    : Function(a_strName, a_pSignature, e_ABI_stdcall, a_Modifiers ) // TODO : remove this stdcall
+{
+}
+
+StaticMemberFunction::StaticMemberFunction( const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers, int tag)
+    : Function(a_strName, a_pSignature, e_ABI_stdcall, a_Modifiers, tag) // TODO : remove this stdcall
+{
+
 }
 
 o_namespace_end(phantom, reflection)

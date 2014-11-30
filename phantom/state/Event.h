@@ -48,10 +48,10 @@ o_namespace_begin(phantom, state)
 
 class o_export Event : public StateMachineElement
 {
-    o_friend(class, phantom, state, StateMachine)
+    friend class phantom::state::StateMachine;
 
 public:
-    Event(const string& a_strName, uint id, bitfield a_Modifiers = 0);
+    Event(const string& a_strName, uint id, modifiers_t a_Modifiers = 0);
     ~Event() {}
 
     virtual Event* asEvent() const { return (Event*)this; }

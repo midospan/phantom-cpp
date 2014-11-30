@@ -9,6 +9,6 @@ o_declareNT(class, (boost), (typename, typename, typename, unsigned, unsigned), 
 o_declareNT(class, (boost),(typename, typename, typename, unsigned, unsigned), (T, UserAllocator, Mutex, NextSize, MaxSize), fast_pool_allocator)
 
 #if o__int__reflection_template_use_level == 3
-#include "boost.inl"
+#include "boost.hxx"
 #endif
 #endif // o_phantom_externals_boost_boost_pool_h__

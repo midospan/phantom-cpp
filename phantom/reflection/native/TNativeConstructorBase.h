@@ -48,7 +48,7 @@ class TNativeConstructorBase : public Constructor
 {
 public:
     typedef void (t_Class::*simplest_member_function_ptr)();
-    TNativeConstructorBase(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+    TNativeConstructorBase(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers = 0)
         : Constructor(a_strName, a_pSignature, a_Modifiers)
     {
 
@@ -72,7 +72,7 @@ public:
 o_namespace_end(phantom, reflection, native)
 
 
-    /*o_traits_specialize_all_super_traitNTS(
+    /*o_traits_specialize_all_base_traitNTB(
     (phantom,reflection,native)
     , (typename)
     , (t_Ty)

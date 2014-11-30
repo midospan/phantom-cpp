@@ -16,6 +16,8 @@ public:
 	CPlusPlus(void)  {}
 	~CPlusPlus(void) {}
 
+    static string compilationTest();
+
     virtual LanguageElement*elementByName(const string& a_strName, LanguageElement* a_pScope = phantom::rootNamespace()) const;
 
     virtual Expression*     expressionByName(const string& a_strName, LanguageElement* a_pScope = phantom::rootNamespace()) const;

@@ -3,7 +3,7 @@
 #include "Compiler.h"
 #include "Compiler.hxx"
 #include <phantom/reflection/LanguageElement.h>
-#include "phantom/util/Message.h"
+#include "phantom/Message.h"
 #include <stdarg.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), Compiler);

@@ -62,7 +62,8 @@ public:
     static Class* const metaType;
 
 public:
-    InstanceMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0);
+    InstanceMemberFunction();
+    InstanceMemberFunction(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers = 0);
     ~InstanceMemberFunction();
 
     reflection::ClassType*              getOwnerClassType() const { return static_cast<reflection::ClassType*>(m_pOwner); }
@@ -99,11 +100,14 @@ public:
     void                                getOriginalOverriddenMemberFunctions(vector<InstanceMemberFunction*>& a_Out) const;
 
 protected:
+    InstanceMemberFunction(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers, int);
     virtual void                        setVirtualTableIndex(int index)
     { 
         o_assert(m_uiVirtualTableIndex == ~size_t(0)); 
         m_uiVirtualTableIndex = index; 
     }
+
+    void ancestorChanged(LanguageElement* a_pOwner);
 
 protected:
     size_t              m_uiVirtualTableIndex;

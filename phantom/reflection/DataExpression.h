@@ -57,6 +57,8 @@ public:
 
     virtual DataExpression* clone() const;
 
+    virtual bool isEffectiveAddressFixed() const { return true; }
+
 protected:
     serialization::DataBase* m_pDataBase;
     Expression* m_pGuidExpression;

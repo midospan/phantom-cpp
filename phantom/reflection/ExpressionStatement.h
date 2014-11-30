@@ -47,6 +47,7 @@ o_namespace_begin(phantom, reflection)
 class o_export ExpressionStatement : public Statement
 {
 public:
+    ExpressionStatement();
     ExpressionStatement(Expression* a_pExpression);
 
     virtual void eval() const;
@@ -58,7 +59,14 @@ public:
     virtual variant compile(Compiler* a_pCompiler);
 
 protected:
+    void setExpressionString(string a_Expression);
+    string getExpressionString() const;
+    virtual void restore();
+    void elementRemoved( LanguageElement* a_pElement );
+
+protected:
     Expression* m_pExpression;
+    string*     m_pExpressionString;
 
 };
 

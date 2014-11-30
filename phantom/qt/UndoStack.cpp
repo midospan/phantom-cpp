@@ -24,6 +24,8 @@ UndoStack::~UndoStack()
 
 void UndoStack::pushCommand( UndoCommand* a_pUndoCommand )
 {
+    o_connect(a_pUndoCommand, undone(), this, slotCommandUndone());
+    o_connect(a_pUndoCommand, redone(), this, slotCommandRedone());
     o_assert(a_pUndoCommand->m_uiIndex == ~size_t(0));
     o_assert(a_pUndoCommand->m_pUndoStack == nullptr);
     o_assert(std::find(m_UndoCommands.begin(), m_UndoCommands.end(), a_pUndoCommand) == m_UndoCommands.end());
@@ -37,11 +39,11 @@ void UndoStack::pushCommand( UndoCommand* a_pUndoCommand )
         // Delete command after the current stack index
         while(m_UndoCommands.size() > (size_t)(m_iStackIndex+1))
         {
-            o_emit undoCommandAboutToBeRemoved(m_UndoCommands.back());
+            o_emit commandAboutToBeRemoved(m_UndoCommands.back());
             o_dynamic_delete m_UndoCommands.back();
             m_UndoCommands.pop_back();
         }
-        o_emit undoCommandAdded(a_pUndoCommand);
+        o_emit commandAdded(a_pUndoCommand);
         o_emit stackIndexChanged(m_iStackIndex);
     }
     else 
@@ -54,10 +56,12 @@ void UndoStack::pushCommand( UndoCommand* a_pUndoCommand )
 
 void UndoStack::popCommand( UndoCommand* a_pUndoCommand )
 {
+    o_disconnect(a_pUndoCommand, undone(), this, slotCommandUndone());
+    o_disconnect(a_pUndoCommand, redone(), this, slotCommandRedone());
     o_assert(m_UndoCommands[a_pUndoCommand->m_uiIndex] == a_pUndoCommand);
     o_assert(a_pUndoCommand->m_pUndoStack == this);
     size_t foundIndex = 0xffffffff;
-    o_emit undoCommandAboutToBeRemoved(a_pUndoCommand);
+    o_emit commandAboutToBeRemoved(a_pUndoCommand);
     for(size_t i = 0; i<m_UndoCommands.size()-1; ++i)
     {
         if(m_UndoCommands[i] == a_pUndoCommand)
@@ -112,6 +116,16 @@ bool UndoStack::isRedoable() const
 void UndoStack::abortInProgressCommand()
 {
 
+}
+
+void UndoStack::slotCommandUndone()
+{
+    o_emit commandUndone(as<UndoCommand*>(connection::sender()));
+}
+
+void UndoStack::slotCommandRedone()
+{
+    o_emit commandRedone(as<UndoCommand*>(connection::sender()));
 }
 
 o_namespace_end(phantom, qt)

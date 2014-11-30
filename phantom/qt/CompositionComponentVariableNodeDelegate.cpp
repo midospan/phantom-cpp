@@ -2,9 +2,8 @@
 #include <phantom/qt/CompositionComponentVariableNodeDelegate.h>
 #include <phantom/qt/CompositionComponentVariableNodeDelegate.hxx>
 #include <phantom/reflection/CompositionClass.h>
-#include "CompositionAddComponentDataCommand.h"
-#include "CompositionMoveComponentDataCommand.h"
-#include "MoveToTrashbinCommand.h"
+#include "ExpressionCommand.h"
+#include "CompositionRemoveComponentDataCommand.h"
 #include "VariableNode.h"
 #include "UndoStack.h"
 #include "VariableModel.h"
@@ -71,18 +70,11 @@ void CompositionComponentVariableNodeDelegate::slotRemove()
         reflection::Expression* pLeftExpression = m_pVariableNode->getParentNode()->getExpression(i);
         reflection::CompositionClass* pCompositionClass = as<reflection::CompositionClass*>(pLeftExpression->getValueType()->removeReference()->removeConst());
         serialization::DataBase* pDataBase = m_pVariableNode->getVariableModel()->getDataBase();
-        void* pAddress = nullptr;
-        pCompositionClass->get(pLeftExpression->loadEffectiveAddress(), m_uiIndex, &pAddress);
-        vector<uint> guids;
-        guids.push_back(pDataBase->getGuid(pAddress));
         pCommand->pushCommand(
-            o_new(MoveToTrashbinCommand)(pDataBase, guids)
+            o_new(CompositionRemoveComponentDataCommand)(pDataBase, m_uiIndex, m_pVariableNode->getVariableModel()->getData()[i], pLeftExpression)
             );
     }
     m_pVariableNode->getVariableModel()->getUndoStack()->pushCommand(pCommand);
-    o_connect(pCommand, redone(), m_pVariableNode->getVariableModel(), reset());
-    o_connect(pCommand, undone(), m_pVariableNode->getVariableModel(), reset());
-    invalidateNode();
 }
 
 void CompositionComponentVariableNodeDelegate::slotMoveUp()
@@ -92,18 +84,15 @@ void CompositionComponentVariableNodeDelegate::slotMoveUp()
     for(size_t i = 0; i<m_pVariableNode->getParentNode()->getExpressionCount(); ++i)
     {
         reflection::Expression* pLeftExpression = m_pVariableNode->getParentNode()->getExpression(i);
+        string undoExpression = "("+pLeftExpression->getName()+").move("+lexical_cast<string>(m_uiIndex-1)+", "+lexical_cast<string>(m_uiIndex)+")";
+        string redoExpression = "("+pLeftExpression->getName()+").move("+lexical_cast<string>(m_uiIndex)+", "+lexical_cast<string>(m_uiIndex-1)+")";
         pCommand->pushCommand(
-            o_new(CompositionMoveComponentDataCommand)(m_pVariableNode->getVariableModel()->getDataBase()
-                , m_pVariableNode->getVariableModel()->getData()[i]
-                , pLeftExpression
-                , m_uiIndex
-                , m_uiIndex-1)
+            o_new(ExpressionCommand)(m_pVariableNode->getVariableModel()->getDataBase()
+            , undoExpression
+            , redoExpression)
             );
     }
     m_pVariableNode->getVariableModel()->getUndoStack()->pushCommand(pCommand);
-    o_connect(pCommand, redone(), m_pVariableNode->getVariableModel(), reset());
-    o_connect(pCommand, undone(), m_pVariableNode->getVariableModel(), reset());
-    invalidateNode();
 }
 
 void CompositionComponentVariableNodeDelegate::slotMoveDown()
@@ -117,19 +106,17 @@ void CompositionComponentVariableNodeDelegate::slotMoveDown()
         size_t count = pCompositionClass->count(pLeftExpression->loadEffectiveAddress());
         if(m_uiIndex < count-1)
         {
+            reflection::Expression* pLeftExpression = m_pVariableNode->getParentNode()->getExpression(i);
+            string undoExpression = "("+pLeftExpression->getName()+").move("+lexical_cast<string>(m_uiIndex+1)+", "+lexical_cast<string>(m_uiIndex)+")";
+            string redoExpression = "("+pLeftExpression->getName()+").move("+lexical_cast<string>(m_uiIndex)+", "+lexical_cast<string>(m_uiIndex+1)+")";
             pCommand->pushCommand(
-                o_new(CompositionMoveComponentDataCommand)(m_pVariableNode->getVariableModel()->getDataBase()
-                , m_pVariableNode->getVariableModel()->getData()[i]
-            , pLeftExpression
-                , m_uiIndex
-                , m_uiIndex+1)
+                o_new(ExpressionCommand)(m_pVariableNode->getVariableModel()->getDataBase()
+                , undoExpression
+                , redoExpression)
                 );
         }
     }
     m_pVariableNode->getVariableModel()->getUndoStack()->pushCommand(pCommand);
-    o_connect(pCommand, redone(), m_pVariableNode->getVariableModel(), reset());
-    o_connect(pCommand, undone(), m_pVariableNode->getVariableModel(), reset());
-    invalidateNode();
 }
 
 }}

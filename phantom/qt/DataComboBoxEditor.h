@@ -17,10 +17,13 @@ public:
     DataComboBoxEditor(phantom::serialization::DataBase* a_pDataBase
         , phantom::reflection::Type* a_pType
         , const phantom::vector<phantom::data>& currentData
-        , const phantom::vector<phantom::data>& editedData);
+        , const phantom::vector<phantom::data>& editedData
+        , bool a_bAllowsNone);
 
     virtual void setValue(const void* a_pSrc) const;
     virtual void getValue(void* a_pDest) const;
+
+    virtual void opened();
 };
 
 

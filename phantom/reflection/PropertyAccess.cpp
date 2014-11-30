@@ -46,13 +46,13 @@ PropertyAccess::PropertyAccess( Expression* a_pLeftExpression, Property* a_pProp
                                 ? a_pProperty->getValueType()->removeReference()->removeConst()->constType()->referenceType()
                                 : a_pProperty->getValueType()->removeReference()->removeConst()->referenceType()
                 , "("+a_pLeftExpression->getName() + ")." + a_pProperty->getName()
-                , a_pProperty->getModifiers())
+                , a_pProperty->getModifiers() & ~o_native)
     , m_pLeftExpression(a_pLeftExpression)
     , m_pProperty(a_pProperty)
 {
     o_assert(a_pLeftExpression->hasEffectiveAddress());
     o_assert(a_pLeftExpression->getValueType()->removeReference()->removeConst() == a_pProperty->getOwner());
-    addElement(a_pLeftExpression);
+    addSubExpression(m_pLeftExpression);
     addReferencedElement(a_pProperty);
 
     m_pBuffer = m_pValueType->removeReference()->allocate();
@@ -61,13 +61,12 @@ PropertyAccess::PropertyAccess( Expression* a_pLeftExpression, Property* a_pProp
     m_pValueType->removeReference()->initialize(m_pBuffer);
 }
 
-void PropertyAccess::terminate()
+o_terminate_cpp(PropertyAccess)
 {
     m_pValueType->removeReference()->terminate(m_pBuffer);
     m_pValueType->removeReference()->uninstall(m_pBuffer);
     m_pValueType->removeReference()->destroy(m_pBuffer);
     m_pValueType->removeReference()->deallocate(m_pBuffer);
-    Expression::terminate();
 }
 
 void PropertyAccess::referencedElementRemoved( LanguageElement* a_pElement )
@@ -92,11 +91,21 @@ void PropertyAccess::getValue( void* a_pDest ) const
 
 void PropertyAccess::flush() const
 {
+    void* pAddress = m_pLeftExpression->loadEffectiveAddress();
+    bool bBlockSignal = areSignalsBlocked() AND m_pProperty->getSignal();
+    if(bBlockSignal)
+    {
+        m_pProperty->getSignal()->block(pAddress);
+    }
     m_pProperty->setValue(m_pLeftExpression->loadEffectiveAddress(), m_pBuffer);
+    if(bBlockSignal)
+    {
+        m_pProperty->getSignal()->unblock(pAddress);
+    }
     m_pLeftExpression->flush();
 }
 
-Expression* PropertyAccess::solveOperator( const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers /* = 0 */ ) const
+Expression* PropertyAccess::solveOperator( const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers /* = 0 */ ) const
 {
 //     if(a_Expressions.size() == 1)
 //     {
@@ -109,7 +118,7 @@ Expression* PropertyAccess::solveOperator( const string& a_strOp, const vector<E
 //                 arguments.push_back(m_pLeftExpression->reference());
 //                 InstanceMemberFunction* pSet = m_pProperty->getSetMemberFunction();
 //                 arguments.push_back(a_Expressions[0]->implicitCast(pSet->getParameterType(0)));
-//                 phantom::deleteElement(const_cast<PropertyAccess*>(this));
+//                 o_dynamic_delete (const_cast<PropertyAccess*>(this));
 //                 return o_new(CallExpression)(pSet, arguments);
 //             }
 //         }
@@ -134,12 +143,17 @@ Expression* PropertyAccess::solveOperator( const string& a_strOp, const vector<E
 
 PropertyAccess* PropertyAccess::clone() const
 {
-    return o_new(PropertyAccess)(m_pLeftExpression->clone(), m_pProperty);
+    return o_new(PropertyAccess)(m_pLeftExpression, m_pProperty);
 }
 
 LanguageElement* PropertyAccess::getHatchedElement() const
 {
     return m_pProperty;
+}
+
+bool PropertyAccess::isPersistent() const
+{
+    return Expression::isPersistent() AND m_pProperty->isNative();
 }
 
 o_namespace_end(phantom, reflection)

@@ -23,3 +23,15 @@ o_update(StateMachineTest::D) {}
 o_leave(StateMachineTest::D) {}
 
 o_namespace_end(unitest)
+// 
+// 
+// #include <phantom/phantom.h>   
+// 
+// int main(int argc, char* argv[])
+// {
+//     using namespace phantom;
+//     using namespace phantom::reflection;
+//     Class* pClass = o_new(Class)("zelda::Spider");
+//     pClass->addDataMember("bool m_bShowsAbdomen");
+//     InstanceMemberFunction* pInstanceMemberFunction = pClass->addMemberFunction("void switchPosition()")->asInstanceMemberFunction();
+//     LocalVariable* pLocalVariable = pInstanceMemberFunction->getBlock()->getLocalVariable("this");

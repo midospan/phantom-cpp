@@ -39,14 +39,28 @@
 o_registerN((phantom, reflection), ValueMember);
 o_namespace_begin(phantom, reflection) 
 
-ValueMember::ValueMember( const string& a_strName, Type* a_pValueType, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ ) 
-: LanguageElement(a_strName, a_Modifiers)
-, m_pValueType(a_pValueType)
-, m_uiSerializationMask(a_uiSerializationMask)
-, m_pRange(a_pRange)
+ValueMember::ValueMember() 
+    : m_pValueType(nullptr)
+    , m_uiSerializationMask(0xffffffff)
+    , m_pRange(nullptr)
+    , m_pValueTypeName(nullptr)
 {
-    addReferencedElement(m_pValueType);
-    o_assert(!a_Modifiers.matchesMask(o_transient) OR m_uiSerializationMask == 0);
+
+}
+
+ValueMember::ValueMember( Type* a_pValueType, const string& a_strName, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_Modifiers /*= 0*/ ) 
+    : LanguageElement(a_strName, a_Modifiers)
+    , m_pValueType(a_pValueType)
+    , m_uiSerializationMask(a_uiSerializationMask)
+    , m_pRange(a_pRange)
+    , m_pValueTypeName(nullptr)
+{
+    if(m_pValueType)
+    {
+        addReferencedElement(m_pValueType);
+    }
+    else setInvalid();
+    o_assert(((a_Modifiers & o_transient) == 0) OR m_uiSerializationMask == 0);
     if(a_pRange)
     {
         addElement(a_pRange);
@@ -181,6 +195,43 @@ void ValueMember::deserializeValue( void* a_pChunk, size_t a_uiCount, size_t a_u
     {
         deserializeValue(pChunk, a_InBranch, a_uiSerializationMask, a_pDataBase);
         pChunk += a_uiChunkSectionSize;
+    }
+}
+
+void ValueMember::setRange( Range* a_pRange )
+{
+    m_pRange = a_pRange;
+    if(m_pRange)
+    {
+        addElement(m_pRange);
+    }
+}
+
+void ValueMember::setValueTypeName( string str )
+{
+    if(str.size())
+    {
+        m_pValueTypeName = new string(str);
+    }
+}
+
+string ValueMember::getValueTypeName() const
+{
+    return m_pValueType ? m_pValueType->getQualifiedDecoratedName() : "";
+}
+
+void ValueMember::finalize()
+{
+    if(m_pValueTypeName)
+    {
+        o_assert(m_pValueType == nullptr);
+        m_pValueType = phantom::typeByName(*m_pValueTypeName);
+        if(m_pValueType)
+        {
+            addReferencedElement(m_pValueType);
+        }
+        delete m_pValueTypeName;
+        m_pValueTypeName = nullptr;
     }
 }
 

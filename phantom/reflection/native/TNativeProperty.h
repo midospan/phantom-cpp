@@ -119,8 +119,8 @@ public:
     typedef void (t_Ty::*setter)(t_ValueType);
     
 public:
-    TNativeProperty(const string& a_strName, Type* a_pValueType, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pSignal, Range* a_pRange, setter a_setter, getter a_getter, uint a_uiSerializationMask, bitfield a_uiModifiers = 0)
-     : Property(a_strName, a_pValueType, a_pSetMemberFunction, a_pGetMemberFunction, a_pSignal, a_pRange, a_uiSerializationMask, a_uiModifiers, 0)
+    TNativeProperty(Type* a_pValueType, const string& a_strName, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pSignal, Range* a_pRange, setter a_setter, getter a_getter, uint a_uiSerializationMask, modifiers_t a_uiModifiers = 0)
+     : Property(a_pValueType, a_strName, a_pSetMemberFunction, a_pGetMemberFunction, a_pSignal, a_pRange, a_uiSerializationMask, a_uiModifiers|o_native, 0)
      , m_setter(a_setter)
      , m_getter(a_getter)
     {
@@ -144,7 +144,7 @@ public:
     void serializeValue( void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
     {
         t_ValueType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
-        phantom::extension::serializer<t_ValueTypeNoConstNoRef>::serialize(static_cast<meta_value_type*>(getValueType()),
+        phantom::serializer<t_ValueTypeNoConstNoRef>::serialize(static_cast<meta_value_type*>(getValueType()),
             (t_ValueTypeNoConstNoRef*)&contentType
             , a_pOutBuffer
             , a_uiSerializationMask, a_pDataBase);
@@ -156,7 +156,7 @@ public:
         while(a_uiCount--)
         {
             t_ValueType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
-            phantom::extension::serializer<t_ValueTypeNoConstNoRef>::serialize(static_cast<meta_value_type*>(getValueType()),
+            phantom::serializer<t_ValueTypeNoConstNoRef>::serialize(static_cast<meta_value_type*>(getValueType()),
                 (t_ValueTypeNoConstNoRef*)&contentType
                 , a_pOutBuffer
                 , a_uiSerializationMask, a_pDataBase);
@@ -167,7 +167,7 @@ public:
     void deserializeValue( void* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
     {
         t_ValueTypeNoConstNoRef contentType;
-        phantom::extension::serializer<t_ValueTypeNoConstNoRef>::deserialize(static_cast<meta_value_type*>(getValueType()),
+        phantom::serializer<t_ValueTypeNoConstNoRef>::deserialize(static_cast<meta_value_type*>(getValueType()),
             &contentType
             , a_pInBuffer
             , a_uiSerializationMask, a_pDataBase);
@@ -180,7 +180,7 @@ public:
         byte* pChunk = reinterpret_cast<byte*>(a_pInstance);
         while(a_uiCount--)
         {
-            phantom::extension::serializer<t_ValueTypeNoConstNoRef>::deserialize(static_cast<meta_value_type*>(getValueType()),
+            phantom::serializer<t_ValueTypeNoConstNoRef>::deserialize(static_cast<meta_value_type*>(getValueType()),
                 &contentType
                 , a_pInBuffer
                 , a_uiSerializationMask, a_pDataBase);
@@ -254,7 +254,7 @@ public:
     void rememberValue( void const* a_pInstance, byte*& a_pOutBuffer ) const
     {
         t_ValueType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
-        phantom::extension::resetter<t_ValueTypeNoConstNoRef>::remember(static_cast<meta_value_type*>(getValueType()),
+        phantom::resetter<t_ValueTypeNoConstNoRef>::remember(static_cast<meta_value_type*>(getValueType()),
             (t_ValueTypeNoConstNoRef*)&contentType
             , a_pOutBuffer);
     }
@@ -265,7 +265,7 @@ public:
         while(a_uiCount--)
         {
             t_ValueType contentType = (reinterpret_cast<t_Ty const*>(pChunk)->*m_getter)();
-            phantom::extension::resetter<t_ValueTypeNoConstNoRef>::remember(static_cast<meta_value_type*>(getValueType()),
+            phantom::resetter<t_ValueTypeNoConstNoRef>::remember(static_cast<meta_value_type*>(getValueType()),
                 (t_ValueTypeNoConstNoRef*)&contentType
                 , a_pOutBuffer);
             pChunk += a_uiChunkSectionSize;
@@ -275,7 +275,7 @@ public:
     void resetValue( void* a_pInstance, byte const*& a_pInBuffer ) const
     {
         t_ValueTypeNoConstNoRef contentType;
-        phantom::extension::resetter<t_ValueTypeNoConstNoRef>::reset(static_cast<meta_value_type*>(getValueType()),
+        phantom::resetter<t_ValueTypeNoConstNoRef>::reset(static_cast<meta_value_type*>(getValueType()),
             &contentType
             , a_pInBuffer);
         (reinterpret_cast<t_Ty*>(a_pInstance)->*m_setter)(contentType);
@@ -287,18 +287,13 @@ public:
         t_ValueTypeNoConstNoRef contentType;
         while(a_uiCount--)
         {
-            phantom::extension::resetter<t_ValueTypeNoConstNoRef>::reset(static_cast<meta_value_type*>(getValueType()),
+            phantom::resetter<t_ValueTypeNoConstNoRef>::reset(static_cast<meta_value_type*>(getValueType()),
                 &contentType
                 , a_pInBuffer);
 
             (reinterpret_cast<t_Ty*>(pChunk)->*m_setter)(contentType);
             pChunk += a_uiChunkSectionSize;
         }
-    }
-
-    virtual void        deleteNow()
-    {
-        o_proxy_delete(phantom::reflection::Property, self_type) this;
     }
 
     reflection::Type*   getValueType() const { return m_pValueType; }
@@ -316,8 +311,8 @@ public:
     typedef t_ValueType const (t_Ty::*member_field_pointer);
 
 public:
-    TNativeProperty(const string& a_strName, Type* a_pContentType, member_field_pointer a_member_field_pointer, bitfield a_uiModifiers = 0)
-        : TNativeProperty<t_Ty,t_ValueType>(a_strName, a_pContentType
+    TNativeProperty(Type* a_pContentType, const string& a_strName, member_field_pointer a_member_field_pointer, modifiers_t a_uiModifiers = 0)
+        : TNativeProperty<t_Ty,t_ValueType>(a_pContentType, a_strName
 
         // We manage const-type attributes like no-const-type attributes : we break the const qualifier to be able to force write with "setValue"
         , const_cast<typename TNativeProperty<t_Ty,t_ValueType>::member_field_pointer>(a_member_field_pointer)
@@ -327,12 +322,5 @@ public:
 };
 
 o_namespace_end(phantom, reflection, native)
-/*o_traits_specialize_all_super_traitNTS(
-(phantom,reflection,native)
-, (typename, typename)
-, (t_Ty, t_ValueType)
-, TNativeProperty
-, (Property)
-)*/
-
+    
 #endif // TNativeProperty_h__

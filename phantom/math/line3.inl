@@ -37,13 +37,13 @@ inline bool line3<t_Ty>::contains(const vector3<t_Ty>& p) const
 {
 	vector3<t_Ty> pPoint = p - point;
 	pPoint.normalize();
-	return (pPoint.normalized().dot(direction) - 1) <= EPSILON;
+	return (pPoint.normalized().dot(direction) - 1) <= std::numeric_limits<t_Ty>::epsilon();
 }
 
 template<class t_Ty>
 inline bool line3<t_Ty>::isCoplanarTo(const line3<t_Ty>& l) const
 {
-	return fabs(direction.dot(l.direction.cross(point - l.point))) < EPSILON;
+	return fabs(direction.dot(l.direction.cross(point - l.point))) < std::numeric_limits<t_Ty>::epsilon();
 }
 
 template<class t_Ty>

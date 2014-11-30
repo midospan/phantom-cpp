@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'VariableWidgetEditor.h'
 **
-** Created: Tue 2. Sep 20:06:38 2014
+** Created: Thu 30. Oct 00:58:10 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -24,25 +24,28 @@ static const uint qt_meta_data_phantom__qt__VariableWidgetEditor[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       2,   14, // methods
+       4,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
-       1,       // signalCount
+       2,       // signalCount
 
  // signals: signature, parameters, type, tag, flags
       35,   34,   34,   34, 0x05,
+      50,   34,   34,   34, 0x05,
 
  // slots: signature, parameters, type, tag, flags
-      50,   34,   34,   34, 0x09,
+      61,   34,   34,   34, 0x09,
+      77,   34,   34,   34, 0x09,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_phantom__qt__VariableWidgetEditor[] = {
     "phantom::qt::VariableWidgetEditor\0\0"
-    "valueChanged()\0slotDestroyed()\0"
+    "valueChanged()\0canceled()\0slotDestroyed()\0"
+    "opened()\0"
 };
 
 void phantom::qt::VariableWidgetEditor::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -52,7 +55,9 @@ void phantom::qt::VariableWidgetEditor::qt_static_metacall(QObject *_o, QMetaObj
         VariableWidgetEditor *_t = static_cast<VariableWidgetEditor *>(_o);
         switch (_id) {
         case 0: _t->valueChanged(); break;
-        case 1: _t->slotDestroyed(); break;
+        case 1: _t->canceled(); break;
+        case 2: _t->slotDestroyed(); break;
+        case 3: _t->opened(); break;
         default: ;
         }
     }
@@ -91,9 +96,9 @@ int phantom::qt::VariableWidgetEditor::qt_metacall(QMetaObject::Call _c, int _id
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 2)
+        if (_id < 4)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 2;
+        _id -= 4;
     }
     return _id;
 }
@@ -102,5 +107,11 @@ int phantom::qt::VariableWidgetEditor::qt_metacall(QMetaObject::Call _c, int _id
 void phantom::qt::VariableWidgetEditor::valueChanged()
 {
     QMetaObject::activate(this, &staticMetaObject, 0, 0);
+}
+
+// SIGNAL 1
+void phantom::qt::VariableWidgetEditor::canceled()
+{
+    QMetaObject::activate(this, &staticMetaObject, 1, 0);
 }
 QT_END_MOC_NAMESPACE

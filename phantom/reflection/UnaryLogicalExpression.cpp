@@ -59,7 +59,7 @@ void UnaryLogicalExpression::getValue( void* a_pDest ) const
 
 UnaryLogicalExpression* UnaryLogicalExpression::clone() const
 {
-    return o_new(UnaryLogicalExpression)(m_strOperator, m_pExpression->clone());
+    return o_new(UnaryLogicalExpression)(m_strOperator, m_pExpression);
 }
 
 

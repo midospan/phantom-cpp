@@ -39,16 +39,16 @@
 #define o_emit
 
 #define o_connect(_emitter_, _signal_, _receiver_, _member_function_)\
-    phantom::connect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_))
+    phantom::connect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_), __FILE__, __LINE__)
 
 #define o_disconnect(_emitter_, _signal_, _receiver_, _member_function_)\
-    phantom::disconnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_))
+    phantom::disconnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_), __FILE__, __LINE__)
 
 #define o_try_connect(_emitter_, _signal_, _receiver_, _member_function_)\
-    phantom::tryConnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_))
+    phantom::tryConnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_), __FILE__, __LINE__)
 
 #define o_try_disconnect(_emitter_, _signal_, _receiver_, _member_function_)\
-    phantom::tryDisconnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_))
+    phantom::tryDisconnect((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_), __FILE__, __LINE__)
 
 #define o_connected(_emitter_, _signal_, _receiver_, _member_function_)\
     phantom::areConnected((_emitter_),o_CS(#_signal_),(_receiver_), o_CS(#_member_function_))
@@ -57,18 +57,20 @@ o_namespace_begin(phantom)
 
 namespace connection
 {
+    class slot_pool;
+    class slot;
+
     inline void*    sender();
     inline slot const*    current_slot();
+    inline reflection::Signal* signal();
 
     class o_export pair
     {
         friend void*    sender();
         friend slot const*    current_slot();
-        friend o_export boolean    canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
-        friend o_export connection::slot*       connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
-        friend o_export boolean                 disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
-        o_friend(class, phantom, Phantom)
-        o_friend(class, phantom, reflection, Signal)
+        friend reflection::Signal* signal();
+        friend struct phantom::PIMPL;
+        friend class phantom::reflection::Signal;
     public:
         enum { eMaxStackSize = 256 };
         void*        sender;
@@ -92,29 +94,33 @@ namespace connection
 
     class o_export slot
     {
-        friend o_export boolean    canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
-        friend o_export connection::slot*    connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
-        friend o_export boolean    disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
-        friend class detail::dynamic_initializer_handle;
-        friend class phantom::Phantom;
-        o_friend(class, phantom, reflection, Signal);
+        friend reflection::Signal* signal();
+        friend struct phantom::PIMPL;
+        friend class dynamic_initializer_handle;
+        friend class slot_pool;
+        friend class phantom::reflection::Signal;
 
     public:
-        slot() 
-            : m_list_pointer(NULL)
-            , m_receiver(NULL)
-            , m_subroutine(NULL)
-            , m_next(NULL)
-            , m_prev(NULL)
+        class list;
+        slot()
+            : m_list_pointer(nullptr)
+            , m_receiver(nullptr)
+            , m_subroutine(nullptr)
+            , m_next(nullptr)
+            , m_prev(nullptr)
+            , m_pool(nullptr)
         {
 
         }
-        o_forceinline void*                receiver() const { return m_receiver; }
-        o_forceinline phantom::reflection::Subroutine*    subroutine() const { return m_subroutine; }
-        o_forceinline slot*                prev() const { return m_prev; }
-        o_forceinline slot*                next() const { return m_next; }
+        o_forceinline void*                             receiver() const { return m_receiver; }
+        o_forceinline phantom::reflection::Subroutine*  subroutine() const { return m_subroutine; }
+        o_forceinline slot*                             prev() const { return m_prev; }
+        o_forceinline slot*                             next() const { return m_next; }
 
-        boolean equals(slot* a_pOther) const
+        o_forceinline slot*                             clone(slot::list* list_pointer, slot* a_pPrev, slot** a_pResultQueue);
+        o_forceinline void                              release();
+
+        boolean                                         equals(slot* a_pOther) const
         {
             return a_pOther->m_subroutine == this->m_subroutine
                 AND a_pOther->m_receiver == this->m_receiver;
@@ -141,65 +147,6 @@ namespace connection
 
         boolean isUsed() const { return m_next OR m_prev; }
 
-    public:
-        /*template<size_t t_node_count>
-        class data
-        {
-        public:
-            o_forceinline data()
-            {
-#if !((o_COMPILER == o_COMPILER_VISUAL_STUDIO) && (o_COMPILER_MAJOR_VERSION >= o_COMPILER_VISUAL_STUDIO_MAJOR_VERSION_10))
-                if(t_node_count == 0) return;
-#endif
-                memset(content, 0, t_node_count*sizeof(slot*));
-            }
-            o_forceinline ~data()
-            {
-#if !((o_COMPILER == o_COMPILER_VISUAL_STUDIO) && (o_COMPILER_MAJOR_VERSION >= o_COMPILER_VISUAL_STUDIO_MAJOR_VERSION_10))
-                if(t_node_count == 0) return;
-#endif
-                size_t i = t_node_count;
-                while(--i)
-                {
-                    slot*    pSlot = content[i];
-                    while(pSlot)
-                    {
-                        slot* n = pSlot->m_next;
-                        pSlot->m_receiver->__connection_slot_allocator.destroy(content[i]);
-                        pSlot = n;
-                    }
-                }
-            }
-        private:
-//#if (o_COMPILER == o_COMPILER_VISUAL_STUDIO) && (o_COMPILER_MAJOR_VERSION >= o_COMPILER_VISUAL_STUDIO_MAJOR_VERSION_10)
-            slot*    content[t_node_count];
-//#else
-//            typename inline_array_type_helper<slot*,t_node_count>::type content;
-//#endif
-        }; // data
-#if (o_COMPILER == o_COMPILER_VISUAL_STUDIO) && (o_COMPILER_MAJOR_VERSION >= o_COMPILER_VISUAL_STUDIO_MAJOR_VERSION_10)
-        template<>
-        class data<0>
-        {
-
-        };
-#endif*/
-        class list
-        {
-            o_friend(class, phantom, Phantom)
-                friend o_export boolean    canConnect(phantom::reflection::Signal* a_pSignal, phantom::reflection::InstanceMemberFunction* a_pMemberFunction );
-            friend o_export connection::slot*    connect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
-            friend o_export boolean    disconnect(void* a_pSender, const character* a_pSignal, void* a_pReceiver, const character* a_pMemberFunction);
-            friend class slot;
-        public:
-            list() : m_head(NULL), m_queue(NULL) {}
-            o_forceinline slot*    head() { return m_head; }
-            o_forceinline slot*    queue() { return m_queue; }
-
-        protected:
-            slot* m_head;
-            slot* m_queue;
-        }; // list
 
     private:
         slot::list*                m_list_pointer;
@@ -207,12 +154,36 @@ namespace connection
         reflection::Subroutine*    m_subroutine;
         slot*                      m_next;
         slot*                      m_prev;
+        slot_pool*                 m_pool;
 
-        template< typename, uint>  friend class default_installer_helper;
-        template< typename >  friend class installer;
+    public:
+        class o_export list
+        {
+            friend reflection::Signal* connection::signal();
+            friend struct phantom::PIMPL;
+            friend class slot;
+        public:
+            static reflection::Class* const metaType;
 
+            o_forceinline list() : m_head(nullptr), m_queue(nullptr), m_signal(nullptr), m_unblocked(true) {}
+            o_forceinline list(const list& other);
+            o_forceinline ~list();
+            o_forceinline list& operator=(const list& other) ;
+            o_forceinline void  block() { o_assert(m_unblocked); m_unblocked = false; }
+            o_forceinline void  unblock() { o_assert(!m_unblocked); m_unblocked = true; }
 
-    protected:
+            o_forceinline slot* head() const { return m_head; }
+            o_forceinline slot* queue() const { return m_queue; }
+            o_forceinline bool  unblocked() const { return m_unblocked; }
+            o_forceinline bool  blocked() const { return !m_unblocked; }
+            o_forceinline reflection::Signal* signal() const { return m_signal; }
+
+        protected:
+            slot* m_head;
+            slot* m_queue;
+            reflection::Signal* m_signal;
+            bool m_unblocked;
+        }; // list
     }; // slot
 
     class o_export     emission_guard
@@ -246,19 +217,27 @@ namespace connection
         return connection::pair::stack[sp].connected_slot;
     }
 
+    inline reflection::Signal* signal()
+    {
+        int32 sp = pair::stack_pointer;
+        if(sp == -1) return nullptr;
+        return connection::pair::stack[sp].connected_slot->m_list_pointer->m_signal;
+    }
+
     class o_export slot_pool
     {
         typedef o__t1_class__slot_allocator(slot) slot_allocator;
         typedef o__t1_class__default_allocator(slot_allocator) slot_allocator_allocator;
-        friend class detail::dynamic_initializer_handle;
+        friend class phantom::dynamic_initializer_handle;
         friend class Phantom;
+
     public:
         typedef phantom::unordered_map<double_size_t, slot_pool> allocation_controller_map;
-        slot_pool():slotAllocator(NULL) { }
+        slot_pool() : slotAllocator(NULL) {}
         ~slot_pool()
         {
             // TODO: integrate stat allocation
-            if(slotAllocator) 
+            if(slotAllocator)
             {
                 slotAllocator->~slot_allocator();
                 slot_allocator_allocator::deallocate(slotAllocator);
@@ -274,7 +253,9 @@ namespace connection
                 // TODO: integrate stat allocation
             }
             // TODO: integrate stat allocation
-            return slotAllocator->construct();
+            slot* pSlot = slotAllocator->construct();
+            pSlot->m_pool = this;
+            return pSlot;
         }
         void    release(slot* a_pSlot)
         {
@@ -301,6 +282,69 @@ namespace connection
         static allocation_controller_map* m_allocation_controller_map;
         slot_allocator* slotAllocator;
     };
+
+    o_forceinline slot* slot::clone( slot::list* list_pointer, slot* a_pPrev, slot** a_pResultQueue )
+    {
+        o_assert(m_pool);
+        slot* pClone = m_pool->take();
+        pClone->m_list_pointer = list_pointer;
+        pClone->m_subroutine = m_subroutine;
+        pClone->m_receiver = m_receiver;
+        if(m_next) // has next => we continue to clone
+        {
+            pClone->m_next = m_next->clone(list_pointer, pClone, a_pResultQueue);
+        }
+        else // no more next, this is the queue => set 'a_pResultQueue' to this last clone
+        {
+            *a_pResultQueue = pClone;
+            pClone->m_next = nullptr;
+        }
+        pClone->m_prev = a_pPrev;
+        return pClone;
+    }
+
+    o_forceinline void  slot::release()
+    {
+        o_assert(m_pool);
+        m_pool->release(this);
+    }
+
+    o_forceinline slot::list::~list()
+    {
+        // release all the slots
+        while(m_queue)
+        {
+            m_queue->release();
+        }
+        o_assert(m_head == nullptr);
+    }
+
+    o_forceinline slot::list::list(const slot::list& other)
+        : m_head(nullptr), m_queue(nullptr), m_signal(other.m_signal), m_unblocked(other.m_unblocked)
+    {
+        if(other.m_head)
+        {
+            m_head = other.m_head->clone(this, nullptr, &m_queue);
+            o_assert(m_queue);
+        }
+    }
+
+    o_forceinline slot::list& slot::list::operator=(const slot::list& other)
+    {
+        while(m_queue)
+        {
+            m_queue->release();
+        }
+        o_assert(m_head == nullptr);
+        if(other.m_head)
+        {
+            m_head = other.m_head->clone(this, nullptr, &m_queue);
+            o_assert(m_queue);
+        }
+        m_signal = other.m_signal;
+        m_unblocked = other.m_unblocked;
+        return *this;
+    }
 }
 
 o_namespace_end(phantom)

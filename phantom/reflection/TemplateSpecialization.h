@@ -55,8 +55,6 @@ public:
     TemplateSpecialization(Template* a_pTemplate);
     o_destructor ~TemplateSpecialization();
 
-    virtual void terminate();
-
     virtual TemplateSpecialization* asTemplateSpecialization() const { return (TemplateSpecialization*)this; }
 
     uint                getArgumentCount() const { return m_Arguments.size(); }
@@ -85,6 +83,8 @@ protected:
     void                _updateName();
     void                referencedElementAdded(LanguageElement* a_pElement);
     void                referencedElementRemoved(LanguageElement* a_pElement);
+    void                elementAdded(LanguageElement* a_pElement);
+    void                elementRemoved(LanguageElement* a_pElement);
 
 protected:
     typedef phantom::map<string, TemplateElement*>  template_element_map;

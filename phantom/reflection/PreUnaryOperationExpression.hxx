@@ -2,7 +2,8 @@
 
 #include "Expression.hxx"
 
-o_classNS((phantom, reflection), PreUnaryOperationExpression, (Expression)) { o_reflection {}; };
+o_classNB((phantom, reflection), PreUnaryOperationExpression, (Expression)) (
+        );
 
 
 

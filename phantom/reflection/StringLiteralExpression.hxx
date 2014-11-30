@@ -2,7 +2,8 @@
 
 #include "Expression.hxx"
 
-o_classNS((phantom, reflection), StringLiteralExpression, (Expression)) { o_reflection {}; };
+o_classNB((phantom, reflection), StringLiteralExpression, (Expression)) (
+        );
 
 
 

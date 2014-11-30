@@ -141,12 +141,12 @@ struct is_std_##_container_                                                     
     enum { value = false };                                                                             \
 };                                                                                                      \
     \
-    template<typename t_Ty, int t_super_class_count_of>                                                     \
+    template<typename t_Ty, int t_base_class_count_of>                                                     \
 struct is_##_container_##_helper                                                                        \
 {                                                                                                       \
     enum { value = is_std_##_container_<t_Ty>::value                                                    \
-    OR is_##_container_<typename super_class_of<t_Ty, t_super_class_count_of-1>::type>::value       \
-    OR is_##_container_##_helper<t_Ty, t_super_class_count_of-1>::value };                          \
+    OR is_##_container_<typename base_class_of<t_Ty, t_base_class_count_of-1>::type>::value       \
+    OR is_##_container_##_helper<t_Ty, t_base_class_count_of-1>::value };                          \
 };                                                                                                      \
     \
     template<typename t_Ty>                                                                                 \
@@ -156,7 +156,7 @@ struct is_##_container_##_helper<t_Ty, 0>                                       
 };                                                                                                      \
     \
     template<typename t_Ty>                                                                                 \
-struct is_##_container_ : public is_##_container_##_helper<t_Ty, super_class_count_of<t_Ty>::value>     \
+struct is_##_container_ : public is_##_container_##_helper<t_Ty, base_class_count_of<t_Ty>::value>     \
 {                                                                                                       \
 };                           
                                                                            \
@@ -533,7 +533,7 @@ struct variable_value_type : public variable_value_type_helper<t_Ty, typename t_
 template<typename t_ContainerTy>
 void move_unique(t_ContainerTy& c, typename t_ContainerTy::value_type v, size_t index)
 {
-    o_assert(index< c.size());
+    assert(index< c.size());
     auto it = std::find(c.begin(), c.end(), v);
     auto to = c.begin();
     std::advance(to, index);

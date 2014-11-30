@@ -35,6 +35,7 @@
 #include "phantom/phantom.h"
 #include <phantom/serialization/PackageDataStateBase.h>
 #include <phantom/serialization/PackageDataStateBase.hxx>
+#include <phantom/serialization/PackageDataBase.h>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <phantom/serialization/PackageNode.h>
@@ -45,8 +46,8 @@ o_registerN((phantom, serialization), PackageDataStateBase);
 
 o_namespace_begin(phantom, serialization)
 
-PackageDataStateBase::PackageDataStateBase(const string& a_strUrl, uint a_uiSerializationFlag) 
-: DataStateBase(a_strUrl, a_uiSerializationFlag)
+PackageDataStateBase::PackageDataStateBase(PackageDataBase* a_pDataBase, const string& a_strUrl, uint a_uiSerializationFlag) 
+: DataStateBase(a_pDataBase, a_strUrl, a_uiSerializationFlag)
 {
 
 }

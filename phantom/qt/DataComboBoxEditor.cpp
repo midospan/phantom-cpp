@@ -12,8 +12,9 @@ namespace phantom { namespace qt {
           phantom::serialization::DataBase* a_pDataBase
         , phantom::reflection::Type* a_pType
         , const phantom::vector<phantom::data>& currentData
-        , const phantom::vector<phantom::data>& editedData ) 
-        : VariableWidgetEditor( new DataComboBox(a_pDataBase, a_pType, currentData, editedData)
+        , const phantom::vector<phantom::data>& editedData
+        , bool a_bAllowsNone ) 
+        : VariableWidgetEditor( new DataComboBox(a_pDataBase, a_pType, currentData, editedData, nullptr, a_bAllowsNone)
         , SIGNAL(dataSelected(const phantom::data&))
         , a_pType->pointerType())
     {
@@ -29,7 +30,12 @@ namespace phantom { namespace qt {
     {
         phantom::data d = ((DataComboBox*)m_pWidget)->getCurrentData();
         // TODO move this 'd.isNull()' test in 'phantom::data::cast()'
-        *((void**)a_pDest) = d.isNull() ? 0 : d.cast(m_pType->removePointer()).address();
+        *((void**)a_pDest) = d.isNull() ? 0 : d.cast(m_pValueType->removePointer()).address();
+    }
+
+    void DataComboBoxEditor::opened()
+    {
+        static_cast<DataComboBox*>(m_pWidget)->showPopup();
     }
 
 } // qt 

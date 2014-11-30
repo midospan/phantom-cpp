@@ -7,10 +7,12 @@
 
 /* ****************** Includes ******************* */
 #include <QTreeWidget>
-#include <phantom/util/Message.h>
+#include <phantom/Message.h>
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, qt), ModuleExplorer);
 /* *********************************************** */
+class QFileSystemWatcher;
+
 namespace phantom { 
 
 class Message;
@@ -29,6 +31,7 @@ class o_qt_export ModuleExplorer : public QTreeWidget
 
 public:
     typedef fastdelegate::FastDelegate<void(const string& a_strPath)> delegate_t;
+    typedef fastdelegate::FastDelegate<bool(const string& a_strPath)> pre_delegate_t;
 
 public:
     ModuleExplorer(void);
@@ -39,13 +42,15 @@ public:
     void setDataBase(serialization::DataBase* a_pDataBase);
     void setMessage(Message* a_pMessage);
     void setPath(const string& a_strPath);
+    const string& getPath() const { return m_strPath; }
+    void setMetaDataPath(const string& a_strPath);
     void setModuleLoader(ModuleLoader* a_pModuleLoader);
     LibraryItem* getItem(const QString& absolutePath) const;
     ModuleLoader*   getModuleLoader() const { return m_pModuleLoader; }
 
     Message* getMessage() const { return m_pRootMessage; }
 
-    void setPreUnloadLibraryDelegate(delegate_t a_Delegate);
+    void setPreUnloadLibraryDelegate(pre_delegate_t a_Delegate);
     void setUnloadLibraryDelegate(delegate_t a_Delegate);
     void setLoadLibraryDelegate(delegate_t a_Delegate);
 
@@ -60,12 +65,24 @@ protected:
     void moduleUnloaded(Module* a_pModule, size_t, size_t a_uiLoadCount);
     virtual void loadLibrary(const string& a_strPath);
     virtual void unloadLibrary(const string& a_strPath);
+    void loadMetaData( Module* a_pModule );
+    void loadMetaData( const string& metaDataFile);
+    void loadMetaDataDefinition( const string& a_Key, const property_tree& a_PropertyTree, reflection::LanguageElement* a_pScope );
 
 protected slots:
     void slotItemDoubleClicked(QTreeWidgetItem*, int);
+    string moduleMetaDataPath(Module* a_pModule);
+    void loadMetaData();
+    void reloadMetaData( const QString& metaDataFile)
+    {
+        loadMetaData(metaDataFile.toAscii().constData());
+    }
+
+
 
 protected:
     string m_strPath;
+    string m_strMetaDataPath;
     QIcon m_LoadedIcon;
     QIcon m_UnloadedIcon;
     Message* m_pRootMessage;
@@ -73,8 +90,9 @@ protected:
     ModuleLoader* m_pModuleLoader;
     delegate_t m_LoadDelegate;
     delegate_t m_UnloadDelegate;
-    delegate_t m_PreUnloadLibraryDelegate;
+    pre_delegate_t m_PreUnloadLibraryDelegate;
     serialization::DataBase* m_pDataBase;
+    QFileSystemWatcher* m_pFileSystemWatcher;
 };
 
 }}

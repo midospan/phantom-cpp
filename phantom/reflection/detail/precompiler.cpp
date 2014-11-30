@@ -16,7 +16,7 @@
 #include "phantom/reflection/BranchIfNotStatement.h"
 #include "phantom/reflection/BranchIfStatement.h"
 #include "phantom/reflection/ReturnStatement.h"
-#include "phantom/util/Message.h"
+#include "phantom/Message.h"
 #include <stdarg.h>
 /* *********************************************** */
 o_namespace_begin(phantom, reflection, cpp, ast)
@@ -180,24 +180,24 @@ public:
     statement_visitor(
         expression** a_pp_expression
         , block** a_pp_block
-        , if_statement**                  a_pp_if_statement 
+        , if_statement**                  a_pp_if_statement
         , for_statement**                 a_pp_for_statement
-        , while_statement**               a_pp_while_statement 
+        , while_statement**               a_pp_while_statement
         , do_while_statement**            a_pp_do_while_statement
         , switch_statement**              a_pp_switch_statement
-        , goto_statement**                a_pp_goto_statement 
+        , goto_statement**                a_pp_goto_statement
         , label_statement**               a_pp_label_statement
         , variable_declaration**          a_pp_variable_declaration
         , return_statement**          a_pp_return_statement
-        , fundamental_node<int>** a_pp_keyword_statement) 
+        , fundamental_node<int>** a_pp_keyword_statement)
         : m_pp_expression(a_pp_expression)
-        , m_pp_block(a_pp_block) 
-        , m_pp_if_statement  (a_pp_if_statement) 
+        , m_pp_block(a_pp_block)
+        , m_pp_if_statement  (a_pp_if_statement)
         , m_pp_for_statement (a_pp_for_statement)
-        , m_pp_while_statement  (a_pp_while_statement) 
+        , m_pp_while_statement  (a_pp_while_statement)
         , m_pp_do_while_statement (a_pp_do_while_statement)
         , m_pp_switch_statement (a_pp_switch_statement)
-        , m_pp_goto_statement  (a_pp_goto_statement) 
+        , m_pp_goto_statement  (a_pp_goto_statement)
         , m_pp_label_statement (a_pp_label_statement)
         , m_pp_variable_declaration (a_pp_variable_declaration)
         , m_pp_return_statement(a_pp_return_statement)
@@ -407,14 +407,14 @@ public:
 
 protected:
     fundamental_node<hex_t>** m_pp_hex_t;
-    fundamental_node<float>** m_pp_float; 
-    fundamental_node<double>** m_pp_double; 
-    fundamental_node<longdouble>** m_pp_longdouble; 
-    fundamental_node<int>** m_pp_int; 
-    fundamental_node<uint>** m_pp_uint; 
-    fundamental_node<longlong>** m_pp_longlong; 
-    fundamental_node<ulonglong>** m_pp_ulonglong; 
-    fundamental_node<char>** m_pp_char; 
+    fundamental_node<float>** m_pp_float;
+    fundamental_node<double>** m_pp_double;
+    fundamental_node<longdouble>** m_pp_longdouble;
+    fundamental_node<int>** m_pp_int;
+    fundamental_node<uint>** m_pp_uint;
+    fundamental_node<longlong>** m_pp_longlong;
+    fundamental_node<ulonglong>** m_pp_ulonglong;
+    fundamental_node<char>** m_pp_char;
     fundamental_node<bool>** m_pp_bool;
     fundamental_node<std::nullptr_t>** m_pp_nullptr;
 };
@@ -472,11 +472,11 @@ public:
 
 protected:
     fundamental_node<hex_t>** m_pp_hex_t;
-    fundamental_node<int>** m_pp_int; 
-    fundamental_node<uint>** m_pp_uint; 
-    fundamental_node<longlong>** m_pp_longlong; 
-    fundamental_node<ulonglong>** m_pp_ulonglong; 
-    fundamental_node<char>** m_pp_char; 
+    fundamental_node<int>** m_pp_int;
+    fundamental_node<uint>** m_pp_uint;
+    fundamental_node<longlong>** m_pp_longlong;
+    fundamental_node<ulonglong>** m_pp_ulonglong;
+    fundamental_node<char>** m_pp_char;
     fundamental_node<bool>** m_pp_bool;
 };
 
@@ -594,12 +594,12 @@ public:
         *m_pp_namespace_declaration = &arg;
     }
 
-    void operator()(class_declaration& arg) const 
+    void operator()(class_declaration& arg) const
     {
         *m_pp_class_declaration = &arg;
     }
 
-    void operator()(typedef_declaration& arg) const 
+    void operator()(typedef_declaration& arg) const
     {
         *m_pp_typedef_declaration = &arg;
     }
@@ -618,28 +618,28 @@ public:
     class_member_declaration_visitor(member_declaration** a_pp_member_declaration
                                         , class_declaration** a_pp_class_declaration
                                         , typedef_declaration** a_pp_typedef_declaration
-                                        , fundamental_node<int>** a_pp_access_qualifier)
+                                        , fundamental_node<unsigned long long>** a_pp_access_qualifier)
             : m_pp_member_declaration(a_pp_member_declaration)
             , m_pp_class_declaration(a_pp_class_declaration)
-            , m_pp_typedef_declaration(a_pp_typedef_declaration) 
+            , m_pp_typedef_declaration(a_pp_typedef_declaration)
             , m_pp_access_qualifier(a_pp_access_qualifier) {}
-    
+
     void operator()(member_declaration& arg) const
     {
         *m_pp_member_declaration = &arg;
     }
 
-    void operator()(class_declaration& arg) const 
+    void operator()(class_declaration& arg) const
     {
         *m_pp_class_declaration = &arg;
     }
 
-    void operator()(typedef_declaration& arg) const 
+    void operator()(typedef_declaration& arg) const
     {
         *m_pp_typedef_declaration = &arg;
     }
 
-    void operator()(fundamental_node<int>& arg) const 
+    void operator()(fundamental_node<unsigned long long>& arg) const
     {
         *m_pp_access_qualifier = &arg;
     }
@@ -648,7 +648,7 @@ protected:
     member_declaration**    m_pp_member_declaration;
     class_declaration**     m_pp_class_declaration;
     typedef_declaration**   m_pp_typedef_declaration;
-    fundamental_node<int>** m_pp_access_qualifier;
+    fundamental_node<unsigned long long>** m_pp_access_qualifier;
 };
 
 class member_declaration_visitor
@@ -661,18 +661,18 @@ public:
             : m_pp_ambiguous_member_declaration(a_pp_ambiguous_member_declaration)
             , m_pp_virtual_member_function_declaration(a_pp_virtual_member_function_declaration)
             , m_pp_static_ambiguous_member_declaration(a_pp_static_ambiguous_member_declaration) {}
-    
+
     void operator()(ambiguous_member_declaration& arg) const
     {
         *m_pp_ambiguous_member_declaration = &arg;
     }
 
-    void operator()(virtual_member_function_declaration& arg) const 
+    void operator()(virtual_member_function_declaration& arg) const
     {
         *m_pp_virtual_member_function_declaration = &arg;
     }
 
-    void operator()(static_ambiguous_member_declaration& arg) const 
+    void operator()(static_ambiguous_member_declaration& arg) const
     {
         *m_pp_static_ambiguous_member_declaration = &arg;
     }
@@ -692,12 +692,12 @@ public:
             : m_pp_namespace_scope(a_pp_namespace_scope)
             , m_pp_namespace_alias(a_pp_namespace_alias){}
 
-    void operator()(namespace_scope& arg) const 
+    void operator()(namespace_scope& arg) const
     {
         *m_pp_namespace_scope = &arg;
     }
 
-    void operator()(namespace_alias& arg) const 
+    void operator()(namespace_alias& arg) const
     {
         *m_pp_namespace_alias = &arg;
     }
@@ -729,7 +729,7 @@ precompiler::element_garbage::~element_garbage()
     {
         if((*it)->getOwner() == nullptr && NOT((*it)->isNative())) // if not in a module or not in another element we can delete it
         {
-            phantom::deleteElement(*it);
+            o_dynamic_delete (*it);
         }
     }
 }
@@ -824,8 +824,8 @@ bool precompiler::precompile_template_signature(vector<template_element>& ts, ve
         TemplateElement* pTemplateElement  = nullptr;
         if(p_type)
         {
-            LanguageElement* pElement = precompile_type_recursive(*p_type, a_pScope);
-            if(pElement == nullptr) 
+            LanguageElement* pElement = precompile_template_element_recursive(*p_type, a_pScope);
+            if(pElement == nullptr)
                 return false;
             pElement = pElement->hatch();
             garbage.add(pElement);
@@ -834,13 +834,13 @@ bool precompiler::precompile_template_signature(vector<template_element>& ts, ve
         else if(p_integral_literal)
         {
             ConstantExpression* pConstantExpression = precompile_integral_literal(*p_integral_literal);
-            if(pConstantExpression == nullptr) 
+            if(pConstantExpression == nullptr)
                 return false;
             NumericConstant* pNumericConstant = pConstantExpression->hatch()->asNumericConstant();
             garbage.add(pNumericConstant);
             pTemplateElement = pNumericConstant;
         }
-        if(pTemplateElement == nullptr) 
+        if(pTemplateElement == nullptr)
             return false;
         out.push_back(pTemplateElement);
     }
@@ -887,7 +887,7 @@ LanguageElement* precompiler::precompile_element(LanguageElement* a_pLHS, elemen
     // name
     LanguageElement* pLHS = a_pLHS;
     bool bLookingForType = t.m_const_modifier.is_initialized() OR NOT(t.m_type_extension.empty());
-    
+
     if(e.m_function_prototype.is_initialized())
     {
         function_signature& fs = (*(e.m_function_prototype)).m_signature;
@@ -910,7 +910,7 @@ LanguageElement* precompiler::precompile_element(LanguageElement* a_pLHS, elemen
     {
 //        if(bLookingForType)
 //            try_error(node_location(e), "Cannot solve type '%s'", node_string(t).c_str());
-//        else 
+//        else
 //            try_error(node_location(e), "Cannot solve expression '%s'", node_string(t).c_str());
         return nullptr;
     }
@@ -942,28 +942,28 @@ LanguageElement* precompiler::precompile_element(LanguageElement* a_pLHS, elemen
                 pType = precompile_type_qualifier(pType, *p_qualifier);
                 if(pType == nullptr)
                 {
-//                    try_error(node_location(*it), "Invalid extra qualifier '%c'", *p_qualifier); 
+//                    try_error(node_location(*it), "Invalid extra qualifier '%c'", *p_qualifier);
                     return nullptr;
                 }
             }
             else if(p_extent)
             {
                 LanguageElement* pLanguageElement = precompile_template_element(*p_extent, a_pScope);
-                if(pLanguageElement == nullptr) 
+                if(pLanguageElement == nullptr)
                 {
-//                    try_error(node_location(*p_extent), "Invalid extent '%s'", node_string(*p_extent).c_str()); 
+//                    try_error(node_location(*p_extent), "Invalid extent '%s'", node_string(*p_extent).c_str());
                     return nullptr;
                 }
                 ConstantExpression* pConstantExpression = as<ConstantExpression*>(pLanguageElement);
-                if(pConstantExpression == nullptr) 
+                if(pConstantExpression == nullptr)
                 {
-//                    try_error(node_location(*p_extent), "Expression '%s' must be a constant", node_string(*p_extent).c_str()); 
+//                    try_error(node_location(*p_extent), "Expression '%s' must be a constant", node_string(*p_extent).c_str());
                     return nullptr;
                 }
                 Expression* pCastedExpression = pConstantExpression->implicitCast(typeOf<size_t>());
-                if(pCastedExpression == nullptr) 
+                if(pCastedExpression == nullptr)
                 {
-//                    try_error(node_location(*p_extent), "Expression '%s' must be an integral constant", node_string(*p_extent).c_str()); 
+//                    try_error(node_location(*p_extent), "Expression '%s' must be an integral constant", node_string(*p_extent).c_str());
                     return nullptr;
                 }
 
@@ -971,12 +971,12 @@ LanguageElement* precompiler::precompile_element(LanguageElement* a_pLHS, elemen
                 pCastedExpression->getValue(&value);
                 if(value == 0)
                 {
-                    //  try_error(node_location(*p_extent), "Array cannot have '0' size", node_string(*p_extent).c_str()); 
-                    phantom::deleteElement(pCastedExpression);
+                    //  try_error(node_location(*p_extent), "Array cannot have '0' size", node_string(*p_extent).c_str());
+                    o_dynamic_delete (pCastedExpression);
                     return nullptr;
                 }
                 pType = pType->arrayType(value);
-                phantom::deleteElement(pCastedExpression);
+                o_dynamic_delete (pCastedExpression);
             }
         }
         return pType;
@@ -1052,8 +1052,7 @@ LanguageElement* precompile_root(root& r, LanguageElement* a_pScope)
 
 void precompiler::precompile_block(block& r, Block* a_pBlock)
 {
-    Block* pBlock = o_new(Block);
-    a_pBlock->addStatement(pBlock);
+    Block* pBlock = o_new(Block)(a_pBlock);
     for(auto it = r.m_statements.begin(); it != r.m_statements.end(); ++it)
     {
         precompile_statement(*it, pBlock);
@@ -1076,16 +1075,15 @@ Expression* precompiler::precompile_variable_declaration_or_expression(variable_
         }
         else return nullptr;
     }
-    else 
+    else
     {
         return precompile_expression(*p_expression, a_pBlock);
     }
 }
 
-void precompiler::precompile_if_statement(if_statement& is, Block* a_pBlock) 
+void precompiler::precompile_if_statement(if_statement& is, Block* a_pBlock)
 {
-    Block* pIfStatement = o_new(Block)("if");
-    a_pBlock->addStatement(pIfStatement);
+    Block* pIfStatement = o_new(Block)(a_pBlock, "if");
     Expression* pCondition = precompile_variable_declaration_or_expression(is.m_condition, pIfStatement);
     if(pCondition == nullptr)
     {
@@ -1115,10 +1113,9 @@ void precompiler::precompile_if_statement(if_statement& is, Block* a_pBlock)
     }
 }
 
-void precompiler::precompile_for_statement(for_statement& fs, Block* a_pBlock) 
-{ 
-    Block* pForStatement = o_new(Block)("for");
-    a_pBlock->addStatement(pForStatement);
+void precompiler::precompile_for_statement(for_statement& fs, Block* a_pBlock)
+{
+    Block* pForStatement = o_new(Block)(a_pBlock, "for");
     LabelStatement*     pBreakLabelStatement = o_new(LabelStatement)("break");
     LabelStatement*     pContinueLabelStatement = o_new(LabelStatement)("continue");
     LabelStatement*     pCodeStartLabelStatement = o_new(LabelStatement)("for");
@@ -1131,7 +1128,7 @@ void precompiler::precompile_for_statement(for_statement& fs, Block* a_pBlock)
         {
             error(node_location(fs.m_init), "Invalid for init");
         }
-        else 
+        else
         {
             pForStatement->addStatement(o_new(ExpressionStatement)(pInit));
         }
@@ -1156,8 +1153,8 @@ void precompiler::precompile_for_statement(for_statement& fs, Block* a_pBlock)
         pBranchIfNotStatement->setLabelStatement(pBreakLabelStatement);
     }
 
-    BranchStatement* pBranchIfStatement = pConditionClone 
-        ? o_new(BranchIfStatement)(pConditionClone) 
+    BranchStatement* pBranchIfStatement = pConditionClone
+        ? o_new(BranchIfStatement)(pConditionClone)
         : o_new(BranchStatement);
 
     pBranchIfStatement->setLabelStatement(pCodeStartLabelStatement);
@@ -1195,10 +1192,9 @@ void precompiler::precompile_for_statement(for_statement& fs, Block* a_pBlock)
     pForStatement->addStatement(pBreakLabelStatement);
 }
 
-void precompiler::precompile_while_statement(while_statement& ws, Block* a_pBlock) 
-{ 
-    Block* pWhileStatement = o_new(Block)("while");
-    a_pBlock->addStatement(pWhileStatement);
+void precompiler::precompile_while_statement(while_statement& ws, Block* a_pBlock)
+{
+    Block* pWhileStatement = o_new(Block)(a_pBlock, "while");
     Expression* pCondition = precompile_variable_declaration_or_expression(ws.m_condition, pWhileStatement);
 
     if(pCondition)
@@ -1209,7 +1205,7 @@ void precompiler::precompile_while_statement(while_statement& ws, Block* a_pBloc
             error(node_location(ws.m_condition), "Cannot convert from '%s' to 'bool' in while condition", pCondition->getValueType()->getQualifiedDecoratedName().c_str());
         }
     }
-    else 
+    else
     {
         pWhileStatement->setInvalid();
         error(node_location(ws.m_condition), "Invalid while condition");
@@ -1226,7 +1222,7 @@ void precompiler::precompile_while_statement(while_statement& ws, Block* a_pBloc
 
     BranchIfStatement* pBranchIfStatement = o_new(BranchIfStatement)(pConditionClone);
     pBranchIfStatement->setLabelStatement(pCodeStartLabelStatement);
-    
+
     // Branch to break if test fails
     pWhileStatement->addStatement(pBranchIfNotStatement);
 
@@ -1249,10 +1245,9 @@ void precompiler::precompile_while_statement(while_statement& ws, Block* a_pBloc
     pWhileStatement->addStatement(pBreakLabelStatement);
 }
 
-void precompiler::precompile_do_while_statement(do_while_statement& dws, Block* a_pBlock) 
+void precompiler::precompile_do_while_statement(do_while_statement& dws, Block* a_pBlock)
 {
-    Block* pDoWhileStatement = o_new(Block)("do");
-    a_pBlock->addStatement(pDoWhileStatement);
+    Block* pDoWhileStatement = o_new(Block)(a_pBlock, "do");
 
     Expression* pCondition = precompile_expression(dws.m_condition, pDoWhileStatement);
 
@@ -1264,7 +1259,7 @@ void precompiler::precompile_do_while_statement(do_while_statement& dws, Block* 
             error(node_location(dws.m_condition), "Cannot convert from '%s' to 'bool' in do while condition", pCondition->getValueType()->getQualifiedDecoratedName().c_str());
         }
     }
-    else 
+    else
     {
         pDoWhileStatement->setInvalid();
         error(node_location(dws.m_condition), "Invalid do while condition");
@@ -1294,12 +1289,11 @@ void precompiler::precompile_do_while_statement(do_while_statement& dws, Block* 
     pDoWhileStatement->addStatement(pBreakLabelStatement);
 }
 
-void precompiler::precompile_switch_statement(switch_statement& s, Block* a_pBlock) 
+void precompiler::precompile_switch_statement(switch_statement& s, Block* a_pBlock)
 {
     element_garbage garbage;
 
-    Block* pSwitchStatement = o_new(Block)("switch");
-    a_pBlock->addStatement(pSwitchStatement);
+    Block* pSwitchStatement = o_new(Block)(a_pBlock, "switch");
 
     Expression* pTestValue = precompile_variable_declaration_or_expression(s.m_test_value, pSwitchStatement);
     if(pTestValue == nullptr)
@@ -1307,7 +1301,7 @@ void precompiler::precompile_switch_statement(switch_statement& s, Block* a_pBlo
         pSwitchStatement->setInvalid();
         error(node_location(s.m_test_value), "Invalid switch test expression");
     }
-    else 
+    else
     {
         if(pTestValue->getValueType()->removeReference()->removeConst()->asIntegralType() == nullptr)
         {
@@ -1316,8 +1310,7 @@ void precompiler::precompile_switch_statement(switch_statement& s, Block* a_pBlo
         }
     }
 
-    Block* pInnerBlock = o_new(Block);
-    pSwitchStatement->addStatement(pInnerBlock);
+    Block* pInnerBlock = o_new(Block)(pSwitchStatement);
 
     vector<Statement*> branchIfs;
     BranchStatement* pDefaultBranch = nullptr;
@@ -1330,11 +1323,11 @@ void precompiler::precompile_switch_statement(switch_statement& s, Block* a_pBlo
         statement_or_case_label_visitor soclv(&p_statement, &p_case_label);
         it->apply_visitor(soclv);
 
-        if(p_statement) 
+        if(p_statement)
         {
             precompile_statement(*p_statement, pInnerBlock);
         }
-        else if(p_case_label) 
+        else if(p_case_label)
         {
             LabelStatement* pCaseLabel = o_new(LabelStatement)(p_case_label->m_value.is_initialized() ? "case" : "default");
             if(p_case_label->m_value.is_initialized())
@@ -1358,7 +1351,7 @@ void precompiler::precompile_switch_statement(switch_statement& s, Block* a_pBlo
                 pBranch->setLabelStatement(pCaseLabel);
                 branchIfs.push_back(pBranch);
             }
-            else 
+            else
             {
                 if(pDefaultBranch)
                 {
@@ -1375,17 +1368,17 @@ void precompiler::precompile_switch_statement(switch_statement& s, Block* a_pBlo
     pInnerBlock->addStatement(o_new(LabelStatement)("break"));
 }
 
-void precompiler::precompile_goto_statement(goto_statement&, Block* a_pBlock) 
-{ 
+void precompiler::precompile_goto_statement(goto_statement&, Block* a_pBlock)
+{
 //    o_new(GotoStatement)
 }
 
-void  precompiler::precompile_label_statement(label_statement& ls, Block* a_pBlock) 
+void  precompiler::precompile_label_statement(label_statement& ls, Block* a_pBlock)
 {
     a_pBlock->addStatement(o_new(LabelStatement)(ls.m_label.m_value));
 }
 
-void  precompiler::precompile_return_statement(return_statement&  rs, Block* a_pBlock) 
+void  precompiler::precompile_return_statement(return_statement&  rs, Block* a_pBlock)
 {
     o_assert(a_pBlock->getSubroutine());
     ReturnStatement* pReturnStatement = o_new(ReturnStatement);
@@ -1428,7 +1421,7 @@ struct local_variable_addressed_access_builder : public addressed_access_builder
     {
 
     }
-    virtual Expression* build() const 
+    virtual Expression* build() const
     {
         return (o_new(LocalVariableAccess)(m_pLocalVariable))->address();
     }
@@ -1445,11 +1438,11 @@ struct array_element_addressed_access_builder : public addressed_access_builder
     {
         o_assert(m_pLocalVariable->getValueType()->asArrayType());
     }
-    virtual Expression* build() const 
+    virtual Expression* build() const
     {
         ConstantExpression* pIndexExpression = o_new(ConstantExpression)(
-            o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<uint>)(
-            lexical_cast<string>(m_uiIndex), m_uiIndex), nullptr, true
+            o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<uint>)(
+            lexical_cast<string>(m_uiIndex), m_uiIndex)
             );
         return (o_new(ArrayElementAccess)(m_pLocalVariable->getValueType()->asArrayType(), o_new(LocalVariableAccess)(m_pLocalVariable), pIndexExpression))->address();
     }
@@ -1547,11 +1540,11 @@ LocalVariable* precompiler::precompile_variable_declarator(Type* a_pType, variab
         {
             error(node_location(*it), "Array cannot have '0' size", node_string(*it).c_str());
             a_pBlock->setInvalid();
-            phantom::deleteElement(pCastedExpression);
+            o_dynamic_delete (pCastedExpression);
             continue;
         }
         a_pType = a_pType->arrayType(value);
-        phantom::deleteElement(pCastedExpression);
+        o_dynamic_delete (pCastedExpression);
     }
     LocalVariable* pLocalVariable = o_new(LocalVariable)(a_pType, name);
     a_pBlock->addLocalVariable(pLocalVariable);
@@ -1581,13 +1574,13 @@ void precompiler::precompile_initialization(Type* a_pType, const addressed_acces
             destructorArguments.push_back(aab.build());
             a_pBlock->addRAIIDestructionStatement(o_new(ExpressionStatement)(o_new(CallExpression)(a_pType->asClassType()->getDestructor(), destructorArguments)));
         }
-        else 
+        else
         {
             vector<Type*> empty;
-            Constructor* pDefaultConstructor = a_pType->asClassType()->getConstructor(empty, nullptr, o_public);
+            Constructor* pDefaultConstructor = a_pType->asClassType()->getConstructor(empty, nullptr, o_public_access);
             if(pDefaultConstructor)
             {
-                Expression* pAssignmentExpression = a_pType->solveOperator("=", arguments, o_public);
+                Expression* pAssignmentExpression = a_pType->solveOperator("=", arguments, o_public_access);
                 if(pAssignmentExpression)
                 {
                     // Default construction
@@ -1607,7 +1600,7 @@ void precompiler::precompile_initialization(Type* a_pType, const addressed_acces
                         a_pBlock->addRAIIDestructionStatement(o_new(ExpressionStatement)(o_new(CallExpression)(a_pType->asClassType()->getDestructor(), destructorArguments)));
                     }
                 }
-                else 
+                else
                 {
                     a_pBlock->setInvalid();
                     error(a_pExpression->getCodeLocation(), "No constructor available matching initialization expression type '%s'", a_pExpression->getValueType()->getQualifiedDecoratedName().c_str());
@@ -1620,17 +1613,17 @@ void precompiler::precompile_initialization(Type* a_pType, const addressed_acces
             }
         }
     }
-    else 
+    else
     {
         vector<Expression*> arguments;
         arguments.push_back(aab.build()->dereference());
         arguments.push_back(a_pExpression);
-        Expression* pAssignmentExpression = a_pType->solveOperator("=", arguments, o_public);
+        Expression* pAssignmentExpression = a_pType->solveOperator("=", arguments, o_public_access);
         if(pAssignmentExpression)
         {
             a_pBlock->addStatement(o_new(ExpressionStatement)(pAssignmentExpression));
         }
-        else 
+        else
         {
             a_pBlock->setInvalid();
             error(a_pExpression->getCodeLocation(), "Cannot convert from '%s' to '%s'", a_pExpression->getValueType()->getQualifiedDecoratedName().c_str(), a_pType->getQualifiedDecoratedName().c_str());
@@ -1667,8 +1660,8 @@ void precompiler::precompile_variable_declaration(variable_declaration& vd, Bloc
         }
     }
 }
-void precompiler::precompile_variable_declaration(variable_declaration&, Namespace* a_pNamespace) 
-{ 
+void precompiler::precompile_variable_declaration(variable_declaration&, Namespace* a_pNamespace)
+{
 }
 
 void precompiler::precompile_statement(statement& s, Block* a_pBlock)
@@ -1696,7 +1689,7 @@ void precompiler::precompile_statement(statement& s, Block* a_pBlock)
             Statement* pStatement = o_new(ExpressionStatement)(pExpression);
             a_pBlock->addStatement(pStatement);
         }
-        else 
+        else
         {
             error(node_location(s), "Invalid expression in statement");
         }
@@ -1751,7 +1744,7 @@ bool precompiler::precompile_string_literal(string_node& s, string& out)
         if(s.m_value[i] == '\\')
         {
             ++i;
-            if(i == s.m_value.size()) 
+            if(i == s.m_value.size())
             {
                 error(s.m_location, "Incomplete escape sequence in string literal");
                 return false;
@@ -1766,7 +1759,7 @@ bool precompiler::precompile_string_literal(string_node& s, string& out)
                     out += s.m_value[i];
             }
         }
-        else 
+        else
         {
             out += s.m_value[i];
         }
@@ -1774,27 +1767,10 @@ bool precompiler::precompile_string_literal(string_node& s, string& out)
     return true;
 }
 
-Expression* precompiler::precompile_expression(expression& e, Block* a_pBlock)
+Expression* precompiler::precompile_block_expression(expression& e, Block* a_pBlock)
 {
-    LocalVariable* pThis = a_pBlock->getRootBlock()->getLocalVariable("this");
-    Expression* pExpression = nullptr;
-    if(pThis)
-    {
-        element_garbage garbage;
-        Expression* pThisExpression = (o_new(LocalVariableAccess)(pThis))->dereference();
-        garbage.add(pThisExpression);
-        pExpression = precompile_expression(e, a_pBlock, pThisExpression);
-        if(pExpression AND pExpression->isInvalid())
-        {
-            phantom::deleteElement(pExpression);
-            pExpression = nullptr;
-        }
-    }
-    if(pExpression == nullptr)
-    {
-        pExpression = precompile_expression(e, a_pBlock, nullptr);
-    }
-    return pExpression;
+    o_assert(false);
+    return nullptr;
 }
 
 Expression* precompiler::precompile_expression(expression& e, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/)
@@ -1819,7 +1795,7 @@ Expression* precompiler::precompile_expression(expression& e, LanguageElement* a
             p_literal->apply_visitor(lv);
             if(p_fundamental_literal)
             {
-                return precompile_fundamental_literal(*p_fundamental_literal);                
+                return precompile_fundamental_literal(*p_fundamental_literal);
             }
             else if(p_string)
             {
@@ -1830,7 +1806,7 @@ Expression* precompiler::precompile_expression(expression& e, LanguageElement* a
                 }
                 return o_new(StringLiteralExpression)(unescaped);
             }
-            //return o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<longlong>)(lexical_cast<string>(*p_longlong),*p_longlong), nullptr, true);
+            //return o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<longlong>)(lexical_cast<string>(*p_longlong),*p_longlong), nullptr, true);
         }
         else if(p_qualified_name)
         {
@@ -1883,29 +1859,33 @@ Expression* precompiler::precompile_expression(expression& e, LanguageElement* a
 
 Expression* precompiler::precompile_cast_expression(cast_expression& e, LanguageElement* a_pScope, LanguageElement* a_pLHS)
 {
-    element_garbage garbage;
-
-    Expression* pCastedExpression = precompile_expression(e.m_casted_expression.get(), a_pScope, a_pLHS);
-    if(pCastedExpression == nullptr) return nullptr;
-    garbage.add(pCastedExpression);
-
-    if(e.m_types.size()) 
+    //if(e.m_casted_expression.is_initialized())
     {
-        for(auto it = e.m_types.rbegin(); it != e.m_types.rend(); ++it)
-        {
-            Type* pType = precompile_type_recursive(it->m_type, a_pScope);
-            if(pType == nullptr) return nullptr;
-            garbage.add(pType);
-            pType->setCodeLocation(it->m_location | pCastedExpression->getCodeLocation());
-            Expression* pNewCastedExpression = pCastedExpression->cast(pType);
-            if(pNewCastedExpression == nullptr) return nullptr;
-            garbage.add(pNewCastedExpression);
-            pCastedExpression = pNewCastedExpression;
-        }
+        element_garbage garbage;
+        Expression* pCastedExpression = precompile_expression(e.m_casted_expression.get(), a_pScope, a_pLHS);
+        if(pCastedExpression == nullptr) return nullptr;
+        garbage.add(pCastedExpression);
+
+        Type* pType = precompile_type_recursive(e.m_type, a_pScope);
+        if(pType == nullptr) return nullptr;
+        Expression* pNewCastedExpression = pCastedExpression->cast(pType);
+        if(pNewCastedExpression == nullptr) return nullptr;
+        garbage.clear();
+        return pNewCastedExpression;
     }
-    
-    garbage.clear();
-    return pCastedExpression;
+    //else
+    //{
+    //    if(e.m_types.size() < 1) return nullptr;
+    //    type& t = e.m_types.back().m_type;
+    //    vector<cast_type> types = e.m_types;
+    //    if(t.m_const_modifier.is_initialized()) return nullptr;
+    //    if(t.m_type_extension.size()) return nullptr;
+    //    cast_expression ce;
+    //    ce.m_types = e.m_types;
+    //    ce.m_types.pop_back();
+    //    ce.m_casted_expression = boost::recursive_wrapper<expression>(t.m_qualified_name);
+    //    return precompile_cast_expression(ce, a_pScope, a_pLHS);
+    //}
 }
 
 Expression* precompiler::precompile_ternary_if_expression(ternary_if_expression& e, LanguageElement* a_pScope, LanguageElement* a_pLHS)
@@ -1940,7 +1920,7 @@ Expression* precompiler::precompile_bracket_expression(bracket_expression& e, La
 {
     element_garbage garbage;
     Expression* pExpression = precompile_call_expression(e.m_left.get(), a_pScope, a_pLHS);
-    if(pExpression == nullptr) 
+    if(pExpression == nullptr)
     {
         return nullptr;
     }
@@ -1951,7 +1931,7 @@ Expression* precompiler::precompile_bracket_expression(bracket_expression& e, La
         vector<Expression*> argumentList;
         argumentList.push_back(precompile_expression(*it, a_pScope, nullptr));
         Expression* pCall = pExpression->solveOperator("[]", argumentList);
-        if(pCall == nullptr) 
+        if(pCall == nullptr)
         {
             error(node_location(*it), "Cannot solve operator[] with given arguments");
             return nullptr;
@@ -1987,12 +1967,12 @@ Expression* precompiler::precompile_call_expression(call_expression& e, Language
                 {
                     argumentList.push_back(precompile_expression(*it, a_pScope, nullptr));
                 }
-                LanguageElement* pQualifiedName = a_pLHS 
+                LanguageElement* pQualifiedName = a_pLHS
                                                      ? precompile_qualified_name(a_pLHS, *p_qualified_name, (vector<LanguageElement*>*)&argumentList, false, a_pScope)
                                                      : precompile_qualified_name_recursive(*p_qualified_name, (vector<LanguageElement*>*)&argumentList, false, a_pScope);
                 if(pQualifiedName == nullptr)
                 {
-                    pQualifiedName = a_pLHS 
+                    pQualifiedName = a_pLHS
                                         ? precompile_qualified_name(a_pLHS, *p_qualified_name, nullptr, false, a_pScope)
                                         : precompile_qualified_name_recursive(*p_qualified_name, nullptr, false, a_pScope);
                     if(pQualifiedName)
@@ -2005,7 +1985,6 @@ Expression* precompiler::precompile_call_expression(call_expression& e, Language
                     }
                 }
                 else pExpression = (pQualifiedName->asExpression());
-                o_assert(pExpression);
             }
         }
     }
@@ -2013,11 +1992,11 @@ Expression* precompiler::precompile_call_expression(call_expression& e, Language
     if(pExpression == nullptr)
     {
         pExpression = precompile_post_unary_expression(e.m_left.get(), a_pScope, a_pLHS);
-        if(pExpression == nullptr) 
+        if(pExpression == nullptr)
             return nullptr;
         garbage.add(pExpression);
     }
-    else 
+    else
     {
         ++it;
     }
@@ -2033,7 +2012,7 @@ Expression* precompiler::precompile_call_expression(call_expression& e, Language
         }
         Expression* pCall = pExpression->solveOperator("()", argumentList);
         pCall->setCodeLocation(node_location(argument_list));
-        if(pCall == nullptr) 
+        if(pCall == nullptr)
         {
             error(node_location(argument_list), "Cannot solve operator() with given arguments");
             return nullptr;
@@ -2059,7 +2038,7 @@ Expression* precompiler::precompile_pre_unary_expression(pre_unary_expression& e
         const string& opName = token_ids::operator_string_from_token_id(*it);
         Expression* pOperation = pExpression->solveUnaryOperator(opName);
         pOperation->setCodeLocation(pExpression->getCodeLocation()|it->m_location);
-        if(pOperation == nullptr) 
+        if(pOperation == nullptr)
         {
             error(node_location(*it), "Cannot solve prefix unary operator%s", opName.c_str());
             return nullptr;
@@ -2082,7 +2061,7 @@ Expression* precompiler::precompile_post_unary_expression(post_unary_expression&
         const string& opName = token_ids::operator_string_from_token_id(*it);
         Expression* pOperation = (opName == "++") ? pExpression->solveBinaryOperator(opName, phantom::expressionByName("0")->implicitCast(typeOf<int>())) : pExpression->solveUnaryOperator(opName);
         pOperation->setCodeLocation(pExpression->getCodeLocation()|it->m_location);
-        if(pOperation == nullptr) 
+        if(pOperation == nullptr)
         {
             error(node_location(*it), "Cannot solve postfix unary operator%s", opName.c_str());
             return nullptr;
@@ -2109,7 +2088,7 @@ Expression* precompiler::precompile_binary_right_expression(binary_right_express
         // MEMBER ACCESS / INDIRECTION :
         Expression* pRightExpression = nullptr;
         if(e.m_op == token_ids::dot) // MEMBER ACCESS
-        { 
+        {
             Expression* pDotExpression = precompile_expression(e.m_right.get(), a_pScope, pLeftExpression);
             if(pDotExpression == nullptr)
             {
@@ -2122,11 +2101,11 @@ Expression* precompiler::precompile_binary_right_expression(binary_right_express
         {
             Expression* pNewLeftExpression = pLeftExpression->dereference();
             garbage.add(pNewLeftExpression);
-            if(pNewLeftExpression == nullptr) 
+            if(pNewLeftExpression == nullptr)
             {
                 pLeftExpression = pLeftExpression->solveUnaryOperator("->");
                 garbage.add(pLeftExpression);
-                if(pLeftExpression == nullptr) 
+                if(pLeftExpression == nullptr)
                 {
                     error(node_location(e.m_op), "Cannot solve binary operator->");
                     return nullptr;
@@ -2142,13 +2121,11 @@ Expression* precompiler::precompile_binary_right_expression(binary_right_express
             garbage.add(pRightExpression);
             pLeftExpression = pRightExpression;
         }
-        else 
+        else
         {
-            pRightExpression = a_pScope->asBlock() 
-                                    ? precompile_expression(e.m_right.get(), a_pScope->asBlock()) 
-                                    : precompile_expression(e.m_right.get(), a_pScope, nullptr);
+            pRightExpression = precompile_expression(e.m_right.get(), a_pScope);
             garbage.add(pRightExpression);
-            if(pRightExpression == nullptr) 
+            if(pRightExpression == nullptr)
                 return nullptr;
             const string& opName = token_ids::operator_string_from_token_id(e.m_op);
             auto codeLocation = (pLeftExpression->getCodeLocation() | pRightExpression->getCodeLocation());
@@ -2161,7 +2138,7 @@ Expression* precompiler::precompile_binary_right_expression(binary_right_express
             pLeftExpression->setCodeLocation(codeLocation);
             garbage.add(pLeftExpression);
         }
-        if(pLeftExpression == nullptr) 
+        if(pLeftExpression == nullptr)
         {
             return nullptr;
         }
@@ -2210,31 +2187,31 @@ Expression* precompiler::precompile_binary_right_expression(binary_right_express
 ConstantExpression* precompiler::precompile_fundamental_literal( fundamental_literal& fl )
 {
     fundamental_node<hex_t>* p_hex_t = 0;
-    fundamental_node<float>* p_float = 0; 
-    fundamental_node<double>* p_double = 0; 
-    fundamental_node<longdouble>* p_longdouble = 0; 
-    fundamental_node<int>* p_int = 0; 
-    fundamental_node<uint>* p_uint = 0; 
-    fundamental_node<longlong>* p_longlong = 0; 
-    fundamental_node<ulonglong>* p_ulonglong = 0; 
-    fundamental_node<char>* p_char = 0; 
+    fundamental_node<float>* p_float = 0;
+    fundamental_node<double>* p_double = 0;
+    fundamental_node<longdouble>* p_longdouble = 0;
+    fundamental_node<int>* p_int = 0;
+    fundamental_node<uint>* p_uint = 0;
+    fundamental_node<longlong>* p_longlong = 0;
+    fundamental_node<ulonglong>* p_ulonglong = 0;
+    fundamental_node<char>* p_char = 0;
     fundamental_node<bool>* p_bool = 0;
     fundamental_node<std::nullptr_t>* p_nullptr = 0;
     fundamental_literal_visitor flv(&p_hex_t, &p_float, &p_double, &p_longdouble, &p_int, &p_uint, &p_longlong, &p_ulonglong, &p_char, &p_bool, &p_nullptr);
     fl.apply_visitor(flv);
     ConstantExpression* pExpression = nullptr;
     node* node = nullptr;
-    if(p_hex_t) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<ulonglong>)(lexical_cast<string>(p_hex_t->m_value.val),p_hex_t->m_value.val), nullptr, true); node = p_hex_t; }
-    else if(p_float) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<float>)(lexical_cast<string>(*p_float),*p_float), nullptr, true); node = p_float; }
-    else if(p_double) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<double>)(lexical_cast<string>(*p_double),*p_double), nullptr, true); node = p_double; }
-    else if(p_longdouble) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<longdouble>)(lexical_cast<string>(*p_longdouble),*p_longdouble), nullptr, true); node = p_longdouble; }
-    else if(p_int) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<int>)(lexical_cast<string>(*p_int),*p_int), nullptr, true); node = p_int; }
-    else if(p_uint) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<uint>)(lexical_cast<string>(*p_uint),*p_uint), nullptr, true); node = p_uint; }
-    else if(p_longlong) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<longlong>)(lexical_cast<string>(*p_longlong),*p_longlong), nullptr, true); node = p_longlong; }
-    else if(p_ulonglong) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<ulonglong>)(lexical_cast<string>(*p_ulonglong),*p_ulonglong), nullptr, true); node = p_ulonglong; }
-    else if(p_char) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<char>)(lexical_cast<string>(*p_char),*p_char), nullptr, true); node = p_char; } 
-    else if(p_bool) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<bool>)(lexical_cast<string>(*p_bool),*p_bool), nullptr, true); node = p_bool; } 
-    else if(p_nullptr) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<std::nullptr_t>)("nullptr", 0), nullptr, true); node = p_nullptr; }
+    if(p_hex_t) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<ulonglong>)(lexical_cast<string>(p_hex_t->m_value.val),p_hex_t->m_value.val)); node = p_hex_t; }
+    else if(p_float) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<float>)(lexical_cast<string>(*p_float),*p_float)); node = p_float; }
+    else if(p_double) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<double>)(lexical_cast<string>(*p_double),*p_double)); node = p_double; }
+    else if(p_longdouble) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<longdouble>)(lexical_cast<string>(*p_longdouble),*p_longdouble)); node = p_longdouble; }
+    else if(p_int) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<int>)(lexical_cast<string>(*p_int),*p_int)); node = p_int; }
+    else if(p_uint) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<uint>)(lexical_cast<string>(*p_uint),*p_uint)); node = p_uint; }
+    else if(p_longlong) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<longlong>)(lexical_cast<string>(*p_longlong),*p_longlong)); node = p_longlong; }
+    else if(p_ulonglong) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<ulonglong>)(lexical_cast<string>(*p_ulonglong),*p_ulonglong)); node = p_ulonglong; }
+    else if(p_char) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<char>)(lexical_cast<string>(*p_char),*p_char)); node = p_char; }
+    else if(p_bool) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<bool>)(lexical_cast<string>(*p_bool),*p_bool)); node = p_bool; }
+    else if(p_nullptr) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<std::nullptr_t>)("nullptr", 0)); node = p_nullptr; }
     if(pExpression)
     {
         pExpression->addCodeLocation(node->m_location);
@@ -2245,23 +2222,23 @@ ConstantExpression* precompiler::precompile_fundamental_literal( fundamental_lit
 ConstantExpression* precompiler::precompile_integral_literal( integral_literal& il )
 {
     fundamental_node<hex_t>* p_hex_t = 0;
-    fundamental_node<int>* p_int = 0; 
-    fundamental_node<uint>* p_uint = 0; 
-    fundamental_node<longlong>* p_longlong = 0; 
-    fundamental_node<ulonglong>* p_ulonglong = 0; 
-    fundamental_node<char>* p_char = 0; 
+    fundamental_node<int>* p_int = 0;
+    fundamental_node<uint>* p_uint = 0;
+    fundamental_node<longlong>* p_longlong = 0;
+    fundamental_node<ulonglong>* p_ulonglong = 0;
+    fundamental_node<char>* p_char = 0;
     fundamental_node<bool>* p_bool = 0;
     integral_literal_visitor ilv(&p_hex_t, &p_int, &p_uint, &p_longlong, &p_ulonglong, &p_char, &p_bool);
     il.apply_visitor(ilv);
     ConstantExpression* pExpression = nullptr;
     node* node = nullptr;
-    if(p_hex_t) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<ulonglong>)(lexical_cast<string>(p_hex_t->m_value.val),p_hex_t->m_value.val), nullptr, true); node = p_hex_t; }
-    else if(p_int) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<int>)(lexical_cast<string>(*p_int),*p_int), nullptr, true); node = p_int; }
-    else if(p_uint) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<uint>)(lexical_cast<string>(*p_uint),*p_uint), nullptr, true); node = p_uint; }
-    else if(p_longlong) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<longlong>)(lexical_cast<string>(*p_longlong),*p_longlong), nullptr, true); node = p_longlong; }
-    else if(p_ulonglong) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<ulonglong>)(lexical_cast<string>(*p_ulonglong),*p_ulonglong), nullptr, true); node = p_ulonglong; }
-    else if(p_char) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<char>)(lexical_cast<string>(*p_char),*p_char), nullptr, true); node = p_char; } 
-    else if(p_bool) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, phantom::reflection::native::TNumericConstant<bool>)(lexical_cast<string>(*p_bool),*p_bool), nullptr, true); node = p_bool; }
+    if(p_hex_t) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<ulonglong>)(lexical_cast<string>(p_hex_t->m_value.val),p_hex_t->m_value.val)); node = p_hex_t; }
+    else if(p_int) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<int>)(lexical_cast<string>(*p_int),*p_int)); node = p_int; }
+    else if(p_uint) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<uint>)(lexical_cast<string>(*p_uint),*p_uint)); node = p_uint; }
+    else if(p_longlong) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<longlong>)(lexical_cast<string>(*p_longlong),*p_longlong)); node = p_longlong; }
+    else if(p_ulonglong) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<ulonglong>)(lexical_cast<string>(*p_ulonglong),*p_ulonglong)); node = p_ulonglong; }
+    else if(p_char) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<char>)(lexical_cast<string>(*p_char),*p_char)); node = p_char; }
+    else if(p_bool) { pExpression = o_new(ConstantExpression)(o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<bool>)(lexical_cast<string>(*p_bool),*p_bool)); node = p_bool; }
     if(pExpression)
     {
         pExpression->addCodeLocation(node->m_location);
@@ -2277,7 +2254,7 @@ void precompiler::error( const CodeLocation& a_Location, const char* a_Format, .
     {
         m_pMessage->error(a_Location, a_Format, args);
     }
-    else 
+    else
     {
         vprintf(a_Format, args);
         printf("\n");
@@ -2291,7 +2268,7 @@ LanguageElement* precompiler::precompile_qualified_name_recursive( qualified_nam
     while(pScope)
     {
         LanguageElement* pElement = precompile_qualified_name(nullptr, qn, a_pSignature, a_bConstSignature, pScope);
-        if(pElement) 
+        if(pElement)
         {
             return pElement->asExpression();
         }
@@ -2385,7 +2362,7 @@ void             precompiler::precompile_namespace_declaration(namespace_declara
         Namespace* pNamespace = a_pNamespace->findOrCreateNamespaceCascade(nd.m_name);
         precompile_namespace_scope(*p_namespace_scope, pNamespace);
     }
-    else 
+    else
     {
         o_assert(p_namespace_alias);
         Namespace* pNamespace = a_pNamespace;
@@ -2396,12 +2373,12 @@ void             precompiler::precompile_namespace_declaration(namespace_declara
                 o_assert(it == p_namespace_alias->begin());
                 pNamespace = phantom::rootNamespace();
             }
-            else 
+            else
             {
                 Namespace* pChildNamespace = pNamespace->getNamespace(it->m_value);
-                if(pChildNamespace == nullptr) 
+                if(pChildNamespace == nullptr)
                 {
-                    error(node_location(nd), "Namespace '%s' not declared in namespace '%s'", it->m_value, pNamespace->getQualifiedName().c_str());
+                    error(node_location(nd), "Namespace '%s' not declared in namespace '%s'", it->m_value.c_str(), pNamespace->getQualifiedName().c_str());
                     return;
                 }
                 pNamespace = pChildNamespace;
@@ -2411,7 +2388,7 @@ void             precompiler::precompile_namespace_declaration(namespace_declara
     }
 }
 
-void             precompiler::precompile_nested_class_declaration(class_declaration & cd, int a_Modifiers, Class* a_pClass)
+void             precompiler::precompile_nested_class_declaration(class_declaration & cd, unsigned long long a_Modifiers, Class* a_pClass)
 {
     class_scope* classScope = nullptr;
     string_node name = precompile_named_or_unnamed_class_declaration(cd.m_named_or_unnamed_class_declaration, classScope);
@@ -2423,14 +2400,14 @@ void             precompiler::precompile_nested_class_declaration(class_declarat
         error(node_location(name)
             , "A class, struct or function with same name '%s' already declared in class '%s'"
             , name.m_value.c_str()
-            , a_pClass->getQualifiedName().c_str()); 
+            , a_pClass->getQualifiedName().c_str());
         return;
     }
     Class* pClass = o_new(Class)(name.m_value, a_Modifiers);
     a_pClass->addNestedType(pClass);
     if(classScope)
     {
-        precompile_class_scope(*classScope, cd.m_is_struct ? o_public : 0, pClass);
+        precompile_class_scope(*classScope, cd.m_is_struct ? o_public_access : 0ULL, pClass);
     }
     pClass->finalize();
 }
@@ -2447,14 +2424,14 @@ void             precompiler::precompile_class_declaration(class_declaration & c
         error(node_location(name)
             , "A class, struct or member with same name '%s' already declared in class '%s'"
             , name.m_value.c_str()
-            , a_pNamespace->getQualifiedName().c_str()); 
+            , a_pNamespace->getQualifiedName().c_str());
         return;
     }
     Class* pClass = o_new(Class)(name.m_value, 0);
     a_pNamespace->addType(pClass);
     if(classScope)
     {
-        precompile_class_scope(*classScope, cd.m_is_struct ? o_public : 0, pClass);
+        precompile_class_scope(*classScope, cd.m_is_struct ? o_public_access : 0, pClass);
     }
     pClass->finalize();
 }
@@ -2473,7 +2450,7 @@ string_node   precompiler::precompile_named_or_unnamed_class_declaration(named_o
         }
         return p_named_class_declaration->m_name;
     }
-    else 
+    else
     {
         o_assert(p_unnamed_class_declaration);
         a_ClassScope = &p_unnamed_class_declaration->m_class_scope;
@@ -2481,24 +2458,24 @@ string_node   precompiler::precompile_named_or_unnamed_class_declaration(named_o
     }
 }
 
-void             precompiler::precompile_class_scope(class_scope & cd, int a_iAccessQualifier, Class* a_pClass)
+void             precompiler::precompile_class_scope(class_scope & cd, unsigned long long a_iAccessQualifier, Class* a_pClass)
 {
     vector<Class*> classes;
     for(auto it = cd.m_class_inheritances.begin(); it != cd.m_class_inheritances.end(); ++it)
     {
-        LanguageElement* pQualifiedName = precompile_qualified_name_recursive(it->m_qualified_name, nullptr, false, a_pClass); 
-        Class* pSuperClass = pQualifiedName->asClass();
-        if(pSuperClass == nullptr) 
+        LanguageElement* pQualifiedName = precompile_qualified_name_recursive(it->m_qualified_name, nullptr, false, a_pClass);
+        Class* pBaseClass = pQualifiedName->asClass();
+        if(pBaseClass == nullptr)
         {
-            error(node_location(it->m_qualified_name), "Super type '%s' is not a class", node_string(it->m_qualified_name));
+            error(node_location(it->m_qualified_name), "Base type '%s' is not a class", node_string(it->m_qualified_name).c_str());
             continue;
         }
-        if(NOT(pSuperClass->isDefined())) 
+        if(NOT(pBaseClass->isDefined()))
         {
-            error(node_location(it->m_qualified_name), "Use of undefined class '%s'", pSuperClass->getQualifiedDecoratedName());
+            error(node_location(it->m_qualified_name), "Use of undefined class '%s'", pBaseClass->getQualifiedDecoratedName().c_str());
             continue;
         }
-        a_pClass->addSuperClass(pSuperClass);
+        a_pClass->addBaseClass(pBaseClass);
     }
     for(auto it = cd.m_class_member_declarations.begin(); it != cd.m_class_member_declarations.end(); ++it)
     {
@@ -2506,12 +2483,12 @@ void             precompiler::precompile_class_scope(class_scope & cd, int a_iAc
     }
 }
 
-void             precompiler::precompile_class_member_declaration(class_member_declaration & cmd, int& a_iAccessQualifier, Class* a_pClass)
+void             precompiler::precompile_class_member_declaration(class_member_declaration & cmd, unsigned long long& a_iAccessQualifier, Class* a_pClass)
 {
     member_declaration* p_member_declaration = 0;
     class_declaration* p_class_declaration = 0;
     typedef_declaration* p_typedef_declaration = 0;
-    fundamental_node<int>* p_access_qualifier = 0;
+    fundamental_node<unsigned long long>* p_access_qualifier = 0;
     class_member_declaration_visitor cmdv(&p_member_declaration, &p_class_declaration, &p_typedef_declaration, &p_access_qualifier);
     cmd.apply_visitor(cmdv);
     if(p_member_declaration)
@@ -2526,7 +2503,7 @@ void             precompiler::precompile_class_member_declaration(class_member_d
     {
         // precompile_nested_typedef_declaration(*p_typedef_declaration, a_iAccessQualifier, a_pClass);
     }
-    else 
+    else
     {
         o_assert(p_access_qualifier);
         a_iAccessQualifier = *p_access_qualifier;
@@ -2539,11 +2516,11 @@ Signature*    precompiler::precompile_signature(type& return_type, parameters& p
     Type* pReturnType = precompile_type_recursive(return_type, a_pScope);
     if(pReturnType == nullptr)
     {
-        error(node_location(return_type), "Cannot solve return type '%s'", node_string(return_type));
+        error(node_location(return_type), "Cannot solve return type '%s'", node_string(return_type).c_str());
     }
     else if(NOT(pReturnType->isDefined()))
     {
-        error(node_location(return_type), "Use of undefined type '%s'", pReturnType->getQualifiedDecoratedName());
+        error(node_location(return_type), "Use of undefined type '%s'", pReturnType->getQualifiedDecoratedName().c_str());
     }
     pSignature->setReturnType(pReturnType);
 
@@ -2553,20 +2530,48 @@ Signature*    precompiler::precompile_signature(type& return_type, parameters& p
         Type* pParameterType = precompile_type_recursive(param.m_type, a_pScope);
         if(pParameterType == nullptr)
         {
-            error(node_location(param.m_type), "Cannot solve parameter %i type '%s'", i+1, node_string(param.m_type));
+            error(node_location(param.m_type), "Cannot solve parameter %i type '%s'", i+1, node_string(param.m_type).c_str());
         }
         else if(NOT(pParameterType->isDefined()))
         {
-            error(node_location(param.m_type), "Use of undefined type '%s'", pParameterType->getQualifiedDecoratedName());
+            error(node_location(param.m_type), "Use of undefined type '%s'", pParameterType->getQualifiedDecoratedName().c_str());
         }
-        pSignature->addParameterType(pParameterType);
+        string name;
+        Expression* pExpression = nullptr;
+        if(param.m_declarator.is_initialized())
+        {
+            variable_declarator& declarator = (*param.m_declarator);
+            name = declarator.m_identifier.m_value;
+            if(declarator.m_end.m_array_initializer_or_expression.is_initialized())
+            {
+                array_initializer_or_expression& aie = *((*param.m_declarator).m_end.m_array_initializer_or_expression);
+                expression* p_expression = 0;
+                array_initializer* p_array_initializer = 0;
+                array_initializer_or_expression_visitor aiev(&p_array_initializer, &p_expression);
+                aie.apply_visitor(aiev);
+                if(p_array_initializer)
+                {
+                    error(node_location(aie), "Cannot use array initializer as default parameter value");
+                }
+                else
+                {
+                    o_assert(p_expression);
+                    pExpression = precompile_expression(*p_expression, a_pScope);
+                    if(pExpression == nullptr)
+                    {
+                        error(node_location(aie), "Invalid default parameter value expression");
+                    }
+                }
+            }
+        }
+        pSignature->addParameter(pParameterType, name, pExpression);
     }
     return pSignature;
 }
 
 void    precompiler::precompile_parameters_local_variables(parameters& params, Signature* a_pSignature, Block* a_pBlock)
 {
-    for(size_t i = 0 
+    for(size_t i = 0
         ; i < params.size()
         ; ++i)
     {
@@ -2584,7 +2589,7 @@ void    precompiler::precompile_parameters_local_variables(parameters& params, S
     }
 }
 
-void    precompiler::precompile_member_declaration(member_declaration& md, int a_Modifiers, Class* a_pClass)
+void    precompiler::precompile_member_declaration(member_declaration& md, unsigned long long a_Modifiers, Class* a_pClass)
 {
     ambiguous_member_declaration*          p_ambiguous_member_declaration = 0;
     virtual_member_function_declaration*   p_virtual_member_function_declaration = 0;
@@ -2603,8 +2608,7 @@ void    precompiler::precompile_member_declaration(member_declaration& md, int a
             {
                 // block => definition
                 // Create root block
-                Block* pBlock = o_new(Block);
-                pInstanceMemberFunction->setBlock(pBlock);
+                Block* pBlock = pInstanceMemberFunction->getBlock();
                 const CodeLocation& location = node_location(md);
                 pInstanceMemberFunction->setCodeLocation(location);
                 pBlock->setCodeLocation(location);
@@ -2613,19 +2617,18 @@ void    precompiler::precompile_member_declaration(member_declaration& md, int a
                 position.column+=1;
                 thisLocation.setEnd(position);
 
-                reflection::Type* pThisType = pInstanceMemberFunction->testModifiers(o_const) 
+                reflection::Type* pThisType = pInstanceMemberFunction->testModifiers(o_const)
                                     ? pInstanceMemberFunction->getOwnerClassType()->constType()->pointerType()->constType()
                                     : pInstanceMemberFunction->getOwnerClassType()->pointerType()->constType();
 
-                pBlock->addLocalVariable(o_new(LocalVariable)(pThisType, "this"));
-                precompile_parameters_local_variables(signature_and_block.m_signature.m_parameters, pSignature, pBlock);
+                // pBlock->addLocalVariable(o_new(LocalVariable)(pThisType, "this"));
                 precompile_block(*signature_and_block.m_block, pBlock);
             }
         }
-        else 
+        else
         {
             Type* pType = precompile_type_recursive(p_ambiguous_member_declaration->m_type, a_pClass);
-            InstanceDataMember* pInstanceDataMember = o_new(InstanceDataMember)(p_ambiguous_member_declaration->m_identifier, pType, nullptr, ~size_t(0), a_Modifiers);
+            InstanceDataMember* pInstanceDataMember = o_new(InstanceDataMember)(pType, p_ambiguous_member_declaration->m_identifier, nullptr, ~size_t(0), a_Modifiers);
             a_pClass->addInstanceDataMember(pInstanceDataMember);
         }
     }
@@ -2640,8 +2643,7 @@ void    precompiler::precompile_member_declaration(member_declaration& md, int a
         {
             // block => definition
             // Create root block
-            Block* pBlock = o_new(Block);
-            pInstanceMemberFunction->setBlock(pBlock);
+            Block* pBlock = pInstanceMemberFunction->getBlock();
             const CodeLocation& location = node_location(md);
             pInstanceMemberFunction->setCodeLocation(location);
             pBlock->setCodeLocation(location);
@@ -2650,16 +2652,16 @@ void    precompiler::precompile_member_declaration(member_declaration& md, int a
             position.column+=1;
             thisLocation.setEnd(position);
 
-            reflection::Type* pThisType = pInstanceMemberFunction->testModifiers(o_const) 
+            reflection::Type* pThisType = pInstanceMemberFunction->testModifiers(o_const)
                                 ? pInstanceMemberFunction->getOwnerClassType()->constType()->pointerType()->constType()
                                 : pInstanceMemberFunction->getOwnerClassType()->pointerType()->constType();
 
-            pBlock->addLocalVariable(o_new(LocalVariable)(pThisType, "this"));
-            precompile_parameters_local_variables(p_virtual_member_function_declaration->m_signature.m_parameters, pSignature, pBlock);
+            //pBlock->addLocalVariable(o_new(LocalVariable)(pThisType, "this"));
+            //precompile_parameters_local_variables(p_virtual_member_function_declaration->m_signature.m_parameters, pSignature, pBlock);
             precompile_block(*(p_virtual_member_function_declaration->m_block), pBlock);
         }
     }
-    else 
+    else
     {
         o_assert(p_static_ambiguous_member_declaration);
         if(p_static_ambiguous_member_declaration->m_signature_and_block.is_initialized())
@@ -2672,19 +2674,18 @@ void    precompiler::precompile_member_declaration(member_declaration& md, int a
             {
                 // block => definition
                 // Create root block
-                Block* pBlock = o_new(Block);
-                pStaticMemberFunction->setBlock(pBlock);
+                Block* pBlock = pStaticMemberFunction->getBlock();
                 const CodeLocation& location = node_location(md);
                 pStaticMemberFunction->setCodeLocation(location);
                 pBlock->setCodeLocation(location);
-                precompile_parameters_local_variables(signature_and_block.m_signature.m_parameters, pSignature, pBlock);
+                //precompile_parameters_local_variables(signature_and_block.m_signature.m_parameters, pSignature, pBlock);
                 precompile_block(*signature_and_block.m_block, pBlock);
             }
         }
-        else 
+        else
         {
             Type* pType = precompile_type_recursive(p_static_ambiguous_member_declaration->m_type, a_pClass);
-            StaticDataMember* pStaticDataMember = o_new(StaticDataMember)(p_static_ambiguous_member_declaration->m_identifier, pType, nullptr, a_Modifiers);
+            StaticDataMember* pStaticDataMember = o_new(StaticDataMember)(pType, p_static_ambiguous_member_declaration->m_identifier, nullptr, a_Modifiers);
             a_pClass->addStaticDataMember(pStaticDataMember);
         }
     }

@@ -23,7 +23,8 @@ public:
                 , phantom::reflection::Type* a_pType
                 , const phantom::vector<phantom::data>& currentData
                 , const phantom::vector<phantom::data>& editedData 
-                , DataValueFilter* a_pDataValueFilter = NULL);
+                , DataValueFilter* a_pDataValueFilter = NULL
+                , bool a_bAllowsNone = true);
 	~DataComboBox(void) 
     {
     }

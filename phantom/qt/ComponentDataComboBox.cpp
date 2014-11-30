@@ -28,7 +28,7 @@ namespace qt {
             o_assert(pOldClass);
             if(pNewClass)
             {
-                pNewClass->smartCopy(phantom::baseOf(a_pCurrentData), phantom::baseOf(m_CurrentData[i]), pOldClass);
+                pOldClass->smartCopy(pNewClass, phantom::baseOf(a_pCurrentData), phantom::baseOf(m_CurrentData[i]));
             }
             pOldClass->deleteInstance(m_CurrentData[i]);
         }

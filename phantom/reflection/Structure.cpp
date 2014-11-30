@@ -42,14 +42,20 @@ o_namespace_begin(phantom, reflection)
 
 o_define_meta_type(Structure);
 
-Structure::Structure( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) 
-    : ClassType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+Structure::Structure()
+    : ClassType( e_struct, new extra_data )
 {
 
 }
 
-Structure::Structure( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
-    : ClassType( new extra_data, a_strName, a_Modifiers)
+Structure::Structure( const string& a_strName, modifiers_t a_Modifiers /*= 0*/ ) 
+    : ClassType( e_struct, new extra_data, a_strName, a_Modifiers)
+{
+
+}
+
+Structure::Structure( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers /*= 0*/ ) 
+    : ClassType(e_struct, a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
 {
 
 }

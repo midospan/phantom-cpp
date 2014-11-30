@@ -47,6 +47,7 @@ o_namespace_begin(phantom, reflection)
 BranchStatement::BranchStatement() 
     : Statement("")
     , m_pLabelStatement(nullptr)
+    , m_uiLabelStatementIndex(0xffffffff)
 {
 }
 
@@ -64,6 +65,40 @@ void BranchStatement::setLabelStatement( LabelStatement* a_pLabelStatement )
 {
     addReferencedElement(a_pLabelStatement);
     m_pLabelStatement = a_pLabelStatement;
+    if(getSubroutine())
+    {
+        m_uiLabelStatementIndex = m_pLabelStatement->getIndex();
+    }
+}
+
+void BranchStatement::restore()
+{
+    if(m_pLabelStatement == nullptr AND m_uiLabelStatementIndex != 0xffffffff)
+    {
+        m_pLabelStatement = getSubroutine()->getLabelStatement(m_uiLabelStatementIndex);
+        if(m_pLabelStatement)
+        {
+            addReferencedElement(m_pLabelStatement);
+        }
+    }
+}
+
+void BranchStatement::elementRemoved( LanguageElement* a_pElement )
+{
+    Statement::elementRemoved(a_pElement);
+    if(a_pElement == m_pLabelStatement) // Expression destroyed => invalid
+    {
+        m_pLabelStatement = nullptr;
+        m_uiLabelStatementIndex = 0xffffffff;
+    }
+}
+
+void BranchStatement::ancestorChanged( LanguageElement* a_pOwner )
+{
+    if(getSubroutine() AND m_uiLabelStatementIndex == 0xffffffff AND m_pLabelStatement)
+    {
+        m_uiLabelStatementIndex = m_pLabelStatement->getIndex();
+    }
 }
 
 o_namespace_end(phantom, reflection)

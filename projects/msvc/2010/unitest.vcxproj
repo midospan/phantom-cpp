@@ -34,6 +34,8 @@
     <ClCompile Include="..\..\..\unitest\phantom\unitest\RootClass.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\phantom\variant.hxx" />
+    <ClInclude Include="..\..\..\unitest\phantom\unitest\Ability.hxx" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\Bench.h" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\StateMachineTest.h" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\Ability.h" />
@@ -117,6 +119,8 @@
       <OutputFile>$(SolutionDir)\..\..\..\bin\$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>..\..\..\lib\;$(GTEST_LIBMD_PATH)\Debug;$(BOOST_ROOT)/lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>phantomD.lib;gtestd.lib;gtest_main-mdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>
+      </SubSystem>
     </Link>
     <BuildLog>
       <Path>$(SolutionDir)\..\..\..\..\build\$(ProjectName)\$(Configuration)\$(MSBuildProjectName).log</Path>

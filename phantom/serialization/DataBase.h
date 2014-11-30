@@ -33,33 +33,54 @@
 
 #ifndef serialization_DataBase_h__
 #define serialization_DataBase_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
 #include "phantom/Object.h"
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, serialization), DataBase)
 /* *********************************************** */
+
 o_namespace_begin(phantom, serialization)
 
 class DefaultNode;
-class DataTypeManager;
-class Trashbin;
+class Record;
+
+struct type_info
+{
+    type_info() : pointer(nullptr) {}
+    type_info(string aname, reflection::Type* apointer) 
+        : name(aname), pointer(apointer) {}
+    bool isNull() const { return pointer == nullptr; }
+    string name;
+    reflection::Type* pointer;
+};
+
+typedef std::pair<type_info, type_info> type_info_pair;
+
+struct runtime_type_info
+{
+    runtime_type_info() : refCount(0) {}
+    runtime_type_info(string aname, reflection::Type* apointer) 
+        : baseInfo(aname, apointer) , refCount(0) {}
+    bool isNull() const { return baseInfo.isNull(); }
+    type_info baseInfo;
+    size_t refCount;
+};
 
 class o_export DataBase
 {
     friend class Node;
     friend class DefaultNode;
-    friend class Trashbin;
+    friend class Record;
+    
+protected:
+    static bool ComponentExpressionFilter(reflection::Type* a_pType);
 
 public:
-    enum Constant
-    {
-        e_Constant_InvalidAttributeIndex = 0xffffffff,
-        e_Constant_InvalidGuidValue = 0xffffffff
-    };
+    typedef map<string, string> placeholder_type_by_name_map;
+    typedef map<uint, uint>     placeholder_type_by_id_map;
 
+public:
     enum EActionOnMissingType
     {
         e_ActionOnMissingType_IgnoreAndDestroyData,
@@ -162,19 +183,27 @@ public:
         std::sort(first, end, data_sorter_owner_data_first(this));
     }
 
-    DataBase(const string& url, uint a_uiSerializationFlag = 0);
+    DataBase(const string& url, uint a_uiSerializationFlag = o_save_data);
     o_destructor ~DataBase(void);
 
     o_initialize();
     o_terminate();
 
+    void    addData(const data& a_Data, Node* a_pNode, modifiers_t a_Modifiers = 0);
+
+    void    addComponentData(const data& a_Data, const data& a_Owner, const string& a_ReferenceExpression, modifiers_t a_Modifiers = 0);
+
+    void    removeData(const data& a_Data);
+
+    bool    isDataUnloaded(uint guid);
+
     void    save();
 
-    void    saveData(const phantom::data& a_Data);
+    void    saveData(const data& a_Data);
 
     void    saveState(uint a_uiState);
 
-    void    saveDataState(const phantom::data& a_Data, uint a_uiState);
+    void    saveDataState(const data& a_Data, uint a_uiState);
 
     void    loadState(uint a_uiState);
 
@@ -186,88 +215,64 @@ public:
 
     DataStateBase*  getDataStateBase() const { return m_pDataStateBase; }
 
-    Trashbin*       getTrashbin() const;
-    Trashbin*		addTrashbin(const string& a_strUrl);
+    void            blockDataSlots() { o_assert(!m_bDataSlotsBlocked); m_bDataSlotsBlocked = true; }
+    void            unblockDataSlots() { o_assert(m_bDataSlotsBlocked); m_bDataSlotsBlocked = false; }
 
     void            restoreData(uint guid);
     void            restoreNode(uint guid);
+
+    virtual uint    createBackup() = 0;
+    virtual void    destroyBackup(uint a_uiBackupId) = 0;
+
+    virtual void    saveDataEntryBackup(uint a_uiBackupId, const phantom::data& a_Data, uint guid, Node* a_pNode) = 0;
+    virtual void    saveNodeEntryBackup(uint a_uiBackupId, Node* a_pNode) = 0;
+    virtual void    saveTypeBackup(uint a_uiBackupId, const string& a_strQualifiedName, const string& a_strModuleName) = 0;
+    
+    virtual void    restoreDataEntryBackup(uint a_uiBackupId, const phantom::data& a_Data, uint guid, Node* a_pNode) = 0;
+    virtual void    restoreNodeEntryBackup(uint a_uiBackupId, Node* a_pNode) = 0;
+    virtual void    restoreTypeBackup(uint a_uiBackupId, const string& a_strQualifiedName, const string& a_strModuleName) = 0;
+
+    virtual void    swapTypeBackup(uint a_uiBackupId, const string& a_strQualifiedName, const string& a_strModuleName) = 0;
+    virtual void    eraseTypeBackup(uint a_uiBackupId, const string& a_strQualifiedName, const string& a_strModuleName) = 0;
+    virtual bool    hasTypeBackup(uint a_uiBackupId, const string& a_strQualifiedName, const string& a_strModuleName) const = 0;
 
     virtual void    clearDataReference(const phantom::data& a_data, vector<reflection::Expression*>* a_pRestoreReferenceExpressions = nullptr);
 
     virtual void    replaceDataReference(const phantom::data& a_old, const phantom::data& a_New);
 
-    void            addType(reflection::Type* a_pType);
-    void            removeType(reflection::Type* a_pType);
-    void            replaceType(reflection::Type* a_pOld, reflection::Type* a_pNew, uint a_uiCurrentState = 0xffffffff);
-    void            replaceTypes(const map<reflection::Type*, reflection::Type*>& replacedTypes, uint a_uiCurrentState = 0xffffffff);
-
     virtual boolean canMoveNode(Node* a_pNode, Node* a_pNewParent) const;
     virtual boolean canMoveData(const phantom::data& a_Data, Node* a_pNewParent) const;
 
-    void            terminate();
-    
     Node*           rootNode();
 
     Node*           getNode( const phantom::data& a_Data ) const
     {
-        data_node_map::const_iterator found = m_DataNodeMap.find(a_Data.address());
-        return found == m_DataNodeMap.end() ? NULL : found->second;
+        data_node_map::const_iterator found = m_DataNodeMap.find(getGuid(a_Data));
+        return found == m_DataNodeMap.end() ? NULL : getNode(found->second);
     }
 
-    Node*           getNode( void* a_pAddress ) const
-    {
-        data_node_map::const_iterator found = m_DataNodeMap.find(phantom::baseOf(a_pAddress, 0));
-        return found == m_DataNodeMap.end() ? NULL : found->second;
-    }
-
-    Node*                   getNode( uint a_uiGuid ) const;
+    Node*           getNode( uint a_uiGuid ) const;
     
-    const phantom::data&    getComponentDataOwner( const phantom::data& a_Data ) const
-    {
-        static phantom::data null_data;
-        component_data_owner_map::const_iterator found = m_ComponentDataOwnerMap.find(a_Data.address());
-        return found == m_ComponentDataOwnerMap.end() ? null_data : found->second;
-    }
+    const phantom::data& getComponentDataOwner( const phantom::data& a_Data ) const;
 
-    const string&           getComponentDataReferenceExpression( const phantom::data& a_Data ) const
-    {
-        static string null_string;
-        component_data_reference_expression_map::const_iterator found = m_ComponentReferenceExpressionMap.find(a_Data.address());
-        return found == m_ComponentReferenceExpressionMap.end() ? null_string : found->second;
-    }
+    uint                getComponentDataOwnerGuid( uint a_ComponentGuid ) const;
 
-    void                    setComponentDataReferenceExpression( const phantom::data& a_Data, const string& a_Expression )
-    {
-        component_data_reference_expression_map::iterator found = m_ComponentReferenceExpressionMap.find(a_Data.address());
-        o_assert(found != m_ComponentReferenceExpressionMap.end());
-        found->second = a_Expression;
-    }
+    const string&   getComponentDataReferenceExpression( const phantom::data& a_Data ) const;
+    void            setComponentDataReferenceExpression( const phantom::data& a_Data, const string& a_Expression );
 
-	bool                    isComponentDataOwner(const phantom::data& a_Data) const
-	{
-		component_data_owner_map::const_iterator it = m_ComponentDataOwnerMap.begin();
-		component_data_owner_map::const_iterator end = m_ComponentDataOwnerMap.end();
-		for (;it != end; it++)
-		{
-			if (it->second == a_Data)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
+	bool            isComponentDataOwner(const phantom::data& a_Data) const;
 
     uint            getGuid( Node* a_pNode ) const;
     uint            getGuid( const phantom::data& a_Data ) const;
-    bitfield        getModifiers( const phantom::data& a_Data ) const;
-    void            setModifiers( const phantom::data& a_Data, bitfield a_Modifiers);
-    void            addModifiers( const phantom::data& a_Data, bitfield a_Modifiers);
-    void            removeModifiers( const phantom::data& a_Data, bitfield a_Modifiers);
+    modifiers_t        getDataModifiers( const phantom::data& a_Data ) const;
+    void            setDataModifiers( const phantom::data& a_Data, modifiers_t a_Modifiers);
+    void            addDataModifiers( const phantom::data& a_Data, modifiers_t a_Modifiers);
+    void            removeDataModifiers( const phantom::data& a_Data, modifiers_t a_Modifiers);
     void*           getDataAddress( uint guid ) const { return m_GuidBase.dataAddress(guid); }
     reflection::Type*getDataType( uint guid ) const { return m_GuidBase.dataType(guid); }
     const data&     getData( uint guid ) const { return m_GuidBase.getData(guid); }
 
-    boolean         containsData(const phantom::data& a_Data) const { return m_GuidBase.getGuid(a_Data) != 0xffffffff; }
+    boolean         containsData(const phantom::data& a_Data) const { return m_GuidBase.getGuid(a_Data) != o_invalid_guid; }
     boolean         containsDataAddress(void* a_pData) const;
     virtual void    loadNodeEntries() = 0;
     virtual void    unloadNodeEntries() = 0;
@@ -283,7 +288,7 @@ public:
         return a_Data.type()->referencesData(a_Data.address(), a_CandidateDependency);
     }
 
-    void            registerData( const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode, bitfield modifiers );
+    void            registerData( const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode, modifiers_t modifiers );
     void            unregisterData( const phantom::data& a_Data);
 
     void            registerNode(Node* a_pNode);
@@ -309,6 +314,14 @@ public:
 
     void            setNodeAttributeValue(Node* a_pNode, const string& fieldName, const string& value);
 
+    void            setDataPropertyValue(uint a_uiGuid, reflection::Property* a_pProperty, const variant& a_Value);
+
+    void            setDataPropertyValue(const phantom::data& a_Data, reflection::Property* a_pProperty, const variant& a_Value);
+
+    const variant&  getDataPropertyValue(const phantom::data& a_Data, reflection::Property* a_pProperty) const;
+
+    const variant&  getDataPropertyValue(uint a_uiGuid, reflection::Property* a_pProperty) const;
+
     size_t          getAttributeCount() const { return m_AttributeNames.size(); }
 
     size_t          addAttribute(const string& a_name);
@@ -317,16 +330,15 @@ public:
 
     const string&   getAttributeName(size_t attributeIndex) const;
 
-    const string*   getAttributeValues( void* a_pAddress ) const;
+    const string*   getAttributeValues( const phantom::data& a_Data ) const;
+
+    const string*   getAttributeValues( Node* a_pNode ) const;
 
     size_t          getLoadedDataSize() const { return m_uiLoadedDataSize; }
     size_t          getLoadedDataResetSize() const { return m_uiLoadedDataResetSize; }
     size_t          getLoadedDataSerializedSize() const { return m_uiLoadedDataSerializedSize; }
 
     bool            isEmpty() const { return m_GuidBase.isEmpty(); }
-
-    void            setDataTypeManager(DataTypeManager* a_pDataTypeManager);
-    DataTypeManager*getDataTypeManager() const { return m_pDataTypeManager; }
 
     boolean         isDataRegistered(void* a_pData) const;
 
@@ -348,33 +360,11 @@ public:
     reflection::Type* solveTypeByName(const string& a_strName) const;
     reflection::Type* solveTypeById(uint id) const;
 
-
 protected:
-    o_signal_data(dataAdded, const phantom::data&, Node*);
-    o_signal_data(dataReplaced, const phantom::data&, const phantom::data&);
-    o_signal_data(dataAboutToBeRemoved, const phantom::data&, Node*);
-    o_signal_data(dataAboutToBeAborted, const phantom::data&, Node*);
-    o_signal_data(dataMoved, const phantom::data&, Node*, Node*);
-    o_signal_data(dataAttributeValueChanged, const phantom::data&, size_t, const string&);
-    o_signal_data(dataModifiersChanged, const phantom::data&, bitfield);
-
-    o_signal_data(subDataOwnershipLost, const phantom::data&);
-
-    o_signal_data(nodeAdded, Node*, Node*);
-    o_signal_data(nodeAboutToBeRemoved, Node*, Node*);
-    o_signal_data(nodeMoved, Node*, Node*, Node*);
-    o_signal_data(nodeAttributeValueChanged, Node*, size_t, const string&);
-    o_signal_data(dataErased, uint);
-    o_signal_data(dataRestored, uint);
-
-    virtual Trashbin* createTrashBin(const string& a_strUrl) const { return nullptr; }
-
+    void            preRemoveData( const phantom::data& a_Data );
     Node*           internalAddNewNode(Node* a_pParentNode);
     Node*           internalAddNewNode(uint a_uiGuid, Node* a_pParentNode);
     void			internalAddNode(Node* a_pNode, uint a_uiGuid, Node* a_pParentNode);
-    void			internalAddData(const phantom::data& a_Data, uint a_uiGuid, Node* a_pOwnerNode);
-    void			internalAddNewData(const phantom::data& a_Data, uint a_uiGuid, Node* a_pOwnerNode);
-    void            internalRemoveData(const phantom::data& a_Data, uint a_Guid, Node* a_pOwnerNode);
     void			internalRemoveNode(Node* a_pNode, uint a_uiGuid, Node* a_pParentNode);
 
     virtual void    dataDestroyed(void* a_pAddress);
@@ -397,22 +387,129 @@ protected:
 
     void            rebuildData( phantom::data& a_inOutData, reflection::Type* a_pOld, reflection::Type* a_pNewType, vector<data>& a_Old, vector<data>& a_New, uint a_uiStateId /*= 0xffffffff*/ );  
 
+    size_t          getRuntimeTypeReferenceCount(reflection::Type* a_pType) const;
+
+    bool            hasRuntimeType(reflection::Type* a_pType) const;
+
+    const runtime_type_info& getRuntimeTypeInfo( reflection::Type* a_pType ) const;
+
 protected:
-    void            registerComponentData(const data& a_Data, const data& a_Owner, const string& a_ReferenceExpression, bitfield a_Modifiers);
+    void            removeComponentData( const phantom::data& a_Data );
+    void            unloadData(const phantom::data& a_Data);
+    void            reloadData();
+    void            registerComponentData(const data& a_Data, const data& a_Owner, const string& a_ReferenceExpression);
     void            unregisterComponentData(const data& a_Data);
-    reflection::Collection* getCollectionContainingComponentData(const phantom::data& d) const;
+
+    void            incrementRuntimeTypeReferenceCount(reflection::Type* a_pType);
+    void            decrementRuntimeTypeReferenceCount(reflection::Type* a_pType);
 
 protected:
-    typedef map<void*, Node*>       data_node_map;
-    typedef map<uint, Node*>        guid_node_map;
+    void            moduleElementAdded(reflection::LanguageElement* a_pLanguageElement);
+    void            moduleElementAboutToBeRemoved(reflection::LanguageElement* a_pLanguageElement);
+    void            moduleElementsAboutToBeReplaced( const vector<reflection::LanguageElement*>& a_OldLanguageElements );
+    void            moduleElementsReplaced(const vector<reflection::LanguageElement*>& a_OldLanguageElements, const vector<reflection::LanguageElement*>& a_NewLanguageElements);
+    void            moduleLoaded(Module* a_pModule, size_t a_uiOldCount, size_t a_uiNewCount);
+    void            moduleUnloaded( Module* a_pModule, size_t a_uiOldCount, size_t a_uiNewCount);
 
-    typedef map<void*, string*>     attribute_map;
+    virtual void    connectData( const phantom::data& a_Data, bool a_bCollectComponents = true );
+    virtual void    disconnectData( const phantom::data& a_Data );
+
+    void            componentChanged(void* a_pOldPointer, void* a_pNewPointer);
+    void            componentInserted( size_t a_uiIndex, void* a_pComponent);
+    void            componentAboutToBeRemoved( size_t, void* a_pComponent);
+    void            componentReplaced( size_t, void* a_pOldComponent, void* a_pNewComponent);
+    void            componentMoved( size_t a_uiOldIndex, size_t a_uiNewIndex, void* a_pComponent );
+    void            componentSwapped( size_t a_uiOldIndex, size_t a_uiNewIndex, void* a_pComponent0, void* a_pComponent1 );
+
+    void            aggregateInserted( size_t a_uiIndex, void* a_pAggregate );
+    void            aggregateAboutToBeRemoved( size_t a_uiIndex, void* a_pAggregate );
+    void            aggregateReplaced( size_t a_uiIndex, void* a_pOldAggregate, void* a_pNewAggregate );
+    void            aggregateMoved( size_t a_uiOldIndex, size_t a_uiNewIndex, void* a_pAggregate );
+    void            aggregateSwapped( size_t a_uiOldIndex, size_t a_uiNewIndex, void* a_pOldAggregate, void* a_pNewAggregate );
+
+    void            propertyChanged();
+
+protected:
+    string          formatIndexExpression(size_t a_uiIndex);
+    string          formatIndexedExpression(const string& a_strExpression, size_t a_uiIndex, const char chars[2]);
+    void            slotNodeLoaded();
+    void            slotNodeAboutToBeUnloaded();
+    void            registerType(reflection::Type* a_pType);
+    void            unregisterType(reflection::Type* a_pType);
+    virtual void    createTypeEntry(reflection::Type* a_pType) = 0;
+    virtual void    destroyTypeEntry(reflection::Type* a_pType) = 0;
+    virtual void    saveType(reflection::Type* a_pType) = 0;
+    virtual void    loadTypes(Module* a_pModule, vector<reflection::Type*>* a_pLoadedTypes = nullptr, const vector<string>* a_pTypeNames = nullptr) = 0;
+    virtual bool    hasTypeEntry(const string& a_strQualifiedDecoratedName, const string& a_strModuleFileName) const = 0;
+
+    void            registerPlaceholderTypeByName(const string& qualifiedName, const string& placeHolder);
+    void            unregisterPlaceholderTypeByName(const string& qualifiedName);
+    void            unregisterAllByPlaceholderTypeName(const string& placeholder);
+
+    reflection::Type* getPlaceholderTypeByName(const string& qualifiedName) const;
+
+    const string&   getPlaceholderTypeName(const string& qualifiedName) const;
+
+    placeholder_type_by_name_map::const_iterator beginPlaceholderTypesByName() const { return m_PlaceholderTypeByNameMap.begin(); }
+    placeholder_type_by_name_map::const_iterator endPlaceholderTypesByName() const { return m_PlaceholderTypeByNameMap.end(); }
+
+    placeholder_type_by_id_map::const_iterator beginPlaceholderTypesById() const { return m_PlaceholderTypeByIdMap.begin(); }
+    placeholder_type_by_id_map::const_iterator endPlaceholderTypesById() const { return m_PlaceholderTypeByIdMap.end(); }
+
+    void savePlaceholderTypesByName( property_tree& a_Out );
+    void loadPlaceholderTypesByName( const property_tree& a_In );
+    void blockModuleSlots();
+    void unblockModuleSlots();
+
+    void addDataReferenceExpression( uint guid, const string& propertyAccessExpression );
+    void removeDataReferenceExpression( uint guid, const string& propertyAccessExpression );
+protected:
+    o_signal_data(dataAboutToBeRemoved, const phantom::data&, Node*);
+    o_signal_data(dataAdded, const phantom::data&, Node*);
+    o_signal_data(dataAboutToBeDisconnected, const phantom::data&);
+    o_signal_data(dataConnected, const phantom::data&);
+    o_signal_data(dataAboutToBeReplaced, const phantom::data&, Node*);
+    o_signal_data(dataReplaced, const phantom::data&, Node*);
+    o_signal_data(dataAboutToBeUnloaded, const phantom::data&, Node*);
+    o_signal_data(dataReloaded, const phantom::data&, Node*);
+    o_signal_data(dataAboutToBeUnregistered, const phantom::data&);
+    o_signal_data(dataRegistered, const phantom::data&);
+    o_signal_data(dataAboutToBeAborted, const phantom::data&, Node*);
+    o_signal_data(dataMoved, const phantom::data&, Node*, Node*);
+    o_signal_data(dataAttributeValueChanged, const phantom::data&, size_t, const string&);
+    o_signal_data(dataModifiersChanged, const phantom::data&, modifiers_t);
+    o_signal_data(dataAggregationChanged, const phantom::data&, const string&, const string&);
+    o_signal_data(dataCompositionChanged, const phantom::data&, const string&, const string&);
+    o_signal_data(dataPropertyValueChanged, const phantom::data&, reflection::Property*, const variant&, const variant&);
+    o_signal_data(componentOwnershipLost, const phantom::data&);
+
+    o_signal_data(nodeAdded, Node*, Node*);
+    o_signal_data(nodeAboutToBeRemoved, Node*, Node*);
+    o_signal_data(nodeLoaded, Node*);
+    o_signal_data(nodeAboutToBeUnloaded, Node*);
+    o_signal_data(nodeMoved, Node*, Node*, Node*);
+    o_signal_data(nodeAttributeValueChanged, Node*, size_t, const string&);
+    o_signal_data(dataErased, uint);
+    o_signal_data(dataRestored, uint);
+
+    o_signal_data(componentReferenceExpressionChanged, const phantom::data&, const string&, const string&);
+
+protected:
+    typedef map<uint, uint>         data_node_map;
+
+    typedef map<uint, string*>      attribute_map;
     typedef vector<string>          attribute_name_container;
 
-    typedef map<void*, bitfield>    modifier_map;
+    typedef map<uint, modifiers_t>     modifier_map;
 
-    typedef map<void*,  data>       component_data_owner_map;
-    typedef map<void*, string>      component_data_reference_expression_map;
+    typedef map<uint, uint>         component_data_owner_map;
+    typedef map<uint, string>       component_data_reference_expression_map;
+
+    typedef map<uint,vector<string>>data_reference_expression_map;
+
+    typedef map<uint, map<reflection::Property*, variant>> data_property_value_map;
+
+    typedef map<uint, map<void*, vector<void*>>> data_aggregation_value_map;
 
     string                          m_strUrl;
     data_guid_base                  m_GuidBase;
@@ -422,17 +519,35 @@ protected:
     attribute_map                   m_AttributeValues;
     attribute_name_container        m_AttributeNames;
     modifier_map                    m_DataModifiers;
-    DataTypeManager*                m_pDataTypeManager;
     DataStateBase*                  m_pDataStateBase;
-	Trashbin*						m_pTrashbin;
     EActionOnMissingType            m_eActionOnMissingType;
     size_t                          m_uiLoadedDataSize;
     size_t                          m_uiLoadedDataResetSize;
     size_t                          m_uiLoadedDataSerializedSize;
     uint                            m_uiSerializationFlag;
+    data_property_value_map         m_PropertyValues;
+    data_reference_expression_map   m_DataReferenceExpressions;
+    data_reference_expression_map   m_DataReferenceExpressionsUnloadedToRestore;
+    placeholder_type_by_name_map    m_PlaceholderTypeByNameMap;
+    placeholder_type_by_id_map      m_PlaceholderTypeByIdMap;
+
+    vector<runtime_type_info>       m_RuntimeTypes;
+    vector<string>                  m_ReplacementOldTypeNames;
+    struct node_pred
+    {
+        bool operator()(const Node* n0, const Node* n1) const;
+    };
+    map<Node*, vector<uint>, node_pred> m_UnloadedGuids;
+
+    Record*                         m_pCurrentRecord;
+    Record*                         m_pRedoRecord;
+    Record*                         m_pUndoRecord;
+
+    bool                            m_bDataSlotsBlocked;
 
 private:
     mutable Node*                   m_pRootNode;
+    bool                            m_bModuleSlotsBlocked;
 };
 
 o_namespace_end(phantom, serialization)

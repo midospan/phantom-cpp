@@ -1,10 +1,6 @@
 #pragma once 
 #include "FileTreeDataBase.hxx"
-o_classNS((phantom, serialization), BinaryFileTreeDataBase, (FileTreeDataBase))
-{
-    o_reflection 
-    {
+o_classNB((phantom, serialization), BinaryFileTreeDataBase, (FileTreeDataBase))
+(
+        );
 
-    };
-};
-o_exposeN((phantom, serialization), BinaryFileTreeDataBase);

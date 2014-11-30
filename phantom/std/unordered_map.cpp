@@ -12,7 +12,7 @@ o_registerNT((phantom), (typename, typename, typename, typename, typename), (t_K
 // o_registerNTI((phantom), unordered_map, (int, char));
 // o_registerNTI((phantom), unordered_map, (phantom::string, unsigned char));
 // o_registerNTI((phantom), unordered_map, (phantom::string, signed char));
-// #if o_BUILT_IN_WCHAR_T
+// #if o_HAS_BUILT_IN_WCHAR_T
 // o_registerNTI((phantom), unordered_map, (phantom::string, wchar_t));
 // #endif
 // o_registerNTI((phantom), unordered_map, (phantom::string, short));

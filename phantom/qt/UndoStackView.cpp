@@ -35,28 +35,28 @@ void UndoStackView::setUndoStack( UndoStack* a_pUndoStack )
         disconnect(this, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)), this, SLOT(slotCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)));
         for(auto it = m_pUndoStack->beginCommands(); it != m_pUndoStack->endCommands(); ++it)
         {
-            undoCommandAboutToBeRemoved(*it);
+            commandAboutToBeRemoved(*it);
         }
-        o_disconnect(m_pUndoStack, undoCommandAboutToBeRemoved(UndoCommand*), this, undoCommandAboutToBeRemoved(UndoCommand*));
-        o_disconnect(m_pUndoStack, undoCommandAdded(UndoCommand*), this, undoCommandAdded(UndoCommand*));
+        o_disconnect(m_pUndoStack, commandAboutToBeRemoved(UndoCommand*), this, commandAboutToBeRemoved(UndoCommand*));
+        o_disconnect(m_pUndoStack, commandAdded(UndoCommand*), this, commandAdded(UndoCommand*));
     }
     m_pUndoStack = a_pUndoStack;
     if(m_pUndoStack)
     {
-        o_connect(m_pUndoStack, undoCommandAboutToBeRemoved(UndoCommand*), this, undoCommandAboutToBeRemoved(UndoCommand*));
-        o_connect(m_pUndoStack, undoCommandAdded(UndoCommand*), this, undoCommandAdded(UndoCommand*));
+        o_connect(m_pUndoStack, commandAboutToBeRemoved(UndoCommand*), this, commandAboutToBeRemoved(UndoCommand*));
+        o_connect(m_pUndoStack, commandAdded(UndoCommand*), this, commandAdded(UndoCommand*));
         for(auto it = m_pUndoStack->beginCommands(); it != m_pUndoStack->endCommands(); ++it)
         {
-            undoCommandAdded(*it);
+            commandAdded(*it);
         }
         connect(this, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)), this, SLOT(slotCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)));
     }
 }
 
-void UndoStackView::undoCommandAdded( UndoCommand* a_pUndoCommand )
+void UndoStackView::commandAdded( UndoCommand* a_pUndoCommand )
 {
-    o_connect(a_pUndoCommand, childCommandAdded(UndoCommand*), this, undoCommandAdded(UndoCommand*));
-    o_connect(a_pUndoCommand, childCommandAboutToBeRemoved(UndoCommand*), this, undoCommandAboutToBeRemoved(UndoCommand*));
+    o_connect(a_pUndoCommand, childCommandAdded(UndoCommand*), this, commandAdded(UndoCommand*));
+    o_connect(a_pUndoCommand, childCommandAboutToBeRemoved(UndoCommand*), this, commandAboutToBeRemoved(UndoCommand*));
 
     QTreeWidgetItem* pItem = new QTreeWidgetItem;
     pItem->setText(1, a_pUndoCommand->getName().c_str());
@@ -77,15 +77,15 @@ void UndoStackView::undoCommandAdded( UndoCommand* a_pUndoCommand )
     }
     for(auto it = a_pUndoCommand->beginChildCommands(); it != a_pUndoCommand->endChildCommands(); ++it)
     {
-        undoCommandAdded(*it);
+        commandAdded(*it);
     }
 }
 
-void UndoStackView::undoCommandAboutToBeRemoved( UndoCommand* a_pUndoCommand )
+void UndoStackView::commandAboutToBeRemoved( UndoCommand* a_pUndoCommand )
 {
     for(auto it = a_pUndoCommand->beginChildCommands(); it != a_pUndoCommand->endChildCommands(); ++it)
     {
-        undoCommandAboutToBeRemoved(*it);
+        commandAboutToBeRemoved(*it);
     }
     if(a_pUndoCommand->getParent())
     {
@@ -97,8 +97,8 @@ void UndoStackView::undoCommandAboutToBeRemoved( UndoCommand* a_pUndoCommand )
     {
         takeTopLevelItem(indexOfTopLevelItem(findCommandItem(a_pUndoCommand)));
     }
-    o_disconnect(a_pUndoCommand, childCommandAdded(UndoCommand*), this, undoCommandAdded(UndoCommand*));
-    o_disconnect(a_pUndoCommand, childCommandAboutToBeRemoved(UndoCommand*), this, undoCommandAboutToBeRemoved(UndoCommand*));
+    o_disconnect(a_pUndoCommand, childCommandAdded(UndoCommand*), this, commandAdded(UndoCommand*));
+    o_disconnect(a_pUndoCommand, childCommandAboutToBeRemoved(UndoCommand*), this, commandAboutToBeRemoved(UndoCommand*));
 }
 
 QTreeWidgetItem* UndoStackView::findCommandItem( UndoCommand* a_pUndoCommand, QTreeWidgetItem* a_pParentItem /*= nullptr*/ ) const

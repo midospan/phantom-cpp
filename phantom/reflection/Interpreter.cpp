@@ -3,7 +3,7 @@
 #include "Interpreter.h"
 #include "Interpreter.hxx"
 #include <phantom/reflection/LanguageElement.h>
-#include "phantom/util/Message.h"
+#include "phantom/Message.h"
 #include "phantom/reflection/Block.h"
 #include "phantom/reflection/LocalVariable.h"
 /* *********************************************** */

@@ -42,6 +42,25 @@ o_namespace_begin(phantom, reflection)
 
 o_define_meta_type(ConstType);
 
+ConstType::ConstType( Type* a_pType ) 
+    : Type(a_pType->getTypeId()
+            , a_pType->getName()
+            , a_pType->getSize()
+            , a_pType->getAlignment()
+            , a_pType->getModifiers()|o_const)
+    , m_pConstedType(a_pType)
+{
+    addReferencedElement(a_pType);
+}
+
+ConstType::~ConstType()
+{
+    if(m_pConstedType)
+    {
+        m_pConstedType->removeExtendedType(this);
+    }
+}
+
 bool ConstType::isConvertibleTo( Type* a_pType ) const
 {
     return m_pConstedType->isConvertibleTo(a_pType);
@@ -65,6 +84,45 @@ string ConstType::getDecoratedName() const
 string ConstType::getQualifiedDecoratedName() const
 {
     return m_pConstedType->getQualifiedDecoratedName()+" const";
+}
+
+void ConstType::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    if(m_pConstedType == a_pElement)
+    {
+        m_pConstedType->removeExtendedType(this);
+        m_pConstedType = nullptr;
+    }
+}
+
+void ConstType::getElements( vector<LanguageElement*>& out, Class* a_pClass /*= nullptr */ ) const
+{
+    m_pConstedType->getElements(out, a_pClass);
+}
+
+LanguageElement* ConstType::solveElement( const string& a_strName , const vector<TemplateElement*>* a_pTS , const vector<LanguageElement*>* a_pFS , modifiers_t a_Modifiers /*= 0*/ ) const
+{
+    return m_pConstedType->solveElement(a_strName, a_pTS, a_pFS, a_Modifiers|o_const);
+}
+
+Expression* ConstType::solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTS , const vector<LanguageElement*>* a_pFS , modifiers_t a_Modifiers /*= 0*/ ) const
+{
+    return m_pConstedType->solveExpression(a_pLeftExpression, a_strName, a_pTS, a_pFS, a_Modifiers|o_const );
+}
+
+Expression* ConstType::solveOperator( const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers ) const
+{
+    return m_pConstedType->solveOperator(a_strOp, a_Expressions, a_Modifiers|o_const);
+}
+
+bool ConstType::referencesData( const void* a_pInstance, const phantom::data& a_Data ) const
+{
+    return m_pConstedType->referencesData(a_pInstance, a_Data);
+}
+
+void ConstType::fetchExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter, uint a_uiSerializationMask ) const
+{
+    m_pConstedType->fetchExpressions(a_pInstanceExpression, out, a_Filter, a_uiSerializationMask);
 }
 
 o_namespace_end(phantom, reflection)

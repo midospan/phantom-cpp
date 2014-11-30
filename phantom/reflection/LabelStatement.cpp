@@ -43,13 +43,15 @@ o_namespace_begin(phantom, reflection)
 
 LabelStatement::LabelStatement()
     : Statement("")
+    , m_uiIndex(0xffffffff)
 {
 
 }
 
 LabelStatement::LabelStatement(const string& a_strLabelName)
-    : Statement("")
+    : Statement(a_strLabelName+":")
     , m_strLabelName(a_strLabelName)
+    , m_uiIndex(0xffffffff)
 {
 
 }
@@ -57,6 +59,14 @@ LabelStatement::LabelStatement(const string& a_strLabelName)
 variant LabelStatement::compile( Compiler* a_pCompiler )
 {
     return a_pCompiler->compile(this);
+}
+
+void LabelStatement::ancestorChanged( LanguageElement* a_pLanguageElement )
+{
+    if(getSubroutine() AND m_uiIndex == 0xffffffff)
+    {
+        getSubroutine()->registerLabelStatement(this);
+    }
 }
 
 o_namespace_end(phantom, reflection)

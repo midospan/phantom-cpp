@@ -1,5 +1,7 @@
 /* ******************* Includes ****************** */
 #include <phantom/qt/qt.h>
+
+#define BOOST_LIB_DIAGNOSTIC
 #include "ModuleExplorer.h"
 #include "ModuleExplorer.hxx"
 #include "phantom/ModuleLoader.h"
@@ -9,7 +11,11 @@
 #include "UndoStack.h"
 #include <QDir>
 #include <QFileInfo>
+#include <QHeaderView>
+#include <QFileSystemWatcher>
 #include <windows.h>
+#include <boost/filesystem.hpp>
+#include <boost/property_tree_custom/info_parser.hpp>
 /* ** The Class Header must be the last #include * */
 /* *********************************************** */
 o_registerN((phantom, qt), ModuleExplorer);
@@ -47,6 +53,10 @@ namespace phantom { namespace qt {
         headerLabels.append("Module");
         headerLabels.append("Loads");
         setHeaderLabels(headerLabels);
+        m_pFileSystemWatcher = new QFileSystemWatcher;
+        connect(m_pFileSystemWatcher, SIGNAL(fileChanged(const QString&)), this, SLOT(reloadMetaData(const QString&)));
+        header()->setResizeMode(QHeaderView::Interactive);
+        header()->resizeSections(QHeaderView::ResizeToContents);
     }
 
     void ModuleExplorer::setPath( const string& a_strPath )
@@ -54,6 +64,10 @@ namespace phantom { namespace qt {
         if(m_strPath.size())
         {
             clear();
+        }
+        if(m_strMetaDataPath.empty())
+        {
+            setMetaDataPath(a_strPath);
         }
         m_strPath = a_strPath;
         if(m_strPath.size())
@@ -137,6 +151,10 @@ namespace phantom { namespace qt {
             o_connect(m_pModuleLoader, libraryUnloaded(const string&), this, libraryUnloaded(const string&));
             o_connect(m_pModuleLoader, moduleLoaded(Module*, size_t, size_t), this, moduleLoaded(Module*, size_t, size_t));
             o_connect(m_pModuleLoader, moduleUnloaded(Module*, size_t, size_t), this, moduleUnloaded(Module*, size_t, size_t));
+            if(m_strMetaDataPath.size())
+            {
+                loadMetaData();
+            }
         }
         for(size_t i = 0; i<topLevelItemCount(); ++i)
         {
@@ -175,8 +193,25 @@ namespace phantom { namespace qt {
         return nullptr;
     }
 
+    string ModuleExplorer::moduleMetaDataPath(Module* a_pModule)
+    {
+        return m_strMetaDataPath+"/"+a_pModule->getName()+".cfg";
+    }
+
     void ModuleExplorer::moduleLoaded( Module* a_pModule, size_t, size_t a_uiLoadCount )
     {
+        if(a_uiLoadCount == 1)
+        {
+            if(m_strMetaDataPath.size())
+            {
+                string metaDataFile = moduleMetaDataPath(a_pModule);
+                if(boost::filesystem::exists(metaDataFile.c_str()))
+                {
+                    loadMetaData(metaDataFile);
+                    m_pFileSystemWatcher->addPath(metaDataFile.c_str());
+                }
+            }
+        }
         QFileInfo fileInfo( a_pModule->getFileName().c_str() );
         LibraryItem* pItem = getItem(fileInfo.absoluteFilePath());
         if(pItem)
@@ -187,6 +222,14 @@ namespace phantom { namespace qt {
 
     void ModuleExplorer::moduleUnloaded( Module* a_pModule, size_t, size_t a_uiLoadCount )
     {
+        if(a_uiLoadCount == 0)
+        {
+            string metaDataFile = moduleMetaDataPath(a_pModule);
+            if(boost::filesystem::exists(metaDataFile.c_str()))
+            {
+                m_pFileSystemWatcher->removePath(metaDataFile.c_str());
+            }
+        }
         QFileInfo fileInfo( a_pModule->getFileName().c_str() );
         LibraryItem* pItem = getItem(fileInfo.absoluteFilePath());
         if(pItem)
@@ -237,7 +280,8 @@ namespace phantom { namespace qt {
     {
         if(!m_PreUnloadLibraryDelegate.empty())
         {
-            m_PreUnloadLibraryDelegate(a_strPath);
+            if(!m_PreUnloadLibraryDelegate(a_strPath))
+                return;
         }
         if(m_pModuleLoader->libraryCanBeUnloaded(a_strPath, m_pRootMessage))
         {
@@ -245,10 +289,74 @@ namespace phantom { namespace qt {
         }
     }
 
-    void ModuleExplorer::setPreUnloadLibraryDelegate( delegate_t a_Delegate )
+    void ModuleExplorer::setPreUnloadLibraryDelegate( pre_delegate_t a_Delegate )
     {
         m_PreUnloadLibraryDelegate = a_Delegate;
     }
+
+    void ModuleExplorer::setMetaDataPath( const string& a_strPath )
+    {
+        if(m_strMetaDataPath == a_strPath) return;
+        m_strMetaDataPath = a_strPath;
+        if(m_pModuleLoader)
+        {
+            loadMetaData();
+        }
+    }
+
+    void ModuleExplorer::loadMetaDataDefinition( const string& a_Key, const property_tree& a_PropertyTree, reflection::LanguageElement* a_pScope)
+    {
+        string value = a_PropertyTree.get_value<string>();
+        if(a_PropertyTree.size())
+        {
+            phantom::reflection::LanguageElement* pElement = a_Key.empty() ? rootNamespace() : phantom::elementByName(a_Key, a_pScope);
+            if(pElement == NULL/* OR ((pElement->asNamespace() == nullptr) AND (pElement->getModule() != a_pModule))*/) 
+                return;
+            property_tree::const_iterator it = a_PropertyTree.begin();
+            property_tree::const_iterator end = a_PropertyTree.end();
+            for(;it!=end;++it)
+            {
+                loadMetaDataDefinition(it->first, it->second, pElement);
+            }
+        }
+        else 
+        {
+            size_t metaDataIndex = phantom::metaDataIndex(a_Key);
+            if(metaDataIndex != 0xffffffff) 
+            {
+                a_pScope->setMetaDataValue(metaDataIndex, value);
+            }
+        }
+    }
+
+    void ModuleExplorer::loadMetaData( Module* a_pModule )
+    {
+    }
+
+     void ModuleExplorer::loadMetaData( const string& metaDataFile )
+     {
+         property_tree   propertyTree;
+         boost::property_tree_custom::read_info(metaDataFile.c_str(), propertyTree);
+         boost::optional<property_tree&> root_opt = propertyTree.get_child_optional("metadata");
+         if(root_opt.is_initialized())
+         {
+             loadMetaDataDefinition("", *root_opt, rootNamespace());
+         }
+     }
+
+     void ModuleExplorer::loadMetaData()
+     {
+         for(auto it = m_pModuleLoader->beginLoadedModules(); it != m_pModuleLoader->endLoadedModules(); ++it)
+         {
+             string metaDataFile = moduleMetaDataPath(*it);
+             if(boost::filesystem::exists(metaDataFile.c_str()))
+             {
+                 loadMetaData(metaDataFile);
+                 m_pFileSystemWatcher->addPath(metaDataFile.c_str());
+             }
+         }
+     }
+
 
     LibraryItem::LibraryItem( ModuleExplorer* a_pModuleExplorer, const QString& a_strAbsolutePath ) 
         : m_strAbsolutePath(a_strAbsolutePath)

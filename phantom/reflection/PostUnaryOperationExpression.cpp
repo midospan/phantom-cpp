@@ -42,10 +42,14 @@ o_namespace_begin(phantom, reflection)
 
 PostUnaryOperationExpression::PostUnaryOperationExpression( Type* a_pType, const string& a_strOperator, Expression* a_pExpression ) 
     : Expression(a_pType, "("+a_pExpression->getName()+")"+a_strOperator)
-    , m_pExpression(a_pExpression)
-    , m_pConvertedExpression(a_pExpression->implicitCast(a_pType))
+    , m_pExpression((a_pExpression AND a_pExpression->getOwner()) ? a_pExpression->clone() : a_pExpression)
 {
-
+    m_pConvertedExpression = m_pExpression ? m_pExpression->implicitCast(a_pType) : nullptr;
+    if(m_pConvertedExpression)
+    {
+        addSubExpression(m_pConvertedExpression);
+    }
+    else setInvalid();
 }
 
 void PostUnaryOperationExpression::flush() const

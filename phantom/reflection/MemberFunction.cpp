@@ -36,6 +36,8 @@
 /* ** The Class Header must be the last #include * */
 #include <phantom/reflection/MemberFunction.hxx>
 /* *********************************************** */
+o_registerN((phantom, reflection), MemberFunction);
+
 o_namespace_begin(phantom, reflection) 
 
 o_namespace_end(phantom, reflection)

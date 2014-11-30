@@ -14,4 +14,3 @@ o_classN((phantom, qt), ModuleExplorer, o_no_copy)
         o_slot(void, moduleUnloaded, (Module*, size_t, size_t));
     };
 };
-o_exposeN((phantom, qt), ModuleExplorer);

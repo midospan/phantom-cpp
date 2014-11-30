@@ -35,32 +35,40 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/StaticDataMember.h>
 #include <phantom/reflection/StaticDataMember.hxx>
+#include <phantom/std/vector.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), StaticDataMember);
+o_registerNTI((phantom), vector, (phantom::reflection::StaticDataMember*));
 
 o_namespace_begin(phantom, reflection) 
 
 Class* const StaticDataMember::metaType = o_type_of(phantom::reflection::StaticDataMember);
 
-StaticDataMember::StaticDataMember( const string& a_strName, Type* a_pContentType, void* a_pStaticDataMemberAddress, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) 
+StaticDataMember::StaticDataMember()
+    : StaticVariable()
+{
+
+}
+
+StaticDataMember::StaticDataMember( Type* a_pContentType, const string& a_strName, void* a_pStaticDataMemberAddress, Range* a_pRange, modifiers_t a_Modifiers /*= 0*/ ) 
     : StaticVariable( a_pStaticDataMemberAddress, a_pContentType, a_strName, a_pRange, a_Modifiers)
-    , m_bAllocated(false)
 {
 }
 
-StaticDataMember::StaticDataMember( const string& a_strName, Type* a_pContentType, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) 
-    : StaticVariable( a_pContentType->newInstance(), a_pContentType, a_strName, a_pRange, a_Modifiers)
-    , m_bAllocated(true)
+StaticDataMember::StaticDataMember( Type* a_pContentType, const string& a_strName, Range* a_pRange, modifiers_t a_Modifiers /*= 0*/ ) 
+    : StaticVariable( a_pContentType, a_strName, a_pRange, a_Modifiers)
+{
+
+}
+
+StaticDataMember::StaticDataMember( Type* a_pContentType, const string& a_strName, modifiers_t a_Modifiers /*= 0*/ )
+    : StaticVariable( a_pContentType, a_strName, a_Modifiers)
 {
 
 }
 
 o_destructor StaticDataMember::~StaticDataMember( void )
 {
-    if(m_bAllocated)
-    {
-        m_pValueType->deleteInstance(m_pAddress);
-    }
 }
 
 void StaticDataMember::getValue( void const* a_pObject, void* dest ) const

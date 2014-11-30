@@ -62,12 +62,4 @@ protected:
 
 o_namespace_end(sc2)
 
-o_classN((sc2), Ability)
-{
-    o_reflection 
-    {
-    };
-};
-o_exposeN((sc2), Ability);
-
 #endif

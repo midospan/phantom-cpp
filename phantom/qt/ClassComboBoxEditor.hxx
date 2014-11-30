@@ -2,7 +2,7 @@
 
 #include "VariableWidgetEditor.hxx"
 
-o_classNS((phantom, qt), ClassComboBoxEditor, (VariableWidgetEditor))
+o_classNB((phantom, qt), ClassComboBoxEditor, (VariableWidgetEditor))
 {
     o_reflection
     {

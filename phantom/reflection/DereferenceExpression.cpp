@@ -45,9 +45,16 @@ DereferenceExpression::DereferenceExpression( Expression* a_pDereferencedExpress
     , "*("+a_pDereferencedExpression->getName()+")")
     , m_pDereferencedExpression(a_pDereferencedExpression)
 {
-    o_assert(a_pDereferencedExpression->getValueType()->removeReference()->removeConst()->asDataPointerType());
-    addElement(a_pDereferencedExpression);
-    o_assert(a_pDereferencedExpression->isDereferenceable());
+    if(m_pDereferencedExpression)
+    {
+        addSubExpression(m_pDereferencedExpression);
+        if(NOT(m_pDereferencedExpression->getValueType()->removeReference()->removeConst()->asDataPointerType())
+            OR NOT(m_pDereferencedExpression->isDereferenceable()))
+        {
+            setInvalid();
+        }
+    }
+    else setInvalid();
 }
 
 void DereferenceExpression::getValue( void* a_pDest ) const
@@ -64,7 +71,7 @@ void DereferenceExpression::flush() const
 
 Expression* DereferenceExpression::clone() const
 {
-    return o_new(DereferenceExpression)(m_pDereferencedExpression->clone());
+    return o_new(DereferenceExpression)(m_pDereferencedExpression);
 }
 
 o_namespace_end(phantom, reflection)

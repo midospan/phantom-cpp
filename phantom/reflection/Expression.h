@@ -47,8 +47,8 @@ o_namespace_begin(phantom, reflection)
 class o_export Expression : public Evaluable
 {
 public:
-    Expression(Type* a_pValueType, bitfield a_Modifiers = 0);
-    Expression(Type* a_pValueType, const string& a_strName, bitfield a_Modifiers = 0);
+    Expression(Type* a_pValueType, modifiers_t a_Modifiers = 0);
+    Expression(Type* a_pValueType, const string& a_strName, modifiers_t a_Modifiers = 0);
      
     virtual void            eval() const {}
 
@@ -62,6 +62,8 @@ public:
 
     void                    store(void const* a_pSrc) const;
 
+    void                    storeWithSignalsBlocked(void const* a_pSrc) const;
+
     variant                 get() const;
 
     void                    set(const variant& v);
@@ -74,7 +76,11 @@ public:
 
     virtual bool            isAssignable() const { return isAddressable() && NOT(isConstExpression()); }
 
+    virtual bool            isPersistent() const;
+
     virtual bool            hasValueStorage() const { return false; }
+
+    bool                    hasValueStorageCascade() const;
 
     virtual void*           getValueStorageAddress() const { return nullptr; }
 
@@ -86,26 +92,26 @@ public:
 
     bool                    isConstExpression() const;
 
-    Expression*             solveUnaryOperator(const string& a_strOp, bitfield a_Modifiers = 0) const
+    Expression*             solveUnaryOperator(const string& a_strOp, modifiers_t a_Modifiers = 0) const
     {
         vector<Expression*> elements;
         return solveOperator(a_strOp, elements, a_Modifiers); 
     }
 
-    Expression*             solveBinaryOperator(const string& a_strOp, Expression* a_pExpression, bitfield a_Modifiers = 0) const 
+    Expression*             solveBinaryOperator(const string& a_strOp, Expression* a_pExpression, modifiers_t a_Modifiers = 0) const 
     {
         vector<Expression*> elements;
         elements.push_back(a_pExpression);
         return solveOperator(a_strOp, elements, a_Modifiers); 
     }
 
-    virtual Expression*     solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers = 0) const;
+    virtual Expression*     solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers = 0) const;
 
     virtual LanguageElement*solveElement(
                                 const string& a_strName
                                 , const vector<TemplateElement*>*
                                 , const vector<LanguageElement*>*
-                                , bitfield a_Modifiers = 0) const;
+                                , modifiers_t a_Modifiers = 0) const;
 
     Expression*             implicitCast(Type* a_pTargetType) const;
 
@@ -119,19 +125,29 @@ public:
 
     virtual Expression*     clone() const = 0;
 
+    void                    setSignalBlocked(bool a_bSignalsBlocked);
+
+    void                    setSignalBlockedCascade(bool a_bSignalsBlocked);
+
+    bool                    areSignalsBlocked() const { return m_bSignalsBlocked; }
+
+    void                    detach();
+
 protected:
-    virtual void            ancestorChanged(LanguageElement* a_pLanguageElement) 
-    {
-        if(m_pBlock == nullptr)
-        {
-            m_pBlock = a_pLanguageElement->asBlock();
-        }
-    }
+    virtual void referencedElementRemoved(LanguageElement* a_pElement);
+
+    virtual void elementRemoved(LanguageElement* a_pElement);
+
     Type* storageType(Type* a_pType) const;
+
+    void addSubExpression(Expression*& a_prExpression);
+
+    void removeSubExpression(Expression* a_pExpression);
 
 protected:
     Type*                   m_pValueType;
-    Block*                  m_pBlock;
+    vector<Expression*>*    m_pSubExpressions;
+    bool                    m_bSignalsBlocked;
 };
 
 o_namespace_end(phantom, reflection)

@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'VariableEditor.h'
 **
-** Created: Wed 2. Jul 14:05:56 2014
+** Created: Wed 29. Oct 19:56:58 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -24,7 +24,7 @@ static const uint qt_meta_data_phantom__qt__VariableEditor[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      12,   14, // methods
+      13,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -40,12 +40,13 @@ static const uint qt_meta_data_phantom__qt__VariableEditor[] = {
  // slots: signature, parameters, type, tag, flags
      185,   28,   28,   28, 0x0a,
      195,   28,   28,   28, 0x0a,
-     208,  204,   28,   28, 0x09,
-     240,   29,   28,   28, 0x09,
-     275,   28,   28,   28, 0x09,
-     297,   28,   28,   28, 0x09,
-     338,  322,   28,   28, 0x09,
-     376,  322,   28,   28, 0x09,
+     204,   28,   28,   28, 0x09,
+     222,   29,   28,   28, 0x09,
+     257,   28,   28,   28, 0x09,
+     279,   28,   28,   28, 0x09,
+     320,  304,   28,   28, 0x09,
+     358,  304,   28,   28, 0x09,
+     436,  407,   28,   28, 0x09,
 
        0        // eod
 };
@@ -56,11 +57,13 @@ static const char qt_meta_stringdata_phantom__qt__VariableEditor[] = {
     "variableAccessed(VariableNode*)\0"
     "variableAboutToBeChanged(VariableNode*)\0"
     "variableChanged(VariableNode*)\0refresh()\0"
-    "reedit()\0pos\0createPropertyPopupMenu(QPoint)\0"
+    "reedit()\0showPopup(QPoint)\0"
     "slotVariableChanged(VariableNode*)\0"
     "slotEditorDestroyed()\0slotEditorValueChanged()\0"
     "a_pVariableNode\0variableChildNodeAdded(VariableNode*)\0"
     "variableChildNodeAboutToBeRemoved(VariableNode*)\0"
+    "logicalIndex,oldSize,newSize\0"
+    "columnSectionResized(int,int,int)\0"
 };
 
 void phantom::qt::VariableEditor::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -75,12 +78,13 @@ void phantom::qt::VariableEditor::qt_static_metacall(QObject *_o, QMetaObject::C
         case 3: _t->variableChanged((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
         case 4: _t->refresh(); break;
         case 5: _t->reedit(); break;
-        case 6: _t->createPropertyPopupMenu((*reinterpret_cast< const QPoint(*)>(_a[1]))); break;
+        case 6: _t->showPopup((*reinterpret_cast< const QPoint(*)>(_a[1]))); break;
         case 7: _t->slotVariableChanged((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
         case 8: _t->slotEditorDestroyed(); break;
         case 9: _t->slotEditorValueChanged(); break;
         case 10: _t->variableChildNodeAdded((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
         case 11: _t->variableChildNodeAboutToBeRemoved((*reinterpret_cast< VariableNode*(*)>(_a[1]))); break;
+        case 12: _t->columnSectionResized((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< int(*)>(_a[3]))); break;
         default: ;
         }
     }
@@ -118,9 +122,9 @@ int phantom::qt::VariableEditor::qt_metacall(QMetaObject::Call _c, int _id, void
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 12)
+        if (_id < 13)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 12;
+        _id -= 13;
     }
     return _id;
 }

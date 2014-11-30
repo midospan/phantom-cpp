@@ -38,6 +38,7 @@
 #include <phantom/reflection/Expression.h>
 #include <phantom/reflection/Compiler.h>
 #include <phantom/reflection/Interpreter.h>
+#include <phantom/reflection/Block.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), ReturnStatement);
 
@@ -47,6 +48,7 @@ ReturnStatement::ReturnStatement()
     : Statement("")
     , m_pReturnExpression(nullptr)
     , m_pConvertedReturnExpression(nullptr)
+    , m_pExpressionString(nullptr)
 {
 }
 
@@ -54,6 +56,7 @@ ReturnStatement::ReturnStatement(Expression* a_pExpression)
     : Statement("")
     , m_pReturnExpression(nullptr)
     , m_pConvertedReturnExpression(nullptr)
+    , m_pExpressionString(nullptr)
 {
     setReturnExpression(a_pExpression);
 }
@@ -68,14 +71,17 @@ void ReturnStatement::eval() const
     if(m_pConvertedReturnExpression)
     {
         m_pConvertedReturnExpression->getValue(phantom::interpreter()->getReturnAddress());
-        phantom::interpreter()->setNextStatement(nullptr);
     }
+    for(auto it = m_RAIIDestructionStatements.begin(); it != m_RAIIDestructionStatements.end(); ++it)
+    {
+        (*it)->eval();
+    }
+    phantom::interpreter()->setNextStatement(nullptr);
 }
 
-void ReturnStatement::setReturnExpression( Expression* a_pReturnExpression )
+void ReturnStatement::checkValidity()
 {
-    o_assert(getSubroutine() AND m_pConvertedReturnExpression == nullptr);
-    m_pReturnExpression = a_pReturnExpression;
+    o_assert(getSubroutine());
     if(getSubroutine()->getReturnType() == typeOf<void>() && m_pReturnExpression)
     {
         setInvalid();
@@ -88,11 +94,64 @@ void ReturnStatement::setReturnExpression( Expression* a_pReturnExpression )
     {
         setInvalid();
     }
+}
+
+void ReturnStatement::setReturnExpression( Expression* a_pReturnExpression )
+{
+    o_assert(m_pConvertedReturnExpression == nullptr);
+    m_pReturnExpression = (a_pReturnExpression AND a_pReturnExpression->getOwner()) ? a_pReturnExpression->clone() : a_pReturnExpression ;
+    
     if(m_pReturnExpression)
     {
+        if(getSubroutine())
+        {
+            checkValidity();
+            m_pConvertedReturnExpression = m_pReturnExpression->implicitCast(getSubroutine()->getReturnType());
+            addElement(m_pConvertedReturnExpression);
+        }
+    }
+}
+
+void ReturnStatement::setExpressionString( string a_Expression )
+{
+    if(a_Expression.size())
+    {
+        m_pExpressionString = new string(a_Expression);
+    }
+}
+
+string ReturnStatement::getExpressionString() const
+{
+    return m_pReturnExpression ? m_pReturnExpression->getName() : string();
+}
+
+void ReturnStatement::restore()
+{
+    if(m_pReturnExpression == nullptr AND m_pExpressionString)
+    {
+        Expression* pExpression = phantom::expressionByName(*m_pExpressionString, this);
+        if(pExpression)
+        {
+            setReturnExpression(pExpression);
+        }
+        delete m_pExpressionString;
+        m_pExpressionString = nullptr;
+    }
+}
+
+void ReturnStatement::ancestorChanged( LanguageElement* a_pOwner )
+{
+    o_assert(m_pOwner == a_pOwner 
+        AND m_pOwner->asBlock() 
+        AND getSubroutine() 
+        AND m_pConvertedReturnExpression == nullptr);
+    if(m_pReturnExpression)
+    {
+        checkValidity();
         m_pConvertedReturnExpression = m_pReturnExpression->implicitCast(getSubroutine()->getReturnType());
         addElement(m_pConvertedReturnExpression);
     }
+    m_pOwner->asBlock()->getRAIIDestructionStatementsCascade(m_RAIIDestructionStatements);
 }
 
 o_namespace_end(phantom, reflection)

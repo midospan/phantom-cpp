@@ -36,8 +36,10 @@
 #include <phantom/reflection/Statement.h>
 #include <phantom/reflection/Statement.hxx>
 #include <phantom/reflection/Block.h>
+#include <phantom/std/vector.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), Statement);
+o_registerNTI((phantom), vector, (phantom::reflection::Statement*));
 
 o_namespace_begin(phantom, reflection) 
 

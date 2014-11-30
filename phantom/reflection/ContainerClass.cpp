@@ -21,8 +21,10 @@ bool ContainerClass::referencesData( const void* a_pContainer, const phantom::da
         const void* ptr = pIterator->pointer();
         if(m_pValueType->referencesData(ptr, a_Data))
         {
-            return true;
+            result = true;
+            break;
         }
+        pIterator->advance(1);
     }
 
     release(pIterator);
@@ -32,12 +34,12 @@ bool ContainerClass::referencesData( const void* a_pContainer, const phantom::da
 
 void ContainerClass::release( Iterator* a_pIterator ) const
 {
-    a_pIterator->terminate(); a_pIterator->deleteNow();
+    o_dynamic_delete a_pIterator;
 }
 
 void ContainerClass::release( ConstIterator* a_pIterator ) const
 {
-    a_pIterator->terminate(); a_pIterator->deleteNow();
+    o_dynamic_delete a_pIterator;
 }
 
 /*

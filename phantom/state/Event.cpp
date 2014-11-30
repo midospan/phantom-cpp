@@ -40,7 +40,7 @@ o_registerN((phantom, state), Event);
 
 o_namespace_begin(phantom, state) 
 
-Event::Event( const string& a_strName, uint id, bitfield a_Modifiers /*= 0*/ ) 
+Event::Event( const string& a_strName, uint id, modifiers_t a_Modifiers /*= 0*/ ) 
 : StateMachineElement(a_strName, a_Modifiers)
 , m_uiId(id)
 {

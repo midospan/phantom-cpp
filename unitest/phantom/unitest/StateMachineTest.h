@@ -20,12 +20,10 @@ public:
 
     o_initialize()
     {
-        o_statemachine_initialize();
     }
 
     o_terminate()
     {
-        o_statemachine_terminate();
     }
 
     void update() { o_statemachine_update(); }
@@ -57,13 +55,9 @@ protected:
 o_namespace_end(unitest)
 
 o_classN((unitest), StateMachineTest)
-{
-	o_reflection
-	{
-		
-	};
+(
     o_statechart 
-    {
+    (
         o_state(Active, Root);
         o_track(AB, Active);
             o_state(A, AB);
@@ -81,8 +75,8 @@ o_classN((unitest), StateMachineTest)
         o_transition(B, BtoA, A);
         o_transition(C, CtoD, D);
         o_transition(D, DtoC, C);
-    };
-};
-o_exposeN((unitest), StateMachineTest);
+    );
+);
+
 
 #endif

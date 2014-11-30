@@ -1,19 +1,19 @@
 #include "GameEntity.hxx"
 
-o_classNS((sc2), Unit, (GameEntity))
-{
-    o_reflection 
-    {
-        o_nested_typedef(Abilities);
-        o_data_member(bool, m_bPatrolWay, o_no_range, o_protected);
-        o_data_member(int, m_iLifePoints, o_no_range, o_protected);
-        o_data_member(int, m_iInitialLifePoints, o_no_range, o_protected);
-        o_data_member(Abilities, m_Abilities, o_no_range, o_protected);
-        o_data_member(phantom::math::vector2<float>, m_Position, o_no_range, o_protected);
-        o_property(const phantom::math::vector2<float>&, position, setPosition, getPosition, o_no_signal, o_no_range, o_public|o_transient);
-    };
+o_classNB((sc2), Unit, (GameEntity))
+(
+o_public:
+    o_nested_typedef(Abilities);
+    o_property(const phantom::math::vector2<float>&, position, setPosition, getPosition, o_no_signal, o_no_range, o_transient);
+
+o_protected:
+    o_data_member(bool, m_bPatrolWay);
+    o_data_member(int, m_iLifePoints);
+    o_data_member(int, m_iInitialLifePoints);
+    o_data_member(Abilities, m_Abilities);
+    o_data_member(phantom::math::vector2<float>, m_Position);
     o_statechart
-    {
+    (
         o_track(Life, Spawned)
 
         o_state(Alive, Life)
@@ -45,12 +45,12 @@ o_classNS((sc2), Unit, (GameEntity))
         o_event(HitFinished)
         o_transition(CoolDown, CoolDownFinished, Hit)
         o_transition(Hit, HitFinished, CoolDown)
-    };
-};
-o_exposeN((sc2), Unit);
+    );
+);
 
 o_static_assert(!phantom::has_initializer_member_function_initialize_declared<sc2::Unit>::value);
 o_static_assert(phantom::has_initializer_member_function_initialize<sc2::Unit>::value);
+o_static_assert(phantom::has_statechart<sc2::Unit>::value);
 o_static_assert(phantom::track_count_of<sc2::Unit>::value == 5);
 o_static_assert(phantom::detail::has_enclosed_statechart<sc2::Unit>::value);
 o_static_assert(phantom::detail::has_enclosed_statechart<sc2::GameEntity>::value);

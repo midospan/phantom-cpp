@@ -40,31 +40,23 @@ o_registerN((phantom, reflection), CastExpression);
 
 o_namespace_begin(phantom, reflection) 
 
-CastExpression::CastExpression( Type* a_pCastType, Expression* a_pCastedExpression ) 
-    : Expression(a_pCastType, "("+a_pCastType->getQualifiedDecoratedName()+")("+a_pCastedExpression->getName()+")", a_pCastedExpression->getModifiers())
+CastExpression::CastExpression( Type* a_pCastType, Expression* a_pCastedExpression, bool a_bImplicit ) 
+    : Expression(a_pCastType, a_bImplicit 
+                                    ? a_pCastedExpression->getName() 
+                                    : ("static_cast<"+a_pCastType->getQualifiedDecoratedName()+">("+a_pCastedExpression->getName()+")")
+                              , a_pCastedExpression->getModifiers())
     , m_pCastedExpression(a_pCastedExpression)
     , m_pTempValue(nullptr)
     , m_pIntermediateBuffer(nullptr)
+    , m_pIntermediateBufferType(nullptr)
+    , m_bImplicit(a_bImplicit)
 {
-    addElement(m_pCastedExpression);
-    o_assert(a_pCastedExpression->getValueType()->isCopyable());
-    if(NOT(a_pCastedExpression->hasValueStorage()))
+    if((m_bImplicit AND NOT(m_pCastedExpression->getValueType()->isImplicitlyConvertibleTo(getValueType())))
+        OR (!m_bImplicit AND NOT(m_pCastedExpression->getValueType()->isConvertibleTo(getValueType()))))
     {
-        m_pTempValue = a_pCastedExpression->getValueType()->allocate();
-        m_pCastedExpression->getValueType()->construct(m_pTempValue);
-        m_pCastedExpression->getValueType()->install(m_pTempValue);
-        m_pCastedExpression->getValueType()->initialize(m_pTempValue);
+        setInvalid();
     }
-    reflection::ReferenceType* pRefCastType = a_pCastType->asReferenceType();
-    if(pRefCastType AND m_pCastedExpression->getValueType()->asReferenceType() == nullptr AND pRefCastType->getReferencedType()->asConstType())
-    {
-        // Conversion from non-ref to const ref, need intermediate buffer
-        Type* pType = pRefCastType->removeReference()->removeConst();
-        m_pIntermediateBuffer = pType->allocate();
-        pType->construct(m_pIntermediateBuffer);
-        pType->install(m_pIntermediateBuffer);
-        pType->initialize(m_pIntermediateBuffer);
-    }
+    construct();
 }
 
 CastExpression::~CastExpression()
@@ -80,7 +72,7 @@ void CastExpression::getValue( void* a_pDest ) const
     }
     if(m_pIntermediateBuffer)
     {
-        m_pCastedExpression->getValueType()->convertValueTo(getValueType()->removeReference()->removeConst(), m_pIntermediateBuffer, 
+        m_pCastedExpression->getValueType()->convertValueTo(m_pIntermediateBufferType, m_pIntermediateBuffer, 
             m_pTempValue 
                 ? m_pTempValue 
                 : m_pCastedExpression->getValueStorageAddress());
@@ -94,7 +86,7 @@ void CastExpression::getValue( void* a_pDest ) const
     }
 }
 
-void CastExpression::terminate()
+o_terminate_cpp(CastExpression)
 {
     if(m_pTempValue)
     {
@@ -102,13 +94,89 @@ void CastExpression::terminate()
         m_pCastedExpression->getValueType()->uninstall(m_pTempValue);
         m_pCastedExpression->getValueType()->destroy(m_pTempValue);
         m_pCastedExpression->getValueType()->deallocate(m_pTempValue);
+        m_pTempValue = nullptr;
     }
-    Expression::terminate();
+    if(m_pIntermediateBuffer)
+    {
+        m_pIntermediateBufferType->terminate(m_pIntermediateBuffer);
+        m_pIntermediateBufferType->uninstall(m_pIntermediateBuffer);
+        m_pIntermediateBufferType->destroy(m_pIntermediateBuffer);
+        m_pIntermediateBufferType->deallocate(m_pIntermediateBuffer);
+        m_pIntermediateBuffer = nullptr;
+    }
 }
 
 CastExpression* CastExpression::clone() const
 {
-    return o_new(CastExpression)(m_pValueType, m_pCastedExpression->clone());
+    return o_new(CastExpression)(m_pValueType, m_pCastedExpression, m_bImplicit);
+}
+
+void CastExpression::elementRemoved( LanguageElement* a_pElement )
+{
+    Expression::elementRemoved(a_pElement);
+    if(m_pCastedExpression == a_pElement)
+    {
+        setInvalid();
+        if(m_pTempValue)
+        {
+            m_pCastedExpression->getValueType()->terminate(m_pTempValue);
+            m_pCastedExpression->getValueType()->uninstall(m_pTempValue);
+            m_pCastedExpression->getValueType()->destroy(m_pTempValue);
+            m_pCastedExpression->getValueType()->deallocate(m_pTempValue);
+            m_pTempValue = nullptr;
+        }
+        m_pCastedExpression = nullptr;
+    }
+}
+
+void CastExpression::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    // Release m_pTempValue if its value type is destroyed
+    if(m_pTempValue AND a_pElement == m_pCastedExpression->getValueType())
+    {
+        m_pCastedExpression->getValueType()->terminate(m_pTempValue);
+        m_pCastedExpression->getValueType()->uninstall(m_pTempValue);
+        m_pCastedExpression->getValueType()->destroy(m_pTempValue);
+        m_pCastedExpression->getValueType()->deallocate(m_pTempValue);
+        m_pTempValue = nullptr;
+    }
+    if(m_pIntermediateBuffer AND m_pIntermediateBufferType == a_pElement)
+    {
+        m_pIntermediateBufferType->terminate(m_pIntermediateBuffer);
+        m_pIntermediateBufferType->uninstall(m_pIntermediateBuffer);
+        m_pIntermediateBufferType->destroy(m_pIntermediateBuffer);
+        m_pIntermediateBufferType->deallocate(m_pIntermediateBuffer);
+        m_pIntermediateBuffer = nullptr;
+    }
+}
+
+void CastExpression::construct()
+{
+    if(m_pCastedExpression)
+    {
+        addSubExpression(m_pCastedExpression);
+        o_assert(m_pCastedExpression->getValueType()->isCopyable());
+        if(NOT(m_pCastedExpression->hasValueStorage()))
+        {
+            m_pTempValue = m_pCastedExpression->getValueType()->allocate();
+            m_pCastedExpression->getValueType()->construct(m_pTempValue);
+            m_pCastedExpression->getValueType()->install(m_pTempValue);
+            m_pCastedExpression->getValueType()->initialize(m_pTempValue);
+            addReferencedElement(m_pCastedExpression->getValueType());
+        }
+        reflection::ReferenceType* pRefCastType = getValueType()->asReferenceType();
+        if(pRefCastType AND m_pCastedExpression->getValueType()->asReferenceType() == nullptr AND pRefCastType->getReferencedType()->asConstType())
+        {
+            // Conversion from non-ref to const ref, need intermediate buffer
+            m_pIntermediateBufferType = pRefCastType->removeReference()->removeConst();
+            addReferencedElement(m_pIntermediateBufferType);
+            m_pIntermediateBuffer = m_pIntermediateBufferType->allocate();
+            m_pIntermediateBufferType->construct(m_pIntermediateBuffer);
+            m_pIntermediateBufferType->install(m_pIntermediateBuffer);
+            m_pIntermediateBufferType->initialize(m_pIntermediateBuffer);
+        }
+    }
+    else setInvalid();
 }
 
 o_namespace_end(phantom, reflection)

@@ -24,8 +24,10 @@ public:
 	// Constructors / Destructor
 	//================================================
 
+    UpdateComponentDataCommand(serialization::DataBase* a_pDataBase);
     UpdateComponentDataCommand(serialization::DataBase* a_pDataBase, const phantom::data& a_Data);
     UpdateComponentDataCommand(serialization::DataBase* a_pDataBase, uint guid);
+    UpdateComponentDataCommand(serialization::DataBase* a_pDataBase, const vector<uint>& a_Guids);
 	~UpdateComponentDataCommand();
 
 
@@ -52,9 +54,13 @@ protected:
     vector<uint>                    m_AddedGuids;
     vector<uint>                    m_SavedDataGuids;
     vector<uint>                    m_SavedNodeIndexGuids;
-    uint                            m_uiGuid;
+    vector<uint>                    m_Guids;
     namer_delegate                  m_Delegate;
     bool                            m_bInitialized;
+
+private:
+    static bool ClassTypeHasComponent(reflection::ClassType* a_pType);
+    static bool ClassHasComponent(reflection::Class* a_pType);
 
 };
 

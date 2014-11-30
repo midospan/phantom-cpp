@@ -1,5 +1,10 @@
 #include "phantom/phantom.h"
 #include "matrix3x3.h"
+#include "matrix3x3.hxx"
+
+o_registerNT((phantom, math), (typename), (t_Ty), matrix3x3);
+o_registerNTI((phantom, math), matrix3x3, (float));
+o_registerNTI((phantom, math), matrix3x3, (double));
 
 o_namespace_begin(phantom, math)
 

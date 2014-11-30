@@ -25,6 +25,8 @@
     <ClInclude Include="..\..\..\unitest\phantom\unitest\Marine.hxx" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\GameEntity.hxx" />
     <ClInclude Include="..\..\..\unitest\phantom\unitest\ActorPlatform.hxx" />
+    <ClInclude Include="..\..\..\unitest\phantom\unitest\Ability.hxx" />
+    <ClInclude Include="..\..\..\phantom\variant.hxx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\unitest\phantom\unitest\Bench.hxx" />

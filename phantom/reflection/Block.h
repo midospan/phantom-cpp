@@ -15,21 +15,42 @@ o_namespace_begin(phantom, reflection)
 
 class LocalVariable;
 class MemberFunction;
+class ReturnStatement;
 
 class o_export Block : public Statement
 {
     friend class Subroutine;
+    friend class ClassType;
+    friend class ReturnStatement;
 
 public:
-    Block();
-    Block(const string& a_strName);
+    Block(Block* a_pBlock, const string& a_strName = "");
     ~Block();
 
     virtual Block* asBlock() const  { return (Block*)this; }
 
+    void addLocalVariable(Type* a_pType, const string& a_strName, modifiers_t a_Modifiers = 0);
 	void addLocalVariable(LocalVariable* a_pVariable);
     void addStatement(Statement* a_pStatement);
+    
     void addExpressionStatement(Expression* a_pExpression);
+    void addExpressionStatement(const string& a_strExpression);
+
+    void addReturnStatement(const string& a_strExpression);
+    void addReturnStatement(Expression* a_pExpression);
+    void addReturnStatement();
+
+    void addForStatement(const string& a_strInitTestUpdate, Block** a_pBlock);
+    void addForStatement(Type* a_pInitType, const string& a_strName, Expression* a_pInitExpression, Expression* a_pTest, const vector<Expression*>& a_Updates, Block** a_pBlock);
+    void addForStatement(LocalVariable* a_pLocalVariable, Expression* a_pInitExpression, Expression* a_pTest, const vector<Expression*>& a_Updates, Block** a_pBlock);
+
+    void addWhileStatement(const string& a_strInitTest, Block** a_pBlock);
+    void addWhileStatement(Type* a_pInitType, const string& a_strName, Expression* a_pTextExpression, Block** a_pBlock);
+    void addWhileStatement(LocalVariable* a_pLocalVariable, Expression* a_pTextExpression, Block** a_pBlock);
+
+    void addIfStatement(const string& a_strInitTest, Block** a_pThen, Block** a_pElse);
+    void addIfStatement(Type* a_pInitType, const string& a_strName, Expression* a_pTextExpression, Block** a_pThen, Block** a_pElse);
+    void addIfStatement(LocalVariable* a_pLocalVariable, Expression* a_pTextExpression, Block** a_pThen, Block** a_pElse);
 
     void prependStatements(const vector<Statement*>& a_Statements);
 
@@ -54,7 +75,7 @@ public:
 
     bool containsLine(int line) const;
 
-    virtual LanguageElement* solveElement(const string& a_strName, const vector<TemplateElement*>* , const vector<LanguageElement*>* , bitfield a_Modifiers /* = bitfield */) const;
+    virtual LanguageElement* solveElement(const string& a_strName, const vector<TemplateElement*>* , const vector<LanguageElement*>* , modifiers_t a_Modifiers /* = modifiers_t */) const;
 
     Block* findBlockAtCodePosition(const CodePosition& a_Position) const;
 
@@ -76,18 +97,28 @@ public:
         m_RAIIDestructionStatements.insert(m_RAIIDestructionStatements.begin(), a_pStatement);
     }
 
+    void addRAIIDestructionExpressionStatement(Expression* a_pExpression);
+
     virtual variant compile(Compiler* a_pCompiler);
 
     Block*  getRootBlock() const { return (m_pOwner && m_pOwner->asBlock()) ? m_pOwner->asBlock()->getRootBlock() : const_cast<Block*>(this); }
     
 protected:
-    virtual void ancestorChanged(LanguageElement* a_pOwner)
-    {
-        if(m_pOwner == a_pOwner)
-        {
-            o_assert(m_LocalVariables.empty());
-        }
-    }
+    virtual void restore();
+    virtual void elementRemoved( LanguageElement* a_pElement );
+
+protected:
+    vector<LocalVariable*>  getLocalVariables() const { return m_LocalVariables; }
+    vector<Statement*>      getStatements() const {return m_Statements; }
+    vector<Statement*>      getRAIIDestructionStatements() const { return m_RAIIDestructionStatements; } 
+    void                    getRAIIDestructionStatementsCascade(vector<Statement*>& out) const;
+    void                    setLocalVariables(vector<LocalVariable*> list);
+    void                    setStatements(vector<Statement*> list);
+    void                    setRAIIDestructionStatements(vector<Statement*> list);
+
+protected:
+    Block(); // used for serialization
+    Block(Subroutine* a_pSubroutine, LocalVariable* a_pThis = nullptr); // used to create root block in a subroutine
 
 protected:
     vector<LocalVariable*>  m_LocalVariables;

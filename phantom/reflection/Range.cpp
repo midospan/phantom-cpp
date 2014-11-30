@@ -44,7 +44,7 @@ Class* const Range::metaType = type_of<Range>::object();
 
 Range::Range( Type* a_pType ) : m_pType(a_pType)
 {
-    o_assert(a_pType->hasLess() && a_pType->hasEqualTo());
+    // o_assert(a_pType->hasLess() && a_pType->hasEqualTo());
 }
 
 

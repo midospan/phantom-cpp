@@ -47,7 +47,7 @@ o_namespace_begin(phantom, reflection)
 class o_export Evaluable : public LanguageElement
 {
 public:
-    Evaluable(const string& a_strName, bitfield a_Modifiers = 0);
+    Evaluable(const string& a_strName, modifiers_t a_Modifiers = 0);
 
     virtual void            eval() const = 0;
 

@@ -1,5 +1,10 @@
 #include "phantom/phantom.h"
 #include "aabb3.h"
+#include "aabb3.hxx"
+
+o_registerNT((phantom, math), (typename), (t_Ty), aabb3);
+o_registerNTI((phantom, math), aabb3, (float));
+o_registerNTI((phantom, math), aabb3, (double));
 
 o_namespace_begin(phantom, math)
 

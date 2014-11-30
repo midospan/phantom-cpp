@@ -35,6 +35,7 @@
 #include "phantom/phantom.h"
 /* ** The Class Header must be the last #include * */
 #include "Ability.h"
+#include "Ability.hxx"
 /* *********************************************** */
 o_registerN((sc2), Ability);
 

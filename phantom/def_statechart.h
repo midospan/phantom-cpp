@@ -3,9 +3,9 @@
 
 
 
-#define o_enter(_name) void _name##_enter(void)
-#define o_update(_name) void _name##_update(void)
-#define o_leave(_name) void _name##_leave(void)
+#define o_enter(name) void name##_enter(void)
+#define o_update(name) void name##_update(void)
+#define o_leave(name) void name##_leave(void)
 
 #define o_statemachine_data PHANTOM_CODEGEN_m_smdataptr
 #define o_statemachine_get() o_statemachine_data->getStateMachine()
@@ -24,19 +24,19 @@
 
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #define o_statemachine_post(...) o_PP_CAT(o_PP_CAT(o_statemachine_post_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
-#define o_super_enter(...) o_PP_CAT(o_PP_CAT(o_super_enter_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
-#define o_super_update(...) o_PP_CAT(o_PP_CAT(o_super_update_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
-#define o_super_leave(...) o_PP_CAT(o_PP_CAT(o_super_leave_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#define o_base_enter(...) o_PP_CAT(o_PP_CAT(o_base_enter_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#define o_base_update(...) o_PP_CAT(o_PP_CAT(o_base_update_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#define o_base_leave(...) o_PP_CAT(o_PP_CAT(o_base_leave_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
 #else
 #define o_statemachine_post(...) o_PP_CAT(o_statemachine_post_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
-#define o_super_enter(...) o_PP_CAT(o_super_enter_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
-#define o_super_update(...) o_PP_CAT(o_super_update_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
-#define o_super_leave(...) o_PP_CAT(o_super_leave_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
+#define o_base_enter(...) o_PP_CAT(o_base_enter_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
+#define o_base_update(...) o_PP_CAT(o_base_update_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
+#define o_base_leave(...) o_PP_CAT(o_base_leave_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
 #endif
 
-#define o_super_enter_2(_class_, _name)     _class_::_name##_enter()
-#define o_super_update_2(_class_, _name)    _class_::_name##_update()
-#define o_super_leave_2(_class_, _name)     _class_::_name##_leave()
+#define o_base_enter_2(_class_, name)     _class_::name##_enter()
+#define o_base_update_2(_class_, name)    _class_::name##_update()
+#define o_base_leave_2(_class_, name)     _class_::name##_leave()
 
 #if o__bool__enable_state_machine_trace
 
@@ -103,29 +103,29 @@ std::cout<<console::createSpaces(getLevel())\
 #define o_statechart_end \
     }; 
 
-#define o_event(_name, ...)\
+#define o_event(name, ...)\
     public:\
-class _name  \
+class name  \
 {\
-    friend class phantom::state::native::native_event_registrer<_name>;\
+    friend class phantom::state::native::native_event_registrer<name>;\
     friend class phantom::state::Event;\
-    _name() {};\
+    name() {};\
 public: \
     static phantom::uint Id()\
     {\
         static phantom::uint    s_id = 0xffffffff;\
         if(s_id == 0xffffffff)\
         {\
-            s_id = phantom::state::native::TNativeStateMachine<t_PHANTOM_RESERVED_statechart_objectclass>::Instance()->getEventId(#_name);\
+            s_id = phantom::state::native::TNativeStateMachine<t_PHANTOM_RESERVED_statechart_objectclass>::Instance()->getEventId(#name);\
             if(s_id == 0xffffffff)\
             {\
-                s_id = phantom::state::native::TNativeStateMachine<t_PHANTOM_RESERVED_statechart_objectclass>::Instance()->addEvent(#_name);\
+                s_id = phantom::state::native::TNativeStateMachine<t_PHANTOM_RESERVED_statechart_objectclass>::Instance()->addEvent(#name);\
             }\
         }\
         return s_id;\
     }\
 };\
-phantom::state::native::native_event_registrer<_name> RESERVED_##_name##_registrer;
+phantom::state::native::native_event_registrer<name> RESERVED_##name##_registrer;
 
 #define o_statemachine \
     public:\
@@ -133,20 +133,39 @@ phantom::state::native::native_event_registrer<_name> RESERVED_##_name##_registr
     const phantom::state::base_state_machine_data* PHANTOM_CODEGEN_m_smdataptr;\
     private:
 
+#define o_track_counter_bis_2() __COUNTER__
+
+#define o_track_counter_bis() o_track_counter_bis_2 o_PP_LEFT_PAREN o_PP_RIGHT_PAREN
+
+#define o_track_counter() o_PP_CAT o_PP_LEFT_PAREN o_track_counter,_bis o_PP_RIGHT_PAREN o_PP_LEFT_PAREN  o_PP_RIGHT_PAREN
+
 #define o_TRACK o_track
 #define o_Track o_track
-#define o_track(_name, _parent, ...)\
+
+#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
+#   define o_track(...) o_PP_CAT(o_PP_CAT(o_track_,o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#else
+#   define o_track(...) o_PP_CAT(o_track_,o_PP_NARG(__VA_ARGS__)) (__VA_ARGS__)
+#endif
+
+#define o_track_2(name, parent)\
+    o_track_4(name, parent, 0, o_save_state)
+
+#define o_track_3(name, parent, modifiers)\
+    o_track_4(name, parent, modifiers, o_save_state)
+
+#define o_track_4(name, parent, modifiers, serialization_mask)\
     public:\
     struct phantom_proxy_generator_track_counter_marker;\
 template<typename t_Ty, int t_count>\
 struct phantom_proxy_generator_track_counter;\
 template<typename t_Ty>\
-struct phantom_proxy_generator_track_counter<t_Ty,__COUNTER__-phantom_proxy_generator_track_counter_base_value-1> { typedef t_Ty phantom_proxy_generator_track_counter_defined; };\
-class _name\
+struct phantom_proxy_generator_track_counter<t_Ty,o_track_counter()-phantom_proxy_generator_track_counter_base_value-1> { typedef t_Ty phantom_proxy_generator_track_counter_defined; };\
+class name\
 {\
-    friend class phantom::state::native::native_track_registrer<_name>;\
+    friend class phantom::state::native::native_track_registrer<name>;\
     friend class phantom::state::native::TNativeTrack<t_PHANTOM_RESERVED_statechart_objectclass>;\
-    _name() {}\
+    name() {}\
 public: \
     typedef phantom::state::native::TNativeTrack<t_PHANTOM_RESERVED_statechart_objectclass> placeholder_type;\
     static placeholder_type* Instance()\
@@ -154,28 +173,28 @@ public: \
         static placeholder_type*    s_Instance = NULL;\
         if(s_Instance == NULL)\
         {\
-            s_Instance = (placeholder_type*)phantom::state::native::TNativeStateMachine<t_PHANTOM_RESERVED_statechart_objectclass>::Instance()->getTrack(o_CS(#_name));\
+            s_Instance = (placeholder_type*)phantom::state::native::TNativeStateMachine<t_PHANTOM_RESERVED_statechart_objectclass>::Instance()->getTrack(o_CS(#name));\
             if(s_Instance == NULL)\
             {\
-                phantom::state::State* pParentState = _parent::Instance();\
-                s_Instance = o_dynamic_proxy_new(phantom::state::Track, phantom::state::Track::metaType, placeholder_type)(o_CS(#_name), phantom::detail::int_embedder<__VA_ARGS__>::value);\
+                phantom::state::State* pParentState = parent::Instance();\
+                s_Instance = o_dynamic_proxy_new(placeholder_type)(o_CS(#name), serialization_mask, modifiers);\
                 pParentState->addTrack(s_Instance);\
             }\
         }\
         return s_Instance;\
     }\
 };\
-phantom::state::native::native_track_registrer<_name> RESERVED_##_name##_registrer;
+phantom::state::native::native_track_registrer<name> RESERVED_##name##_registrer;
 
 #define o_State o_state
 #define o_STATE o_state
-#define o_state(_name, _parent, ...)\
+#define o_state(name, parent, ...)\
     public:\
-class _name \
+class name \
 {\
-    friend class phantom::state::native::native_state_registrer<_name, t_PHANTOM_RESERVED_statechart_objectclass>;\
-    static const phantom::character* RESERVED_get_name() { return o_CS(#_name); } \
-    _name() {}\
+    friend class phantom::state::native::native_state_registrer<name, t_PHANTOM_RESERVED_statechart_objectclass>;\
+    static const phantom::character* RESERVED_get_name() { return o_CS(#name); } \
+    name() {}\
 public: \
     typedef phantom::state::native::TNativeState<t_PHANTOM_RESERVED_statechart_objectclass> placeholder_type;\
     static placeholder_type* Instance()\
@@ -183,15 +202,15 @@ public: \
         static placeholder_type*    s_Instance = NULL;\
         if(s_Instance == NULL)\
         {\
-            s_Instance = (placeholder_type*)phantom::state::native::TNativeStateMachine<t_PHANTOM_RESERVED_statechart_objectclass>::Instance()->getState(o_CS(#_name));\
+            s_Instance = (placeholder_type*)phantom::state::native::TNativeStateMachine<t_PHANTOM_RESERVED_statechart_objectclass>::Instance()->getState(o_CS(#name));\
             if(s_Instance == NULL)\
             {\
-                phantom::state::Track* pParentTrack = _parent::Instance();\
-                s_Instance = o_dynamic_proxy_new(phantom::state::State, phantom::state::State::metaType, placeholder_type)(\
-                o_CS(#_name)\
-                , &t_PHANTOM_RESERVED_statechart_objectclass::_name##_enter\
-                , &t_PHANTOM_RESERVED_statechart_objectclass::_name##_update\
-                , &t_PHANTOM_RESERVED_statechart_objectclass::_name##_leave\
+                phantom::state::Track* pParentTrack = parent::Instance();\
+                s_Instance = o_dynamic_proxy_new(placeholder_type)(\
+                o_CS(#name)\
+                , &t_PHANTOM_RESERVED_statechart_objectclass::name##_enter\
+                , &t_PHANTOM_RESERVED_statechart_objectclass::name##_update\
+                , &t_PHANTOM_RESERVED_statechart_objectclass::name##_leave\
                 , __LINE__\
                 , phantom::detail::int_embedder<__VA_ARGS__>::value);\
                 pParentTrack->addState(s_Instance);\
@@ -200,7 +219,7 @@ public: \
         return s_Instance;\
     }\
 };\
-phantom::state::native::native_state_registrer<_name, t_PHANTOM_RESERVED_statechart_objectclass> RESERVED_##_name##_registrer;\
+phantom::state::native::native_state_registrer<name, t_PHANTOM_RESERVED_statechart_objectclass> RESERVED_##name##_registrer;\
 
 
 #define o_Transition o_transition
@@ -210,7 +229,7 @@ phantom::state::native::native_state_registrer<_name, t_PHANTOM_RESERVED_statech
 
 
 
-o_namespace_begin(phantom, state, detail)
+o_namespace_begin(phantom, state)
 
 
 template<typename t_Ty>
@@ -255,6 +274,58 @@ struct state_machine_serializer
     }
 };
 
+namespace detail 
+{
+    template<typename t_Ty, int t_base_class_count>
+    struct state_machine_initializer_helper_base
+    {
+        inline static void      initialize( t_Ty* a_pInstance )
+        {
+            state_machine_initializer_helper_base<t_Ty, t_base_class_count-1>::initialize(a_pInstance);
+            state_machine_initializer<o_NESTED_TYPE base_class_of<t_Ty, t_base_class_count-1>::type>::initialize(a_pInstance);
+        }
+        inline static void      terminate( t_Ty* a_pInstance )
+        {
+            state_machine_initializer<o_NESTED_TYPE base_class_of<t_Ty, t_base_class_count-1>::type>::terminate(a_pInstance);
+            state_machine_initializer_helper_base<t_Ty, t_base_class_count-1>::terminate(a_pInstance);
+        }
+    };
+    template<typename t_Ty>
+    struct state_machine_initializer_helper_base<t_Ty, 0>
+    {
+        inline static void      initialize( t_Ty* a_pInstance ) { }
+        inline static void      terminate( t_Ty* a_pInstance ) { }
+    };
+    template<typename t_Ty, bool t_has_root_statechart>
+    struct state_machine_initializer_helper
+    {
+        inline static void      initialize( t_Ty* a_pInstance )
+        {
+            state_machine_initializer_helper_base<t_Ty, base_class_count_of<t_Ty>::value>::initialize(a_pInstance);
+            a_pInstance->PHANTOM_CODEGEN_m_smdataptr->initialize();
+        }
+        inline static void      terminate( t_Ty* a_pInstance )
+        {
+            a_pInstance->PHANTOM_CODEGEN_m_smdataptr->terminate();
+            state_machine_initializer_helper_base<t_Ty, base_class_count_of<t_Ty>::value>::terminate(a_pInstance);
+        }
+    };
+    template<typename t_Ty>
+    struct state_machine_initializer_helper<t_Ty, false> 
+        : public state_machine_initializer_helper_base<t_Ty, base_class_count_of<t_Ty>::value>
+    {
+    };
+}
+
+template<typename t_Ty, int t_base_class_count>
+struct state_machine_initializer_base : public detail::state_machine_initializer_helper<t_Ty, has_root_statechart<t_Ty>::value> 
+{
+};
+
+template<typename t_Ty>
+struct state_machine_initializer : public detail::state_machine_initializer_helper<t_Ty, has_root_statechart<t_Ty>::value> 
+{
+};
 
 template<typename t_Ty>
 struct state_machine_resetter
@@ -282,6 +353,8 @@ struct state_machine_resetter
 };
 
 
+namespace detail 
+{
 template<typename t_Ty, boolean t_is_root>
 struct root_class_state_machine_serializer_helper
 {
@@ -318,9 +391,11 @@ struct root_class_state_machine_resetter_helper<t_Ty, true>
 
 };
 
+}
+
 template<typename t_Ty>
 struct root_class_state_machine_serializer 
-    : public root_class_state_machine_serializer_helper<t_Ty
+    : public detail::root_class_state_machine_serializer_helper<t_Ty
     , has_root_statechart<t_Ty>::value>
 {
 
@@ -328,13 +403,13 @@ struct root_class_state_machine_serializer
 
 template<typename t_Ty>
 struct root_class_state_machine_resetter
-    : public root_class_state_machine_resetter_helper<t_Ty
+    : public detail::root_class_state_machine_resetter_helper<t_Ty
     , has_root_statechart<t_Ty>::value>
 {
 
 };
 
-o_namespace_end(phantom, state, detail)
+o_namespace_end(phantom, state)
 
 o_namespace_begin(phantom, state)
 
@@ -405,8 +480,8 @@ class state_machine_data : public base_state_machine_data
 {
 public:
     template <typename, int> friend class phantom::reflection::native::TType;
-    template <typename> friend struct phantom::state::detail::state_machine_serializer;
-    template <typename> friend struct phantom::state::detail::state_machine_resetter;
+    template <typename> friend struct phantom::state::state_machine_serializer;
+    template <typename> friend struct phantom::state::state_machine_resetter;
     template <typename, typename, typename, typename> friend class phantom::state::native::TNativeTransition;
     friend class phantom::state::native::TNativeStateMachine<t_ObjectClass>;
     friend class phantom::state::native::TNativeState<t_ObjectClass>;

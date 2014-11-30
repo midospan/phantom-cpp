@@ -42,16 +42,61 @@
 
 o_namespace_begin(phantom, reflection)
 
+enum ETypeId
+{
+    e_void,
+    e_char,
+    e_unsigned_char,
+    e_signed_char,
+    e_short,
+    e_unsigned_short,
+    e_int,
+    e_unsigned_int,
+    e_long,
+    e_unsigned_long,
+    e_long_long,
+    e_unsigned_long_long,
+    e_float,
+    e_double,
+    e_long_double,
+    e_bool,
+    e_wchar_t,
+    e_enum,
+    e_nullptr_t,
+    e_signal_t,
+    e_pointer,
+    e_reference,
+    e_array,
+    e_struct,
+    e_union,
+    e_class,
+    e_other,
+};
+
 class o_export Type : public LanguageElement, public TemplateElement
 {
-    o_friend(class, phantom, reflection, Namespace);
+    friend class phantom::reflection::Namespace;
 
     o_declare_meta_type(Type);
+
+    friend class DataPointerType;
+    friend class ReferenceType;
+    friend class ConstType;
+    friend class ArrayType;
 
 public:
     typedef vector<Type*> type_container;
     typedef map<string, Type*> nested_typedef_map;
     typedef map<Namespace*, std::vector<string>> typedef_namespace_map;
+    typedef fastdelegate::FastDelegate<bool(Type*)> filter;
+    static bool DataPointerFilter(Type* a_pType)
+    {
+        return a_pType->removeReference()->removeConst()->asDataPointerType() != nullptr;
+    }
+    static bool NoFilter(Type* a_pType)
+    {
+        return true;
+    }
 
     enum ERelation
     {
@@ -103,7 +148,7 @@ public:
         void destroy(Type* a_pType);
         void push(Type* a_pType, byte* a_pValueBytes);
         o_forceinline byte*    address() const { return m_pStartAddress+m_WrittenBytes; }
-        byte*    terminate();
+        byte*terminate();
 
     protected:
         byte*    m_pStartAddress;
@@ -111,12 +156,12 @@ public:
         size_t    m_WrittenBytes;
     };
 
-    Type(ETypeId a_eTypeId, const string& a_strName, bitfield a_Modifiers = 0);
-    Type(ETypeId a_eTypeId, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0);
-    Type(ETypeId a_eTypeId, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers = 0);
+    Type(ETypeId a_eTypeId);
+    Type(ETypeId a_eTypeId, const string& a_strName, modifiers_t a_Modifiers = 0);
+    Type(ETypeId a_eTypeId, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0);
     ~Type();
 
-    virtual void            terminate();
+    o_terminate();
 
     o_forceinline ETypeId   getTypeId() const { return m_eTypeId; }
     o_forceinline ushort    getSize() const { return m_uiSize; }
@@ -124,49 +169,35 @@ public:
     o_forceinline ushort    getSerializedSize() const { return m_uiSerializedSize; }
     o_forceinline ushort    getResetSize() const { return m_uiResetSize; }
     o_forceinline size_t    getBuildOrder() const { return m_uiBuildOrder; }
+    o_forceinline bool      isSingleton() const { return ((m_Modifiers & o_singleton) == o_singleton); }    
     virtual boolean         isSerializable() const { return isDefaultInstanciable(); }
     virtual bool            isDefaultConstructible() const { return (m_Modifiers & o_no_default_constructor) == 0; }
     virtual bool            isDefaultInstanciable() const { return NOT(isAbstract()) AND isDefaultConstructible(); }
     virtual boolean         isKindOf(Type* a_pType) const { return this == a_pType; }
     virtual Type*           asType() const { return const_cast<Type*>(this); }
+    virtual ComponentClass* asComponentClass() const { return nullptr; }
+    virtual CompositionClass* asCompositionClass() const { return nullptr; }
+    virtual AggregationClass* asAggregationClass() const { return nullptr; }
     virtual TemplateElement*asTemplateElement() const { return const_cast<Type*>(this); }
     virtual LanguageElement*asLanguageElement() const { return const_cast<Type*>(this); }
     virtual Type*           removeConst() const { return const_cast<Type*>(this); }
+    Type*                   removeConstReference() const { return removeReference()->removeConst(); }
     virtual Type*           removeReference() const { return const_cast<Type*>(this); }
     virtual Type*           removePointer() const { return const_cast<Type*>(this); }
 
-    virtual void*           cast(Type* a_pTargetType, void* a_pSrc) const { return a_pTargetType == this ? a_pSrc : NULL; }
+    virtual void*           cast(Type* a_pTargetType, void* a_pSrc) const { return a_pTargetType == this ? a_pSrc : nullptr; }
+    virtual void*           upcast(Type* a_pTargetType, void* a_pSrc) const { return a_pTargetType == this ? a_pSrc : nullptr; }
+    virtual void*           downcast(Type* a_pTargetType, void* a_pSrc) const { return a_pTargetType == this ? a_pSrc : nullptr; }
 
     /// Allocation
 
-    virtual void*           allocate() const
-    {
-        // allocate m_uiSize bytes
-        void* memory = o_dynamic_pool_allocate(m_uiSize);
+    virtual void*           allocate() const;
 
-        // initialize memory to 0xdadadadada.... to recognize it
-        memset(memory, 0xda, m_uiSize);
-        return memory;
-    }
+    virtual void            deallocate(void* a_pInstance) const;
 
-    virtual void            deallocate(void* a_pInstance) const
-    {
-        o_dynamic_pool_deallocate(a_pInstance, m_uiSize);
-    }
+    virtual void*           allocate(size_t a_uiCount) const;
 
-    virtual void*           allocate(size_t a_uiCount) const
-    {
-        void* pAllocation = o_dynamic_pool_allocate_n(a_uiCount, m_uiSize); 
-
-        // initialize memory to 0xdadadadada.... to recognize it
-        memset(pAllocation, 0xda, m_uiSize*a_uiCount);
-        return pAllocation;
-    }
-
-    virtual void            deallocate(void* a_pChunk, size_t a_uiCount) const
-    {
-        o_dynamic_pool_deallocate_n(a_pChunk, a_uiCount, m_uiSize);
-    }
+    virtual void            deallocate(void* a_pChunk, size_t a_uiCount) const;
 
 #if o__bool__enable_allocation_statistics
     virtual void*           allocate(o_memory_stat_insert_parameters) const { return allocate(); }
@@ -184,14 +215,14 @@ public:
     virtual void            destroy( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const;
 
     /// Build (Construction by default (+ installation for classes))
-    virtual void            build(void* a_pBuffer, size_t a_uiLevel = 0) const { construct(a_pBuffer); }
-    virtual void            build(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0) const { construct(a_pChunk, a_uiCount, a_uiChunkSectionSize); }
+    virtual void            build(void* a_pBuffer, const rtti_data* a_pOwner = 0) const { construct(a_pBuffer); }
+    virtual void            build(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const rtti_data* a_pOwner = 0) const { construct(a_pChunk, a_uiCount, a_uiChunkSectionSize); }
     virtual void            unbuild(void* a_pBuffer, size_t a_uiLevel = 0) const { destroy(a_pBuffer); }
     virtual void            unbuild(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0) const { destroy(a_pChunk, a_uiCount, a_uiChunkSectionSize); }
 
     /// Installation (for classes but implemented in Type and empty to make it more generic
-    virtual void            install(void* a_pBuffer, size_t a_uiLevel = 0) const { }
-    virtual void            install(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const;
+    virtual void            install(void* a_pBuffer, const rtti_data* a_pOwner = 0) const { }
+    virtual void            install(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const rtti_data* a_pOwner = 0 ) const;
     virtual void            uninstall(void* a_pBuffer, size_t a_uiLevel = 0) const { }
     virtual void            uninstall(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const;
 
@@ -202,9 +233,9 @@ public:
     virtual void            terminate(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const;
 
     /// Setup (Construction by default (+ installation + initialization for classes))
-    virtual void            setup(void* a_pBuffer, size_t a_uiLevel = 0) const { construct(a_pBuffer); }
-    virtual void            safeSetup(void* a_pBuffer, size_t a_uiLevel = 0) const  { safeConstruct(a_pBuffer); }
-    virtual void            setup(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const { construct(a_pChunk, a_uiCount, a_uiChunkSectionSize); }
+    virtual void            setup(void* a_pBuffer, const rtti_data* a_pOwner = 0) const { construct(a_pBuffer); }
+    virtual void            safeSetup(void* a_pBuffer, const rtti_data* a_pOwner = 0) const  { safeConstruct(a_pBuffer); }
+    virtual void            setup(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const rtti_data* a_pOwner = 0 ) const { construct(a_pChunk, a_uiCount, a_uiChunkSectionSize); }
     virtual void            teardown(void* a_pBuffer, size_t a_uiLevel = 0) const { destroy(a_pBuffer); }
     virtual void            teardown(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const { destroy(a_pChunk, a_uiCount, a_uiChunkSectionSize); }
 
@@ -227,8 +258,8 @@ public:
     virtual void            deserializeLayout(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const { deserialize(a_pInstance, a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase); }
 
     // Restoration (replace initialization in case of deserialization)
-    virtual restore_state   restore(void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass) const { return restore_complete; }
-    virtual restore_state   restore(void* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { return restore_complete; }
+    virtual restore_state   restore(void* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass) const { return restore_complete; }
+    virtual restore_state   restore(void* a_pChunk, uint a_uiSerializationFlag, restore_pass a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { return restore_complete; }
 
     /// Reset
     virtual void            remember(void const* a_pInstance, byte*& a_pBuffer) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
@@ -253,42 +284,41 @@ public:
     virtual void            valueToLiteral( string& s, const void* src ) const;
     virtual void            interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode = 0) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
     virtual void            copy(void* a_pDest, void const* a_pSrc) const { o_exception(exception::unsupported_member_function_exception, "not implemented yet"); }
-    virtual void            smartCopy(void* a_pDest, void const* a_pSource, reflection::Type* a_pSourceType) const;
+    virtual void            smartCopy(reflection::Type* a_pDestType, void* a_pDest, void const* a_pSource) const;
 
 
     virtual LanguageElement*            solveElement(
         const string& a_strName
         , const vector<TemplateElement*>*
         , const vector<LanguageElement*>*
-        , bitfield a_Modifiers = 0) const;
+        , modifiers_t a_Modifiers = 0) const;
 
     virtual void getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr ) const;
 
-    // Operators
-    virtual bool less(const void* a_pLHS, const void* a_pRHS) const 
-    {
-        o_assert(hasLess());
-        return false;
-    }
     virtual Expression*     solveExpression( Expression* a_pLeftExpression
         , const string& a_strName
         , const vector<TemplateElement*>*
         , const vector<LanguageElement*>*
-        , bitfield a_Modifiers = 0) const 
+        , modifiers_t a_Modifiers = 0) const 
     { 
         return nullptr; 
     }
 
-    virtual Expression*     solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const;
+    virtual Expression*     solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const;
 
-    virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const { o_unused(a_pInstance); o_unused(a_Data); return false; }
-    virtual void            fetchPointerReferenceExpressions(Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask = 0xffffffff) const { o_unused(a_pInstanceExpression); o_unused(out); o_unused(a_uiSerializationMask); }
+    virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
+    
+    void                    fetchPointerReferenceExpressions(Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask = 0xffffffff) const { fetchExpressions(a_pInstanceExpression, out, filter(&Type::DataPointerFilter), a_uiSerializationMask); }
 
+    virtual void            fetchExpressions(Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter = filter(&Type::NoFilter), uint a_uiSerializationMask = 0xffffffff) const { o_unused(a_pInstanceExpression); o_unused(out); o_unused(a_Filter); o_unused(a_uiSerializationMask); }
     // Traits
     virtual bool            isCopyConstructible() const { return true; }
     virtual bool            isConvertibleTo(Type* a_pType) const;
     virtual bool            isImplicitlyConvertibleTo(Type* a_pType) const;
     virtual bool            isCopyable() const { return false; }
+    
+    o_forceinline bool      hasPlacementExtension() const { return testModifiers(o_placement_extension); }
+
     virtual bool            hasNewVTable() const { return false; }
     virtual bool            hasCopyDisabled() const { return false; }
     virtual bool            hasBitAnd() const { return false; }
@@ -395,30 +425,32 @@ protected:
     virtual ArrayType*      createArrayType(size_t a_uiCount) const;
     virtual ConstType*      createConstType() const;
     virtual void            moduleChanged(Module* a_pModule);
+    void                    removeExtendedType(Type* a_pType);
     
     void                    registerTypedef(Namespace* a_pNamespace, const string& a_strTypedefName);
     void                    unregisterTypedef(Namespace* a_pNamespace, const string& a_strTypedefName);
 
     virtual void            referencedElementRemoved(LanguageElement* a_pElement);
 
+    virtual void            setOwnerByQualifiedDecoratedName(string a_Owner);
     /**
      *  @name Signals
      */
      //@{  
 #if o__bool__use_kind_creation_signal
 public:
-    virtual void        fireKindCreated(void* a_pObject) const;
+    virtual void        fireKindCreated(void* a_pObject);
 protected:
-    mutable connection::slot::list        PHANTOM_CODEGEN_m_slot_list_of_kindCreated;
-    signal_t            kindCreated(void* a_pObject) const;
+    connection::slot::list        PHANTOM_CODEGEN_m_slot_list_of_kindCreated;
+    signal_t            kindCreated(void* a_pObject);
 #endif
 
 #if o__bool__use_kind_destruction_signal
 public:
-    virtual void        fireKindDestroyed(void* a_pObject) const;
+    virtual void        fireKindDestroyed(void* a_pObject);
 protected:
-    mutable connection::slot::list        PHANTOM_CODEGEN_m_slot_list_of_kindDestroyed;
-    signal_t            kindDestroyed(void* a_pObject) const;
+    connection::slot::list        PHANTOM_CODEGEN_m_slot_list_of_kindDestroyed;
+    signal_t            kindDestroyed(void* a_pObject);
 #endif
 
     //@}

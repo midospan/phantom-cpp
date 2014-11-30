@@ -30,7 +30,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 );
 
 BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::cast_expression,
-    (phantom::reflection::cpp::ast::cast_types, m_types)
+    (phantom::reflection::cpp::ast::type, m_type)
     (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_casted_expression)
     );
 
@@ -224,7 +224,7 @@ BOOST_FUSION_ADAPT_STRUCT(  phantom::reflection::cpp::ast::virtual_member_functi
 );
 
 BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::class_inheritance,
-    (phantom::reflection::cpp::ast::fundamental_node<int>, m_access_specifier)
+    (phantom::reflection::cpp::ast::fundamental_node<unsigned long long>, m_access_specifier)
     (phantom::reflection::cpp::ast::qualified_name, m_qualified_name)
     );
 

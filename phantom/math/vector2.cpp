@@ -1,5 +1,10 @@
 #include "phantom/phantom.h"
 #include "vector2.h"
+#include "vector2.hxx"
+
+o_registerNT((phantom, math), (typename), (t_Ty), vector2);
+o_registerNTI((phantom, math), vector2, (float));
+o_registerNTI((phantom, math), vector2, (double));
 
 o_namespace_begin(phantom, math)
 /** Constants **/

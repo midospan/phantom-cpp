@@ -35,14 +35,21 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/Constructor.h>
 #include <phantom/reflection/Constructor.hxx>
+#include <phantom/std/vector.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), Constructor);
+o_registerNTI((phantom), vector, (phantom::reflection::Constructor*));
 
 o_namespace_begin(phantom, reflection) 
 
 Class* const Constructor::metaType = o_type_of(Constructor);
 
-Constructor::Constructor( const string& a_strName, Signature* a_pSignature , bitfield a_Modifiers) 
+Constructor::Constructor()
+{
+
+}
+
+Constructor::Constructor( const string& a_strName, Signature* a_pSignature , modifiers_t a_Modifiers) 
 : Subroutine(a_strName, a_pSignature, e_ABI_thiscall, a_Modifiers)
 {
 

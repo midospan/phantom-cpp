@@ -38,14 +38,23 @@
 #include <phantom/reflection/Block.h>
 #include <phantom/reflection/LocalVariable.h>
 #include <phantom/reflection/Compiler.h>
+#include <phantom/std/vector.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), InstanceMemberFunction);
+o_registerNTI((phantom), vector, (phantom::reflection::InstanceMemberFunction*));
 
 o_namespace_begin(phantom, reflection) 
 
 Class* const InstanceMemberFunction::metaType = o_type_of(InstanceMemberFunction);
 
-InstanceMemberFunction::InstanceMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers /*= 0*/ )
+InstanceMemberFunction::InstanceMemberFunction()
+    : Subroutine(e_ABI_thiscall)
+    , m_uiVirtualTableIndex(~size_t(0))
+    , m_pVTableClosures(nullptr)
+{
+}
+
+InstanceMemberFunction::InstanceMemberFunction(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers /*= 0*/ )
     : Subroutine(a_strName
                 , a_pSignature
                 , e_ABI_thiscall
@@ -53,6 +62,24 @@ InstanceMemberFunction::InstanceMemberFunction(const string& a_strName, Signatur
     , m_uiVirtualTableIndex(~size_t(0))
     , m_pVTableClosures(nullptr)
 {
+    if(testModifiers(o_const) AND testModifiers(o_slot_member_function))
+    {
+        o_exception(exception::reflection_runtime_exception, "Slots cannot be const");
+    }
+}
+
+InstanceMemberFunction::InstanceMemberFunction( const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers, int )
+    : Subroutine(a_strName
+    , a_pSignature
+    , e_ABI_thiscall
+    , ((a_Modifiers & o_const) != 0) ? a_Modifiers : (a_Modifiers | o_noconst) )
+    , m_uiVirtualTableIndex(~size_t(0))
+    , m_pVTableClosures(nullptr)
+{
+    if(testModifiers(o_const) AND testModifiers(o_slot_member_function))
+    {
+        o_exception(exception::reflection_runtime_exception, "Slots cannot be const");
+    }
 }
 
 InstanceMemberFunction::~InstanceMemberFunction()
@@ -187,7 +214,7 @@ void InstanceMemberFunction::setVirtual()
     {
         o_exception(exception::reflection_runtime_exception, "Member function cannot be set to virtual after being added to a class type")
     }
-    m_Modifiers.setMask(o_virtual);
+    m_Modifiers |= o_virtual;
 }
 
 variant InstanceMemberFunction::compile( Compiler* a_pCompiler )
@@ -222,6 +249,20 @@ void InstanceMemberFunction::getOriginalOverriddenMemberFunctions( vector<Instan
     {
         InstanceMemberFunction* pRootMemberFunction = (*it)->getRootMemberFunction(const_cast<InstanceMemberFunction*>(this));
         if(pRootMemberFunction) a_Out.push_back(pRootMemberFunction);
+    }
+}
+
+void InstanceMemberFunction::ancestorChanged( LanguageElement* a_pOwner )
+{
+    if(a_pOwner == m_pOwner)
+    {
+        if(!testModifiers(o_pure_virtual) AND !isNative())
+        {
+            createBlock(o_new(LocalVariable)(
+                isConst() 
+                ? m_pOwner->asClassType()->constType()->pointerType()->constType()
+                : m_pOwner->asClassType()->pointerType()->constType(), "this"));
+        }
     }
 }
 

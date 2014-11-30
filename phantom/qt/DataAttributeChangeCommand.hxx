@@ -1,6 +1,8 @@
 #pragma once
 
-o_classNS((phantom, qt), DataAttributeChangeCommand, (UndoCommand))
+#include "UndoCommand.hxx"
+
+o_classNB((phantom, qt), DataAttributeChangeCommand, (UndoCommand))
 {
     o_reflection 
     {

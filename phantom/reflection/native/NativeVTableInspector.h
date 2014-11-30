@@ -1,11 +1,11 @@
 /*
     This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
+         P reprocessed
+         H igh-level
+         A llocator
+         N ested state-machines and
+         T emplate
+         O riented
          M eta-programming
 
     For the latest infos and sources, see http://code.google.com/p/phantom-cpp
@@ -663,7 +663,7 @@ public:
 protected:
 
 
-    typedef member_function_pointer     vptr_imspostor_t [600]; 
+    typedef member_function_pointer     vptr_imspostor_t [600];
 
     static vptr_imspostor_t             sm_vtable_impostor;
     static size_t                       sm_inspection_result;
@@ -745,15 +745,15 @@ namespace phantom
     template<typename t_Ty, int index>
     struct vtable_top_class_of;
 
-    namespace detail 
+    namespace detail
     {
 
-        template<typename t_Ty, int t_super_class_count>
+        template<typename t_Ty, int t_base_class_count>
         struct vtable_count_of_helper_cascade
         {
-            enum { value = 
-                + vtable_count_of<super_class_of<t_Ty, t_super_class_count-1>::type>::value 
-                + vtable_count_of_helper_cascade<t_Ty, t_super_class_count-1>::value};
+            enum { value =
+                + vtable_count_of<o_NESTED_TYPE base_class_of<t_Ty, t_base_class_count-1>::type>::value
+                + vtable_count_of_helper_cascade<t_Ty, t_base_class_count-1>::value};
         };
 
         template<typename t_Ty>
@@ -765,11 +765,11 @@ namespace phantom
         template<typename t_Ty>
         struct vtable_count_of_helper_cascade<t_Ty, 1>
         {
-            enum { value = vtable_count_of<super_class_of<t_Ty, 0>::type>::value };
+            enum { value = vtable_count_of<o_NESTED_TYPE base_class_of<t_Ty, 0>::type>::value };
         };
 
         template<typename t_Ty, bool t_is_polymorphic>
-        struct vtable_count_of_helper : public vtable_count_of_helper_cascade<t_Ty, super_class_count_of<t_Ty>::value>
+        struct vtable_count_of_helper : public vtable_count_of_helper_cascade<t_Ty, base_class_count_of<t_Ty>::value>
         {
         };
 
@@ -796,21 +796,31 @@ namespace phantom
             }
         };
         template<typename t_Ty, int vtable_id = 0>
-        struct virtual_member_function_count_of : public virtual_member_function_count_of_helper<t_Ty, vtable_id, boost::is_class<t_Ty>::value 
+        struct virtual_member_function_count_of : public virtual_member_function_count_of_helper<t_Ty, vtable_id, boost::is_class<t_Ty>::value
                                                                                                                   AND !boost::is_abstract<t_Ty>::value
                                                                                                                   AND std::is_default_constructible<t_Ty>::value>
         {
         };
-        
 
-        template<typename t_Ty, int id, int t_super_class_count, size_t offset>
+    }
+
+    template<typename t_Ty>
+    size_t     virtualMemberFunctionCountOf()
+    {
+        return detail::virtual_member_function_count_of<t_Ty>::value();
+    }
+
+    namespace detail
+    {
+
+        template<typename t_Ty, int id, int t_base_class_count, size_t offset>
         struct vtable_offset_of_cascade
         {
-            const static size_t super_index = super_class_count_of<t_Ty>::value - t_super_class_count ;
-            const static size_t temp_value = vtable_offset_of<super_class_of<t_Ty, super_index>::type, id>::value ;
-            const static size_t value = 
+            const static size_t base_index = base_class_count_of<t_Ty>::value - t_base_class_count ;
+            const static size_t temp_value = vtable_offset_of<o_NESTED_TYPE base_class_of<t_Ty, base_index>::type, id>::value ;
+            const static size_t value =
                 (temp_value == 0xffffff) // Not matching
-                ? vtable_offset_of_cascade<t_Ty, id - vtable_count_of<super_class_of<t_Ty, super_index>::type>::value, t_super_class_count-1, offset + sizeof(super_class_of<t_Ty, super_index>::type)>::value
+                ? vtable_offset_of_cascade<t_Ty, id - vtable_count_of<o_NESTED_TYPE base_class_of<t_Ty, base_index>::type>::value, t_base_class_count-1, offset + sizeof(o_NESTED_TYPE base_class_of<t_Ty, base_index>::type)>::value
                 : (offset + temp_value);
         };
 
@@ -824,15 +834,15 @@ namespace phantom
         template<typename t_Ty, int id, size_t offset>
         struct vtable_offset_of_cascade<t_Ty, id, 1, offset>
         {
-            const static size_t super_index = super_class_count_of<t_Ty>::value - 1;
-            const static size_t temp_value = vtable_offset_of<super_class_of<t_Ty, super_index>::type, id>::value;
+            const static size_t base_index = base_class_count_of<t_Ty>::value - 1;
+            const static size_t temp_value = vtable_offset_of<o_NESTED_TYPE base_class_of<t_Ty, base_index>::type, id>::value;
             const static size_t value = (temp_value == 0xffffff) // Not matching
                 ? (size_t)0xffffff
                 : (offset + temp_value);
         };
 
         template<typename t_Ty, int id, bool t_is_polymorphic>
-        struct vtable_offset_of_helper : public vtable_offset_of_cascade<t_Ty, id, super_class_count_of<t_Ty>::value, 0>
+        struct vtable_offset_of_helper : public vtable_offset_of_cascade<t_Ty, id, base_class_count_of<t_Ty>::value, 0>
         {
 
         };
@@ -856,13 +866,13 @@ namespace phantom
             typedef t_False type;
         };
 
-        template<typename t_Ty, int id, int t_super_class_count>
+        template<typename t_Ty, int id, int t_base_class_count>
         struct vtable_base_class_of_cascade
         {
-            const static size_t super_index = super_class_count_of<t_Ty>::value - t_super_class_count ;
-            typedef typename vtable_base_class_of<typename super_class_of<t_Ty, super_index>::type, id>::type temp_type;
+            const static size_t base_index = base_class_count_of<t_Ty>::value - t_base_class_count ;
+            typedef typename vtable_base_class_of<typename base_class_of<t_Ty, base_index>::type, id>::type temp_type;
             typedef typename vtable_class_type_selector<boost::is_void<temp_type>::value  // Not matching
-                , typename vtable_base_class_of_cascade<t_Ty, id - vtable_count_of<typename super_class_of<t_Ty, super_index>::type>::value, t_super_class_count-1>::type
+                , typename vtable_base_class_of_cascade<t_Ty, id - vtable_count_of<typename base_class_of<t_Ty, base_index>::type>::value, t_base_class_count-1>::type
                 , temp_type>::type type;
         };
 
@@ -876,16 +886,16 @@ namespace phantom
         template<typename t_Ty, int id>
         struct vtable_base_class_of_cascade<t_Ty, id, 1>
         {
-            const static size_t super_index = super_class_count_of<t_Ty>::value - 1;
-            typedef typename vtable_base_class_of<typename super_class_of<t_Ty, super_index>::type, id>::type temp_type;
+            const static size_t base_index = base_class_count_of<t_Ty>::value - 1;
+            typedef typename vtable_base_class_of<typename base_class_of<t_Ty, base_index>::type, id>::type temp_type;
             typedef typename vtable_class_type_selector<boost::is_void<temp_type>::value // Not matching
                 , void
                 , temp_type>::type type;
         };
 
         template<typename t_Ty, int id, bool t_is_polymorphic>
-        struct vtable_base_class_of_helper 
-            : public vtable_base_class_of_cascade<t_Ty, id, super_class_count_of<t_Ty>::value>
+        struct vtable_base_class_of_helper
+            : public vtable_base_class_of_cascade<t_Ty, id, base_class_count_of<t_Ty>::value>
         {
 
         };
@@ -896,17 +906,13 @@ namespace phantom
             typedef void type;
         };
 
-
-
-
-
-        template<typename t_Ty, int id, int t_super_class_count>
+        template<typename t_Ty, int id, int t_base_class_count>
         struct vtable_top_class_of_cascade
         {
-            const static size_t super_index = super_class_count_of<t_Ty>::value - t_super_class_count ;
-            typedef typename vtable_top_class_of<typename super_class_of<t_Ty, super_index>::type, id>::type temp_type;
+            const static size_t base_index = base_class_count_of<t_Ty>::value - t_base_class_count ;
+            typedef typename vtable_top_class_of<typename base_class_of<t_Ty, base_index>::type, id>::type temp_type;
             typedef typename vtable_class_type_selector<boost::is_void<temp_type>::value  // Not matching
-                , typename vtable_top_class_of_cascade<t_Ty, id - vtable_count_of<typename super_class_of<t_Ty, super_index>::type>::value, t_super_class_count-1>::type
+                , typename vtable_top_class_of_cascade<t_Ty, id - vtable_count_of<typename base_class_of<t_Ty, base_index>::type>::value, t_base_class_count-1>::type
                 , temp_type>::type type;
         };
 
@@ -920,16 +926,16 @@ namespace phantom
         template<typename t_Ty, int id>
         struct vtable_top_class_of_cascade<t_Ty, id, 1>
         {
-            const static size_t super_index = super_class_count_of<t_Ty>::value - 1;
-            typedef typename vtable_top_class_of<typename super_class_of<t_Ty, super_index>::type, id>::type temp_type;
+            const static size_t base_index = base_class_count_of<t_Ty>::value - 1;
+            typedef typename vtable_top_class_of<typename base_class_of<t_Ty, base_index>::type, id>::type temp_type;
             typedef typename vtable_class_type_selector<boost::is_void<temp_type>::value // Not matching
                 , void
                 , temp_type>::type type;
         };
 
         template<typename t_Ty, int id, bool t_is_polymorphic>
-        struct vtable_top_class_of_helper 
-            : public vtable_top_class_of_cascade<t_Ty, id, super_class_count_of<t_Ty>::value>
+        struct vtable_top_class_of_helper
+            : public vtable_top_class_of_cascade<t_Ty, id, base_class_count_of<t_Ty>::value>
         {
 
         };
@@ -946,13 +952,13 @@ namespace phantom
         {
             typedef t_Ty type;
         };
-        
+
         template<typename t_Ty, int t_vtable_count>
         struct vtable_info_extractor_cascade
         {
             const static size_t vtable_offset = vtable_offset_of<t_Ty, t_vtable_count-1>::value;
             typedef typename vtable_top_class_of<t_Ty, t_vtable_count-1>::type top_class;
-            static void apply(const void* a_pInstance, vector<vtable_info>& vtables) 
+            static void apply(const void* a_pInstance, vector<vtable_info>& vtables)
             {
                 size_t instanceVirtualMemberFunctionCount = virtualMemberFunctionCountOf<top_class>();
                 vtable_info vtable;
@@ -961,13 +967,13 @@ namespace phantom
                 vtable.member_functions = *((void***)((byte*)a_pInstance + vtable_offset));
                 vtable_info_extractor_cascade<t_Ty, t_vtable_count-1>::apply(a_pInstance, vtables);
                 vtables.push_back(vtable);
-            }            
+            }
         };
 
         template<typename t_Ty>
         struct vtable_info_extractor_cascade<t_Ty, 0>
         {
-            static void apply(const void* a_pInstance, vector<vtable_info>& vtables) 
+            static void apply(const void* a_pInstance, vector<vtable_info>& vtables)
             {
             }
         };
@@ -1014,14 +1020,8 @@ namespace phantom
 
     };
 
-    template<typename t_Ty>
-    size_t     virtualMemberFunctionCountOf()
-    {
-        return detail::virtual_member_function_count_of<t_Ty>::value();
-    }
-
     /// returns the vtable index of the given member_function or -1 if it's not a virtual member_function
-    /// throw static assert if the tested argument is not a member function pointer 
+    /// throw static assert if the tested argument is not a member function pointer
     template<typename t_Ty>
     size_t         virtualMemberFunctionIndexOf(t_Ty member_function)
     {

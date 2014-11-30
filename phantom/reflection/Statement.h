@@ -47,6 +47,8 @@ o_namespace_begin(phantom, reflection)
 class o_export Statement : public Evaluable
 {
     friend class Block;
+    friend class Subroutine;
+
 public:
     Statement();
     Statement(const string& a_strName);
@@ -68,8 +70,10 @@ public:
     Statement*              getNextStatement() const;
 
 protected:
-    size_t m_uiIndexInBlock;
+    virtual void            restore() {}
 
+protected:
+    size_t                  m_uiIndexInBlock;
 };
 
 o_namespace_end(phantom, reflection)

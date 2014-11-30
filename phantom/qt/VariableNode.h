@@ -51,6 +51,7 @@ public:
 
     VariableWidgetEditor* createEditor() const;
     QWidget* createActionWidget() const;
+    QWidget* createValueWidget() const;
     Menu* createMenu() const;
 
     string valueText() const;
@@ -82,6 +83,10 @@ public:
     void flush() const;
 
     void update() const;
+
+    const QIcon& getIcon() const { return m_Icon; }
+
+    void setIcon(const QIcon& a_Icon) { m_Icon = a_Icon; }
 
     void getValue(void* a_pDest) const;
 
@@ -173,6 +178,8 @@ protected:
 
 protected:
     string                          m_strName;
+    string                          m_strValueText;
+    QIcon                           m_Icon;
     vector<reflection::Expression*> m_Expressions;
     vector<UndoStack*>              m_ExpressionUndoStacks;
     map<string, vector<VariableAction*>> m_Actions;

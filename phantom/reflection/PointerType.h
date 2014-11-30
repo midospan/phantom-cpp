@@ -53,8 +53,8 @@ public:
     friend class Type;
 
 protected:
-    PointerType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers = 0) 
-        : PrimitiveType(e_pointer, a_strName, a_uiSize, a_uiAlignment, a_uiGuid, a_Modifiers)    
+    PointerType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0) 
+        : PrimitiveType(e_pointer, a_strName, a_uiSize, a_uiAlignment, a_Modifiers)    
     {
 
     }

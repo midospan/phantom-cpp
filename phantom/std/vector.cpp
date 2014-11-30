@@ -20,7 +20,7 @@ o_registerNT((phantom), (typename), (t_Ty), vector);
 // o_registerNTI((phantom), vector, (char));
 // o_registerNTI((phantom), vector, (unsigned char));
 // o_registerNTI((phantom), vector, (signed char));
-// #if o_BUILT_IN_WCHAR_T
+// #if o_HAS_BUILT_IN_WCHAR_T
 // o_registerNTI((phantom), vector, (wchar_t));
 // #endif
 // o_registerNTI((phantom), vector, (short));

@@ -48,14 +48,12 @@ class TNativeDestructor : public InstanceMemberFunction
     typedef TNativeDestructor<t_Ty> self_type;
 
 public:
-    void closure_wrapper() { reinterpret_cast<t_Ty*>(this)->~t_Ty(); }
+    void closure_wrapper() { destructor_protection_hacker<t_Ty>::apply(this); }
     TNativeDestructor(const string& a_strName)
-        : InstanceMemberFunction(a_strName, o_new(Signature)(typeOf<void>()), (has_virtual_destructor_cascade<t_Ty>::value ? o_virtual : 0) | o_native | o_public)
+        : InstanceMemberFunction(a_strName, Signature::Create(typeOf<void>()), (has_virtual_destructor_cascade<t_Ty>::value ? o_virtual : 0) | o_native | o_public_access, (int)0)
     {
         if(this->isVirtual()) this->setVirtualTableIndex(phantom::virtualDestructorIndex<t_Ty>());
     }
-
-    virtual void            deleteNow() { o_dynamic_proxy_delete(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, self_type) this; }
 
     virtual void*           getClosure() const { return generic_member_func_ptr(&self_type::closure_wrapper); }
 
@@ -64,24 +62,24 @@ public:
         return DelegateMemento();
     }
 
-    virtual void call(void* a_pObject, void** a_pParams) const
+    virtual void call(void* a_pInstance, void** a_pParams) const
     {
-        static_cast<t_Ty*>(a_pObject)->~t_Ty();
+        destructor_protection_hacker<t_Ty>::apply(a_pInstance);
     }
 
-    virtual void call(void* a_pObject, void** a_pParams, void* a_pReturnAddress) const
+    virtual void call(void* a_pInstance, void** a_pParams, void* a_pReturnAddress) const
     {
-        static_cast<t_Ty*>(a_pObject)->~t_Ty();
+        destructor_protection_hacker<t_Ty>::apply(a_pInstance);
     }
 
     virtual void call(void** a_pParams) const
     {
-        static_cast<t_Ty*>(a_pParams[0])->~t_Ty();
+        destructor_protection_hacker<t_Ty>::apply(a_pParams[0]);
     }
 
     virtual void call(void** a_pParams, void* a_pReturnAddress) const
     {
-        static_cast<t_Ty*>(a_pParams[0])->~t_Ty();
+        destructor_protection_hacker<t_Ty>::apply(a_pParams[0]);
     }
 
     virtual void* getAddress(void* a_pObject, void** a_pParams) const

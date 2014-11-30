@@ -36,22 +36,33 @@
 #include "InstanceDataMember.h"
 #include "InstanceDataMember.hxx"
 #include "InstanceDataMemberAccess.h"
+#include <phantom/std/vector.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), InstanceDataMember);
+o_registerNTI((phantom), vector, (phantom::reflection::InstanceDataMember*));
 
 o_namespace_begin(phantom, reflection) 
 
 Class* const InstanceDataMember::metaType = o_type_of(phantom::reflection::InstanceDataMember);
 
-InstanceDataMember::InstanceDataMember( const string& a_strName, Type* a_pValueType, size_t  a_uiOffset, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers /*= 0*/ )
-    : ValueMember(a_strName, a_pValueType, a_pRange, a_uiSerializationMask, a_Modifiers)
+InstanceDataMember::InstanceDataMember() 
+    : m_uiOffset(0xffffffff)
+    , m_pAnonymousSection(nullptr)
+{
+
+}
+
+InstanceDataMember::InstanceDataMember( Type* a_pValueType, const string& a_strName, size_t  a_uiOffset, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_Modifiers /*= 0*/ )
+    : ValueMember(a_pValueType, a_strName, a_pRange, a_uiSerializationMask, a_Modifiers)
     , m_uiOffset(a_uiOffset)
+    , m_pAnonymousSection(nullptr)
 {
 }
 
-InstanceDataMember::InstanceDataMember( const string& a_strName, Type* a_pValueType, Range* a_pRange, uint a_uiSerializationMask /*= 0xffffffff*/, bitfield a_Modifiers /*= 0*/ )
-    : ValueMember(a_strName, a_pValueType, a_pRange, a_uiSerializationMask, a_Modifiers)
+InstanceDataMember::InstanceDataMember( Type* a_pValueType, const string& a_strName, Range* a_pRange, uint a_uiSerializationMask /*= 0xffffffff*/, modifiers_t a_Modifiers /*= 0*/ )
+    : ValueMember(a_pValueType, a_strName, a_pRange, a_uiSerializationMask, a_Modifiers)
     , m_uiOffset(~size_t(0))
+    , m_pAnonymousSection(nullptr)
 {
 
 }

@@ -1,15 +1,22 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
+// #define DISABLE_PARSER // uncomment to disable parser
 #include "phantom/reflection/Expression.h"
 #include "CPlusPlus.h"
 #include "CPlusPlus.hxx"
+
+#if !defined(DISABLE_PARSER)
 #include "detail/lexer.h"
 #include "detail/grammar.h"
 #include "detail/precompiler.h"
+#endif
 /* *********************************************** */
+
 o_registerN((phantom, reflection), CPlusPlus);
  
 o_namespace_begin(phantom, reflection)
+
+#if !defined(DISABLE_PARSER)
 
 typedef boost::spirit::classic::position_iterator<string::const_iterator, boost::spirit::classic::file_position_base<SourceFile*>> cpp_position_iterator_t;
 typedef cpp::lexer<cpp_position_iterator_t> lexer_t;
@@ -37,29 +44,16 @@ LanguageElement* CPlusPlus::elementByName( const string& a_strName, LanguageElem
     auto last = a_strName.end();
     bool result = cpp_grammar().parse(first, last, cpp_grammar().r_element, element);
     if(!result) return nullptr;
-//     static bool compiling = false;
-//     if(!compiling)
-//     {
-//         compiling = true;
-//         phantom::cplusplus()->compile(
-//             "class CompiledClass "                                                                     "\n"
-//             "{"                                                                                         "\n"
-//             "   void testIf() const"                                                                              "\n"
-//             "   { int i = 0;"                                                                                                 "\n"
-//             "       if(i%2 == 0)"                                                                              "\n"
-//             "       {"                                                                                         "\n"
-//             "           thenMethod();"                                                                         "\n"
-//             "       }"                                                                                         "\n"
-// //             "       else"                                                                                      "\n"
-// //             "       {"                                                                                         "\n"
-// //             "           elseMethod();"                                                                         "\n"
-// //             "       }"                                                                                         "\n"
-//             "   }"                                                                                                 "\n"
-//             "};                                                                                          "       "\n"
-//             , nullptr, nullptr, nullptr);
-//         compiling = false;
-//     }
 
+#if defined(BOOST_SPIRIT_QI_DEBUG)
+    static bool compiling = false;
+    if(!compiling)
+    {
+        compiling = true;
+        auto pExp = phantom::expressionByName(compilationTest());
+        compiling = false;
+    }
+#endif
     cpp::ast::precompiler precompiler;
     LanguageElement* pElement = precompiler.precompile_element_recursive(element, a_pScope);
     return pElement ? pElement->hatch() : nullptr;
@@ -129,5 +123,31 @@ bool CPlusPlus::execute(const string& a_strCode, const vector<variable>& a_Argum
     return true;
 
 }
+
+#else
+
+LanguageElement* CPlusPlus::elementByName( const string& a_strName, LanguageElement* a_pScope /*= phantom::rootNamespace()*/ ) const
+{
+    o_assert(false);
+    return nullptr;
+}
+
+Expression* CPlusPlus::expressionByName( const string& a_strName, LanguageElement* a_pScope /*= phantom::rootNamespace()*/ ) const
+{
+    o_assert(false);
+    return nullptr;
+}
+
+void CPlusPlus::compile( const string& a_strCode, Compiler* a_pCompiler, SourceFile* a_pSourceFile, Message* a_pMessage ) const
+{
+    o_assert(false);
+}
+
+bool CPlusPlus::execute(const string& a_strCode, const vector<variable>& a_Arguments, variant& a_ReturnValue, Compiler* a_pCompiler) const
+{
+    o_assert(false);
+    return false;
+}
+#endif
 
 o_namespace_end(phantom, reflection)

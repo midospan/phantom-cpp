@@ -16,11 +16,17 @@ class o_export CompositionClass : public Class
     o_declare_meta_type(CompositionClass);
 
 public:
-    CompositionClass(Class* a_pComponentClass, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
+    CompositionClass(Class* a_pComponentClass, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
         : Class(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
         , m_pComponentClass(a_pComponentClass) 
     {
     }
+
+    virtual void blockSignals(void* a_pComposition) const = 0;
+
+    virtual void unblockSignals(void* a_pComposition) const = 0;
+
+    virtual void* owner(const void* a_pComposition) const = 0;
 
     virtual void add(void* a_pComposition, const void* a_pSrc) const = 0;
 
@@ -74,7 +80,14 @@ public:
     
     virtual bool referencesData( const void* a_pContainer, const phantom::data& a_Data ) const;
 
-    virtual Expression* solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, bitfield a_Modifiers ) const;
+    virtual Expression* solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, modifiers_t a_Modifiers ) const;
+
+    virtual void fetchExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter, uint a_uiSerializationMask ) const;
+
+    virtual void fetchCollectionExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask ) const 
+    {
+        out.push_back(a_pInstanceExpression);
+    }
 
 public:
     class o_export GetSetExpression : public Expression
@@ -113,6 +126,10 @@ public:
 
         virtual InsertRemoveExpression*     clone() const;
 
+        CompositionClass* getCompositionClass() const { return m_pCompositionClass; }
+
+        Expression* getCompositionExpression() const { return m_pLeftExpression; }
+
     protected:
         Expression* m_pLeftExpression;
         Expression* m_pIndexExpression;
@@ -127,5 +144,7 @@ protected:
 
 o_namespace_end(phantom, reflection)
 
+o_declareNC((phantom, reflection), (CompositionClass), InsertRemoveExpression);
+o_declareNC((phantom, reflection), (CompositionClass), GetSetExpression);
 
 #endif

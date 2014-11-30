@@ -33,12 +33,9 @@
 
 #ifndef o_phantom_reflection_PODUnion_h__
 #define o_phantom_reflection_PODUnion_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/ClassType.h>
-
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
@@ -51,8 +48,8 @@ class o_export PODUnion : public ClassType
 
 public:
 
-    PODUnion(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
-        : ClassType(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) 
+    PODUnion(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
+        : ClassType(e_union, a_strName, a_uiSize, a_uiAlignment, a_Modifiers) 
     {
     }
 

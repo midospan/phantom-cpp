@@ -15,8 +15,7 @@ namespace phantom { namespace qt {
 //================================================
 
 UnloadNodeCommand::UnloadNodeCommand(phantom::serialization::Node* a_pNode)
-: UndoCommand()
-, m_pDataBase(a_pNode->getOwnerDataBase())
+: DataBaseCommand(a_pNode->getDataBase())
 , m_uiGuid(a_pNode->getGuid())
 {
     o_assert(m_pDataBase);
@@ -34,21 +33,7 @@ UnloadNodeCommand::~UnloadNodeCommand()
 // Operations
 //================================================
 
-void UnloadNodeCommand::undo()
-{
-    serialization::Node* pNode = m_pDataBase->getNode(m_uiGuid);
-    o_assert(pNode);
-    o_assert(pNode->isUnloaded());
-    o_assert(pNode->getParentNode() == nullptr OR pNode->getParentNode()->isLoaded());
-    o_assert(pNode->canLoad());
-    pNode->load();
-    if(m_pDataBase->getDataStateBase())
-    {
-        pNode->loadState(m_pDataBase->getDataStateBase()->getCurrentStateId());
-    }
-}
-
-void UnloadNodeCommand::redo()
+void UnloadNodeCommand::redoReplayed()
 {
     serialization::Node* pNode = m_pDataBase->getNode(m_uiGuid);
 #if !defined(_NDEBUG)
@@ -61,6 +46,12 @@ void UnloadNodeCommand::redo()
     }
 #endif
     pNode->unload();
+}
+
+void UnloadNodeCommand::undoReplayed()
+{
+    serialization::Node* pNode = m_pDataBase->getNode(m_uiGuid);
+    pNode->load();
 }
 
 UnloadNodeCommand* UnloadNodeCommand::clone() const

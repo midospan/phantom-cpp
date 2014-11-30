@@ -47,12 +47,11 @@ o_namespace_begin(phantom, state)
 
 class o_export Reaction : public StateMachineElement
 {
-    o_friend(class, phantom, state, State)
-
+    friend class phantom::state::State;
 
 public:
     Reaction() {}
-    Reaction(const string& a_strName, bitfield bf = 0) : StateMachineElement(a_strName, bf) {}
+    Reaction(const string& a_strName, modifiers_t bf = 0) : StateMachineElement(a_strName, bf) {}
     ~Reaction() {}
 
     virtual void react(void* a_pObject, Event* a_pTriggerEvent) = 0;

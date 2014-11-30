@@ -45,17 +45,24 @@ class o_export Module
 {
 
 public:
-    Module(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle);
+    Module(const string& a_strName, const string& a_strFilePath, size_t a_PlatformHandle);
     ~Module();
 
     o_terminate();
 
     const string& getName() const { return m_strName; }
-    const string& getFileName() const { return m_strFileName; }
+    string        getFileName() const;
+    const string& getFilePath() const { return m_strFilePath; }
 
     void addLanguageElement(reflection::LanguageElement* a_pLanguageElement) ;
     void removeLanguageElement(reflection::LanguageElement* a_pLanguageElement) ;
-    void replaceLanguageElement(reflection::LanguageElement* a_pOldLanguageElement, reflection::LanguageElement* a_pNewLanguageElement) ;
+    
+    void beginReplaceLanguageElements( const vector<reflection::LanguageElement*>& a_OldLanguageElements);
+    void endReplaceLanguageElements( const vector<reflection::LanguageElement*>& a_NewLanguageElements );
+    
+    void beginReplaceLanguageElement( reflection::LanguageElement* a_pOldLanguageElement );
+    void endReplaceLanguageElement( reflection::LanguageElement* a_pOldLanguageElement );
+    
     bool hasLanguageElement(reflection::LanguageElement* a_pLanguageElement) const;
 
     vector<reflection::LanguageElement*>::const_iterator beginLanguageElements() { return m_LanguageElements.begin(); }
@@ -71,19 +78,22 @@ public:
     bool canBeUnloaded() const;
 
 protected:
-    inline phantom::signal_t elementAdded(reflection::LanguageElement*) const;
-    inline phantom::signal_t elementRemoved(reflection::LanguageElement*) const;
-    inline phantom::signal_t elementReplaced(reflection::LanguageElement* a_pOld, reflection::LanguageElement* a_pNew) const;
+    inline phantom::signal_t elementAdded(reflection::LanguageElement*);
+    inline phantom::signal_t elementAboutToBeRemoved(reflection::LanguageElement*);
+    inline phantom::signal_t elementsAboutToBeReplaced(const vector<reflection::LanguageElement*>&);
+    inline phantom::signal_t elementsReplaced(const vector<reflection::LanguageElement*>&, const vector<reflection::LanguageElement*>&);
 
 protected:
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_elementAdded;
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_elementRemoved;
-    mutable phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_elementReplaced;
+    phantom::connection::slot::list         PHANTOM_CODEGEN_m_slot_list_of_elementAdded;
+    phantom::connection::slot::list         PHANTOM_CODEGEN_m_slot_list_of_elementAboutToBeRemoved;
+    phantom::connection::slot::list         PHANTOM_CODEGEN_m_slot_list_of_elementsAboutToBeReplaced;
+    phantom::connection::slot::list         PHANTOM_CODEGEN_m_slot_list_of_elementsReplaced;
     Module*                                 m_pParentModule;
     string                                  m_strName;
-    string                                  m_strFileName;
+    string                                  m_strFilePath;
     vector<reflection::LanguageElement*>    m_LanguageElements;
     size_t                                  m_PlatformHandle;
+    vector<reflection::LanguageElement*>    m_ReplacementOldElements;
 
 };
 

@@ -64,8 +64,7 @@ public:
     {
         Expression* pExp = m_pDereferencedExpression;
         const_cast<DereferenceExpression*>(this)->removeElement(pExp);
-        const_cast<DereferenceExpression*>(this)->terminate();
-        const_cast<DereferenceExpression*>(this)->deleteNow();
+        o_dynamic_delete const_cast<DereferenceExpression*>(this);
         return pExp;
     }
 

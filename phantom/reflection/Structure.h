@@ -33,8 +33,6 @@
 
 #ifndef o_phantom_reflection_Structure_h__
 #define o_phantom_reflection_Structure_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/ClassType.h>
@@ -49,15 +47,17 @@ class o_export Structure : public ClassType
     o_declare_meta_type(Structure);
 
 protected:
-    Structure(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0);
+    Structure(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0);
 
 public:
-    Structure(const string& a_strName, bitfield a_Modifiers = 0);
+    Structure();
+    Structure(const string& a_strName, modifiers_t a_Modifiers = 0);
     o_destructor ~Structure(void)     
     {
     }
 
-    virtual Type* asPOD() const { return (Structure*)this; }
+    virtual Type*       asPOD() const { return (Structure*)this; }
+    virtual Structure*  asStructure() const { return (Structure*)this; }
 
     virtual bool  isCopyable() const { return true; }
 };

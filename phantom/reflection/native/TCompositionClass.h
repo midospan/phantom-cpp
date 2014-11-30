@@ -3,7 +3,6 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/CompositionClass.h>
-#include <phantom/reflection/ConstantExpression.h>
 /* **************** Declarations ***************** */
 o_declareNT(class, (phantom, reflection, native), (typename), (t_Ty), TCompositionIterator);
 o_declareNT(class, (phantom, reflection, native), (typename), (t_Ty), TCompositionReverseIterator);
@@ -102,9 +101,24 @@ class TCompositionClass : public CompositionClass
     typedef t_Ty                                composition_type;
 
 public:
-    TCompositionClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
-        : CompositionClass(typeOf<component_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+    TCompositionClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
+        : CompositionClass(typeOf<component_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers|o_native)
     {
+    }
+
+    virtual void blockSignals(void* a_pComposition) const
+    {
+        static_cast<composition_type*>(a_pComposition)->blockSignals();
+    }
+
+    virtual void unblockSignals(void* a_pComposition) const
+    {
+        static_cast<composition_type*>(a_pComposition)->unblockSignals();
+    }
+
+    virtual void*       owner(const void* a_pComposition) const 
+    {
+        return static_cast<const composition_type*>(a_pComposition)->getOwner();
     }
 
     virtual void        add(void* a_pComposition, const void* a_pSrc) const 
@@ -193,20 +207,11 @@ public:
     virtual Signal* getRemovedSignal() const           { return getSignal("removed(size_t, t_Component*)"); }
     virtual Signal* getAboutToBeReplacedSignal() const { return getSignal("aboutToBeReplaced(size_t, t_Component*, t_Component*)"); }
     virtual Signal* getReplacedSignal() const          { return getSignal("replaced(size_t, t_Component*, t_Component*)"); }
-    virtual Signal* getAboutToBeMovedSignal() const    { return getSignal("aboutToBeMoved(t_Component*, size_t, size_t)"); }
-    virtual Signal* getMovedSignal() const             { return getSignal("moved(t_Component*, size_t, size_t)"); }
-    virtual Signal* getAboutToBeSwappedSignal() const  { return getSignal("aboutToBeSwapped(t_Component*, t_Component*)"); }
-    virtual Signal* getSwappedSignal() const           { return getSignal("swapped(t_Component*, t_Component*)"); }
+    virtual Signal* getAboutToBeMovedSignal() const    { return getSignal("aboutToBeMoved(size_t, size_t, t_Component*)"); }
+    virtual Signal* getMovedSignal() const             { return getSignal("moved(size_t, size_t, t_Component*)"); }
+    virtual Signal* getAboutToBeSwappedSignal() const  { return getSignal("aboutToBeSwapped(size_t, size_t, t_Component*, t_Component*)"); }
+    virtual Signal* getSwappedSignal() const           { return getSignal("swapped(size_t, size_t, t_Component*, t_Component*)"); }
 
-    virtual void fetchPointerReferenceExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask ) const 
-    {
-        void* pInstance = a_pInstanceExpression->loadEffectiveAddress();
-        size_t count = static_cast<const composition_type*>(pInstance)->count();
-        for(size_t i = 0; i<count; ++i)
-        {
-            out.push_back(o_new(InsertRemoveExpression)(a_pInstanceExpression->clone(), o_new(ConstantExpression)(phantom::constant<size_t>(i), nullptr, true), const_cast<TCompositionClass<t_Ty>*>(this)));
-        }
-    }
 
 };
 

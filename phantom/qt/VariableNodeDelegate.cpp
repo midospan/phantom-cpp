@@ -5,7 +5,6 @@
 #include "VariableModel.h"
 #include "UndoCommand.h"
 #include "phantom/reflection/Expression.h"
-#include "UpdateComponentDataCommand.h"
 #include "ExpressionCommand.h"
 #include "phantom/serialization/Node.h"
 #include "phantom/qt/ExpressionCommand.h"
@@ -22,61 +21,22 @@ namespace phantom { namespace qt {
         size_t count = m_pVariableNode->getExpressionCount();
         phantom::string newValueStr;
         phantom::string newValueDisplayStr;
-        phantom::vector<phantom::string> newValueStrs;
         phantom::reflection::Type* pEffectiveType = m_pVariableNode->getValueType()->removeReference();
         VariableModel* pVariableModel = m_pVariableNode->getVariableModel();
         phantom::serialization::DataBase* pDataBase = pVariableModel->getDataBase();
-        phantom::reflection::Type* pComponentType = nullptr;
         phantom::qt::UndoCommand* pGroup = o_new(phantom::qt::UndoCommand);
-        pGroup->setRedoChildExecutionPolicy(phantom::qt::UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
-        pGroup->setUndoChildExecutionPolicy(phantom::qt::UndoCommand::e_ChildExecutionPolicy_BackwardAfterParent);
-        phantom::vector<phantom::qt::UndoCommand*> componentAddCommands;
         if(pEffectiveType->asDataPointerType())
         {
-            void* pValue = *((void* const*)a_pValue);
-            if(m_pVariableNode->hasModifier(o_component)) 
+            void* pNewValue = *((void* const*)a_pValue);
+            
             {
-                if(pValue)
-                {
-                    phantom::reflection::Type* pType = phantom::as<phantom::reflection::Type*>(pValue);
-                    o_assert(pType);
-                    for(size_t i = 0; i<count; ++i)
-                    {
-                        void* pValue = pType->newInstance();
-                        pValue = pType->cast(m_pVariableNode->getExpression(i)->getValueType()->removeReference()->removeConst()->removePointer()->removeConst(), pValue);
-                        m_pVariableNode->getExpression(i)->store(&pValue);
-                        phantom::data d = pVariableModel->getData()[i];
-                        phantom::uint guid = pDataBase->getGuid(d);
-                        phantom::qt::UpdateComponentDataCommand* pDataCommand = o_new(phantom::qt::UpdateComponentDataCommand)(pDataBase, d);
-                        pDataCommand->setName("In data : '"+ pDataBase->getDataAttributeValue(d, "name") + "' ("+phantom::lexical_cast<phantom::string>((void*)guid)+")");
-                        pGroup->pushCommand(pDataCommand);
-                    }
-                    pGroup->setName("Property changed : '" + m_pVariableNode->getQualifiedName()+ " = new "+phantom::qt::nameOf(pType)+" component'");
-                }
-                else 
-                {
-                    for(size_t i = 0; i<count; ++i)
-                    {
-                        m_pVariableNode->getExpression(i)->store(&pValue);
-                        phantom::data d = pVariableModel->getData()[i];
-                        phantom::uint guid = pDataBase->getGuid(d);
-                        phantom::qt::UpdateComponentDataCommand* pDataCommand = o_new(phantom::qt::UpdateComponentDataCommand)(pDataBase, d);
-                        pDataCommand->setName("In data : '"+ pDataBase->getDataAttributeValue(d, "name") + "' ("+phantom::lexical_cast<phantom::string>((void*)guid)+")");
-                        pGroup->pushCommand(pDataCommand);
-                    }
-                    pGroup->setName("Property changed : '" + m_pVariableNode->getQualifiedName()+ " = none'");
-                }
-                return pGroup;
-            }
-            else
-            {
-                uint guid = pVariableModel->getDataBase()->getGuid(pValue);
+                uint guid = pVariableModel->getDataBase()->getGuid(pNewValue);
                 if(guid != 0xffffffff)
                 {
                     newValueStr = "&@"+phantom::lexical_cast<phantom::string>(guid);
                     newValueDisplayStr = pDataBase->getDataAttributeValue(pDataBase->getData(guid), "name");
                 }
-                else pEffectiveType->valueToLiteral(newValueStr, a_pValue);
+                else newValueStr = "nullptr";
             }
         }
         else pEffectiveType->valueToLiteral(newValueStr, a_pValue);
@@ -92,42 +52,33 @@ namespace phantom { namespace qt {
             uint guid = pDataBase->getGuid(d);
             phantom::serialization::Node* pNode = pDataBase->getNode(d);
 
-            if(newValueStr.empty() AND pComponentType) // component
+            phantom::string oldValueStr;
+            if(pEffectiveType->asDataPointerType()) 
             {
-                newValueStr = newValueStrs[i];
+                // Pointer + Not a component => we get old pointer value and check if it's a data base data
+                void* pOldValue = nullptr;
+                pExpression->load(&pOldValue);
+                uint guid = pVariableModel->getDataBase()->getGuid(pOldValue);
+                if(guid != 0xffffffff)
+                {
+                    oldValueStr = "&@"+phantom::lexical_cast<phantom::string>(guid);
+                }
+                else 
+                {
+                    oldValueStr = "nullptr";
+                }
             }
-
             phantom::variant value = pExpression->get();
             o_assert(pEffectiveType == value.type());
-
-            phantom::string oldValueStr;
-            pEffectiveType->valueToLiteral(oldValueStr, value.buffer());
-            phantom::reflection::Expression* pUndoExpression = pExpression->clone()->solveBinaryOperator("=", phantom::expressionByName(oldValueStr));
-
-            phantom::reflection::Expression* pRedoExpression = pExpression->clone()->solveBinaryOperator("=", phantom::expressionByName(newValueStr));
-
-            phantom::qt::ExpressionCommand* pCommand = o_new(phantom::qt::ExpressionCommand)(pUndoExpression, pRedoExpression);
-            phantom::qt::UpdateComponentDataCommand* pDataCommand = o_new(phantom::qt::UpdateComponentDataCommand)(pDataBase, d);
-            pDataCommand->setName("Update");
-            pCommand->pushCommand(pDataCommand);
-            pCommand->setName( "In data : '"+ pDataBase->getDataAttributeValue(d, "name") + "' ("+phantom::lexical_cast<phantom::string>((void*)guid)+")");
-            o_connect(pCommand, undone(), this, changed());
-            o_connect(pCommand, redone(), this, changed());
-
-            // Change undo/redo child execution policy so that save command is executed always after parent
-            pCommand->setRedoChildExecutionPolicy(phantom::qt::UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
-            pCommand->setUndoChildExecutionPolicy(phantom::qt::UndoCommand::e_ChildExecutionPolicy_ForwardAfterParent);
-            // pCommand->pushCommand(o_new(phantom::qt::SaveDataCommand)(pNode, d));
-            pGroup->pushCommand(pCommand);
-            /*phantom::vector<std::pair<phantom::data, phantom::data>> to_add;
-            phantom::vector<std::pair<phantom::data, phantom::data>> to_remove;
-            for(auto it = to_remove.begin(); it != to_remove.end(); ++it)
+            if(oldValueStr.empty())
             {
-            pCommand
+                pEffectiveType->valueToLiteral(oldValueStr, value.buffer());
             }
-            pNode->addDataComponentsCascade(&to_add, &to_remove);
-            int o = 0;
-            ++o;*/
+            phantom::reflection::Expression* pUndoExpression = pExpression->clone()->solveBinaryOperator("=", phantom::expressionByName(oldValueStr));
+            phantom::reflection::Expression* pRedoExpression = pExpression->clone()->solveBinaryOperator("=", phantom::expressionByName(newValueStr));
+            phantom::qt::ExpressionCommand* pCommand = o_new(phantom::qt::ExpressionCommand)(m_pVariableNode->getVariableModel()->getDataBase(), pUndoExpression, pRedoExpression);
+            pCommand->setName( "In data : '"+ pDataBase->getDataAttributeValue(d, "name") + "' ("+phantom::lexical_cast<phantom::string>((void*)guid)+")");
+            pGroup->pushCommand(pCommand);
         }
         return pGroup;
     }
@@ -136,12 +87,13 @@ namespace phantom { namespace qt {
     {
         VariableWidgetEditor* pVariableWidgetEditor = nullptr;
 
-        reflection::Type* pVariableType = m_pVariableNode->getValueType();
+        reflection::Type* pVariableType = m_pVariableNode->getValueType()->removeConstReference();
         VariableModel* pVariableModel = m_pVariableNode->getVariableModel();
         reflection::Class* pEditorClass = pVariableModel->getVariableWidgetEditorClass(pVariableType);
         if(pEditorClass)
         {
             pVariableWidgetEditor = as<VariableWidgetEditor*>(pEditorClass->newInstance());
+
         }
         else if(pVariableType->asEnum())
         {
@@ -160,18 +112,6 @@ namespace phantom { namespace qt {
                 {
                     m_pVariableNode->getExpression(i)->load(&addresses[i]);
                 }
-                if(m_pVariableNode->hasModifier(o_component))
-                {
-                    vector<reflection::Class*> classes(m_pVariableNode->getExpressionCount());
-                    for(size_t i = 0; i<classes.size(); ++i)
-                    {
-                        void* pAddress;
-                        m_pVariableNode->getExpression(i)->load(&pAddress);
-                        classes[i] = classOf(pAddress);
-                    }
-                    pVariableWidgetEditor = o_new(ClassComboBoxEditor)(pVariableType->asDataPointerType()->getPointedType()->asClass(), classes);
-                }
-                else
                 {
                     phantom::vector<phantom::data> currentData;
                     currentData.resize(addresses.size());
@@ -180,20 +120,42 @@ namespace phantom { namespace qt {
                         currentData[i] = addresses[i];
                         currentData[i] = currentData[i].cast(pVariableType);
                     }
-                    pVariableWidgetEditor = o_new(DataComboBoxEditor)(pVariableModel->getDataBase(), pVariableType->asDataPointerType()->getPointedType(), currentData, pVariableModel->getData());
+                    pVariableWidgetEditor = o_new(DataComboBoxEditor)(pVariableModel->getDataBase(), pVariableType->asDataPointerType()->getPointedType(), currentData, pVariableModel->getData(), NOT(m_pVariableNode->hasModifier(o_mandatory)));
                 }
 
             }
         }
+
+        if(pVariableWidgetEditor)
+        {
+            vector<void*> buffers(m_pVariableNode->getExpressionCount());
+            for(size_t i = 0; i<buffers.size(); ++i)
+            {
+                buffers[i] = pVariableType->allocate();
+                pVariableType->safeSetup(buffers[i]);
+            }
+            m_pVariableNode->getValues(buffers.data());
+            for(size_t i = 0 ;i<m_pVariableNode->getExpressionCount(); ++i)
+            {
+                pVariableWidgetEditor->setValue(const_cast<const void**>(buffers.data())[i]);
+            }
+            for(size_t i = 0; i<buffers.size(); ++i)
+            {
+                pVariableType->deleteInstance(buffers[i]);
+            }
+        }
+            
         return pVariableWidgetEditor;
     }
 
     string VariableNodeDelegate::valueText() const
     {
         VariableModel* pVariableModel = m_pVariableNode->getVariableModel();
-        if(m_pVariableNode->getExpressionCount() AND m_pVariableNode->getValueType()->asClassType() == nullptr) 
+        if(m_pVariableNode->getExpressionCount() 
+            AND m_pVariableNode->getValueType()->asClassType() == nullptr
+            AND m_pVariableNode->getValueType()->asArrayType() == nullptr) 
         {
-            if(m_pVariableNode->hasMultipleValues() && !m_pVariableNode->hasModifier(o_component))
+            if(m_pVariableNode->hasMultipleValues())
             {
                 return "<multiple values>";
             }
@@ -222,13 +184,15 @@ namespace phantom { namespace qt {
                 uint guid = pVariableModel->getDataBase()->getGuid(value);
                 if(guid == 0xFFFFFFFF ) 
                 {
-                    if(m_pVariableNode->hasModifier(o_component))
+                    if(type->removeConstReference()->asComponentClass())
                     {
                         vector<void*> addresses;
                         addresses.resize(m_pVariableNode->getExpressionCount());
                         for(size_t i = 0; i<addresses.size(); ++i)
                         {
-                            m_pVariableNode->getExpression(i)->load(&addresses[i]);
+                            auto pExp = m_pVariableNode->getExpression(i)->clone()->dereference()->address();
+                            pExp->load(&addresses[i]);
+                            phantom::deleteElement(pExp);
                         }
                         reflection::Class* pCommonClass = classOf(addresses[0]);
                         for(size_t i = 1; i<addresses.size(); ++i)
@@ -259,58 +223,60 @@ namespace phantom { namespace qt {
             reflection::Expression* pExpression = m_pVariableNode->getExpression(0);
 
             string result;
-            if(pExpression->hasEffectiveAddress())
+            void* pBuffer = nullptr;
+            bool hasEffectiveAddress = pExpression->hasEffectiveAddress();
+            if(NOT(hasEffectiveAddress))
             {
-                void* pEffectiveAddress = pExpression->loadEffectiveAddress();
-                type->valueToString(result, pEffectiveAddress);
-                // 
-                //                 QtProperty* property = getProperty(m_pVariableNode);
-                //                 if(property AND m_pVariableNode->getRange() AND !m_pVariableNode->hasMultipleValues())
-                //                 {
-                //                     auto pEffectiveType = m_pVariableNode->getValueType()->removeReference()->removeConst();
-                //                     void * pBufferDefault = pEffectiveType->newInstance();
-                //                     m_pVariableNode->getRange()->getDefault(pBufferDefault);
-                //                     property->setModified(!pEffectiveType->areValueEqual(pEffectiveAddress, pBufferDefault));
-                //                 }
+                pBuffer = m_pVariableNode->getValueType()->removeReference()->removeConst()->allocate();
+                m_pVariableNode->getValueType()->removeReference()->removeConst()->safeConstruct(pBuffer);
+                m_pVariableNode->getValueType()->removeReference()->removeConst()->initialize(pBuffer);
+                m_pVariableNode->getValue(pBuffer);
+            }
+            else pBuffer = pExpression->loadEffectiveAddress();
+
+            if(type->asEnum())
+            {
+                vector<reflection::Constant*> constants;
+                type->asEnum()->findConstantsWithValue(pBuffer, constants);
+                if(constants.size())
+                {
+                    result = nameOf(constants.back());
+                }
             }
             else
             {
-                void* pBufferCurrent = m_pVariableNode->getValueType()->removeReference()->removeConst()->allocate();
-                m_pVariableNode->getValueType()->removeReference()->removeConst()->safeConstruct(pBufferCurrent);
-                m_pVariableNode->getValueType()->removeReference()->removeConst()->initialize(pBufferCurrent);
-                m_pVariableNode->getValue(pBufferCurrent);
-
-                type->valueToString(result, pBufferCurrent);
-
-                m_pVariableNode->getValueType()->removeReference()->removeConst()->terminate(pBufferCurrent);
-                m_pVariableNode->getValueType()->removeReference()->removeConst()->destroy(pBufferCurrent);
-                m_pVariableNode->getValueType()->removeReference()->removeConst()->deallocate(pBufferCurrent);
+                type->valueToString(result, pBuffer);
             }
-
+            if(NOT(hasEffectiveAddress))
+            {
+                m_pVariableNode->getValueType()->removeReference()->removeConst()->terminate(pBuffer);
+                m_pVariableNode->getValueType()->removeReference()->removeConst()->destroy(pBuffer);
+                m_pVariableNode->getValueType()->removeReference()->removeConst()->deallocate(pBuffer);
+            }
             return result;
         }
         else 
         {
             string compound;
-            if(m_pVariableNode->beginChildNodes() != m_pVariableNode->endChildNodes())
-            {
-                compound = "[";
-                int c = 0;
-                for(auto it = m_pVariableNode->beginChildNodes(); it != m_pVariableNode->endChildNodes(); ++it)
-                {
-                    //                     QString vt = valueText(*it);
-                    //                     if(vt.isEmpty()) continue;
-
-                    if(c++ > 0)
-                    {
-                        compound += " | ";
-                    }
-                    compound += (*it)->getName().c_str();
-                    compound += "=";
-                    compound += (*it)->valueText();
-                }
-                compound += "]";
-            }
+//             if(m_pVariableNode->beginChildNodes() != m_pVariableNode->endChildNodes())
+//             {
+//                 compound = "[";
+//                 int c = 0;
+//                 for(auto it = m_pVariableNode->beginChildNodes(); it != m_pVariableNode->endChildNodes(); ++it)
+//                 {
+//                     //                     QString vt = valueText(*it);
+//                     //                     if(vt.isEmpty()) continue;
+// 
+//                     if(c++ > 0)
+//                     {
+//                         compound += " | ";
+//                     }
+//                     compound += (*it)->getName().c_str();
+//                     compound += "=";
+//                     compound += (*it)->valueText();
+//                 }
+//                 compound += "]";
+//             }
             return compound;
         }
         return "";

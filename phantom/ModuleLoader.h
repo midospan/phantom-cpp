@@ -2,7 +2,6 @@
 
 #ifndef o_ModuleLoader_h__
 #define o_ModuleLoader_h__
-// #pragma message("Including "__FILE__)
 
 /* ****************** Includes ******************* */
 #include <phantom/phantom.h>
@@ -42,11 +41,15 @@ public:
     vector<Module*>::const_iterator beginLoadedModules() const { return m_LoadedModules.begin(); }
     vector<Module*>::const_iterator endLoadedModules() const { return m_LoadedModules.end(); }
 
+    size_t                          getLoadedModuleCount() const { return m_LoadedModules.size(); }
+
     size_t                          getModuleLoadCount(Module* a_pModule) const;
 
     size_t                          getLibraryModuleLoadCount(const string& a_strPath, Module* a_pModule) const;
 
-    bool                            isLibraryLoaded(const string& a_strPath) const { return m_LibraryModules.find(a_strPath) != m_LibraryModules.end(); }
+    bool                            isLibraryLoaded(const string& a_strPath) const;
+
+    bool                            isModuleLoaded(const string& a_strFileName) const;
 
     map<Module*, size_t>::const_iterator beginLoadedLibraryModules(const string& a_strPath) const;
     map<Module*, size_t>::const_iterator endLoadedLibraryModules(const string& a_strPath) const;
@@ -55,6 +58,8 @@ public:
     map<string, map<Module*, size_t>>::const_iterator endLoadedLibraries() const { return m_LibraryModules.end(); }
 
     bool                            libraryCanBeUnloaded(const string& a_strPath, phantom::Message* a_pMessage = nullptr, vector<reflection::LanguageElement*>* a_pBlockingElements = nullptr) const;
+
+    void                            setDataBase(serialization::DataBase* a_pDataBase);
 
 protected:
     void moduleInstanciated(void* a_pModule);
@@ -73,8 +78,9 @@ protected:
     o_signal_data(moduleLoaded, Module*, size_t, size_t);
     o_signal_data(moduleUnloaded, Module*, size_t, size_t);
     o_signal_data(elementAdded, reflection::LanguageElement*);
-    o_signal_data(elementRemoved, reflection::LanguageElement*);
-    o_signal_data(elementReplaced, reflection::LanguageElement*, reflection::LanguageElement*);
+    o_signal_data(elementAboutToBeRemoved, reflection::LanguageElement*);
+    o_signal_data(elementsAboutToBeReplaced, const vector<reflection::LanguageElement*>&);
+    o_signal_data(elementsReplaced, const vector<reflection::LanguageElement*>&, const vector<reflection::LanguageElement*>&);
 
 protected:
     vector<Module*> m_LoadedModules;
@@ -82,6 +88,7 @@ protected:
     map<string, map<Module*, size_t>> m_LibraryModules;
     vector<Module*> m_CurrentlyLoadedModules;
     size_t m_OperationCounter;
+    serialization::DataBase* m_pDataBase;
 };
 
 o_namespace_end(phantom)

@@ -1,6 +1,7 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
 #include "ClassComboBox.h"
+#include <QStyledItemDelegate>
 /* *********************************************** */
  
 namespace phantom { 
@@ -9,9 +10,10 @@ namespace qt {
     ClassComboBox::ClassComboBox( reflection::Class* a_pBaseClass
         , reflection::Class* a_pCurrentClass
         , FilterBits a_iFilter 
-        , bool a_bAllowsNone ) 
+        , bool a_bAllowsNone /* = true*/ ) 
         : m_iFilter(a_iFilter)
     {
+        setItemDelegate(new QStyledItemDelegate());
         m_pBaseClass = a_pBaseClass;
         if(a_bAllowsNone)
         {

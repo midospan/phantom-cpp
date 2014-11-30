@@ -71,7 +71,7 @@ public:
 
     Class*                      getSourceClass() const 
     { 
-        return m_pSuperTable == nullptr ? getOwnerClass() : m_pSuperTable->getSourceClass(); 
+        return m_pBaseTable == nullptr ? getOwnerClass() : m_pBaseTable->getSourceClass(); 
     }
 
     size_t                      getOffset() const;
@@ -80,7 +80,7 @@ public:
 
     void                        construct(void* a_pInstance);
 
-    VirtualMemberFunctionTable* getRootTable() const { return m_pSuperTable ? m_pSuperTable->getRootTable() : const_cast<VirtualMemberFunctionTable*>(this); }
+    VirtualMemberFunctionTable* getRootTable() const { return m_pBaseTable ? m_pBaseTable->getRootTable() : const_cast<VirtualMemberFunctionTable*>(this); }
 
     InstanceMemberFunction*     getRootMemberFunction(size_t a_uiIndex) const;
     InstanceMemberFunction*     getRootMemberFunction( InstanceMemberFunction* a_pInstanceMemberFunction ) const;
@@ -88,8 +88,8 @@ public:
     VirtualMemberFunctionTable* asVirtualMemberFunctionTable() const { return const_cast<VirtualMemberFunctionTable*>(this); }
 
 private: // Derivation constructors
-    VirtualMemberFunctionTable(VirtualMemberFunctionTable* a_pSuperTable);
-    VirtualMemberFunctionTable(VirtualMemberFunctionTable* a_pSuperTable, size_t a_uiSize);
+    VirtualMemberFunctionTable(VirtualMemberFunctionTable* a_pBaseTable);
+    VirtualMemberFunctionTable(VirtualMemberFunctionTable* a_pBaseTable, size_t a_uiSize);
 
 private:
     void                        addMemberFunction(InstanceMemberFunction* a_pMemberFunction);
@@ -98,18 +98,16 @@ private:
 
     void                        insertMemberFunction(InstanceMemberFunction* a_pMemberFunction);
 
-    bool                        sharesMemberFunctions() const { return m_pSuperTable && m_pSuperTable->m_pMemberFunctions == m_pMemberFunctions; }
+    bool                        sharesMemberFunctions() const { return m_pBaseTable && m_pBaseTable->m_pMemberFunctions == m_pMemberFunctions; }
 
-    void                        copyOnWrite()
-    {
-        o_assert(sharesMemberFunctions());
-        m_pMemberFunctions = new vector<InstanceMemberFunction*>;
-        *m_pMemberFunctions = *(m_pSuperTable->m_pMemberFunctions);
-    }
+    void                        copyOnWrite();
+
+    virtual bool                canBeDestroyed() const;
 
 private:
     vector<InstanceMemberFunction*>* m_pMemberFunctions;
-    VirtualMemberFunctionTable* m_pSuperTable;
+    VirtualMemberFunctionTable* m_pBaseTable;
+    vector<VirtualMemberFunctionTable*> m_DerivedTables;
     void**                      m_ppClosures;
     bool                        m_bClosuresExtracted;
     

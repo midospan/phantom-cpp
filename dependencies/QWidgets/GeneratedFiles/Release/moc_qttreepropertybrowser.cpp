@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'qttreepropertybrowser.h'
 **
-** Created: Mon 30. Jun 18:08:54 2014
+** Created: Thu 30. Oct 01:24:08 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -191,17 +191,20 @@ static const uint qt_meta_data_QtPropertyEditorView[] = {
        0,       // classname
        0,    0, // classinfo
        0,    0, // methods
-       0,    0, // properties
+       1,   14, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
        0,       // signalCount
 
+ // properties: name, type, flags
+      28,   21, 0x43095103,
+
        0        // eod
 };
 
 static const char qt_meta_stringdata_QtPropertyEditorView[] = {
-    "QtPropertyEditorView\0"
+    "QtPropertyEditorView\0QColor\0noValueColor\0"
 };
 
 void QtPropertyEditorView::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -243,6 +246,34 @@ int QtPropertyEditorView::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     _id = QTreeWidget::qt_metacall(_c, _id, _a);
     if (_id < 0)
         return _id;
+    
+#ifndef QT_NO_PROPERTIES
+     if (_c == QMetaObject::ReadProperty) {
+        void *_v = _a[0];
+        switch (_id) {
+        case 0: *reinterpret_cast< QColor*>(_v) = noValueColor(); break;
+        }
+        _id -= 1;
+    } else if (_c == QMetaObject::WriteProperty) {
+        void *_v = _a[0];
+        switch (_id) {
+        case 0: setNoValueColor(*reinterpret_cast< QColor*>(_v)); break;
+        }
+        _id -= 1;
+    } else if (_c == QMetaObject::ResetProperty) {
+        _id -= 1;
+    } else if (_c == QMetaObject::QueryPropertyDesignable) {
+        _id -= 1;
+    } else if (_c == QMetaObject::QueryPropertyScriptable) {
+        _id -= 1;
+    } else if (_c == QMetaObject::QueryPropertyStored) {
+        _id -= 1;
+    } else if (_c == QMetaObject::QueryPropertyEditable) {
+        _id -= 1;
+    } else if (_c == QMetaObject::QueryPropertyUser) {
+        _id -= 1;
+    }
+#endif // QT_NO_PROPERTIES
     return _id;
 }
 static const uint qt_meta_data_QtPropertyEditorDelegate[] = {
@@ -289,7 +320,7 @@ const QMetaObjectExtraData QtPropertyEditorDelegate::staticMetaObjectExtraData =
 };
 
 const QMetaObject QtPropertyEditorDelegate::staticMetaObject = {
-    { &QItemDelegate::staticMetaObject, qt_meta_stringdata_QtPropertyEditorDelegate,
+    { &QStyledItemDelegate::staticMetaObject, qt_meta_stringdata_QtPropertyEditorDelegate,
       qt_meta_data_QtPropertyEditorDelegate, &staticMetaObjectExtraData }
 };
 
@@ -307,12 +338,12 @@ void *QtPropertyEditorDelegate::qt_metacast(const char *_clname)
     if (!_clname) return 0;
     if (!strcmp(_clname, qt_meta_stringdata_QtPropertyEditorDelegate))
         return static_cast<void*>(const_cast< QtPropertyEditorDelegate*>(this));
-    return QItemDelegate::qt_metacast(_clname);
+    return QStyledItemDelegate::qt_metacast(_clname);
 }
 
 int QtPropertyEditorDelegate::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    _id = QItemDelegate::qt_metacall(_c, _id, _a);
+    _id = QStyledItemDelegate::qt_metacall(_c, _id, _a);
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {

@@ -48,7 +48,8 @@ ArrayElementAccess::ArrayElementAccess( ArrayType* a_pArrayType, Expression* a_p
 {
     if(NOT(m_pLeftExpression->hasEffectiveAddress()))
         setInvalid();
-    addElement(m_pLeftExpression);
+    addSubExpression(m_pLeftExpression);
+    addSubExpression(m_pIndexExpression);
     addReferencedElement(m_pArrayType);
 }
 
@@ -60,7 +61,8 @@ ArrayElementAccess::ArrayElementAccess(ConstType* a_pConstArrayType, Expression*
 {
     if(NOT(a_pLeftExpression->hasEffectiveAddress()))
         setInvalid();
-    addElement(m_pLeftExpression->asConstant());
+    addSubExpression(m_pLeftExpression);
+    addSubExpression(m_pIndexExpression);
     addReferencedElement(a_pConstArrayType);
 }
 
@@ -73,7 +75,17 @@ void ArrayElementAccess::referencedElementRemoved( LanguageElement* a_pElement )
 
 ArrayElementAccess* ArrayElementAccess::clone() const
 {
-    return o_new(ArrayElementAccess)(m_pArrayType, m_pLeftExpression->clone(), m_pIndexExpression->clone());
+    return o_new(ArrayElementAccess)(m_pArrayType, m_pLeftExpression, m_pIndexExpression);
+}
+
+bool ArrayElementAccess::isPersistent() const
+{
+    return Expression::isPersistent() AND m_pArrayType->isNative();
+}
+
+void ArrayElementAccess::flush() const
+{
+    m_pIndexExpression->flush(); m_pLeftExpression->flush();
 }
 
 o_namespace_end(phantom, reflection)

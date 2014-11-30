@@ -60,12 +60,49 @@ public:
 
 inline incompatible_flag::incompatible_flag(int ai) : i(ai) {}
 
+
+template<typename Enum>
+class flags;
+
+template<typename Enum>
+struct flags_bit
+{
+    flags_bit() : m_Flags(0), m_Where((Enum)0) {}
+    flags_bit(flags<Enum>* a_Flags, Enum a_Where)
+        : m_Flags(a_Flags), m_Where(a_Where) {}
+    
+    void setValue(bool a_bValue) { if(a_bValue) (*m_Flags) |= m_Where; else (*m_Flags) &= ~m_Where; }
+    bool getValue() const { return ((*m_Flags) & m_Where) == m_Where; }
+
+protected:
+    flags<Enum>* m_Flags;
+    Enum m_Where;
+};
+
+template<typename Enum>
+struct const_flags_bit
+{
+    const_flags_bit() : m_Flags(0), m_Where((Enum)0) {}
+    const_flags_bit(const flags<Enum>* a_Flags, Enum a_Where)
+        : m_Flags(a_Flags), m_Where(a_Where) {}
+
+    bool getValue() const { return ((*m_Flags) & m_Where) == m_Where; }
+
+protected:
+    const flags<Enum>* m_Flags;
+    Enum m_Where;
+};
+
 template<typename Enum>
 class flags
 {
+
     typedef void **Zero;
     int i;
+
 public:
+    typedef flags_bit<Enum> bit;
+    typedef const_flags_bit<Enum> const_bit;
     typedef Enum enum_type;
     inline flags(const flags &f) : i(f.i) {}
     inline flags(Enum f) : i(f) {}
@@ -94,6 +131,10 @@ public:
     inline bool operator!() const { return !i; }
 
     inline bool testFlag(Enum f) const { return (i & f) == f && (f != 0 || i == int(f) ); }
+
+    bit       operator[](Enum f) { return bit(this, f); }
+    const_bit operator[](Enum f) const { return const_bit(this, f);  }
+
 };
 
 }

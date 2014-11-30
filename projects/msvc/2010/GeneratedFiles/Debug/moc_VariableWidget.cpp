@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'VariableWidget.h'
 **
-** Created: Tue 2. Sep 20:06:39 2014
+** Created: Thu 30. Oct 01:24:02 2014
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!

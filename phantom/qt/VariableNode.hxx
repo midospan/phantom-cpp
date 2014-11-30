@@ -10,4 +10,3 @@ o_classN((phantom, qt), VariableNode)
         o_signal(childNodeAboutToBeRemoved, (VariableNode*), o_protected);
     };
 };
-o_exposeN((phantom, qt), VariableNode);

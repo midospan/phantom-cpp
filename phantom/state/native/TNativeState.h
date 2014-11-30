@@ -33,7 +33,6 @@
 
 #ifndef state_native_TNativeState_h__
 #define state_native_TNativeState_h__
-// #pragma message("Including "__FILE__)
 
 /* ****************** Includes ******************* */
 
@@ -105,7 +104,7 @@ public:
     typedef t_ObjectClass object_class;
     typedef reflection::native::TNativeInstanceMemberFunction<t_ObjectClass, void()>    NativeInstanceMemberFunctionClass;
     typedef native::state_machine_data<object_class>    instance_data;
-    typedef o_NESTED_TYPE first_super_statechart_class_of<t_ObjectClass>::type        root_object_class;
+    typedef o_NESTED_TYPE first_base_statechart_class_of<t_ObjectClass>::type        root_object_class;
 
 public:
     TNativeState(const string& a_strName
@@ -113,7 +112,7 @@ public:
         , state_function_pointer a_pUpdateFunctionPointer
         , state_function_pointer a_pLeaveFunctionPointer
         , uint a_uiOrderingFactor
-        , bitfield bf = 0)
+        , modifiers_t bf = 0)
             : State(a_strName, a_uiOrderingFactor, bf)
             , m_pEnterFunctionPointer(a_pEnterFunctionPointer)
             , m_pUpdateFunctionPointer(a_pUpdateFunctionPointer)
@@ -122,8 +121,6 @@ public:
 
     }
     o_destructor ~TNativeState(void)     {}
-
-    virtual void deleteNow() { o_dynamic_proxy_delete(phantom::state::State, phantom::state::State::metaType, self_type) this; }
 
     virtual generic_member_func_ptr getEnterGenericMemberFunctionPointer() const 
     {
@@ -180,13 +177,5 @@ protected:
 o_namespace_end(phantom, state, native)
 
 #undef TNativeState_smdataptr
-
-    /*o_traits_specialize_all_super_traitNTS(
-    (phantom,state,native)
-    , (typename)
-    , (t_Ty)
-    , TNativeState
-    , (State)
-    )*/
 
 #endif

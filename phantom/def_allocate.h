@@ -14,27 +14,27 @@ o_namespace_begin(phantom)
     template<typename t_Ty>
 inline t_Ty* allocate(o_memory_stat_insert_parameters)
 {
-    return phantom::extension::allocator<t_Ty>::allocate(o_memory_stat_insert_parameters_use);
+    return phantom::allocator<t_Ty>::allocate(o_memory_stat_insert_parameters_use);
 }
 
 template<typename t_Ty>
 inline void deallocate(t_Ty* ptr o_memory_stat_append_parameters)
 {
-    return phantom::extension::allocator<t_Ty>::deallocate(ptr o_memory_stat_append_parameters_use);
+    return phantom::allocator<t_Ty>::deallocate(ptr o_memory_stat_append_parameters_use);
 }
 
 template<typename t_Ty>
 t_Ty* allocate(size_t n o_memory_stat_append_parameters)
 {
     o_assert(n);
-    return phantom::extension::allocator<t_Ty>::allocate(n o_memory_stat_append_parameters_use);
+    return phantom::allocator<t_Ty>::allocate(n o_memory_stat_append_parameters_use);
 }
 
 template<typename t_Ty>
 void deallocate(t_Ty* ptr, size_t n o_memory_stat_append_parameters)
 {
     o_assert(n);
-    return phantom::extension::allocator<t_Ty>::deallocate(ptr, n o_memory_stat_append_parameters_use);
+    return phantom::allocator<t_Ty>::deallocate(ptr, n o_memory_stat_append_parameters_use);
 }
 
 o_namespace_end(phantom)

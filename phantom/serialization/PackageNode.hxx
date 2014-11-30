@@ -1,11 +1,7 @@
 #pragma once
 #include "Node.hxx"
-o_classNS((phantom, serialization), PackageNode, (Node))
-{
-    o_reflection 
-	{
+o_classNB((phantom, serialization), PackageNode, (Node))
+(
+        );
 
-	};
-};
-o_exposeN((phantom, serialization), PackageNode);
 

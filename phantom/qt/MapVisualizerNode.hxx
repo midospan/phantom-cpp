@@ -2,7 +2,7 @@
 
 #include "TypeVisualizerNode.hxx"
 
-o_classNS((phantom, qt), MapVisualizerNode, (TypeVisualizerNode))
+o_classNB((phantom, qt), MapVisualizerNode, (TypeVisualizerNode))
 {
     o_reflection 
     {

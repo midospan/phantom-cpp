@@ -58,4 +58,9 @@ LocalVariableAccess* LocalVariableAccess::clone() const
     return o_new(LocalVariableAccess)(m_pLocalVariable);
 }
 
+bool LocalVariableAccess::isPersistent() const
+{
+    return Expression::isPersistent() AND m_pLocalVariable->isNative();
+}
+
 o_namespace_end(phantom, reflection)

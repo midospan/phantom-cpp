@@ -2,10 +2,6 @@
 
 #include "CallExpression.hxx"
 
-o_classNS((phantom, reflection), ConstructorCallExpression, (CallExpression))
-{
-	o_reflection
-	{
-		
-	};
-};
+o_classNB((phantom, reflection), ConstructorCallExpression, (CallExpression))
+(
+        );

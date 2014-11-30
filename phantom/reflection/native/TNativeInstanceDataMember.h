@@ -45,15 +45,29 @@ using namespace fastdelegate;
 
 o_namespace_begin(phantom, reflection, native)
 
-
-    template<typename t_Ty>
-struct value_getter
+template<typename t_Ty, bool t_is_copyable>
+struct value_getter_helper
 {
     typedef o_NESTED_TYPE boost::remove_const<t_Ty>::type no_const;
     static void apply(void* dest, t_Ty& src)
     {
         *reinterpret_cast<no_const*>(dest) = src;
     }
+};
+
+template<typename t_Ty>
+struct value_getter_helper<t_Ty, false>
+{
+    static void apply(void* dest, t_Ty& src)
+    {
+        o_exception(exception::reflection_runtime_exception, "Non copyable data member cannot be get");
+    }
+};
+
+    template<typename t_Ty>
+struct value_getter : public value_getter_helper<t_Ty
+    , NOT(has_copy_disabled<t_Ty>::value) AND (NOT(boost::is_class<t_Ty>::value) OR is_structure<t_Ty>::value OR boost::is_copy_constructible<t_Ty>::value)  >
+{
 };
 
 template<typename t_Ty, size_t t_size>
@@ -69,14 +83,31 @@ struct value_getter<t_Ty[t_size]>
         }
     }
 };
-template<typename t_Ty>
-struct value_setter
+
+
+template<typename t_Ty, bool t_is_copyable>
+struct value_setter_helper
 {
     typedef o_NESTED_TYPE boost::remove_const<t_Ty>::type no_const;
     static void apply(void const* src, t_Ty& dest)
     {
         dest = *const_cast<no_const*>(reinterpret_cast<t_Ty const*>(src));
     }
+};
+
+template<typename t_Ty>
+struct value_setter_helper<t_Ty, false>
+{
+    static void apply(void const* src, t_Ty& dest)
+    {
+        o_exception(exception::reflection_runtime_exception, "Non copyable data member cannot be get");
+    }
+};
+
+template<typename t_Ty>
+struct value_setter : public value_setter_helper<t_Ty,
+    NOT(has_copy_disabled<t_Ty>::value) AND (NOT(boost::is_class<t_Ty>::value) OR is_structure<t_Ty>::value OR boost::is_copy_constructible<t_Ty>::value)  >
+{
 };
 
 template<typename t_Ty, size_t t_size>
@@ -103,13 +134,13 @@ public:
     typedef o_NESTED_TYPE canonical_meta_class_type_of<t_ContentTypeNoConst>::type meta_value_type;
 
 public:
-    TNativeInstanceDataMember(const string& a_strName, Type* a_pContentType, member_field_pointer a_member_field_pointer, Range* a_pRange, uint a_uiSerializationMask, bitfield a_uiModifiers = 0 )
-        : InstanceDataMember(a_strName
-                            , a_pContentType
+    TNativeInstanceDataMember(Type* a_pContentType, const string& a_strName, member_field_pointer a_member_field_pointer, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_uiModifiers = 0 )
+        : InstanceDataMember(a_pContentType
+                            , a_strName
                             , (size_t)const_cast<t_ContentTypeNoConst*>(&(((t_Ty const*)nullptr)->*a_member_field_pointer))
                             , a_pRange
                             , a_uiSerializationMask
-                            , a_uiModifiers)
+                            , a_uiModifiers|o_native)
      , m_member_field_pointer(a_member_field_pointer)
     {}
 
@@ -134,7 +165,7 @@ public:
 
     void serializeValue( void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
     {
-        phantom::extension::serializer<t_ContentType>::serialize(static_cast<meta_value_type*>(getValueType()),
+        phantom::serializer<t_ContentType>::serialize(static_cast<meta_value_type*>(getValueType()),
             &(static_cast<t_Ty const*>(a_pInstance)->*m_member_field_pointer)
             , a_pOutBuffer
             , a_uiSerializationMask, a_pDataBase);
@@ -145,7 +176,7 @@ public:
         byte const* pChunk = reinterpret_cast<byte const*>(a_pInstance);
         while(a_uiCount--)
         {
-            phantom::extension::serializer<t_ContentType>::serialize(static_cast<meta_value_type*>(getValueType()),
+            phantom::serializer<t_ContentType>::serialize(static_cast<meta_value_type*>(getValueType()),
                 &(reinterpret_cast<t_Ty const*>(pChunk)->*m_member_field_pointer)
                 , a_pOutBuffer
                 , a_uiSerializationMask, a_pDataBase);
@@ -156,7 +187,7 @@ public:
     
     void deserializeValue( void* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase ) const
     {
-        phantom::extension::serializer<t_ContentType>::deserialize(static_cast<meta_value_type*>(getValueType()),
+        phantom::serializer<t_ContentType>::deserialize(static_cast<meta_value_type*>(getValueType()),
             &(static_cast<t_Ty*>(a_pInstance)->*m_member_field_pointer)
             , a_pInBuffer
             , a_uiSerializationMask, a_pDataBase);
@@ -167,7 +198,7 @@ public:
         byte* pChunk = reinterpret_cast<byte*>(a_pInstance);
         while(a_uiCount--)
         {
-            phantom::extension::serializer<t_ContentType>::deserialize(static_cast<meta_value_type*>(getValueType()),
+            phantom::serializer<t_ContentType>::deserialize(static_cast<meta_value_type*>(getValueType()),
                 &(reinterpret_cast<t_Ty*>(pChunk)->*m_member_field_pointer)
                 , a_pInBuffer
                 , a_uiSerializationMask, a_pDataBase);
@@ -234,7 +265,7 @@ public:
 
     void rememberValue( void const* a_pInstance, byte*& a_pOutBuffer ) const
     {
-        phantom::extension::resetter<t_ContentType>::remember(static_cast<meta_value_type*>(getValueType()),
+        phantom::resetter<t_ContentType>::remember(static_cast<meta_value_type*>(getValueType()),
             &(static_cast<t_Ty const*>(a_pInstance)->*m_member_field_pointer)
             , a_pOutBuffer);
     }
@@ -244,7 +275,7 @@ public:
         byte const* pChunk = reinterpret_cast<byte const*>(a_pInstance);
         while(a_uiCount--)
         {
-            phantom::extension::resetter<t_ContentType>::remember(static_cast<meta_value_type*>(getValueType()),
+            phantom::resetter<t_ContentType>::remember(static_cast<meta_value_type*>(getValueType()),
                 &(reinterpret_cast<t_Ty const*>(pChunk)->*m_member_field_pointer)
                 , a_pOutBuffer);
             pChunk += a_uiChunkSectionSize;
@@ -253,7 +284,7 @@ public:
 
     void resetValue( void* a_pInstance, byte const*& a_pInBuffer ) const
     {
-        phantom::extension::resetter<t_ContentType>::reset(static_cast<meta_value_type*>(getValueType()),
+        phantom::resetter<t_ContentType>::reset(static_cast<meta_value_type*>(getValueType()),
             &(static_cast<t_Ty*>(a_pInstance)->*m_member_field_pointer)
             , a_pInBuffer);
     }
@@ -263,16 +294,11 @@ public:
         byte* pChunk = reinterpret_cast<byte*>(a_pInstance);
         while(a_uiCount--)
         {
-            phantom::extension::resetter<t_ContentType>::reset(static_cast<meta_value_type*>(getValueType()),
+            phantom::resetter<t_ContentType>::reset(static_cast<meta_value_type*>(getValueType()),
                 &(reinterpret_cast<t_Ty*>(pChunk)->*m_member_field_pointer)
                 , a_pInBuffer);
             pChunk += a_uiChunkSectionSize;
         }
-    }
-
-    virtual void        deleteNow()
-    {
-        o_dynamic_proxy_delete(phantom::reflection::InstanceDataMember, phantom::reflection::InstanceDataMember::metaType, self_type) this;
     }
 
     member_field_pointer    m_member_field_pointer;
@@ -287,8 +313,8 @@ public:
     typedef t_ContentType const (t_Ty::*member_field_pointer);
 
 public:
-    TNativeInstanceDataMember(const string& a_strName, Type* a_pContentType, member_field_pointer a_member_field_pointer, Range* a_pRange, uint a_uiSerializationMask, bitfield a_uiModifiers = 0)
-        : TNativeInstanceDataMember<t_Ty,t_ContentType>(a_strName, a_pContentType
+    TNativeInstanceDataMember(Type* a_pContentType, const string& a_strName, member_field_pointer a_member_field_pointer, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_uiModifiers = 0)
+        : TNativeInstanceDataMember<t_Ty,t_ContentType>(a_pContentType, a_strName
 
         // We manage const-type attributes like no-const-type attributes : we break the const qualifier to be able to force write with "setValue"
         , const_cast<typename TNativeInstanceDataMember<t_Ty,t_ContentType>::member_field_pointer>(a_member_field_pointer)
@@ -300,13 +326,5 @@ public:
 };
 
 o_namespace_end(phantom, reflection, native)
-
-/*o_traits_specialize_all_super_traitNTS(
-(phantom,reflection,native)
-, (typename, typename)
-, (t_Ty, t_ContentType)
-, TNativeInstanceDataMember
-, (InstanceDataMember)
-)*/
 
 #endif // TNativeInstanceDataMember_h__

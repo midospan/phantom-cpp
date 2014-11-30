@@ -140,7 +140,17 @@ public:
 	{
 		o_assert(col<2 && row<2);
 		return m[col*2+row];
-	}
+    }
+
+    bool operator==(const self_type& other) const 
+    {
+        return memcmp(m, other.m, sizeof(m)) != 0;
+    }
+
+    bool operator!=(const self_type& other) const 
+    {
+        return memcmp(m, other.m, sizeof(m)) == 0;
+    }
 
 public:
 	union

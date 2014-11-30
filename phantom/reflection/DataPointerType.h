@@ -33,11 +33,8 @@
 
 #ifndef o_phantom_reflection_DataPointerType_h__
 #define o_phantom_reflection_DataPointerType_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
-
 
 /* **************** Declarations ***************** */
 
@@ -58,27 +55,16 @@ protected:
 public:
     o_destructor ~DataPointerType(void);
 
-    virtual void*   allocate() const
-    {
-        return o_allocate(void*);
-    }
-    virtual void    deallocate(void* a_pInstance) const
-    {
-        o_deallocate(static_cast<void**>(a_pInstance), void*);
-    }
-    virtual void*   allocate(size_t a_uiCount) const
-    {
-        return o_allocate_n(a_uiCount, void*);
-    }
-    virtual void    deallocate(void* a_pChunk, size_t a_uiCount) const
-    {
-        o_deallocate_n(static_cast<void**>(a_pChunk), a_uiCount, void*);
-    }
+    virtual void*       allocate() const;
+    virtual void        deallocate(void* a_pInstance) const;
+    virtual void*       allocate(size_t a_uiCount) const;
+    virtual void        deallocate(void* a_pChunk, size_t a_uiCount) const;
 
     Type*               getPointedType() const { return m_pPointedType; }
 
 
-    virtual DataPointerType*    asDataPointerType() const { return const_cast<DataPointerType*>(this); }
+    virtual 
+    DataPointerType*    asDataPointerType() const { return const_cast<DataPointerType*>(this); }
 
     virtual boolean     isConvertibleTo(Type* a_pType) const;
     virtual void        convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;
@@ -112,39 +98,26 @@ public:
 
     virtual uint        getDataPointerLevel() const { return m_pPointedType->getDataPointerLevel() + 1; }
 
-    virtual void        remember(void const* a_pInstance, byte*& a_pOutBuffer) const
-    {
-        phantom::extension::resetter<void*>::remember(const_cast<DataPointerType*>(this), (void* const*)a_pInstance, a_pOutBuffer);
-    }
+    virtual void        remember(void const* a_pInstance, byte*& a_pOutBuffer) const;
 
-    virtual void        reset(void* a_pInstance, byte const*& a_pInBuffer) const
-    {
-        phantom::extension::resetter<void*>::reset(const_cast<DataPointerType*>(this), (void**)a_pInstance, a_pInBuffer);
-    }
+    virtual void        reset(void* a_pInstance, byte const*& a_pInBuffer) const;
 
-    virtual void        remember(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) const
-    {
-        phantom::extension::resetter<void*>::remember(const_cast<DataPointerType*>(this), (void* const*)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
-    }
+    virtual void        remember(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) const;
 
-    virtual void        reset(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) const
-    {
-        phantom::extension::resetter<void*>::reset(const_cast<DataPointerType*>(this), (void**)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
-    }
+    virtual void        reset(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) const;
 
-    virtual Type*      removePointer() const { return m_pPointedType; }
+    virtual Type*       removePointer() const { return m_pPointedType; }
 
-    virtual string     getDecoratedName() const { return m_pPointedType->getDecoratedName()+'*'; }
-    virtual string     getQualifiedDecoratedName() const { return m_pPointedType->getQualifiedDecoratedName()+'*'; }
+    virtual string      getDecoratedName() const { return m_pPointedType->getDecoratedName()+'*'; }
+    virtual string      getQualifiedDecoratedName() const { return m_pPointedType->getQualifiedDecoratedName()+'*'; }
 
-    virtual bool       referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
+    virtual bool        referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
 
-    virtual void       fetchPointerReferenceExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask ) const;
-    virtual bool       isCopyable() const { return true; }
+    virtual bool        isCopyable() const { return true; }
 
-    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers) const;
+    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const;
 protected:
-    virtual void referencedElementRemoved(LanguageElement* a_pElement);
+    virtual void        referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
     Type*        m_pPointedType;

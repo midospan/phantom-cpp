@@ -207,17 +207,17 @@ bool lexer<t_BaseIterator>::add_keyword(std::string const& keyword)
 
 template <typename t_BaseIterator>
 lexer<t_BaseIterator>::lexer()
-    : t_identifier("[a-zA-Z_][a-zA-Z_0-9]*", token_ids::identifier)
+    : t_identifier( "[a-zA-Z_][a-zA-Z_0-9]*", token_ids::identifier)
     , t_true_or_false("true|false", token_ids::true_or_false)
-    , t_hex("0[xX][0-9a-fA-F]+", token_ids::hex_ulonglong_literal)
-    , t_longdouble("[0-9]*\\.[0-9]+([eE][\\-\\+]?[0-9]+)?L", token_ids::longdouble_literal)   
-    , t_double("[0-9]*\\.[0-9]+([eE][\\-\\+]?[0-9]+)?", token_ids::double_literal)      
-    , t_float("[0-9]*\\.([0-9]+([eE][\\-\\+]?[0-9]+)?)?f", token_ids::float_literal)        
-    , t_uint("[0-9]+", token_ids::uint_literal)            
-    , t_ulong ("[0-9]+U?L", token_ids::ulong_literal)  
-    , t_ulonglong ("[\\+]?[0-9]+U?LL", token_ids::ulonglong_literal)  
-    , t_string("\\\"([^\\\"\\\\]|\\\\.)*\\\"", token_ids::string_literal)
-    , t_char("'([^\n\r\\\\']|\\\\|\\.)'", token_ids::char_literal)
+    , t_hex(        "0[xX][0-9a-fA-F]+", token_ids::hex_ulonglong_literal)
+    , t_longdouble( "(([0-9]+\\.[0-9]*([eE][\\-\\+]?[0-9]+)?)|(\\.[0-9]+([eE][\\-\\+]?[0-9]+)?))L", token_ids::longdouble_literal)   
+    , t_double(     "(([0-9]+\\.[0-9]*([eE][\\-\\+]?[0-9]+)?)|(\\.[0-9]+([eE][\\-\\+]?[0-9]+)?))", token_ids::double_literal)      
+    , t_float(      "(([0-9]+\\.[0-9]*([eE][\\-\\+]?[0-9]+)?)|(\\.[0-9]+([eE][\\-\\+]?[0-9]+)?))f", token_ids::float_literal)        
+    , t_uint(       "[0-9]+", token_ids::uint_literal)            
+    , t_ulong (     "[0-9]+U?L", token_ids::ulong_literal)  
+    , t_ulonglong ( "[0-9]+U?LL", token_ids::ulonglong_literal)  
+    , t_string(     "\\\"([^\\\"\\\\]|\\\\.)*\\\"", token_ids::string_literal)
+    , t_char(       "'([^\n\r\\\\']|\\\\|\\.)'", token_ids::char_literal)
     , m_keyword_id_pool(token_ids::first_keyword_id)
 {
     o_assert(m_unicity_checker.insert(token_ids::invalid                        ).second);
@@ -296,9 +296,9 @@ lexer<t_BaseIterator>::lexer()
     this->self += t_longdouble;
     this->self += t_float;
     this->self += t_double;
-    this->self += t_uint;
-    this->self += t_ulong;
     this->self += t_ulonglong;
+    this->self += t_ulong;
+    this->self += t_uint;
 
     add_keyword("auto");
     add_keyword("bool");
@@ -330,6 +330,7 @@ lexer<t_BaseIterator>::lexer()
     add_keyword("short");
     add_keyword("signed");
     add_keyword("static");
+    add_keyword("static_cast");
     add_keyword("struct");
     add_keyword("switch");
     add_keyword("template");

@@ -33,8 +33,6 @@
 
 #ifndef o_phantom_reflection_ValueMember_h__
 #define o_phantom_reflection_ValueMember_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/LanguageElement.h>
@@ -48,7 +46,8 @@ class o_export ValueMember : public LanguageElement
 {
 
 public:
-    ValueMember(const string& a_strName, Type* a_pValueType, Range* a_pRange, uint a_uiSerializationMask, bitfield a_Modifiers = 0);
+    ValueMember();
+    ValueMember(Type* a_pValueType, const string& a_strName, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_Modifiers = 0);
     o_destructor ~ValueMember(void) {}
 
     virtual ValueMember*    asValueMember() const { return (ValueMember*)this; }
@@ -99,11 +98,16 @@ public:
 
 protected:
     void                    referencedElementRemoved( LanguageElement* a_pElement );
+    void                    setValueTypeName(string str);
+    string                  getValueTypeName() const;
+    void                    setRange(Range* a_pRange);
+    virtual void            finalize();
 
 protected:
-    Type*                               m_pValueType;
-    Range*                              m_pRange;
-    uint                                m_uiSerializationMask;
+    Type*   m_pValueType;
+    Range*  m_pRange;
+    uint    m_uiSerializationMask;
+    string* m_pValueTypeName;
     
 };
 

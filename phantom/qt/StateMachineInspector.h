@@ -175,13 +175,15 @@ signals:
     void eventPosted(phantom::state::StateMachine* a_pStateMachine, void* a_pInstance, uint a_uiEventId);
 
 protected:
-    void dataReplaced(const phantom::data& a_Old, const phantom::data& a_New);
+    void dataAboutToBeUnloaded(const phantom::data& a_Data, phantom::serialization::Node*);
+    void dataReloaded(const phantom::data& a_Data, phantom::serialization::Node*);
     void dataAboutToBeRemoved(const phantom::data& a_Old, phantom::serialization::Node*);
 
 protected:
 
     vector<phantom::data>           m_EditedData;
-    phantom::state::StateMachine*    m_pStateMachine;
+    vector<phantom::data>           m_ReloadedData;
+    phantom::state::StateMachine*   m_pStateMachine;
     QTreeWidget*            m_pStateMachineTreeWidget;
     serialization::DataBase*m_pDataBase;
 };

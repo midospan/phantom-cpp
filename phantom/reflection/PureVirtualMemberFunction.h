@@ -52,7 +52,7 @@ class o_export PureVirtualMemberFunction : public InstanceMemberFunction
 
 
 public:
-    PureVirtualMemberFunction(const string& a_strName, Signature* a_pSignature, bitfield a_Modifiers = 0)
+    PureVirtualMemberFunction(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers = 0)
         : InstanceMemberFunction(a_strName, a_pSignature, a_Modifiers|o_pure_virtual)
     {
 

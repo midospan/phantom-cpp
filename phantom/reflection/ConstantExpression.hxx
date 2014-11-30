@@ -2,7 +2,7 @@
 
 #include "Expression.hxx"
 
-o_classNS((phantom, reflection), ConstantExpression, (Expression)) { o_reflection {}; };
+o_classNB((phantom, reflection), ConstantExpression, (Expression)) ();
 
 
 

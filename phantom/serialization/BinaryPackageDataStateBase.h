@@ -50,8 +50,7 @@ class o_export BinaryPackageDataStateBase : public PackageDataStateBase
 
 
 public:
-
-    BinaryPackageDataStateBase(const string& a_Url, uint a_uiSerializationFlag);
+    BinaryPackageDataStateBase(BinaryPackageDataBase* a_pDataBase, const string& a_Url, uint a_uiSerializationFlag);
     o_destructor ~BinaryPackageDataStateBase();
 
 

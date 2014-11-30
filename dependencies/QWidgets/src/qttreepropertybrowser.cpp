@@ -53,6 +53,7 @@ QtPropertyEditorView::QtPropertyEditorView(QWidget *parent) :
     connect(header(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(resizeColumnToContents(int)));
 }
 
+
 void QtPropertyEditorView::drawRow(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QStyleOptionViewItemV3 opt = option;
@@ -63,7 +64,7 @@ void QtPropertyEditorView::drawRow(QPainter *painter, const QStyleOptionViewItem
             hasValue = property->hasValue();
     }
     if (!hasValue && m_editorPrivate->markPropertiesWithoutValue()) {
-        const QColor c = option.palette.color(QPalette::Dark);
+        const QColor c = noValueColor();//option.palette.color(QPalette::Dark);
         painter->fillRect(option.rect, c);
         opt.palette.setColor(QPalette::AlternateBase, c);
     } else {
@@ -252,7 +253,7 @@ void QtPropertyEditorDelegate::paint(QPainter *painter, const QStyleOptionViewIt
     }
     QColor c;
     if (!hasValue && m_editorPrivate->markPropertiesWithoutValue()) {
-        c = opt.palette.color(QPalette::Dark);
+        c = m_editorPrivate->treeWidget()->noValueColor();// /*opt.palette.color*/(QColor(0,0,0));
         opt.palette.setColor(QPalette::Text, opt.palette.color(QPalette::BrightText));
     } else {
         c = m_editorPrivate->calculatedBackgroundColor(m_editorPrivate->indexToBrowserItem(index));
@@ -262,7 +263,7 @@ void QtPropertyEditorDelegate::paint(QPainter *painter, const QStyleOptionViewIt
     if (c.isValid())
         painter->fillRect(option.rect, c);
     opt.state &= ~QStyle::State_HasFocus;
-    QItemDelegate::paint(painter, opt, index);
+    QStyledItemDelegate::paint(painter, opt, index);
 
     opt.palette.setCurrentColorGroup(QPalette::Active);
     QColor color = static_cast<QRgb>(QApplication::style()->styleHint(QStyle::SH_Table_GridLineColor, &opt));
@@ -278,7 +279,7 @@ void QtPropertyEditorDelegate::paint(QPainter *painter, const QStyleOptionViewIt
 QSize QtPropertyEditorDelegate::sizeHint(const QStyleOptionViewItem &option,
             const QModelIndex &index) const
 {
-    return QItemDelegate::sizeHint(option, index) + QSize(3, 4);
+    return QStyledItemDelegate::sizeHint(option, index) + QSize(3, 4);
 }
 
 bool QtPropertyEditorDelegate::eventFilter(QObject *object, QEvent *event)
@@ -288,7 +289,7 @@ bool QtPropertyEditorDelegate::eventFilter(QObject *object, QEvent *event)
         if (fe->reason() == Qt::ActiveWindowFocusReason)
             return false;
     }
-    return QItemDelegate::eventFilter(object, event);
+    return QStyledItemDelegate::eventFilter(object, event);
 }
 
 void QtPropertyEditorDelegate::slotPropertyNameChanged()
@@ -527,7 +528,7 @@ void QtTreePropertyBrowser::updateItemParents( QTreeWidgetItem *item )
 void QtTreePropertyBrowser::updateItem(QTreeWidgetItem *item)
 {
     QtProperty *property = m_itemToIndex[item]->property();
-    QIcon expandIcon;
+    //QIcon expandIcon;
     if (property->hasValue()) 
     {
         QString toolTip = property->toolTip();
@@ -538,10 +539,10 @@ void QtTreePropertyBrowser::updateItem(QTreeWidgetItem *item)
         item->setText(1, property->valueText());
         updateCustomExtraColumns(item, property);
     } 
-    else if (markPropertiesWithoutValue() && !m_treeWidget->rootIsDecorated()) {
-        expandIcon = m_expandIcon;
-    }
-    item->setIcon(0, expandIcon);
+//     else if (markPropertiesWithoutValue() && !m_treeWidget->rootIsDecorated()) {
+//         expandIcon = m_expandIcon;
+//     }
+    //item->setIcon(0, expandIcon);
     item->setFirstColumnSpanned(!property->hasValue());
     item->setToolTip(0, property->propertyName());
     item->setStatusTip(0, property->statusTip());

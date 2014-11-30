@@ -38,14 +38,15 @@
 #include <phantom/serialization/DataStateBase.h>
 #include <phantom/reflection/DataExpression.h>
 #include <phantom/reflection/ConstantExpression.h>
+#include <phantom/reflection/InstanceDataMemberAccess.h>
 /* *********************************************** */
 o_registerN((phantom, serialization), Node);
 
 o_namespace_begin(phantom, serialization)
 
-Node::Node( DataBase* a_pOwnerDataBase, uint a_Guid, Node* a_pParentNode ) : m_data_filter_delegate(&Node::defaultDataFilter)
+Node::Node( DataBase* a_pDataBase, uint a_Guid, Node* a_pParentNode ) : m_data_filter_delegate(&Node::defaultDataFilter)
 , m_Guid(a_Guid)
-, m_pOwnerDataBase(a_pOwnerDataBase)
+, m_pDataBase(a_pDataBase)
 , m_eState(e_Unloaded)
 {
     o_assert(a_pParentNode != NULL  // must have a parent node
@@ -115,17 +116,6 @@ void Node::storeData( const phantom::data& a_Data )
     m_Data.push_back(a_Data);
 }
 
-void Node::storeData( const phantom::data& a_Data, size_t a_uiCount, size_t a_uiChunkSectionSize )
-{
-    byte* pChunk = reinterpret_cast<byte*>(a_Data.address());
-    reflection::Type* pType = a_Data.type();
-    while(a_uiCount--)
-    {
-        storeData(data(pChunk, pType));
-        pChunk += a_uiChunkSectionSize;
-    }
-}
-
 void Node::eraseData( const phantom::data& a_Data )
 {
     data_vector::iterator it = m_Data.begin();
@@ -142,21 +132,10 @@ void Node::eraseData( const phantom::data& a_Data )
     m_Data.erase(it);
 }
 
-void Node::eraseData( const phantom::data& a_Data, size_t a_uiCount, size_t a_uiChunkSectionSize )
-{
-    byte* pChunk = reinterpret_cast<byte*>(a_Data.address());
-    reflection::Type* pType = a_Data.type();
-    while(a_uiCount--)
-    {
-        eraseData(data(pChunk, pType));
-        pChunk += a_uiChunkSectionSize;
-    }
-}
-
 void Node::storeNode( Node* a_pNode )
 {
     o_assert(NOT(containsNode(a_pNode)));
-    o_assert(a_pNode->m_pOwnerDataBase == m_pOwnerDataBase);
+    o_assert(a_pNode->m_pDataBase == m_pDataBase);
     m_ChildNodes.push_back(a_pNode);
     a_pNode->m_pParentNode = this;
 }
@@ -188,14 +167,12 @@ boolean Node::containsData( const data& a_Data ) const
 
 void Node::registerData( const phantom::data& a_Data, uint guid )
 {
-    storeData(a_Data);
-    m_pOwnerDataBase->registerData(a_Data, guid, this, 0);
+    m_pDataBase->registerData(a_Data, guid, this, 0);
 }
 
 void Node::unregisterData( const phantom::data& a_Data )
 {
-    m_pOwnerDataBase->unregisterData(a_Data);
-    eraseData(a_Data);
+    m_pDataBase->unregisterData(a_Data);
 }
 
 void Node::setState(EState a_eState)
@@ -238,13 +215,13 @@ boolean Node::stepByStep()
         break;
     case e_Built:
         {
-            deserialize(m_pOwnerDataBase->m_uiSerializationFlag, m_Data);
+            deserialize(m_pDataBase->m_uiSerializationFlag, m_Data);
             m_eState = e_Deserialized;
         }
         break;
     case e_Deserialized:
         {
-            restore(m_pOwnerDataBase->m_uiSerializationFlag, m_Data);
+            restore(m_pDataBase->m_uiSerializationFlag, m_Data);
             m_eState = e_Loaded;
 			o_emit loaded();
             return true;
@@ -293,147 +270,97 @@ void Node::destroyAllChildNode()
     node_vector::iterator end = m_ChildNodes.end();
     for(;it!=end;++it)
     {
-        m_pOwnerDataBase->destroyNode(*it);
+        m_pDataBase->destroyNode(*it);
     }
 }
 
-void Node::addData( const data& a_Data )
+void Node::addData( const data& a_Data, modifiers_t a_Modifiers )
 {
-    addData(a_Data, m_pOwnerDataBase->generateGuid());
+    o_assert(!containsData(a_Data));
+    m_pDataBase->addData(a_Data, this, a_Modifiers);
 }
 
-data Node::newComponentData( reflection::Type* a_pType, const data& a_OwnerData, const string& a_ReferenceExpression, bitfield a_ReferenceModifiers )
+data Node::newComponentData( reflection::Type* a_pType, const data& a_OwnerData, const string& a_ReferenceExpression, modifiers_t a_ReferenceModifiers )
 {
     phantom::data d(a_pType->newInstance(), a_pType);
     addComponentData(d, a_OwnerData, a_ReferenceExpression, a_ReferenceModifiers);
     return d;
 }
 
-void Node::addComponentData( const data& a_Data, const data& a_OwnerData, const string& a_ReferenceExpression, bitfield a_ReferenceModifiers )
+void Node::addComponentData( const data& a_Data, const data& a_OwnerData, const string& a_ReferenceExpression, modifiers_t a_ReferenceModifiers )
 {
     o_assert(containsData(a_OwnerData));
     o_assert(!containsData(a_Data));
-    m_pOwnerDataBase->registerComponentData(a_Data, a_OwnerData, a_ReferenceExpression, a_ReferenceModifiers);
-    addData(a_Data);
+    m_pDataBase->addComponentData(a_Data, a_OwnerData, a_ReferenceExpression, a_ReferenceModifiers);
 }
 
-void Node::addComponentData( const data& a_Data, uint a_uiGuid, const data& a_OwnerData, const string& a_ReferenceExpression, bitfield a_ReferenceModifiers )
+void Node::replaceComponentData( const data& a_OldData, const data& a_NewData )
 {
-    o_assert(containsData(a_OwnerData));
-    o_assert(!containsData(a_Data));
-    m_pOwnerDataBase->registerComponentData(a_Data, a_OwnerData, a_ReferenceExpression, a_ReferenceModifiers);
-    addData(a_Data, a_uiGuid);
+    m_pDataBase->disconnectData(a_OldData);
+    m_pDataBase->dataAboutToBeReplaced(a_OldData, this);
+    phantom::data owner = m_pDataBase->getComponentDataOwner(a_OldData);
+    string expression = m_pDataBase->getComponentDataReferenceExpression(a_OldData);
+    modifiers_t modifiers = m_pDataBase->getDataModifiers(a_OldData);
+    m_pDataBase->replaceDataInfo(a_OldData, a_NewData);
+    a_OldData.type()->smartCopy(a_NewData.type(), a_NewData.address(), a_OldData.address());
+    m_pDataBase->dataReplaced(a_NewData, this);
 }
 
-void Node::removeComponentData( const data& a_Data, const data& a_OwnerData )
+void Node::removeComponentData( const data& a_Data )
 {
-    o_assert(containsData(a_OwnerData));
     o_assert(containsData(a_Data));
-    //m_pOwnerDataBase->unregisterComponentData(a_Data);
-    removeData(a_Data);
-}
-
-void Node::addData( const data& a_Data, uint a_uiGuid )
-{
-    internalAddData(a_Data, a_uiGuid);
-	saveIndex();
-}
-
-void Node::addData( const data& a_Data, size_t a_uiCount, size_t a_uiChunkSectionSize )
-{
-    o_assert(m_eState == e_Loaded);
-    o_assert(NOT(m_pOwnerDataBase->containsData(a_Data)), "The specified owner Node doesn't belong to this DataBase");
-    o_assert(a_Data.type()->isSerializable());
-    storeData(a_Data, a_uiCount, a_uiChunkSectionSize);
-    byte* pChunk = (byte*)a_Data.address();
-    reflection::Type* pType = a_Data.type();
-    while(a_uiCount--)
-    {
-        uint guid = m_pOwnerDataBase->generateGuid();
-        o_assert(guid != 0, "0 is reserved to the root node, fix your generateGuid() overloaded member_function so that is returns a guid > 0");
-        data d(pChunk, pType);
-        m_pOwnerDataBase->createDataEntry(d, guid, this);
-        m_pOwnerDataBase->registerData(d, guid, this, 0);
-        o_emit m_pOwnerDataBase->dataAdded(d, this);
-        pChunk += a_uiChunkSectionSize;
-    }
-    saveIndex();
+    const string& refExp = m_pDataBase->getComponentDataReferenceExpression(a_Data);
+    o_assert(refExp.size());
+    reflection::Expression* pExpression = expressionByName(refExp+"=nullptr");
+    o_assert(pExpression);
+    pExpression->eval();
 }
 
 phantom::data Node::newData( reflection::Type* a_pType )
 {
     phantom::data d(a_pType->newInstance(), a_pType);
-    addData(d);
+    m_pDataBase->addData(d, this);
     return d;
-}
-
-phantom::data Node::newData( reflection::Type* a_pType, uint a_uiGuid )
-{
-    phantom::data d(a_pType->newInstance(), a_pType);
-    addData(d, a_uiGuid);
-    return d;
-}
-
-void Node::removeData( void* a_pData )
-{
-    const rtti_data& objInfo = phantom::rttiDataOf(a_pData);
-    o_assert(NOT(objInfo.isNull()), "Data given to the DataBase is not a phantom registered class instance and no type has been provided");
-    
-    const phantom::data d(objInfo.base, objInfo.object_class);
-    removeData(d);
 }
 
 void Node::removeData( const phantom::data& a_Data )
 {
-    internalRemoveData(a_Data);    
-    saveIndex();
+    o_assert(containsData(a_Data));
+    m_pDataBase->removeData(a_Data);
+}
+
+void Node::unloadData( const phantom::data& a_Data )
+{
+    o_assert(containsData(a_Data));
+    m_pDataBase->unloadData(a_Data);
 }
 
 void Node::abortData( const phantom::data& a_Data )
 {
-    o_emit m_pOwnerDataBase->dataAboutToBeAborted(a_Data, this);
-    uint guid = m_pOwnerDataBase->getGuid(a_Data.address());
-    o_assert(guid != 0xFFFFFFFF, "Data not found in DataBase");
-    m_pOwnerDataBase->releaseGuid(guid);
-    m_pOwnerDataBase->destroyDataEntry(a_Data, guid, this);
-    m_pOwnerDataBase->unregisterData(a_Data.address());
+    o_emit m_pDataBase->dataAboutToBeAborted(a_Data, this);
+    uint guid = m_pDataBase->getGuid(a_Data);
+    o_assert(guid != o_invalid_guid, "Data not found in DataBase");
+    m_pDataBase->releaseGuid(guid);
+    m_pDataBase->destroyDataEntry(a_Data, guid, this);
+    m_pDataBase->unregisterData(a_Data);
     eraseData(a_Data);
     const_cast<phantom::data&>(a_Data).destroy();
 }
 
-void Node::removeData( const phantom::data& a_Data, size_t a_uiCount, size_t a_uiChunkSectionSize )
-{
-    o_assert(containsData(a_Data));
-    eraseData(a_Data, a_uiCount, a_uiChunkSectionSize);
-    byte* pChunk = (byte*)a_Data.address();
-    reflection::Type* pType = a_Data.type();
-    while(a_uiCount--)
-    {
-        uint guid = m_pOwnerDataBase->getGuid(pChunk);
-        o_assert(guid != 0xFFFFFFFF, "Data not found in DataBase");
-        phantom::data d(pChunk, pType);
-        o_emit m_pOwnerDataBase->dataAboutToBeRemoved(d, this);
-        m_pOwnerDataBase->releaseGuid(guid);
-        m_pOwnerDataBase->destroyDataEntry(d, guid, this);
-        m_pOwnerDataBase->unregisterData(pChunk);
-    }
-    //saveIndex();
-}
-
 Node* Node::newChildNode()
 {
-    return m_pOwnerDataBase->internalAddNewNode(this);
+    return m_pDataBase->internalAddNewNode(this);
 }
 
 Node* Node::newChildNode( uint guid )
 {
-    return m_pOwnerDataBase->internalAddNewNode(guid, this);
+    return m_pDataBase->internalAddNewNode(guid, this);
 }
 
 void Node::removeChildNode( Node* a_pNode )
 {
 	o_assert(containsNode(a_pNode));
-	m_pOwnerDataBase->internalRemoveNode(a_pNode, a_pNode->getGuid(), a_pNode->getParentNode());
+	m_pDataBase->internalRemoveNode(a_pNode, a_pNode->getGuid(), a_pNode->getParentNode());
     eraseNode(a_pNode);
     o_dynamic_delete a_pNode;
 }
@@ -449,25 +376,35 @@ void Node::load()
     {
         o_exception(std::exception, "The parent node should be loaded before loading a child node");
     }
-    loadTypes();
     cache(); 
     m_eState = e_Cached;
     build(m_Data); 
     m_eState = e_Built;
-    deserialize(m_pOwnerDataBase->m_uiSerializationFlag, m_Data); 
+    deserialize(m_pDataBase->m_uiSerializationFlag, m_Data); 
     m_eState = e_Deserialized;
-    restore(m_pOwnerDataBase->m_uiSerializationFlag, m_Data); 
+    restore(m_pDataBase->m_uiSerializationFlag, m_Data); 
     m_eState = e_Loaded;
     configure();
     loadDataAttributes();
     o_emit loaded();
-	// Component owners are not saved
-	// Add new data components
-    /*vector<std::pair<phantom::data, phantom::data>> added;
-    fetchUpdatedData(&added);
 
-    // If component have been added after loading we save the node index 
-    if(NOT(added.empty())) saveIndex();*/
+    if(m_pDataBase->getDataStateBase())
+    {
+        loadState(m_Data, m_pDataBase->getDataStateBase()->getCurrentStateId());
+    }
+
+    // Connect data and fetch new components
+    size_t oldCount = m_Data.size();
+    for(size_t i = 0; i<oldCount; ++i)
+    {
+        m_pDataBase->connectData(m_Data[i]);
+    }
+
+    // If new data added => new components added in fact => we save the index
+    if(oldCount != m_Data.size())
+    {
+        saveIndex();
+    }
 }
 
 void Node::unload()
@@ -481,7 +418,14 @@ void Node::unload()
             o_exception(std::exception, "All child node should be unloaded before unloading a parent node");
         }
     }
+    // Disconnect data
+    for(size_t i = 0; i<m_Data.size(); ++i)
+    {
+        m_pDataBase->disconnectData(m_Data[i]);
+    }
+
     o_emit aboutToBeUnloaded();
+
     unconfigure();
     o_assert(m_eState == e_Loaded);
     unbuild(); 
@@ -493,7 +437,6 @@ void Node::unload()
 void Node::save()
 {
     // Be sure all components are added before saving
-    saveTypes();
     saveIndex(); 
     saveData(); 
     saveAttributes();
@@ -501,30 +444,30 @@ void Node::save()
 
 void Node::saveDataAttributes( const phantom::data& a_Data )
 {
-    saveDataAttributes(a_Data, m_pOwnerDataBase->getGuid(a_Data));
+    saveDataAttributes(a_Data, m_pDataBase->getGuid(a_Data));
 }
 
 void Node::loadDataAttributes( const phantom::data& a_Data )
 {
-    loadDataAttributes(a_Data, m_pOwnerDataBase->getGuid(a_Data));
+    loadDataAttributes(a_Data, m_pDataBase->getGuid(a_Data));
 }
 
 void Node::saveDataProperties( const phantom::data& a_Data)
 {
-    saveDataProperties(m_pOwnerDataBase->m_uiSerializationFlag, a_Data, m_pOwnerDataBase->getGuid(a_Data));
+    saveDataProperties(m_pDataBase->m_uiSerializationFlag, a_Data, m_pDataBase->getGuid(a_Data));
 }
 
 void Node::loadData( const phantom::data& a_Data )
 {
-    loadData(m_pOwnerDataBase->m_uiSerializationFlag, a_Data, m_pOwnerDataBase->getGuid(a_Data));
+    loadData(m_pDataBase->m_uiSerializationFlag, a_Data, m_pDataBase->getGuid(a_Data));
 }
 
 void Node::loadData( uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid )
 {
     loadDataProperties(a_uiSerializationFlag, a_Data, a_uiGuid);
-    if(m_pOwnerDataBase->getDataStateBase())
+    if(m_pDataBase->getDataStateBase())
     {
-        loadDataState(a_Data, m_pOwnerDataBase->getDataStateBase()->getCurrentStateId());
+        loadDataState(a_Data, m_pDataBase->getDataStateBase()->getCurrentStateId());
     }
     loadDataAttributes(a_Data, a_uiGuid);
 }
@@ -532,7 +475,7 @@ void Node::loadData( uint a_uiSerializationFlag, const phantom::data& a_Data, ui
 void Node::saveStateCascade( DataStateBase* a_pDataStateBase, uint a_uiStateId )
 {
     o_assert(isLoaded());
-    a_pDataStateBase->saveState(this, a_uiStateId);
+    a_pDataStateBase->saveState(this, m_Data, a_uiStateId);
     node_vector::iterator it = m_ChildNodes.begin();
     node_vector::iterator end = m_ChildNodes.end();
     for(;it!=end;++it)
@@ -544,14 +487,14 @@ void Node::saveStateCascade( DataStateBase* a_pDataStateBase, uint a_uiStateId )
 
 void Node::saveStateCascade( uint a_uiStateId )
 {
-    o_assert(m_pOwnerDataBase->getDataStateBase(), "You must associate a DataStateBase with this DataBase to be able to load/save states");
-    saveStateCascade(m_pOwnerDataBase->getDataStateBase(), a_uiStateId);
+    o_assert(m_pDataBase->getDataStateBase(), "You must associate a DataStateBase with this DataBase to be able to load/save states");
+    saveStateCascade(m_pDataBase->getDataStateBase(), a_uiStateId);
 }
 
 void Node::loadStateCascade( DataStateBase* a_pDataStateBase, uint a_uiStateId )
 {
     o_assert(isLoaded());
-    a_pDataStateBase->loadState(this, a_uiStateId);
+    a_pDataStateBase->loadState(this, m_Data, a_uiStateId);
     node_vector::iterator it = m_ChildNodes.begin();
     node_vector::iterator end = m_ChildNodes.end();
     for(;it!=end;++it)
@@ -563,32 +506,32 @@ void Node::loadStateCascade( DataStateBase* a_pDataStateBase, uint a_uiStateId )
 
 void Node::loadStateCascade( uint a_uiStateId )
 {
-    o_assert(m_pOwnerDataBase->getDataStateBase(), "You must associate a DataStateBase with this DataBase to be able to load/save states");
-    loadStateCascade(m_pOwnerDataBase->getDataStateBase(), a_uiStateId);
+    o_assert(m_pDataBase->getDataStateBase(), "You must associate a DataStateBase with this DataBase to be able to load/save states");
+    loadStateCascade(m_pDataBase->getDataStateBase(), a_uiStateId);
 }
 
-void Node::saveState( uint a_uiState )
+void Node::saveState( const vector<data>& a_Data, uint a_uiState )
 {
-    o_assert(m_pOwnerDataBase->getDataStateBase(), "You must associate a DataStateBase with this DataBase to be able to load/save states");
+    o_assert(m_pDataBase->getDataStateBase(), "You must associate a DataStateBase with this DataBase to be able to load/save states");
     o_assert(isLoaded());
-    m_pOwnerDataBase->getDataStateBase()->saveState(this, a_uiState);
+    m_pDataBase->getDataStateBase()->saveState(this, a_Data, a_uiState);
 }
 
-void Node::loadState( uint a_uiState )
+void Node::loadState( const vector<data>& a_Data, uint a_uiState )
 {
-    o_assert(m_pOwnerDataBase->getDataStateBase(), "You must associate a DataStateBase with this DataBase to be able to load/save states");
+    o_assert(m_pDataBase->getDataStateBase(), "You must associate a DataStateBase with this DataBase to be able to load/save states");
     o_assert(isLoaded());
-    //o_assert(m_pOwnerDataBase->getDataStateBase()->hasStateSaved(this, a_uiState), "No state previously saved for this node");
-    if (m_pOwnerDataBase->getDataStateBase()->hasStateSaved(this, a_uiState))
+    //o_assert(m_pDataBase->getDataStateBase()->hasStateSaved(this, a_uiState), "No state previously saved for this node");
+    if (m_pDataBase->getDataStateBase()->hasStateSaved(this, a_uiState))
 	{
-		m_pOwnerDataBase->getDataStateBase()->loadState(this, a_uiState);
+		m_pDataBase->getDataStateBase()->loadState(this, a_Data, a_uiState);
 	}
 }
 
 bool Node::hasStateSaved( uint a_uiState ) const
 {
-    o_assert(m_pOwnerDataBase->getDataStateBase());
-    return m_pOwnerDataBase->getDataStateBase()->hasStateSaved(const_cast<Node*>(this), a_uiState);
+    o_assert(m_pDataBase->getDataStateBase());
+    return m_pDataBase->getDataStateBase()->hasStateSaved(const_cast<Node*>(this), a_uiState);
 }
 
 void Node::rebuildAllDataCascade( reflection::Type* a_pOld, reflection::Type* a_pNew, vector<data>& a_Old, vector<data>& a_New, uint a_uiStateId /*= 0xffffffff*/ )
@@ -601,58 +544,59 @@ void Node::rebuildAllDataCascade( reflection::Type* a_pOld, reflection::Type* a_
     rebuildAllData(a_pOld, a_pNew, a_Old, a_New, a_uiStateId);
 }
 
-void Node::replaceDataReferenceCascade( const vector<void*>& a_OldLayout, const phantom::data& a_New ) const
+void Node::replaceDataReferenceCascade( const phantom::data& a_Old, const phantom::data& a_New, vector<reflection::Expression*>* a_pReplacedReferenceExpressions ) const
 {
+    vector<reflection::Expression*> clearedObsoleteReferencesExpressions;
     o_foreach(Node* pChildNode, m_ChildNodes)
     {
         if(pChildNode->isLoaded())
         {
-            pChildNode->replaceDataReferenceCascade(a_OldLayout, a_New);
+            pChildNode->replaceDataReferenceCascade(a_Old, a_New, a_pReplacedReferenceExpressions);
         }
     }
-    bool complete = replaceDataReference(a_OldLayout, a_New, false);
+    bool complete = replaceDataReference(a_Old, a_New, false);
     if(NOT(complete)) // incompatible types found
     {
         // so try to clear "cleanly" (with public propertys or attributes) old reference
-        clearDataReference(a_OldLayout);
+        clearDataReference(a_Old, &clearedObsoleteReferencesExpressions);
 
         // and then make a second replacement pass with forcing incompatible new data to null
-        complete = replaceDataReference(a_OldLayout, a_New, true);
+        complete = replaceDataReference(a_Old, a_New, true);
 
         o_assert(complete);
     }
 }
 
-void Node::clearDataReferenceCascade( const vector<void*>& a_OldLayout, vector<reflection::Expression*>* a_pRestoreReferenceExpressions ) const
+void Node::clearDataReferenceCascade( const phantom::data& a_Data, vector<reflection::Expression*>* a_pRestoreReferenceExpressions ) const
 {
     o_foreach(Node* pChildNode, m_ChildNodes)
     {
         if(pChildNode->isLoaded())
         {
-            pChildNode->clearDataReferenceCascade(a_OldLayout, a_pRestoreReferenceExpressions);
+            pChildNode->clearDataReferenceCascade(a_Data, a_pRestoreReferenceExpressions);
         }
     }
-    clearDataReference(a_OldLayout, a_pRestoreReferenceExpressions);
+    clearDataReference(a_Data, a_pRestoreReferenceExpressions);
 }
 
 void Node::loadDataState( const phantom::data& a_Data, uint a_uiStateId )
 {
-    DataStateBase* pDataStateBase = m_pOwnerDataBase->getDataStateBase();
+    DataStateBase* pDataStateBase = m_pDataBase->getDataStateBase();
     if(pDataStateBase == nullptr)
     {
         o_exception(std::exception, "No data state base defined for the current data base");
     }
-    pDataStateBase->loadDataState(a_Data, m_pOwnerDataBase->getGuid(a_Data), this, a_uiStateId);
+    pDataStateBase->loadDataState(a_Data, m_pDataBase->getGuid(a_Data), this, a_uiStateId);
 }
 
 void Node::saveDataState( const phantom::data& a_Data, uint a_uiStateId )
 {
-    DataStateBase* pDataStateBase = m_pOwnerDataBase->getDataStateBase();
+    DataStateBase* pDataStateBase = m_pDataBase->getDataStateBase();
     if(pDataStateBase == nullptr)
     {
         o_exception(std::exception, "No data state base defined for the current data base");
     }
-    pDataStateBase->saveDataState(a_Data, m_pOwnerDataBase->getGuid(a_Data), this, a_uiStateId);
+    pDataStateBase->saveDataState(a_Data, m_pDataBase->getGuid(a_Data), this, a_uiStateId);
 }
 
 void Node::fetchContainerComponents(reflection::ContainerClass* a_pContainerClass, void* a_pContainer, vector<phantom::data>& out)
@@ -669,7 +613,7 @@ void Node::fetchContainerComponents(reflection::ContainerClass* a_pContainerClas
             phantom::data d(ptr);
             if(NOT(d.isNull()))
             {
-                if(m_pOwnerDataBase->containsData(d) AND m_pOwnerDataBase->getComponentDataOwner(d).isNull()) 
+                if(m_pDataBase->containsData(d) AND m_pDataBase->getComponentDataOwner(d).isNull()) 
                 {
                     // component valueMember contains a non-component data => clear it
                     ptr = nullptr;
@@ -695,15 +639,54 @@ void Node::fetchContainerComponents(reflection::ContainerClass* a_pContainerClas
         pSubContainerClass->deleteInstance(pSubContainer);
     }
 
-    pIterator->deleteNow();
-
-    if(needAnotherPass)
-    {
-
-    }
+    a_pContainerClass->release(pIterator);
 }
 
-void Node::clearDataReference( const vector<void*>& layout, vector<reflection::Expression*>* a_pRestoreReferenceExpressions ) const
+void Node::clearDataReference( const phantom::data& a_Data, const phantom::data& a_ReferencedData, vector<reflection::Expression*>* a_pRestoreReferenceExpressions ) const
+{
+    vector<reflection::Expression*> pointerReferenceExpressions;
+    auto pConstant = phantom::constant<uint>(m_pDataBase->getGuid(a_Data));
+
+    // Create an expression referencing our data
+    auto pExpression = o_new(reflection::DataExpression)(m_pDataBase, o_new(reflection::ConstantExpression)(pConstant)) ;
+
+    // Then collect all its pointer references (in fact all the data referenced by our data)
+    a_Data.type()->fetchPointerReferenceExpressions(pExpression 
+        , pointerReferenceExpressions
+        , 0xffffffff);
+
+    // For each referenced data (pointer), compare it against our old data 
+
+    for(auto it = pointerReferenceExpressions.begin(); it != pointerReferenceExpressions.end(); ++it)
+    {
+        reflection::Expression* pExpression = *it;
+        if(as<reflection::InstanceDataMemberAccess*>(pExpression) == nullptr) 
+            continue; // components are a special case not considered as reference only but composition (stronger)
+        void* pAddress = nullptr;
+        pExpression->load(&pAddress);// Evaluate expression to get pointer reference value
+        if(pAddress == nullptr)
+            continue;
+        const rtti_data& rd = rttiDataOf(pAddress);
+        if(rd.isNull()) 
+            continue;
+        if(rd.base == a_ReferencedData.address())
+        {
+            // If matches, clear the reference by setting the expression to null
+            pAddress = nullptr;
+            pExpression->store(&pAddress);
+            if(a_pRestoreReferenceExpressions) 
+                a_pRestoreReferenceExpressions->push_back(pExpression);
+            else o_dynamic_delete (pExpression);
+        }
+        else o_dynamic_delete (pExpression); // destroy the pointer reference expression
+    }
+//     if(pointerReferenceExpressions.empty())
+//     {
+//         o_dynamic_delete (pExpression); // destroy the data reference expression (no pointer reference generated)
+//     }
+}
+
+void Node::clearDataReference( const phantom::data& a_ReferencedData, vector<reflection::Expression*>* a_pRestoreReferenceExpressions ) const
 {
     o_assert(isLoaded());
     data_vector::const_iterator it = m_Data.begin();
@@ -713,123 +696,21 @@ void Node::clearDataReference( const vector<void*>& layout, vector<reflection::E
         const phantom::data& currentData = *it;
         bool currentDataModified = false;
 
-        auto it = layout.begin();
-        auto end = layout.end();
-        for(;it!=end;++it)
-        {
-            void* address = *it;
-            // A data shouldn't have valueMember pointing on itself, so we skip
-            if(currentData.address() == address) 
-                continue;
+        if(currentData == a_ReferencedData)
+            continue;
 
-            // A data type can have valueMember only if it's a ClassType (struct/union/class)
-            reflection::ClassType* pClassType = currentData.type()->asClassType();
-            if(pClassType)
-            {
-                reflection::Class* pClass = pClassType->asClass();
-                vector<reflection::ValueMember*> valueMembers;
-                //vector<reflection::Collection*> collections;
-                if(pClass)
-                {
-                    pClass->getValueMembersCascade(valueMembers);
-                    //pClass->getCollectionsCascade(collections);
-                }
-                else
-                {
-                    valueMembers.insert(valueMembers.end(), pClassType->beginValueMembers(), pClassType->endValueMembers());
-                    //collections.insert(collections.end(), pClassType->beginCollections(), pClassType->endCollections());
-                }
-                struct PropertyThenAttributeSorter
-                {
-                    bool operator()(const reflection::ValueMember* first, const reflection::ValueMember* second) const 
-                    {
-                        if((first->asProperty() != nullptr) AND (second->asProperty() == nullptr)) return true;
-                        if((second->asProperty() != nullptr) AND (first->asProperty() == nullptr)) return false;
-                        return first < second;
-                    }
-                };
-/*
+        clearDataReference(currentData, a_ReferencedData, a_pRestoreReferenceExpressions);
 
-                o_foreach(reflection::Collection* pCollection, collections)
-                {
-                    reflection::DataPointerType* pCollectionElementType = pCollection->getElementType()->asDataPointerType();
-                    if(pCollectionElementType)
-                    {
-                        void* castedAddress = currentData.cast(pCollection->getOwner()->asClassType()).address();
-                        bool needPass = true;
-                        while(needPass)
-                        {
-                            needPass = false;
-
-                            size_t i = 0;
-                            size_t count = pCollection->getSize(castedAddress);
-                            for(;i<count;++i)
-                            {
-                                void* component = NULL;
-                                pCollection->getElement(castedAddress, i, &component);
-                                if(component == address)
-                                {
-                                    pCollection->removeElement(castedAddress, &component);
-                                    needPass = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-*/
-
-
-                std::sort(valueMembers.begin(), valueMembers.end(), PropertyThenAttributeSorter());
-
-                o_foreach(reflection::ValueMember* pValueMember, valueMembers)
-                {
-                    reflection::DataPointerType* pValueMemberValueType = pValueMember->getValueType()->asDataPointerType();
-                    if(pValueMemberValueType)
-                    {
-                        // Cast the unreferenced data address to the valueMember value type
-                        phantom::data castedCurrentData = currentData.cast(pValueMember->getOwnerClassType());
-
-                        // Extract the valueMember value from the current data
-                        void* pointerValue = nullptr;
-                        pValueMember->getValue(castedCurrentData.address(), &pointerValue);
-
-                        // Test it with the cleared data
-                        if(pointerValue == address)
-                        {
-                            // if pointer are the same, clear the data reference into the current node data
-                            if(a_pRestoreReferenceExpressions)
-                            {
-                                reflection::Expression* pGuidExpression = o_new(reflection::ConstantExpression)(phantom::constant<uint>(m_pOwnerDataBase->getGuid(currentData)), nullptr, true);
-                                reflection::Expression* pDataExpression = o_new(reflection::DataExpression)(m_pOwnerDataBase, pGuidExpression);
-                                reflection::Expression* pCastExpression = pDataExpression->cast(pValueMember->getOwnerClassType()->referenceType());
-                                o_assert(pCastExpression);
-                                reflection::Expression* pAccessExpression = pValueMember->createAccessExpression(pCastExpression);
-                                pGuidExpression = o_new(reflection::ConstantExpression)(phantom::constant<uint>(m_pOwnerDataBase->getGuid(pointerValue)), nullptr, true);
-                                reflection::Expression* pRightDataExpression = o_new(reflection::DataExpression)(m_pOwnerDataBase, pGuidExpression);
-                                pRightDataExpression = pRightDataExpression->address();
-                                pRightDataExpression = pRightDataExpression->cast(pValueMember->getValueType());
-                                reflection::Expression* pAssignExpression = pAccessExpression->solveBinaryOperator("=", pRightDataExpression);
-                                a_pRestoreReferenceExpressions->push_back(pAssignExpression);
-                            }
-                            pointerValue = nullptr;
-                            pValueMember->setValue(castedCurrentData.address(), &pointerValue);
-                            currentDataModified = true;
-                        }
-                    }
-                }
-            }
-        }
-        if(currentDataModified)
-        {
-            // Save if modified
-            // TODO : clean this dirty hack by using const on saveData
-            ((Node*)this)->saveDataProperties(currentData);
-        }
     }
+//     if(currentDataModified)
+//     {
+//         // Save if modified
+//         // TODO : clean this dirty hack by using const on saveData
+//         ((Node*)this)->saveDataProperties(currentData);
+//     }
 }
 
-bool Node::replaceDataReference( const vector<void*>& a_OldLayout, const phantom::data& a_New, bool a_SetIncompatibleToNull ) const
+bool Node::replaceDataReference( const phantom::data& a_Old, const phantom::data& a_New, bool a_SetIncompatibleToNull ) const
 {
     o_assert(isLoaded());
     bool complete = true;
@@ -837,140 +718,97 @@ bool Node::replaceDataReference( const vector<void*>& a_OldLayout, const phantom
     data_vector::const_iterator end = m_Data.end();
     for(;it != end; ++it)
     {
-        phantom::data currentData = *it;
-        bool currentDataModified = false;
+        complete = complete AND replaceDataReference(*it, a_Old, a_New, a_SetIncompatibleToNull);
+    }
+    return complete;
+}
 
-        auto it = a_OldLayout.begin();
-        auto end = a_OldLayout.end();
-        for(;it!=end;++it)
+bool Node::replaceDataReference( const phantom::data& a_Data, const phantom::data& a_Old, const phantom::data& a_New, bool a_SetIncompatibleToNull ) const
+{
+    o_assert(isLoaded());
+    bool complete = true;
+    bool currentDataModified = false;
+
+    vector<reflection::Expression*> pointerReferenceExpressions;
+    auto pConstant = phantom::constant<uint>(m_pDataBase->getGuid(a_Data));
+
+    // Create an expression referencing our data
+    auto pExpression = o_new(reflection::DataExpression)(m_pDataBase, o_new(reflection::ConstantExpression)(pConstant)) ;
+
+    // Then collect all its pointer references (in fact all the data referenced by our data)
+    a_Data.type()->fetchPointerReferenceExpressions(pExpression 
+        , pointerReferenceExpressions
+        , 0xffffffff);
+
+    // For each referenced data (pointer), compare it against our old data
+    for(auto it = pointerReferenceExpressions.begin(); it != pointerReferenceExpressions.end(); ++it)
+    {
+        reflection::Expression* pExpression = *it;
+        void* pAddress = nullptr;
+        pExpression->load(&pAddress);// Evaluate expression to get pointer reference value
+        if(pAddress == nullptr)
+            continue;
+        const rtti_data& rd = rttiDataOf(pAddress);
+        if(rd.isNull()) 
+            continue;
+        if(rd.base == a_Old.address())
         {
-            void* oldAddress = *it;
-            // A data shouldn't have valueMember pointing on itself, so we skip
-            if(currentData.address() == oldAddress) 
-                continue;
-
-            if(currentData == m_pOwnerDataBase->getComponentDataOwner(oldAddress))
+            // The pointer references the old data
+            // => cast the new data to fit the expression pointed type
+            phantom::data castedNewData = a_New.cast(pExpression->getValueType()->removeReference()->removeConst()->asDataPointerType()->getPointedType());
+            if(castedNewData.isNull())
             {
-                // the current data owns the old data, so we check if it can own the new data
-                reflection::Collection* collection = m_pOwnerDataBase->getCollectionContainingComponentData(oldAddress);
-                if(NOT(a_New.type()->isKindOf(collection->getElementType())))
+                if(a_SetIncompatibleToNull)
                 {
-                    // If not, we remove the old via the interface
-                    void* removed = oldAddress;
-                    collection->safeRemoveElement(currentData.address(), &removed);
-                    currentDataModified = true;
+                    // The casted data is null (cast failed) => the data cannot be referenced anymore => set it to NULL
+                    pAddress = nullptr;
+                    pExpression->store(&pAddress);
+
+                    // Remember this expression as a nullified expression
+                }
+                else 
+                {
+                    complete = false;
                 }
             }
-            else if(oldAddress == m_pOwnerDataBase->getComponentDataOwner(currentData).address())
+            else 
             {
-                // this case must be handled via the setOwner member_functions on the owned object (via propertys)
-                //continue;
+                pAddress = castedNewData.address();
+                pExpression->store(&pAddress);
             }
-
-            // A data type can have valueMember only if it's a ClassType (struct/union/class)
-            reflection::ClassType* pClassType = currentData.type()->asClassType();
-            if(pClassType)
-            {
-                reflection::Class* pClass = pClassType->asClass();
-                vector<reflection::ValueMember*> valueMembers;
-                if(pClass)
-                {
-                    pClass->getValueMembersCascade(valueMembers);
-                }
-                else
-                {
-                    valueMembers.insert(valueMembers.end(), pClassType->beginValueMembers(), pClassType->endValueMembers());
-                }
-                o_foreach(reflection::ValueMember* pValueMember, valueMembers)
-                {
-                    reflection::InstanceDataMember* pInstanceDataMember = pValueMember->asInstanceDataMember();
-
-                    // Only treat attributes (no property or other valueMembers) 
-                    // because we want real "physical memory" reference replacement
-                    if(pInstanceDataMember == nullptr) continue;
-                    phantom::data castedCurrentData = currentData.cast(pInstanceDataMember->getOwnerClassType());
-
-                    // Test reference by pointer
-                    reflection::DataPointerType* pValueMemberPointerValueType = pInstanceDataMember->getValueType()->asDataPointerType();
-                    if(pValueMemberPointerValueType)
-                    {
-
-                        // Extract the valueMember value from the current data
-                        void* pointerValue = nullptr;
-                        pInstanceDataMember->getValue(castedCurrentData.address(), &pointerValue);
-
-                        // Test it with the cleared data
-                        if(pointerValue == oldAddress)
-                        {
-                            // if pointer are the same, replace the data reference into the current node data
-                            pointerValue = a_New.cast(pValueMemberPointerValueType->getPointedType()).address();
-                            if(pointerValue != nullptr OR a_SetIncompatibleToNull) // This means the type are no more compatible we need to nullify the valueMember in a second pass
-                            {
-                                pInstanceDataMember->setValue(castedCurrentData.address(), &pointerValue);
-                                currentDataModified = true;
-                            }
-                            else 
-                            {
-                                complete = false;
-                                // if null we'll try then instead of replacing, to clear the data via clearDataReference
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // Test reference in container (still by pointer)
-                        reflection::ContainerClass* pContainerClass = pInstanceDataMember->getValueType()->asContainerClass();
-                        if(pContainerClass)
-                        {
-                            reflection::DataPointerType* pDataPointerType = pContainerClass->getValueType()->asDataPointerType();
-                            if(pDataPointerType)
-                            {
-                                // Cast to content type worked, this may be a potential container referencing the current data
-                                void* container = pContainerClass->newInstance();
-                                // Get the whole container
-                                pInstanceDataMember->getValue(castedCurrentData.address(), container);
-
-                                // Iterate through the container to find a potential reference
-                                void* the_old = oldAddress;
-                                void* the_new = a_New.cast(pDataPointerType->getPointedType()).address();
-                                int replacedCount = 0;
-                                if(the_new == nullptr)
-                                {
-                                    // The new data is not compatible anymore with the container content type, we erase the old
-                                    replacedCount = pContainerClass->eraseAll(container, &the_old);
-                                }
-                                else 
-                                {
-                                    replacedCount = pContainerClass->replaceAll(container, &the_old, &the_new);
-                                }
-                                if(replacedCount) //  if at least one reference has been replaced/removed,
-                                    // we replace the whole collection
-                                {
-                                    pInstanceDataMember->setValue(castedCurrentData.address(), container);
-                                    currentDataModified = true;
-                                }
-                                pContainerClass->deleteInstance(container);
-                            }
-
-                        }
-                    }
-                }
-            }
-        }
-        if(currentDataModified)
-        {
-            ((Node*)this)->saveDataProperties(currentData);
         }
     }
     return complete;
 }
 
+void Node::fetchAllUpdatedData( vector<data_pair>& out_components_to_add
+    , vector<data_pair>& out_components_to_remove
+    , vector<string>& out_components_to_add_reference_expressions
+    , vector<modifiers_t>& out_to_add_modifiers
+    , vector<data>& a_TreatedData )
+{
+    for(size_t i = 0; i<m_Data.size(); ++i)
+    {
+        fetchUpdatedData(m_Data[i], out_components_to_add, out_components_to_remove, out_components_to_add_reference_expressions, out_to_add_modifiers, a_TreatedData);
+    }
+}
+
+void Node::fetchAllUpdatedDataCascade( vector<Node*>& where_to_add, vector<Node*>& where_to_remove, vector<data_pair>& out_components_to_add , vector<data_pair>& out_components_to_remove , vector<string>& out_components_to_add_reference_expressions , vector<modifiers_t>& out_to_add_modifiers , vector<data>& a_TreatedData )
+{
+    fetchAllUpdatedData(out_components_to_add, out_components_to_remove, out_components_to_add_reference_expressions, out_to_add_modifiers, a_TreatedData);
+    where_to_add.resize(where_to_add.size() + out_components_to_add.size(), this);
+    where_to_remove.resize(where_to_remove.size() + out_components_to_remove.size(), this);
+    for(auto it = m_ChildNodes.begin(); it != m_ChildNodes.end(); ++it)
+    {
+        (*it)->fetchAllUpdatedDataCascade(where_to_add, where_to_remove, out_components_to_add, out_components_to_remove, out_components_to_add_reference_expressions, out_to_add_modifiers, a_TreatedData);
+    }
+}
 
 void Node::fetchUpdatedData( const phantom::data& a_Data
                                 , vector<data_pair>& out_components_to_add
                                 , vector<data_pair>& out_components_to_remove
                                 , vector<string>& out_components_to_add_reference_expressions
-                                , vector<bitfield>& out_to_add_modifiers
+                                , vector<modifiers_t>& out_to_add_modifiers
                                 , vector<data>& a_TreatedData )
 {
     std::set<phantom::data> alreadyTreated;
@@ -985,7 +823,7 @@ void Node::fetchUpdatedData( const phantom::data& a_Data
                                 , vector<data_pair>& out_components_to_add /*= nullptr*/
                                 , vector<data_pair>& out_components_to_remove /*= nullptr*/
                                 , vector<string>& out_added_pointer_reference_expressions
-                                , vector<bitfield>& out_to_add_modifiers
+                                , vector<modifiers_t>& out_to_add_modifiers
                                 , std::set<phantom::data>& treatedData)
 {
     treatedData.insert(a_Data);
@@ -994,13 +832,13 @@ void Node::fetchUpdatedData( const phantom::data& a_Data
 
     vector<phantom::data> new_components;
     vector<reflection::Expression*> pointerReferenceExpressions;
-    auto pConstant = phantom::constant<uint>(m_pOwnerDataBase->getGuid(a_Data));
-    auto pExpression = o_new(reflection::DataExpression)(m_pOwnerDataBase, o_new(reflection::ConstantExpression)(pConstant, nullptr, false)) ;
-    d.type()->fetchPointerReferenceExpressions(pExpression 
+    auto pConstant = phantom::constant<uint>(m_pDataBase->getGuid(a_Data));
+    auto pExpression = o_new(reflection::DataExpression)(m_pDataBase, o_new(reflection::ConstantExpression)(pConstant)) ;
+    d.type()->fetchPointerReferenceExpressions(pExpression->clone() 
                                                 , pointerReferenceExpressions
                                                 , 0xffffffff);
-    // phantom::deleteElement(pConstant);
-    phantom::deleteElement(pExpression);
+    // o_dynamic_delete (pConstant);
+    o_dynamic_delete (pExpression);
     map<phantom::data, reflection::Expression*> dataReferenceExpressions;
 
     for(auto it = pointerReferenceExpressions.begin(); it != pointerReferenceExpressions.end(); ++it)
@@ -1013,25 +851,14 @@ void Node::fetchUpdatedData( const phantom::data& a_Data
         phantom::data referencedData(rttiDataOf(pAddress).data());
         if(referencedData.isNull())
             continue;
-        if(pExpression->testModifiers(o_component))
-        {
-            auto found = dataReferenceExpressions.find(d);
-            if(found == dataReferenceExpressions.end()) // if multiple references are found inside 
-                                                        // a single instance, we keep only the first found which generally matches 
-                                                        // a property (most valuable), and if not a data member (less valuable)
-            {
-                new_components.push_back(referencedData);
-                dataReferenceExpressions[referencedData] = pExpression;
-            }
-        }
-        else if(m_pOwnerDataBase->getGuid(referencedData) != 0xffffffff AND treatedData.find(referencedData) == treatedData.end())
+        if(m_pDataBase->getGuid(referencedData) != o_invalid_guid AND treatedData.find(referencedData) == treatedData.end())
         {
             // If data referenced exists in the data base, we treat it
-            m_pOwnerDataBase->getNode(referencedData)->fetchUpdatedData(referencedData, out_components_to_add, out_components_to_remove, out_added_pointer_reference_expressions, out_to_add_modifiers, treatedData);
+            m_pDataBase->getNode(referencedData)->fetchUpdatedData(referencedData, out_components_to_add, out_components_to_remove, out_added_pointer_reference_expressions, out_to_add_modifiers, treatedData);
         }
     }
 
-    DataBase* pDataBase = getOwnerDataBase();
+    DataBase* pDataBase = getDataBase();
 
     vector<phantom::data> old_components;
     size_t i = 0;
@@ -1061,7 +888,7 @@ void Node::fetchUpdatedData( const phantom::data& a_Data
         // Component which are found both in current and old lists are the already existing components which wont be removed, we browse them for new components
         if(treatedData.find(*it) == treatedData.end())
         {
-            m_pOwnerDataBase->getNode(*it)->fetchUpdatedData(*it, out_components_to_add, out_components_to_remove, out_added_pointer_reference_expressions, out_to_add_modifiers, treatedData);
+            m_pDataBase->getNode(*it)->fetchUpdatedData(*it, out_components_to_add, out_components_to_remove, out_added_pointer_reference_expressions, out_to_add_modifiers, treatedData);
         }
     }
 
@@ -1080,7 +907,7 @@ void Node::fetchUpdatedData( const phantom::data& a_Data
         auto end = to_remove.end();
         for(;it!=end;++it)
         {
-            o_assert(m_pOwnerDataBase->containsData(*it))
+            o_assert(m_pDataBase->containsData(*it))
             {
                 out_components_to_remove.push_back(data_pair(*it, d));
                 //indexOutdated = true;
@@ -1096,21 +923,20 @@ void Node::fetchUpdatedData( const phantom::data& a_Data
         for(;it!=end;++it)
         {
             //pDataBase->registerComponentData(*it, d);
-            o_assert(NOT(m_pOwnerDataBase->containsData(*it))) // the data is a shared data
+            o_assert(NOT(m_pDataBase->containsData(*it))) // the data is a shared data
             {
                 out_components_to_add.push_back(data_pair(*it, d));
                 phantom::reflection::Expression* pExpression = dataReferenceExpressions[*it];
                 out_added_pointer_reference_expressions.push_back(pExpression->getName());
                 out_to_add_modifiers.push_back(pExpression->getModifiers());
                 //indexOutdated = true;
-                //internalAddData(*it, m_pOwnerDataBase->generateGuid());
             }
             //saveData(*it);
         }
     }
     for(auto it = dataReferenceExpressions.begin(); it != dataReferenceExpressions.end(); ++it)
     {
-        phantom::deleteElement(it->second);
+        o_dynamic_delete (it->second);
     }
 }
 /*
@@ -1134,7 +960,7 @@ void Node::rebuildAllData( reflection::Type* a_pOld, reflection::Type* a_pNew, v
     {
         if(it->type() == a_pOld) 
         {
-            m_pOwnerDataBase->rebuildData(*it, a_pOld, a_pNew, a_OldData, a_NewData, a_uiStateId);
+            m_pDataBase->rebuildData(*it, a_pOld, a_pNew, a_OldData, a_NewData, a_uiStateId);
         }
     }
 }
@@ -1168,9 +994,9 @@ void Node::saveData()
 void Node::saveData( uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid )
 {
     saveDataProperties(a_uiSerializationFlag, a_Data, a_uiGuid);
-    if(m_pOwnerDataBase->getDataStateBase())
+    if(m_pDataBase->getDataStateBase())
     {
-        saveDataState(a_Data, m_pOwnerDataBase->getDataStateBase()->getCurrentStateId());
+        saveDataState(a_Data, m_pDataBase->getDataStateBase()->getCurrentStateId());
     }
     saveDataAttributes(a_Data, a_uiGuid);
 }
@@ -1183,22 +1009,19 @@ void Node::saveData( uint a_uiSerializationFlag )
     for(;it != end; ++it)
     {
         void* pAddress = it->address();
-        uint guid = m_pOwnerDataBase->getGuid(pAddress);
+        uint guid = m_pDataBase->getGuid(*it);
         saveData(a_uiSerializationFlag, *it, guid);
     }
 }
 
 void Node::destroyAllData()
 {
-    data_vector::iterator it = m_Data.begin();
-    data_vector::iterator end = m_Data.end();
-    for(;it!=end;++it)
+    while(m_Data.size())
     {
-        phantom::data d = *it;
-        m_pOwnerDataBase->unregisterData(d);
+        phantom::data d = m_Data.back();
+        m_pDataBase->unregisterData(d);
         d.destroy();
     }
-    m_Data.clear();
 }
 
 boolean Node::containsDataWhichDependsOnData( const data& a_Dependency ) const
@@ -1207,7 +1030,7 @@ boolean Node::containsDataWhichDependsOnData( const data& a_Dependency ) const
     data_vector::const_iterator end = m_Data.end();
     for(;it != end; ++it)
     {
-        if(m_pOwnerDataBase->dataHasDependency(*it, a_Dependency))
+        if(m_pDataBase->dataHasDependency(*it, a_Dependency))
             return true;
     }
     return false;
@@ -1219,7 +1042,7 @@ void Node::fetchDataWhichDependsOnData(const phantom::data& a_Data, vector<data>
     data_vector::const_iterator end = m_Data.end();
     for(;it != end; ++it)
     {
-        if(m_pOwnerDataBase->dataHasDependency(*it, a_Data))
+        if(m_pDataBase->dataHasDependency(*it, a_Data))
             a_DataVector.push_back(*it);
     }
 }
@@ -1242,7 +1065,7 @@ boolean Node::containsDependencyOf( const data& a_Data ) const
     data_vector::const_iterator end = m_Data.end();
     for(;it != end; ++it)
     {
-        if(m_pOwnerDataBase->dataHasDependency(a_Data, *it))
+        if(m_pDataBase->dataHasDependency(a_Data, *it))
             return true;
     }
     return false;
@@ -1354,48 +1177,6 @@ void Node::fetchDataOfType( reflection::Type* a_pType, vector<data>& a_DataVecto
     }
 }
 
-void Node::internalAddData( const data& a_Data, uint a_uiGuid )
-{
-    o_assert(m_eState == e_Loaded);
-    o_assert(NOT(m_pOwnerDataBase->containsData(a_Data)), "The specified owner Node doesn't belong to this DataBase");
-    o_assert(a_Data.type()->isSerializable());
-    storeData(a_Data);
-    o_assert(a_uiGuid != 0, "0 is reserved to the root node");
-    o_assert(a_uiGuid != 0xffffffff, "Invalid guid");
-    m_pOwnerDataBase->internalAddNewData(a_Data, a_uiGuid, this);
-}
-
-void Node::internalRemoveData( const data& a_Data )
-{
-    o_assert(containsData(a_Data));
-
-    // TODO : make a virtual "removeAllComponentData(a_Data)" instead of this
-    bool subDataRemovalPassNeeded = true;
-    while(subDataRemovalPassNeeded)
-    {
-        subDataRemovalPassNeeded = false;
-        vector<data> allData;
-        fetchData(allData);
-        size_t i = 0;
-        for(;i<allData.size();++i)
-        {
-            if( getOwnerDataBase()->getComponentDataOwner(allData[i]) == a_Data )
-            {
-                removeData(allData[i]);
-                allData[i].destroy();
-                subDataRemovalPassNeeded = true;
-                break;
-            }
-        }
-    }
-
-
-    uint guid = getOwnerDataBase()->getGuid(a_Data.address());
-    o_assert(guid != 0xffffffff);
-    getOwnerDataBase()->internalRemoveData(a_Data, guid, this);
-    eraseData(a_Data); 
-}
-
 phantom::data Node::getData( void* a_pAddress ) const
 {
     phantom::data d(a_pAddress);
@@ -1415,49 +1196,9 @@ void Node::unloadCascade()
     unload();
 }
 
-void Node::addType( reflection::Type* a_pType )
-{
-    o_assert(getType(a_pType->getQualifiedDecoratedName()) == nullptr);
-    m_Types[a_pType->getQualifiedDecoratedName()];
-    saveTypes();
-}
-
-void Node::removeType( reflection::Type* a_pType )
-{
-    o_assert(getType(a_pType->getQualifiedDecoratedName()) == a_pType);
-    o_assert(a_pType->asClass() == nullptr || a_pType->asClass()->getInstanceCount() == 0);
-    m_Types.erase(a_pType->getQualifiedDecoratedName());
-    saveTypes();
-}
-
-reflection::Type* Node::getType( const string& a_strQualifiedDecoratedName ) const
-{
-    auto found = m_Types.find(a_strQualifiedDecoratedName);
-    return found != m_Types.end() ? found->second : nullptr;
-}
-
-void Node::replaceTypes( const map<reflection::Type*, reflection::Type*>& replacedTypes )
-{
-    for(auto it = replacedTypes.begin(); it != replacedTypes.end(); ++it)
-    {
-        reflection::Type* pOld = it->first;
-        reflection::Type* pNew = it->second;
-
-        for(auto it = m_Types.begin(); it != m_Types.end(); ++it)
-        {
-            if(it->second == pOld)
-            {
-                it->second = pNew;
-                break;
-            }
-        }
-    }
-    saveTypes();
-}
-
 uint Node::generateGuid() const
 {
-    return m_pOwnerDataBase->generateGuid();
+    return m_pDataBase->generateGuid();
 }
 
 void Node::fetchDataTypes( std::set<reflection::Type*>& a_Types ) const
@@ -1474,6 +1215,37 @@ void Node::fetchDataTypesCascade( std::set<reflection::Type*>& a_Types ) const
     for(auto it = m_ChildNodes.begin(); it != m_ChildNodes.end(); ++it)
     {
         (*it)->fetchDataTypesCascade(a_Types);
+    }
+}
+
+void Node::fetchDataByTypes( map<reflection::Type*, vector<data>>& out ) const
+{
+    for(auto it = m_Data.begin(); it != m_Data.end(); ++it)
+    {
+        out[it->type()].push_back(*it);
+    }
+}
+
+void Node::fetchDataByTypesCascade( map<reflection::Type*, vector<data>>& out ) const
+{
+    fetchDataByTypes(out);
+    for(auto it = m_ChildNodes.begin(); it != m_ChildNodes.end(); ++it)
+    {
+        (*it)->fetchDataByTypesCascade(out);
+    }
+}
+
+void Node::reload( const vector<uint>& guids )
+{
+    vector<phantom::data> cachedData;
+    cache(&guids, &cachedData);
+    build(cachedData);
+    deserialize(m_pDataBase->m_uiSerializationFlag, cachedData);
+    restore(m_pDataBase->m_uiSerializationFlag, cachedData);
+
+    if(m_pDataBase->getDataStateBase())
+    {
+        loadState(cachedData, m_pDataBase->getDataStateBase()->getCurrentStateId());
     }
 }
 

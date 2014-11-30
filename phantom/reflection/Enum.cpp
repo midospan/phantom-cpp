@@ -50,22 +50,15 @@ Enum::Enum()
     addReferencedElement(m_pIntType);
 }
 
-Enum::Enum( const string& a_strName, PrimitiveType* a_pIntType, bitfield a_Modifiers /*= 0*/ )
+Enum::Enum( const string& a_strName, PrimitiveType* a_pIntType, modifiers_t a_Modifiers /*= 0*/ )
     : PrimitiveType(e_enum, a_strName, a_pIntType->getSize(), a_pIntType->getAlignment(), a_Modifiers)
     , m_pIntType(a_pIntType)
 {
     addReferencedElement(m_pIntType);
 }
 
-Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) 
+Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers /*= 0*/ ) 
     : PrimitiveType(e_enum, a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
-    , m_pIntType(nullptr)
-{
-
-}
-
-Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint a_uiGuid, bitfield a_Modifiers /*= 0*/ ) 
-    : PrimitiveType(e_enum, a_strName, a_uiSize, a_uiAlignment, a_uiGuid, a_Modifiers)
     , m_pIntType(nullptr)
 {
 
@@ -73,13 +66,10 @@ Enum::Enum( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, uint
 
 Enum::~Enum()
 {
-    while(m_Constants.size())
-    {
-        m_Constants.back()->deleteNow();
-    }
+
 }
 
-LanguageElement* Enum::solveElement( const string& a_strName , const vector<TemplateElement*>* ts , const vector<LanguageElement*>* fs , bitfield a_Modifiers /*= 0*/ ) const
+LanguageElement* Enum::solveElement( const string& a_strName , const vector<TemplateElement*>* ts , const vector<LanguageElement*>* fs , modifiers_t a_Modifiers /*= 0*/ ) const
 {
     if(ts AND !ts->empty()) return NULL;
     if(fs AND !fs->empty()) return NULL;
@@ -172,6 +162,14 @@ void Enum::elementRemoved( LanguageElement* a_pElement )
     NumericConstant* pConstant = a_pElement->asNumericConstant();
     o_assert(pConstant);
     m_Constants.erase(std::find(m_Constants.begin(), m_Constants.end(), pConstant));
+}
+
+void Enum::findConstantsWithValue( void* a_pSrc, vector<Constant*>& out ) const
+{
+    for(auto it = m_Constants.begin(); it != m_Constants.end(); ++it)
+    {
+        if((*it)->hasValue(a_pSrc)) out.push_back(*it);
+    }
 }
 
 o_namespace_end(phantom, reflection)

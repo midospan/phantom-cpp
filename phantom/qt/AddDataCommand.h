@@ -4,7 +4,7 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/qt/UndoCommand.h>
+#include <phantom/qt/DataBaseCommand.h>
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, qt), AddDataCommand);
 /* *********************************************** */
@@ -16,7 +16,7 @@ namespace phantom { namespace qt {
  * \class AddDataCommand
  * \brief Command to add a node
  * ************************************************ */
-class o_qt_export AddDataCommand : public UndoCommand
+class o_qt_export AddDataCommand : public DataBaseCommand
 {
 public:
 
@@ -24,8 +24,8 @@ public:
 	// Constructors / Destructor
 	//================================================
 
-    AddDataCommand(reflection::Type* a_pType, uint guid, phantom::serialization::Node* a_pNode);
-    AddDataCommand(const string& a_strTypeName, uint guid, phantom::serialization::Node* a_pNode);
+    AddDataCommand(reflection::Type* a_pType, phantom::serialization::Node* a_pNode);
+    AddDataCommand(const string& a_strTypeName, phantom::serialization::Node* a_pNode);
 	~AddDataCommand();
 
 
@@ -33,8 +33,8 @@ public:
 	// Operations
 	//================================================
 
-	virtual void undo();
-	virtual void redo();
+    virtual void redoReplayed();
+    virtual void undoReplayed();
 
     virtual UndoCommand* clone() const;
 
@@ -42,12 +42,9 @@ protected:
 	//================================================
 	// Fields
 	//================================================
-	serialization::DataBase*        m_pDataBase;
     string                          m_strTypeName;
-	uint							m_uiGuid;
     uint                            m_uiNodeGuid;
-    bool                            m_bInitialized;
-
+    uint                            m_uiGuid;
 };
 
 } // qt 

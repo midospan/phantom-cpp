@@ -236,7 +236,7 @@ inline matrix3x3<t_Ty>& matrix3x3<t_Ty>::makeRotation (const vector3<t_Ty>& axis
     t_Ty xSin = axis[0]*sn;
     t_Ty ySin = axis[1]*sn;
     t_Ty zSin = axis[2]*sn;
-    
+
     m[0] = x2*oneMinusCos + cs;
     m[3] = xym - zSin;
     m[6] = xzm + ySin;
@@ -638,11 +638,11 @@ inline void matrix3x3<t_Ty>::extractAxisAngle (vector3<t_Ty>& axis, t_Ty& angle)
 
     t_Ty trace = m[0] + m[4] + m[8];
     t_Ty cs = ((t_Ty)0.5)*(trace - (t_Ty)1);
-    angle = acosf(cs);  // in [0,PI]
+    angle = acosf(cs);  // in [0,o_math_Pi]
 
     if (angle > (t_Ty)0)
     {
-        if (angle < PI)
+        if (angle < o_math_Pi)
         {
             axis[0] = m[5] - m[7];
             axis[1] = m[6] - m[2];
@@ -651,7 +651,7 @@ inline void matrix3x3<t_Ty>::extractAxisAngle (vector3<t_Ty>& axis, t_Ty& angle)
         }
         else
         {
-            // angle is PI
+            // angle is o_math_Pi
             t_Ty halfInverse;
             if (m[0] >= m[4])
             {
@@ -1235,7 +1235,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerXYZ (
             // yAngle = -pi/2
             // zAngle - xAngle = atan2(r10,r11)
             // WARNING.  The solution is not unique.  Choosing zAngle = 0.
-            yAngle = -HALF_PI;
+            yAngle = -o_math_Pi_by_2;
             xAngle = -atan2f(m[1], m[4]);
             zAngle = (t_Ty)0;
             return EA_NOT_UNIQUE_DIF;
@@ -1246,7 +1246,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerXYZ (
         // yAngle = +pi/2
         // zAngle + xAngle = atan2(r10,r11)
         // WARNING.  The solutions is not unique.  Choosing zAngle = 0.
-        yAngle = HALF_PI;
+        yAngle = o_math_Pi_by_2;
         xAngle = atan2f(m[1], m[4]);
         zAngle = (t_Ty)0;
         return EA_NOT_UNIQUE_SUM;
@@ -1281,7 +1281,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerXZY (
             // zAngle = +pi/2
             // yAngle - xAngle = atan2(-r20,r22)
             // WARNING.  The solution is not unique.  Choosing yAngle = 0.
-            zAngle = HALF_PI;
+            zAngle = o_math_Pi_by_2;
             xAngle = -atan2f(-m[2] ,m[8]);
             yAngle = (t_Ty)0;
             return EA_NOT_UNIQUE_DIF;
@@ -1292,7 +1292,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerXZY (
         // zAngle = -pi/2
         // yAngle + xAngle = atan2(-r20,r22)
         // WARNING.  The solution is not unique.  Choosing yAngle = 0.
-        zAngle = -HALF_PI;
+        zAngle = -o_math_Pi_by_2;
         xAngle = atan2f(-m[2], m[8]);
         yAngle = (t_Ty)0;
         return EA_NOT_UNIQUE_SUM;
@@ -1327,7 +1327,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerYXZ (
             // xAngle = +pi/2
             // zAngle - yAngle = atan2(-r01,r00)
             // WARNING.  The solution is not unique.  Choosing zAngle = 0.
-            xAngle = HALF_PI;
+            xAngle = o_math_Pi_by_2;
             yAngle = -atan2f(-m[3], m[0]);
             zAngle = (t_Ty)0;
             return EA_NOT_UNIQUE_DIF;
@@ -1338,7 +1338,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerYXZ (
         // xAngle = -pi/2
         // zAngle + yAngle = atan2(-r01,r00)
         // WARNING.  The solution is not unique.  Choosing zAngle = 0.
-        xAngle = -HALF_PI;
+        xAngle = -o_math_Pi_by_2;
         yAngle = atan2f(-m[3], m[0]);
         zAngle = (t_Ty)0;
         return EA_NOT_UNIQUE_SUM;
@@ -1373,7 +1373,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerYZX (
             // zAngle = -pi/2
             // xAngle - yAngle = atan2(r21,r22)
             // WARNING.  The solution is not unique.  Choosing xAngle = 0.
-            zAngle = -HALF_PI;
+            zAngle = -o_math_Pi_by_2;
             yAngle = -atan2f(m[5], m[8]);
             xAngle = (t_Ty)0;
             return EA_NOT_UNIQUE_DIF;
@@ -1384,7 +1384,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerYZX (
         // zAngle = +pi/2
         // xAngle + yAngle = atan2(r21,r22)
         // WARNING.  The solution is not unique.  Choosing xAngle = 0.
-        zAngle = HALF_PI;
+        zAngle = o_math_Pi_by_2;
         yAngle = atan2f(m[5], m[8]);
         xAngle = (t_Ty)0;
         return EA_NOT_UNIQUE_SUM;
@@ -1419,7 +1419,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerZXY (
             // xAngle = -pi/2
             // yAngle - zAngle = atan2(r02,r00)
             // WARNING.  The solution is not unique.  Choosing yAngle = 0.
-            xAngle = -HALF_PI;
+            xAngle = -o_math_Pi_by_2;
             zAngle = -atan2f(m[6], m[0]);
             yAngle = (t_Ty)0;
             return EA_NOT_UNIQUE_DIF;
@@ -1430,7 +1430,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerZXY (
         // xAngle = +pi/2
         // yAngle + zAngle = atan2(r02,r00)
         // WARNING.  The solution is not unique.  Choosing yAngle = 0.
-        xAngle = HALF_PI;
+        xAngle = o_math_Pi_by_2;
         zAngle = atan2f(m[6], m[0]);
         yAngle = (t_Ty)0;
         return EA_NOT_UNIQUE_SUM;
@@ -1465,7 +1465,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerZYX (
             // yAngle = +pi/2
             // xAngle - zAngle = atan2(r01,r02)
             // WARNING.  The solution is not unique.  Choosing xAngle = 0.
-            yAngle = HALF_PI;
+            yAngle = o_math_Pi_by_2;
             zAngle = -atan2f(m[3], m[6]);
             xAngle = (t_Ty)0;
             return EA_NOT_UNIQUE_DIF;
@@ -1476,7 +1476,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerZYX (
         // yAngle = -pi/2
         // xAngle + zAngle = atan2(-r01,-r02)
         // WARNING.  The solution is not unique.  Choosing xAngle = 0;
-        yAngle = -HALF_PI;
+        yAngle = -o_math_Pi_by_2;
         zAngle = atan2f(-m[3], -m[6]);
         xAngle = (t_Ty)0;
         return EA_NOT_UNIQUE_SUM;
@@ -1509,7 +1509,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerXYX (
         else
         {
             // Not a unique solution:  x1Angle - x0Angle = atan2(-r12,r11)
-            yAngle = PI;
+            yAngle = o_math_Pi;
             x0Angle = -atan2f(-m[7], m[4]);
             x1Angle = (t_Ty)0;
             return EA_NOT_UNIQUE_DIF;
@@ -1551,7 +1551,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerXZX (
         else
         {
             // Not a unique solution:  x1Angle - x0Angle = atan2(r21,r22)
-            zAngle = PI;
+            zAngle = o_math_Pi;
             x0Angle = -atan2f(m[5], m[8]);
             x1Angle = (t_Ty)0;
             return EA_NOT_UNIQUE_DIF;
@@ -1593,7 +1593,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerYXY (
         else
         {
             // Not a unique solution:  y1Angle - y0Angle = atan2(r02,r00)
-            xAngle = PI;
+            xAngle = o_math_Pi;
             y0Angle = -atan2f(m[6], m[0]);
             y1Angle = (t_Ty)0;
             return EA_NOT_UNIQUE_DIF;
@@ -1635,7 +1635,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerYZY (
         else
         {
             // Not a unique solution:  y1Angle - y0Angle = atan2(-r20,r22)
-            zAngle = PI;
+            zAngle = o_math_Pi;
             y0Angle = -atan2f(-m[2], m[8]);
             y1Angle = (t_Ty)0;
             return EA_NOT_UNIQUE_DIF;
@@ -1677,7 +1677,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerZXZ (
         else
         {
             // Not a unique solution:  z1Angle - z0Angle = atan2(-r01,r00)
-            xAngle = PI;
+            xAngle = o_math_Pi;
             z0Angle = -atan2f(-m[3], m[0]);
             z1Angle = (t_Ty)0;
             return EA_NOT_UNIQUE_DIF;
@@ -1719,7 +1719,7 @@ inline typename matrix3x3<t_Ty>::EulerResult matrix3x3<t_Ty>::extractEulerZYZ (
         else // r22 = -1
         {
             // Not a unique solution:  z1Angle - z0Angle = atan2(r10,r11)
-            yAngle = PI;
+            yAngle = o_math_Pi;
             z0Angle = -atan2f(m[1], m[4]);
             z1Angle = (t_Ty)0;
             return EA_NOT_UNIQUE_DIF;
@@ -1908,9 +1908,9 @@ template<class t_Ty>
 inline bool matrix3x3<t_Ty>::tridiagonalize (t_Ty diagonal[3], t_Ty subdiagonal[2])
 {
     // Householder reduction t_Ty = Q^t M Q
-    //   Input:   
+    //   Input:
     //     mat, symmetric 3x3 matrix M
-    //   Output:  
+    //   Output:
     //     mat, orthogonal matrix Q (a reflection)
     //     diag, diagonal entries of t_Ty
     //     subd, subdiagonal entries of t_Ty (t_Ty is symmetric)

@@ -52,8 +52,8 @@ public:
     typedef TNativeStaticDataMember<t_Ty, t_ContentType> self_type;
     
 public:
-    TNativeStaticDataMember(const string& a_strName, Type* a_pContentType, t_ContentType* a_member_field_pointer, Range* a_pRange, bitfield a_uiModifiers = 0)
-        : StaticDataMember(a_strName, a_pContentType, a_member_field_pointer, a_pRange, a_uiModifiers)
+    TNativeStaticDataMember(Type* a_pContentType, const string& a_strName, t_ContentType* a_member_field_pointer, Range* a_pRange, modifiers_t a_uiModifiers = 0)
+        : StaticDataMember(a_pContentType, a_strName, a_member_field_pointer, a_pRange, a_uiModifiers|o_native)
     {}
     
     virtual void        getValue( void const* a_pObject, void* dest ) const
@@ -73,21 +73,8 @@ public:
         *static_cast<t_ContentType*>(m_pAddress) = *static_cast<t_ContentType const*>(src);
     }
 
-    virtual void        deleteNow() 
-    {
-        o_dynamic_proxy_delete(phantom::reflection::StaticDataMember, phantom::reflection::StaticDataMember::metaType, self_type) this;
-    }
-
 };
 
 o_namespace_end(phantom, reflection, native)
-
-    /*o_traits_specialize_all_super_traitNTS(
-(phantom,reflection,native)
-, (typename, typename)
-, (t_Ty, t_ContentType)
-, TNativeStaticDataMember
-, (StaticDataMember)
-)*/
 
 #endif // TNativeStaticDataMember_h__

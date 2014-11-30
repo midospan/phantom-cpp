@@ -33,10 +33,9 @@
 
 #ifndef reflection_ConstIterator_h__
 #define reflection_ConstIterator_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
+
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, reflection), ConstIterator)
 /* *********************************************** */
@@ -45,6 +44,7 @@ o_namespace_begin(phantom, reflection)
 
 class o_export ConstIterator : public LanguageElement
 {
+    o_declare_meta_type(ConstIterator);
 
 public:
     ConstIterator(void)              {}

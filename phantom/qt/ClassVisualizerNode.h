@@ -13,8 +13,8 @@ namespace phantom { namespace qt {
     class o_qt_export ClassVisualizerNode : public ClassTypeVisualizerNode
     {
     public:
-        ClassVisualizerNode(const string& a_Condition)
-            : ClassTypeVisualizerNode(a_Condition)
+        ClassVisualizerNode(filter a_Filter = filter(&ClassTypeVisualizerNode::NoFilter))
+            : ClassTypeVisualizerNode(a_Filter)
         {
         }
         virtual void expand(VariableNode* a_pVariableNode, const vector<reflection::Expression*>& a_LeftExpressions) const;

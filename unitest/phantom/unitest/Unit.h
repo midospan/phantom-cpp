@@ -39,7 +39,7 @@
 /* ****************** Includes ******************* */
 #include "GameEntity.h"
 #include "Ability.h"
-#include "phantom/util/composition.h"
+#include "phantom/composition.h"
 #include "phantom/math/math.h"
 /* **************** Declarations ***************** */
 o_declareN(class, (sc2), RallyPoint)

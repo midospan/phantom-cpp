@@ -94,7 +94,7 @@ public:
     }
 
 public:
-    StateMachine(bitfield a_Modifiers = 0);
+    StateMachine(modifiers_t a_Modifiers = 0);
     o_destructor ~StateMachine(void);
 
     virtual StateMachine* asStateMachine() const { return (StateMachine*)this; }
@@ -161,7 +161,7 @@ public:
     void    solveQueuedTransitions(dynamic_state_machine_data* smdataptr);
     void    solveTransitions( dynamic_state_machine_data* smdataptr, uint a_uiEventId );
     void    queue(dynamic_state_machine_data* smdataptr, uint a_uiEventId);
-    virtual void    setup( StateMachine* a_pSuper );
+    virtual void    setup( StateMachine* a_pBase );
 
 protected:
     virtual variant compile(reflection::Compiler* a_pCompiler);

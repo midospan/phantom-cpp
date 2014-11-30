@@ -4,7 +4,7 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/qt/UndoCommand.h>
+#include <phantom/qt/DataBaseCommand.h>
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, qt), AddComponentDataCommand);
 /* *********************************************** */
@@ -16,7 +16,7 @@ namespace phantom { namespace qt {
  * \class AddComponentDataCommand
  * \brief Command to add a node
  * ************************************************ */
-class o_qt_export AddComponentDataCommand : public UndoCommand
+class o_qt_export AddComponentDataCommand : public DataBaseCommand
 {
 public:
 
@@ -33,15 +33,14 @@ public:
 	// Operations
 	//================================================
 
-	virtual void undo();
-	virtual void redo();
+	virtual void record();
+
     virtual AddComponentDataCommand* clone() const;
 
 protected:
 	//================================================
 	// Fields
 	//================================================
-    serialization::DataBase*        m_pDataBase;
     string                          m_strTypeName;
     string                          m_strReferenceExpression;
     uint                            m_uiGuid;

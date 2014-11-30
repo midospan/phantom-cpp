@@ -49,12 +49,26 @@ class TNativeSignalBase : public Signal
 public:
     typedef connection::slot::list (t_Ty::*member_pointer);
 
-    TNativeSignalBase(const string& a_strName, Signature* a_pSignature, member_pointer a_MemberPointer, bitfield a_Modifiers = 0)
-        : Signal(a_strName, a_pSignature, a_Modifiers)
-        , m_member_pointer(a_MemberPointer) 
+    TNativeSignalBase(const string& a_strName, Signature* a_pSignature, member_pointer a_MemberPointer, modifiers_t a_Modifiers = 0)
+        : Signal(o_dynamic_proxy_new(TNativeInstanceDataMember<t_Ty, connection::slot::list>)(connection::slot::list::metaType, string("PHANTOM_CODEGEN_m_slot_list_of_")+a_strName, a_MemberPointer, nullptr, 0, o_protected_access) 
+                , a_strName, a_pSignature, a_Modifiers|o_native)
+                , m_member_pointer(a_MemberPointer) 
     {
-        setSlotListDataMemberOffset( (size_t)&(((t_Ty*)nullptr)->*m_member_pointer) );
     }
+
+    virtual void                        call( void* a_pCallerAddress, void** a_pArgs ) const = 0;
+    virtual void                        call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const { call( a_pCallerAddress, a_pArgs ); }
+    virtual void                        call( void** a_pArgs ) const 
+    {
+        void* pCaller = *((void**)(*a_pArgs++));
+        call(pCaller, a_pArgs);
+    }
+    virtual void                        call( void** a_pArgs, void* a_pReturnAddress ) const 
+    { 
+        void* pCaller = *((void**)(*a_pArgs++));
+        call(pCaller, a_pArgs);
+    }
+
 protected:
     member_pointer            m_member_pointer;
 };
@@ -62,7 +76,7 @@ protected:
 
 o_namespace_end(phantom, reflection, native)
 
-    /*o_traits_specialize_all_super_traitNTS(
+    /*o_traits_specialize_all_base_traitNTB(
     (phantom,reflection,native)
     , (typename)
     , (t_Ty)

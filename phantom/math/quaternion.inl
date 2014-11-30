@@ -679,7 +679,7 @@ inline quaternion<t_Ty>& quaternion<t_Ty>::slerpExtraSpins (t_Ty t,
 	if (fabs(angle) >= epsilon<t_Ty>())
 	{
 		t_Ty sn = math::sin(angle);
-		t_Ty phase = PI*extraSpins*t;
+		t_Ty phase = o_math_Pi*extraSpins*t;
 		t_Ty invSin = ((t_Ty)1)/sn;
 		t_Ty coeff0 = math::sin(((t_Ty)1 - t)*angle - phase)*invSin;
 		t_Ty coeff1 = math::sin(t*angle + phase)*invSin;
@@ -1005,20 +1005,20 @@ inline void quaternion<t_Ty>::factorXYZ (t_Ty& cx, t_Ty& sx, t_Ty& cy,
 			// p = (p0,p1,p0,p1)
 			cx = (t_Ty)1;
 			sx = (t_Ty)0;
-			cy = INV_SQRT_2;
-			sy = INV_SQRT_2;
-			cz = SQRT_2 * m[0];
-			sz = SQRT_2 * m[1];
+			cy = o_math_inv_Sqrt_2;
+			sy = o_math_inv_Sqrt_2;
+			cz = o_math_Sqrt_2 * m[0];
+			sz = o_math_Sqrt_2 * m[1];
 		}
 		else
 		{
 			// p = (p0,p1,-p0,-p1)
 			cx = (t_Ty)1;
 			sx = (t_Ty)0;
-			cy = INV_SQRT_2;
-			sy = -INV_SQRT_2;
-			cz = SQRT_2 * m[0];
-			sz = -SQRT_2 * m[1];
+			cy = o_math_inv_Sqrt_2;
+			sy = -o_math_inv_Sqrt_2;
+			cz = o_math_Sqrt_2 * m[0];
+			sz = -o_math_Sqrt_2 * m[1];
 		}
 	}
 }
@@ -1211,8 +1211,8 @@ inline quaternion<t_Ty> quaternion<t_Ty>::closestXY (const constraints& xCon,
 			angle = atan2f(tmp[1], tmp[0]);
 			if (angle < minAngle || angle > maxAngle)
 			{
-				angle -= (tmp[1] >= (t_Ty)0 ? PI :
-						-PI);
+				angle -= (tmp[1] >= (t_Ty)0 ? o_math_Pi :
+						-o_math_Pi);
 				// assert(minAngle <= angle && angle <= maxAngle);
 			}
 
@@ -1244,8 +1244,8 @@ inline quaternion<t_Ty> quaternion<t_Ty>::closestXY (const constraints& xCon,
 			angle = atan2f(tmp[1], tmp[0]);
 			if (angle < minAngle || angle > maxAngle)
 			{
-				angle -= (tmp[1] >= (t_Ty)0 ? PI :
-						-PI);
+				angle -= (tmp[1] >= (t_Ty)0 ? o_math_Pi :
+						-o_math_Pi);
 				// assert(minAngle <= angle && angle <= maxAngle);
 			}
 
@@ -1406,8 +1406,8 @@ inline quaternion<t_Ty> quaternion<t_Ty>::closestZX (const constraints& zCon,
 			angle = atan2f(tmp[1], tmp[0]);
 			if (angle < minAngle || angle > maxAngle)
 			{
-				angle -= (tmp[1] >= (t_Ty)0 ? PI :
-						-PI);
+				angle -= (tmp[1] >= (t_Ty)0 ? o_math_Pi :
+						-o_math_Pi);
 				// assert(minAngle <= angle && angle <= maxAngle);
 			}
 
@@ -1439,8 +1439,8 @@ inline quaternion<t_Ty> quaternion<t_Ty>::closestZX (const constraints& zCon,
 			angle = atan2f(tmp[1], tmp[0]);
 			if (angle < minAngle || angle > maxAngle)
 			{
-				angle -= (tmp[1] >= (t_Ty)0 ? PI :
-						-PI);
+				angle -= (tmp[1] >= (t_Ty)0 ? o_math_Pi :
+						-o_math_Pi);
 				// assert(minAngle <= angle && angle <= maxAngle);
 			}
 
@@ -1601,8 +1601,8 @@ inline quaternion<t_Ty> quaternion<t_Ty>::closestZY (const constraints& zCon,
 			angle = atan2f(tmp[2], tmp[0]);
 			if (angle < minAngle || angle > maxAngle)
 			{
-				angle -= (tmp[2] >= (t_Ty)0 ? PI :
-						-PI);
+				angle -= (tmp[2] >= (t_Ty)0 ? o_math_Pi :
+						-o_math_Pi);
 				// assert(minAngle <= angle && angle <= maxAngle);
 			}
 
@@ -1634,8 +1634,8 @@ inline quaternion<t_Ty> quaternion<t_Ty>::closestZY (const constraints& zCon,
 			angle = atan2f(tmp[2], tmp[0]);
 			if (angle < minAngle || angle > maxAngle)
 			{
-				angle -= (tmp[2] >= (t_Ty)0 ? PI :
-						-PI);
+				angle -= (tmp[2] >= (t_Ty)0 ? o_math_Pi :
+						-o_math_Pi);
 				// assert(minAngle <= angle && angle <= maxAngle);
 			}
 

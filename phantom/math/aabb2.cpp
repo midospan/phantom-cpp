@@ -1,7 +1,12 @@
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include "aabb2.h"
+#include "aabb2.hxx"
 /* *********************************************** */
+o_registerNT((phantom, math), (typename), (t_Ty), aabb2);
+o_registerNTI((phantom, math), aabb2, (float));
+o_registerNTI((phantom, math), aabb2, (double));
+
 o_namespace_begin(phantom, math)
 
     template<>

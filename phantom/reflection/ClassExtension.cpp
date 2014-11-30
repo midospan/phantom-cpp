@@ -40,7 +40,7 @@ o_registerN((phantom, reflection), ClassExtension);
 o_namespace_begin(phantom, reflection) 
 
 ClassExtension::ClassExtension() 
-: LanguageElement(o_CS("NoName"),bitfield())
+: LanguageElement(o_CS("NoName"),modifiers_t())
 {
 
 }

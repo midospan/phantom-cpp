@@ -49,7 +49,7 @@ void BinaryFileTreeDataStateBase::loadState(Node* a_pNode, uint a_uiStateId)
     BinaryFileTreeNode* pNode = as<BinaryFileTreeNode*>(a_pNode);
     o_assert(pNode);
 
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(pNode->getOwnerDataBase());
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(pNode->getDataBase());
     o_assert(pDB);
 
     const string & path = statePath(a_pNode, a_uiStateId);
@@ -72,7 +72,7 @@ void BinaryFileTreeDataStateBase::saveState(Node* a_pNode, uint a_uiStateId)
     BinaryFileTreeNode* pNode = as<BinaryFileTreeNode*>(a_pNode);
     o_assert(pNode);
 
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(pNode->getOwnerDataBase());
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(pNode->getDataBase());
 
     const string & path = statePath(a_pNode, a_uiStateId);
     if(NOT(boost::filesystem::exists(path.c_str())))
@@ -91,7 +91,7 @@ void BinaryFileTreeDataStateBase::saveState(Node* a_pNode, uint a_uiStateId)
 
 void BinaryFileTreeDataStateBase::loadDataState(const phantom::data& a_Data, uint guid, Node* a_pNode, uint a_uiStateId)
 {
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(a_pNode->getOwnerDataBase());
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(a_pNode->getDataBase());
 	byte buffer[1000000];
 	byte* pBuffer = &(buffer[0]);
 	uint uiBufferSize = 0;
@@ -101,7 +101,7 @@ void BinaryFileTreeDataStateBase::loadDataState(const phantom::data& a_Data, uin
 
 void BinaryFileTreeDataStateBase::saveDataState(const phantom::data& a_Data, uint guid, Node* a_pNode, uint a_uiStateId)
 {
-    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(a_pNode->getOwnerDataBase());
+    BinaryFileTreeDataBase* pDB = static_cast<BinaryFileTreeDataBase*>(a_pNode->getDataBase());
 	byte buffer[1000000];
 	byte* pBuffer = &(buffer[0]);
 	a_Data.type()->serialize(a_Data.address(), pBuffer, m_uiSerializationFlag, pDB);

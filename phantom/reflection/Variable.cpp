@@ -45,15 +45,15 @@ Variable::Variable() : m_pRange(nullptr)
 
 }
 
-Variable::Variable( const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
-    : Constant(a_strName, a_Modifiers)
+Variable::Variable( const string& a_strName, modifiers_t a_Modifiers /*= 0*/ ) 
+    : LanguageElement(a_strName, a_Modifiers)
     , m_pRange(nullptr)
 {
 
 }
 
-Variable::Variable( const string& a_strName, Range* a_pRange, bitfield a_Modifiers /*= 0*/ ) 
-    : Constant(a_strName, a_Modifiers)
+Variable::Variable( const string& a_strName, Range* a_pRange, modifiers_t a_Modifiers /*= 0*/ ) 
+    : LanguageElement(a_strName, a_Modifiers)
     , m_pRange(a_pRange)
 {
     if(m_pRange)
@@ -62,7 +62,7 @@ Variable::Variable( const string& a_strName, Range* a_pRange, bitfield a_Modifie
     }
 }
 
-phantom::signal_t Variable::valueChanged() const
+phantom::signal_t Variable::valueChanged()
 {
     phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_valueChanged.head();
     while(pSlot)

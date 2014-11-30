@@ -65,6 +65,7 @@
 */
 
 #include "phantom/phantom.h"
+#include "phantom/ModuleLoader.h"
 
 o_namespace_begin(phantom, memory)
 
@@ -149,7 +150,7 @@ void Statistics::Unlock()
 }
 
 Statistics::allocation_info::allocation_info( const char* afile, unsigned int aline, size_t asize ) 
-    : file(afile), line(aline), size(asize), dynamic_init(Phantom::getState() < Phantom::eState_Installed)
+    : file(afile), line(aline), size(asize), dynamic_init(moduleLoader() == nullptr OR moduleLoader()->getLoadedModuleCount() == 0)
 {
 
 }

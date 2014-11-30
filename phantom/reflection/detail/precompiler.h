@@ -20,8 +20,9 @@ struct addressed_access_builder;
 
 class precompiler
 {
-    friend class CPlusPlus;
+    friend class phantom::reflection::CPlusPlus;
 
+public:
     precompiler() : m_pMessage(nullptr) {}
     precompiler(Message* a_pMessage) : m_pMessage(a_pMessage) {}
 
@@ -52,7 +53,7 @@ class precompiler
     void                precompile_variable_declaration(variable_declaration&, Namespace* a_pNamespace);
     void                precompile_statement(statement& s, LanguageElement* a_pScope);
     void                precompile_statement(statement& s, Block* a_pBlock);
-    Expression*         precompile_expression(expression& e, Block* a_pBlock);
+    Expression*         precompile_block_expression(expression& e, Block* a_pBlock);
     Expression*         precompile_expression(expression& e, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr);
     Expression*         precompile_cast_expression(cast_expression& e, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr);
     Expression*         precompile_pre_unary_expression(pre_unary_expression& e, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr);
@@ -82,14 +83,14 @@ class precompiler
     void                precompile_namespace_scope(namespace_scope & ns, Namespace* a_pNamespace);
     void                precompile_namespace_member_declaration(namespace_member_declaration & cu, Namespace* a_pNamespace);
     void                precompile_namespace_declaration(namespace_declaration & nd, Namespace* a_pNamespace);
-    void                precompile_nested_class_declaration(class_declaration & cd, int a_Modifiers, Class* a_pClass);
+    void                precompile_nested_class_declaration(class_declaration & cd, unsigned long long a_Modifiers, Class* a_pClass);
     void                precompile_class_declaration(class_declaration & cd, Namespace* a_pNamespace);
     string_node         precompile_named_or_unnamed_class_declaration(named_or_unnamed_class_declaration & cd, class_scope*& a_ClassScope);
-    void                precompile_class_scope(class_scope & cd, int a_iAccessQualifier, Class* a_pClass);
-    void                precompile_class_member_declaration(class_member_declaration & cmd, int& a_iAccessQualifier, Class* a_pClass);
+    void                precompile_class_scope(class_scope & cd, unsigned long long a_iAccessQualifier, Class* a_pClass);
+    void                precompile_class_member_declaration(class_member_declaration & cmd, unsigned long long& a_iAccessQualifier, Class* a_pClass);
     Signature*          precompile_signature(type& return_type, parameters& params, LanguageElement* a_pScope);
     void                precompile_parameters_local_variables(parameters& params, Signature* a_pSignature, Block* a_pBlock);
-    void                precompile_member_declaration(member_declaration& md, int a_Modifiers, Class* a_pClass);
+    void                precompile_member_declaration(member_declaration& md, unsigned long long a_Modifiers, Class* a_pClass);
     bool                precompile_string_literal(string_node& s, string& out);
 
     void error(const CodeLocation& a_Location, const char* a_Format, ...);

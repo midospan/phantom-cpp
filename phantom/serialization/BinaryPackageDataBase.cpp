@@ -71,4 +71,14 @@ void BinaryPackageDataBase::destroyNode(Node* a_pNode) const
     o_delete(BinaryPackageNode) a_pNode; 
 }
 
+void BinaryPackageDataBase::saveRuntimeTypes()
+{
+
+}
+
+void BinaryPackageDataBase::loadRuntimeTypes( Module* a_pModule )
+{
+
+}
+
 o_namespace_end(phantom, serialization)

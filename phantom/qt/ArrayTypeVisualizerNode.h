@@ -5,7 +5,7 @@
 /* ****************** Includes ******************* */
 #include "phantom/qt/TypeVisualizerNode.h"
 /* **************** Declarations ***************** */
-o_declareN(class, (phantom, qt), VariableModel);
+o_declareN(class, (phantom, qt), ArrayTypeVisualizerNode);
 o_fwd(class, phantom, qt, VariableNode);
 /* *********************************************** */
 

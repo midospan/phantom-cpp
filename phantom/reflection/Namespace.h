@@ -37,7 +37,6 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/reflection/LanguageElement.h>
 
 /* **************** Declarations ***************** */
 
@@ -53,6 +52,7 @@ public:
     typedef map<string, Namespace*> namespace_alias_map;
     typedef vector<Namespace*>  namespace_container;
     typedef vector<Function*>   function_container;
+    typedef vector<StaticVariable*> variable_container;
     typedef vector<Type*>       type_container;
     typedef vector<Template*>   template_container;
 
@@ -79,17 +79,22 @@ protected:
     o_signal_data(templateRemoved, Template*)
     o_signal_data(functionAdded, Function*)
     o_signal_data(functionRemoved, Function*)
+    o_signal_data(variableAdded, StaticVariable*)
+    o_signal_data(variableRemoved, StaticVariable*)
     //@}
 
 public:
     virtual Namespace*  asNamespace() const { return (Namespace*)this; }
     void                addType(Type* a_pType);
+    void                replaceType(Type* a_pOldType, Type* a_pNewType);
+    void                removeType(Type* a_pType);
     void                addFunction(Function* a_pFunction);
+    void                removeFunction(Function* a_pFunction);
+    void                addVariable(StaticVariable* a_pVariable);
+    void                removeVariable(StaticVariable* a_pVariable);
     void                addTemplate(Template* a_pTemplate);
     void                removeTemplate( Template* a_pTemplate );
     void                addNamespace(Namespace* a_pNamespace);
-    void                removeType(Type* a_pType);
-    void                removeFunction(Function* a_pFunction);
     void                removeNamespace(Namespace* a_pNamespace);
     void                getHierarchicalName(string* a_OutString);
     void                getHierarchicalNameNoRoot(string* a_OutString);
@@ -159,7 +164,7 @@ public:
         const string& a_strName
         , const vector<TemplateElement*>*
         , const vector<LanguageElement*>*
-        , bitfield a_Modifiers = 0) const;
+        , modifiers_t a_Modifiers = 0) const;
 
     virtual void    getElements(vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
 
@@ -172,6 +177,8 @@ protected:
     namespace_container m_Namespaces;
     mutable
     function_container  m_Functions;
+    mutable
+    variable_container  m_Variables;
     type_container      m_Types;
     template_container  m_Templates;
     typedef_map         m_Typedefs;

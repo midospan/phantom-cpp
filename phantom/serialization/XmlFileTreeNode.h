@@ -33,8 +33,6 @@
 
 #ifndef serialization_XmlFileTreeNode_h__
 #define serialization_XmlFileTreeNode_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
 #include "phantom/serialization/FileTreeNode.h"
@@ -51,47 +49,8 @@ class o_export XmlFileTreeNode : public FileTreeNode
     friend class XmlFileTreeDataStateBase;
 
 public:
-    XmlFileTreeNode(XmlFileTreeDataBase* a_pOwnerDataBase, uint guid, XmlFileTreeNode* a_pParentNode);
-    
-protected:
-    virtual void    saveIndex();
-    virtual void    saveTypes();
-    virtual void    saveAttributes();
-    virtual void    saveDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid) ;
-    virtual void    saveDataAttributes();
-    virtual void    saveDataAttributes(const phantom::data& a_Data, uint guid);
+    XmlFileTreeNode(XmlFileTreeDataBase* a_pDataBase, uint guid, XmlFileTreeNode* a_pParentNode);
 
-    virtual void    loadTypes();
-    virtual void    loadAttributes();
-    virtual void    loadDataAttributes();
-    virtual void    loadDataAttributes(const phantom::data& a_Data, uint guid);
-    virtual bool    canLoad(vector<string>* missing_types) const;
-    virtual void    cache();
-    virtual void    build(vector<data>& a_Data);
-    virtual void    deserialize(uint a_uiSerializationFlag, vector<data>& a_Data);
-    virtual void    restore(uint a_uiSerializationFlag, vector<data>& a_Data);
-    virtual void    uncache();
-    virtual void    unbuild();
-    virtual void    configure();
-    virtual void    unconfigure();
-
-    virtual void    preCache();
-    virtual bool    cacheOne(uint a_uiIndex);
-    virtual void    postCache();
-    virtual void    uncacheOne(const phantom::data& a_Data);
-    virtual void    buildOne(const phantom::data& a_Data);
-    virtual void    unbuildOne(const phantom::data& a_Data);
-    virtual void    deserializeOne(const phantom::data& a_Data, uint a_uiSerializationFlag);
-    virtual bool    restoreOne(const phantom::data& a_Data, uint a_uiSerializationFlag, uint a_uiPass);
-    virtual void    saveDataAttributesHelper(property_tree& tree, const phantom::data& a_Data);
-    virtual void    loadDataAttributesHelper( const property_tree& tree, const phantom::data& a_Data );
-    virtual void    loadDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint guid);
-    
-protected:
-    list<data>      m_DataAbortQueue;
-	property_tree	m_CacheTree;
-	vector<uint>    m_ParentGuids;
-    vector<string>  m_ReferenceExpressions;
 };
 
 o_namespace_end(phantom, serialization)

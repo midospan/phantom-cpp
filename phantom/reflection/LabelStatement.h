@@ -46,6 +46,7 @@ o_namespace_begin(phantom, reflection)
 
 class o_export LabelStatement : public Statement
 {
+    friend class Subroutine;
 public:
     LabelStatement();
     LabelStatement(const string& a_strLabelName);
@@ -58,8 +59,14 @@ public:
 
     const string&   getLabelName() const { return m_strLabelName; }
 
+    size_t          getIndex() const { return m_uiIndex; }
+
+protected:
+    void            ancestorChanged(LanguageElement* a_pLanguageElement);
+
 protected:
     string  m_strLabelName;
+    size_t  m_uiIndex;
 };
 
 o_namespace_end(phantom, reflection)

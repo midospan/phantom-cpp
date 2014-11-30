@@ -16,7 +16,7 @@ namespace qt {
         for(auto it = a_pParent->beginExpressions(); it != a_pParent->endExpressions(); ++it)
         {
             reflection::Expression* pLeftExpression = *it;
-            reflection::Expression* pCondition = phantom::expressionByName(m_Condition, pLeftExpression);
+            reflection::Expression* pCondition = m_Condition.empty() ? nullptr : phantom::expressionByName(m_Condition, pLeftExpression);
             bool bValue = true;
             if(pCondition != nullptr) 
             {

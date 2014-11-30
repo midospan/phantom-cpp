@@ -42,7 +42,13 @@ namespace qt {
         }
         for(auto it = mapExpressions.begin(); it != mapExpressions.end(); ++it)
         {
-            a_pParent->addChildNode(o_new(VariableNode)(it->first, it->second));
+            reflection::Expression* pLiteralExpression = phantom::expressionByName(it->first);
+            reflection::LanguageElement* pElement = pLiteralExpression->hatch();
+            VariableNode* pNode = o_new(VariableNode)(nameOf(pElement), it->second);
+            pNode->setIcon(QIcon(iconOf(pElement).c_str()));
+            a_pParent->addChildNode(pNode);
+            if(pElement == pLiteralExpression)
+                phantom::deleteElement(pElement);
         }
     }
 

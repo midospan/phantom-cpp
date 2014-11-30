@@ -33,8 +33,6 @@
 
 #ifndef serialization_DataStateBase_h__
 #define serialization_DataStateBase_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
 #include <phantom/phantom.h>
@@ -50,8 +48,9 @@ class o_export DataStateBase
     friend class DataBase;
 
 protected:
-    DataStateBase(const string& a_Url, uint a_uiSerializationFlag)
-        : m_strUrl(a_Url)
+    DataStateBase(DataBase* a_pDataBase, const string& a_Url, uint a_uiSerializationFlag = o_save_state)
+        : m_pDataBase(a_pDataBase)
+        , m_strUrl(a_Url)
         , m_uiSerializationFlag(a_uiSerializationFlag)
         , m_uiCurrentStateId(0)
     {
@@ -73,12 +72,13 @@ public:
     }
 
 protected:
-    virtual void loadState(Node* a_pNode, uint a_uiStateId) = 0;
-    virtual void saveState(Node* a_pNode, uint a_uiStateId) = 0;
+    virtual void loadState(Node* a_pNode, const vector<data>& a_Data, uint a_uiStateId) = 0;
+    virtual void saveState(Node* a_pNode, const vector<data>& a_Data, uint a_uiStateId) = 0;
     virtual void loadDataState(const phantom::data& a_Data, uint guid, Node* a_pNode, uint a_uiStateId) = 0;
     virtual void saveDataState(const phantom::data& a_Data, uint guid, Node* a_pNode, uint a_uiStateId) = 0;
 
 protected:
+    DataBase* m_pDataBase;
     string  m_strUrl;
     uint    m_uiSerializationFlag;
     uint    m_uiCurrentStateId;

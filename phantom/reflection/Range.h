@@ -33,8 +33,6 @@
 
 #ifndef o_phantom_reflection_Range_h__
 #define o_phantom_reflection_Range_h__
-// #pragma message("Including "__FILE__)
-
 
 /* ****************** Includes ******************* */
 #include <phantom/phantom.h>

@@ -67,6 +67,17 @@
 #    define o_export
 #endif    // #if (o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS) && !defined(PHANTOM_STATIC_LIB)
 
+
+#if (o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS)
+#    ifdef PHANTOM_STATIC_MODULE
+#        define o_export_typeInfosOf 
+#    else
+#        define o_export_typeInfosOf __declspec(dllexport)
+#    endif
+#else
+#    define o_export_typeInfosOf
+#endif    // #if (o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS) && !defined(PHANTOM_STATIC_LIB)
+
 //==========================================================
 // Deactivation of warning 4251
 // "T1 needs a DLL interface to be used by T2 class clients"

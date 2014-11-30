@@ -1,11 +1,11 @@
 /*
     This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
+         P reprocessed
+         H igh-level
+         A llocator
+         N ested state-machines and
+         T emplate
+         O riented
          M eta-programming
 
     For the latest infos and sources, see http://code.google.com/p/phantom-cpp
@@ -44,35 +44,39 @@ o_namespace_begin(phantom, reflection, native)
 template <typename t_Ty>
 class TNumericConstant : public NumericConstant
 {
-    o_static_assert(boost::is_arithmetic<t_Ty>::value OR boost::is_enum<t_Ty>::value OR phantom::is_nullptr_t<t_Ty>::value);
+    o_static_assert(boost::is_arithmetic<t_Ty>::value
+                    OR boost::is_enum<t_Ty>::value
+                    OR phantom::is_nullptr_t<t_Ty>::value
+                    OR boost::is_pointer<t_Ty>::value);
 
-    friend class PrimitiveType;
+    friend class phantom::reflection::PrimitiveType;
 
     typedef TNumericConstant<t_Ty> self_type;
-    
+
 public:
-    TNumericConstant(const string& a_strName, t_Ty a_Value)
-        : NumericConstant(a_strName) 
+    TNumericConstant(const string& a_strName, t_Ty a_Value, modifiers_t a_Modifiers = 0)
+        : NumericConstant(a_strName, a_Modifiers)
         , m_Value(a_Value)
     {
     }
-    TNumericConstant(t_Ty a_Value)
-     : NumericConstant(boost::lexical_cast<string>(a_Value)) m_Value(a_Value)
+    TNumericConstant(t_Ty a_Value, modifiers_t a_Modifiers = 0)
+        : NumericConstant(boost::lexical_cast<string>(a_Value), a_Modifiers)
+        , m_Value(a_Value)
     {
-    }
-
-    virtual void deleteNow() 
-    {
-        o_dynamic_proxy_delete(phantom::reflection::NumericConstant, phantom::reflection::NumericConstant::metaType, self_type) this;   
     }
 
 public:
-    virtual void        getValue(void* dest) const 
+    virtual void        getValue(void* a_pDest) const
     {
-        *static_cast<t_Ty*>(dest) = m_Value;
+        *static_cast<t_Ty*>(a_pDest) = m_Value;
     }
 
-    virtual boolean        equals(LanguageElement* a_pObject) const 
+    virtual bool        hasValue(void* a_pSrc) const
+    {
+        return *static_cast<t_Ty*>(a_pSrc) == m_Value;
+    }
+
+    virtual boolean        equals(LanguageElement* a_pObject) const
     {
         Constant* pOther = a_pObject->asConstant();
         if(pOther == nullptr) return false;
@@ -86,19 +90,16 @@ public:
 
     virtual Type*   getValueType() const { return typeOf<t_Ty>(); }
 
+    virtual TNumericConstant<t_Ty>* clone() const
+    {
+        return o_dynamic_proxy_new(self_type)(m_strName, m_Value);
+    }
+
 protected:
     t_Ty            m_Value;
 
 };
 
 o_namespace_end(phantom, reflection, native)
-
-    /*o_traits_specialize_all_super_traitNTS(
-    (phantom,reflection,native)
-    , (typename)
-    , (t_Ty)
-    , TNumericConstant
-    , (Constant)
-    )*/
 
 #endif

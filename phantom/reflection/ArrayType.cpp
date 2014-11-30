@@ -44,13 +44,21 @@ o_namespace_begin(phantom, reflection)
 o_define_meta_type(ArrayType);
 
 ArrayType::ArrayType( Type* a_pElementType, size_t a_uiCount ) 
-    : Type(e_array, a_pElementType->getName()+'['+phantom::lexical_cast<string>(a_uiCount)+']'
-, a_uiCount*a_pElementType->getSize(), a_pElementType->getAlignment())    
-, m_pElementType(a_pElementType)
-, m_uiCount(a_uiCount)
+    : Type(e_array, a_pElementType->getName()
+    , a_uiCount*a_pElementType->getSize(), a_pElementType->getAlignment(), a_pElementType->getModifiers())
+    , m_pElementType(a_pElementType)
+    , m_uiCount(a_uiCount)
 {
     o_assert(a_uiCount);
     addReferencedElement(m_pElementType);
+}
+
+ArrayType::~ArrayType( void )
+{
+    if(m_pElementType)
+    {
+        m_pElementType->removeExtendedType(this);
+    }
 }
 
 boolean ArrayType::isConvertibleTo( Type* a_pType ) const
@@ -92,10 +100,13 @@ void ArrayType::referencedElementRemoved( LanguageElement* a_pElement )
 {
     Type::referencedElementRemoved(a_pElement);
     if(m_pElementType == a_pElement)
+    {
+        m_pElementType->removeExtendedType(this);
         m_pElementType = nullptr;
+    }
 }
 
-Expression* ArrayType::solveOperator( const string& a_strOperator, const vector<Expression*>& a_Expressions, bitfield a_Modifiers ) const
+Expression* ArrayType::solveOperator( const string& a_strOperator, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers ) const
 {
     if(a_strOperator == "[]" AND a_Expressions.size() == 2)
     {
@@ -103,7 +114,7 @@ Expression* ArrayType::solveOperator( const string& a_strOperator, const vector<
         {
             if(a_Expressions[1]->getValueType()->isConvertibleTo(typeOf<size_t>()))
             {
-                if(a_Modifiers.isBitSet(o_const))
+                if(a_Modifiers & o_const)
                 {
                     return o_new(ArrayElementAccess)( constType(), a_Expressions[0], a_Expressions[1]);
                 }
@@ -129,5 +140,24 @@ void ArrayType::convertValueTo( Type* a_pDestType, void* a_pDestValue, void cons
     }
 }
 
+void ArrayType::valueFromString(const string& a_str, void* dest) const
+{
+    *reinterpret_cast<void**>(dest) = ::phantom::lexical_cast<void*>(a_str);
+}
+
+void ArrayType::valueToString(string& a_str, const void* src) const
+{
+    a_str += ::phantom::lexical_cast<string>(*((void**)src));
+}
+
+string ArrayType::getDecoratedName() const
+{
+    return m_pElementType->getDecoratedName()+'['+phantom::lexical_cast<string>(m_uiCount)+']';
+}
+
+string ArrayType::getQualifiedDecoratedName() const
+{
+    return m_pElementType->getQualifiedDecoratedName()+'['+phantom::lexical_cast<string>(m_uiCount)+']';
+}
 
 o_namespace_end(phantom, reflection)

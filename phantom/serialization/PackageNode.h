@@ -54,7 +54,7 @@ class o_export PackageNode : public Node
 
 public:
 
-    PackageNode(PackageDataBase* a_pOwnerDataBase, uint a_uiGuid, PackageNode* a_pParentNode);
+    PackageNode(PackageDataBase* a_pDataBase, uint a_uiGuid, PackageNode* a_pParentNode);
 };
 
 o_namespace_end(phantom, serialization)

@@ -46,7 +46,7 @@
 #include <QtCore/QSet>
 #include <QtGui/QIcon>
 #include <QtGui/QTreeWidget>
-#include <QtGui/QItemDelegate>
+#include <QtGui/QStyledItemDelegate>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QHeaderView>
 #include <QtGui/QPainter>
@@ -176,7 +176,13 @@ protected:
     void updateItemParents(QTreeWidgetItem *item);
     virtual void updateItemLook(QtBrowserItem* item);
     virtual void updateCustomExtraColumns( QTreeWidgetItem * item, QtProperty * property );
-
+    /*void paintEvent(QPaintEvent *)
+    {
+        QStyleOption opt;
+        opt.init(this);
+        QPainter p(this);
+        style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+    }*/
 protected:
   QMap<QtBrowserItem *, QTreeWidgetItem *> m_indexToItem;
   QMap<QTreeWidgetItem *, QtBrowserItem *> m_itemToIndex;
@@ -198,6 +204,9 @@ protected:
 class QWIDGETS_EXPORT QtPropertyEditorView : public QTreeWidget
 {
   Q_OBJECT
+
+  Q_PROPERTY(QColor noValueColor READ noValueColor WRITE setNoValueColor)
+
 public:
   QtPropertyEditorView(QWidget *parent = 0);
 
@@ -207,23 +216,34 @@ public:
   QTreeWidgetItem *indexToItem(const QModelIndex &index) const
   { return itemFromIndex(index); }
 
+  void setNoValueColor(const QColor& color) { m_noValueColor = color; }
+  const QColor& noValueColor() const { return m_noValueColor; }
+
+  virtual void closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint)
+  {
+      QTreeWidget::closeEditor(editor, hint);
+  }
+
 protected:
   void keyPressEvent(QKeyEvent *event);
   void mousePressEvent(QMouseEvent *event);
   void drawRow(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+  void focusOutEvent(QFocusEvent *event) { m_editorPrivate->focusOutEvent(event); }
+  void focusInEvent(QFocusEvent *event) { m_editorPrivate->focusInEvent(event); }
 
 private:
   QtTreePropertyBrowser* m_editorPrivate;
+  QColor                  m_noValueColor;
 };
 
 
 // ------------ QtPropertyEditorDelegate
-class QWIDGETS_EXPORT QtPropertyEditorDelegate : public QItemDelegate
+class QWIDGETS_EXPORT QtPropertyEditorDelegate : public QStyledItemDelegate
 {
   Q_OBJECT
 public:
   QtPropertyEditorDelegate(QObject *parent = 0)
-    : QItemDelegate(parent), m_editorPrivate(0), m_editedItem(0), m_editedWidget(0), m_nameEditedItem(0)
+    : QStyledItemDelegate(parent), m_editorPrivate(0), m_editedItem(0), m_editedWidget(0), m_nameEditedItem(0)
   {}
 
   void setEditor(QtTreePropertyBrowser *editorPrivate)

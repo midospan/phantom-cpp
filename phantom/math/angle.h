@@ -158,7 +158,7 @@ typedef angle<float64> angled;
 
 o_namespace_end(phantom, math)
 
-o_namespace_begin(phantom, extension, detail)
+o_namespace_begin(phantom, detail)
 
 template<typename t_Ty>
 struct safe_constructor_ <math::angle<t_Ty>>
@@ -170,6 +170,6 @@ struct safe_constructor_ <math::angle<t_Ty>>
     }
 };
 
-o_namespace_end(phantom, extension, detail)
+o_namespace_end(phantom, detail)
 
 #endif // phantom_math_angle_h__

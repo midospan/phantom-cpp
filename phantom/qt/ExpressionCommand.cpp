@@ -3,56 +3,70 @@
 #include "ExpressionCommand.h"
 #include "ExpressionCommand.hxx"
 #include "phantom/reflection/Expression.h"
+#include <phantom/Message.h>
 /* *********************************************** */
 o_registerN((phantom, qt), ExpressionCommand);
 
 o_namespace_begin(phantom, qt)
 
-ExpressionCommand::ExpressionCommand( const string& a_strUndoExpression, const string& a_strRedoExpression ) 
-    : m_strUndoExpression(a_strUndoExpression)
+ExpressionCommand::ExpressionCommand( serialization::DataBase* a_pDataBase, const string& a_strUndoExpression, const string& a_strRedoExpression ) 
+    : DataBaseCommand(a_pDataBase)
+    , m_strUndoExpression(a_strUndoExpression)
     , m_strRedoExpression(a_strRedoExpression)
-    , m_pNativeUndoExpression(nullptr)
-    , m_pNativeRedoExpression(nullptr)
+    , m_pPersistentUndoExpression(nullptr)
+    , m_pPersistentRedoExpression(nullptr)
 {
 
 }
 
-ExpressionCommand::ExpressionCommand( reflection::Expression* a_pNativeUndoExpression, reflection::Expression* a_pNativeRedoExpression )
-    : m_strUndoExpression(a_pNativeUndoExpression->getName())
-    , m_strRedoExpression(a_pNativeRedoExpression->getName())
-    , m_pNativeUndoExpression(a_pNativeUndoExpression->isNative() ? a_pNativeUndoExpression : nullptr)
-    , m_pNativeRedoExpression(a_pNativeRedoExpression->isNative() ? a_pNativeRedoExpression : nullptr)
+ExpressionCommand::ExpressionCommand( serialization::DataBase* a_pDataBase, reflection::Expression* a_pUndoExpression, reflection::Expression* a_pRedoExpression )
+    : DataBaseCommand(a_pDataBase)
+    , m_strUndoExpression(a_pUndoExpression->getName())
+    , m_strRedoExpression(a_pRedoExpression->getName())
+    , m_pPersistentUndoExpression(a_pUndoExpression->isPersistent() ? a_pUndoExpression : nullptr)
+    , m_pPersistentRedoExpression(a_pRedoExpression->isPersistent() ? a_pRedoExpression : nullptr)
 {
+
 }
 
-void ExpressionCommand::undo()
+void ExpressionCommand::redoReplayed()
 {
-    reflection::Expression* pExpression = m_pNativeUndoExpression;
-    if(pExpression == nullptr)
-    {
-        pExpression = phantom::expressionByName(m_strUndoExpression);
-        o_assert(pExpression);
-        if(pExpression->isNative()) // means execution wont change in time because statically defined in native C++
-        {
-            m_pNativeUndoExpression = pExpression;
-        }
-    }
-    pExpression->eval();
-}
-
-void ExpressionCommand::redo()
-{
-    reflection::Expression* pExpression = m_pNativeRedoExpression;
+    reflection::Expression* pExpression = m_pPersistentRedoExpression;
     if(pExpression == nullptr)
     {
         pExpression = phantom::expressionByName(m_strRedoExpression);
         o_assert(pExpression);
-        if(pExpression->isNative()) // means execution wont change in time because statically defined in native C++
+        if(pExpression->isPersistent()) // means execution wont change in time because statically defined in native C++
         {
-            m_pNativeRedoExpression = pExpression;
+            m_pPersistentRedoExpression = pExpression;
         }
     }
     pExpression->eval();
+}
+
+void ExpressionCommand::undoReplayed()
+{
+    reflection::Expression* pExpression = m_pPersistentUndoExpression;
+    if(pExpression == nullptr)
+    {
+        pExpression = phantom::expressionByName(m_strUndoExpression);
+        o_assert(pExpression);
+        if(pExpression->isPersistent()) // means execution wont change in time because statically defined in native C++
+        {
+            m_pPersistentUndoExpression = pExpression;
+        }
+    }
+    pExpression->eval();
+}
+
+void ExpressionCommand::asymetricRedo(Message* a_pMessage) 
+{
+    a_pMessage->warning(data(), "On executing expression : %s", m_strRedoExpression.c_str());
+}
+
+void ExpressionCommand::asymetricUndo(Message* a_pMessage) 
+{
+    a_pMessage->warning(data(), "On executing expression : %s", m_strUndoExpression.c_str());
 }
 
 o_namespace_end(phantom, qt)

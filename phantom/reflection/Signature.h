@@ -46,9 +46,11 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Signature : public LanguageElement
 {
+    friend class Subroutine;
 
 public:
     static Signature* Create( void );
+    static Signature* Create( Type* a_pType );
     static Signature* Create( const char* a_pText, TemplateSpecialization* a_pTemplateSpecialization, LanguageElement* a_pScope );
     
     enum EState
@@ -98,9 +100,12 @@ public:
     void            parse( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization = NULL, LanguageElement* a_pScope = (LanguageElement*)phantom::rootNamespace() );
 
     size_t          getParameterCount() const;
-    void            addParameterType(Type* a_pParameterType);
+    void            addParameter(Type* a_pParameterType, const string& a_strName = "", Expression* a_pDefaultValueExpression = nullptr);
     Type*           getParameterType(size_t a_uiParamIndex) const;
+    const string&   getParameterName(size_t a_uiParamIndex) const;
+    Expression*     getParameterDefaultValue(size_t a_uiParamIndex) const;
     void            setReturnType(Type* a_pType);
+    void            setParameterName(size_t i, const string& a_strName);
     Type*           getReturnType() const;
 
     virtual string  getQualifiedName() const;
@@ -111,15 +116,30 @@ public:
     bool            compareParameterList( Signature* a_pOther ) const { return matches(a_pOther->m_ParametersTypes); }
     
 protected:
-    static boolean  SeparateParameterTypes(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<Type*>& a_OutParameterTypes, LanguageElement* a_pScope);
-    static boolean  ParseParameterTypeList(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<Type*>& a_OutParameterTypes, LanguageElement* a_pScope);
+    static bool SeparateParameters(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<string>& a_OutParameters, LanguageElement* a_pScope);
+    static bool ParseParameterTypeList(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<Type*>& a_OutParameterTypes, vector<string>& a_OutParameterNames, vector<Expression*>& a_OutParameterExps, LanguageElement* a_pScope);
 
     void updateName();
+
     void referencedElementRemoved(LanguageElement* a_pElement);
+
+    void setReturnTypeName(string name);
+
+    string getReturnTypeName() const;
+
+    void setParameterTypeNames(vector<string> names);
+
+    vector<string> getParameterTypeNames() const;
+
+    virtual void finalize();
 
 protected:
     Type*               m_pReturnType;
     vector<Type*>       m_ParametersTypes;
+    vector<string>      m_ParameterNames;
+    vector<Expression*> m_ParameterDefaultValues;
+    string*             m_pReturnTypeName;
+    vector<string>*     m_pParameterTypeNames;
     size_t              m_uiArgumentStorageSize;
 };
 

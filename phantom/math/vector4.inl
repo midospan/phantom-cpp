@@ -321,7 +321,7 @@ inline t_Ty vector4<t_Ty>::normalize ()
 {
     t_Ty len = length();
 
-    if (len > std::numeric_limits<T>::epsilon())
+    if (len > std::numeric_limits<t_Ty>::epsilon())
     {
         t_Ty invLength = ((t_Ty)1)/len;
         m[0] *= invLength;

@@ -12,10 +12,10 @@
 #include "phantom/std/map.hxx"
 #include "phantom/std/string.h"
 #include "phantom/std/vector.h"
-#include "phantom/serialization/XmlFileTreeDataBase.h"
+#include "phantom/serialization/InfoFileTreeDataBase.h"
 #include "phantom/serialization/Node.h"
-#include "phantom/util/MessageTree.h"
-#include "phantom/util/Message.h"
+#include "phantom/MessageTree.h"
+#include "phantom/Message.h"
 #include "phantom/ModuleLoader.h"
 #include "phantom/qt/UndoStackView.h"
 #include "phantom/qt/ExpressionCommand.h"
@@ -26,7 +26,7 @@
 #include "phantom/qt/UnloadNodeCommand.h"
 #include "phantom/qt/LoadLibraryCommand.h"
 #include "phantom/qt/UnloadLibraryCommand.h"
-#include "phantom/qt/MoveToTrashbinCommand.h"
+#include "phantom/qt/RemoveDataCommand.h"
 #include "phantom/qt/AddDataCommand.h"
 #include "phantom/qt/SaveDataCommand.h"
 #include "phantom/qt/NodeAttributeChangeCommand.h"
@@ -39,12 +39,34 @@
 #include <QVBoxLayout>
 #include "phantom/std/vector.h"
 #include "phantom/std/vector.hxx"
+#include "phantom/flags.hxx"
+#include "phantom/composition.h"
+#include "phantom/composition.hxx"
+#include "phantom/component.h"
+#include "phantom/component.hxx"
 
 o_registerNTI((std), vector, (float));
 o_registerNTI((std), vector, (int));
 o_registerNTI((std), vector, (phantom::vector<std::vector<int>>));
 o_registerNTI((std), map, (phantom::string, phantom::string));
 
+enum ETestFlag
+{
+    e_TestFlag_Flag0 = 0x1,
+    e_TestFlag_Flag1 = 0x2,
+    e_TestFlag_Flag2 = 0x4,
+    e_TestFlag_All = e_TestFlag_Flag0|e_TestFlag_Flag1|e_TestFlag_Flag2,
+};
+
+o_enum(ETestFlag, (e_TestFlag_Flag0, e_TestFlag_Flag1, e_TestFlag_Flag2, e_TestFlag_All));
+o_register(ETestFlag);
+
+o_registerNTI((phantom), flags, (ETestFlag));
+
+
+o_declare_flags(TestFlags, ETestFlag);
+
+o_typedef(TestFlags);
 class Test
 {
 public:
@@ -71,83 +93,182 @@ public:
     phantom::math::transform2<float> mTransform;
     Test* m_pOtherTest;
     Test* m_pComponentTest;
+    TestFlags m_TestFlags;
 };
 
 o_class(Test, o_public)
 {
     o_reflection 
     {
-        o_nested_typedef(nested_vectors);
-        o_nested_typedef(map);
-        o_data_member(Test*, m_pOtherTest, o_no_range, o_public);
-        o_data_member(Test*, m_pComponentTest, o_no_range, (o_public|o_component));
-        o_data_member(bool, mBool, o_no_range, o_public);
-        o_data_member(char, mChar, o_no_range, o_public);
-        o_data_member(unsigned char, mUChar, o_no_range, o_public);
-        o_data_member(short, mShort, o_no_range, o_public);
-        o_data_member(unsigned short, mUShort, o_no_range, o_public);
-        o_data_member(int, mInt, (-5, 0, 5), o_public);
-        o_data_member(unsigned int, mUInt, o_no_range, o_public);
-        o_data_member(long, mLong, o_no_range, o_public);
-        o_data_member(unsigned long, mULong, o_no_range, o_public);
-        o_data_member(float, mFloat, o_no_range, o_public);
-        o_data_member(double, mDouble, o_no_range, o_public);
-        o_data_member(std::vector<float>, mFloats, o_no_range, o_public);
-        o_data_member(map, mStrings, o_no_range, o_public);
-        o_data_member(nested_vectors, mNestedVectors, o_no_range, o_public);
-        o_property(const phantom::math::transform2<float>&, transform, setTransform, getTransform, o_no_signal, o_no_range, o_public);
+//         o_nested_typedef(nested_vectors);
+//         o_nested_typedef(map);
+//         o_data_member(Test*, m_pOtherTest, o_no_range, o_public);
+//         o_data_member(Test*, m_pComponentTest, o_no_range, (o_public|o_component));
+//         o_data_member(bool, mBool, o_no_range, o_public);
+//         o_data_member(char, mChar, o_no_range, o_public);
+//         o_data_member(unsigned char, mUChar, o_no_range, o_public);
+//         o_data_member(short, mShort, o_no_range, o_public);
+//         o_data_member(unsigned short, mUShort, o_no_range, o_public);
+//         o_data_member(int, mInt, (-5, 0, 5), o_public);
+//         o_data_member(unsigned int, mUInt, o_no_range, o_public);
+//         o_data_member(long, mLong, o_no_range, o_public);
+//         o_data_member(unsigned long, mULong, o_no_range, o_public);
+//         o_data_member(float, mFloat, o_no_range, o_public);
+//         o_data_member(double, mDouble, o_no_range, o_public);
+//         o_data_member(std::vector<float>, mFloats, o_no_range, o_public);
+//         o_data_member(map, mStrings, o_no_range, o_public);
+//         o_data_member(nested_vectors, mNestedVectors, o_no_range, o_public);
+//         o_data_member(TestFlags, m_TestFlags, o_no_range, o_public);
+//         o_property(const phantom::math::transform2<float>&, transform, setTransform, getTransform, o_no_signal, o_no_range, o_public);
     };
 };
-o_expose(Test);
+
 o_register(Test);
+
+
+class SubComponent 
+{
+public:
+    SubComponent () : m_Id(0) {}
+
+    void setId(int id)
+    {
+        if(m_Id == id) return;
+        m_Id = id;
+        o_emit idChanged(id);
+    }
+    int getId() const { return m_Id; }
+
+protected:
+    o_signal_data(idChanged, int);
+
+public:
+    int m_Id;
+};
+
+o_class(SubComponent, o_protected)
+{
+    o_reflection 
+    {
+        o_property(int, id, setId, getId, idChanged, o_no_range, o_protected);
+        o_data_member(int, m_Id, o_no_range, o_protected);
+    };
+};
+o_register(SubComponent);
+o_registerNTI((phantom), component, (SubComponent));
+
+class DerivedTestB : public Test
+{
+public:
+    typedef phantom::composition<SubComponent> SubComponents;
+    int b;
+
+    o_initialize()
+    {
+        //m_SubComponents.add(o_new(SubComponent));
+    }
+
+    o_component(SubComponent) m_SubComponent;
+    SubComponents m_SubComponents;
+};
 
 
 class DerivedTestA : public Test
 {
 public:
+    DerivedTestA() : m_Count(0), m_pDerivedTestB(nullptr), m_pSubComponent(nullptr) {}
+
+    void setDerivedTestB(DerivedTestB* a_pDerivedTestB)
+    {
+        if(m_pDerivedTestB == a_pDerivedTestB) return;
+        m_pDerivedTestB = a_pDerivedTestB;
+        updateCount();
+        o_emit derivedTestBChanged(a_pDerivedTestB);
+    }
+
+    DerivedTestB* getDerivedTestB() const { return m_pDerivedTestB; }
+
+    void setSubComponent(SubComponent* a_pSubComponent)
+    {
+        if(m_pSubComponent == a_pSubComponent) return;
+        m_pSubComponent = a_pSubComponent;
+        o_emit subComponentChanged(m_pSubComponent);
+    }
+
+    SubComponent* getSubComponent() const { return m_pSubComponent; }
+
+    void setCount(size_t a_Count)
+    {
+        if(m_Count == a_Count) return;
+        m_Count = a_Count;
+        updateCount();
+        o_emit countChanged(a_Count);
+    }
+
+    void updateCount()
+    {
+        if(m_pDerivedTestB)
+        {
+            while(m_pDerivedTestB->m_SubComponents.count() > m_Count)
+            {
+                m_pDerivedTestB->m_SubComponents.removeLast();
+            }
+            while(m_pDerivedTestB->m_SubComponents.count() < m_Count)
+            {
+                m_pDerivedTestB->m_SubComponents.add(o_new(SubComponent));
+            }
+        }
+    }
+
+    size_t getCount() const { return m_Count; }
+
+    o_signal_data(countChanged, size_t);
+
+    o_signal_data(derivedTestBChanged, DerivedTestB*);
+
+    o_signal_data(subComponentChanged, SubComponent*);
+
+    size_t m_Count;
+    DerivedTestB* m_pDerivedTestB;
+    SubComponent* m_pSubComponent;
+
     int a;
 };
+
 
 o_classS(DerivedTestA, (Test), o_public)
 {
     o_reflection 
     {
         o_data_member(int, a, o_no_range, o_public);
+        o_property(DerivedTestB*, derivedTestB, setDerivedTestB, getDerivedTestB, derivedTestBChanged, o_no_range, o_public);
+        o_property(SubComponent*, subComponent, setSubComponent, getSubComponent, subComponentChanged, o_no_range, o_public);
+        o_property(size_t, count, setCount, getCount, countChanged, o_no_range, o_public);
     };
 };
-o_expose(DerivedTestA);
 o_register(DerivedTestA);
-
-class DerivedTestB : public Test
-{
-public:
-    int b;
-};
 
 o_classS(DerivedTestB, (Test), o_public)
 {
     o_reflection 
     {
         o_data_member(int, b, o_no_range, o_public);
+        o_nested_typedef(SubComponents);
+        o_data_member(SubComponents, m_SubComponents, o_no_range, o_protected);
+        o_data_member(phantom::component<SubComponent>, m_SubComponent, o_no_range, o_protected);
     };
 };
-o_expose(DerivedTestB);
 o_register(DerivedTestB);
-
-
-
 
 qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
     : QMainWindow(parent, flags)
 {
     ui.setupUi(this);
-    phantom::Message* pMessage = o_new(phantom::Message);
+    phantom::Message* pMessage = phantom::topMessage("");
     phantom::qt::MessageDisplay* pMessageDisplay = o_new(phantom::qt::MessageDisplay);
-    pMessageDisplay->addListenedMessage(phantom::topMessage("modules"));
-    pMessageDisplay->addListenedMessage(phantom::topMessage("data"));
+    pMessageDisplay->setRootMessage(pMessage);
         
-    phantom::serialization::XmlFileTreeDataBase* pDataBase = o_new(phantom::serialization::XmlFileTreeDataBase)("./unitest/qt_test/db/", 0x1);
-    pDataBase->addTrashbin("./unitest/qt_test/db_trash/");
+    phantom::serialization::InfoFileTreeDataBase* pDataBase = o_new(phantom::serialization::InfoFileTreeDataBase)("./unitest/qt_test/db/", 0x1);
     phantom::qt::UndoStack* pUndoStack = o_new(phantom::qt::UndoStack);
     phantom::qt::UndoStackView* pUndoStackView = o_new(phantom::qt::UndoStackView);
     pUndoStackView->setUndoStack(pUndoStack);
@@ -173,6 +294,8 @@ qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
 
     pDataBase->addAttribute("name");
     pDataBase->addAttribute("category");
+    pDataBase->rootNode()->saveIndex();
+    pDataBase->rootNode()->saveAttributes();
     pDataBase->loadNodeEntries();
     pDataBase->rootNode()->load();
     phantom::vector<phantom::data> data0;

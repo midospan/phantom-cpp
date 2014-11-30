@@ -1,11 +1,11 @@
 /*
     This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
+         P reprocessed
+         H igh-level
+         A llocator
+         N ested state-machines and
+         T emplate
+         O riented
          M eta-programming
 
     For the latest infos and sources, see http://code.google.com/p/phantom-cpp
@@ -38,11 +38,11 @@
 /* *********************************************** */
 o_registerN((phantom), Module);
 
-o_namespace_begin(phantom) 
+o_namespace_begin(phantom)
 
 struct ModuleLanguageElementSorter
 {
-    bool operator()(const reflection::LanguageElement* l0, const reflection::LanguageElement* l1) const 
+    bool operator()(const reflection::LanguageElement* l0, const reflection::LanguageElement* l1) const
     {
         reflection::Type* pType0 = l0->asType();
         reflection::Type* pType1 = l1->asType();
@@ -51,7 +51,7 @@ struct ModuleLanguageElementSorter
             if(pType0->isKindOf(pType1))
                 return true;
             else if(pType1->isKindOf(pType0))
-                return false; 
+                return false;
             return pType0->getBuildOrder() > pType1->getBuildOrder();
         }
         else if(pType0)
@@ -66,16 +66,16 @@ struct ModuleLanguageElementSorter
     }
 };
 
-Module::Module( const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle ) 
+Module::Module( const string& a_strName, const string& a_strFilePath, size_t a_PlatformHandle )
     : m_strName(a_strName)
     , m_pParentModule(nullptr)
     , m_PlatformHandle(a_PlatformHandle)
-    , m_strFileName(a_strFileName)
+    , m_strFilePath(a_strFilePath)
 {
 
 }
 
-Module::~Module() 
+Module::~Module()
 {
 
 }
@@ -92,22 +92,21 @@ o_terminate_cpp(Module)
         auto end = m_LanguageElements.end();
         for(;it!=end;++it)
         {
-            if((*it)->canBeDestroyed()) 
+            if((*it)->canBeDestroyed())
                 break;
         }
         if(it != end)
         {
             reflection::LanguageElement* pElement = *it;
-            o_emit elementRemoved(pElement);
-            pElement->terminate();
-            pElement->deleteNow();
+            o_emit elementAboutToBeRemoved(pElement);
+            o_dynamic_delete pElement;
         }
         else
         {
-            
+
 #if defined(_DEBUG)
             std::cout<<console::bg_gray<<console::fg_red;
-            std::cout<<"Phantom release process : some class instances haven't been destroyed"<<std::endl;
+            o_warning(false, "Module unloading process : some elements can't be destroyed due to remaining instances, see the list of all instances remaining below...");
 
             std::cout<<console::bg_black;
 
@@ -124,18 +123,17 @@ o_terminate_cpp(Module)
                 }
             }
             std::cout<<console::fg_gray;
-            o_assert(false);
-/*
-#   if o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS 
-                system("pause");
-#   endif*/
+
+#   if o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS
+            system("pause");
+#   endif
 #endif
             return;
         }
     }
 }
 
-void Module::addLanguageElement(reflection::LanguageElement* a_pLanguageElement) 
+void Module::addLanguageElement(reflection::LanguageElement* a_pLanguageElement)
 {
     o_assert(a_pLanguageElement->m_pModule == nullptr);
     o_assert(std::find(m_LanguageElements.begin(), m_LanguageElements.end(), a_pLanguageElement) == m_LanguageElements.end());
@@ -144,21 +142,58 @@ void Module::addLanguageElement(reflection::LanguageElement* a_pLanguageElement)
     o_emit elementAdded(a_pLanguageElement);
 }
 
-void Module::removeLanguageElement(reflection::LanguageElement* a_pLanguageElement) 
+void Module::removeLanguageElement(reflection::LanguageElement* a_pLanguageElement)
 {
-    o_emit elementRemoved(a_pLanguageElement);
+    o_emit elementAboutToBeRemoved(a_pLanguageElement);
     o_assert(a_pLanguageElement->m_pModule == this);
     m_LanguageElements.erase(std::find(m_LanguageElements.begin(), m_LanguageElements.end(), a_pLanguageElement));
     a_pLanguageElement->setModule(nullptr);
 }
 
-void Module::replaceLanguageElement( reflection::LanguageElement* a_pOldLanguageElement, reflection::LanguageElement* a_pNewLanguageElement )
+void Module::beginReplaceLanguageElement( reflection::LanguageElement* a_pOldLanguageElement )
 {
-    auto found = std::find(m_LanguageElements.begin(), m_LanguageElements.end(), a_pOldLanguageElement);
-    *found = a_pNewLanguageElement;
-    a_pOldLanguageElement->setModule(nullptr);
-    a_pNewLanguageElement->setModule(this);
-    o_emit elementReplaced(a_pOldLanguageElement, a_pNewLanguageElement);
+    vector<reflection::LanguageElement*> oldElements;
+    oldElements.push_back(a_pOldLanguageElement);
+    beginReplaceLanguageElements(oldElements);
+}
+
+void Module::beginReplaceLanguageElements( const vector<reflection::LanguageElement*>& a_OldLanguageElements )
+{
+    o_error(m_ReplacementOldElements.empty(), "A replacement is already in progress, call endReplaceLanguageElements to finish the current replacement");
+    m_ReplacementOldElements = a_OldLanguageElements;
+    o_assert(m_ReplacementOldElements.size(), "No elements passed as arguments");
+    for(size_t i = 0; i<m_ReplacementOldElements.size(); ++i)
+    {
+        o_error(m_ReplacementOldElements[i]->getOwner(), "Old elements must have their owner before being replaced");
+    }
+    o_emit elementsAboutToBeReplaced(m_ReplacementOldElements);
+}
+
+void Module::endReplaceLanguageElements(const vector<reflection::LanguageElement*>& a_NewLanguageElements)
+{
+    o_error(NOT(m_ReplacementOldElements.empty()) AND NOT(a_NewLanguageElements.empty())
+        , "A replacement is already in progress, call endReplaceLanguageElements to finish the current replacement");
+    for(size_t i = 0; i<m_ReplacementOldElements.size(); ++i)
+    {
+        if(classOf(a_NewLanguageElements[i]) != classOf(m_ReplacementOldElements[i]))
+        {
+            o_exception(exception::base_exception, "Old type and new type doesn't have the same class");
+        }
+        auto found = std::find(m_LanguageElements.begin(), m_LanguageElements.end(), m_ReplacementOldElements[i]);
+        *found = a_NewLanguageElements[i];
+        m_ReplacementOldElements[i]->setModule(nullptr);
+        a_NewLanguageElements[i]->setModule(this);
+        o_error(a_NewLanguageElements[i]->getOwner(), "New elements must have their owner after being replaced");
+    }
+    o_emit elementsReplaced(m_ReplacementOldElements, a_NewLanguageElements);
+    m_ReplacementOldElements.clear();
+}
+
+void Module::endReplaceLanguageElement( reflection::LanguageElement* a_pNewLanguageElement )
+{
+    vector<reflection::LanguageElement*> newElements;
+    newElements.push_back(a_pNewLanguageElement);
+    endReplaceLanguageElements(newElements);
 }
 
 void Module::setParentModule( Module* a_pModule )
@@ -203,46 +238,77 @@ bool Module::canBeUnloaded() const
     return true;
 }
 
-phantom::signal_t Module::elementAdded(reflection::LanguageElement* a_0) const
+phantom::signal_t Module::elementAdded(reflection::LanguageElement* a_0)
 {
-    phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_elementAdded.head();
-    while(pSlot)
+    if(PHANTOM_CODEGEN_m_slot_list_of_elementAdded.unblocked())
     {
-        phantom::connection::pair::push(this, pSlot);
-        void* args[] = { (void*)(&a_0) };
-        pSlot->subroutine()->call( pSlot->receiver(), args );
-        pSlot = pSlot->next();
-        phantom::connection::pair::pop();
+        phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_elementAdded.head();
+        while(pSlot)
+        {
+            phantom::connection::pair::push(this, pSlot);
+            void* args[] = { (void*)(&a_0) };
+            pSlot->subroutine()->call( pSlot->receiver(), args );
+            pSlot = pSlot->next();
+            phantom::connection::pair::pop();
+        }
     }
     return phantom::signal_t();
 }
 
-phantom::signal_t Module::elementRemoved(reflection::LanguageElement* a_0) const
+phantom::signal_t Module::elementAboutToBeRemoved(reflection::LanguageElement* a_0)
 {
-    phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_elementRemoved.head();
-    while(pSlot)
+    if(PHANTOM_CODEGEN_m_slot_list_of_elementAboutToBeRemoved.unblocked())
     {
-        phantom::connection::pair::push(this, pSlot);
-        void* args[] = { (void*)(&a_0) };
-        pSlot->subroutine()->call( pSlot->receiver(), args );
-        pSlot = pSlot->next();
-        phantom::connection::pair::pop();
+        phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_elementAboutToBeRemoved.head();
+        while(pSlot)
+        {
+            phantom::connection::pair::push(this, pSlot);
+            void* args[] = { (void*)(&a_0) };
+            pSlot->subroutine()->call( pSlot->receiver(), args );
+            pSlot = pSlot->next();
+            phantom::connection::pair::pop();
+        }
     }
     return phantom::signal_t();
 }
 
-phantom::signal_t Module::elementReplaced(reflection::LanguageElement* a_0, reflection::LanguageElement* a_1) const
+phantom::signal_t Module::elementsAboutToBeReplaced(const vector<reflection::LanguageElement*>& a_0)
 {
-    phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_elementReplaced.head();
-    while(pSlot)
+    if(PHANTOM_CODEGEN_m_slot_list_of_elementsAboutToBeReplaced.unblocked())
     {
-        phantom::connection::pair::push(this, pSlot);
-        void* args[] = { (void*)(&a_0), (void*)(&a_1) };
-        pSlot->subroutine()->call( pSlot->receiver(), args );
-        pSlot = pSlot->next();
-        phantom::connection::pair::pop();
+        phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_elementsAboutToBeReplaced.head();
+        while(pSlot)
+        {
+            phantom::connection::pair::push(this, pSlot);
+            void* args[] = { (void*)(&a_0) };
+            pSlot->subroutine()->call( pSlot->receiver(), args );
+            pSlot = pSlot->next();
+            phantom::connection::pair::pop();
+        }
     }
     return phantom::signal_t();
+}
+
+phantom::signal_t Module::elementsReplaced(const vector<reflection::LanguageElement*>& a_0, const vector<reflection::LanguageElement*>& a_1)
+{
+    if(PHANTOM_CODEGEN_m_slot_list_of_elementsReplaced.unblocked())
+    {
+        phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_elementsReplaced.head();
+        while(pSlot)
+        {
+            phantom::connection::pair::push(this, pSlot);
+            void* args[] = { (void*)(&a_0), (void*)(&a_1) };
+            pSlot->subroutine()->call( pSlot->receiver(), args );
+            pSlot = pSlot->next();
+            phantom::connection::pair::pop();
+        }
+    }
+    return phantom::signal_t();
+}
+
+string Module::getFileName() const
+{
+    return m_strFilePath.substr(m_strFilePath.find_last_of("\\/")+1);
 }
 
 o_namespace_end(phantom)

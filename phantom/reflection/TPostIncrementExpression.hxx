@@ -2,7 +2,8 @@
 
 #include "PostUnaryOperationExpression.hxx"
 
-o_classNTS((phantom, reflection), (typename), (t_Ty), TPostIncrementExpression, (PostUnaryOperationExpression)) { o_reflection {}; };
+o_classNTB((phantom, reflection), (typename), (t_Ty), TPostIncrementExpression, (PostUnaryOperationExpression)) (
+        );
 
 
 

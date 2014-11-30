@@ -1,6 +1,8 @@
 #pragma once
 
-o_classNS((phantom, qt), LoadNodeCommand, (UndoCommand))
+#include "DataBaseCommand.hxx"
+
+o_classNB((phantom, qt), LoadNodeCommand, (DataBaseCommand))
 {
     o_reflection 
     {

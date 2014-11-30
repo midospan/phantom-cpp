@@ -36,10 +36,11 @@
 #include <phantom/reflection/ClassType.h>
 #include <phantom/reflection/ClassType.hxx>
 #include <phantom/reflection/Compiler.h>
-#include <phantom/reflection/Expression.h>
+#include <phantom/reflection/AssignmentExpression.h>
 #include <phantom/variant.h>
 #include <phantom/reflection/ValueMember.hxx>
 #include <phantom/reflection/CallExpression.h>
+#include <phantom/reflection/Block.h>
 #include <phantom/reflection/StaticVariableAccess.h>
 #include <phantom/reflection/SingleParameterFunctionExpression.h>
 #include <phantom/reflection/ConstructorCallExpression.h>
@@ -50,16 +51,16 @@ o_namespace_begin(phantom, reflection)
 
 static vector<StaticDataMember*>      m_EmptyStaticDataMembers;
 static vector<StaticMemberFunction*>  m_EmptyStaticMemberFunctions;
-static vector<Collection*>            m_EmptyCollections;
+static vector<AnonymousSection*>            m_EmptyAnonymousSections;
 static vector<Constructor*>           m_EmptyConstructors;
 
 o_define_meta_type(ClassType);
 
-ClassType::ClassType( extra_data* a_pExtraData, const string& a_strName, bitfield a_Modifiers /*= 0*/ ) 
-    : Type(e_struct, a_strName, a_Modifiers)
+ClassType::ClassType(ETypeId a_eTypeId, extra_data* a_pExtraData)
+    : Type(a_eTypeId)
     , m_pAttributes(nullptr)
     , m_pStaticMemberFunctions(nullptr)
-    , m_pCollections(nullptr)
+    , m_pAnonymousSections(nullptr)
     , m_pConstructors(nullptr)
     , m_pStaticDataMembers(nullptr)
     , m_pExtraData(a_pExtraData)
@@ -67,16 +68,44 @@ ClassType::ClassType( extra_data* a_pExtraData, const string& a_strName, bitfiel
     m_uiSerializedSize = m_uiResetSize = 0;
 }
 
-ClassType::ClassType( const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers /*= 0*/ ) 
-    : Type(e_struct, a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+ClassType::ClassType( ETypeId a_eTypeId, extra_data* a_pExtraData, const string& a_strName, modifiers_t a_Modifiers /*= 0*/ ) 
+    : Type(a_eTypeId, a_strName, a_Modifiers)
     , m_pAttributes(nullptr)
     , m_pStaticMemberFunctions(nullptr)
-    , m_pCollections(nullptr)
+    , m_pAnonymousSections(nullptr)
+    , m_pConstructors(nullptr)
+    , m_pStaticDataMembers(nullptr)
+    , m_pExtraData(a_pExtraData)
+{
+    m_uiSerializedSize = m_uiResetSize = 0;
+}
+
+ClassType::ClassType( ETypeId a_eTypeId, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers /*= 0*/ ) 
+    : Type(a_eTypeId, a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+    , m_pAttributes(nullptr)
+    , m_pStaticMemberFunctions(nullptr)
+    , m_pAnonymousSections(nullptr)
     , m_pConstructors(nullptr)
     , m_pStaticDataMembers(nullptr)
     , m_pExtraData(nullptr)
 {
     m_uiSerializedSize = m_uiResetSize = 0;
+}
+
+o_restore_cpp(ClassType, filter, pass)
+{
+    if(pass == restore_pass_global_1)
+    {
+        finalize();
+    }
+    else if(pass == restore_pass_global_2)
+    {
+        for(auto it = m_InstanceMemberFunctions.begin(); it != m_InstanceMemberFunctions.end(); ++it)
+        {
+            (*it)->getBlock()->restore();
+        }
+    }
+    return pass < restore_pass_global_2 ? restore_incomplete : restore_complete;
 }
 
 ClassType::~ClassType( void )
@@ -143,14 +172,14 @@ void ClassType::elementRemoved(LanguageElement* a_pElement)
             m_pStaticDataMembers = nullptr;
         }
     }
-    else if(a_pElement->asCollection())
+    else if(a_pElement->asAnonymousSection())
     {
-        o_assert(m_pCollections);
-        m_pCollections->erase(std::find(m_pCollections->begin(), m_pCollections->end(), a_pElement->asCollection()));
-        if(m_pCollections->empty())
+        o_assert(m_pAnonymousSections);
+        m_pAnonymousSections->erase(std::find(m_pAnonymousSections->begin(), m_pAnonymousSections->end(), a_pElement->asAnonymousSection()));
+        if(m_pAnonymousSections->empty())
         {
-            delete m_pCollections;
-            m_pCollections = nullptr;
+            delete m_pAnonymousSections;
+            m_pAnonymousSections = nullptr;
         }
     }
     else if(a_pElement->asValueMember())
@@ -183,7 +212,7 @@ Constructor* ClassType::getConstructor( const string& a_strDecoratedName) const
     return pElement ? pElement->asConstructor() : nullptr; 
 }
 
-Constructor* ClassType::getConstructor( const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers ) const
+Constructor* ClassType::getConstructor( const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, modifiers_t a_Modifiers ) const
 {
     if(m_pConstructors) 
     {
@@ -241,7 +270,7 @@ Constructor* ClassType::getConstructor( const vector<Type*>& a_Types, vector<siz
     return nullptr;
 }
 
-Constructor* ClassType::getConstructor( Type* a_pType, vector<size_t>* a_pPartialMatches /*= nullptr*/, bitfield a_Modifiers /*= 0*/ ) const
+Constructor* ClassType::getConstructor( Type* a_pType, vector<size_t>* a_pPartialMatches /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ ) const
 {
     vector<Type*> types;
     types.push_back(a_pType);
@@ -290,7 +319,7 @@ LanguageElement*            ClassType::solveElement(
     const string& a_strName 
     , const vector<TemplateElement*>* a_pTemplateSignature
     , const vector<LanguageElement*>* a_pFunctionSignature
-    , bitfield a_Modifiers /*= 0*/) const 
+    , modifiers_t a_Modifiers /*= 0*/) const 
 {
     LanguageElement* pElement = nullptr;
     pElement = Type::solveElement(a_strName, a_pTemplateSignature, a_pFunctionSignature, a_Modifiers);
@@ -397,11 +426,15 @@ Expression* ClassType::solveExpression( Expression* a_pLeftExpression
     , const string& a_strName 
     , const vector<TemplateElement*>* a_pTemplateSignature
     , const vector<LanguageElement*>* a_pFunctionSignature
-    , bitfield a_Modifiers /*= 0*/ ) const
+    , modifiers_t a_Modifiers /*= 0*/ ) const
 {
-    if((a_pLeftExpression->getValueType()->removeReference()->asConstType() != nullptr) != a_Modifiers.matchesMask(o_const))
+    if((a_pLeftExpression->getValueType()->removeReference()->asConstType() != nullptr) != ((a_Modifiers & o_const) == o_const))
     {
         o_exception(exception::reflection_runtime_exception, "Incoherency between const modifier and expression const type");
+    }
+    if(a_pLeftExpression->getValueType()->removeReference()->removeConst() != removeConst())
+    {
+        o_exception(exception::reflection_runtime_exception, "LHS Expression type doesn't match current class");
     }
     if(a_pLeftExpression->getValueType()->removeReference()->removeConst() != this) 
         return nullptr;
@@ -523,7 +556,7 @@ Expression* ClassType::solveExpression( Expression* a_pLeftExpression
     return Type::solveExpression(a_pLeftExpression, a_strName, a_pTemplateSignature, a_pFunctionSignature, a_Modifiers);
 }
 
-Expression* ClassType::solveOperator( const string& a_strOp, const vector<Expression*>& a_Expressions, bitfield a_Modifiers ) const
+Expression* ClassType::solveOperator( const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers ) const
 {
     o_assert(a_Expressions.size());
     vector<LanguageElement*> expressions;
@@ -536,11 +569,15 @@ Expression* ClassType::solveOperator( const string& a_strOp, const vector<Expres
     {
         return pExpression;
     }
+    if(a_strOp == "=" AND a_Expressions[1]->getValueType()->isImplicitlyConvertibleTo(const_cast<ClassType*>(this)))
+    {
+        return o_new(AssignmentExpression)(a_Expressions[0], a_Expressions[1]);
+    }
     return Type::solveOperator(a_strOp, a_Expressions, a_Modifiers);
 }
 
 
-InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/ ) const
+InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, modifiers_t a_Modifiers /*= 0*/ ) const
 {
     string name = conversionOperatorNameNormalizer(a_strName, const_cast<ClassType*>(this));
     if(a_pPartialMatchesIndexes)
@@ -581,7 +618,7 @@ InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_st
     return nullptr;
 }
 
-StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/  ) const
+StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, modifiers_t a_Modifiers /*= 0*/  ) const
 {
     if(m_pStaticMemberFunctions == nullptr) 
         return nullptr;
@@ -637,9 +674,9 @@ MemberFunction* ClassType::getMemberFunction(const string& a_strIdentifierString
     return getStaticMemberFunction(a_strIdentifierString);
 }
 
-MemberFunction* ClassType::getMemberFunction(const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, bitfield a_Modifiers /*= 0*/ ) const
+MemberFunction* ClassType::getMemberFunction(const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, modifiers_t a_Modifiers /*= 0*/ ) const
 {
-    bitfield staticModifiers = a_Modifiers;
+    modifiers_t staticModifiers = a_Modifiers;
     staticModifiers &= ~o_noconst;
     staticModifiers &= ~o_const;
     if(a_pPartialMatchesIndexes)
@@ -717,7 +754,6 @@ void ClassType::getMembers( vector<LanguageElement*>& out ) const
     out.insert(out.end(), m_InstanceMemberFunctions.begin(), m_InstanceMemberFunctions.end());
     if(m_pStaticDataMembers) out.insert(out.end(), m_pStaticDataMembers->begin(), m_pStaticDataMembers->end());
     if(m_pStaticMemberFunctions) out.insert(out.end(), m_pStaticMemberFunctions->begin(), m_pStaticMemberFunctions->end());
-    if(m_pCollections) out.insert(out.end(), m_pCollections->begin(), m_pCollections->end());
 }
 
 ValueMember* ClassType::getValueMember( const string& a_strName ) const
@@ -733,22 +769,15 @@ ValueMember* ClassType::getValueMember( const string& a_strName ) const
     return nullptr;
 }
 
-Collection* ClassType::getCollection( const string& a_strName ) const
+AnonymousSection* ClassType::getAnonymousSection( size_t a_uiIndex ) const
 {
-    if(m_pCollections == nullptr) return nullptr;
-    auto it = m_pCollections->begin();
-    auto end = m_pCollections->end();
-    for(; it != end; ++it)
-    {
-        if((*it)->getName() == a_strName)
-            return (Collection*)(*it);
-    }
-    return nullptr;
+    o_assert(m_pAnonymousSections AND m_pAnonymousSections->size() > a_uiIndex)
+    return (*m_pAnonymousSections)[a_uiIndex];
 }
 
 void                    ClassType::addConstructor( Constructor* a_pConstructor )
 {
-    o_assert(getConstructor(a_pConstructor->getDecoratedName()));
+    o_assert(getConstructor(a_pConstructor->getDecoratedName()) == nullptr);
     if(m_pExtraData)
     {
         if(m_pExtraData->m_iState < extra_data::e_State_MemberSetup)
@@ -764,6 +793,17 @@ void                    ClassType::addConstructor( Constructor* a_pConstructor )
     m_pConstructors->push_back(a_pConstructor);
     if(m_pModule) m_pModule->addLanguageElement(a_pConstructor);
     addElement(a_pConstructor);
+}
+
+Constructor*        ClassType::addConstructor( const string& a_strCode )
+{
+    // TODO add modifiers
+    Signature* pSignature = Signature::Create(("void("+a_strCode+")").c_str(), nullptr, m_pOwner ? (LanguageElement*)this : rootNamespace());
+    if(pSignature == nullptr)
+        return nullptr;
+    Constructor* pConstructor = o_new(Constructor)(m_strName, pSignature, 0);
+    addConstructor(pConstructor);
+    return pConstructor;
 }
 
 void                ClassType::addValueMember(ValueMember* a_pValueMember)
@@ -800,10 +840,17 @@ void                ClassType::addProperty( Property* a_pProperty )
         m_uiResetSize += a_pProperty->getValueType()->getResetSize(); 
     }
     m_Properties.push_back(a_pProperty);
-    m_ValueMembers.insert(m_ValueMembers.begin()+(m_Properties.size()-1), a_pProperty);
+    m_ValueMembers.push_back(a_pProperty);
     if(m_pModule) m_pModule->addLanguageElement(a_pProperty);
     addElement(a_pProperty);
 }
+
+Property*                ClassType::addProperty( const string& a_strCode, uint a_uiSerializationMask )
+{
+    o_assert(false, "not implemented");
+    return nullptr;
+}
+
 
 void                ClassType::addInstanceDataMember(InstanceDataMember* a_pDataMember)
 {
@@ -826,7 +873,7 @@ void                ClassType::addInstanceDataMember(InstanceDataMember* a_pData
         m_uiResetSize += a_pDataMember->getValueType()->getResetSize(); 
     }
     m_InstanceDataMembers.push_back(a_pDataMember);
-    m_ValueMembers.push_back(a_pDataMember);
+    m_ValueMembers.insert(m_ValueMembers.begin()+(m_InstanceDataMembers.size()-1), a_pDataMember);
     if(m_pModule) m_pModule->addLanguageElement(a_pDataMember);
     addElement(a_pDataMember);
 }
@@ -852,23 +899,86 @@ void                ClassType::addDataMember(DataMember* a_pDataMember)
     }
 }
 
-void                ClassType::addCollection( Collection* a_pCollection)
+DataMember* ClassType::addDataMember( const string& a_strCode, uint a_uiSerializationMask /*= o_save_data*/ )
 {
-    if(m_pExtraData)
+    size_t i = 0;
+    size_t count = a_strCode.size();
+    for(;i<count;++i)
     {
-        if(m_pExtraData->m_iState < extra_data::e_State_MemberSetup)
+        char c = a_strCode[i];
+        if( !o_char_is_blank(c))
+            break;
+    }
+    modifiers_t modifiers = getDefaultAccess();
+    if(a_uiSerializationMask == 0)
+    {
+        modifiers |= o_transient;
+    }
+
+    if(strcmp(&a_strCode[i], "static") == 0)
+    {
+        i += 6;
+        char c = a_strCode[i];
+        if(o_char_is_blank(c))
         {
-            m_pExtraData->m_iState = extra_data::e_State_MemberSetup;
+            modifiers |= o_static;
         }
-        else if(m_pExtraData->m_iState >= extra_data::e_State_Finalized)
+        else i -= 6;
+    }
+    // i points now to the beginning of the data member type
+
+    // We look for the end of the type, starting from the end of the string
+    size_t j = count;
+    string name;
+    while(j--)
+    {
+        char c = a_strCode[j];
+        if( !o_char_is_blank(c)
+            AND c != '*'
+            AND c != '>'
+            AND c != '&'
+            AND c != ']')
         {
-            o_exception(exception::reflection_runtime_exception, "Class finalized or compiled, you cannot add members anymore");
+            if(o_char_is_identifier(c))
+            {
+                // identifier
+                name += c;
+            }
+            else 
+            {
+                return nullptr;
+            }
+        }
+        else 
+        {
+            if(!name.empty())
+            {
+                break;
+            }
         }
     }
-    if(m_pCollections == nullptr) m_pCollections = new vector<Collection*>;
-    m_pCollections->push_back(a_pCollection);
-    if(m_pModule) m_pModule->addLanguageElement(a_pCollection);
-    addElement(a_pCollection);
+    if(name.empty()) 
+        return nullptr;
+    if((name[0] >= '0' AND name[0] <= '9')) 
+        return nullptr;
+    // j points to the end of the type
+    Type* pType = phantom::typeByName(a_strCode.substr(i, 1+j-i), m_pOwner ? (LanguageElement*)this : rootNamespace()); // first check with
+    if(pType == nullptr)
+    {
+        return nullptr;
+    }
+    if(modifiers & o_static)
+    {
+        StaticDataMember* pDataMember = o_new(StaticDataMember)(pType, name, modifiers);
+        addStaticDataMember(pDataMember);
+        return pDataMember;
+    }
+    else 
+    {
+        InstanceDataMember* pInstanceDataMember = o_new(InstanceDataMember)(pType, name, nullptr, a_uiSerializationMask, modifiers);
+        addInstanceDataMember(pInstanceDataMember);
+        return pInstanceDataMember;
+    }
 }
 
 void                ClassType::addInstanceMemberFunction(InstanceMemberFunction* a_pInstanceMemberFunction)
@@ -918,6 +1028,248 @@ void ClassType::addMemberFunction( MemberFunction* a_pMemberFunction )
     }
 }
 
+MemberFunction* ClassType::addMemberFunction( const string& a_strCode )
+{
+    size_t i = 0;
+    size_t count = a_strCode.size();
+    for(;i<count;++i)
+    {
+        char c = a_strCode[i];
+        if(!o_char_is_blank(c))
+            break;
+    }
+    modifiers_t modifiers = getDefaultAccess();
+    if(strcmp(&a_strCode[i], "static") == 0)
+    {
+        i += 6;
+        char c = a_strCode[i];
+        if(o_char_is_blank(c))
+        {
+            modifiers |= o_static;
+        }
+        else i -= 6;
+    }
+    else if(strcmp(&a_strCode[i], "virtual") == 0)
+    {
+        i += 7;
+        char c = a_strCode[i];
+        if(o_char_is_blank(c))
+        {
+            modifiers |= o_virtual;
+        }
+        else i -= 7;
+    }
+    size_t openPos = a_strCode.find_first_of("(");
+    if(openPos == string::npos) return nullptr;
+    size_t closePos = a_strCode.find_first_of(")");
+    if(closePos == string::npos) return nullptr;
+
+    size_t j = openPos;
+    string name;
+    while(j--)
+    {
+        char c = a_strCode[j];
+        if( !o_char_is_blank(c)
+            AND c != '*'
+            AND c != '>'
+            AND c != '&'
+            AND c != ']')
+        {
+            if(o_char_is_identifier(c))
+            {
+                // identifier
+                name += c;
+            }
+            else 
+            {
+                return nullptr;
+            }
+        }
+        else 
+        {
+            if(!name.empty())
+            {
+                break;
+            }
+        }
+    }
+    if(name.empty()) 
+        return nullptr;
+    if((name[0] >= '0' AND name[0] <= '9')) 
+        return nullptr;
+
+    Type* pReturnType = typeByName(a_strCode.substr(i, 1+j-i), m_pOwner ? (LanguageElement*)this : rootNamespace());
+    if(pReturnType == nullptr) return nullptr;
+
+    Signature* pSignature = Signature::Create(a_strCode.substr(openPos, 1+closePos-openPos).c_str(), getTemplateSpecialization(), m_pOwner ? (LanguageElement*)this : rootNamespace());
+    if(pSignature == nullptr) return nullptr;
+
+    size_t constPos = a_strCode.substr(closePos+1).find("const");
+    if(constPos != string::npos)
+    {
+        modifiers |= o_const;
+    }
+
+    if(modifiers & o_static)
+    {
+        StaticMemberFunction* pStaticMemberFunction = o_new(StaticMemberFunction)(name, pSignature, modifiers);
+        addStaticMemberFunction(pStaticMemberFunction);
+        return pStaticMemberFunction;
+    }
+    else 
+    {
+        InstanceMemberFunction* pInstanceMemberFunction = o_new(InstanceMemberFunction)(name, pSignature, modifiers);
+        addInstanceMemberFunction(pInstanceMemberFunction);
+        return pInstanceMemberFunction;
+    }
+}
+
+void ClassType::addAnonymousSection( AnonymousSection* a_pAnonymousSection )
+{
+    if(m_pAnonymousSections == nullptr)
+    {
+        m_pAnonymousSections = new vector<AnonymousSection*>;
+    }
+    m_pAnonymousSections->push_back(a_pAnonymousSection);
+}
+
+// ex: union(m, struct(x, y, union(z, w)))
+AnonymousSection* ClassType::addAnonymousSection( const string& a_strCode, modifiers_t a_Modifiers )
+{
+    ClassType* pOwner = this;
+    string str = a_strCode;
+    str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+    str.erase(std::remove(str.begin(), str.end(), '\t'), str.end());
+    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+    enum state 
+    {
+        state_union_or_struct,
+        state_list,
+        state_ended,
+    };
+    state s = state_union_or_struct;
+    string word;
+    vector<AnonymousSection*> sections;
+    AnonymousSection* pSection = nullptr;
+    for(auto it = str.begin(); it != str.end(); ++it)
+    {
+        char c = *it;
+        switch(s)
+        {
+        case state_union_or_struct:
+            if(o_char_is_identifier(c))
+            {
+                word += c;
+            }
+            else if(c == '(')
+            {
+                if(word == "union")
+                {
+                    sections.push_back(o_new(AnonymousUnion));
+                }
+                else if(word == "struct")
+                {
+                    sections.push_back(o_new(AnonymousStruct));
+                }
+                else 
+                {
+                    o_dynamic_delete (sections.front());
+                    return nullptr;
+                }
+                s = state_list;
+                word.clear();
+            }
+            else 
+            {
+                o_dynamic_delete (sections.front());
+                return nullptr;
+            }
+            break;
+
+        case state_list:
+            if(o_char_is_identifier(c))
+            {
+                word += c;
+            }
+            else if(c == '(')
+            {
+                if(word == "union")
+                {
+                    sections.push_back(o_new(AnonymousUnion));
+                }
+                else if(word == "struct")
+                {
+                    sections.push_back(o_new(AnonymousStruct));
+                }
+                else 
+                {
+                    if(sections.size())
+                    {
+                        o_dynamic_delete (sections.front());
+                    }
+                    return nullptr;
+                }
+                word.clear();
+            }
+            else if(c == ',')
+            {
+                if(word.size())
+                {
+                    if(sections.empty())
+                        return nullptr;
+                    InstanceDataMember* pDataMember = getInstanceDataMember(word);
+                    if(pDataMember == nullptr)
+                    {
+                        if(sections.size())
+                        {
+                            o_dynamic_delete (sections.front());
+                        }
+                        return nullptr;
+                    }
+                    sections.back()->addInstanceDataMember(pDataMember);
+                }
+                // data member
+                word.clear();
+            }
+            else if(c == ')')
+            {
+                if(sections.empty())
+                    return nullptr;
+                pSection = sections.back();
+                sections.pop_back();
+                if(sections.empty())
+                {
+                    addAnonymousSection(pSection);
+                    s = state_ended;
+                }
+                else 
+                {
+                    sections.back()->addAnonymousSection(pSection);
+                    s = state_list;
+                }
+            }
+            else 
+            {
+                if(sections.size())
+                {
+                    o_dynamic_delete (sections.front());
+                }
+                return nullptr;
+            }
+            break;
+
+        case state_ended:
+            if(sections.size())
+            {
+                o_dynamic_delete (sections.front());
+            }
+            return nullptr;
+        }
+    }
+    return pSection;
+}
+
 void                    ClassType::removeConstructor( Constructor* a_pConstructor )
 {
     o_assert(getConstructor(""));
@@ -934,9 +1286,9 @@ void                ClassType::removeProperty( Property* a_pProperty )
     removeElement(a_pProperty);
 }
 
-void                ClassType::removeCollection( Collection* a_pCollection)
+void                ClassType::removeAnonymousSection( AnonymousSection* a_pAnonymousSection)
 {
-    removeElement(a_pCollection);
+    removeElement(a_pAnonymousSection);
 }
 
 void                ClassType::removeDataMember(DataMember* a_pDataMember)
@@ -1005,9 +1357,9 @@ size_t ClassType::getValueMemberCount() const
     return m_ValueMembers.size();
 }
 
-size_t ClassType::getCollectionCount() const
+size_t ClassType::getAnonymousSectionCount() const
 {
-    return m_pCollections ? m_pCollections->size() : 0;
+    return m_pAnonymousSections ? m_pAnonymousSections->size() : 0;
 }
 
 size_t ClassType::getInstanceMemberFunctionCount() const
@@ -1035,26 +1387,29 @@ void ClassType::findPublicValueMembersPointingValueType( Type* a_pType, vector<V
     }
 }
 
-void        ClassType::smartCopy(void* a_pInstance, void const* a_pSource, Type* a_pSourceType) const
+void        ClassType::smartCopy(reflection::Type* a_pDestType, void* a_pDest, void const* a_pSrc) const
 {
-    ClassType* pSourceClassType = a_pSourceType->asClassType();
-    o_assert(pSourceClassType);
-    auto it = pSourceClassType->beginValueMembers();
-    auto end = pSourceClassType->endValueMembers();
+    ClassType* pDestClassType = a_pDestType->asClassType();
+    if(pDestClassType == nullptr)
+    {
+        o_exception(exception::reflection_runtime_exception, "Smart copy incompatible");
+    }
+    auto it = beginValueMembers();
+    auto end = endValueMembers();
     for(; it!=end; ++it)
     {
         ValueMember* pOldValueMember = (ValueMember*)(*it);
-        ValueMember* pNewValueMember = getValueMember(pOldValueMember->getName());
+        ValueMember* pNewValueMember = pDestClassType->getValueMember(pOldValueMember->getName());
         Type* pOldValueMemberType = pOldValueMember->getValueType();
         Type* pNewValueMemberType = nullptr;
         if(pNewValueMember != nullptr 
             AND pOldValueMemberType->isImplicitlyConvertibleTo((pNewValueMemberType = pNewValueMember->getValueType())))
         {
             void* sourceBuffer = pOldValueMemberType->newInstance();
-            pOldValueMember->getValue(a_pSource, sourceBuffer);
+            pOldValueMember->getValue(a_pSrc, sourceBuffer);
             void* newBuffer = pNewValueMemberType->newInstance();
             pOldValueMemberType->convertValueTo(pNewValueMemberType, newBuffer, sourceBuffer);
-            pNewValueMember->setValue(a_pInstance, newBuffer);
+            pNewValueMember->setValue(a_pDest, newBuffer);
             pOldValueMemberType->deleteInstance(pOldValueMember);
             pNewValueMemberType->deleteInstance(newBuffer);
         }
@@ -1167,14 +1522,14 @@ vector<StaticMemberFunction*>::const_iterator ClassType::endStaticMemberFunction
     return m_pStaticMemberFunctions ? m_pStaticMemberFunctions->end() : m_EmptyStaticMemberFunctions.end();
 }
 
-vector<Collection*>::const_iterator ClassType::beginCollections() const
+vector<AnonymousSection*>::const_iterator ClassType::beginAnonymousSections() const
 {
-    return m_pCollections ? m_pCollections->begin() : m_EmptyCollections.begin();
+    return m_pAnonymousSections ? m_pAnonymousSections->begin() : m_EmptyAnonymousSections.begin();
 }
 
-vector<Collection*>::const_iterator ClassType::endCollections() const
+vector<AnonymousSection*>::const_iterator ClassType::endAnonymousSections() const
 {
-    return m_pCollections ? m_pCollections->end() : m_EmptyCollections.end();
+    return m_pAnonymousSections ? m_pAnonymousSections->end() : m_EmptyAnonymousSections.end();
 }
 
 vector<Constructor*>::const_iterator ClassType::beginConstructors() const
@@ -1199,20 +1554,10 @@ bool ClassType::referencesData(const void* a_pInstance, const phantom::data& a_D
                 return true;
         }
     }
-    /*{
-        auto it = beginCollections();
-        auto end = endCollections();
-        for(; it != end; ++it)
-        {
-            Collection* pCollection = *it;
-            if(pCollection->referencesData(a_pInstance, a_Data))
-                return true;
-        }
-    }*/
     return false;
 }
 
-void ClassType::fetchPointerReferenceExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask ) const
+void ClassType::fetchExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter, uint a_uiSerializationMask ) const
 {
     {
         auto it = m_ValueMembers.rbegin();
@@ -1220,18 +1565,13 @@ void ClassType::fetchPointerReferenceExpressions( Expression* a_pInstanceExpress
         for(; it != end; ++it)
         {
             ValueMember* pValueMember = *it;
-            pValueMember->getValueType()->fetchPointerReferenceExpressions(pValueMember->createAccessExpression(a_pInstanceExpression->clone()), out, a_uiSerializationMask);
+            if(a_Filter(pValueMember->getValueType()))
+            {
+                out.push_back(pValueMember->createAccessExpression(a_pInstanceExpression));
+            }
+            pValueMember->getValueType()->fetchExpressions(pValueMember->createAccessExpression(a_pInstanceExpression), out, a_Filter, a_uiSerializationMask);
         }
     }
-    /*{
-        auto it = beginCollections();
-        auto end = endCollections();
-        for(; it != end; ++it)
-        {
-            Collection* pCollection = *it;
-            pCollection->fetchPointerReferenceExpressions(a_pInstance, out, a_uiSerializationMask);
-        }
-    }*/
 }
 
 void ClassType::construct( void* a_pInstance ) const
@@ -1241,9 +1581,24 @@ void ClassType::construct( void* a_pInstance ) const
     size_t i = 0;
     Type::aligner aligner(reinterpret_cast<byte*>(a_pInstance)+m_pExtraData->m_uiDataMemberMemoryOffset);
 
-    for(;i<m_pExtraData->m_DataMemberTypes.size();++i)
+    auto it = m_InstanceDataMembers.begin();
+    auto end = m_InstanceDataMembers.end();
+    for(;it != end; ++it)
     {
-        aligner.construct(m_pExtraData->m_DataMemberTypes[i]);
+        (*it)->getValueType()->construct(reinterpret_cast<byte*>(a_pInstance)+(*it)->getOffset());
+    }
+}
+
+void ClassType::destroy( void* a_pInstance ) const
+{
+    o_assert(m_pExtraData);
+    size_t i = 0;
+    Type::aligner aligner(reinterpret_cast<byte*>(a_pInstance)+m_pExtraData->m_uiDataMemberMemoryOffset);
+    auto it = m_InstanceDataMembers.rbegin();
+    auto end = m_InstanceDataMembers.rend();
+    for(;it != end; ++it)
+    {
+        (*it)->getValueType()->destroy(reinterpret_cast<byte*>(a_pInstance)+(*it)->getOffset());
     }
 }
 
@@ -1256,10 +1611,24 @@ void    ClassType::finalize()
     }
 
     m_pExtraData->m_iState = extra_data::e_State_Finalized;
-    size_t  memorySize = m_pExtraData->m_AlignmentComputer.compute();
+
+    // Finalize instance data members and compute total size
+    auto it = m_InstanceDataMembers.begin();
+    auto end = m_InstanceDataMembers.end();
+    for(;it != end; ++it)
+    {
+        InstanceDataMember* pDataMember = static_cast<InstanceDataMember*>(*it);
+        if(pDataMember)
+        {
+            m_pExtraData->m_DataMemberTypes.push_back(pDataMember->getValueType());
+            pDataMember->finalize();
+            m_pExtraData->m_AlignmentComputer.push(pDataMember->getValueType());
+        }
+    }
+    size_t memorySize = m_pExtraData->m_AlignmentComputer.compute();
     if(memorySize == 0 AND m_uiSize == 0)
     {
-        memorySize = 4;
+        memorySize = 4; // Default class size
     }
     if(m_pExtraData->m_AlignmentComputer.maxAlignment() == 0 && memorySize == 0)
     {
@@ -1275,16 +1644,59 @@ void    ClassType::finalize()
 
     Type::aligner aligner((byte*)(m_pExtraData->m_uiDataMemberMemoryOffset));
 
-    auto it = m_InstanceDataMembers.begin();
-    auto end = m_InstanceDataMembers.end();
-    for(;it != end; ++it)
+    // Set Instance data members offsets
     {
-        InstanceDataMember* pDataMember = static_cast<InstanceDataMember*>(*it);
-        // Finalize attribute offset
-        if(pDataMember)
+        auto it = m_InstanceDataMembers.begin();
+        auto end = m_InstanceDataMembers.end();
+        for(;it != end; ++it)
         {
-            pDataMember->setOffset((size_t)aligner.address()); // we convert from relative to absolute attribute offset
-            aligner.skip(pDataMember->getValueType());
+            InstanceDataMember* pDataMember = static_cast<InstanceDataMember*>(*it);
+            // Finalize attribute offset
+            if(pDataMember)
+            {
+                pDataMember->setOffset((size_t)aligner.address()); // we convert from relative to absolute attribute offset
+                aligner.skip(pDataMember->getValueType());
+            }
+        }
+    }
+    // Finalize member functions
+    {
+        auto it = m_InstanceMemberFunctions.begin();
+        auto end = m_InstanceMemberFunctions.end();
+        for(;it != end; ++it)
+        {
+            InstanceMemberFunction* pFunc = static_cast<InstanceMemberFunction*>(*it);
+            if(pFunc)
+            {
+                pFunc->finalize();
+            }
+        }
+    }
+    // Finalize properties
+    {
+        auto it = m_Properties.begin();
+        auto end = m_Properties.end();
+        for(;it != end; ++it)
+        {
+            Property* pProperty = static_cast<Property*>(*it);
+            // Finalize attribute offset
+            if(pProperty)
+            {
+                ((InstanceDataMember*)pProperty)->finalize();
+            }
+        }
+    }
+    if(m_pStaticMemberFunctions)
+    {
+        auto it = m_pStaticMemberFunctions->begin();
+        auto end = m_pStaticMemberFunctions->end();
+        for(;it != end; ++it)
+        {
+            StaticMemberFunction* pFunc = static_cast<StaticMemberFunction*>(*it);
+            if(pFunc)
+            {
+                pFunc->finalize();
+            }
         }
     }
 }
@@ -1343,19 +1755,23 @@ void ClassType::convertValueTo( Type* a_pDestType, void* a_pDestValue, void cons
         vector<Type*> types;
         vector<size_t> partial;
         InstanceMemberFunction* pFunc = getInstanceMemberFunction("operator "+a_pDestType->getQualifiedDecoratedName(), types, &partial, 0);
-        o_assert(pFunc);
-        pFunc->call((void*)a_pSrcValue, nullptr, a_pDestValue);
-    }
-}
-
-void ClassType::destroy( void* a_pInstance ) const
-{
-    o_assert(m_pExtraData);
-    size_t i = 0;
-    Type::aligner aligner(reinterpret_cast<byte*>(a_pInstance)+m_pExtraData->m_uiDataMemberMemoryOffset);
-    for(;i<m_pExtraData->m_DataMemberTypes.size();++i)
-    {
-        aligner.destroy(m_pExtraData->m_DataMemberTypes[i]);
+        if(pFunc)
+        {
+            pFunc->call((void*)a_pSrcValue, nullptr, a_pDestValue);
+        }
+        else 
+        {
+            ClassType* pClassType = a_pDestType->asClassType();
+            o_assert(pClassType);
+            Constructor* pConstructor = pClassType->getConstructor(const_cast<ClassType*>(this), nullptr, 0);
+            o_assert(pConstructor);
+            void* pBuffer = a_pDestType->allocate();
+            void* args[1] = {(void*)a_pSrcValue};
+            pConstructor->call(pBuffer, args, nullptr); // construct the temp buffer
+            a_pDestType->copy(a_pDestValue, pBuffer);
+            a_pDestType->destroy(pBuffer); // destroy the temp buffer
+            a_pDestType->deallocate(pBuffer);
+        }
     }
 }
 
@@ -1368,7 +1784,8 @@ bool ClassType::isImplicitlyConvertibleTo( Type* a_pType ) const
     vector<Type*> types;
     vector<size_t> partial;
     InstanceMemberFunction* pFunc = getInstanceMemberFunction("operator "+a_pType->getQualifiedDecoratedName(), types, &partial, 0);
-    return pFunc != nullptr;
+    if(pFunc) return true;
+    return (a_pType->asClassType() != nullptr) AND (a_pType->asClassType()->getConstructor(const_cast<ClassType*>(this), nullptr, 0) != nullptr);
 }
 
 bool ClassType::isConvertibleTo( Type* a_pType ) const
@@ -1378,6 +1795,90 @@ bool ClassType::isConvertibleTo( Type* a_pType ) const
     if(pRefDestType AND pRefDestType->getReferencedType()->asConstType())
         return isImplicitlyConvertibleTo(a_pType->removeReference()->removeConst());
     return isImplicitlyConvertibleTo(a_pType);
+}
+
+void ClassType::setConstructors( vector<Constructor*> list ) 
+{
+    for(auto it = list.begin(); it != list.end(); ++it)
+    {
+        addConstructor(*it);
+    }
+}
+
+void ClassType::setStaticDataMembers( vector<StaticDataMember*> list ) 
+{
+    for(auto it = list.begin(); it != list.end(); ++it)
+    {
+        addStaticDataMember(*it);
+    }
+}
+
+void ClassType::setStaticMemberFunctions( vector<StaticMemberFunction*> list ) 
+{
+    for(auto it = list.begin(); it != list.end(); ++it)
+    {
+        addStaticMemberFunction(*it);
+    }
+}
+
+void ClassType::setAnonymousSections( vector<AnonymousSection*> list ) 
+{
+    for(auto it = list.begin(); it != list.end(); ++it)
+    {
+        addAnonymousSection(*it);
+    }
+}
+
+void ClassType::setProperties(vector<Property*> list)
+{
+    for(auto it = list.begin(); it != list.end(); ++it)
+    {
+        addProperty(*it);
+    }
+}
+
+void ClassType::setInstanceDataMembers(vector<InstanceDataMember*> list)
+{
+    for(auto it = list.begin(); it != list.end(); ++it)
+    {
+        addInstanceDataMember(*it);
+    }
+}
+
+void ClassType::setInstanceMemberFunctions(vector<InstanceMemberFunction*> list)
+{
+    for(auto it = list.begin(); it != list.end(); ++it)
+    {
+        addInstanceMemberFunction(*it);
+    }
+}
+
+bool ClassType::isDefaultInstanciable() const
+{
+    return m_pExtraData->m_iState == extra_data::e_State_Finalized AND Type::isDefaultInstanciable();
+}
+
+InstanceDataMember* ClassType::getInstanceDataMemberByOffset( size_t a_uiOffset ) const
+{
+    for(auto it = beginInstanceDataMembers(); it != endInstanceDataMembers(); ++it)
+    {
+        InstanceDataMember* pInstanceDataMember = *it;
+        if(pInstanceDataMember->getOffset() == a_uiOffset)
+            return pInstanceDataMember;
+    }
+    return nullptr;
+}
+
+InstanceDataMember* ClassType::getInstanceDataMemberAtAddress( const void* a_pBase, const void* a_pAddress ) const
+{
+    return getInstanceDataMemberByOffset((size_t)((const byte*)a_pAddress-(const byte*)a_pBase));
+}
+
+void ClassType::setDefaultAccess( modifiers_t modifier )
+{
+    o_assert(m_pExtraData); 
+    o_assert(modifier == o_public_access OR modifier == o_protected_access OR modifier == o_private_access);
+    m_pExtraData->m_AccessSpecifier = modifier;
 }
 
 o_namespace_end(phantom, reflection)

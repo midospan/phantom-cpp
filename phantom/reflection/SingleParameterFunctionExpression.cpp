@@ -47,7 +47,7 @@ SingleParameterFunctionExpression::SingleParameterFunctionExpression(Subroutine*
     addReferencedElement(a_pSubroutine->getParameterType(0));
     addReferencedElement(a_pSubroutine);
     if(a_pLeftExpression)
-        addElement(a_pLeftExpression);
+        addSubExpression(m_pLeftExpression);
 }
 
 void SingleParameterFunctionExpression::setValue( void const* a_pSrc ) const
@@ -64,7 +64,7 @@ void SingleParameterFunctionExpression::setValue( void const* a_pSrc ) const
 
 SingleParameterFunctionExpression* SingleParameterFunctionExpression::clone() const
 {
-    return o_new(SingleParameterFunctionExpression)(m_pSubroutine, m_pLeftExpression ? m_pLeftExpression->clone() : nullptr);
+    return o_new(SingleParameterFunctionExpression)(m_pSubroutine, m_pLeftExpression ? m_pLeftExpression : nullptr);
 }
 
 o_namespace_end(phantom, reflection)

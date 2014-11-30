@@ -1,8 +1,8 @@
 #pragma once
 
-#include "UndoCommand.hxx"
+#include "DataBaseCommand.hxx"
 
-o_classNS((phantom, qt), ExpressionCommand, (UndoCommand))
+o_classNB((phantom, qt), ExpressionCommand, (DataBaseCommand))
 {
 	o_reflection
 	{

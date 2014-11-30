@@ -2,7 +2,9 @@
 #include <phantom/phantom.h>
 #include "ModuleLoader.h"
 #include "ModuleLoader.hxx"
-#include "phantom/util/Message.h"
+#include "phantom/Message.h"
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #if o_PLATFORM == o_PLATFORM_WINDOWS_PC
 #include <windows.h>
 #include <TlHelp32.h>
@@ -12,9 +14,28 @@
 o_registerN((phantom), ModuleLoader);
 
 o_namespace_begin(phantom)
-    
-ModuleLoader::ModuleLoader(void) 
+
+map<Module*, size_t> sg_EmptyLibraryLoadedModules;
+
+string ModuleLoader_normalizePathString(const string& a_strPath)
+{
+    boost::filesystem::path p (a_strPath.c_str());
+    return p.generic_string().c_str();
+}
+
+string ModuleLoader_makeWindowsPathString(const string& a_strPath)
+{
+    string result = a_strPath;
+    for(size_t i = 0; i<result.size(); ++i)
+    {
+        if(result[i] == '/') result[i] = '\\';
+    }
+    return result;
+}
+
+ModuleLoader::ModuleLoader(void)
     : m_OperationCounter(0)
+    , m_pDataBase(nullptr)
 {
 }
 
@@ -37,16 +58,17 @@ o_terminate_cpp(ModuleLoader)
 
 bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMessage /*= nullptr*/ )
 {
+    string strPath = ModuleLoader_normalizePathString(a_strPath);
     m_OperationCounter++;
 
-    o_emit libraryAboutToBeLoaded(a_strPath);
+    o_emit libraryAboutToBeLoaded(strPath);
 
-    Module* pModule = phantom::moduleByFileName(a_strPath);
-    string moduleName = a_strPath.substr(a_strPath.find_last_of("/\\")+1);
+    Module* pModule = phantom::moduleByFilePath(strPath);
+    string moduleName = strPath.substr(strPath.find_last_of("/\\")+1);
     Message* pMessageLoadFailed = nullptr;
 
     bool result = true;
-    if(LoadLibrary(a_strPath.c_str()))
+    if(LoadLibrary(strPath.c_str()))
     {
         if(a_pMessage) a_pMessage->success(moduleName.c_str(), "Module loaded : %s", moduleName.c_str());
         o_warning(m_CurrentlyLoadedModules.size(), "No module found in the loaded library");
@@ -55,7 +77,7 @@ bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMe
     else
     {
         result = false;
-        DWORD dw = GetLastError(); 
+        DWORD dw = GetLastError();
         if(a_pMessage)
         {
             if(pMessageLoadFailed == nullptr) pMessageLoadFailed = a_pMessage->error(moduleName.c_str(), "Cannot load module : %s", moduleName.c_str());
@@ -63,7 +85,7 @@ bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMe
             LPVOID lpMsgBuf;
 
             FormatMessage(
-                FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+                FORMAT_MESSAGE_ALLOCATE_BUFFER |
                 FORMAT_MESSAGE_FROM_SYSTEM |
                 FORMAT_MESSAGE_IGNORE_INSERTS,
                 NULL,
@@ -81,14 +103,14 @@ bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMe
         }
         m_CurrentlyLoadedModules.clear();
     }
-    updateReferenceCounts(a_strPath, true);
+    updateReferenceCounts(strPath, true);
     if(result)
     {
-        o_emit libraryLoaded(a_strPath);
+        o_emit libraryLoaded(strPath);
     }
-    else 
+    else
     {
-        o_emit libraryLoadFailed(a_strPath);
+        o_emit libraryLoadFailed(strPath);
     }
     m_OperationCounter--;
     return result;
@@ -96,21 +118,22 @@ bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMe
 
 bool ModuleLoader::unloadLibrary( const string& a_strPath, phantom::Message* a_pMessage /*= nullptr*/ )
 {
+    string strPath = ModuleLoader_normalizePathString(a_strPath);
     m_OperationCounter++;
 
-    o_emit libraryAboutToBeUnloaded(a_strPath);
-    
-    if(NOT(libraryCanBeUnloaded(a_strPath, a_pMessage)))
+    o_emit libraryAboutToBeUnloaded(strPath);
+
+    if(NOT(libraryCanBeUnloaded(strPath, a_pMessage)))
     {
-        o_emit libraryUnloadFailed(a_strPath);
+        o_emit libraryUnloadFailed(strPath);
         m_OperationCounter--;
         return false;
     }
 
     bool result = true;
 
-    Module* pModule = phantom::moduleByFileName(a_strPath);
-    string moduleName = a_strPath.substr(a_strPath.find_last_of("/\\")+1);
+    Module* pModule = phantom::moduleByFilePath(strPath);
+    string moduleName = strPath.substr(strPath.find_last_of("/\\")+1);
     o_assert(pModule);
     o_assert(std::find(m_LoadedModules.begin(), m_LoadedModules.end(), pModule) != m_LoadedModules.end(), "This module was not loaded via ModuleLoader");
     Message* pMessageUnloadFailed = nullptr;
@@ -122,7 +145,7 @@ bool ModuleLoader::unloadLibrary( const string& a_strPath, phantom::Message* a_p
     else
     {
         result = false;
-        DWORD dw = GetLastError(); 
+        DWORD dw = GetLastError();
         if(a_pMessage)
         {
             if(pMessageUnloadFailed == nullptr) pMessageUnloadFailed = a_pMessage->error(moduleName.c_str(), "Cannot unload module : %s", moduleName.c_str());
@@ -130,7 +153,7 @@ bool ModuleLoader::unloadLibrary( const string& a_strPath, phantom::Message* a_p
             LPVOID lpMsgBuf;
 
             FormatMessage(
-                FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+                FORMAT_MESSAGE_ALLOCATE_BUFFER |
                 FORMAT_MESSAGE_FROM_SYSTEM |
                 FORMAT_MESSAGE_IGNORE_INSERTS,
                 NULL,
@@ -148,15 +171,15 @@ bool ModuleLoader::unloadLibrary( const string& a_strPath, phantom::Message* a_p
 #endif
         }
     }
-    updateReferenceCounts(a_strPath, false);
+    updateReferenceCounts(strPath, false);
     if(result)
     {
-        m_LibraryModules.erase(a_strPath);
-        o_emit libraryUnloaded(a_strPath);
+        m_LibraryModules.erase(strPath);
+        o_emit libraryUnloaded(strPath);
     }
-    else 
+    else
     {
-        o_emit libraryUnloadFailed(a_strPath);
+        o_emit libraryUnloadFailed(strPath);
     }
     m_OperationCounter--;
     return result;
@@ -170,16 +193,18 @@ void ModuleLoader::moduleInstanciated( void* a_pModule )
     m_LoadedModuleCounts[pModule] = 0;
     m_LoadedModules.push_back(pModule);
     o_connect(a_pModule, elementAdded(reflection::LanguageElement*), this, elementAdded(reflection::LanguageElement*));
-    o_connect(a_pModule, elementRemoved(reflection::LanguageElement*), this, elementRemoved(reflection::LanguageElement*));
-    o_connect(a_pModule, elementReplaced(reflection::LanguageElement*, reflection::LanguageElement*), this, elementReplaced(reflection::LanguageElement*, reflection::LanguageElement*));
+    o_connect(a_pModule, elementAboutToBeRemoved(reflection::LanguageElement*), this, elementAboutToBeRemoved(reflection::LanguageElement*));
+    o_connect(a_pModule, elementsAboutToBeReplaced(const vector<reflection::LanguageElement*>&), this, elementsAboutToBeReplaced(const vector<reflection::LanguageElement*>&));
+    o_connect(a_pModule, elementsReplaced(const vector<reflection::LanguageElement*>&, const vector<reflection::LanguageElement*>&), this, elementsReplaced(const vector<reflection::LanguageElement*>&, const vector<reflection::LanguageElement*>&));
     o_emit moduleCreated(pModule);
 }
 
 void ModuleLoader::moduleDeleted( void* a_pModule )
 {
     o_disconnect(a_pModule, elementAdded(reflection::LanguageElement*), this, elementAdded(reflection::LanguageElement*));
-    o_disconnect(a_pModule, elementRemoved(reflection::LanguageElement*), this, elementRemoved(reflection::LanguageElement*));
-    o_disconnect(a_pModule, elementReplaced(reflection::LanguageElement*, reflection::LanguageElement*), this, elementReplaced(reflection::LanguageElement*, reflection::LanguageElement*));
+    o_disconnect(a_pModule, elementAboutToBeRemoved(reflection::LanguageElement*), this, elementAboutToBeRemoved(reflection::LanguageElement*));
+    o_disconnect(a_pModule, elementsAboutToBeReplaced(const vector<reflection::LanguageElement*>&), this, elementsAboutToBeReplaced(const vector<reflection::LanguageElement*>&));
+    o_disconnect(a_pModule, elementsReplaced(const vector<reflection::LanguageElement*>&, const vector<reflection::LanguageElement*>&), this, elementsReplaced(const vector<reflection::LanguageElement*>&, const vector<reflection::LanguageElement*>&));
     o_assert(m_OperationCounter, "DLL loader must be responsible for loading phantom modules, don't use platform specific function to load them such as LoadLibrary/FreeLibrary, use ModuleLoader::loadLibrary/unloadlibrary");
     phantom::Module* pModule = phantom::as<phantom::Module*>(a_pModule);
     o_emit moduleUnloaded(pModule, m_LoadedModuleCounts[pModule], 0);
@@ -194,47 +219,66 @@ void ModuleLoader::updateReferenceCounts(const string& a_strLibPath, bool a_bLoa
         TH32CS_SNAPMODULE,
         GetCurrentProcessId()
         );
-    MODULEENTRY32 entry;
-    BOOL result = Module32First(snapshotHandle, &entry);
+    MODULEENTRY32 wentry;
+    BOOL result = Module32First(snapshotHandle, &wentry);
     size_t matchingModuleCount = 0;
-    if(result)
+    if(result == FALSE)
     {
-        do 
+        o_exception(exception::base_exception, "Module32First failed, it happens when some code is written befire CreateToolhelp32Snapshot, don's ask me why...")
+    }
+    struct quick_entry
+    {
+        DWORD ProccntUsage;
+        HMODULE hModule;
+    };
+
+    vector<quick_entry> entries;
+    do
+    {
+        quick_entry entry;
+        entry.ProccntUsage = wentry.ProccntUsage;
+        entry.hModule = wentry.hModule;
+        entries.push_back(entry);
+    }
+    while(Module32Next(snapshotHandle, &wentry));
+
+    string strLibPath = ModuleLoader_normalizePathString(a_strLibPath);
+
+    for(auto it = m_LoadedModules.begin(); it != m_LoadedModules.end(); ++it)
+    {
+        Module* pModule = *it;
+        for(auto it = entries.begin(); it != entries.end(); ++it)
         {
-            for(auto it = m_LoadedModules.begin(); it != m_LoadedModules.end(); ++it) 
+            quick_entry& entry = *it;
+            if(entry.hModule == (HMODULE)pModule->getPlatformHandle())
             {
-                Module* pModule = *it;
-                if(entry.hModule == (HMODULE)(*it)->getPlatformHandle())
+                size_t oldCount = m_LoadedModuleCounts[pModule];
+                m_LoadedModuleCounts[pModule] = entry.ProccntUsage;
+                if(entry.ProccntUsage != 0x0000ffff)
                 {
-                    size_t oldCount = m_LoadedModuleCounts[pModule];
-                    m_LoadedModuleCounts[pModule] = entry.ProccntUsage;
-                    if(entry.ProccntUsage != 0x0000ffff)
+                    if(a_bLoading)
                     {
-                        if(a_bLoading)
+                        o_assert(oldCount <= entry.ProccntUsage, "A dynamic library loading shoudn't decrement any reference counter");
+                        if((int)oldCount < entry.ProccntUsage)
                         {
-                            o_assert(oldCount <= entry.ProccntUsage, "A dynamic library loading shoudn't decrement any reference counter");
-                            if((int)oldCount < entry.ProccntUsage)
-                            {
-                                m_LibraryModules[a_strLibPath][pModule] += ((size_t)entry.ProccntUsage)-oldCount;
-                                o_emit moduleLoaded(pModule, oldCount, entry.ProccntUsage);
-                            }
-                        }
-                        else 
-                        {
-                            o_assert(oldCount >= entry.ProccntUsage, "A dynamic library unloading shoudn't increment any reference counter");
-                            if(oldCount > entry.ProccntUsage)
-                            {
-                                o_emit moduleUnloaded(*it, oldCount, entry.ProccntUsage);
-                            }
+                            m_LibraryModules[strLibPath][pModule] += ((size_t)entry.ProccntUsage)-oldCount;
+                            o_emit moduleLoaded(pModule, oldCount, entry.ProccntUsage);
                         }
                     }
-                    m_LoadedModuleCounts[*it] = entry.ProccntUsage != 0x0000ffff ? entry.ProccntUsage : 1;
-                    matchingModuleCount++;
-                    break;
+                    else
+                    {
+                        o_assert(oldCount >= entry.ProccntUsage, "A dynamic library unloading shoudn't increment any reference counter");
+                        if(oldCount > entry.ProccntUsage)
+                        {
+                            o_emit moduleUnloaded(pModule, oldCount, entry.ProccntUsage);
+                        }
+                    }
                 }
+                m_LoadedModuleCounts[pModule] = entry.ProccntUsage != 0x0000ffff ? entry.ProccntUsage : 1;
+                matchingModuleCount++;
+                break;
             }
         }
-        while(Module32Next(snapshotHandle, &entry));
     }
     o_assert(matchingModuleCount == m_LoadedModules.size(), "A loaded module has not been found in the loaded dlls");
     o_verify(CloseHandle(snapshotHandle), "CloseHandle(snapshotHandle)");
@@ -249,14 +293,24 @@ size_t ModuleLoader::getModuleLoadCount( Module* a_pModule ) const
 
 map<Module*, size_t>::const_iterator ModuleLoader::beginLoadedLibraryModules( const string& a_strPath ) const
 {
-    o_assert(isLibraryLoaded(a_strPath));
-    return m_LibraryModules.find(a_strPath)->second.begin();
+    auto abs = boost::filesystem::absolute(a_strPath.c_str());
+    for(auto it = m_LibraryModules.begin(); it != m_LibraryModules.end(); ++it)
+    {
+        if(boost::filesystem::equivalent(boost::filesystem::absolute(it->first.c_str()), abs))
+            return it->second.begin();
+    }
+    return sg_EmptyLibraryLoadedModules.begin();
 }
 
 map<Module*, size_t>::const_iterator ModuleLoader::endLoadedLibraryModules( const string& a_strPath ) const
 {
-    o_assert(isLibraryLoaded(a_strPath));
-    return m_LibraryModules.find(a_strPath)->second.end();
+    auto abs = boost::filesystem::absolute(a_strPath.c_str());
+    for(auto it = m_LibraryModules.begin(); it != m_LibraryModules.end(); ++it)
+    {
+        if(boost::filesystem::equivalent(boost::filesystem::absolute(it->first.c_str()), abs))
+            return it->second.end();
+    }
+    return sg_EmptyLibraryLoadedModules.end();
 }
 
 bool Module_derivedClassHasDifferentModule(const string& moduleName, Module* a_pModule, const phantom::vector<Module*>& a_ModulesAboutToBeUnloaded, reflection::Class* a_pClass, Message*& a_pMessageUnloadFailed, Message* a_pMessage)
@@ -291,15 +345,16 @@ bool Module_derivedClassHasDifferentModule(const string& moduleName, Module* a_p
 
 bool ModuleLoader::libraryCanBeUnloaded( const string& a_strPath, Message* a_pMessage, vector<reflection::LanguageElement*>* a_pBlockingElements /*= nullptr*/ ) const
 {
-    string moduleName = a_strPath.substr(a_strPath.find_last_of("/\\")+1);
+    string strPath = ModuleLoader_normalizePathString(a_strPath);
+    string moduleName = strPath.substr(strPath.find_last_of("/\\")+1);
     Message* pMessageUnloadFailed = nullptr;
     bool canUnload = true;
     vector<Module*> modulesAboutToBeUnloaded;
 
-    for(auto it = beginLoadedLibraryModules(a_strPath); it != endLoadedLibraryModules(a_strPath); ++it)
+    for(auto it = beginLoadedLibraryModules(strPath); it != endLoadedLibraryModules(strPath); ++it)
     {
         Module* pModule = it->first;
-        if(getModuleLoadCount(pModule) == it->second) 
+        if(getModuleLoadCount(pModule) == it->second)
         {
             modulesAboutToBeUnloaded.push_back(pModule);
         }
@@ -310,7 +365,7 @@ bool ModuleLoader::libraryCanBeUnloaded( const string& a_strPath, Message* a_pMe
         for(auto it = pModule->beginLanguageElements(); it != pModule->endLanguageElements(); ++it)
         {
             reflection::Class* pClass = (*it)->asClass();
-            if(pClass) 
+            if(pClass)
             {
                 if(pClass->getInstanceCount())
                 {
@@ -321,12 +376,12 @@ bool ModuleLoader::libraryCanBeUnloaded( const string& a_strPath, Message* a_pMe
                     canUnload = false;
                     if(a_pMessage)
                     {
-                        if(pMessageUnloadFailed == nullptr) 
+                        if(pMessageUnloadFailed == nullptr)
                             pMessageUnloadFailed = a_pMessage->error(moduleName.c_str(), "Cannot unload module : %s", moduleName.c_str());
                         pMessageUnloadFailed->error(variant(), "Class '%s' still have %d instances", pClass->getQualifiedDecoratedName().c_str(), pClass->getInstanceCount());
                     } else return false;
                 }
-                if(Module_derivedClassHasDifferentModule(moduleName, pModule, modulesAboutToBeUnloaded, pClass, pMessageUnloadFailed, a_pMessage)) 
+                if(Module_derivedClassHasDifferentModule(moduleName, pModule, modulesAboutToBeUnloaded, pClass, pMessageUnloadFailed, a_pMessage))
                 {
                     if(a_pBlockingElements)
                     {
@@ -344,7 +399,8 @@ bool ModuleLoader::libraryCanBeUnloaded( const string& a_strPath, Message* a_pMe
 
 size_t ModuleLoader::getLibraryModuleLoadCount( const string& a_strPath, Module* a_pModule ) const
 {
-    auto foundLib = m_LibraryModules.find(a_strPath);
+    string strPath = ModuleLoader_normalizePathString(a_strPath);
+    auto foundLib = m_LibraryModules.find(strPath);
     if(foundLib == m_LibraryModules.end()) return 0;
     auto foundModule = foundLib->second.find(a_pModule);
     if(foundModule == foundLib->second.end()) return 0;
@@ -363,6 +419,42 @@ void ModuleLoader::unloadMain( Message* a_pMessage /*= nullptr*/ )
     m_OperationCounter++;
     phantom::uninstallReflection("main");
     m_OperationCounter--;
+}
+
+bool ModuleLoader::isLibraryLoaded( const string& a_strPath ) const
+{
+    auto abs = boost::filesystem::absolute(a_strPath.c_str());
+    for(auto it = m_LibraryModules.begin(); it != m_LibraryModules.end(); ++it)
+    {
+        if(boost::filesystem::equivalent(boost::filesystem::absolute(it->first.c_str()), abs))
+            return true;
+    }
+    return false;
+}
+
+bool ModuleLoader::isModuleLoaded( const string& a_strFileName ) const
+{
+    for(auto it = m_LoadedModules.begin(); it != m_LoadedModules.end(); ++it)
+    {
+        if((*it)->getFileName() == a_strFileName) return true;
+    }
+    return false;
+}
+
+void ModuleLoader::setDataBase( serialization::DataBase* a_pDataBase )
+{
+    if(m_pDataBase == a_pDataBase) return;
+    if(m_pDataBase)
+    {
+        o_disconnect(this, moduleLoaded(Module*, size_t, size_t), m_pDataBase, moduleLoaded(Module*, size_t, size_t));
+        o_disconnect(this, moduleUnloaded(Module*, size_t, size_t), m_pDataBase, moduleUnloaded(Module*, size_t, size_t));
+    }
+    m_pDataBase = a_pDataBase;
+    if(m_pDataBase)
+    {
+        o_connect(this, moduleLoaded(Module*, size_t, size_t), m_pDataBase, moduleLoaded(Module*, size_t, size_t));
+        o_connect(this, moduleUnloaded(Module*, size_t, size_t), m_pDataBase, moduleUnloaded(Module*, size_t, size_t));
+    }
 }
 
 auto_dll_loader::auto_dll_loader()

@@ -42,7 +42,7 @@ o_namespace_begin(phantom, state)
 
 reflection::Class* const StateMachine::metaType = o_type_of(phantom::state::StateMachine);
 
-StateMachine::StateMachine( bitfield a_Modifiers )
+StateMachine::StateMachine( modifiers_t a_Modifiers )
     : LanguageElement("", a_Modifiers)
     , m_uiTrackCount(0) 
     , m_pCompilationData(nullptr)
@@ -173,11 +173,11 @@ State*  StateMachine::getTransitState(void* a_pObject, const Track* a_pTrack) co
     return o_dynamic_smdataptr(a_pObject)->transit_states[((const Track*)a_pTrack)->m_uiIndex]; 
 }
 
-void StateMachine::setup( StateMachine* a_pSuper )
+void StateMachine::setup( StateMachine* a_pBase )
 {
     o_assert(m_pCompilationData);
     o_assert(m_Tracks.empty(), "Tracks have already been created, cannot inherit anymore");
-    if(a_pSuper == nullptr) // No super state machine, we create a root track from scratch
+    if(a_pBase == nullptr) // No base state machine, we create a root track from scratch
     {
         setRootTrack(o_new(Track)("Root", m_Modifiers));
         return;
@@ -185,22 +185,22 @@ void StateMachine::setup( StateMachine* a_pSuper )
 
     // duplicate states and tracks content
     size_t i = 0;
-    size_t count = a_pSuper->getTrackCount();
+    size_t count = a_pBase->getTrackCount();
     m_Tracks.resize(count);
     for(;i<count;++i)
     {
-        Track* pSourceTrack = a_pSuper->getTrack(i);
+        Track* pSourceTrack = a_pBase->getTrack(i);
         Track* pNewTrack = o_new(Track)(pSourceTrack->getName(), pSourceTrack->getModifiers());
         pNewTrack->m_uiIndex = i;
         pNewTrack->m_pOwner = this;
         m_Tracks[i] = pNewTrack;
     }
     i = 0;
-    count = a_pSuper->getStateCount();
+    count = a_pBase->getStateCount();
     m_States.resize(count);
     for(;i<count;++i)
     {
-        State* pSourceState = a_pSuper->getState(i);
+        State* pSourceState = a_pBase->getState(i);
         State* pNewState = o_new(State)(pSourceState->getName(), pSourceState->getModifiers());
         pNewState->setEnterClosure(pSourceState->getEnterClosure());
         pNewState->setUpdateClosure(pSourceState->getUpdateClosure());
@@ -210,7 +210,7 @@ void StateMachine::setup( StateMachine* a_pSuper )
         m_States[i] = pNewState;
     }
     // copy state/track hierarchy recursively
-    static_cast<Track*>(getRootTrack())->copyHierarchy(this, a_pSuper->getRootTrack());
+    static_cast<Track*>(getRootTrack())->copyHierarchy(this, a_pBase->getRootTrack());
 }
 
 void StateMachine::initialize( void* a_pObject )

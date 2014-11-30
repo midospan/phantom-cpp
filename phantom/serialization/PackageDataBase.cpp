@@ -82,7 +82,7 @@ void PackageDataBase::loadNodeEntriesHelper(Node* a_pNode, const boost::filesyst
     {
         const boost::filesystem::path& dir_path = it->path();
         if(NOT(boost::filesystem::is_directory(dir_path))) continue;
-        uint guid = 0xFFFFFFFF;
+        uint guid = o_invalid_guid;
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(disable:4996)
 #endif
@@ -90,7 +90,7 @@ void PackageDataBase::loadNodeEntriesHelper(Node* a_pNode, const boost::filesyst
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(default:4996)
 #endif        
-        if(guid != 0xFFFFFFFF)
+        if(guid != o_invalid_guid)
         {
             Node* pChildNode = createNode(guid, a_pNode);
             registerNode(pChildNode);

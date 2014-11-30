@@ -18,7 +18,6 @@ class VariableWidget;
 class VariableEditor;
 class VariableModel;
 class VariableEditorFactory;
-class CollectionElementVariable;
 class VariableWidgetEditor;
 class UndoStack;
 class VariableEditorManager;
@@ -63,6 +62,7 @@ public:
 
     QString valueText(const QtProperty *property) const;
     QIcon   valueIcon(const QtProperty *property) const;
+    bool    hasValue(const QtProperty *property) const;
 
     VariableNode*  getVariableNode(QtProperty* property) const;
 
@@ -78,6 +78,10 @@ protected:
     void registerProperty(QtProperty* property, VariableNode* a_pVariable);
     QtProperty* unregisterProperty(VariableNode* a_pVariable);
     void createActionWidget(QtProperty* property, VariableNode* a_pVariable);
+    void createValueWidget( QtProperty* property, VariableNode* a_pVariable );
+
+    void focusOutEvent(QFocusEvent * event);
+    void focusInEvent( QFocusEvent * event);
 
 public slots:
     void refresh();
@@ -91,10 +95,13 @@ protected:
 
 protected slots:
     void showPopup(const QPoint&);
+    void closeOpenedEditor();
     virtual void slotVariableChanged(VariableNode* a_pVariable);
     virtual void slotEditorDestroyed();
     virtual void slotEditorValueChanged();
+    virtual void slotEditorCanceled();
     void variableChildNodeAdded( VariableNode* a_pVariableNode );
+    void variableChildNodeAdded( VariableNode* a_pVariableNode, bool a_bRoot );
     void variableChildNodeAboutToBeRemoved( VariableNode* a_pVariableNode );
     void columnSectionResized(int logicalIndex, int oldSize, int newSize);
 
@@ -103,7 +110,6 @@ signals:
     void variableAccessed(VariableNode* a_pVariable);
     void variableAboutToBeChanged(VariableNode* a_pVariable);
     void variableChanged(VariableNode* a_pVariable);
-
 protected:
     VariableModel*                      m_pVariableModel;
     VariableWidget*                     m_pOpenedEditor;

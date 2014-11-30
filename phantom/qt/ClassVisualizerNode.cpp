@@ -19,13 +19,14 @@ void ClassVisualizerNode::expand( VariableNode* a_pVariableNode, const vector<re
 void ClassVisualizerNode::expand( VariableNode* a_pVariableNode, const vector<reflection::Expression*>& a_LeftExpressions, reflection::Class* a_pClass ) const
 {
     VariableNode* pClassLayoutNode = o_new(VariableNode)(nameOf(a_pClass));
+    pClassLayoutNode->setIcon(QIcon(iconOf(a_pClass).c_str()));
     a_pVariableNode->addChildNode(pClassLayoutNode);
     ClassTypeVisualizerNode::expand(pClassLayoutNode, a_LeftExpressions, a_pClass);
     if(a_pClass->isPublic())
     {
-        for(size_t i = 0; i<a_pClass->getSuperClassCount(); ++i)
+        for(size_t i = 0; i<a_pClass->getBaseClassCount(); ++i)
         {
-            expand(a_pVariableNode, a_LeftExpressions, a_pClass->getSuperClass(i));
+            expand(a_pVariableNode, a_LeftExpressions, a_pClass->getBaseClass(i));
         }
     }
 }

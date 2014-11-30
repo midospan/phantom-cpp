@@ -4,7 +4,7 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/qt/UndoCommand.h>
+#include <phantom/qt/DataBaseCommand.h>
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, qt), LoadNodeCommand);
 /* *********************************************** */
@@ -16,7 +16,7 @@ namespace phantom { namespace qt {
  * \class LoadNodeCommand
  * \brief Command to add a node
  * ************************************************ */
-class o_qt_export LoadNodeCommand : public UndoCommand
+class o_qt_export LoadNodeCommand : public DataBaseCommand
 {
 public:
 
@@ -32,15 +32,14 @@ public:
 	// Operations
 	//================================================
 
-	virtual void undo();
-	virtual void redo();
+    virtual void redoReplayed();
+    virtual void undoReplayed();
     virtual LoadNodeCommand* clone() const;
 
 protected:
 	//================================================
 	// Fields
 	//================================================
-	serialization::DataBase*        m_pDataBase;
 	uint							m_uiGuid;
 
 };

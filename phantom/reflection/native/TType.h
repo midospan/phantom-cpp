@@ -35,32 +35,30 @@ class TSequentialConstIterator : public ConstIterator
     typedef o_NESTED_TYPE container_type::const_iterator iterator_type;
     typedef o_NESTED_TYPE container_type::value_type value_type;
 
-    virtual void deleteNow() { o_proxy_delete(phantom::reflection::ConstIterator, self_type) this; }
-
 public:
-    TSequentialConstIterator(const container_type& a_Container, iterator_type a_Iterator) 
+    TSequentialConstIterator(const container_type& a_Container, iterator_type a_Iterator)
         : m_Container(a_Container)
-        , m_Iterator(a_Iterator) 
+        , m_Iterator(a_Iterator)
     {
 
     }
-    virtual void getValue(void* dest) const 
+    virtual void getValue(void* dest) const
     {
         *static_cast<value_type*>(dest) = *m_Iterator;
     }
 
     virtual const void* pointer() const { return &(*m_Iterator); }
 
-    virtual Type*       getValueType() const 
+    virtual Type*       getValueType() const
     {
         return typeOf<value_type>();
     }
 
-    virtual void                next(void* dest) 
+    virtual void                next(void* dest)
     {
         *static_cast<value_type*>(dest) = *m_Iterator++;
     }
-    
+
     virtual void    advance(size_t offset)
     {
         std::advance(m_Iterator, offset);
@@ -83,37 +81,34 @@ class TSequentialIterator : public Iterator
     typedef o_NESTED_TYPE container_type::iterator iterator_type;
     typedef o_NESTED_TYPE container_type::value_type value_type;
 
-    typedef TSequentialIterator<t_Container> self_type;
-
-    virtual void deleteNow() { o_proxy_delete(phantom::reflection::Iterator, self_type) this; }
 public:
-    TSequentialIterator(container_type& a_Container, iterator_type a_Iterator) 
+    TSequentialIterator(container_type& a_Container, iterator_type a_Iterator)
         : m_Container(a_Container)
-        , m_Iterator(a_Iterator) 
+        , m_Iterator(a_Iterator)
     {
 
     }
 
-    virtual void getValue(void* dest) const 
+    virtual void getValue(void* dest) const
     {
         *static_cast<value_type*>(dest) = *m_Iterator;
     }
 
-    virtual void setValue(void const* src) const 
+    virtual void setValue(void const* src) const
     {
         *m_Iterator = *static_cast<value_type const*>(src);
     }
 
     virtual void* pointer() const { return &(*m_Iterator); }
 
-    virtual void advance(size_t offset) { std::advance(m_Iterator, offset); } 
+    virtual void advance(size_t offset) { std::advance(m_Iterator, offset); }
 
-    virtual Type*       getValueType() const 
+    virtual Type*       getValueType() const
     {
         return typeOf<value_type>();
     }
 
-    virtual void                next(void* dest) 
+    virtual void                next(void* dest)
     {
         *static_cast<value_type*>(dest) = *m_Iterator++;
     }
@@ -129,7 +124,7 @@ protected:
 
 // hacker
 template<typename t_Ty>
-struct map_value_type_without_const 
+struct map_value_type_without_const
 {
     typedef t_Ty type;
 };
@@ -141,7 +136,7 @@ struct map_value_type_without_const <std::pair<const t_KTy, t_Ty>>
 };
 
 // Specialization for maps
-template<typename t_Ty> 
+template<typename t_Ty>
 class TMapContainerClass;
 
 template<typename t_Container>
@@ -158,26 +153,24 @@ class TMapConstIterator : public MapConstIterator
 
     template<typename t_Ty> friend class TMapContainerClass;
 
-    virtual void deleteNow() { o_proxy_delete(phantom::reflection::MapConstIterator, self_type) this; }
-
 public:
-    TMapConstIterator(const container_type& a_Container, iterator_type a_Iterator) 
+    TMapConstIterator(const container_type& a_Container, iterator_type a_Iterator)
         : m_Container(a_Container)
-        , m_Iterator(a_Iterator) 
+        , m_Iterator(a_Iterator)
     {
 
     }
-    virtual void getValue(void* dest) const 
+    virtual void getValue(void* dest) const
     {
         *static_cast<value_type_no_const*>(dest) = *m_Iterator;
     }
 
-    virtual void getKeyValue(void* dest) const 
+    virtual void getKeyValue(void* dest) const
     {
         *static_cast<key_type*>(dest) = m_Iterator->first;
     }
 
-    virtual void getMappedValue(void* dest) const 
+    virtual void getMappedValue(void* dest) const
     {
         *static_cast<mapped_type*>(dest) = m_Iterator->second;
     }
@@ -188,22 +181,22 @@ public:
 
     virtual const void* mappedPointer() const { return &m_Iterator->second; }
 
-    virtual Type* getValueType() const 
+    virtual Type* getValueType() const
     {
         return typeOf<value_type>();
     }
 
-    virtual Type* getMappedType() const 
+    virtual Type* getMappedType() const
     {
         return typeOf<mapped_type>();
     }
 
-    virtual Type* getKeyType() const 
+    virtual Type* getKeyType() const
     {
         return typeOf<key_type>();
     }
 
-    virtual void next(void* dest) 
+    virtual void next(void* dest)
     {
         *static_cast<value_type_no_const*>(dest) = *m_Iterator;
         ++m_Iterator;
@@ -215,7 +208,7 @@ public:
     }
 
     virtual bool hasNext() const { return m_Container.end() != m_Iterator; }
-    
+
 protected:
     const container_type& m_Container;
     iterator_type m_Iterator;
@@ -233,18 +226,16 @@ class TMapIterator : public MapIterator
     typedef o_NESTED_TYPE container_type::mapped_type mapped_type;
     typedef o_NESTED_TYPE container_type::key_type key_type;
 
-    template<typename t_Ty> friend class TMapContainerClass;    
-    
-    virtual void deleteNow() { o_proxy_delete(phantom::reflection::MapIterator, self_type) this; }
+    template<typename t_Ty> friend class TMapContainerClass;
 
 public:
-    TMapIterator(container_type& a_Container, iterator_type a_Iterator) 
+    TMapIterator(container_type& a_Container, iterator_type a_Iterator)
         : m_Container(a_Container)
-        , m_Iterator(a_Iterator) 
+        , m_Iterator(a_Iterator)
     {
 
     }
-    virtual void getValue(void* dest) const 
+    virtual void getValue(void* dest) const
     {
         *static_cast<value_type_no_const*>(dest) = *m_Iterator;
     }
@@ -255,46 +246,46 @@ public:
 
     virtual void* mappedPointer() const { return &m_Iterator->second; }
 
-    virtual void getKeyValue(void* a_pDest) const 
+    virtual void getKeyValue(void* a_pDest) const
     {
         *static_cast<key_type*>(a_pDest) = m_Iterator->first;
     }
 
-    virtual void getMappedValue(void* a_pDest) const 
+    virtual void getMappedValue(void* a_pDest) const
     {
         *static_cast<mapped_type*>(a_pDest) = m_Iterator->second;
     }
 
-    virtual void setMappedValue(void const* src) const 
+    virtual void setMappedValue(void const* src) const
     {
         m_Iterator->second = *static_cast<mapped_type const*>(src);
     }
 
-    virtual void advance(size_t offset) { std::advance(m_Iterator, offset); } 
+    virtual void advance(size_t offset) { std::advance(m_Iterator, offset); }
 
-    virtual Type* getValueType() const 
+    virtual Type* getValueType() const
     {
         return typeOf<value_type>();
     }
 
-    virtual Type* getMappedType() const 
+    virtual Type* getMappedType() const
     {
         return typeOf<mapped_type>();
     }
 
-    virtual Type* getKeyType() const 
+    virtual Type* getKeyType() const
     {
         return typeOf<key_type>();
     }
 
-    virtual void next(void* dest) 
+    virtual void next(void* dest)
     {
         *static_cast<value_type_no_const*>(dest) = *m_Iterator;
         ++m_Iterator;
     }
 
     virtual bool hasNext() const { return m_Container.end() != m_Iterator; }
-    
+
 protected:
     container_type& m_Container;
     iterator_type m_Iterator;
@@ -311,30 +302,28 @@ class TSetConstIterator : public ConstIterator
 
     template<typename t_Ty> friend class TSetContainerClass;
 
-    virtual void deleteNow() { o_proxy_delete(phantom::reflection::ConstIterator, self_type) this; }
-
 public:
-    TSetConstIterator(const container_type& a_Container, iterator_type a_Iterator) 
+    TSetConstIterator(const container_type& a_Container, iterator_type a_Iterator)
         : m_Container(a_Container)
-        , m_Iterator(a_Iterator) 
+        , m_Iterator(a_Iterator)
     {
 
     }
-    virtual void getValue(void* dest) const 
+    virtual void getValue(void* dest) const
     {
         *static_cast<value_type*>(dest) = *m_Iterator;
     }
 
     virtual const void* pointer() const { return &(*m_Iterator); }
 
-    virtual Type*       getValueType() const 
+    virtual Type*       getValueType() const
     {
         return typeOf<value_type>();
     }
 
-    virtual void        next(void* dest) 
+    virtual void        next(void* dest)
     {
-        *static_cast<t_ValueType*>(dest) = *m_Iterator++;
+        *static_cast<value_type*>(dest) = *m_Iterator++;
     }
 
     virtual void    advance(size_t offset)
@@ -356,42 +345,40 @@ class TSetIterator : public Iterator
     typedef t_Container container_type;
     typedef o_NESTED_TYPE container_type::iterator iterator_type;
     typedef o_NESTED_TYPE container_type::value_type value_type;
-    
+
     template<typename t_Ty> friend class TSetContainerClass;
 
-    virtual void deleteNow() { o_proxy_delete(phantom::reflection::Iterator, self_type) this; }
-
 public:
-    TSetIterator(container_type& a_Container, SetContainerClass* a_pContainerClass, iterator_type a_Iterator) 
+    TSetIterator(container_type& a_Container, SetContainerClass* a_pContainerClass, iterator_type a_Iterator)
         : m_Container(a_Container)
-        , m_Iterator(a_Iterator) 
+        , m_Iterator(a_Iterator)
     {
 
     }
-    virtual void getValue(void* dest) const 
+    virtual void getValue(void* dest) const
     {
         *static_cast<value_type*>(dest) = *m_Iterator;
     }
 
-    virtual void setValue(void const* src) const 
+    virtual void setValue(void const* src) const
     {
         o_exception(exception::unsupported_member_function_exception, "Set iterators are readonly because modifying a value should modify also the key");
     }
 
     virtual void* pointer() const { return &(*m_Iterator); }
 
-    virtual void advance(size_t offset) { std::advance(m_Iterator, offset); } 
+    virtual void advance(size_t offset) { std::advance(m_Iterator, offset); }
 
-    virtual Type*       getValueType() const 
+    virtual Type*       getValueType() const
     {
         return typeOf<value_type>();
     }
 
-    virtual bool             hasNext() const 
-    { 
-        return m_Container.end() != m_Iterator; 
+    virtual bool             hasNext() const
+    {
+        return m_Container.end() != m_Iterator;
     }
-    virtual void                next(void* dest) 
+    virtual void                next(void* dest)
     {
         *static_cast<value_type*>(dest) = *m_Iterator++;
     }
@@ -419,13 +406,13 @@ class TSequentialContainerClass : public SequentialContainerClass
     typedef TSequentialIterator<container_type>         iterator;
 
 public:
-    TSequentialContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
-        : SequentialContainerClass(typeOf<container_value_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+    TSequentialContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
+        : SequentialContainerClass(typeOf<container_value_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers|o_native)
     {
     }
 
-    virtual size_t     count(void const* a_pContainer) const 
-    { 
+    virtual size_t     count(void const* a_pContainer) const
+    {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
         return container->size();
     }
@@ -443,18 +430,18 @@ public:
     virtual Iterator*       begin(void* a_pContainer) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        return o_proxy_new(phantom::reflection::Iterator, iterator)(*container, container->begin());
+        return o_dynamic_proxy_new(iterator)(*container, container->begin());
     }
 
     virtual ConstIterator*       begin(void const* a_pContainer) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
-        return o_proxy_new(phantom::reflection::ConstIterator, const_iterator)(*container, container->begin());
+        return o_dynamic_proxy_new(const_iterator)(*container, container->begin());
     }
 
-    virtual void                    release(Iterator* a_pIterator) { o_proxy_delete(phantom::reflection::Iterator, iterator) static_cast<phantom::reflection::Iterator*>(a_pIterator); }
+    virtual void                    release(Iterator* a_pIterator) { o_dynamic_delete a_pIterator; }
 
-    virtual void append(void* a_pContainer, void const* a_pValue) const 
+    virtual void append(void* a_pContainer, void const* a_pValue) const
     {
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
         container_value_type const* pValue = static_cast<container_value_type const*>(a_pValue);
@@ -468,7 +455,7 @@ public:
         iterator_type end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::Iterator, iterator)(*container, it));
+            out.push_back(o_dynamic_proxy_new(iterator)(*container, it));
         }
     }
 
@@ -479,7 +466,7 @@ public:
         container_const_iterator end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::ConstIterator, const_iterator)(*container, it));
+            out.push_back(o_dynamic_proxy_new(const_iterator)(*container, it));
         }
     }
 
@@ -498,7 +485,7 @@ public:
         container->erase(*pFirstIt,*pLastIt);
     }
 
-    virtual void        erase(void* a_pContainer, Iterator* first, Iterator* last) const 
+    virtual void        erase(void* a_pContainer, Iterator* first, Iterator* last) const
     {
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
         iterator* pFirst = static_cast<iterator*>(first);
@@ -521,12 +508,12 @@ public:
         return erasedCount;
     }
 
-    virtual size_t     replaceAll(void* a_pContainer, const void* a_pOld, const void* a_pNew) const 
+    virtual size_t     replaceAll(void* a_pContainer, const void* a_pOld, const void* a_pNew) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
         container_value_type pOldValue = *((const container_value_type*)a_pOld);
         container_value_type pNewValue = *((const container_value_type*)a_pNew);
-        
+
         size_t replacedCount = 0;
         iterator_type it = container->begin();
         iterator_type end = container->end();
@@ -557,15 +544,15 @@ class TMapContainerClass : public MapContainerClass
     typedef TMapIterator<container_type>        iterator;
 
 public:
-    TMapContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
+    TMapContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
         : MapContainerClass(typeOf<container_key_type>()
         , typeOf<container_mapped_type>()
-        , typeOf<container_value_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+        , typeOf<container_value_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers|o_native)
     {
 
     }
-    virtual size_t     count(void const* a_pContainer) const 
-    { 
+    virtual size_t     count(void const* a_pContainer) const
+    {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
         return container->size();
     }
@@ -583,17 +570,17 @@ public:
     virtual MapIterator*       begin(void* a_pContainer) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        return o_proxy_new(phantom::reflection::MapIterator, iterator)(*container, container->begin());
+        return o_dynamic_proxy_new(iterator)(*container, container->begin());
     }
 
     virtual MapConstIterator*       begin(void const* a_pContainer) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
-        return o_proxy_new(phantom::reflection::MapConstIterator, const_iterator)(*container, container->begin());
+        return o_dynamic_proxy_new(const_iterator)(*container, container->begin());
     }
 
-    virtual void           release(Iterator* a_pIterator) { o_proxy_delete(phantom::reflection::MapIterator, iterator) static_cast<phantom::reflection::MapIterator*>(a_pIterator); }
-    virtual void           release(ConstIterator* a_pIterator) { o_proxy_delete(phantom::reflection::MapConstIterator, const_iterator) static_cast<phantom::reflection::MapConstIterator*>(a_pIterator); }
+    virtual void           release(Iterator* a_pIterator) { o_dynamic_delete a_pIterator; }
+    virtual void           release(ConstIterator* a_pIterator) { o_dynamic_delete a_pIterator; }
 
     virtual void           createIterators(void* a_pContainer, vector<Iterator*>& out) const
     {
@@ -602,10 +589,10 @@ public:
         iterator_type end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::Iterator, iterator)(*container, it));
+            out.push_back(o_dynamic_proxy_new(iterator)(*container, it));
         }
     }
-    
+
     virtual void           createConstIterators(void const* a_pContainer, vector<ConstIterator*>& out) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
@@ -613,7 +600,7 @@ public:
         container_const_iterator end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::ConstIterator, const_iterator)(*container, it));
+            out.push_back(o_dynamic_proxy_new(const_iterator)(*container, it));
         }
     }
 
@@ -626,7 +613,7 @@ public:
         iterator_type end = container->upper_bound(*pLastKey);
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::Iterator, iterator)(*container, it));
+            out.push_back(o_dynamic_proxy_new(iterator)(*container, it));
         }
     }
 
@@ -645,7 +632,7 @@ public:
         container->erase(*pFirstIt,*pLastIt);
     }
 
-    virtual void        erase(void* a_pContainer, Iterator* first, Iterator* last) const 
+    virtual void        erase(void* a_pContainer, Iterator* first, Iterator* last) const
     {
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
         iterator* pFirst = static_cast<iterator*>(first);
@@ -666,7 +653,7 @@ public:
     virtual void        insertPair(void* a_pContainer, void const* a_pKey, void* a_pValue ) const
     {
         container_key_type const* pKey = static_cast<container_key_type const*>(a_pKey);
-        container_mapped_type const* pValue = static_cast<container_mapped_type*>(a_pValue); 
+        container_mapped_type const* pValue = static_cast<container_mapped_type*>(a_pValue);
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
         pContainer->insert(container_value_type(*pKey, *pValue));
     }
@@ -678,14 +665,14 @@ public:
         pContainer->insert(container_value_type(*pKey, container_mapped_type()));
     }
 
-    virtual bool        containsKey(void const* a_pContainer, void const* a_pKey) const 
+    virtual bool        containsKey(void const* a_pContainer, void const* a_pKey) const
     {
         container_key_type const* pKey = static_cast<container_key_type const*>(a_pKey);
         t_Ty const* pContainer = static_cast<t_Ty const*>(a_pContainer);
         return pContainer->find(*pKey) != pContainer->end();
     }
 
-    virtual void        getValue(void const* a_pContainer, void* a_pDest, void const* a_pKey) const 
+    virtual void        getValue(void const* a_pContainer, void* a_pDest, void const* a_pKey) const
     {
         container_key_type const* pKey = static_cast<container_key_type const*>(a_pKey);
         t_Ty const* pContainer = static_cast<t_Ty const*>(a_pContainer);
@@ -696,7 +683,7 @@ public:
         }
     }
 
-    virtual void        eraseKey(void* a_pContainer, void const* a_pKey) const 
+    virtual void        eraseKey(void* a_pContainer, void const* a_pKey) const
     {
         container_key_type const* pKey = static_cast<container_key_type const*>(a_pKey);
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
@@ -707,7 +694,7 @@ public:
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
         container_mapped_type pOldValue = *((const container_mapped_type*)a_pOld);
-        
+
         vector<container_key_type> keys;
         size_t erasedCount = 0;
         iterator_type it = container->begin();
@@ -733,7 +720,7 @@ public:
         return erasedCount;
 
     }
-    virtual size_t     replaceAll(void* a_pContainer, const void* a_pOld, const void* a_pNew) const 
+    virtual size_t     replaceAll(void* a_pContainer, const void* a_pOld, const void* a_pNew) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
         container_mapped_type pOldValue = *((const container_mapped_type*)a_pOld);
@@ -771,13 +758,13 @@ class TSetContainerClass : public SetContainerClass
     typedef TSetIterator<container_type>        iterator;
 
 public:
-    TSetContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
-        : SetContainerClass(typeOf<container_key_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
+    TSetContainerClass(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
+        : SetContainerClass(typeOf<container_key_type>(), a_strName, a_uiSize, a_uiAlignment, a_Modifiers|o_native)
     {
     }
 
-    virtual size_t     count(void const* a_pContainer) const 
-    { 
+    virtual size_t     count(void const* a_pContainer) const
+    {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
         return container->size();
     }
@@ -795,23 +782,23 @@ public:
     virtual Iterator*       begin(void* a_pContainer) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
-        return o_proxy_new(phantom::reflection::Iterator, iterator)(*container, container->begin());
+        return o_dynamic_proxy_new(iterator)(*container, container->begin());
     }
 
     virtual ConstIterator*       begin(void const* a_pContainer) const
     {
         t_Ty const* container = static_cast<t_Ty const*>(a_pContainer);
-        return o_proxy_new(phantom::reflection::ConstIterator, const_iterator)(*container, container->begin());
+        return o_dynamic_proxy_new(const_iterator)(*container, container->begin());
     }
 
     virtual void                    release(Iterator* a_pIterator) const
     {
-        o_proxy_delete(phantom::reflection::Iterator, iterator) static_cast<phantom::reflection::Iterator*>(a_pIterator);
+        o_dynamic_delete a_pIterator;
     }
 
     virtual void                    release(ConstIterator* a_pIterator) const
     {
-        o_proxy_delete(phantom::reflection::ConstIterator, const_iterator) static_cast<phantom::reflection::ConstIterator*>(a_pIterator);
+        o_dynamic_delete a_pIterator;
     }
 
     virtual void       createIterators(void* a_pContainer, vector<Iterator*>& out) const
@@ -821,7 +808,7 @@ public:
         iterator_type end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::Iterator, iterator)(*container, it));
+            out.push_back(o_dynamic_proxy_new(iterator)(*container, it));
         }
     }
 
@@ -832,7 +819,7 @@ public:
         container_const_iterator end = container->end();
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::ConstIterator, const_iterator)(*container, it));
+            out.push_back(o_dynamic_proxy_new(const_iterator)(*container, it));
         }
     }
 
@@ -845,7 +832,7 @@ public:
         iterator_type end = container->upper_bound(*pLastKey);
         for(;it!=end;++it)
         {
-            out.push_back(o_proxy_new(phantom::reflection::Iterator, iterator)(*container, it));
+            out.push_back(o_dynamic_proxy_new(iterator)(*container, it));
         }
     }
 
@@ -864,7 +851,7 @@ public:
         container->erase(*pFirstIt,*pLastIt);
     }
 
-    virtual void        erase(void* a_pContainer, Iterator* first, Iterator* last) const 
+    virtual void        erase(void* a_pContainer, Iterator* first, Iterator* last) const
     {
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
         iterator* pFirst = static_cast<iterator*>(first);
@@ -889,14 +876,14 @@ public:
         pContainer->insert(*pKey);
     }
 
-    virtual bool        containsKey(void const* a_pContainer, void const* a_pKey) const 
+    virtual bool        containsKey(void const* a_pContainer, void const* a_pKey) const
     {
         container_key_type const* pKey = static_cast<container_key_type const*>(a_pKey);
         t_Ty const* pContainer = static_cast<t_Ty const*>(a_pContainer);
         return pContainer->find(*pKey) != pContainer->end();
     }
 
-    virtual void        getValue(void const* a_pContainer, void* a_pDest, void const* a_pKey) const 
+    virtual void        getValue(void const* a_pContainer, void* a_pDest, void const* a_pKey) const
     {
         container_key_type const* pKey = static_cast<container_key_type const*>(a_pKey);
         t_Ty const* pContainer = static_cast<t_Ty const*>(a_pContainer);
@@ -907,7 +894,7 @@ public:
         }
     }
 
-    virtual void        eraseKey(void* a_pContainer, void const* a_pKey) const 
+    virtual void        eraseKey(void* a_pContainer, void const* a_pKey) const
     {
         container_key_type const* pKey = static_cast<container_key_type const*>(a_pKey);
         t_Ty* pContainer = static_cast<t_Ty*>(a_pContainer);
@@ -929,7 +916,7 @@ public:
         return 0;
     }
 
-    virtual size_t     replaceAll(void* a_pContainer, const void* a_pOld, const void* a_pNew) const 
+    virtual size_t     replaceAll(void* a_pContainer, const void* a_pOld, const void* a_pNew) const
     {
         t_Ty* container = static_cast<t_Ty*>(a_pContainer);
         container_key_type pOldValue = *((const container_key_type*)a_pOld);
@@ -973,7 +960,7 @@ template<> struct primitive_type_id_helper<long double> { const static ETypeId v
 template<> struct primitive_type_id_helper<bool> { const static ETypeId value = e_bool ; };
 template<> struct primitive_type_id_helper<signal_t> { const static ETypeId value = e_signal_t ; };
 template<> struct primitive_type_id_helper<std::nullptr_t> { const static ETypeId value = e_nullptr_t ; };
-#if o_BUILT_IN_WCHAR_T
+#if o_HAS_BUILT_IN_WCHAR_T
 template<> struct primitive_type_id_helper<wchar_t> { const static ETypeId value = e_wchar_t ; };
 #endif
 
@@ -982,8 +969,8 @@ template<typename t_Ty>
 class TPrimitiveType : public PrimitiveType
 {
 public:
-    TPrimitiveType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, bitfield a_Modifiers = 0)
-        : PrimitiveType(primitive_type_id_helper<t_Ty>::value, a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
+    TPrimitiveType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
+        : PrimitiveType(primitive_type_id_helper<t_Ty>::value, a_strName, a_uiSize, a_uiAlignment, a_Modifiers|o_native) {}
 
     virtual string getQualifiedDecoratedName() const { return qualifiedDecoratedTypeNameOf<t_Ty>(); }
     virtual string getQualifiedName() const { return qualifiedTypeNameOf<t_Ty>(); }
@@ -1002,12 +989,12 @@ struct template_nested_modifiers_filter_copier
     }
 };
 template<typename t_Ty>
-struct template_nested_modifiers_filter_copier<t_Ty, false> : public phantom::extension::copier<t_Ty>
+struct template_nested_modifiers_filter_copier<t_Ty, false> : public phantom::copier<t_Ty>
 {
 };
 
 template<typename t_Ty, int t_TemplateNestedModifiers>
-struct template_nested_modifiers_filter<phantom::extension::copier<t_Ty>, t_TemplateNestedModifiers> 
+struct template_nested_modifiers_filter<phantom::copier<t_Ty>, t_TemplateNestedModifiers>
     : public template_nested_modifiers_filter_copier<t_Ty, (t_TemplateNestedModifiers & o_no_copy) == o_no_copy>
 {
 
@@ -1016,7 +1003,7 @@ struct template_nested_modifiers_filter<phantom::extension::copier<t_Ty>, t_Temp
 template<typename t_Ty, bool t_is_not_pod_class_default_constructible_and_not_abstract>
 struct default_constructor_provider_helper
 {
-    static Constructor* apply(const string& a_strName) { return o_dynamic_proxy_new(phantom::reflection::Constructor, phantom::reflection::Constructor::metaType, TNativeConstructor<t_Ty()>)(a_strName, o_new(Signature)(typeOf<void>()), o_public); }
+    static Constructor* apply(const string& a_strName) { return o_dynamic_proxy_new(TNativeConstructor<t_Ty()>)(a_strName, o_new(Signature)(typeOf<void>()), o_public_access); }
 };
 
 template<typename t_Ty>
@@ -1034,7 +1021,7 @@ struct default_constructor_provider : public default_constructor_provider_helper
 template<typename t_Ty, bool t_is_class>
 struct destructor_provider_helper
 {
-    static InstanceMemberFunction* apply(const string& a_strName) { return o_dynamic_proxy_new(phantom::reflection::InstanceMemberFunction, phantom::reflection::InstanceMemberFunction::metaType, TNativeDestructor<t_Ty>)(a_strName); }
+    static InstanceMemberFunction* apply(const string& a_strName) { return o_dynamic_proxy_new(TNativeDestructor<t_Ty>)(a_strName); }
 };
 
 template<typename t_Ty>
@@ -1056,37 +1043,30 @@ class TType_
 public:
     typedef int oversized_type[safe_size_of<t_Ty>::value <= o__uint__max_class_size ? 1 : -1];
     typedef TType_<t_Ty, t_TemplateNestedModifiers> self_type;
-    typedef o_NESTED_TYPE base_meta_class_type_of<t_Ty>::type super_type;
+    typedef o_NESTED_TYPE base_meta_class_type_of<t_Ty>::type base_type;
 
-    typedef super_type proxy_type;
+    typedef base_type proxy_type;
 
     typedef t_Ty type;
 
     typedef Class recursive_meta_type_stop_type;
 
-    template<typename t_Ty> friend struct native_type_constructor;
-    template<typename t_Ty, typename t_SuperTy> friend struct native_type_constructor_helper;
-    template<typename t_Ty, bool t_has_new_vtable> friend struct vtable_adder_helper;
+    template<typename> friend struct native_type_constructor;
+    template<typename, typename> friend struct native_type_constructor_helper;
+    template<typename, bool> friend struct vtable_adder_helper;
 
 protected:
     TType_(const string& a_TypeName)
-        : super_type(a_TypeName
+        : base_type(a_TypeName
             , safe_size_of<t_Ty>::value
             , phantom::safe_alignment_of<t_Ty>::value
-            , meta_specifiers<t_Ty>::value | (boost::is_abstract<t_Ty>::value * o_abstract)) 
+            , meta_specifiers<t_Ty>::value | (boost::is_abstract<t_Ty>::value * o_abstract) | o_native)
     {
-        o_static_assert(NOT(has_meta_specifier<t_Ty, o_pod>::value) OR ((super_class_count_of<t_Ty>::value == 0) AND boost::is_copy_constructible<t_Ty>::value));
+        o_static_assert_msg(NOT(is_structure<t_Ty>::value) OR ((base_class_count_of<t_Ty>::value == 0) AND boost::is_copy_constructible<t_Ty>::value AND NOT(has_copy_disabled<t_Ty>::value) ), "structures must be copyable");
     }
 
 public:
     virtual bool                        isDefined() const { return true; }
-
-    virtual void deleteNow()
-    {
-        metaType->terminate(this);
-        metaType->uninstall(this, 0);
-        o__t1_class__default_class_allocator(self_type)::deallocate(this);
-    }
 
     virtual void valueFromString(const phantom::string & a_strIn, void * a_pDest) const
     {
@@ -1121,177 +1101,177 @@ public:
     }
 
 #if o__bool__enable_allocation_statistics
-    virtual void* allocate(o_memory_stat_insert_parameters) const 
-    { 
-        return phantom::extension::allocator<t_Ty>::allocate(o_memory_stat_insert_parameters_use); 
+    virtual void* allocate(o_memory_stat_insert_parameters) const
+    {
+        return phantom::allocator<t_Ty>::allocate(o_memory_stat_insert_parameters_use);
     }
-    virtual void* allocate(size_t a_uiCount o_memory_stat_append_parameters) const 
-    { 
-        return phantom::extension::allocator<t_Ty>::allocate(a_uiCount o_memory_stat_append_parameters_use);
+    virtual void* allocate(size_t a_uiCount o_memory_stat_append_parameters) const
+    {
+        return phantom::allocator<t_Ty>::allocate(a_uiCount o_memory_stat_append_parameters_use);
     }
-    virtual void deallocate(void* a_pAddress o_memory_stat_append_parameters) const 
-    { 
-        phantom::extension::allocator<t_Ty>::deallocate(static_cast<t_Ty*>(a_pAddress) o_memory_stat_append_parameters_use); 
+    virtual void deallocate(void* a_pAddress o_memory_stat_append_parameters) const
+    {
+        phantom::allocator<t_Ty>::deallocate(static_cast<t_Ty*>(a_pAddress) o_memory_stat_append_parameters_use);
     }
-    virtual void deallocate(void* a_pAddress, size_t a_uiCount o_memory_stat_append_parameters) const 
-    { 
-        phantom::extension::allocator<t_Ty>::deallocate(static_cast<t_Ty*>(a_pAddress), a_uiCount o_memory_stat_append_parameters_use);
+    virtual void deallocate(void* a_pAddress, size_t a_uiCount o_memory_stat_append_parameters) const
+    {
+        phantom::allocator<t_Ty>::deallocate(static_cast<t_Ty*>(a_pAddress), a_uiCount o_memory_stat_append_parameters_use);
     }
 #endif
 
     // Construction
     virtual void construct(void* a_pInstance ) const
     {
-        phantom::extension::constructor<t_Ty>::construct(static_cast<t_Ty*>(a_pInstance));
+        phantom::constructor<t_Ty>::construct(static_cast<t_Ty*>(a_pInstance));
     }
     virtual void safeConstruct(void* a_pInstance ) const
     {
-        phantom::extension::safe_constructor<t_Ty>::safeConstruct(static_cast<t_Ty*>(a_pInstance));
+        phantom::safe_constructor<t_Ty>::safeConstruct(static_cast<t_Ty*>(a_pInstance));
     }
     virtual void destroy(void* a_pInstance ) const
     {
-        phantom::extension::constructor<t_Ty>::destroy(static_cast<t_Ty*>(a_pInstance));
+        phantom::constructor<t_Ty>::destroy(static_cast<t_Ty*>(a_pInstance));
     }
     virtual void construct(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const
     {
-        phantom::extension::constructor<t_Ty>::construct(static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize);
+        phantom::constructor<t_Ty>::construct(static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize);
     }
     virtual void destroy(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const
     {
-        phantom::extension::constructor<t_Ty>::destroy(static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize);
+        phantom::constructor<t_Ty>::destroy(static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize);
     }
 
     // Installation
-    virtual void install(void* a_pInstance, size_t a_uiLevel ) const
+    virtual void install(void* a_pInstance, const rtti_data* a_pOwner ) const
     {
-        phantom::extension::installer<t_Ty>::install(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiLevel);
+        phantom::installer<t_Ty>::install(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_pOwner);
     }
     virtual void uninstall(void* a_pInstance, size_t a_uiLevel ) const
     {
-        phantom::extension::installer<t_Ty>::uninstall(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiLevel);
+        phantom::installer<t_Ty>::uninstall(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiLevel);
     }
-    virtual void install(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel ) const
+    virtual void install(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const rtti_data* a_pOwner ) const
     {
-        phantom::extension::installer<t_Ty>::install(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize, a_uiLevel);
+        phantom::installer<t_Ty>::install(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize, a_pOwner);
     }
     virtual void uninstall(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel ) const
     {
-        phantom::extension::installer<t_Ty>::uninstall(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize, a_uiLevel);
+        phantom::installer<t_Ty>::uninstall(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize, a_uiLevel);
     }
 
     // Initialization
     virtual void initialize(void* a_pInstance ) const
     {
-        phantom::extension::initializer<t_Ty>::initialize(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance));
+        phantom::initializer<t_Ty>::initialize(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance));
     }
     virtual void terminate(void* a_pInstance ) const
     {
-        phantom::extension::initializer<t_Ty>::terminate(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance));
+        phantom::initializer<t_Ty>::terminate(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance));
     }
-    virtual restore_state restore(void* a_pInstance, uint a_uiSerializationFlag, uint a_uiPass) const
+    virtual restore_state restore(void* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass) const
     {
-        return phantom::extension::initializer<t_Ty>::restore(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiSerializationFlag, a_uiPass);
+        return phantom::initializer<t_Ty>::restore(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiSerializationFlag, a_uiPass);
     }
      virtual void initialize(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const
     {
-        phantom::extension::initializer<t_Ty>::initialize(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize);
+        phantom::initializer<t_Ty>::initialize(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize);
     }
     virtual void terminate(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const
     {
-        phantom::extension::initializer<t_Ty>::terminate(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize);
+        phantom::initializer<t_Ty>::terminate(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize);
     }
-    virtual restore_state restore(void* a_pChunk, uint a_uiSerializationFlag, uint a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize) const
+    virtual restore_state restore(void* a_pChunk, uint a_uiSerializationFlag, restore_pass a_uiPass, size_t a_uiCount, size_t a_uiChunkSectionSize) const
     {
-        return phantom::extension::initializer<t_Ty>::restore(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pChunk), a_uiSerializationFlag, a_uiPass, a_uiCount, a_uiChunkSectionSize);
+        return phantom::initializer<t_Ty>::restore(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pChunk), a_uiSerializationFlag, a_uiPass, a_uiCount, a_uiChunkSectionSize);
     }
     virtual void serialize(void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::serialize(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::serialize(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
     virtual void deserialize(void* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::deserialize(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::deserialize(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
     virtual void serialize(void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::serialize(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::serialize(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
     virtual void deserialize(void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::deserialize(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_InBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::deserialize(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
     virtual void serialize(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::serialize(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_uiCount, a_uiChunkSectionSize,a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::serialize(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_uiCount, a_uiChunkSectionSize,a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
     virtual void deserialize(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::deserialize(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiCount, a_uiChunkSectionSize,a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::deserialize(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiCount, a_uiChunkSectionSize,a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
     virtual void serialize(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::serialize(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_uiCount, a_uiChunkSectionSize,a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::serialize(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_uiCount, a_uiChunkSectionSize,a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
     virtual void deserialize(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::deserialize(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiCount, a_uiChunkSectionSize,a_InBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::deserialize(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiCount, a_uiChunkSectionSize,a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
     virtual void serializeLayout(void const* a_pInstance, byte*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::serializeLayout(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_pBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::serializeLayout(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_pBuffer, a_uiSerializationMask, a_pDataBase);
     }
     virtual void deserializeLayout(void* a_pInstance, byte const*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::deserializeLayout(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_pBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::deserializeLayout(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_pBuffer, a_uiSerializationMask, a_pDataBase);
     }
     virtual void serializeLayout(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::serializeLayout(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_uiCount, a_uiChunkSectionSize, a_pBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::serializeLayout(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_uiCount, a_uiChunkSectionSize, a_pBuffer, a_uiSerializationMask, a_pDataBase);
     }
     virtual void deserializeLayout(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::deserializeLayout(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiCount, a_uiChunkSectionSize, a_pBuffer, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::deserializeLayout(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiCount, a_uiChunkSectionSize, a_pBuffer, a_uiSerializationMask, a_pDataBase);
     }
     virtual void serializeLayout(void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::serializeLayout(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::serializeLayout(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
     virtual void deserializeLayout(void* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::deserializeLayout(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_InBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::deserializeLayout(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
     virtual void serializeLayout(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::serializeLayout(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::serializeLayout(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_uiCount, a_uiChunkSectionSize, a_OutBranch, a_uiSerializationMask, a_pDataBase);
     }
     virtual void deserializeLayout(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        phantom::extension::serializer<t_Ty>::deserializeLayout(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
+        phantom::serializer<t_Ty>::deserializeLayout(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_uiCount, a_uiChunkSectionSize, a_InBranch, a_uiSerializationMask, a_pDataBase);
     }
 
-    virtual void        remember(void const* a_pInstance, byte*& a_pOutBuffer) const 
+    virtual void        remember(void const* a_pInstance, byte*& a_pOutBuffer) const
     {
-        phantom::extension::resetter<t_Ty>::remember(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_pOutBuffer);
+        phantom::resetter<t_Ty>::remember(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pInstance), a_pOutBuffer);
     }
-    virtual void        remember(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) const 
+    virtual void        remember(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) const
     {
-        phantom::extension::resetter<t_Ty>::remember(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pChunk), a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
+        phantom::resetter<t_Ty>::remember(const_cast<self_type*>(this), static_cast<t_Ty const*>(a_pChunk), a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
     }
-    virtual void        reset(void* a_pInstance, byte const*& a_pInBuffer) const 
+    virtual void        reset(void* a_pInstance, byte const*& a_pInBuffer) const
     {
-        phantom::extension::resetter<t_Ty>::reset(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_pInBuffer);
+        phantom::resetter<t_Ty>::reset(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pInstance), a_pInBuffer);
     }
     virtual void        reset(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) const
     {
-        phantom::extension::resetter<t_Ty>::reset(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
+        phantom::resetter<t_Ty>::reset(const_cast<self_type*>(this), static_cast<t_Ty*>(a_pChunk), a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
     }
 
     virtual void* newInstance() const
     {
         t_Ty* ptr = o_allocate(t_Ty);
-        phantom::extension::constructor<t_Ty>::construct(ptr);
-        phantom::extension::installer<t_Ty>::install(const_cast<self_type*>(this), ptr, 0);
-        phantom::extension::initializer<t_Ty>::initialize(const_cast<self_type*>(this), ptr);
+        phantom::constructor<t_Ty>::construct(ptr);
+        phantom::installer<t_Ty>::install(const_cast<self_type*>(this), ptr, 0);
+        phantom::initializer<t_Ty>::initialize(const_cast<self_type*>(this), ptr);
         return ptr;
     }
 
@@ -1300,16 +1280,16 @@ public:
         o_assert(a_pConstructor->getOwner() == this);
         t_Ty* ptr = o_allocate(t_Ty);
         a_pConstructor->construct(ptr, a_pArgs);
-        phantom::extension::installer<t_Ty>::install(const_cast<self_type*>(this), ptr, 0);
-        phantom::extension::initializer<t_Ty>::initialize(const_cast<self_type*>(this), ptr);
+        phantom::installer<t_Ty>::install(const_cast<self_type*>(this), ptr, 0);
+        phantom::initializer<t_Ty>::initialize(const_cast<self_type*>(this), ptr);
         return ptr;
     }
     virtual void deleteInstance(void* a_pObject) const
     {
         t_Ty* ptr = static_cast<t_Ty*>(a_pObject);
-        phantom::extension::initializer<t_Ty>::terminate(const_cast<self_type*>(this), ptr);
-        phantom::extension::installer<t_Ty>::uninstall(const_cast<self_type*>(this), ptr, 0);
-        phantom::extension::constructor<t_Ty>::destroy(ptr);
+        phantom::initializer<t_Ty>::terminate(const_cast<self_type*>(this), ptr);
+        phantom::installer<t_Ty>::uninstall(const_cast<self_type*>(this), ptr, 0);
+        phantom::constructor<t_Ty>::destroy(ptr);
         o_deallocate(ptr, t_Ty);
     }
     virtual void safeDeleteInstance(void* a_pObject) const
@@ -1320,25 +1300,25 @@ public:
             o_exception(exception::reflection_runtime_exception, "Trying to delete an instance of the wrong class");
         }
         t_Ty* ptr = (t_Ty*)(rtti.isNull() ? a_pObject : rtti.base);
-        phantom::extension::initializer<t_Ty>::terminate(const_cast<self_type*>(this), ptr);
-        phantom::extension::installer<t_Ty>::uninstall(const_cast<self_type*>(this), ptr, 0);
-        phantom::extension::constructor<t_Ty>::destroy(ptr);
+        phantom::initializer<t_Ty>::terminate(const_cast<self_type*>(this), ptr);
+        phantom::installer<t_Ty>::uninstall(const_cast<self_type*>(this), ptr, 0);
+        phantom::constructor<t_Ty>::destroy(ptr);
         o_deallocate(ptr, t_Ty);
     }
 
-    virtual Constructor* createDefaultConstructor() const 
+    virtual Constructor* createDefaultConstructor() const
     {
-        return default_constructor_provider<t_Ty>::apply(m_strName);
+        return default_constructor_provider<t_Ty>::apply(base_type::m_strName);
     }
 
-    virtual InstanceMemberFunction* createDestructor() const 
+    virtual InstanceMemberFunction* createDestructor() const
     {
-        return destructor_provider<t_Ty>::apply("~"+m_strName);
+        return destructor_provider<t_Ty>::apply("~"+base_type::m_strName);
     }
 
     inline void    interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_dest, uint mode) const
     {
-        phantom::extension::interpolator<t_Ty>::interpolate(
+        phantom::interpolator<t_Ty>::interpolate(
             static_cast<t_Ty*>(a_src_start)
             , static_cast<t_Ty*>(a_src_end)
             , a_fPercent
@@ -1349,72 +1329,76 @@ public:
 
     virtual VirtualMemberFunctionTable* createVirtualMemberFunctionTable() const
     {
-        return o_new(VirtualMemberFunctionTable)(virtualMemberFunctionCountOf<t_Ty>());
+        return o_dynamic_proxy_new(VirtualMemberFunctionTable)(virtualMemberFunctionCountOf<t_Ty>());
     }
 
     virtual VirtualMemberFunctionTable* deriveVirtualMemberFunctionTable( VirtualMemberFunctionTable* a_pVirtualMemberFunctionTable ) const
     {
-        o_assert(asClass());
-        size_t uiOffset = ((Class*)this)->getSuperClassOffsetCascade(a_pVirtualMemberFunctionTable->getOwnerClass());
+        o_assert(this->asClass());
+        size_t uiOffset = ((Class*)this)->getBaseClassOffsetCascade(a_pVirtualMemberFunctionTable->getOwnerClass());
         if(uiOffset == 0)
         {
             return a_pVirtualMemberFunctionTable->derive(virtualMemberFunctionCountOf<t_Ty>());
         }
-        else 
+        else
         {
             return a_pVirtualMemberFunctionTable->derive();
         }
     }
 
 
-    virtual Type*           promote() const { return extension::promoter<t_Ty>::apply(const_cast<self_type*>(this)); }
+    virtual Type*           promote() const { return promoter<t_Ty>::apply(const_cast<self_type*>(this)); }
     virtual bool            isPolymorphic() const { return boost::is_polymorphic<t_Ty>::value; }
-    virtual bool            isDefaultConstructible() const { return std::is_default_constructible<t_Ty>::value && ((m_Modifiers & o_no_default_constructor) == 0); }
-    virtual bool            isCopyConstructible() const { return boost::is_copy_constructible<t_Ty>::value && !self_type::hasCopyDisabled(); }
+    virtual bool            isDefaultConstructible() const { return std::is_default_constructible<t_Ty>::value AND ((this->m_Modifiers & o_no_default_constructor) == 0); }
+    virtual bool            isDefaultInstanciable() const { return std::is_default_constructible<t_Ty>::value AND ((this->m_Modifiers & o_no_default_constructor) == 0) AND !boost::is_abstract<t_Ty>::value; }
+    virtual bool            isCopyable() const { return phantom::is_copyable<t_Ty>::value; }
+    virtual bool            isCopyConstructible() const { return boost::is_copy_constructible<t_Ty>::value; }
     virtual bool            hasNewVTable() const { return has_new_vtable<t_Ty>::value; }
     virtual bool            hasCopyDisabled() const { return has_meta_specifier<t_Ty, o_no_copy>::value OR ((t_TemplateNestedModifiers & o_no_copy) == o_no_copy); }
-    virtual bool            hasBitAnd() const { return phantom::has_bit_and<t_Ty>::value; }
-    virtual bool            hasBitAndAssign() const { return phantom::has_bit_and_assign<t_Ty>::value; }
-    virtual bool            hasBitOr() const { return phantom::has_bit_or<t_Ty>::value; }
-    virtual bool            hasBitOrAssign() const { return phantom::has_bit_or_assign<t_Ty>::value; }
-    virtual bool            hasBitXor() const { return phantom::has_bit_xor<t_Ty>::value; }
-    virtual bool            hasBitXorAssign() const { return phantom::has_bit_xor_assign<t_Ty>::value; }
-    virtual bool            hasComplement() const { return phantom::has_complement<t_Ty>::value; }
-    virtual bool            hasDereference() const { return phantom::has_dereference<t_Ty>::value; }
-    virtual bool            hasDivides() const { return phantom::has_divides<t_Ty>::value; }
-    virtual bool            hasDividesAssign() const { return phantom::has_divides_assign<t_Ty>::value; }
-    virtual bool            hasEqualTo() const { return phantom::has_equal_to<t_Ty>::value; }
-    virtual bool            hasGreater() const { return phantom::has_greater<t_Ty>::value; }
-    virtual bool            hasGreaterEqual() const { return phantom::has_greater_equal<t_Ty>::value; }
-    virtual bool            hasLeftShift() const { return phantom::has_left_shift<t_Ty>::value; }
-    virtual bool            hasLeftShiftAssign() const { return phantom::has_left_shift_assign<t_Ty>::value; }
-    virtual bool            hasLess() const { return phantom::has_less<t_Ty>::value; }
-    virtual bool            hasLessEqual() const { return phantom::has_less_equal<t_Ty>::value; }
-    virtual bool            hasLogicalAnd() const { return phantom::has_logical_and<t_Ty>::value; }
-    virtual bool            hasLogicalNot() const { return phantom::has_logical_not<t_Ty>::value; }
-    virtual bool            hasLogicalOr() const { return phantom::has_logical_or<t_Ty>::value; }
-    virtual bool            hasMinus() const { return phantom::has_minus<t_Ty>::value; }
-    virtual bool            hasMinusAssign() const { return phantom::has_minus_assign<t_Ty>::value; }
-    virtual bool            hasModulus() const { return phantom::has_modulus<t_Ty>::value; }
-    virtual bool            hasModulusAssign() const { return phantom::has_modulus_assign<t_Ty>::value; }
-    virtual bool            hasMultiplies() const { return phantom::has_multiplies<t_Ty>::value; }
-    virtual bool            hasMultipliesAssign() const { return phantom::has_multiplies_assign<t_Ty>::value; }
-    virtual bool            hasNegate() const { return phantom::has_negate<t_Ty>::value; }
-    virtual bool            hasNewOperator() const { return phantom::has_new_operator<t_Ty>::value; }
-    virtual bool            hasNotEqualTo() const { return phantom::has_not_equal_to<t_Ty>::value; }
-    virtual bool            hasNothrowAssign() const { return phantom::has_nothrow_assign<t_Ty>::value; }
-    virtual bool            hasNothrowConstructor() const { return phantom::has_nothrow_constructor<t_Ty>::value; }
-    virtual bool            hasNothrowCopy() const { return phantom::has_nothrow_copy<t_Ty>::value; }
-    virtual bool            hasNothrowCopyConstructor() const { return phantom::has_nothrow_copy_constructor<t_Ty>::value; }
-    virtual bool            hasNothrowDefaultConstructor() const { return phantom::has_nothrow_default_constructor<t_Ty>::value; }
-    virtual bool            hasPlus() const { return phantom::has_plus<t_Ty>::value; }
-    virtual bool            hasPlusAssign() const { return phantom::has_plus_assign<t_Ty>::value; }
-    virtual bool            hasPostDecrement() const { return phantom::has_post_decrement<t_Ty>::value; }
-    virtual bool            hasPostIncrement() const { return phantom::has_post_increment<t_Ty>::value; }
-    virtual bool            hasPreDecrement() const { return phantom::has_pre_decrement<t_Ty>::value; }
-    virtual bool            hasPreIncrement() const { return phantom::has_pre_increment<t_Ty>::value; }
-    virtual bool            hasRightShift() const { return phantom::has_right_shift<t_Ty>::value; }
-    virtual bool            hasRightShiftAssign() const { return phantom::has_right_shift_assign<t_Ty>::value; }
+
+// TODO : make these functions dynamic (runtime search, not static)
+//     virtual bool            hasBitAnd() const { return phantom::has_bit_and<t_Ty>::value; }
+//     virtual bool            hasBitAndAssign() const { return phantom::has_bit_and_assign<t_Ty>::value; }
+//     virtual bool            hasBitOr() const { return phantom::has_bit_or<t_Ty>::value; }
+//     virtual bool            hasBitOrAssign() const { return phantom::has_bit_or_assign<t_Ty>::value; }
+//     virtual bool            hasBitXor() const { return phantom::has_bit_xor<t_Ty>::value; }
+//     virtual bool            hasBitXorAssign() const { return phantom::has_bit_xor_assign<t_Ty>::value; }
+//     virtual bool            hasComplement() const { return phantom::has_complement<t_Ty>::value; }
+//     virtual bool            hasDereference() const { return phantom::has_dereference<t_Ty>::value; }
+//     virtual bool            hasDivides() const { return phantom::has_divides<t_Ty>::value; }
+//     virtual bool            hasDividesAssign() const { return phantom::has_divides_assign<t_Ty>::value; }
+//     virtual bool            hasEqualTo() const { return phantom::has_equal_to<t_Ty>::value; }
+//     virtual bool            hasGreater() const { return phantom::has_greater<t_Ty>::value; }
+//     virtual bool            hasGreaterEqual() const { return phantom::has_greater_equal<t_Ty>::value; }
+//     virtual bool            hasLeftShift() const { return phantom::has_left_shift<t_Ty>::value; }
+//     virtual bool            hasLeftShiftAssign() const { return phantom::has_left_shift_assign<t_Ty>::value; }
+//     virtual bool            hasLess() const { return phantom::has_less<t_Ty>::value; }
+//     virtual bool            hasLessEqual() const { return phantom::has_less_equal<t_Ty>::value; }
+//     virtual bool            hasLogicalAnd() const { return phantom::has_logical_and<t_Ty>::value; }
+//     virtual bool            hasLogicalNot() const { return phantom::has_logical_not<t_Ty>::value; }
+//     virtual bool            hasLogicalOr() const { return phantom::has_logical_or<t_Ty>::value; }
+//     virtual bool            hasMinus() const { return phantom::has_minus<t_Ty>::value; }
+//     virtual bool            hasMinusAssign() const { return phantom::has_minus_assign<t_Ty>::value; }
+//     virtual bool            hasModulus() const { return phantom::has_modulus<t_Ty>::value; }
+//     virtual bool            hasModulusAssign() const { return phantom::has_modulus_assign<t_Ty>::value; }
+//     virtual bool            hasMultiplies() const { return phantom::has_multiplies<t_Ty>::value; }
+//     virtual bool            hasMultipliesAssign() const { return phantom::has_multiplies_assign<t_Ty>::value; }
+//     virtual bool            hasNegate() const { return phantom::has_negate<t_Ty>::value; }
+//     virtual bool            hasNewOperator() const { return phantom::has_new_operator<t_Ty>::value; }
+//     virtual bool            hasNotEqualTo() const { return phantom::has_not_equal_to<t_Ty>::value; }
+//     virtual bool            hasNothrowAssign() const { return phantom::has_nothrow_assign<t_Ty>::value; }
+//     virtual bool            hasNothrowConstructor() const { return phantom::has_nothrow_constructor<t_Ty>::value; }
+//     virtual bool            hasNothrowCopy() const { return phantom::has_nothrow_copy<t_Ty>::value; }
+//     virtual bool            hasNothrowCopyConstructor() const { return phantom::has_nothrow_copy_constructor<t_Ty>::value; }
+//     virtual bool            hasNothrowDefaultConstructor() const { return phantom::has_nothrow_default_constructor<t_Ty>::value; }
+//     virtual bool            hasPlus() const { return phantom::has_plus<t_Ty>::value; }
+//     virtual bool            hasPlusAssign() const { return phantom::has_plus_assign<t_Ty>::value; }
+//     virtual bool            hasPostDecrement() const { return phantom::has_post_decrement<t_Ty>::value; }
+//     virtual bool            hasPostIncrement() const { return phantom::has_post_increment<t_Ty>::value; }
+//     virtual bool            hasPreDecrement() const { return phantom::has_pre_decrement<t_Ty>::value; }
+//     virtual bool            hasPreIncrement() const { return phantom::has_pre_increment<t_Ty>::value; }
+//     virtual bool            hasRightShift() const { return phantom::has_right_shift<t_Ty>::value; }
+//     virtual bool            hasRightShiftAssign() const { return phantom::has_right_shift_assign<t_Ty>::value; }
 
     // Operators : TODO : to be completed...
     virtual bool            less(const void* a_pLHS, const void* a_pRHS) const
@@ -1422,33 +1406,33 @@ public:
         return operator_caller_less<t_Ty>::apply((const t_Ty*)a_pLHS, (const t_Ty*)a_pRHS);
     }
 
-    virtual bool         isSerializable() const 
-    { 
-        return phantom::is_serializable<t_Ty>::value; 
+    virtual bool         isSerializable() const
+    {
+        return phantom::is_serializable<t_Ty>::value;
     }
 
     virtual PrimitiveType* asSignalType() const { return phantom::is_signal_t<t_Ty>::value ? (PrimitiveType*)this : nullptr;; }
 
     virtual PrimitiveType* asNullptrType() const { return phantom::is_nullptr_t<t_Ty>::value ? (PrimitiveType*)this : nullptr;; }
 
-    virtual void copy(void* a_pDest, void const* a_pSrc) const 
-    { 
-        template_nested_modifiers_filter<phantom::extension::copier<t_Ty>, t_TemplateNestedModifiers>::copy(static_cast<t_Ty*>(a_pDest), static_cast<t_Ty const*>(a_pSrc));
+    virtual void copy(void* a_pDest, void const* a_pSrc) const
+    {
+        template_nested_modifiers_filter<phantom::copier<t_Ty>, t_TemplateNestedModifiers>::copy(static_cast<t_Ty*>(a_pDest), static_cast<t_Ty const*>(a_pSrc));
     }
 
     virtual void convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const
     {
-        phantom::extension::converter<t_Ty>::convert(const_cast<self_type*>(this), a_pDestType, a_pDestValue, static_cast<t_Ty const*>(a_pSrcValue));
+        phantom::converter<t_Ty>::convert(const_cast<self_type*>(this), a_pDestType, a_pDestValue, static_cast<t_Ty const*>(a_pSrcValue));
     }
 
-    virtual bool         isConvertibleTo(Type* a_pDestType) const 
-    { 
-        return phantom::extension::converter<t_Ty>::isConvertibleTo(const_cast<self_type*>(this), a_pDestType); 
+    virtual bool         isConvertibleTo(Type* a_pDestType) const
+    {
+        return phantom::converter<t_Ty>::isConvertibleTo(const_cast<self_type*>(this), a_pDestType);
     }
 
-    virtual bool         isImplicitlyConvertibleTo(Type* a_pDestType) const 
-    { 
-        return phantom::extension::converter<t_Ty>::isImplicitlyConvertibleTo(const_cast<self_type*>(this), a_pDestType); 
+    virtual bool         isImplicitlyConvertibleTo(Type* a_pDestType) const
+    {
+        return phantom::converter<t_Ty>::isImplicitlyConvertibleTo(const_cast<self_type*>(this), a_pDestType);
     }
 
 };
@@ -1485,7 +1469,7 @@ o_namespace_end(phantom, reflection, native)
 
 o_namespace_begin(phantom)
 
-// ensure all are TType supers intermediates are considered as meta type
+// ensure all are TType bases intermediates are considered as meta type
 template<typename t_Ty, int t_TemplateNestedModifiers>
 struct is_meta_type<phantom::reflection::native::TType_<t_Ty, t_TemplateNestedModifiers> >
 {
@@ -1499,17 +1483,17 @@ struct is_meta_type<phantom::reflection::native::TType<t_Ty, t_TemplateNestedMod
 };
 
 template<typename t_Ty, int t_TemplateNestedModifiers>
-struct is_serializable<phantom::reflection::native::TType<t_Ty, t_TemplateNestedModifiers> > : false_ {};
+struct is_serializable<phantom::reflection::native::TType<t_Ty, t_TemplateNestedModifiers> > : detail::false_ {};
 
 template<typename t_Ty, int t_TemplateNestedModifiers>
-struct is_serializable<phantom::reflection::native::TType_<t_Ty, t_TemplateNestedModifiers> > : false_ {};
+struct is_serializable<phantom::reflection::native::TType_<t_Ty, t_TemplateNestedModifiers> > : detail::false_ {};
 
 o_namespace_end(phantom)
 
 o_namespace_begin(phantom, reflection, detail)
 
-template<typename t_Ty, int t_counter>
-struct type_of_counter<native::TType<t_Ty, 0>, t_counter>
+template<typename t_Ty>
+struct type_of<native::TType<t_Ty, 0>>
 {
     static native::TType<Class, 0>* object()
     {
@@ -1528,25 +1512,3 @@ struct meta_class_type_of<native::TType<t_Ty>, 0>
 };
 
 o_namespace_end(phantom, reflection)
-
-    /*
-o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TType_,(o_NESTED_TYPE base_meta_class_type_of<t_Ty,meta_class_type_id_of<t_Ty>::value>::type))
-o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TType,(TType_<t_Ty>))
-o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TSequentialContainerClass,(SequentialContainerClass))
-o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TMapContainerClass,(MapContainerClass))
-o_traits_specialize_all_super_traitNTS((phantom,reflection,native),(typename),(t_Ty),TSetContainerClass,(SetContainerClass))
-*//*
-
-o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty, t_ValueType), TMapConstIterator);
-
-o_declareN(class, (phantom,reflection), MapIterator);
-
-o_declareNT(class, (phantom,reflection,native),(typename,typename,typename),(t_Ty, t_KeyType, t_ValueType), TMapIterator);
-
-o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialConstIterator);
-
-o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSequentialIterator);
-
-o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSetConstIterator);
-
-o_declareNT(class, (phantom,reflection,native),(typename,typename),(t_Ty,t_ValueType), TSetIterator);*/

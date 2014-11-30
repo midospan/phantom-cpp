@@ -7,8 +7,8 @@
 #include "ClassVisualizerNode.h"
 #include "SetContainerVisualizerNode.h"
 #include "MapVisualizerNode.h"
+#include "FlagsVisualizerNode.h"
 #include "SequentialContainerVisualizerNode.h"
-#include "CompositionVisualizerNode.h"
 #include "VariableWidgetEditor.h"
 #include "BoolCheckBoxEditor.h"
 #include "NumberLineEditor.h"
@@ -18,6 +18,12 @@
 #include "UndoStack.h"
 #include "phantom/std/string.h"
 #include "phantom/reflection/CompositionClass.h"
+#include "phantom/reflection/AggregationClass.h"
+#include "phantom/reflection/ComponentClass.h"
+#include "CompositionVisualizerNode.h"
+#include "AggregationVisualizerNode.h"
+#include "ComponentVisualizerNode.h"
+#include "ArrayTypeVisualizerNode.h"
 /* *********************************************** */
 o_registerN((phantom, qt), VariableModel);
  
@@ -30,12 +36,17 @@ VariableModel::VariableModel()
     , m_pUndoStack(nullptr)
     , m_pDataBase(nullptr)
 {
-    registerTypeVisualizerNode(typeOf<reflection::ClassType>(), o_new(ClassTypeVisualizerNode)(""));
-    registerTypeVisualizerNode(typeOf<reflection::Class>(), o_new(ClassVisualizerNode)(""));
-    registerTypeVisualizerNode(typeOf<reflection::SetContainerClass>(), o_new(SetContainerVisualizerNode)(""));
-    registerTypeVisualizerNode(typeOf<reflection::MapContainerClass>(), o_new(MapVisualizerNode)(""));
-    registerTypeVisualizerNode(typeOf<reflection::SequentialContainerClass>(), o_new(SequentialContainerVisualizerNode)(""));
-    registerTypeVisualizerNode(typeOf<reflection::CompositionClass>(), o_new(CompositionVisualizerNode)(""));
+    registerTypeVisualizerNodePerTypeClass(typeOf<reflection::ClassType>(), o_new(ClassTypeVisualizerNode)());
+    registerTypeVisualizerNodePerTypeClass(typeOf<reflection::Class>(), o_new(ClassVisualizerNode)());
+    registerTypeVisualizerNodePerTypeClass(typeOf<reflection::SetContainerClass>(), o_new(SetContainerVisualizerNode)(""));
+    registerTypeVisualizerNodePerTypeClass(typeOf<reflection::MapContainerClass>(), o_new(MapVisualizerNode)(""));
+    registerTypeVisualizerNodePerTypeClass(typeOf<reflection::SequentialContainerClass>(), o_new(SequentialContainerVisualizerNode)(""));
+    registerTypeVisualizerNodePerTypeClass(typeOf<reflection::CompositionClass>(), o_new(CompositionVisualizerNode)(""));
+    registerTypeVisualizerNodePerTypeClass(typeOf<reflection::AggregationClass>(), o_new(AggregationVisualizerNode)(""));
+    registerTypeVisualizerNodePerTypeClass(typeOf<reflection::ComponentClass>(), o_new(ComponentVisualizerNode)(""));
+    registerTypeVisualizerNodePerTypeClass(typeOf<reflection::ArrayType>(), o_new(ArrayTypeVisualizerNode)(""));
+
+    registerTypeVisualizerNodePerTemplate(phantom::elementByName("phantom::flags")->asTemplate(), o_new(FlagsVisualizerNode)(""));
 
     registerVariableTypeEditorClass(typeOf<bool>(), typeOf<BoolCheckBoxEditor>());
     registerVariableTypeEditorClass(typeOf<char>(), typeOf<CharLineEditor>());
@@ -80,17 +91,38 @@ void VariableModel::registerVariableTypeEditorClass( reflection::Type* a_pType, 
     m_VariableTypeToEditorClass[a_pType] = a_pClass;
 }
 
-void VariableModel::findTypeVisualizerNodes( reflection::Class* a_pClass, vector<TypeVisualizerNode*>& out ) const
+void VariableModel::findTypeVisualizerNodes( reflection::Type* a_pType, vector<TypeVisualizerNode*>& out ) const
 {
-    auto found = m_TypeVisualizerNodes.find(a_pClass);
-    if(found != m_TypeVisualizerNodes.end())
+    {
+        auto found = m_TypeVisualizerNodesPerType.find(a_pType);
+        if(found != m_TypeVisualizerNodesPerType.end())
+        {
+            out.push_back(found->second);
+            return;
+        }
+    }
+    {
+        auto found = m_TypeVisualizerNodesPerTemplate.find(a_pType->getTemplate());
+        if(found != m_TypeVisualizerNodesPerTemplate.end())
+        {
+            out.push_back(found->second);
+            return;
+        }
+    }
+    findTypeVisualizerNodesPerTypeClass(classOf(a_pType), out);
+}
+
+void VariableModel::findTypeVisualizerNodesPerTypeClass( reflection::Class* a_pClass, vector<TypeVisualizerNode*>& out ) const
+{
+    auto found = m_TypeVisualizerNodesPerTypeClass.find(a_pClass);
+    if(found != m_TypeVisualizerNodesPerTypeClass.end())
     {
         out.push_back(found->second);
         return;
     }
-    for(size_t i = 0; i<a_pClass->getSuperClassCount(); ++i)
+    for(size_t i = 0; i<a_pClass->getBaseClassCount(); ++i)
     {
-        findTypeVisualizerNodes(a_pClass->getSuperClass(i), out);
+        findTypeVisualizerNodesPerTypeClass(a_pClass->getBaseClass(i), out);
     }
 }
 
@@ -149,6 +181,9 @@ void VariableModel::setUndoStack( UndoStack* a_pUndoStack )
 {
     if(m_pUndoStack == a_pUndoStack)
         return;
+    if(m_pUndoStack)
+    {
+    }
     m_pUndoStack = a_pUndoStack;
     if(m_pUndoStack)
     {
@@ -167,7 +202,7 @@ void VariableModel::expand( VariableNode* a_pVariableNode )
     if(a_pVariableNode->getValueType())
     {
         vector<TypeVisualizerNode*> visualizers;
-        findTypeVisualizerNodes( classOf(a_pVariableNode->getValueType()), visualizers );
+        findTypeVisualizerNodes( a_pVariableNode->getValueType(), visualizers );
         for(auto it = visualizers.begin(); it != visualizers.end(); ++it)
         {
             (*it)->expand(a_pVariableNode);
@@ -253,6 +288,58 @@ void VariableModel::reset()
     auto d = m_Data;
     clear();
     setData(d);
+}
+
+void VariableModel::dataAboutToBeUnloaded( const phantom::data& a_Data, phantom::serialization::Node* )
+{
+    if(std::find(m_Data.begin(), m_Data.end(), a_Data) != m_Data.end())
+    {
+        m_ReplacedData[m_pDataBase->getGuid(a_Data)] = a_Data;
+        m_Data.erase(std::find(m_Data.begin(), m_Data.end(), a_Data));
+    }
+}
+
+void VariableModel::dataReloaded( const phantom::data& a_Data, phantom::serialization::Node* )
+{
+    bool bHasReplacedData = m_ReplacedData.size() != 0;
+    auto found = m_ReplacedData.find(m_pDataBase->getGuid(a_Data));
+    if(found != m_ReplacedData.end())
+    {
+        m_ReplacedData.erase(found);
+        m_Data.push_back(a_Data);
+    }
+    if(bHasReplacedData AND m_ReplacedData.empty())
+    {
+        reset();
+    }
+}
+
+void VariableModel::dataAboutToBeRemoved( const phantom::data& a_Data, phantom::serialization::Node* )
+{
+    auto found = std::find(m_Data.begin(), m_Data.end(), a_Data);
+    if(found != m_Data.end())
+    {
+        m_Data.erase(found);
+        setData(m_Data);
+    }
+}
+
+void VariableModel::setDataBase( serialization::DataBase* a_pDataBase )
+{
+    if(m_pDataBase == a_pDataBase) return;
+    if(m_pDataBase)
+    {
+        o_disconnect(m_pDataBase, dataAboutToBeUnloaded(const phantom::data&, serialization::Node*), this, dataAboutToBeUnloaded(const phantom::data&, serialization::Node*));
+        o_disconnect(m_pDataBase, dataReloaded(const phantom::data&, serialization::Node*), this, dataReloaded(const phantom::data&, serialization::Node*));
+        o_disconnect(m_pDataBase, dataAboutToBeRemoved(const phantom::data&,serialization::Node*), this, dataAboutToBeRemoved(const phantom::data&,serialization::Node*));
+    }
+    m_pDataBase = a_pDataBase; 
+    if(m_pDataBase)
+    {
+        o_connect(m_pDataBase, dataAboutToBeUnloaded(const phantom::data&, serialization::Node*), this, dataAboutToBeUnloaded(const phantom::data&, serialization::Node*));
+        o_connect(m_pDataBase, dataReloaded(const phantom::data&, serialization::Node*), this, dataReloaded(const phantom::data&, serialization::Node*));
+        o_connect(m_pDataBase, dataAboutToBeRemoved(const phantom::data&,serialization::Node*), this, dataAboutToBeRemoved(const phantom::data&,serialization::Node*));
+    }
 }
 
 }}

@@ -51,14 +51,11 @@ public:
     CallExpression(Subroutine* a_pFunction, Expression* a_pArgument, Type* a_pConstructedType = nullptr);
 
     o_initialize();
-
-    virtual void  terminate();
+    o_terminate(); 
 
     virtual void  getValue(void* a_pDest) const ;
 
     virtual void  setValue(void const* a_pSrc) const;
-
-    virtual bool  isAddressable() const { return m_pReturnStorage != nullptr; }
 
     virtual void* getValueStorageAddress() const ;
 
@@ -66,9 +63,9 @@ public:
 
     virtual void flush() const;
 
-    virtual void eval() const { call(); }
+    virtual void eval() const;
 
-    void call() const;
+    void call() const { eval(); }
 
     void call(void* a_pReturnAddress) const { getValue(a_pReturnAddress); }
 
@@ -78,19 +75,24 @@ public:
     vector<Expression*>::const_reverse_iterator rbeginArguments() const { return m_Arguments.rbegin(); }
     vector<Expression*>::const_reverse_iterator rendArguments() const { return m_Arguments.rend(); }
 
-    virtual variant compile(Compiler* a_pCompiler);
+    virtual variant         compile(Compiler* a_pCompiler);
 
-    virtual LanguageElement* hatch();
+    virtual LanguageElement*hatch();
 
     virtual Expression*     clone() const;
 
     virtual LanguageElement*getHatchedElement() const { return m_pSubroutine; }
 
+    virtual bool            isPersistent() const;
+
 protected:
     static string evaluateName(Subroutine* a_pSubroutine, const vector<Expression*>& a_Arguments);
     static string evaluateName( Subroutine* a_pSubroutine, Expression* a_pArgument );
+
 protected:
     virtual void ancestorChanged(LanguageElement* a_pLanguageElement);
+    virtual void elementRemoved( LanguageElement* a_pElement );
+    virtual void referencedElementRemoved( LanguageElement* a_pElement );
 
 protected:
     Subroutine*         m_pSubroutine;
@@ -98,6 +100,7 @@ protected:
     vector<Expression*> m_ConvertedArguments;
     vector<void*>       m_TempValues;
     void*               m_pReturnStorage;
+    Type**              m_pConvertedArgumentTypes;
 };
 
 o_namespace_end(phantom, reflection)

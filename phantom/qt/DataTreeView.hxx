@@ -7,7 +7,8 @@ o_classN((phantom, qt), DataTreeView, o_no_copy)
     o_reflection 
     {
         o_slot(void, dataAdded, (const phantom::data&,phantom::serialization::Node*));
-        o_slot(void, dataReplaced, (const phantom::data&,const phantom::data&));
+        o_slot(void, dataAboutToBeUnloaded, (const phantom::data&, phantom::serialization::Node*));
+        o_slot(void, dataReloaded, (const phantom::data&,phantom::serialization::Node*));
         o_slot(void, dataAboutToBeRemoved, (const phantom::data&,phantom::serialization::Node*));
         o_slot(void, nodeAdded, (phantom::serialization::Node* ,phantom::serialization::Node*));
         o_slot(void, nodeAboutToBeRemoved, (phantom::serialization::Node* ,phantom::serialization::Node*));
@@ -17,49 +18,48 @@ o_classN((phantom, qt), DataTreeView, o_no_copy)
         o_slot(void, nodeAttributeValueChanged, ( phantom::serialization::Node* , size_t , const string& ));
     };
 };
-o_exposeN((phantom, qt), DataTreeView);
 
-o_classNS((phantom, qt), AddDataAction, (Action), o_no_copy)
+
+o_classNB((phantom, qt), AddDataAction, (Action), o_no_copy)
 {
     o_reflection
     {
 
     };
 };
-o_exposeN((phantom, qt), AddDataAction);
 
-o_classNS((phantom, qt), RemoveDataAction, (Action), o_no_copy)
+
+o_classNB((phantom, qt), RemoveDataAction, (Action), o_no_copy)
 {
     o_reflection
     {
 
     };
 };
-o_exposeN((phantom, qt), RemoveDataAction);
 
-o_classNS((phantom, qt), AddNodeAction, (Action), o_no_copy)
+
+o_classNB((phantom, qt), AddNodeAction, (Action), o_no_copy)
 {
     o_reflection
     {
 
     };
 };
-o_exposeN((phantom, qt), AddNodeAction);
 
-o_classNS((phantom, qt), LoadNodeAction, (Action), o_no_copy)
+
+o_classNB((phantom, qt), LoadNodeAction, (Action), o_no_copy)
 {
     o_reflection
     {
 
     };
 };
-o_exposeN((phantom, qt), LoadNodeAction);
 
-o_classNS((phantom, qt), UnloadNodeAction, (Action), o_no_copy)
+
+o_classNB((phantom, qt), UnloadNodeAction, (Action), o_no_copy)
 {
     o_reflection
     {
 
     };
 };
-o_exposeN((phantom, qt), UnloadNodeAction);

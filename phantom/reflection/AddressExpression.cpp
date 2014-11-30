@@ -46,13 +46,13 @@ AddressExpression::AddressExpression( Expression* a_pAddressedExpression )
     , 0)
     , m_pAddressedExpression(a_pAddressedExpression)
 {
-    addElement(m_pAddressedExpression);
+    addSubExpression(m_pAddressedExpression);
     o_assert(m_pAddressedExpression->hasEffectiveAddress());
 }
 
 AddressExpression* AddressExpression::clone() const
 {
-    return o_new(AddressExpression)(m_pAddressedExpression->clone());
+    return o_new(AddressExpression)(m_pAddressedExpression);
 }
 
 o_namespace_end(phantom, reflection)

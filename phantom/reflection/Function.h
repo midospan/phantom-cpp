@@ -46,11 +46,9 @@ public:
     static Class* const metaType;
 
 public:
-    Function(const string& a_strName, Signature* a_pSignature, EABI a_eABI, bitfield a_Modifiers = 0)
-        : Subroutine(a_strName, a_pSignature, a_eABI, a_Modifiers)
-    {
-
-    }
+    Function();
+    Function(EABI a_eABI);
+    Function(const string& a_strName, Signature* a_pSignature, EABI a_eABI, modifiers_t a_Modifiers = 0);
 
     virtual Function* asFunction() const { return (Function*)this; }
 
@@ -58,6 +56,7 @@ public:
     virtual void call( void** a_pArgs, void* a_pReturnAddress ) const { Subroutine::call(a_pArgs, a_pReturnAddress); }
 
 protected:
+    Function(const string& a_strName, Signature* a_pSignature, EABI a_eABI, modifiers_t a_Modifiers, int);
 };
 
 o_namespace_end(phantom, reflection)

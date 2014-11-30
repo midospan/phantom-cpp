@@ -33,7 +33,11 @@
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
+#if o__bool__use_custom_stl_partioned_allocator OR o__bool__use_custom_stl_contiguous_allocator
 #include <boost/property_tree_custom/xml_parser.hpp>
+#else 
+#include <boost/property_tree/xml_parser.hpp>
+#endif
 #include <phantom/serialization/BinaryPackageDataBase.h>
 #include <phantom/serialization/BinaryPackageNode.h>
 #include <phantom/serialization/BinaryPackageNode.hxx>
@@ -42,8 +46,8 @@ o_registerN((phantom, serialization), BinaryPackageNode);
 
 o_namespace_begin(phantom, serialization)
 
-BinaryPackageNode::BinaryPackageNode(BinaryPackageDataBase* a_pOwnerDataBase, uint a_uiGuid, BinaryPackageNode* a_pParentNode)
-: PackageNode(a_pOwnerDataBase, a_uiGuid, a_pParentNode) 
+BinaryPackageNode::BinaryPackageNode(BinaryPackageDataBase* a_pDataBase, uint a_uiGuid, BinaryPackageNode* a_pParentNode)
+: PackageNode(a_pDataBase, a_uiGuid, a_pParentNode) 
 {
 
 }
@@ -56,7 +60,7 @@ void BinaryPackageNode::saveDataAttributes()
     for(;it != end; ++it)
     {
         void* pAddress = it->address();
-        uint guid = m_pOwnerDataBase->getGuid(pAddress);
+        uint guid = m_pDataBase->getGuid(pAddress);
         saveDataAttributes(*it, guid);
     }
 }
@@ -72,7 +76,7 @@ void BinaryPackageNode::loadDataAttributes()
     data_vector::iterator it = m_Data.begin();
     for(;it != end; ++it)
     {
-        loadDataAttributes(*it, m_pOwnerDataBase->getGuid(*it));
+        loadDataAttributes(*it, m_pDataBase->getGuid(*it));
     }
 }
 
@@ -83,19 +87,19 @@ void BinaryPackageNode::loadDataAttributes(const phantom::data& a_Data, uint a_u
 
 void BinaryPackageNode::saveDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid) 
 {
-	BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+	BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
 	PackageDataBase::PackageDataBaseBuffer* pBuffer = pDB->getBuffer();
 
-    // a_Data.type()->serialize(a_Data.address(), pBuffer->m_pCurrent, a_uiSerializationFlag, m_pOwnerDataBase);
+    // a_Data.type()->serialize(a_Data.address(), pBuffer->m_pCurrent, a_uiSerializationFlag, m_pDataBase);
     // saveDataAttributesHelper(a_Data);
 }
 
 void BinaryPackageNode::loadDataProperties(uint a_uiSerializationFlag, const phantom::data& a_Data, uint a_uiGuid) 
 {
-	BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+	BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
 	PackageDataBase::PackageDataBaseBuffer* pBuffer = pDB->getBuffer();
 
-    //a_Data.type()->deserialize(a_Data.address(), pBuffer->m_pCurrent, a_uiSerializationFlag, m_pOwnerDataBase);
+    //a_Data.type()->deserialize(a_Data.address(), pBuffer->m_pCurrent, a_uiSerializationFlag, m_pDataBase);
     loadDataAttributesHelper(a_Data);
 }
 
@@ -108,31 +112,31 @@ void BinaryPackageNode::saveIndex()
 
     index_tree.add_child("index", property_tree());
 
-    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
     for(;it != end; ++it)
     {
         void* pAddress = it->address();
         reflection::Type* pType = it->type();
-        uint guid = getOwnerDataBase()->getGuid(pAddress);
+        uint guid = getDataBase()->getGuid(pAddress);
         property_tree dataPath;
         dataPath.put<string>("typename", encodeQualifiedDecoratedNameToIdentifierName(pType->getQualifiedDecoratedName()));
         dataPath.put<string>("guid", phantom::lexical_cast<string>(reinterpret_cast<void*>(guid)));
-        const data& parent = m_pOwnerDataBase->getComponentDataOwner(pAddress);
+        const data& parent = m_pDataBase->getComponentDataOwner(pAddress);
         if(NOT(parent.isNull()))
         {
-            uint parentGuid = m_pOwnerDataBase->getGuid(parent);
+            uint parentGuid = m_pDataBase->getGuid(parent);
             dataPath.put<string>("parent", phantom::lexical_cast<string>(reinterpret_cast<void*>(parentGuid)));
         }
         index_tree.add_child("index.data", dataPath);
     }*/
 
     /*const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
-    boost::property_tree_custom::write_xml(self_path+'/'+"index", index_tree);*/
+    property_tree_namespace::write_xml(self_path+'/'+"index", index_tree);*/
 }
 
 void BinaryPackageNode::saveDataAttributesHelper(const phantom::data& a_Data)
 {
-    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
 	PackageDataBase::PackageDataBaseBuffer* pBuffer = pDB->getBuffer();
 
 	const string* pDataMemberValues = pDB->getDataAttributeValues(a_Data);
@@ -150,24 +154,24 @@ void BinaryPackageNode::saveDataAttributesHelper(const phantom::data& a_Data)
 
 void BinaryPackageNode::loadDataAttributesHelper(const phantom::data& a_Data)
 {
-    /*BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+    /*BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
 
     property_tree::const_iterator it = a_Tree.begin();
     property_tree::const_iterator end = a_Tree.end();
     for(;it != end; ++it)
     {
         const property_tree& attribute_tag = it->second;
-        size_t attributeIndex = m_pOwnerDataBase->getDataMemberIndex(it->first);
+        size_t attributeIndex = m_pDataBase->getDataMemberIndex(it->first);
         if(attributeIndex != DataBase::e_Constant_InvalidAttributeIndex)
         {
-            m_pOwnerDataBase->setDataAttributeValue(a_Data, attributeIndex, attribute_tag.data());
+            m_pDataBase->setDataAttributeValue(a_Data, attributeIndex, attribute_tag.data());
         }
     }*/
 }
 
 void BinaryPackageNode::saveAttributes()
 {
-    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
 
     const string* pDataMemberValues = pDB->getNodeAttributeValues(this);
     if(pDataMemberValues != NULL) 
@@ -182,7 +186,7 @@ void BinaryPackageNode::saveAttributes()
     }
 
     /*const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
-    boost::property_tree_custom::write_xml(self_path+'/'+"attributes", attribute_tree);*/
+    property_tree_namespace::write_xml(self_path+'/'+"attributes", attribute_tree);*/
 }
 
 void BinaryPackageNode::loadAttributes()
@@ -190,9 +194,9 @@ void BinaryPackageNode::loadAttributes()
     // write data base info
     property_tree attribute_tree;
     
-    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
     /*const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
-    boost::property_tree_custom::read_xml(self_path+'/'+"attributes", attribute_tree);
+    property_tree_namespace::read_xml(self_path+'/'+"attributes", attribute_tree);
     if(attribute_tree.empty()) return;
 
     boost::optional<property_tree&> opt_datalist_tree = attribute_tree.get_child_optional("attributes");
@@ -204,23 +208,23 @@ void BinaryPackageNode::loadAttributes()
         for(;it != end; ++it)
         {
             const property_tree& attribute_tag = it->second;
-            size_t attributeIndex = m_pOwnerDataBase->getDataMemberIndex(it->first);
+            size_t attributeIndex = m_pDataBase->getDataMemberIndex(it->first);
             if(attributeIndex != DataBase::e_Constant_InvalidAttributeIndex)
             {
-                m_pOwnerDataBase->setNodeAttributeValue(this, attributeIndex, attribute_tag.data());
+                m_pDataBase->setNodeAttributeValue(this, attributeIndex, attribute_tag.data());
             }
         }
     }*/
 }
 
-boolean BinaryPackageNode::canLoad(vector<string>& a_MissingTypes)
+boolean BinaryPackageNode::canLoad(map<string, vector<string>>* missing_types_per_module)
 {
     property_tree index_tree;
     
-    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
     
     /*const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
-    boost::property_tree_custom::read_xml(self_path+'/'+"index", index_tree);*/
+    property_tree_namespace::read_xml(self_path+'/'+"index", index_tree);*/
     
     if(index_tree.empty()) return true;
     
@@ -234,7 +238,7 @@ boolean BinaryPackageNode::canLoad(vector<string>& a_MissingTypes)
     {
         const property_tree& sub_tree = it->second;
         string typeName = decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("typename"));
-        reflection::Type* pType = m_pOwnerDataBase->solveTypeByName(typeName);
+        reflection::Type* pType = m_pDataBase->solveTypeByName(typeName);
         if(pType == NULL)
         {
             a_MissingTypes.push_back(typeName);
@@ -250,10 +254,10 @@ void BinaryPackageNode::cache()
 
     property_tree index_tree;
 
-    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
 
     /*const string& self_path = pDB->nodePath(this, getGuid(), getParentNode());
-    boost::property_tree_custom::read_xml(self_path+'/'+"index", index_tree);
+    property_tree_namespace::read_xml(self_path+'/'+"index", index_tree);
 
     if(index_tree.empty()) return;
 
@@ -266,7 +270,7 @@ void BinaryPackageNode::cache()
     {
         const property_tree& sub_tree = it->second;
         const string& strGuid = sub_tree.get<string>("guid");
-        ulong guid = 0xFFFFFFFF;
+        ulong guid = o_invalid_guid;
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(disable:4996)
 #endif
@@ -274,12 +278,12 @@ void BinaryPackageNode::cache()
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
 #   pragma warning(default:4996)
 #endif        
-        o_assert(guid != 0xFFFFFFFF);
+        o_assert(guid != o_invalid_guid);
         
-        reflection::Type* pType = m_pOwnerDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("typename")));
+        reflection::Type* pType = m_pDataBase->solveTypeByName(decodeQualifiedDecoratedNameFromIdentifierName(sub_tree.get<string>("typename")));
         if(pType == NULL)
         {
-            switch(m_pOwnerDataBase->getActionOnMissingType())
+            switch(m_pDataBase->getActionOnMissingType())
             {
             case DataBase::e_ActionOnMissingType_IgnoreAndDestroyData:
                 continue;
@@ -297,7 +301,7 @@ void BinaryPackageNode::cache()
         pDB->registerData(the_data, guid, this);
 
         boost::optional<string> strParentGuid_opt = sub_tree.get_optional<string>("parent");
-        uint parentGuid = 0xFFFFFFFF;
+        uint parentGuid = o_invalid_guid;
         if(strParentGuid_opt.is_initialized())        
         {
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
@@ -315,7 +319,7 @@ void BinaryPackageNode::cache()
     for(;i<count;++i)
     {
         uint parentGuid = parentGuids[i] ;
-        if(parentGuid != 0xffffffff)
+        if(parentGuid != o_invalid_guid)
         {
             const phantom::data& parentData = pDB->getData(parentGuid);
             o_assert(NOT(parentData.isNull()));
@@ -326,7 +330,7 @@ void BinaryPackageNode::cache()
 
 void BinaryPackageNode::uncache()
 {
-	BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+	BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
 
 	data_vector::iterator it = m_Data.begin();
 	data_vector::iterator end = m_Data.end();
@@ -341,7 +345,7 @@ void BinaryPackageNode::uncache()
 
 void BinaryPackageNode::build()
 {
-    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
   
     data_vector::iterator end = m_Data.end();
     // Build ( Construction + Installation)
@@ -355,7 +359,7 @@ void BinaryPackageNode::build()
 
 void BinaryPackageNode::unbuild()
 {
-	BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+	BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
 
 	data_vector::iterator end = m_Data.end();
 	// teardown ( Destruction + Uninstallation + Termination )
@@ -371,7 +375,7 @@ void BinaryPackageNode::unbuild()
 void BinaryPackageNode::deserialize(uint a_uiSerializationFlag)
 {
     // Deserialization
-    /*BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+    /*BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
     data_vector::iterator it = m_Data.begin();
     data_vector::iterator end = m_Data.end();
     for(;it != end; ++it)
@@ -381,7 +385,7 @@ void BinaryPackageNode::deserialize(uint a_uiSerializationFlag)
         property_tree p_tree;
         uint guid = pDB->getGuid(pAddress);
         const string& path = pDB->dataPath(*it, guid, pDB->getNode(pAddress));
-        boost::property_tree_custom::read_xml(path.c_str(), p_tree);
+        property_tree_namespace::read_xml(path.c_str(), p_tree);
         boost::optional<property_tree&> valueMembers_tree_opt = p_tree.get_child_optional("data.valueMembers");
         if(valueMembers_tree_opt.is_initialized())
         {
@@ -392,12 +396,12 @@ void BinaryPackageNode::deserialize(uint a_uiSerializationFlag)
 
 void BinaryPackageNode::restore(uint a_uiSerializationFlag)
 {
-    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pOwnerDataBase);
+    BinaryPackageDataBase* pDB = static_cast<BinaryPackageDataBase*>(m_pDataBase);
 
-    uint pass = 0;
+    restore_pass pass = restore_pass_local;
     int counter = 0;
     int cycle_count = m_DataRestoreQueue.size();
-    while(cycle_count)
+    while(cycle_count AND pass <= restore_pass_global_5)
     {
         // extract the data from the queue
         phantom::data d = m_DataRestoreQueue.front();
@@ -420,7 +424,7 @@ void BinaryPackageNode::restore(uint a_uiSerializationFlag)
         }
         if((++counter) == cycle_count) // reached the cycle end => increment pass, reset counters
         {
-            ++pass;
+            pass = restore_pass(pass+1);
             cycle_count = m_DataRestoreQueue.size();
             counter = 0;
         }

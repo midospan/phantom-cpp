@@ -46,6 +46,7 @@ o_namespace_begin(phantom, reflection)
 
 class o_export ReturnStatement : public Statement
 {
+    friend class Block;
 public:
     ReturnStatement();
     ReturnStatement(Expression* a_pReturnExpression);
@@ -57,8 +58,17 @@ public:
     void setReturnExpression(Expression* a_pReturnExpression);
 
 protected:
+    void setExpressionString(string a_Expression);
+    string getExpressionString() const;
+    virtual void restore();
+    void checkValidity();
+    void ancestorChanged(LanguageElement* a_pOwner);
+
+protected:
     Expression* m_pReturnExpression;
     Expression* m_pConvertedReturnExpression;
+    string*     m_pExpressionString;
+    vector<Statement*> m_RAIIDestructionStatements;
 
 };
 

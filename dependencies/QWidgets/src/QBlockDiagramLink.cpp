@@ -303,3 +303,14 @@ void QBlockDiagramLink::setState( EState state, bool value )
         m_States &= ~state;
     }
 }
+
+class A 
+{
+
+};
+
+
+class B : public A
+{
+
+};

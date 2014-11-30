@@ -44,14 +44,32 @@ PointerArithmeticExpression::PointerArithmeticExpression( const string& a_strOpe
     : Expression(a_pPointerExpression->getValueType(), "("+a_pPointerExpression->getName()+')'+a_strOperator+'('+a_pOffsetExpression->getName()+')', a_pPointerExpression->getModifiers())
     , m_strOperator(a_strOperator)
     , m_pPointerExpression(a_pPointerExpression)
-    , m_pOffsetExpression(a_pOffsetExpression)
-    , m_pOffsetConvertedExpression(a_pOffsetExpression->implicitCast(typeOf<ptrdiff_t>()))
-    , m_uiPointedSize(a_pPointerExpression->getValueType()->asDataPointerType()->getPointedType()->getSize())
+    , m_pOffsetExpression((a_pOffsetExpression AND a_pOffsetExpression->getOwner()) ? a_pOffsetExpression->clone() : a_pOffsetExpression)
+    , m_uiPointedSize((a_pPointerExpression AND a_pPointerExpression->getValueType() AND a_pPointerExpression->getValueType()->asDataPointerType()) ? a_pPointerExpression->getValueType()->asDataPointerType()->getPointedType()->getSize() : 0)
 {
-    addElement(m_pPointerExpression);
-    addElement(m_pOffsetConvertedExpression);
-    o_assert(m_pPointerExpression->getValueType()->removeReference()->asDataPointerType());
-    o_assert(a_pOffsetExpression->getValueType()->removeReference()->isConvertibleTo(typeOf<ptrdiff_t>()));
+    m_pOffsetConvertedExpression = m_pOffsetExpression ? m_pOffsetExpression->implicitCast(typeOf<ptrdiff_t>()) : nullptr;
+    if(m_pPointerExpression)
+    {
+        addSubExpression(m_pPointerExpression);
+        if(m_pPointerExpression->getValueType() == nullptr 
+            OR NOT(m_pPointerExpression->getValueType()->removeReference()->asDataPointerType()))
+        {
+            setInvalid();
+        }
+    }
+    else setInvalid();
+
+    if(m_pOffsetConvertedExpression)
+    {
+        addSubExpression(m_pOffsetConvertedExpression);
+        o_assert(m_pOffsetConvertedExpression->getValueType()->removeReference()->isConvertibleTo(typeOf<ptrdiff_t>()));
+    }
+    else setInvalid();
+
+    if(m_uiPointedSize == 0)
+    {
+        setInvalid();
+    }
 }
 
 PointerArithmeticExpression::~PointerArithmeticExpression()
@@ -70,7 +88,7 @@ void PointerArithmeticExpression::getValue( void* a_pDest ) const
 
 PointerArithmeticExpression* PointerArithmeticExpression::clone() const
 {
-    return o_new(PointerArithmeticExpression)(m_strOperator, m_pPointerExpression->clone(), m_pOffsetExpression->clone());
+    return o_new(PointerArithmeticExpression)(m_strOperator, m_pPointerExpression, m_pOffsetExpression);
 }
 
 

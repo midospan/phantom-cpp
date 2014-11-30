@@ -1,11 +1,11 @@
 /*
     This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
+         P reprocessed
+         H igh-level
+         A llocator
+         N ested state-machines and
+         T emplate
+         O riented
          M eta-programming
 
     For the latest infos and sources, see http://code.google.com/p/phantom-cpp
@@ -37,7 +37,7 @@
 
 
 /* ****************** Includes ******************* */
-o_fwd(class, phantom, detail, dynamic_initializer_handle);
+o_fwd(class, phantom, dynamic_initializer_handle);
 /* *********************************************** */
 
 o_namespace_begin(phantom, memory)
@@ -119,8 +119,8 @@ public:
         return ret;
     }
     static pointer allocate(const size_type n, const void * const)
-    { 
-        return allocate(n); 
+    {
+        return allocate(n);
     }
     static pointer allocate()
     {
@@ -166,15 +166,15 @@ public:
 class o_export    Statistics
 {
     template <typename t_Ty, typename t_Allocator> friend  class stat_allocator;
-    friend  class detail::dynamic_initializer_handle;
+    friend  class phantom::dynamic_initializer_handle;
 public:
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
         typedef __int64 counter_type ;
 #else
         typedef int64_t counter_type ;
-#endif        
-    
-    static counter_type    AllocationCount() { return m_AllocationCount; }    
+#endif
+
+    static counter_type    AllocationCount() { return m_AllocationCount; }
     static counter_type    TotalAllocationCount() { return m_TotalAllocationCount; }
     static counter_type    TotalAllocatedByteCount() { return m_TotalAllocatedByteCount; }
     static counter_type    AllocatedByteCount() { return m_AllocatedByteCount; }
@@ -192,7 +192,7 @@ private:
     static counter_type    m_TotalAllocationCount;
     static counter_type    m_AllocatedByteCount;
     static counter_type    m_TotalAllocatedByteCount;
-    struct o_export allocation_info 
+    struct o_export allocation_info
     {
         allocation_info() : file(0), line(0), size(0) {}
         allocation_info(const char* afile, unsigned int aline, size_t asize);
@@ -219,26 +219,26 @@ public:
 };
 #else
 
-#define o_memory_stat_insert_arguments 
+#define o_memory_stat_insert_arguments
 #define o_memory_stat_prepend_arguments_10
-#define o_memory_stat_prepend_arguments_9 
-#define o_memory_stat_prepend_arguments_8 
-#define o_memory_stat_prepend_arguments_7 
-#define o_memory_stat_prepend_arguments_6 
-#define o_memory_stat_prepend_arguments_5 
-#define o_memory_stat_prepend_arguments_4 
-#define o_memory_stat_prepend_arguments_3 
-#define o_memory_stat_prepend_arguments_2 
-#define o_memory_stat_prepend_arguments_1 
-#define o_memory_stat_prepend_arguments_0 
+#define o_memory_stat_prepend_arguments_9
+#define o_memory_stat_prepend_arguments_8
+#define o_memory_stat_prepend_arguments_7
+#define o_memory_stat_prepend_arguments_6
+#define o_memory_stat_prepend_arguments_5
+#define o_memory_stat_prepend_arguments_4
+#define o_memory_stat_prepend_arguments_3
+#define o_memory_stat_prepend_arguments_2
+#define o_memory_stat_prepend_arguments_1
+#define o_memory_stat_prepend_arguments_0
 #define o_memory_stat_prepend_arguments
-#define o_memory_stat_append_arguments 
-#define o_memory_stat_insert_parameters 
-#define o_memory_stat_prepend_parameters 
-#define o_memory_stat_append_parameters 
-#define o_memory_stat_insert_parameters_use 
-#define o_memory_stat_prepend_parameters_use 
-#define o_memory_stat_append_parameters_use 
+#define o_memory_stat_append_arguments
+#define o_memory_stat_insert_parameters
+#define o_memory_stat_prepend_parameters
+#define o_memory_stat_append_parameters
+#define o_memory_stat_insert_parameters_use
+#define o_memory_stat_prepend_parameters_use
+#define o_memory_stat_append_parameters_use
 
 #endif
 

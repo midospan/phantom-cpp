@@ -1,5 +1,5 @@
 
-o_namespace_begin(phantom, extension)
+o_namespace_begin(phantom)
 
 #define o_phantom_extension_fundamental_converter_case(d) \
     if(a_pDestType == phantom::reflection::Types::get<d>())\
@@ -53,7 +53,7 @@ struct converter<s>\
     o_assert(false, "invalid size for enum type");\
 }\
 }\
-            else detail::default_converter<s>::convert(a_pType, a_pDestType, dest, src);\
+            else default_converter<s>::convert(a_pType, a_pDestType, dest, src);\
 }\
     static bool isConvertibleTo(reflection::Type* a_pType, reflection::Type* a_pDestType)\
 {\
@@ -76,7 +76,7 @@ struct converter<s>\
             else o_phantom_extension_fundamental_converter_can_case(float)\
             else o_phantom_extension_fundamental_converter_can_case(double)\
             else if(a_pDestType->asEnum()) { return true; }\
-            return detail::default_converter<s>::isConvertibleTo(a_pType, a_pDestType);\
+            return default_converter<s>::isConvertibleTo(a_pType, a_pDestType);\
 }\
     static bool isImplicitlyConvertibleTo(reflection::Type* a_pType, reflection::Type* a_pDestType)\
 {\
@@ -98,7 +98,7 @@ struct converter<s>\
             else o_phantom_extension_fundamental_converter_can_case(long double)\
             else o_phantom_extension_fundamental_converter_can_case(float)\
             else o_phantom_extension_fundamental_converter_can_case(double)\
-            return detail::default_converter<s>::isImplicitlyConvertibleTo(a_pType, a_pDestType);\
+            return default_converter<s>::isImplicitlyConvertibleTo(a_pType, a_pDestType);\
 }\
 };
 
@@ -119,26 +119,8 @@ struct converter<s>\
     o_phantom_extension_fundamental_converter(float)
     o_phantom_extension_fundamental_converter(double)
 
-    namespace detail {
-
-    template<> struct safe_constructor_<bool>                  {    static void safeConstruct(void* a_pInstance) { *((bool*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<char>                  {    static void safeConstruct(void* a_pInstance) { *((char*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<unsigned char>         {    static void safeConstruct(void* a_pInstance) { *((unsigned char*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<short>                 {    static void safeConstruct(void* a_pInstance) { *((short*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<unsigned short>        {    static void safeConstruct(void* a_pInstance) { *((unsigned short*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<int>                   {    static void safeConstruct(void* a_pInstance) { *((int*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<unsigned int>          {    static void safeConstruct(void* a_pInstance) { *((unsigned int*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<long>                  {    static void safeConstruct(void* a_pInstance) { *((long*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<unsigned long>         {    static void safeConstruct(void* a_pInstance) { *((unsigned long*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<long long>             {    static void safeConstruct(void* a_pInstance) { *((long long*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<unsigned long long>    {    static void safeConstruct(void* a_pInstance) { *((unsigned long long*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<long double>           {    static void safeConstruct(void* a_pInstance) { *((long double*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<float>                 {    static void safeConstruct(void* a_pInstance) { *((float*)a_pInstance) = 0; } };
-template<> struct safe_constructor_<double>                {    static void safeConstruct(void* a_pInstance) { *((double*)a_pInstance) = 0; } };
-
-    }
 
 
 #pragma warning(default:4800)
 
-o_namespace_end(phantom, extension)
+o_namespace_end(phantom)

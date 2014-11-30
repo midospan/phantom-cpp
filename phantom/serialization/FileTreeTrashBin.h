@@ -61,6 +61,11 @@ protected:
 
     FileTreeDataBase* getFileTreeDataBase() const;
 
+    virtual uint createBackup( Node* a_pNode );
+    virtual void createBackup( Node* a_pNode, uint a_uiBackup );
+    virtual void replaceBackup( Node* a_pNode, uint a_uiBackup );
+    virtual void restoreBackup( Node* a_pNode, uint a_uiBackup );
+
 protected:
     map<uint, vector<string>>   m_Index;
 };

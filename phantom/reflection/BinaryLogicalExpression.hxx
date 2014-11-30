@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Expression.hxx"
+#include "BinaryOperationExpression.hxx"
 
-o_classNS((phantom, reflection), BinaryLogicalExpression, (BinaryOperationExpression)) { o_reflection {}; };
+o_classNB((phantom, reflection), BinaryLogicalExpression, (BinaryOperationExpression)) ();
 
 
 
