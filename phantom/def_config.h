@@ -61,10 +61,14 @@
 #define o_OPERATING_SYSTEM_MAC              4
 #define o_OPERATING_SYSTEM_IPHONE           5
 #define o_OPERATING_SYSTEM_IPAD             6
+#define o_OPERATING_SYSTEM_WINDOWS_CE       7
 
-#define o_OPERATING_SYSTEM_ANDROID          7
-#define o_OPERATING_SYSTEM_RVL              8
+#define o_OPERATING_SYSTEM_ANDROID          8
 // ...
+
+#define o_OPERATING_SYSTEM_FAMILY_WINDOWS   1
+#define o_OPERATING_SYSTEM_FAMILY_UNIX      2
+
 
 //  ==================================================================================================
 //        PLATFORMS VARIABLES
@@ -72,8 +76,10 @@
 
 #define o_PLATFORM_WINDOWS_PC   0
 #define o_PLATFORM_WINDOWS_CE   1
-#define o_PLATFORM_MACINTOSH    2
-#define o_PLATFORM_REVOLUTION   3 // Wii
+#define o_PLATFORM_LINUX_PC     2 
+#define o_PLATFORM_ANDROID      3 
+#define o_PLATFORM_IPHONE_IPAD  4 
+#define o_PLATFORM_MACINTOSH    5
 // ...
 
 //  ==================================================================================================
@@ -162,10 +168,12 @@
 #    if defined(UNDER_CE)            // CE
 #        define o_PLATFORM                o_PLATFORM_WINDOWS_CE
 #        define o_OPERATING_SYSTEM        o_OPERATING_SYSTEM_WINDOWS_CE
+#        define o_OPERATING_SYSTEM_FAMILY o_OPERATING_SYSTEM_FAMILY_WINDOWS
 #        define o_OPERATING_SYSTEM_NAME    "Windows CE"
 #    else                            // 2000/NT/XP/VISTA/7
 #        define o_PLATFORM                o_PLATFORM_WINDOWS_PC
 #        define o_OPERATING_SYSTEM        o_OPERATING_SYSTEM_WINDOWS
+#        define o_OPERATING_SYSTEM_FAMILY o_OPERATING_SYSTEM_FAMILY_WINDOWS
 #        define o_OPERATING_SYSTEM_NAME    "Windows"
 #    endif
 
@@ -198,10 +206,11 @@
 
 #elif defined(__linux__) || defined(__linux) // Linux
 
-#    define o_OPERATING_SYSTEM                o_OPERATING_SYSTEM_LINUX
+#    define o_OPERATING_SYSTEM_FAMILY           o_OPERATING_SYSTEM_FAMILY_UNIX
+#    define o_OPERATING_SYSTEM                  o_OPERATING_SYSTEM_LINUX
 #    if defined(__clang__)    // CLANG
 
-#       define o_COMPILER_NAME                "CLANG"
+#       define o_COMPILER_NAME                  "CLANG"
 #       define o_COMPILER                       o_COMPILER_CLANG
 #       define o_COMPILER_VERSION
 #       define o_COMPILER_MAJOR_VERSION        __clang__
@@ -215,6 +224,9 @@
 #    endif
 
 #elif defined(__APPLE__)                    // Apple Macintosh/IPhone/IPod/IPad
+
+#    define o_OPERATING_SYSTEM_FAMILY           o_OPERATING_SYSTEM_FAMILY_UNIX
+
 #   include "TargetConditionals.h" 
 #   if defined(TARGET_OS_IPHONE)
 #       define o_OPERATING_SYSTEM               o_OPERATING_SYSTEM_IPHONE
@@ -303,6 +315,12 @@
 #          define o_STD_TYPE_TRAIT_DEFINED_IS_DEFAULT_CONSTRUCTIBLE 1
 #   else
 #          define o_STD_TYPE_TRAIT_DEFINED_IS_DEFAULT_CONSTRUCTIBLE 0
+#   endif
+
+#   if __has_feature(cxx_rtti)
+#       define o_HAS_COMPILE_TIME_TYPEID 1
+#   else
+#       define o_HAS_COMPILE_TIME_TYPEID 0
 #   endif
 
 #endif

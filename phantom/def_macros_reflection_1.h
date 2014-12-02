@@ -467,25 +467,48 @@ class o_PP_CAT(parameter,__LINE__) \
         */
 
 #define o_function(_returntype_, _name_, _parameters_, ...) \
-    static phantom::reflection::function_registrer<_returntype_ _parameters_>  o_PP_CAT(g_reflection_function_registration_##_name_, __COUNTER__)(#_name_, o_PP_QUOTE(_returntype_)o_PP_QUOTE(_parameters_),_name_,##__VA_ARGS__);
+    static struct o_PP_CAT(g_reflection_function_registration_##_name_, __COUNTER__)\
+    {\
+        virtual void registerElement()\
+        {\
+            phantom::reflection::Namespace* pNamespace = phantom::rootNamespace();\
+            pNamespace->addFunction(\
+                phantom::reflection::native::TNativeFunctionProvider<_returntype_ _parameters_>::CreateFunction(#_name_, phantom::reflection::Signature::Create(o_PP_QUOTE(_returntype_)o_PP_QUOTE(_parameters_), nullptr, pNamespace), _name_,##__VA_ARGS__)\
+            );\
+        }\
+    } o_PP_CAT(g_reflection_function_registration_##_name_, __COUNTER__);\
+
+#define o_functionN(_namespace_, _returntype_, _name_, _parameters_, ...)\
+    o_namespace _namespace_\
+    static struct o_PP_CAT(g_reflection_function_registration_##_name_, __LINE__) : public phantom::dynamic_initializer_handle::deferred_registrer_base\
+    {\
+        virtual void registerElement()\
+        {\
+            phantom::reflection::Namespace* pNamespace = phantom::namespaceByName(o_PP_QUOTE_SCOPE(_namespace_));\
+            pNamespace->addFunction(\
+                phantom::reflection::native::TNativeFunctionProvider<_returntype_ _parameters_>::CreateFunction(#_name_, phantom::reflection::Signature::Create(o_PP_QUOTE(_returntype_)o_PP_QUOTE(_parameters_), nullptr, pNamespace), o_PP_CREATE_SCOPE _namespace_ :: _name_,##__VA_ARGS__)\
+            );\
+        }\
+    } o_PP_CAT(g_reflection_function_registration_##_name_, __LINE__);\
 
 #define o_variable(_type_, _name_, _range_, ...) \
-    static phantom::reflection::variable_registrer<_type_>  o_PP_CAT(g_reflection_variable_registration_##_name_, __COUNTER__)(#_name_,&_name_, o_range _range_,##__VA_ARGS__);
-
-#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
-
-#define o_functionN(_namespace_, _returntype_, _name_, _parameters_, ...) \
-    static phantom::reflection::function_registrer<_returntype_ _parameters_>  o_PP_CAT(g_reflection_function_registration_##_name_, __COUNTER__) (o_PP_QUOTE o_PP_LEFT_PAREN o_PP_CREATE_SCOPE _namespace_ o_PP_RIGHT_PAREN , #_name_, o_PP_QUOTE(_returntype_)o_PP_QUOTE(_parameters_), o_PP_CREATE_QUALIFIED_NAME(_namespace_, _name_),##__VA_ARGS__);
-
-#define o_variableN(_namespace_, _type_, _name_, _range_, ...) \
-    static phantom::reflection::variable_registrer<_type_>  o_PP_CAT(g_reflection_variable_registration_##_name_, __COUNTER__)(o_PP_QUOTE o_PP_LEFT_PAREN o_PP_CREATE_SCOPE _namespace_ o_PP_RIGHT_PAREN , #_name_, &o_PP_CREATE_QUALIFIED_NAME(_namespace_, _name_), o_range _range_,##__VA_ARGS__);
-
-#else // o_COMPILER
-
-#define o_functionN(_namespace_, _returntype_, _name_, _parameters_, ...) \
-    static phantom::reflection::function_registrer<_returntype_ _parameters_>  o_PP_CAT(g_reflection_function_registration_##_name_, __COUNTER__) ( o_PP_QUOTE(o_PP_CREATE_SCOPE _namespace_ ), #_name_, o_PP_QUOTE(_returntype_)o_PP_QUOTE(_parameters_), o_PP_CREATE_QUALIFIED_NAME(_namespace_, _name_),##__VA_ARGS__);
+    static struct o_PP_CAT(g_reflection_variable_registration_##_name_, __LINE__) : public phantom::dynamic_initializer_handle::deferred_registrer_base\
+    {\
+        virtual void registerElement()\
+        {\
+            phantom::reflection::Namespace* pNamespace = phantom::rootNamespace();\
+            pNamespace->addVariable(o_dynamic_proxy_new(phantom::reflection::native::TNativeVariable<_type_>)(phantom::typeOf<_type_>(), #_name_, &_name_, o_range _range_,##__VA_ARGS__));\
+        }\
+    } o_PP_CAT(g_reflection_variable_registration_##_name_, __LINE__);
 
 #define o_variableN(_namespace_, _type_, _name_, _range_, ...) \
-    static phantom::reflection::variable_registrer<_type_>  o_PP_CAT(g_reflection_variable_registration_##_name_, __COUNTER__)( o_PP_QUOTE(o_PP_CREATE_SCOPE _namespace_ ), #_name_, &o_PP_CREATE_QUALIFIED_NAME(_namespace_, _name_), o_range _range_,##__VA_ARGS__);
+    o_namespace _namespace_\
+    static struct o_PP_CAT(g_reflection_variable_registration_##_name_, __LINE__) : public phantom::dynamic_initializer_handle::deferred_registrer_base\
+    {\
+        virtual void registerElement()\
+        {\
+            phantom::reflection::Namespace* pNamespace = phantom::namespaceByName(o_PP_QUOTE_SCOPE(_namespace_));\
+            pNamespace->addVariable(o_dynamic_proxy_new(phantom::reflection::native::TNativeVariable<_type_>)(phantom::typeOf<_type_>(), #_name_, &o_PP_CREATE_SCOPE _namespace_ :: _name_, o_range _range_,##__VA_ARGS__));\
+        }\
+    } o_PP_CAT(g_reflection_variable_registration_##_name_, __LINE__);
 
-#endif

@@ -697,7 +697,7 @@ namespace reflection
     struct type_decoration_extractor\
     {\
         static phantom::string decoration() { return "< "\
-            + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
+            + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
             +" >"; }\
     };
 
@@ -706,8 +706,8 @@ namespace reflection
     struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -716,9 +716,9 @@ namespace reflection
     struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -727,10 +727,10 @@ namespace reflection
     struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -739,11 +739,11 @@ namespace reflection
     struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -752,12 +752,12 @@ namespace reflection
     struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types o_PP_RIGHT_PAREN < t_5 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types o_PP_RIGHT_PAREN < t_5 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -766,12 +766,12 @@ namespace reflection
     struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types o_PP_RIGHT_PAREN < t_5 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types o_PP_RIGHT_PAREN < t_5 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -780,13 +780,13 @@ namespace reflection
     struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types o_PP_RIGHT_PAREN < t_5 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types o_PP_RIGHT_PAREN < t_6 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types o_PP_RIGHT_PAREN < t_5 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types o_PP_RIGHT_PAREN < t_6 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -795,14 +795,14 @@ namespace reflection
     struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types o_PP_RIGHT_PAREN < t_5 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types o_PP_RIGHT_PAREN < t_6 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_7 types o_PP_RIGHT_PAREN < t_7 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types o_PP_RIGHT_PAREN < t_5 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types o_PP_RIGHT_PAREN < t_6 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_7 types o_PP_RIGHT_PAREN < t_7 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -811,15 +811,15 @@ namespace reflection
     struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types o_PP_RIGHT_PAREN < t_5 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types o_PP_RIGHT_PAREN < t_6 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_7 types o_PP_RIGHT_PAREN < t_7 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_8 types o_PP_RIGHT_PAREN < t_8 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types o_PP_RIGHT_PAREN < t_5 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types o_PP_RIGHT_PAREN < t_6 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_7 types o_PP_RIGHT_PAREN < t_7 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_8 types o_PP_RIGHT_PAREN < t_8 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -828,16 +828,16 @@ namespace reflection
     struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types o_PP_RIGHT_PAREN < t_5 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types o_PP_RIGHT_PAREN < t_6 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_7 types o_PP_RIGHT_PAREN < t_7 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_8 types o_PP_RIGHT_PAREN < t_8 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT o_PP_LEFT_PAREN phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_9 types o_PP_RIGHT_PAREN < t_9 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types o_PP_RIGHT_PAREN < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types o_PP_RIGHT_PAREN < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types o_PP_RIGHT_PAREN < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types o_PP_RIGHT_PAREN < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types o_PP_RIGHT_PAREN < t_4 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types o_PP_RIGHT_PAREN < t_5 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types o_PP_RIGHT_PAREN < t_6 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_7 types o_PP_RIGHT_PAREN < t_7 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_8 types o_PP_RIGHT_PAREN < t_8 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT o_PP_LEFT_PAREN ::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_9 types o_PP_RIGHT_PAREN < t_9 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -852,7 +852,7 @@ namespace reflection
 struct type_decoration_extractor\
     {\
     static phantom::string decoration() { return "< "\
-    + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
+    + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -861,8 +861,8 @@ struct type_decoration_extractor\
 struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -871,9 +871,9 @@ struct type_decoration_extractor\
 struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -882,10 +882,10 @@ struct type_decoration_extractor\
 struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -894,11 +894,11 @@ struct type_decoration_extractor\
 struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -907,12 +907,12 @@ struct type_decoration_extractor\
 struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types) < t_5 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types) < t_5 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -921,12 +921,12 @@ struct type_decoration_extractor\
 struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types) < t_5 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types) < t_5 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -935,13 +935,13 @@ struct type_decoration_extractor\
 struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types) < t_5 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types) < t_6 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types) < t_5 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types) < t_6 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -950,14 +950,14 @@ struct type_decoration_extractor\
 struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types) < t_5 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types) < t_6 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_7 types) < t_7 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types) < t_5 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types) < t_6 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_7 types) < t_7 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -966,15 +966,15 @@ struct type_decoration_extractor\
 struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types) < t_5 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types) < t_6 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_7 types) < t_7 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_8 types) < t_8 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types) < t_5 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types) < t_6 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_7 types) < t_7 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_8 types) < t_8 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 
@@ -983,16 +983,16 @@ struct type_decoration_extractor\
 struct type_decoration_extractor\
     {\
     static string decoration() { return "< "\
-    +       o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types) < t_5 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types) < t_6 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_7 types) < t_7 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_8 types) < t_8 > ::qualifiedDecoratedName()\
-    + "," + o_PP_CAT(phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_9 types) < t_9 > ::qualifiedDecoratedName()\
+    +       o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_0 types) < t_0 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_1 types) < t_1 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_2 types) < t_2 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_3 types) < t_3 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_4 types) < t_4 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_5 types) < t_5 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_6 types) < t_6 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_7 types) < t_7 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_8 types) < t_8 > ::qualifiedDecoratedName()\
+    + "," + o_PP_CAT(::phantom::reflection::detail::template_signature_parameter_name_, o_PP_ARG_9 types) < t_9 > ::qualifiedDecoratedName()\
     +" >"; }\
     };
 

@@ -1427,6 +1427,18 @@
     <ClInclude Include="..\..\..\phantom\math\rect.hxx">
       <Filter>math</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxParser.hxx">
+      <Filter>reflection\eval\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxParsing.hxx">
+      <Filter>reflection\eval\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxToken.hxx">
+      <Filter>reflection\eval\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxLexing.hxx">
+      <Filter>reflection\eval\cpp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\phantom\reflection\TemplateSpecialization.cpp">
@@ -1991,6 +2003,24 @@
     <ClCompile Include="..\..\..\phantom\math\rect.cpp">
       <Filter>math</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxParsing.cxx">
+      <Filter>reflection\eval\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxToken.cpp">
+      <Filter>reflection\eval\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxLexer.cpp">
+      <Filter>reflection\eval\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxParser.cpp">
+      <Filter>reflection\eval\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxLexer.cxx">
+      <Filter>reflection\eval\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxParser.cxx">
+      <Filter>reflection\eval\cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\phantom\def_memory.inl">
@@ -2122,6 +2152,12 @@
     </None>
     <None Include="..\..\..\phantom\def_new_delete.h">
       <Filter>defs</Filter>
+    </None>
+    <None Include="..\..\..\phantom\reflection\detail\CxxParser.y">
+      <Filter>reflection\eval\cpp</Filter>
+    </None>
+    <None Include="..\..\..\phantom\reflection\detail\CxxLexer.l">
+      <Filter>reflection\eval\cpp</Filter>
     </None>
     <None Include="..\..\..\phantom\reflection\detail\cpp-grammar.y">
       <Filter>reflection\eval</Filter>

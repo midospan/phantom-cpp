@@ -418,93 +418,93 @@ cast_expression:                    unary_expression
     |                               abstract_expression cast_expression
 /*  |                               '(' type_id ')' cast_expression                             -- covered by abstract_expression */
 
-pm_expression:                      cast_expression
-    |                               pm_expression DOT_STAR cast_expression
-    |                               pm_expression ARROW_STAR cast_expression
-multiplicative_expression:          pm_expression
-    |                               multiplicative_expression star_ptr_operator pm_expression
-    |                               multiplicative_expression '/' pm_expression
-    |                               multiplicative_expression '%' pm_expression
-additive_expression:                multiplicative_expression
-    |                               additive_expression '+' multiplicative_expression
-    |                               additive_expression '-' multiplicative_expression
-shift_expression:                   additive_expression
-    |                               shift_expression SHL additive_expression
-    |                               shift_expression SHR additive_expression
-relational_expression:              shift_expression
-    |                               relational_expression '<' shift_expression
-    |                               relational_expression '>' shift_expression
-    |                               relational_expression LE shift_expression
-    |                               relational_expression GE shift_expression
-equality_expression:                relational_expression
-    |                               equality_expression EQ relational_expression
-    |                               equality_expression NE relational_expression
-and_expression:                     equality_expression
-    |                               and_expression '&' equality_expression
-exclusive_or_expression:            and_expression
-    |                               exclusive_or_expression '^' and_expression
-inclusive_or_expression:            exclusive_or_expression
-    |                               inclusive_or_expression '|' exclusive_or_expression
-logical_and_expression:             inclusive_or_expression
-    |                               logical_and_expression LOG_AND inclusive_or_expression
-logical_or_expression:              logical_and_expression
-    |                               logical_or_expression LOG_OR logical_and_expression
-conditional_expression:             logical_or_expression
-    |                               logical_or_expression '?' expression ':' assignment_expression
+pm_expression:                      cast_expression { $$ = $1; }
+    |                               pm_expression DOT_STAR cast_expression { $$ = EXPR_BINARY($1, op_dotstar, $3); }
+    |                               pm_expression ARROW_STAR cast_expression { $$ = EXPR_BINARY($1, op_arrowstar, $3); }
+multiplicative_expression:          pm_expression { $$ = $1; }
+    |                               multiplicative_expression star_ptr_operator pm_expression { $$ = EXPR_BINARY($1, op_star, $3); }
+    |                               multiplicative_expression '/' pm_expression { $$ = EXPR_BINARY($1, op_div, $3); }
+    |                               multiplicative_expression '%' pm_expression { $$ = EXPR_BINARY($1, op_percent, $3); }
+additive_expression:                multiplicative_expression { $$ = $1; }
+    |                               additive_expression '+' multiplicative_expression { $$ = EXPR_BINARY($1, op_plus, $3); }
+    |                               additive_expression '-' multiplicative_expression { $$ = EXPR_BINARY($1, op_minus, $3); }
+shift_expression:                   additive_expression { $$ = $1; }
+    |                               shift_expression SHL additive_expression { $$ = EXPR_BINARY($1, op_lshift, $3); }
+    |                               shift_expression SHR additive_expression { $$ = EXPR_BINARY($1, op_rshift, $3); }
+relational_expression:              shift_expression { $$ = $1; }
+    |                               relational_expression '<' shift_expression { $$ = EXPR_BINARY($1, op_lt, $3); }
+    |                               relational_expression '>' shift_expression { $$ = EXPR_BINARY($1, op_gt, $3); }
+    |                               relational_expression LE shift_expression { $$ = EXPR_BINARY($1, op_le, $3); }
+    |                               relational_expression GE shift_expression { $$ = EXPR_BINARY($1, op_ge, $3); }
+equality_expression:                relational_expression { $$ = $1; }
+    |                               equality_expression EQ relational_expression { $$ = EXPR_BINARY($1, op_eq, $3); }
+    |                               equality_expression NE relational_expression { $$ = EXPR_BINARY($1, op_ne, $3); }
+and_expression:                     equality_expression { $$ = $1; }
+    |                               and_expression '&' equality_expression { $$ = EXPR_BINARY($1, op_binary_and, $3); }
+exclusive_or_expression:            and_expression { $$ = $1; }
+    |                               exclusive_or_expression '^' and_expression  { $$ = EXPR_BINARY($1, op_binary_xor, $3); }
+inclusive_or_expression:            exclusive_or_expression { $$ = $1; }
+    |                               inclusive_or_expression '|' exclusive_or_expression { $$ = EXPR_BINARY($1, op_binary_or, $3); }
+logical_and_expression:             inclusive_or_expression { $$ = $1; }
+    |                               logical_and_expression LOG_AND inclusive_or_expression { $$ = EXPR_BINARY($1, op_logical_and, $3); }
+logical_or_expression:              logical_and_expression { $$ = $1; }
+    |                               logical_or_expression LOG_OR logical_and_expression { $$ = EXPR_BINARY($1, op_logical_or, $3); }
+conditional_expression:             logical_or_expression { $$ = $1; }
+    |                               logical_or_expression '?' expression ':' assignment_expression { $$ = EXPR_TERNARY($1, $3, $5); }
 
 
 /*  assignment-expression is generalised to cover the simple assignment of a braced initializer in order to contribute to the
  *  coverage of parameter-declaration and init-declaration.
  */
-assignment_expression:              conditional_expression
-    |                               logical_or_expression assignment_operator assignment_expression
-    |                               logical_or_expression '=' braced_initializer
+assignment_expression:              conditional_expression { $$ = $1; }
+    |                               logical_or_expression assignment_operator assignment_expression { $$ = EXPR_ASSIGN($1, $2, $3); }
+    |                               logical_or_expression '=' braced_initializer { $$ = EXPR_ASSIGN($1, $2, $3); }
     |                               throw_expression
-assignment_operator:                '=' | ASS_ADD | ASS_AND | ASS_DIV | ASS_MOD | ASS_MUL | ASS_OR | ASS_SHL | ASS_SHR | ASS_SUB | ASS_XOR
+assignment_operator:                '=' | ASS_ADD | ASS_AND | ASS_DIV | ASS_MOD | ASS_MUL | ASS_OR | ASS_SHL | ASS_SHR | ASS_SUB | ASS_XOR { $$ = $1; }
 
 /*  expression is widely used and usually single-element, so the reductions are arranged so that a
  *  single-element expression is returned as is. Multi-element expressions are parsed as a list that
  *  may then behave polymorphically as an element or be compacted to an element. */ 
-expression.opt:                     /* empty */
-    |                               expression
-expression:                         assignment_expression
-    |                               expression_list ',' assignment_expression
-constant_expression:                conditional_expression
+expression.opt:                     /* empty */ { $$ = nullptr; }
+    |                               expression { $$ = $1; }
+expression:                         assignment_expression { $$ = $1; }
+    |                               expression_list ',' assignment_expression { $1->add($3); $$ = EXPR_COMMA($1); }
+constant_expression:                conditional_expression { $$ = $1; }
 
 /*  The grammar is repeated for when the parser stack knows that the next > must end a template.
  */
-templated_relational_expression:    shift_expression
+templated_relational_expression:    shift_expression 
     |                               templated_relational_expression '<' shift_expression
     |                               templated_relational_expression LE shift_expression
     |                               templated_relational_expression GE shift_expression
-templated_equality_expression:      templated_relational_expression
+templated_equality_expression:      templated_relational_expression { $$ = $1; }
     |                               templated_equality_expression EQ templated_relational_expression
     |                               templated_equality_expression NE templated_relational_expression
-templated_and_expression:           templated_equality_expression
+templated_and_expression:           templated_equality_expression 
     |                               templated_and_expression '&' templated_equality_expression
-templated_exclusive_or_expression:  templated_and_expression
+templated_exclusive_or_expression:  templated_and_expression 
     |                               templated_exclusive_or_expression '^' templated_and_expression
 
-templated_inclusive_or_expression:  templated_exclusive_or_expression
+templated_inclusive_or_expression:  templated_exclusive_or_expression { $$ = $1; }
     |                               templated_inclusive_or_expression '|' templated_exclusive_or_expression
 
-templated_logical_and_expression:   templated_inclusive_or_expression
+templated_logical_and_expression:   templated_inclusive_or_expression { $$ = $1; }
     |                               templated_logical_and_expression LOG_AND templated_inclusive_or_expression
 
-templated_logical_or_expression:    templated_logical_and_expression
+templated_logical_or_expression:    templated_logical_and_expression { $$ = $1; }
     |                               templated_logical_or_expression LOG_OR templated_logical_and_expression
 
-templated_conditional_expression:   templated_logical_or_expression
+templated_conditional_expression:   templated_logical_or_expression { $$ = $1; }
     |                               templated_logical_or_expression '?' templated_expression ':' templated_assignment_expression
 
-templated_assignment_expression:    templated_conditional_expression
+templated_assignment_expression:    templated_conditional_expression { $$ = $1; }
     |                               templated_logical_or_expression assignment_operator templated_assignment_expression
 
-    |                               templated_throw_expression
-templated_expression:               templated_assignment_expression
+    |                               templated_throw_expression { $$ = $1; }
+templated_expression:               templated_assignment_expression { $$ = $1; }
     |                               templated_expression_list ',' templated_assignment_expression
 
-templated_expression_list:          templated_assignment_expression
+templated_expression_list:          templated_assignment_expression { $$ = $1; }
     |                               templated_expression_list ',' templated_assignment_expression
 
 /*---------------------------------------------------------------------------------------------------
@@ -513,8 +513,8 @@ templated_expression_list:          templated_assignment_expression
  *  Parsing statements is easy once simple_declaration has been generalised to cover expression_statement.
  */
 looping_statement:                  start_search looped_statement                               { end_search(); }
-looped_statement:                   statement
-    |                               advance_search '+' looped_statement
+looped_statement:                   statement { $$ = $1; }
+    |                               advance_search '+' looped_statement 
     |                               advance_search '-'
 statement:                          control_statement
 /*  |                               expression_statement                                        -- covered by declaration_statement */
@@ -537,41 +537,41 @@ statement_seq.opt:                  /* empty */
 /*
  *  The dangling else conflict is resolved to the innermost if.
  */
-selection_statement:                IF '(' condition ')' looping_statement    %prec SHIFT_THERE
-    |                               IF '(' condition ')' looping_statement ELSE looping_statement
-    |                               SWITCH '(' condition ')' looping_statement
-condition.opt:                      /* empty */
-    |                               condition
-condition:                          parameter_declaration_list
+selection_statement:                IF '(' condition ')' looping_statement    %prec SHIFT_THERE { $$ = STAT_IF($3, $5); }
+    |                               IF '(' condition ')' looping_statement ELSE looping_statement { $$ = STAT_IF_ELSE($3, $5, $7); }
+    |                               SWITCH '(' condition ')' looping_statement { $$ = STAT_SWITCH($3, $5); }
+condition.opt:                      /* empty */ { $$ = nullptr; }
+    |                               condition { $$ = $1; }
+condition:                          parameter_declaration_list { $$ = $1; }
 /*  |                               expression                                                  -- covered by parameter_declaration_list */
 /*  |                               type_specifier_seq declarator '=' assignment_expression     -- covered by parameter_declaration_list */
-iteration_statement:                WHILE '(' condition ')' looping_statement
-    |                               DO looping_statement WHILE '(' expression ')' ';'
-    |                               FOR '(' for_init_statement condition.opt ';' expression.opt ')' looping_statement
+iteration_statement:                WHILE '(' condition ')' looping_statement { $$ = STAT_WHILE($3, $5); }
+    |                               DO looping_statement WHILE '(' expression ')' ';' { $$ = STAT_DO_WHILE($2, $5); }
+    |                               FOR '(' for_init_statement condition.opt ';' expression.opt ')' looping_statement { $$ = STAT_FOR($3, $4, $6, $8); }
 
-for_init_statement:                 simple_declaration
+for_init_statement:                 simple_declaration { $$ = $1; }
 /*  |                               expression_statement                                        -- covered by simple_declaration */
-jump_statement:                     BREAK ';'
-    |                               CONTINUE ';'
-    |                               RETURN expression.opt ';'
-    |                               GOTO identifier ';'
-declaration_statement:              block_declaration
+jump_statement:                     BREAK ';' { $$ = STAT_BREAK(); }
+    |                               CONTINUE ';' { $$ = STAT_CONTINUE(); }
+    |                               RETURN expression.opt ';' { $$ = STAT_RETURN($2); }
+    |                               GOTO identifier ';' { $$ = STAT_GOTO($2); }
+declaration_statement:              block_declaration { $$ = $1; }
 
 /*---------------------------------------------------------------------------------------------------
  * A.6 Declarations
  *---------------------------------------------------------------------------------------------------*/
-compound_declaration:               '{' nest declaration_seq.opt '}'                            { unnest(); }
+compound_declaration:               '{' nest declaration_seq.opt '}'                            { $$ = $3; unnest(); }
     |                               '{' nest declaration_seq.opt util looping_declaration '#' bang error '}'
                                                                                                 { unnest(); UNBANG("Bad declaration-seq."); }
 declaration_seq.opt:                /* empty */
-    |                               declaration_seq.opt util looping_declaration
+    |                               declaration_seq.opt util looping_declaration { $$ = $1; $1->add() }
     |                               declaration_seq.opt util looping_declaration '#' bang error ';' { UNBANG("Bad declaration."); }
 looping_declaration:                start_search1 looped_declaration                            { end_search(); }
-looped_declaration:                 declaration
-    |                               advance_search '+' looped_declaration
-    |                               advance_search '-'
-declaration:                        block_declaration
-    |                               function_definition
+looped_declaration:                 declaration { $$ = $1; }
+    |                               advance_search '+' looped_declaration { YY_LOOPED_DECLARATION_PLUS($1, $3); }
+    |                               advance_search '-' { YY_LOOPED_DECLARATION_MINUS($1); }
+declaration:                        block_declaration { $$ = $1; }
+    |                               function_definition {
     |                               template_declaration
 /*  |                               explicit_instantiation                                      -- covered by relevant declarations */
     |                               explicit_specialization

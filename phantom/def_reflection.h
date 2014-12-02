@@ -287,44 +287,6 @@ struct template_specialization_registrer
     inline template_specialization_registrer() ;
 };
 
-template<typename t_SignatureTy>
-struct function_registrer
-{
-    template<typename t_FunctionPtrTy>
-    function_registrer( const char* a_strNamespace, const char* a_strName, const char* a_strSignature, t_FunctionPtrTy a_FunctionPtr, modifiers_t a_Modifiers = 0 )
-    {
-        dynamic_initializer()->setActive(true);
-        dynamic_initializer()->registerFunction<t_SignatureTy, t_FunctionPtrTy>(a_strNamespace, a_strName, a_strSignature, a_FunctionPtr, a_Modifiers);
-        dynamic_initializer()->setActive(false);
-    }
-
-    template<typename t_FunctionPtrTy>
-    function_registrer( const char* a_strName, const char* a_strSignature, t_FunctionPtrTy a_FunctionPtr, modifiers_t a_Modifiers = 0 )
-    {
-        dynamic_initializer()->setActive(true);
-        dynamic_initializer()->registerFunction<t_SignatureTy, t_FunctionPtrTy>("", a_strName, a_strSignature, a_FunctionPtr, a_Modifiers);
-        dynamic_initializer()->setActive(false);
-    }
-};
-
-template<typename t_Ty>
-struct variable_registrer
-{
-    variable_registrer( const char* a_strNamespace, const char* a_strName, t_Ty* a_VariablePtr, Range* a_pRange, modifiers_t a_Modifiers = 0 )
-    {
-        dynamic_initializer()->setActive(true);
-        dynamic_initializer()->registerVariable<t_Ty>(a_strNamespace, a_strName, a_VariablePtr, a_pRange, a_Modifiers);
-        dynamic_initializer()->setActive(false);
-    }
-
-    variable_registrer( const char* a_strName, t_Ty* a_VariablePtr, Range* a_pRange, modifiers_t a_Modifiers = 0 )
-    {
-        dynamic_initializer()->setActive(true);
-        dynamic_initializer()->registerVariable<t_Ty>("", a_strName, a_VariablePtr, a_pRange, a_Modifiers);
-        dynamic_initializer()->setActive(false);
-    }
-};
-
 template<typename t_Ty>
 struct typedef_registrer
 {

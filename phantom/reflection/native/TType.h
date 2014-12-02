@@ -1490,7 +1490,7 @@ struct is_serializable<phantom::reflection::native::TType_<t_Ty, t_TemplateNeste
 
 o_namespace_end(phantom)
 
-o_namespace_begin(phantom, reflection, detail)
+o_namespace_begin(phantom, reflection)
 
 template<typename t_Ty>
 struct type_of<native::TType<t_Ty, 0>>
@@ -1501,7 +1501,7 @@ struct type_of<native::TType<t_Ty, 0>>
     }
 };
 
-o_namespace_end(phantom, reflection, detail)
+o_namespace_end(phantom, reflection)
 
 o_namespace_begin(phantom, reflection)
 

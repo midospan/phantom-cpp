@@ -290,6 +290,10 @@
     <ClInclude Include="..\..\..\phantom\reflection\Compiler.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\ComponentClass.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ComponentClass.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxLexing.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxParser.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxParsing.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxToken.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Interpreter.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Interpreter.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TAggregationClass.h" />
@@ -673,6 +677,25 @@
     <ClCompile Include="..\..\..\phantom\reflection\BreakStatement.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Compiler.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ComponentClass.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxLexer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxLexer.cxx">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxParser.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxParser.cxx">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxParsing.cxx">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxToken.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\Interpreter.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\TBinaryBooleanExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ConstructorCallExpression.cpp" />
@@ -875,6 +898,12 @@
     <None Include="..\..\..\phantom\math\vector4ui.inl" />
     <None Include="..\..\..\phantom\object.inl" />
     <None Include="..\..\..\phantom\reflection\detail\cpp-grammar.y" />
+    <None Include="..\..\..\phantom\reflection\detail\CxxLexer.l">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\..\..\phantom\reflection\detail\CxxParser.y">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
     <None Include="..\..\..\phantom\std\platform.hxx" />
     <None Include="..\..\..\phantom\phantom.hxx" />
     <None Include="..\..\..\phantom\std\unordered_set.hxx" />

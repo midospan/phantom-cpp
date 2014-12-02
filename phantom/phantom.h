@@ -504,6 +504,17 @@ class o_export dynamic_initializer_handle
     typedef void    (*module_installation_func)        (phantom::reflection::Type*,uint);
     friend class phantom::Phantom;
 
+public:
+    struct deferred_registrer_base
+    {
+        deferred_registrer_base()
+        {
+            dynamic_initializer()->deferRegistration(this);
+        }
+        virtual ~deferred_registrer_base() {}
+        virtual void registerElement() = 0;
+    };
+
 protected:
     dynamic_initializer_handle();
     ~dynamic_initializer_handle();
@@ -528,64 +539,8 @@ protected:
         phantom::reflection::Type*      type;
     };
 
-    struct deferred_registrer_base
-    {
-        virtual ~deferred_registrer_base() {}
-        virtual void registerElement() = 0;
-    };
-
-    template<typename t_SignatureTy, typename t_FunctionPtrTy>
-    struct deferred_function_registrer : public deferred_registrer_base
-    {
-        deferred_function_registrer() {}
-        deferred_function_registrer(const string& a_Namespace, const string& a_Name, const string& a_Signature, t_FunctionPtrTy a_FunctionPtr, modifiers_t a_Modifiers = 0)
-            : m_Name(a_Name)
-            , m_Namespace(a_Namespace)
-            , m_Signature(a_Signature)
-            , m_FunctionPtr(a_FunctionPtr)
-            , m_Modifiers(a_Modifiers)
-        {
-
-        }
-        virtual void registerElement()
-        {
-            reflection::Namespace* pNamespace = m_Namespace.empty() ? phantom::rootNamespace() : phantom::namespaceByName(m_Namespace);
-            pNamespace->addFunction(
-                phantom::reflection::native::TNativeFunctionProvider<t_SignatureTy>::CreateFunction(m_Name, phantom::reflection::Signature::Create(m_Signature.c_str(), nullptr, pNamespace), m_FunctionPtr, m_Modifiers)
-                );
-        }
-        string m_Name;
-        string m_Namespace;
-        string m_Signature;
-        t_FunctionPtrTy  m_FunctionPtr;
-        modifiers_t m_Modifiers;
-    };
     typedef vector<dynamic_initializer_module_installation_func>        dynamic_initializer_module_installation_func_vector;
 
-    template<typename t_Ty>
-    struct deferred_variable_registrer : public deferred_registrer_base
-    {
-        deferred_variable_registrer() {}
-        deferred_variable_registrer(const string& a_Namespace, const string& a_Name, t_Ty* a_pVariablePointer, reflection::Range* a_pRange, modifiers_t a_Modifiers = 0)
-            : m_Name(a_Name)
-            , m_Namespace(a_Namespace)
-            , m_pVariablePointer(a_pVariablePointer)
-            , m_pRange(a_pRange)
-            , m_Modifiers(a_Modifiers)
-        {
-
-        }
-        virtual void registerElement()
-        {
-            reflection::Namespace* pNamespace = m_Namespace.empty() ? phantom::rootNamespace() : phantom::namespaceByName(m_Namespace);
-            pNamespace->addVariable(o_dynamic_proxy_new(phantom::reflection::native::TNativeVariable<t_Ty>)(typeOf<t_Ty>(), m_Name, m_pVariablePointer, m_pRange, m_Modifiers));
-        }
-        string m_Name;
-        string m_Namespace;
-        t_Ty*  m_pVariablePointer;
-        reflection::Range* m_pRange;
-        modifiers_t m_Modifiers;
-    };
 
 private:
     vector<dynamic_initializer_module_installation_func_vector>     m_DeferredSetupInfos;
@@ -613,16 +568,15 @@ public:
     bool    isAutoRegistrationLocked() const { return m_bAutoRegistrationLocked; }
     void    setActive(bool a_bActive) { o_assert(a_bActive == !m_bActive); m_bActive = a_bActive; }
     void    setAutoRegistrationLocked(bool a_bLocked) { o_assert(a_bLocked == !m_bAutoRegistrationLocked); m_bAutoRegistrationLocked = a_bLocked; }
-    template<typename t_SignatureTy, typename t_FunctionPtrTy>
-    void    registerFunction( const string& a_Namespace, const string& a_Name, const string& a_Signature, t_FunctionPtrTy a_FunctionPtr, modifiers_t a_Modifiers = 0 )
+    void    deferRegistration( deferred_registrer_base* a_pRegistrer )
     {
-        m_DeferredElements.push_back(new deferred_function_registrer<t_SignatureTy, t_FunctionPtrTy>(a_Namespace, a_Name, a_Signature, a_FunctionPtr, a_Modifiers));
+        m_DeferredElements.push_back(a_pRegistrer);
     }
-    template<typename t_Ty>
-    void    registerVariable( const string& a_Namespace, const string& a_Name, t_Ty* a_pVariablePtr, reflection::Range* a_pRange,  modifiers_t a_Modifiers = 0 )
-    {
-        m_DeferredElements.push_back(new deferred_variable_registrer<t_Ty>(a_Namespace, a_Name, a_pVariablePtr, a_pRange, a_Modifiers));
-    }
+//     template<typename t_Ty>
+//     void    registerVariable( const string& a_Namespace, const string& a_Name, t_Ty* a_pVariablePtr, reflection::Range* a_pRange,  modifiers_t a_Modifiers = 0 )
+//     {
+//         m_DeferredElements.push_back(new deferred_variable_registrer<t_Ty>(a_Namespace, a_Name, a_pVariablePtr, a_pRange, a_Modifiers));
+//     }
 };
 
 o_namespace_end(phantom)
