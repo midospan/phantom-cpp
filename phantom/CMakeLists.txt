@@ -1,15 +1,42 @@
 # Library name
-set(LIBRARY_NAME Phantom)
+set (LIBRARY_NAME Phantom)
+
+# Get environment
+set (PHANTOM_ROOT $ENV{PHANTOM_ROOT})
+if (PHANTOM_ROOT)
+	string(REPLACE "\\" "/" PHANTOM_ROOT ${PHANTOM_ROOT})
+endif ()
+
+set (CLANG_BIN $ENV{CLANG_BIN})
+if (CLANG_BIN)
+	string(REPLACE "\\" "/" CLANG_BIN ${CLANG_BIN})
+endif ()
 
 # Path
-set (Phantom_SOURCE_DIR "C:/Users/Nicolas Daures/Projets/NewPhantom/phantom")
-set (Jit_INCLUDE_DIR "C:/Users/Nicolas Daures/Projets/NewPhantom/dependencies/libjit/include")
-set (CLANG_BINARY_DIR "C:/Program Files (x86)/LLVM/bin")
+set (Phantom_SOURCE_DIR ${PHANTOM_ROOT}/phantom)
+set (Jit_INCLUDE_DIR ${PHANTOM_ROOT}/dependencies/libjit/include)
+set (CLANG_BINARY_DIR ${CLANG_BIN})
 
 # Compiler
-set (USE_CL false)
-set (USE_CLANG true)
-set (USE_GCC false)
+IF(WIN32)
+	IF(MSVC)
+		option (USE_CL "Use CL compiler" ON) 
+		option (USE_CLANG "Use CLANG compiler" OFF) 
+		option (USE_GCC "Use GCC compiler" OFF) 
+	ELSE(MSVC)
+		option (USE_CL "Use CL compiler" OFF) 
+		option (USE_CLANG "Use CLANG compiler" ON) 
+		option (USE_GCC "Use GCC compiler" OFF) 
+	ENDIF(MSVC)
+ELSEIF(APPLE)
+	option (USE_CL "Use CL compiler" OFF) 
+	option (USE_CLANG "Use CLANG compiler" ON) 
+	option (USE_GCC "Use GCC compiler" OFF) 
+ELSE()
+	option (USE_CL "Use CL compiler" OFF) 
+	option (USE_CLANG "Use CLANG compiler" OFF) 
+	option (USE_GCC "Use GCC compiler" ON) 
+ENDIF()
 
 # Precompiled header
 MACRO(ADD_MSVC_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource)
