@@ -7,16 +7,16 @@
 o_namespace_begin(phantom, reflection)
 
 template<typename t_Component>
-struct base_meta_class_type_of<phantom::composition<t_Component>>
+struct base_meta_class_type_of<phantom::composition<t_Component> >
 {
-    typedef native::TCompositionClass<phantom::composition<t_Component>> type;
+    typedef native::TCompositionClass<phantom::composition<t_Component> > type;
 };
 
 o_namespace_end(phantom, reflection)
 
 
-namespace phantom { template<typename t_Component> struct has_has_something<composition_replacer<t_Component>> : public detail::false_ {}; }
-namespace phantom { template<typename t_Component> struct has_has_something<composition_inserter<t_Component>> : public detail::false_ {}; }
+namespace phantom { template<typename t_Component> struct has_has_something<composition_replacer<t_Component> > : public detail::false_ {}; }
+namespace phantom { template<typename t_Component> struct has_has_something<composition_inserter<t_Component> > : public detail::false_ {}; }
 
 o_classNT((phantom), (typename), (t_Component), composition_replacer)
 (

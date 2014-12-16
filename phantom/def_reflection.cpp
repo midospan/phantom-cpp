@@ -161,7 +161,7 @@ public:
                 }
                 else if(a_strOp == "++" OR a_strOp == "--")
                 {
-                    if(a_Expressions[0]->getValueType() == referenceType())
+                    if(a_Expressions[0]->getValueType() == this->referenceType())
                     {
                         return o_new(TPostIncrementExpression<t_Ty>)(a_strOp, a_Expressions[0]);
                     }
@@ -195,7 +195,7 @@ public:
             {
                 if(a_strOp == "++" OR a_strOp == "--")
                 {
-                    if(a_Expressions[0]->getValueType() == referenceType())
+                    if(a_Expressions[0]->getValueType() == this->referenceType())
                     {
                         return o_new(TPreIncrementExpression<t_Ty>)(a_strOp, a_Expressions[0]);
                     }

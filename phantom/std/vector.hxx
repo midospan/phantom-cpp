@@ -5,7 +5,7 @@
 o_namespace_begin(phantom)
 
 template <>
-struct default_serializer<vector<bool>>
+struct default_serializer<vector<bool> >
 {
     typedef vector<bool>::value_type value_type;
     typedef vector<bool>::size_type size_type;
@@ -297,7 +297,7 @@ o_public:
     o_member_function(void, push_back, (const_reference));
 );
 
-#elif o_COMPILER == o_COMPILER_GCC
+#elif (o_COMPILER == o_COMPILER_GCC) || (o_COMPILER == o_COMPILER_CLANG)
 
 o_classNT((std), (typename, typename), (t_Ty, t_Alloc), vector)
 (

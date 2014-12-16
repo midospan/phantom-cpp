@@ -130,7 +130,7 @@ struct map_value_type_without_const
 };
 
 template<typename t_KTy, typename t_Ty>
-struct map_value_type_without_const <std::pair<const t_KTy, t_Ty>>
+struct map_value_type_without_const <std::pair<const t_KTy, t_Ty> >
 {
     typedef std::pair<t_KTy, t_Ty> type;
 };
@@ -1003,7 +1003,8 @@ struct template_nested_modifiers_filter<phantom::copier<t_Ty>, t_TemplateNestedM
 template<typename t_Ty, bool t_is_not_pod_class_default_constructible_and_not_abstract>
 struct default_constructor_provider_helper
 {
-    static Constructor* apply(const string& a_strName) { return o_dynamic_proxy_new(TNativeConstructor<t_Ty()>)(a_strName, o_new(Signature)(typeOf<void>()), o_public_access); }
+    static Constructor* apply(const string& a_strName) { return o_dynamic_proxy_new(TNativeConstructor<t_Ty()>)(a_strName, Signature::Create(typeOf<void>()), o_public_access); }
+    //static Constructor* apply(const string& a_strName) { return o_dynamic_proxy_new(TNativeConstructor<t_Ty()>)(a_strName, o_new(Signature)(typeOf<void>()), o_public_access); }
 };
 
 template<typename t_Ty>
@@ -1053,7 +1054,8 @@ public:
 
     template<typename> friend struct native_type_constructor;
     template<typename, typename> friend struct native_type_constructor_helper;
-    template<typename, bool> friend struct vtable_adder_helper;
+    //template<typename, bool> friend struct vtable_adder_helper;
+    template<typename, bool> friend struct ::phantom::reflection::vtable_adder_helper;
 
 protected:
     TType_(const string& a_TypeName)
@@ -1493,7 +1495,7 @@ o_namespace_end(phantom)
 o_namespace_begin(phantom, reflection)
 
 template<typename t_Ty>
-struct type_of<native::TType<t_Ty, 0>>
+struct type_of<native::TType<t_Ty, 0> >
 {
     static native::TType<Class, 0>* object()
     {

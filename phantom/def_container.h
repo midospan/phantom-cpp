@@ -165,7 +165,7 @@ o_define_trait_is_std_container(queue)
 template<class T
 , class Container
 >
-struct is_std_queue<std::queue<T,Container>>
+struct is_std_queue<std::queue<T,Container> >
 {
      enum { value = true };
 };
@@ -177,7 +177,7 @@ class T,
 class Hash,
 class KeyEqual,
 class Allocator >
-struct is_std_unordered_map<std::unordered_map<Key,T,Hash,KeyEqual,Allocator>>
+struct is_std_unordered_map<std::unordered_map<Key,T,Hash,KeyEqual,Allocator> >
 {
     enum { value = true };
 };
@@ -187,7 +187,7 @@ o_define_trait_is_std_container(map)
 class T,
 class KeyEqual,
 class Allocator >
-struct is_std_map<std::map<Key,T,KeyEqual,Allocator>>
+struct is_std_map<std::map<Key,T,KeyEqual,Allocator> >
 {
     enum { value = true };
 };
@@ -198,7 +198,7 @@ class T,
 class Hash,
 class KeyEqual,
 class Allocator >
-struct is_std_unordered_multimap<std::unordered_multimap<Key,T,Hash,KeyEqual,Allocator>>
+struct is_std_unordered_multimap<std::unordered_multimap<Key,T,Hash,KeyEqual,Allocator> >
 {
     enum { value = true };
 };
@@ -208,7 +208,7 @@ o_define_trait_is_std_container(multimap)
 class T,
 class KeyEqual,
 class Allocator >
-struct is_std_multimap<std::multimap<Key,T,KeyEqual,Allocator>>
+struct is_std_multimap<std::multimap<Key,T,KeyEqual,Allocator> >
 {
     enum { value = true };
 };
@@ -218,7 +218,7 @@ o_define_trait_is_std_container(set)
         class Key, 
         class Compare,
         class Allocator >
-struct is_std_set<std::set<Key,Compare,Allocator>>
+struct is_std_set<std::set<Key,Compare,Allocator> >
 {
     enum { value = true };
 };
@@ -229,7 +229,7 @@ class Hash ,                       // unordered_set::hasher
 class Pred ,                   // unordered_set::key_equal
 class Alloc   // unordered_set::allocator_type
     > 
-struct is_std_unordered_set<std::unordered_set<Key, Hash, Pred, Alloc>>
+struct is_std_unordered_set<std::unordered_set<Key, Hash, Pred, Alloc> >
 {
     enum { value = true };
 };
@@ -239,7 +239,7 @@ o_define_trait_is_std_container(multiset)
         class Key, 
         class Compare,
         class Allocator >
-struct is_std_multiset<std::multiset<Key,Compare,Allocator>>
+struct is_std_multiset<std::multiset<Key,Compare,Allocator> >
 {
     enum { value = true };
 };
@@ -250,7 +250,7 @@ class Hash ,                       // unordered_set::hasher
 class Pred ,                   // unordered_set::key_equal
 class Alloc   // unordered_set::allocator_type
     > 
-struct is_std_unordered_multiset<std::unordered_multiset<Key, Hash, Pred, Alloc>>
+struct is_std_unordered_multiset<std::unordered_multiset<Key, Hash, Pred, Alloc> >
 {
     enum { value = true };
 };
@@ -259,7 +259,7 @@ o_define_trait_is_std_container(vector)
     template < class T,
 class Alloc
     > 
-struct is_std_vector<std::vector<T, Alloc>>
+struct is_std_vector<std::vector<T, Alloc> >
 {
     enum { value = true };
 };
@@ -268,7 +268,7 @@ o_define_trait_is_std_container(list)
     template < class T,
 class Alloc
     > 
-struct is_std_list<std::list<T, Alloc>>
+struct is_std_list<std::list<T, Alloc> >
 {
     enum { value = true };
 };
@@ -276,7 +276,7 @@ struct is_std_list<std::list<T, Alloc>>
 o_define_trait_is_std_container(stack)
     template<class T,
 class Container>
-struct is_std_stack<std::stack<T,Container>>
+struct is_std_stack<std::stack<T,Container> >
 {
     enum { value = true };
 };
@@ -284,7 +284,7 @@ struct is_std_stack<std::stack<T,Container>>
 o_define_trait_is_std_container(deque)
     template<class T,
 class Alloc>
-struct is_std_deque<std::deque<T,Alloc>>
+struct is_std_deque<std::deque<T,Alloc> >
 {
     enum { value = true };
 };
@@ -520,7 +520,7 @@ struct variable_value_type_helper
 
 // Map helper specialization
 template<typename t_Ty, typename t_Key, typename t_Value>
-struct variable_value_type_helper<t_Ty, std::pair<const t_Key, t_Value>>
+struct variable_value_type_helper<t_Ty, std::pair<const t_Key, t_Value> >
 {
     typedef t_Value type;
 };
@@ -558,25 +558,25 @@ o_namespace_end(phantom, container)
 o_namespace_begin(phantom, container)
 
 template<typename t_Ty>
-struct is_vector<phantom::vector<t_Ty>>
+struct is_vector<phantom::vector<t_Ty> >
 {
     enum { value = true };
 };
 
 template<typename t_Ty>
-struct is_list<phantom::list<t_Ty>>
+struct is_list<phantom::list<t_Ty> >
 {
     enum { value = true };
 };
 
 template<typename t_Key, typename t_Value, typename t_Pred>
-struct is_map<phantom::map<t_Key,t_Value,t_Pred>>
+struct is_map<phantom::map<t_Key,t_Value,t_Pred> >
 {
     enum { value = true };
 };
 
 template<typename t_Kty, typename t_Ty, typename t_Hash, typename t_Pr, typename t_Alloc>
-struct is_map<phantom::unordered_map<t_Kty, t_Ty, t_Hash, t_Pr, t_Alloc>>
+struct is_map<phantom::unordered_map<t_Kty, t_Ty, t_Hash, t_Pr, t_Alloc> >
 {
     enum { value = true };
 };

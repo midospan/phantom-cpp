@@ -17,7 +17,7 @@ o_classNTB((phantom), (typename), (t_Ty), deque, (std::deque<t_Ty, o__t1_class__
 (
 );
 
-#elif o_COMPILER == o_COMPILER_GCC
+#elif (o_COMPILER == o_COMPILER_GCC) || (o_COMPILER == o_COMPILER_CLANG)
 
 /// std::deque
 o_classNT((std), (typename, typename), (t_Ty, t_Alloc), deque) (

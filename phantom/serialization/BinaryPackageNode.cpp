@@ -217,7 +217,7 @@ void BinaryPackageNode::loadAttributes()
     }*/
 }
 
-boolean BinaryPackageNode::canLoad(map<string, vector<string>>* missing_types_per_module)
+boolean BinaryPackageNode::canLoad(map<string, vector<string> >* missing_types_per_module)
 {
     property_tree index_tree;
     

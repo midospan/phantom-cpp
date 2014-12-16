@@ -92,7 +92,7 @@ template <
     typename T0_
     , BOOST_VARIANT_ENUM_SHIFTED_PARAMS(typename T)
 >
-struct location_assigner<boost::variant<T0_, BOOST_VARIANT_ENUM_SHIFTED_PARAMS(T)>>
+struct location_assigner<boost::variant<T0_, BOOST_VARIANT_ENUM_SHIFTED_PARAMS(T)> >
 {
     struct set_visitor : public boost::static_visitor<>
     {
@@ -133,7 +133,7 @@ struct location_assigner<boost::variant<T0_, BOOST_VARIANT_ENUM_SHIFTED_PARAMS(T
 };
 
 template <typename T>
-struct location_assigner<phantom::vector<T>>
+struct location_assigner<phantom::vector<T> >
 {
     static void set(phantom::vector<T>& a_Node, const CodeLocation& a_Location, const char* a_Text, size_t a_Length)
     {
@@ -146,7 +146,7 @@ struct location_assigner<phantom::vector<T>>
 };
 
 template <typename T>
-struct location_assigner<boost::recursive_wrapper<T>>
+struct location_assigner<boost::recursive_wrapper<T> >
 {
     static void set(boost::recursive_wrapper<T>& a_Node, const CodeLocation& a_Location, const char* a_Text, size_t a_Length)
     {
@@ -159,7 +159,7 @@ struct location_assigner<boost::recursive_wrapper<T>>
 };
 
 template <typename T>
-struct location_assigner<boost::optional<T>>
+struct location_assigner<boost::optional<T> >
 {
     static void set(boost::optional<T>& a_Node, const CodeLocation& a_Location, const char* a_Text, size_t a_Length)
     {
@@ -212,7 +212,7 @@ struct ternary_if_expression;
 struct call_expression;
 struct bracket_expression;
 
-typedef vector<boost::recursive_wrapper<name>> qualified_name;
+typedef vector<boost::recursive_wrapper<name> > qualified_name;
 
 typedef boost::variant<fundamental_node<hex_t>
                      , fundamental_node<float>
@@ -224,7 +224,7 @@ typedef boost::variant<fundamental_node<hex_t>
                      , fundamental_node<ulonglong>
                      , fundamental_node<char>
                      , fundamental_node<bool>
-                     , fundamental_node<std::nullptr_t>> fundamental_literal;
+                     , fundamental_node<std::nullptr_t> > fundamental_literal;
 
 inline std::ostream&  operator<<(std::ostream& stream, const fundamental_literal& expr)
 {
@@ -237,7 +237,7 @@ typedef boost::variant<fundamental_node<hex_t>
                      , fundamental_node<longlong>
                      , fundamental_node<ulonglong>
                      , fundamental_node<char>
-                     , fundamental_node<bool>> integral_literal;
+                     , fundamental_node<bool> > integral_literal;
 
 inline std::ostream&  operator<<(std::ostream& stream, const integral_literal& expr)
 {
@@ -297,7 +297,7 @@ typedef boost::variant<expression
                      , boost::recursive_wrapper<label_statement>
                      , boost::recursive_wrapper<variable_declaration>
                      , return_statement
-                     , fundamental_node<int>> statement;
+                     , fundamental_node<int> > statement;
 
 inline std::ostream&  operator<<(std::ostream& stream, const statement& expr)
 {
@@ -313,7 +313,7 @@ struct name : node
     name(const string& identifier) : m_identifier(identifier) {}
     name(const string_node& identifier) : m_identifier(identifier) {}
     string_node           m_identifier;
-    boost::optional<vector<template_element>> m_template_signature;
+    boost::optional<vector<template_element> > m_template_signature;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, name const& arg) { return stream; }
@@ -346,14 +346,14 @@ typedef phantom::vector<qualifier_or_extent> qualifier_or_extents;
 struct function_prototype : node
 {
     function_signature                      m_signature;
-    boost::optional<fundamental_node<char>> m_const_modifier;
+    boost::optional<fundamental_node<char> > m_const_modifier;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const function_prototype& arg) { return stream; }
 
 struct type : node
 {
-    boost::optional<fundamental_node<char>> m_const_modifier;
+    boost::optional<fundamental_node<char> > m_const_modifier;
     qualified_name                          m_qualified_name;
     vector<qualifier_or_extent>             m_type_extension;
 };
@@ -394,7 +394,7 @@ struct pre_unary_expression : node
 {
     pre_unary_expression() {}
     pre_unary_expression(const expression& a_expression) : m_expression(a_expression) {}
-    vector<fundamental_node<size_t>> m_ops;
+    vector<fundamental_node<size_t> > m_ops;
     boost::recursive_wrapper<expression> m_expression;
 };
 
@@ -403,7 +403,7 @@ inline std::ostream&  operator<<(std::ostream& stream, const pre_unary_expressio
 struct post_unary_expression : node
 {
     boost::recursive_wrapper<expression> m_expression;
-    vector<fundamental_node<size_t>> m_ops;
+    vector<fundamental_node<size_t> > m_ops;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const post_unary_expression& arg) { return stream; }
@@ -517,7 +517,7 @@ inline std::ostream&  operator<<(std::ostream& stream, const variable_declarator
 
 struct extra_variable_declarator : node
 {
-    phantom::vector<fundamental_node<char>> m_type_qualifiers;
+    phantom::vector<fundamental_node<char> > m_type_qualifiers;
     variable_declarator m_variable_declarator;
 };
 
@@ -554,7 +554,7 @@ typedef boost::variant<ambiguous_global_declaration_signature_and_block, variabl
 
 struct ambiguous_global_declaration  : node
 {
-    boost::optional<fundamental_node<bool>> m_is_static; 
+    boost::optional<fundamental_node<bool> > m_is_static; 
     type m_type ;
     string_node m_identifier ;
     boost::optional<ambiguous_global_declaration_signature_and_block_or_declarator> m_signature_and_block;
@@ -565,7 +565,7 @@ inline std::ostream&  operator<<(std::ostream& stream, const ambiguous_global_de
 
 struct variable_declaration : node
 {
-    boost::optional<fundamental_node<bool>> m_is_static; 
+    boost::optional<fundamental_node<bool> > m_is_static; 
     type m_type;
     variable_declarator m_declarator;
     extra_variable_declarators m_extra_declarators;
@@ -573,7 +573,7 @@ struct variable_declaration : node
 
 inline std::ostream&  operator<<(std::ostream& stream, const variable_declaration& arg) { return stream; }
 
-typedef boost::variant<variable_declaration, boost::recursive_wrapper<expression>> variable_declaration_or_expression;
+typedef boost::variant<variable_declaration, boost::recursive_wrapper<expression> > variable_declaration_or_expression;
 
 struct if_statement : node
 {
@@ -647,7 +647,7 @@ inline std::ostream&  operator<<(std::ostream& stream, const switch_statement& a
 struct member_function_signature : node
 {
     parameters m_parameters;
-    boost::optional<fundamental_node<char>> m_const;
+    boost::optional<fundamental_node<char> > m_const;
 };
 
 inline std::ostream&  operator<<(std::ostream& stream, const member_function_signature& arg) { return stream; }
@@ -717,7 +717,7 @@ typedef vector<class_inheritance> class_inheritances;
 struct named_class_declaration;
 struct unnamed_class_declaration;
 
-typedef boost::variant<boost::recursive_wrapper<unnamed_class_declaration>, boost::recursive_wrapper<named_class_declaration>> named_or_unnamed_class_declaration;
+typedef boost::variant<boost::recursive_wrapper<unnamed_class_declaration>, boost::recursive_wrapper<named_class_declaration> > named_or_unnamed_class_declaration;
 
 inline std::ostream&  operator<<(std::ostream& stream, const named_or_unnamed_class_declaration& expr)
 {

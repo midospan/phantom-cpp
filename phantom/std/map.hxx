@@ -13,9 +13,9 @@ o_classNTB((std), (class, class, class, class, bool), (t_Kty, t_Ty, t_Pr, t_Allo
 );
 
 /// std::map
-o_classNTB((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr, t_Alloc), map, (_Tree<_Tmap_traits<t_Kty, t_Ty, t_Pr, t_Alloc, false>>))
+o_classNTB((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr, t_Alloc), map, (_Tree<_Tmap_traits<t_Kty, t_Ty, t_Pr, t_Alloc, false> >))
 (
-    o_default_template_argument_type(t_Alloc, std::allocator<std::pair<const t_Kty, t_Ty>>);
+    o_default_template_argument_type(t_Alloc, std::allocator<std::pair<const t_Kty, t_Ty> >);
     o_default_template_argument_type(t_Pr, std::less<t_Kty>);
 
 o_public:
@@ -56,15 +56,15 @@ o_public:
 
 
 /// std::multimap
-o_classNTB((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr, t_Alloc), multimap, (_Tree<_Tmap_traits<t_Kty, t_Ty, t_Pr, t_Alloc, true>>))(
+o_classNTB((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr, t_Alloc), multimap, (_Tree<_Tmap_traits<t_Kty, t_Ty, t_Pr, t_Alloc, true> >))(
 );
 
-#elif o_COMPILER == o_COMPILER_GCC
+#elif (o_COMPILER == o_COMPILER_GCC) || (o_COMPILER == o_COMPILER_CLANG)
 
 /// std::map
 o_classNT((std), (typename, typename, typename, typename), (t_Kty, t_Ty, t_Pr, t_Alloc), map)
 (
-    o_default_template_argument_type(t_Alloc, std::allocator<std::pair<const t_Kty, t_Ty>>);
+    o_default_template_argument_type(t_Alloc, std::allocator<std::pair<const t_Kty, t_Ty> >);
     o_default_template_argument_type(t_Pr, std::less<t_Kty>);
 
 o_public:

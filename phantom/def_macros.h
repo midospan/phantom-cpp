@@ -599,10 +599,10 @@
 
 #define MESSAGE_TO_PRINT o_add_template_default_arguments((typename, typename, typename, int), (t_A, t_B, t_C, t_i), ((caca), (eValueEnum0)))
 
-//o_create_template_default_arguments((typename, typename, typename, int), ((std::allocator<t_Ty, std::pair<int, float>>), (eValueEnum0)))
+//o_create_template_default_arguments((typename, typename, typename, int), ((std::allocator<t_Ty, std::pair<int, float> >), (eValueEnum0)))
 
 
-//o_add_template_default_arguments((typename, typename, typename, int), (t_A, t_B, t_C, t_i), ((std::allocator<t_Ty, std::pair<int, float>>), (eValueEnum0)))
+//o_add_template_default_arguments((typename, typename, typename, int), (t_A, t_B, t_C, t_i), ((std::allocator<t_Ty, std::pair<int, float> >), (eValueEnum0)))
 
 
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
@@ -1681,7 +1681,7 @@ struct proxy_of< o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_, _classes_,_name_)>\
     template<>\
 class o_PP_CREATE_SCOPE _namespaces_::phantom_proxy_____##_name_<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_, _classes_,_name_)> \
     : public :: o_PP_CREATE_SCOPE  _namespaces_ :: o_PP_CREATE_SCOPE _classes_\
-    , public phantom_proxy_generator_base_____< :: o_PP_CREATE_SCOPE  _namespaces_ :: o_PP_CREATE_SCOPE _classes_, :: o_PP_CREATE_SCOPE _namespaces_::phantom_proxy_____##_name_<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_, _classes_,_name_)>>\
+    , public phantom_proxy_generator_base_____< :: o_PP_CREATE_SCOPE  _namespaces_ :: o_PP_CREATE_SCOPE _classes_, :: o_PP_CREATE_SCOPE _namespaces_::phantom_proxy_____##_name_<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_, _classes_,_name_)> >\
     {\
     typedef o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_, _classes_,_name_) phantom_proxy_generator_reflection_self_type;\
     o_members {\

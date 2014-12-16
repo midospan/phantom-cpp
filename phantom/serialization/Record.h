@@ -70,8 +70,8 @@ protected:
     typedef std::pair<string, variant_variant> string_variant_variant;
     typedef std::pair<uint, string_variant_variant> uint_string_variant_variant; 
     typedef std::pair<uint, string_string> uint_string_string; 
-    typedef std::pair<string, vector<string>> string_vector_string;
-    typedef std::pair<uint, vector<string>> uint_vector_string;
+    typedef std::pair<string, vector<string> > string_vector_string;
+    typedef std::pair<uint, vector<string> > uint_vector_string;
     typedef std::pair<uint, string> uint_string;
 
 public:
@@ -194,7 +194,7 @@ protected:
         bool operator()(const Node* n0, const Node* n1) const;
     };
     DataBase*                           m_pDataBase;
-    map<uint, vector<string>>           m_Attributes;
+    map<uint, vector<string> >           m_Attributes;
     map<uint, string>                   m_Types;
     map<uint, bool>                     m_Nodes;
     map<uint, uint>                     m_Parents;
@@ -206,7 +206,7 @@ protected:
     vector<uint_string>                 m_DataReferenceExpressionsRemovedToRestore;
     vector<uint_string>                 m_DataReferenceExpressionsRemovedToRemove;
     map<uint, modifiers_t>                 m_Modifiers;
-    map<uint, vector<string>>           m_ReferenceExpressions;
+    map<uint, vector<string> >           m_ReferenceExpressions;
     map<Node*, vector<data>, node_pred> m_DataToRestore;
     vector<op>                          m_Operations;
     vector<uint>                        m_RemovedDataGuids;

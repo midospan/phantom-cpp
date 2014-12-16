@@ -10,10 +10,11 @@ o_classNT((boost), (typename, typename, typename, unsigned, unsigned), (T, UserA
 (
 );
 
+#ifdef WIN32
 o_classN((boost, details, pool), null_mutex, o_no_copy)
 (
 );
-
+#endif //WIN32
 
 o_classN((boost), mutex, o_no_copy)
 (

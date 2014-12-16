@@ -122,7 +122,7 @@ inline double    epsilon<double>()
 }
 
 template <typename t_Ty>
-bool            equals(t_Ty a, t_Ty b, t_Ty tolerance = epsilon<t_Ty>())
+bool            equals(t_Ty a, t_Ty b, t_Ty tolerance = phantom::math::epsilon<t_Ty>())
 {
     return (abs(b-a) <= tolerance);
 }

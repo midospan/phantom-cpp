@@ -87,7 +87,7 @@ class o_export Type : public LanguageElement, public TemplateElement
 public:
     typedef vector<Type*> type_container;
     typedef map<string, Type*> nested_typedef_map;
-    typedef map<Namespace*, std::vector<string>> typedef_namespace_map;
+    typedef map<Namespace*, std::vector<string> > typedef_namespace_map;
     typedef fastdelegate::FastDelegate<bool(Type*)> filter;
     static bool DataPointerFilter(Type* a_pType)
     {

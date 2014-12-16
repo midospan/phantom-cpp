@@ -3,7 +3,7 @@
 o_namespace_begin(phantom)
 
 template<typename Enum> 
-struct has_has_something<flags<Enum>> 
+struct has_has_something<flags<Enum> > 
 { 
     const static bool value = false; 
 };

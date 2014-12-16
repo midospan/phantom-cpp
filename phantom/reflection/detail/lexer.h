@@ -33,7 +33,7 @@ namespace boost { namespace spirit { namespace traits
 #define o_reflection_cpp_lexer_specialize_assign_to_attribute_from_iterators(type)                      \
     template <typename Iterator>                                                                        \
     struct assign_to_attribute_from_iterators<                                                          \
-        type, classic::position_iterator<Iterator>>                                                     \
+        type, classic::position_iterator<Iterator> >                                                     \
     {                                                                                                   \
         typedef classic::position_iterator<Iterator> iterator_t;                                        \
         static void call(iterator_t const& first, iterator_t const& last,                               \

@@ -67,7 +67,7 @@ protected:
     virtual void    loadAttributes();
     virtual void    loadDataAttributes();
     virtual void    loadDataAttributes(const phantom::data& a_Data, uint guid);
-    virtual bool    canLoad(map<string, vector<string>>* missing_types_per_module) const;
+    virtual bool    canLoad(map<string, vector<string> >* missing_types_per_module) const;
     virtual void    cache();
     virtual void    cache(const vector<uint>* a_pGuids, vector<data>* a_pCachedData);
     virtual void    build(vector<data>& a_Data);

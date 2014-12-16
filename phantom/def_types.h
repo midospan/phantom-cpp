@@ -209,7 +209,7 @@ protected:
     void* pointer;
 };
 
-#elif o_COMPILER == o_COMPILER_GCC
+#elif o_COMPILER == o_COMPILER_GCC || o_COMPILER == o_COMPILER_CLANG
 
 struct generic_member_func_ptr
 {
@@ -854,7 +854,7 @@ o_namespace_end(phantom)
 namespace boost
 {
     template<typename t_Key, typename t_Value>
-    struct is_copy_constructible<std::pair<const t_Key, t_Value>>
+    struct is_copy_constructible<std::pair<const t_Key, t_Value> >
     {
         const static bool value = false;
     };

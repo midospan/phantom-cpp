@@ -78,7 +78,7 @@ Type* Namespace::getType( const string& a_strName ) const
     {
         if((*it)->getName() == a_strName) return *it;
     }
-    return false;
+    return NULL;
 }
 
 Type* Namespace::getTypeByGuid( uint a_uiGuid ) const
@@ -89,7 +89,7 @@ Type* Namespace::getTypeByGuid( uint a_uiGuid ) const
 	{
 		if((*it)->getGuid() == a_uiGuid) return *it;
 	}
-	return false;
+	return NULL;
 }
 
 Template* Namespace::getTemplate( const string& a_strName ) const
@@ -100,7 +100,7 @@ Template* Namespace::getTemplate( const string& a_strName ) const
     {
         if((*it)->getName() == a_strName) return *it;
     }
-    return false;
+    return NULL;
 }
 
 Namespace* Namespace::getNamespaceCascade( list<string>* a_HierarchyWords ) const
@@ -597,7 +597,7 @@ LanguageElement* Namespace::solveElement(
                     }
                 }
             }
-            map<Function*, vector<size_t>> functionsPartialMatches;
+            map<Function*, vector<size_t> > functionsPartialMatches;
             o_foreach(Function* pFunction, m_Functions)
             {
                 vector<size_t> partialMatches;

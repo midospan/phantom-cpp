@@ -116,7 +116,7 @@ public:
     virtual void    loadAttributes() = 0;
     virtual void    loadDataAttributes() = 0;
     void            loadDataAttributes(const phantom::data& a_Data);
-    virtual bool    canLoad(map<string, vector<string>>* missing_types_per_module = nullptr) const = 0;
+    virtual bool    canLoad(map<string, vector<string> >* missing_types_per_module = nullptr) const = 0;
     
     void            save();
     void            saveDataProperties(const phantom::data& a_Data);
@@ -174,8 +174,8 @@ public:
     phantom::data   getData(void* a_pAddress) const;
     void            fetchData(vector<data>& a_DataVector) const;
     void            fetchDataCascade(vector<data>& a_DataVector) const;
-    void            fetchDataByTypes(map<reflection::Type*, vector<data>>& a_Data) const;
-    void            fetchDataByTypesCascade(map<reflection::Type*, vector<data>>& a_Data) const;
+    void            fetchDataByTypes(map<reflection::Type*, vector<data> >& a_Data) const;
+    void            fetchDataByTypesCascade(map<reflection::Type*, vector<data> >& a_Data) const;
     void            fetchDataTypes(std::set<reflection::Type*>& a_Types) const;
     void            fetchDataTypesCascade(std::set<reflection::Type*>& a_Types) const;
     void            fetchDataOfType(reflection::Type* a_pType, vector<data>& a_DataVector) const;

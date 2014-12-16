@@ -55,9 +55,9 @@ public:
 	}
 		
 	// Check if a polygon is simple by checking only segment intersection
-	bool isSimpleWithOverlap(t_Ty epsilon = epsilon<t_Ty>()) const;
+	bool isSimpleWithOverlap(t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 	 	
-	bool isSimple(t_Ty epsilon = epsilon<t_Ty>()) const;
+	bool isSimple(t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 
     t_Ty signedArea() const 
     {
@@ -74,12 +74,12 @@ public:
         return acc/t_Ty(2.);
     }
 		
-    bool isCounterClockWise(t_Ty epsilon = epsilon<t_Ty>()) const 
+    bool isCounterClockWise(t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const 
     {
         return signedArea() > 0.f + epsilon;
     }
 
-    bool isClockWise(t_Ty epsilon = epsilon<t_Ty>()) const 
+    bool isClockWise(t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const 
     {
         return signedArea() < 0.f-epsilon;
     }
@@ -88,23 +88,23 @@ public:
 		*	count the number of intersection. Even number means the point is outside
 		*	the polygon
 		*/
-	bool containsExclusive(const vector2<t_Ty>& point, t_Ty epsilon = epsilon<t_Ty>()) const;
+	bool containsExclusive(const vector2<t_Ty>& point, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
-	bool containsInclusive(const vector2<t_Ty>& point, t_Ty epsilon = epsilon<t_Ty>()) const;
+	bool containsInclusive(const vector2<t_Ty>& point, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
-	bool includesExclusive(const polygon2<t_Ty, Alloc>& otherPolygon, t_Ty epsilon = epsilon<t_Ty>()) const;
+	bool includesExclusive(const polygon2<t_Ty, Alloc>& otherPolygon, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
-	bool includesInclusive(const polygon2<t_Ty, Alloc>& otherPolygon, t_Ty epsilon = epsilon<t_Ty>()) const;
+	bool includesInclusive(const polygon2<t_Ty, Alloc>& otherPolygon, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
-	bool intersectsExclusive(const segment2<t_Ty>& seg, t_Ty epsilon = epsilon<t_Ty>()) const;
+	bool intersectsExclusive(const segment2<t_Ty>& seg, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
-	bool intersectsInclusive(const segment2<t_Ty>& seg, t_Ty epsilon = epsilon<t_Ty>()) const;
+	bool intersectsInclusive(const segment2<t_Ty>& seg, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
-	bool intersects(const polygon2<t_Ty, Alloc>& polygon, std::vector<math::vector2f>* intersectionPoints = nullptr, t_Ty epsilon = epsilon<t_Ty>()) const;
+	bool intersects(const polygon2<t_Ty, Alloc>& polygon, std::vector<math::vector2f>* intersectionPoints = nullptr, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 
-    bool closedIntersectsClosed(const polygon2<t_Ty, Alloc>& polygon, std::vector<math::vector2f>* intersectionPoints = nullptr, t_Ty epsilon = epsilon<t_Ty>()) const;
+    bool closedIntersectsClosed(const polygon2<t_Ty, Alloc>& polygon, std::vector<math::vector2f>* intersectionPoints = nullptr, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 
-    bool isDegenerated(t_Ty epsilon = epsilon<t_Ty>()) const 
+    bool isDegenerated(t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const 
     {
         o_assert(back() == front());
         for(size_t i = 0; i<p.size()-1; ++i)
@@ -122,7 +122,7 @@ public:
         return false;
     }
 
-    bool isSelfOverlapping(t_Ty epsilon = epsilon<t_Ty>()) const 
+    bool isSelfOverlapping(t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const 
     {
         for(size_t i = 0; i<p.size()-1; ++i)
         {

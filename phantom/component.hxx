@@ -7,9 +7,9 @@
 o_namespace_begin(phantom, reflection)
 
 template<typename t_Component>
-struct base_meta_class_type_of<phantom::component<t_Component>>
+struct base_meta_class_type_of<phantom::component<t_Component> >
 {
-    typedef native::TComponentClass<phantom::component<t_Component>> type;
+    typedef native::TComponentClass<phantom::component<t_Component> > type;
 };
 
 o_namespace_end(phantom, reflection)

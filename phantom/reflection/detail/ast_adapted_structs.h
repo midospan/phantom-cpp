@@ -2,7 +2,7 @@
 
 BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::name,
     (phantom::reflection::cpp::ast::string_node, m_identifier)
-    (boost::optional<phantom::vector<phantom::reflection::cpp::ast::template_element>>, m_template_signature)
+    (boost::optional<phantom::vector<phantom::reflection::cpp::ast::template_element> >, m_template_signature)
     );
 /*
 
@@ -12,7 +12,7 @@ BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::qualified_name,
 
 BOOST_FUSION_ADAPT_STRUCT(
     phantom::reflection::cpp::ast::type,
-    (boost::optional<phantom::reflection::cpp::ast::fundamental_node<char>>, m_const_modifier)
+    (boost::optional<phantom::reflection::cpp::ast::fundamental_node<char> >, m_const_modifier)
     (phantom::reflection::cpp::ast::qualified_name, m_qualified_name)
     (phantom::vector<phantom::reflection::cpp::ast::qualifier_or_extent>, m_type_extension)
     );
@@ -26,7 +26,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
     phantom::reflection::cpp::ast::function_prototype,
     (phantom::reflection::cpp::ast::function_signature, m_signature)
-    (boost::optional<phantom::reflection::cpp::ast::fundamental_node<char>>, m_const_modifier)
+    (boost::optional<phantom::reflection::cpp::ast::fundamental_node<char> >, m_const_modifier)
 );
 
 BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::cast_expression,
@@ -35,13 +35,13 @@ BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::cast_expression,
     );
 
 BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::pre_unary_expression ,
-    (phantom::vector<phantom::reflection::cpp::ast::fundamental_node<size_t>>, m_ops)
+    (phantom::vector<phantom::reflection::cpp::ast::fundamental_node<size_t> >, m_ops)
     (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_expression)
     );
 
 BOOST_FUSION_ADAPT_STRUCT(phantom::reflection::cpp::ast::post_unary_expression ,
     (boost::recursive_wrapper<phantom::reflection::cpp::ast::expression>, m_expression)
-    (phantom::vector<phantom::reflection::cpp::ast::fundamental_node<size_t>>, m_ops)
+    (phantom::vector<phantom::reflection::cpp::ast::fundamental_node<size_t> >, m_ops)
     );
 
 
@@ -92,7 +92,7 @@ BOOST_FUSION_ADAPT_STRUCT(
     );
 
 BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::extra_variable_declarator,
-    (phantom::vector<phantom::reflection::cpp::ast::fundamental_node<char>>, m_type_qualifiers)
+    (phantom::vector<phantom::reflection::cpp::ast::fundamental_node<char> >, m_type_qualifiers)
     (phantom::reflection::cpp::ast::variable_declarator, m_variable_declarator)
     );
 
@@ -115,7 +115,7 @@ BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::variable_declarator,
     );
 
 BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::variable_declaration,
-    (boost::optional<phantom::reflection::cpp::ast::fundamental_node<bool>>, m_is_static)
+    (boost::optional<phantom::reflection::cpp::ast::fundamental_node<bool> >, m_is_static)
     (phantom::reflection::cpp::ast::type, m_type)
     (phantom::reflection::cpp::ast::variable_declarator, m_declarator)
     (phantom::reflection::cpp::ast::extra_variable_declarators, m_extra_declarators)
@@ -172,7 +172,7 @@ BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::parameter,
 
 BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::member_function_signature,
     (phantom::reflection::cpp::ast::parameters, m_parameters)
-    (boost::optional<phantom::reflection::cpp::ast::fundamental_node<char>>, m_const)
+    (boost::optional<phantom::reflection::cpp::ast::fundamental_node<char> >, m_const)
 );
 
 BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::static_function_signature,
@@ -209,7 +209,7 @@ BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::ambiguous_global_decla
 );
 
 BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::ambiguous_global_declaration ,
-    (boost::optional<phantom::reflection::cpp::ast::fundamental_node<bool>>, m_is_static)
+    (boost::optional<phantom::reflection::cpp::ast::fundamental_node<bool> >, m_is_static)
     (phantom::reflection::cpp::ast::type, m_type )
     (phantom::reflection::cpp::ast::string_node, m_identifier )
     (boost::optional<phantom::reflection::cpp::ast::ambiguous_global_declaration_signature_and_block_or_declarator>, m_signature_and_block)
@@ -271,7 +271,7 @@ BOOST_FUSION_ADAPT_STRUCT( phantom::reflection::cpp::ast::typedef_declaration,
 namespace boost { namespace spirit { namespace traits
 {
     template <typename Out, typename T>
-    struct print_attribute_debug<Out, boost::recursive_wrapper<T>>
+    struct print_attribute_debug<Out, boost::recursive_wrapper<T> >
     {
         static void call(Out& out, boost::recursive_wrapper<T> const& val)
         {
@@ -280,7 +280,7 @@ namespace boost { namespace spirit { namespace traits
         }
     };
     template <typename Out, typename T>
-    struct print_attribute_debug<Out, phantom::vector<T>>
+    struct print_attribute_debug<Out, phantom::vector<T> >
     {
         static void call(Out& out, phantom::vector<T> const& val)
         {

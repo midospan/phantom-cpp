@@ -107,7 +107,7 @@ protected:
     };
     typedef phantom::vector<base_class_data>        base_class_table;
     typedef phantom::vector<VirtualMemberFunctionTable*>    vmt_vector;
-    typedef phantom::vector<std::pair<size_t, string>> saveable_base_class_table;
+    typedef phantom::vector<std::pair<size_t, string> > saveable_base_class_table;
 
 public:
     class member_function_search_data

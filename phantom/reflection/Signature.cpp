@@ -543,7 +543,7 @@ void Signature::setParameterName( size_t i, const string& a_strName )
 {
     if(isNative())
     {
-        o_exception(std::exception, "Attempt to modify a native language element");
+        o_exception(exception::base_exception, "Attempt to modify a native language element");
     }
     m_ParameterNames[i] = a_strName;
 }

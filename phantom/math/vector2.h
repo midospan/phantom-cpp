@@ -7,6 +7,7 @@ o_declareNT(class, (phantom, math), (typename), (t_Ty), vector2);
 
 o_namespace_begin(phantom, math)
 
+
 template<class t_Ty>
 class vector2
 {
@@ -123,7 +124,7 @@ public:
 		
 	// return True if this vector is between begin and end, false if not.
 	inline bool isBetweenPoints(const self_type& begin, const self_type& end
-								,t_Ty epsilon = epsilon<t_Ty>()) const;
+								, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
 	const t_Ty&  operator[](unsigned int i) const
 	{
@@ -137,7 +138,7 @@ public:
 		return m[i];
 	}
 		
-	bool equals(const self_type& other, t_Ty epsilon = epsilon<t_Ty>()) const
+	bool equals(const self_type& other, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const
 	{
 		return math::equals<t_Ty>(x, other.x, epsilon) && math::equals(y, other.y, epsilon);
 	}
@@ -260,12 +261,12 @@ public:
 		return angleTrigDegree() * o_math_to_radian;
 	}
 		
-	inline bool isCollinearTo(const self_type& other, t_Ty epsilon = epsilon<t_Ty>()) const
+	inline bool isCollinearTo(const self_type& other, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const
 	{
 		return fabs(other.normalized().dot(normalized())) >= (1.0f - epsilon);
 	}
 		
-	inline bool isOrthogonalTo(const self_type& other, t_Ty epsilon = epsilon<t_Ty>()) const
+	inline bool isOrthogonalTo(const self_type& other, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const
 	{
 		return fabs(dot(other)) <= (0.f + epsilon); 
 	}

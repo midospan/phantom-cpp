@@ -120,7 +120,7 @@ void StateMachine::registerTrack( Track* a_pTrack )
 {
     if(m_pCompilationData->m_bCompiled)
     {
-        o_exception(std::exception, "The state machine is compiled, you cannot add any more state or tracks");
+        o_exception(exception::base_exception, "The state machine is compiled, you cannot add any more state or tracks");
     }
     o_assert(getTrack(a_pTrack->getName()) == NULL);
     addElement(a_pTrack);
@@ -132,7 +132,7 @@ void StateMachine::registerState( State* a_pState )
 {
     if(m_pCompilationData->m_bCompiled)
     {
-        o_exception(std::exception, "The state machine is compiled, you cannot add any more state or tracks");
+        o_exception(exception::base_exception, "The state machine is compiled, you cannot add any more state or tracks");
     }
     o_assert(getState(a_pState->getName()) == NULL);
     addElement(a_pState);

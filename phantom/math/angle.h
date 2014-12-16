@@ -123,7 +123,7 @@ public:
     }
 
     inline bool equals(const self_type& other,
-        t_Ty epsilon = epsilon<t_Ty>()) const
+        t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const
     {
         return (math::equals(c, other.c, epsilon) &&
             math::equals(s, other.s, epsilon));
@@ -161,7 +161,7 @@ o_namespace_end(phantom, math)
 o_namespace_begin(phantom, detail)
 
 template<typename t_Ty>
-struct safe_constructor_ <math::angle<t_Ty>>
+struct safe_constructor_ <math::angle<t_Ty> >
 {
     static void safeConstruct(void* a_pInstance) 
     { 

@@ -43,7 +43,7 @@ o_public:
     o_member_function(_Myt&, append, (size_type, t_Elem));
 );
 
-#elif o_COMPILER == o_COMPILER_GCC
+#elif (o_COMPILER == o_COMPILER_GCC) || (o_COMPILER == o_COMPILER_CLANG)
 
 /// std::basic_string
 o_classNT((std), (typename, typename, typename), (t_Elem, t_Traits, t_Ax), basic_string)

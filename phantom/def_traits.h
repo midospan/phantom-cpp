@@ -1,6 +1,7 @@
 #ifndef o_phantom_traits_h__
 #define o_phantom_traits_h__
 
+
 o_namespace_begin(phantom)
 
 template<typename t_Ty>
@@ -643,7 +644,7 @@ struct safe_alignment_of_helper_<t_Ty, true, true>
     BOOST_STATIC_CONSTANT(size_t, value = 0);
 };
 template<typename t_Ty>
-struct safe_alignment_of_helper_<t_Ty, false, true> : public boost::alignment_of<destructor_protection_hacker<t_Ty>>
+struct safe_alignment_of_helper_<t_Ty, false, true> : public boost::alignment_of<destructor_protection_hacker<t_Ty> >
 {
 };
 template<typename t_Ty>
@@ -974,7 +975,7 @@ BOOST_MPL_HAS_XXX_TRAIT_DEF(recursive_meta_type_stop_type)
 #define o_traits_base_helper_base_class_void_list_9() o_traits_base_helper_base_class_void_list_10(), void
 #define o_traits_base_helper_base_class_void_list_10()
 
-#if o_COMPILER == o_COMPILER_GCC
+#if (o_COMPILER == o_COMPILER_GCC) || (o_COMPILER == o_COMPILER_CLANG)
 #define o_traits_specialize_base_class_of_code(i)\
     o_static_assert_msg((phantom::has_reflection<t_S##i>::value), "base class ('t_S"#i"' below) : undeclared reflection (ensure you included the corresponding .hxx)");\
     typedef t_S##i type;

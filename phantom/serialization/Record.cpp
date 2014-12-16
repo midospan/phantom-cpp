@@ -324,11 +324,11 @@ void Record::undo()
 {
     if(isRecording())
     {
-        o_exception(std::exception, "Cannot undo/redo while recording");
+        o_exception(exception::base_exception, "Cannot undo/redo while recording");
     }
     if(!m_bDone)
     {
-        o_exception(std::exception, "Record already undone");
+        o_exception(exception::base_exception, "Record already undone");
     }
     map<op, size_t> indexes;
 
@@ -415,11 +415,11 @@ void Record::redo()
 {
     if(isRecording())
     {
-        o_exception(std::exception, "Cannot undo/redo while recording");
+        o_exception(exception::base_exception, "Cannot undo/redo while recording");
     }
     if(m_bDone)
     {
-        o_exception(std::exception, "Record already (re)done");
+        o_exception(exception::base_exception, "Record already (re)done");
     }
     map<op, size_t> indexes;
     indexes[property_change] = 0;

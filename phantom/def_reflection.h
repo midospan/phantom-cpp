@@ -566,7 +566,7 @@ struct base_class_adder
 {
     static void apply(phantom::reflection::Class* a_pClass)
     {
-#if o_COMPILER != o_COMPILER_GCC
+#if (o_COMPILER != o_COMPILER_GCC) && (o_COMPILER != o_COMPILER_CLANG)
         enum { is_virtual_base_of = boost::is_virtual_base_of<t_STy,t_Ty>::value };
         o_static_assert_msg(!is_virtual_base_of, "phantom reflection system doesn't support virtual inheritance ... yet ... or never");
 #endif

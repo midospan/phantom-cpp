@@ -62,7 +62,8 @@ public:
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType()>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 
-    static Function* CreateFunction(const string& a_strName, 
+#ifdef WIN32
+    static Function* CreateFunction(const string& a_strName,
                                     Signature* a_pSignature, 
                                     t_ReturnType (__cdecl*a_pFunc)(), 
                                     modifiers_t a_Modifiers = 0)
@@ -70,13 +71,14 @@ public:
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_cdecl, t_ReturnType()>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
 
-    static Function* CreateFunction(const string& a_strName, 
+    static Function* CreateFunction(const string& a_strName,
         Signature* a_pSignature, 
         t_ReturnType (__fastcall*a_pFunc)(), 
         modifiers_t a_Modifiers = 0)
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType()>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
+#endif //WIN32
 };
 
 template<typename t_ReturnType, typename t_Param0>
@@ -90,7 +92,8 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
-    static Function* CreateFunction(const string& a_strName, 
+#ifdef WIN32
+    static Function* CreateFunction(const string& a_strName,
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0), 
         modifiers_t a_Modifiers = 0)
@@ -104,6 +107,7 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
+#endif //WIN32
 };
 
 template<typename t_ReturnType, typename t_Param0, typename t_Param1>
@@ -117,7 +121,8 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
-    static Function* CreateFunction(const string& a_strName, 
+#ifdef WIN32
+    static Function* CreateFunction(const string& a_strName,
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1),
         modifiers_t a_Modifiers = 0)
@@ -131,6 +136,7 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
+#endif //WIN32
 };
 
 template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2>
@@ -144,7 +150,8 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
-    static Function* CreateFunction(const string& a_strName, 
+#ifdef WIN32
+    static Function* CreateFunction(const string& a_strName,
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1, t_Param2),
         modifiers_t a_Modifiers = 0)
@@ -158,6 +165,7 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
+#endif //WIN32
 };
 
 template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3>
@@ -171,7 +179,8 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
-    static Function* CreateFunction(const string& a_strName, 
+#ifdef WIN32
+    static Function* CreateFunction(const string& a_strName,
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3),
         modifiers_t a_Modifiers = 0)
@@ -185,6 +194,7 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
+#endif //WIN32
 };
 
 template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4>
@@ -198,7 +208,8 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
-    static Function* CreateFunction(const string& a_strName, 
+#ifdef WIN32
+    static Function* CreateFunction(const string& a_strName,
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4),
         modifiers_t a_Modifiers = 0)
@@ -212,6 +223,7 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
+#endif //WIN32
 };
 
 template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5>
@@ -225,7 +237,8 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
-    static Function* CreateFunction(const string& a_strName, 
+#ifdef WIN32
+    static Function* CreateFunction(const string& a_strName,
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5),
         modifiers_t a_Modifiers = 0)
@@ -239,6 +252,7 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
+#endif //WIN32
 };
 
 template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6>
@@ -252,7 +266,8 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
-    static Function* CreateFunction(const string& a_strName, 
+#ifdef WIN32
+    static Function* CreateFunction(const string& a_strName,
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6),
         modifiers_t a_Modifiers = 0)
@@ -266,6 +281,7 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
+#endif //WIN32
 };
 
 template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7>
@@ -279,7 +295,8 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers|o_static);
     }
-    static Function* CreateFunction(const string& a_strName, 
+#ifdef WIN32
+    static Function* CreateFunction(const string& a_strName,
         Signature* a_pSignature, 
         t_ReturnType (__cdecl*a_pFunc)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7),
         modifiers_t a_Modifiers = 0)
@@ -293,6 +310,7 @@ public:
     {
         return o_dynamic_proxy_new(TNativeFunction<e_ABI_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>)(a_strName, a_pSignature, a_pFunc, a_Modifiers);
     }
+#endif //WIN32
 };
 
 o_namespace_end(phantom, reflection, native)

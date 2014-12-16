@@ -92,7 +92,7 @@ o_namespace_begin(phantom)
 typedef boost::pool<phantom::memory::malloc_free_allocator_for_boost> dynamic_pool_type ;
 typedef phantom::map<size_t, dynamic_pool_type*>                        dynamic_pool_type_map;
 
-typedef phantom::unordered_map<void const*, phantom::list<rtti_data>>		rtti_data_map;
+typedef phantom::unordered_map<void const*, phantom::list<rtti_data> >		rtti_data_map;
 typedef phantom::unordered_map<string, size_t>						element_map;
 typedef phantom::vector<phantom::reflection::LanguageElement*>		element_container;
 typedef phantom::vector<string>										meta_data_container;
@@ -297,7 +297,9 @@ dynamic_initializer_handle::~dynamic_initializer_handle()
     o_delete(reflection::CPlusPlus) g_cplusplus;
 
     typedef vector<string> vector_string;
+#ifdef WIN32
     g_meta_data_names->~vector_string();
+#endif //WIN32
     o_deallocate(g_meta_data_names, vector<string>);
 
     connection::slot_pool::m_allocation_controller_map= o_allocate(connection::slot_pool::allocation_controller_map);
@@ -933,7 +935,7 @@ connection::slot const* disconnect( const rtti_data& a_Sender, const character* 
     if(pSignal == NULL)
     {
         o_warning(false, (string("unknown signal : ")+a_pSignal).c_str());
-        return false;
+        return nullptr;
     }
 
     // RECEPTION
@@ -1770,4 +1772,6 @@ o_export void reflection::detail::qualifiedDecoratedName_to_type_infos( string& 
 
 o_namespace_end(phantom)
 
+#ifdef WIN32
 o_module("phantom")
+#endif //WIN32

@@ -9,7 +9,7 @@ o_classNTB((std, tr1), (typename, typename, typename, bool), (t_Kty, t_Tr, t_All
 );
 
 /// std::set
-o_classNTB((std), (typename, typename, typename), (t_Ty, t_Pr, t_Alloc), set, (_Tree<_Tset_traits<t_Ty, t_Pr, t_Alloc, false>>)) (
+o_classNTB((std), (typename, typename, typename), (t_Ty, t_Pr, t_Alloc), set, (_Tree<_Tset_traits<t_Ty, t_Pr, t_Alloc, false> >)) (
 );
 
 
@@ -19,10 +19,10 @@ o_classNTB((std), (typename, typename, typename, bool), (t_Kty, t_Tr, t_Alloc, t
 
 
 /// std::multiset
-o_classNTB((std), (typename, typename, typename), (t_Kty, t_Pr, t_Alloc), multiset, (_Tree<_Tset_traits<t_Kty, t_Pr, t_Alloc, true>>)) (
+o_classNTB((std), (typename, typename, typename), (t_Kty, t_Pr, t_Alloc), multiset, (_Tree<_Tset_traits<t_Kty, t_Pr, t_Alloc, true> >)) (
 );
 
-#elif o_COMPILER == o_COMPILER_GCC
+#elif (o_COMPILER == o_COMPILER_GCC) || (o_COMPILER == o_COMPILER_CLANG)
 
 /// std::set
 o_classNT((std), (typename, typename, typename), (t_Ty, t_Pr, t_Alloc), set) (

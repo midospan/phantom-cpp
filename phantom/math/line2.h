@@ -57,7 +57,7 @@ public:
 		
 	vector2_type getPoint() const { return point; }
 		
-	inline bool intersects(const line2<t_Ty>& other, vector2_type* out = nullptr, t_Ty epsilon = epsilon<t_Ty>()) const
+	inline bool intersects(const line2<t_Ty>& other, vector2_type* out = nullptr, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const
 	{
 		vector2_type n1 = direction;
 		vector2_type n2 = -other.direction;
@@ -83,7 +83,7 @@ public:
 		return fabs((p - point).dot(direction.normalized().orthogonalCW()));
 	}
 		
-	inline t_Ty getParameter(vector2_type v, t_Ty epsilon = epsilon<t_Ty>()) const;
+	inline t_Ty getParameter(vector2_type v, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
 public:
 	vector2_type point;

@@ -24,8 +24,11 @@ class o_export Block : public Statement
     friend class ReturnStatement;
 
 public:
+#ifndef WIN32
+    Block(); // used for serialization
+#endif //WIN32
     Block(Block* a_pBlock, const string& a_strName = "");
-    ~Block();
+    virtual ~Block();
 
     virtual Block* asBlock() const  { return (Block*)this; }
 
@@ -117,7 +120,9 @@ protected:
     void                    setRAIIDestructionStatements(vector<Statement*> list);
 
 protected:
+#ifdef WIN32
     Block(); // used for serialization
+#endif //WIN32
     Block(Subroutine* a_pSubroutine, LocalVariable* a_pThis = nullptr); // used to create root block in a subroutine
 
 protected:

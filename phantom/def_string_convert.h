@@ -303,7 +303,7 @@ struct string_converter<signal_t>
 };
 
 template<typename t_Alloc>
-struct string_converter<std::basic_string<char, std::char_traits<char>, t_Alloc>>
+struct string_converter<std::basic_string<char, std::char_traits<char>, t_Alloc> >
 {
     typedef std::basic_string<char, std::char_traits<char>, t_Alloc> self_type;
 

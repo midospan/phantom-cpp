@@ -261,7 +261,7 @@ void FileTreeNode::loadDataAttributes(const phantom::data& a_Data, uint guid)
     }
 }
 
-bool FileTreeNode::canLoad(map<string, vector<string>>* missing_types_per_module) const
+bool FileTreeNode::canLoad(map<string, vector<string> >* missing_types_per_module) const
 {
     FileTreeDataBase* pDB = static_cast<FileTreeDataBase*>(m_pDataBase);
     const string& self_path = pDB->nodePath(const_cast<FileTreeNode*>(this), getGuid(), getParentNode());

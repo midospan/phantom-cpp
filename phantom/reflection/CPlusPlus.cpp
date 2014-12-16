@@ -18,7 +18,7 @@ o_namespace_begin(phantom, reflection)
 
 #if !defined(DISABLE_PARSER)
 
-typedef boost::spirit::classic::position_iterator<string::const_iterator, boost::spirit::classic::file_position_base<SourceFile*>> cpp_position_iterator_t;
+typedef boost::spirit::classic::position_iterator<string::const_iterator, boost::spirit::classic::file_position_base<SourceFile*> > cpp_position_iterator_t;
 typedef cpp::lexer<cpp_position_iterator_t> lexer_t;
 
 typedef cpp::grammar<lexer_t::iterator_type, lexer_t> grammar_t;

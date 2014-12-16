@@ -159,7 +159,7 @@ void BinaryFileTreeNode::loadDataAttributes(const phantom::data& a_Data, uint gu
 
 }
 
-bool BinaryFileTreeNode::canLoad(map<string, vector<string>>* missing_types_per_module) const
+bool BinaryFileTreeNode::canLoad(map<string, vector<string> >* missing_types_per_module) const
 {
 	byte buffer[1000000];
 	byte* pBuffer = &(buffer[0]);

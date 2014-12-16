@@ -6,7 +6,10 @@
 #include "boost.hxx"
 #endif
 
+#ifdef WIN32
 o_static_assert(phantom::has_reflection<boost::details::pool::null_mutex>::value);
 
 o_registerN((boost, details, pool), null_mutex);
+#endif //WIN32
+
 o_registerN((boost), mutex);

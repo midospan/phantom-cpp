@@ -7,16 +7,16 @@
 o_namespace_begin(phantom, reflection)
 
 template<typename t_Aggregate>
-struct base_meta_class_type_of<phantom::aggregation<t_Aggregate>>
+struct base_meta_class_type_of<phantom::aggregation<t_Aggregate> >
 {
-    typedef native::TAggregationClass<phantom::aggregation<t_Aggregate>> type;
+    typedef native::TAggregationClass<phantom::aggregation<t_Aggregate> > type;
 };
 
 o_namespace_end(phantom, reflection)
 
 
-namespace phantom { template<typename t_Aggregate> struct has_has_something<aggregation_replacer<t_Aggregate>> : public detail::false_ {}; }
-namespace phantom { template<typename t_Aggregate> struct has_has_something<aggregation_inserter<t_Aggregate>> : public detail::false_ {}; }
+namespace phantom { template<typename t_Aggregate> struct has_has_something<aggregation_replacer<t_Aggregate> > : public detail::false_ {}; }
+namespace phantom { template<typename t_Aggregate> struct has_has_something<aggregation_inserter<t_Aggregate> > : public detail::false_ {}; }
 
 o_classNT((phantom), (typename), (t_Aggregate), aggregation_replacer)
 (
@@ -29,8 +29,8 @@ o_classNT((phantom), (typename), (t_Aggregate), aggregation_inserter)
 );
 o_classNT((phantom), (typename), (t_Aggregate), aggregation, o_placement_extension)
 (
-    o_static_assert((boost::is_same<typename phantom::reflection::base_meta_class_type_of<phantom::aggregation<t_Aggregate>>::type
-                                , phantom::reflection::native::TAggregationClass<phantom::aggregation<t_Aggregate>>>::value));
+    o_static_assert((boost::is_same<typename phantom::reflection::base_meta_class_type_of<phantom::aggregation<t_Aggregate> >::type
+                                , phantom::reflection::native::TAggregationClass<phantom::aggregation<t_Aggregate> >>::value));
 
 o_public:
     o_nested_typedef(sequence_type);

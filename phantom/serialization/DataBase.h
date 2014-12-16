@@ -35,7 +35,7 @@
 #define serialization_DataBase_h__
 
 /* ****************** Includes ******************* */
-#include "phantom/Object.h"
+#include "phantom/object.h"
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, serialization), DataBase)
 /* *********************************************** */
@@ -505,11 +505,11 @@ protected:
     typedef map<uint, uint>         component_data_owner_map;
     typedef map<uint, string>       component_data_reference_expression_map;
 
-    typedef map<uint,vector<string>>data_reference_expression_map;
+    typedef map<uint,vector<string> >data_reference_expression_map;
 
-    typedef map<uint, map<reflection::Property*, variant>> data_property_value_map;
+    typedef map<uint, map<reflection::Property*, variant> > data_property_value_map;
 
-    typedef map<uint, map<void*, vector<void*>>> data_aggregation_value_map;
+    typedef map<uint, map<void*, vector<void*> > > data_aggregation_value_map;
 
     string                          m_strUrl;
     data_guid_base                  m_GuidBase;

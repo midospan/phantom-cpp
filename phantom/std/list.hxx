@@ -40,10 +40,10 @@ o_public:
     o_member_function(void, push_back, (const_reference));
 );
 
-#elif o_COMPILER == o_COMPILER_GCC
+#elif (o_COMPILER == o_COMPILER_GCC) || (o_COMPILER == o_COMPILER_CLANG)
 
 /// std::list
-o_classNTB((std), (typename, typename), (t_Ty, t_Alloc), list)
+o_classNT((std), (typename, typename), (t_Ty, t_Alloc), list)
 (
 o_public:
     o_nested_typedef(iterator);

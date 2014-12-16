@@ -42,7 +42,7 @@ public:
 		return index == 0 ? start : end;
 	}
 		
-	inline bool equals(const self_type& seg, t_Ty epsilon = epsilon<t_Ty>()) const
+	inline bool equals(const self_type& seg, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const
 	{
 		return ((start.equals(seg.start, epsilon) && end.equals(seg.end, epsilon))
 				|| (start.equals(seg.end, epsilon) && end.equals(seg.start, epsilon)));
@@ -62,9 +62,9 @@ public:
 	// Geometry
 	inline vector2_type closestPoint( const vector2_type& point ) const; // The closest point will always be on the segment limits.
 		
-	bool containsExclusive( const vector2_type& point, t_Ty epsilon = epsilon<t_Ty>() ) const;
+	bool containsExclusive( const vector2_type& point, t_Ty epsilon = phantom::math::epsilon<t_Ty>() ) const;
 		
-	bool containsInclusive( const vector2_type& point, t_Ty epsilon = epsilon<t_Ty>() ) const;
+	bool containsInclusive( const vector2_type& point, t_Ty epsilon = phantom::math::epsilon<t_Ty>() ) const;
 		
 	t_Ty   getPointOrientation( const vector2_type& point ) const;
 		
@@ -119,38 +119,38 @@ public:
 	}
 		
 	inline bool hasCommonPoint(const self_type seg,
-								t_Ty epsilon = epsilon<t_Ty>()) const;
+								t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
 	inline bool intersectsRayExclusive(const line2<t_Ty>& line
                                 , vector2_type* out = nullptr
-                                , t_Ty epsilon = epsilon<t_Ty>()) const;
+                                , t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
 	inline bool intersectsRayInclusive(const line2<t_Ty>& line
             	                , vector2_type* out = nullptr
-                                , t_Ty epsilon = epsilon<t_Ty>()) const;
+                                , t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
 	inline bool intersectsExclusive(const self_type& other
                                 , vector2_type* out = nullptr
-                                , t_Ty epsilon = epsilon<t_Ty>()) const;
+                                , t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
 	inline bool intersectsInclusive(const self_type& other
 									, vector2_type* out = nullptr
-                                    , t_Ty epsilon = epsilon<t_Ty>()) const;
+                                    , t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
 	inline bool intersectsExclusive(const line2<t_Ty>& line
                                     , vector2_type* out = nullptr
-                                    , t_Ty epsilon = epsilon<t_Ty>()) const;
+                                    , t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
 	inline bool intersectsInclusive(const line2<t_Ty>& line
                                     , vector2_type* out
-                                    , t_Ty epsilon = epsilon<t_Ty>()) const;
+                                    , t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
 	inline bool intersectsOrContains(const self_type& other,
 										vector2_type* out = nullptr) const;
 		
-	inline bool overlapsExclusive(const self_type& other, t_Ty epsilon = epsilon<t_Ty>()) const;
+	inline bool overlapsExclusive(const self_type& other, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
-	inline bool overlapsInclusive(const self_type& other, t_Ty epsilon = epsilon<t_Ty>()) const;
+	inline bool overlapsInclusive(const self_type& other, t_Ty epsilon = phantom::math::epsilon<t_Ty>()) const;
 		
 public:
 	vector2_type start;

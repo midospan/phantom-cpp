@@ -34,6 +34,11 @@
 #ifndef o_phantom_reflection_TNativeFunction_h__
 #define o_phantom_reflection_TNativeFunction_h__
 
+#ifndef WIN32
+	#define __stdcall
+	#define __fastcall
+	#define __cdecl
+#endif
 
 
 /* ****************** Includes ******************* */
@@ -1396,7 +1401,7 @@ o_namespace_end(phantom, reflection, native)
 
 o_namespace_begin(phantom)
 template<int t_eConvention, typename t_Signature> 
-struct dynamic_deleter<phantom::reflection::native::TNativeFunction<t_eConvention, t_Signature>> 
+struct dynamic_deleter<phantom::reflection::native::TNativeFunction<t_eConvention, t_Signature> > 
 {
     o_forceinline static void dynamicDelete(void* a_pBase o_memory_stat_append_parameters)
     {

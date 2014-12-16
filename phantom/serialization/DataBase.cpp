@@ -775,7 +775,7 @@ void DataBase::unregisterType(reflection::Type* a_pType)
     o_assert(!info.isNull());
     if(info.refCount)
     {
-        o_exception(std::exception, "A type being removed still has data which uses it in the data base");
+        o_exception(exception::base_exception, "A type being removed still has data which uses it in the data base");
     }
     for(auto it = m_RuntimeTypes.begin(); it != m_RuntimeTypes.end(); ++it)
     {

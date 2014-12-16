@@ -555,7 +555,7 @@ inline quaternion<t_Ty> quaternion<t_Ty>::exp () const
 
 	int i;
 
-	if (fabs(sn) >= epsilon<t_Ty>())
+	if (fabs(sn) >= phantom::math::epsilon<t_Ty>())
 	{
 		t_Ty coeff = sn/angle;
 		for (i = 1; i < 4; ++i)
@@ -591,7 +591,7 @@ inline quaternion<t_Ty> quaternion<t_Ty>::log () const
 	{
 		t_Ty angle = math::acos(m[0]);
 		t_Ty sn = math::sin(angle);
-		if (fabs(sn) >= epsilon<t_Ty>())
+		if (fabs(sn) >= phantom::math::epsilon<t_Ty>())
 		{
 			t_Ty coeff = angle/sn;
 			for (i = 1; i < 4; ++i)
@@ -644,7 +644,7 @@ inline quaternion<t_Ty>& quaternion<t_Ty>::slerp (t_Ty t, const quaternion<t_Ty>
 	t_Ty cs = p.dot(q);
 	t_Ty angle = -math::acos(cs);
 
-	if (fabs(angle) >= epsilon<t_Ty>())
+	if (fabs(angle) >= phantom::math::epsilon<t_Ty>())
 	{
 		t_Ty sn = math::sin(angle);
 		t_Ty invSn = ((t_Ty)1)/sn;
@@ -676,7 +676,7 @@ inline quaternion<t_Ty>& quaternion<t_Ty>::slerpExtraSpins (t_Ty t,
 	t_Ty cs = p.dot(q);
 	t_Ty angle = math::acos(cs);
 
-	if (fabs(angle) >= epsilon<t_Ty>())
+	if (fabs(angle) >= phantom::math::epsilon<t_Ty>())
 	{
 		t_Ty sn = math::sin(angle);
 		t_Ty phase = o_math_Pi*extraSpins*t;

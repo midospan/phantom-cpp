@@ -218,7 +218,7 @@ Constructor* ClassType::getConstructor( const vector<Type*>& a_Types, vector<siz
     {
         if(a_pPartialMatchesIndexes)
         {
-            vector<std::pair<Constructor*, vector<size_t>>> matching;
+            vector<std::pair<Constructor*, vector<size_t> > > matching;
             vector<size_t> partialMatches;
             partialMatches.reserve(a_Types.size());
             auto it = m_pConstructors->begin();
@@ -229,7 +229,7 @@ Constructor* ClassType::getConstructor( const vector<Type*>& a_Types, vector<siz
                 Constructor* pConstructor = *it;
                 if(pConstructor->matches(m_strName, a_Types, &partialMatches, a_Modifiers))
                 {
-                    matching.push_back(std::pair<Constructor*, vector<size_t>>(pConstructor, partialMatches));
+                    matching.push_back(std::pair<Constructor*, vector<size_t> >(pConstructor, partialMatches));
                 }
             }
             if(matching.size() == 1)
@@ -582,7 +582,7 @@ InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_st
     string name = conversionOperatorNameNormalizer(a_strName, const_cast<ClassType*>(this));
     if(a_pPartialMatchesIndexes)
     {
-        vector<std::pair<InstanceMemberFunction*, vector<size_t>>> matching;
+        vector<std::pair<InstanceMemberFunction*, vector<size_t> > > matching;
         vector<size_t> partialMatches;
         partialMatches.reserve(a_Types.size());
         auto it = m_InstanceMemberFunctions.begin();
@@ -593,7 +593,7 @@ InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_st
             InstanceMemberFunction* pMemberFunction = static_cast<InstanceMemberFunction*>((*it));
             if(pMemberFunction->matches(name, a_Types, &partialMatches, a_Modifiers))
             {
-                matching.push_back(std::pair<InstanceMemberFunction*, vector<size_t>>(pMemberFunction, partialMatches));
+                matching.push_back(std::pair<InstanceMemberFunction*, vector<size_t> >(pMemberFunction, partialMatches));
             }
         }
         if(matching.size() == 1)
@@ -624,7 +624,7 @@ StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strNam
         return nullptr;
     if(a_pPartialMatchesIndexes)
     {
-        vector<std::pair<StaticMemberFunction*, vector<size_t>>> matching;
+        vector<std::pair<StaticMemberFunction*, vector<size_t> > > matching;
         vector<size_t> partialMatches;
         partialMatches.reserve(a_Types.size());
         auto it = m_pStaticMemberFunctions->begin();
@@ -635,7 +635,7 @@ StaticMemberFunction* ClassType::getStaticMemberFunction( const string& a_strNam
             StaticMemberFunction* pMemberFunction = static_cast<StaticMemberFunction*>((*it));
             if(pMemberFunction->matches(a_strName, a_Types, &partialMatches, a_Modifiers))
             {
-                matching.push_back(std::pair<StaticMemberFunction*, vector<size_t>>(pMemberFunction, partialMatches));
+                matching.push_back(std::pair<StaticMemberFunction*, vector<size_t> >(pMemberFunction, partialMatches));
             }
         }
         if(matching.size() == 1)

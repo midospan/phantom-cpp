@@ -369,12 +369,12 @@ void Node::load()
 {
     if(NOT(canLoad()))
     {
-        o_exception(std::exception, "Node cannot be loaded");
+        o_exception(exception::base_exception, "Node cannot be loaded");
     }
     o_assert(m_eState == e_Unloaded);
     if(m_pParentNode AND m_pParentNode->getState() == e_Unloaded)
     {
-        o_exception(std::exception, "The parent node should be loaded before loading a child node");
+        o_exception(exception::base_exception, "The parent node should be loaded before loading a child node");
     }
     cache(); 
     m_eState = e_Cached;
@@ -415,7 +415,7 @@ void Node::unload()
     {
         if((*it)->getState() != e_Unloaded)
         {
-            o_exception(std::exception, "All child node should be unloaded before unloading a parent node");
+            o_exception(exception::base_exception, "All child node should be unloaded before unloading a parent node");
         }
     }
     // Disconnect data
@@ -584,7 +584,7 @@ void Node::loadDataState( const phantom::data& a_Data, uint a_uiStateId )
     DataStateBase* pDataStateBase = m_pDataBase->getDataStateBase();
     if(pDataStateBase == nullptr)
     {
-        o_exception(std::exception, "No data state base defined for the current data base");
+        o_exception(exception::base_exception, "No data state base defined for the current data base");
     }
     pDataStateBase->loadDataState(a_Data, m_pDataBase->getGuid(a_Data), this, a_uiStateId);
 }
@@ -594,7 +594,7 @@ void Node::saveDataState( const phantom::data& a_Data, uint a_uiStateId )
     DataStateBase* pDataStateBase = m_pDataBase->getDataStateBase();
     if(pDataStateBase == nullptr)
     {
-        o_exception(std::exception, "No data state base defined for the current data base");
+        o_exception(exception::base_exception, "No data state base defined for the current data base");
     }
     pDataStateBase->saveDataState(a_Data, m_pDataBase->getGuid(a_Data), this, a_uiStateId);
 }
@@ -1218,7 +1218,7 @@ void Node::fetchDataTypesCascade( std::set<reflection::Type*>& a_Types ) const
     }
 }
 
-void Node::fetchDataByTypes( map<reflection::Type*, vector<data>>& out ) const
+void Node::fetchDataByTypes( map<reflection::Type*, vector<data> >& out ) const
 {
     for(auto it = m_Data.begin(); it != m_Data.end(); ++it)
     {
@@ -1226,7 +1226,7 @@ void Node::fetchDataByTypes( map<reflection::Type*, vector<data>>& out ) const
     }
 }
 
-void Node::fetchDataByTypesCascade( map<reflection::Type*, vector<data>>& out ) const
+void Node::fetchDataByTypesCascade( map<reflection::Type*, vector<data> >& out ) const
 {
     fetchDataByTypes(out);
     for(auto it = m_ChildNodes.begin(); it != m_ChildNodes.end(); ++it)

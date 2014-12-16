@@ -227,7 +227,7 @@ o_namespace_end(phantom, math)
 o_namespace_begin(phantom, detail)
 
 template<typename t_Ty>
-struct safe_constructor_ <math::vector3<t_Ty>>
+struct safe_constructor_ <math::vector3<t_Ty> >
 {
     static void safeConstruct(void* a_pInstance) 
     { 

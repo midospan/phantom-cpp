@@ -55,7 +55,7 @@ class Compiler
 {
 public:
     typedef map<string, variant>                        variant_map;
-    typedef std::stack<variant_map, deque<variant_map>> stack;
+    typedef std::stack<variant_map, deque<variant_map> > stack;
 
     struct QueueNode
     {
@@ -193,7 +193,7 @@ protected:
 
 protected:
 	list<variant>				        m_QueuedForDestruction;
-	vector<list<QueueNode>>	            m_CompilationQueues;
+	vector<list<QueueNode> >	            m_CompilationQueues;
     int                                 m_iCurrentPass;
 	stack	                            m_QueuedInData;
 	stack	                            m_QueuedOutData;
