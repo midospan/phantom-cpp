@@ -42,7 +42,7 @@ o_namespace_begin(phantom, reflection)
 
 o_define_meta_type(AnonymousStruct) = o_type_of(AnonymousStruct);
 
-AnonymousStruct::AnonymousStruct( modifiers_t modifiers /*= modifiers_t()*/ ) 
+AnonymousStruct::AnonymousStruct( modifiers_t modifiers /*= 0*/ ) 
     : AnonymousSection(modifiers)
 {
 

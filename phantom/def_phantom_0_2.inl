@@ -35,7 +35,7 @@ o_define_template_signature_parameter_element_impl(ulonglong)
 o_define_template_signature_parameter_element_impl(unsigned)
 
 template<ulonglong value>
-phantom::reflection::TemplateElement*
+phantom::reflection::LanguageElement*
     reflection::detail::template_signature_parameter_enum<value>::object()
 {
     return o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<ulonglong>)("", value, o_native);

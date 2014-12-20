@@ -46,6 +46,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export ArrayType : public Type
 {
+    o_type;
+
     o_declare_meta_type(ArrayType);
 
 public:
@@ -234,8 +236,6 @@ public:
     virtual bool            isCopyable() const { return m_pElementType->isCopyable(); }
 
     virtual Type*           asPOD() const { return m_pElementType->asPOD() ? (Type*)this : nullptr; }
-
-    virtual Expression*     solveOperator(const string& a_strOperator, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const;
 
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);

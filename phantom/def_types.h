@@ -107,6 +107,14 @@ typedef char                    character;
 #endif
 
 
+struct hex_t 
+{ 
+    hex_t() : val(0) {}
+    explicit hex_t(unsigned long long x) : val(x) {} 
+    operator unsigned long long() const { return val; } 
+    unsigned long long val; 
+} ;
+
 typedef long double             longdouble;
 
 typedef bool                    boolean;
@@ -848,6 +856,16 @@ inline string to_string(const wstring& astr)
 }
 
 typedef ulonglong modifiers_t;
+
+enum EABI
+{
+    e_stdcall,
+    e_fastcall,
+    e_cdecl,
+    e_thiscall,
+};
+
+typedef fastdelegate::DelegateMemento DelegateMemento;
 
 o_namespace_end(phantom)
 

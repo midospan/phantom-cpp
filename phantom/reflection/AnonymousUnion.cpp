@@ -42,7 +42,7 @@ o_namespace_begin(phantom, reflection)
 
 o_define_meta_type(AnonymousUnion) = o_type_of(AnonymousUnion);
 
-AnonymousUnion::AnonymousUnion( modifiers_t modifiers /*= modifiers_t()*/ ) 
+AnonymousUnion::AnonymousUnion( modifiers_t modifiers /*= 0*/ ) 
     : AnonymousSection(modifiers)
 {
 

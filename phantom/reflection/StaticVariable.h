@@ -46,6 +46,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export StaticVariable : public LanguageElement
 {
+    o_language_element;
+
     o_declare_meta_type(StaticVariable);
 
 public:

@@ -47,14 +47,15 @@ o_namespace_begin(phantom, reflection)
 
 class o_export BranchStatement : public Statement
 {
+    o_language_element;
+
 public:
     BranchStatement();
+    BranchStatement(LabelStatement* a_pLabelStatement);
 
-    virtual void eval() const;
+    virtual void internalEval() const ;
     
     Expression* getExpression() const;
-
-    virtual variant compile(Compiler* a_pCompiler);
 
     void setLabelStatement(LabelStatement* a_pLabelStatement);
     

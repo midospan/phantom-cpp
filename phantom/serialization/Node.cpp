@@ -38,7 +38,7 @@
 #include <phantom/serialization/DataStateBase.h>
 #include <phantom/reflection/DataExpression.h>
 #include <phantom/reflection/ConstantExpression.h>
-#include <phantom/reflection/InstanceDataMemberAccess.h>
+#include <phantom/reflection/InstanceDataMemberExpression.h>
 /* *********************************************** */
 o_registerN((phantom, serialization), Node);
 
@@ -660,7 +660,7 @@ void Node::clearDataReference( const phantom::data& a_Data, const phantom::data&
     for(auto it = pointerReferenceExpressions.begin(); it != pointerReferenceExpressions.end(); ++it)
     {
         reflection::Expression* pExpression = *it;
-        if(as<reflection::InstanceDataMemberAccess*>(pExpression) == nullptr) 
+        if(as<reflection::InstanceDataMemberExpression*>(pExpression) == nullptr) 
             continue; // components are a special case not considered as reference only but composition (stronger)
         void* pAddress = nullptr;
         pExpression->load(&pAddress);// Evaluate expression to get pointer reference value

@@ -95,6 +95,20 @@ public:
         return o_dynamic_proxy_new(self_type)(m_strName, m_Value);
     }
 
+    virtual bool isZero() const { return m_Value == 0; }
+
+    virtual bool isIntegral() const { return boost::is_integral<t_Ty>::value; }
+
+    virtual void                    toString(string& out) const 
+    {
+        typeOf<t_Ty>()->valueToString(out, &m_Value);
+    }
+
+    virtual void                    toLiteral(string& out) const
+    {
+        typeOf<t_Ty>()->valueToLiteral(out, &m_Value);
+    }
+
 protected:
     t_Ty            m_Value;
 

@@ -16,7 +16,11 @@ o_namespace_begin(phantom, reflection)
 class Block;
 class o_export LocalVariable : public LanguageElement
 {
+    o_language_element;
+
 	friend class Block;
+
+    o_declare_meta_type(LocalVariable);
 
 public:
     enum 
@@ -27,7 +31,7 @@ public:
 
 public:
     LocalVariable();
-    LocalVariable(Type* a_pType, const string& a_strName, modifiers_t modifiers = 0);
+    LocalVariable(Type* a_pType, const string& a_strName, Expression* a_pInitializer = nullptr, modifiers_t modifiers = 0);
 	~LocalVariable(void) 	{}
 
     virtual LocalVariable*  asLocalVariable() const { return (LocalVariable*)this; }
@@ -35,7 +39,7 @@ public:
     reflection::Type*   getValueType() const { return m_pValueType; }
     Block*              getBlock() const;
 
-    Expression*         createAccess() const;
+    Expression*         createExpression() const;
 
     bool isAccessibleAtCodePosition(const CodePosition& position) const;
 
@@ -47,7 +51,17 @@ public:
 
     int getFrameOffset() const { return m_iFrameOffset; }
 
-    virtual LanguageElement* solveElement( const string& a_strName , const vector<TemplateElement*>* , const vector<LanguageElement*>* , modifiers_t a_Modifiers /*= 0*/ ) const;
+    Expression* getInitializationExpression() const { return m_pInitializationExpression; }
+
+    void setInitializationExpression(Expression* a_pInitializationExpression);
+
+    virtual LocalVariable* clone() const;
+
+    virtual string getQualifiedName() const;
+
+    virtual string getQualifiedDecoratedName() const;
+
+    void setValueType(Type* a_pType);
 
 protected:
     string getValueTypeName() const { return m_pValueType ? m_pValueType->getQualifiedDecoratedName() : ""; }
@@ -61,6 +75,7 @@ protected:
     int     m_iFrameOffset;	
     string* m_pValueTypeName;
     size_t  m_uiSize;
+    Expression* m_pInitializationExpression;
 };
 
 o_namespace_end(phantom, reflection)

@@ -35,7 +35,7 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/Property.h>
 #include <phantom/reflection/Property.hxx>
-#include <phantom/reflection/PropertyAccess.h>
+#include <phantom/reflection/PropertyExpression.h>
 #include <phantom/std/vector.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), Property);
@@ -137,9 +137,9 @@ void Property::referencedElementRemoved( LanguageElement* a_pElement )
         m_pSetMemberFunction = nullptr;
 }
 
-Expression* Property::createAccessExpression( Expression* a_pLeftExpression ) const
+Expression* Property::createExpression( Expression* a_pLeftExpression ) const
 {
-    return o_new(PropertyAccess)(a_pLeftExpression, const_cast<Property*>(this));
+    return o_new(PropertyExpression)(a_pLeftExpression, const_cast<Property*>(this));
 }
 
 bool Property::referencesData( const void* a_pInstance, const phantom::data& a_Data ) const
@@ -204,7 +204,8 @@ void Property::finalize()
     if(m_pSignalString)
     {
         o_assert(m_pSignal == nullptr);
-        m_pSignal = as<Signal*>(phantom::elementByName(*m_pSignalString));
+        LanguageElement* pElem = phantom::elementByName(*m_pSignalString);
+        m_pSignal = pElem ? pElem->asSignal() : nullptr;
         if(m_pSignal)
         {
             addReferencedElement(m_pSignal);
@@ -216,7 +217,8 @@ void Property::finalize()
     if(m_pSetMemberFunctionString)
     {
         o_assert(m_pSetMemberFunction == nullptr);
-        m_pSetMemberFunction = as<InstanceMemberFunction*>(phantom::elementByName(*m_pSetMemberFunctionString));
+        LanguageElement* pElem = phantom::elementByName(*m_pSetMemberFunctionString);
+        m_pSetMemberFunction = pElem ? pElem->asInstanceMemberFunction() : nullptr;
         if(m_pSetMemberFunction)
         {
             addReferencedElement(m_pSetMemberFunction);
@@ -227,7 +229,8 @@ void Property::finalize()
     if(m_pGetMemberFunctionString)
     {
         o_assert(m_pGetMemberFunction == nullptr);
-        m_pGetMemberFunction = as<InstanceMemberFunction*>(phantom::elementByName(*m_pGetMemberFunctionString));
+        LanguageElement* pElem = phantom::elementByName(*m_pGetMemberFunctionString);
+        m_pGetMemberFunction = pElem ? pElem->asInstanceMemberFunction() : nullptr;
         if(m_pGetMemberFunction)
         {
             addReferencedElement(m_pGetMemberFunction);

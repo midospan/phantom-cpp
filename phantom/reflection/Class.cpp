@@ -335,6 +335,12 @@ state::StateMachine* Class::getStateMachineCascade() const
 
 void Class::addBaseClass(Class* a_pClass)
 {
+    if(a_pClass == nullptr)
+    {
+        setInvalid();
+        m_BaseClasses.push_back(base_class_data(nullptr, 0));
+        return;
+    }
     o_assert(m_pExtraData);
     extra_data* pExtraData = static_cast<extra_data*>(m_pExtraData);
     if(NOT(m_BaseClasses.empty()))
@@ -1136,29 +1142,6 @@ InstanceMemberFunction*        Class::getInstanceMemberFunctionCascade(const cha
     return NULL;
 }
 
-LanguageElement* Class::solveElement(
-    const string& a_strName
-    , const vector<TemplateElement*>* a_TemplateSpecialization
-    , const vector<LanguageElement*>* a_FunctionSignature
-    , modifiers_t a_Modifiers /*= 0*/) const
-{
-    LanguageElement* pElement = ClassType::solveElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
-    if(pElement) return pElement;
-    base_class_table::const_iterator it = m_BaseClasses.begin();
-    base_class_table::const_iterator end = m_BaseClasses.end();
-    for(;it != end; ++it)
-    {
-        if(pElement = it->m_pClass->solveElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers))
-        {
-            if(pElement->asConstructor() == nullptr)
-            {
-                return pElement;
-            }
-        }
-    }
-    return NULL;
-}
-
 void Class::registerRttiImpl( void* a_pThis, void* a_pBase, Class* a_pObjectClass, connection::slot_pool* a_pSlotPool, dynamic_delete_func_t a_dynamic_delete_func, const rtti_data* a_pOwner )
 {
     phantom::addRttiData(a_pThis, phantom::rtti_data(a_pObjectClass, this, a_pBase, a_pThis, a_pSlotPool, a_dynamic_delete_func, a_pOwner));
@@ -1419,41 +1402,6 @@ restore_state Class::restoreInstanceDataMembersCascade( void* a_pInstance, uint 
     }
     result = combine_restore_states(result, restoreInstanceDataMembers(a_pInstance, a_uiSerializationFlag, a_uiPass));
     return result;
-}
-
-Expression* Class::solveExpression( Expression* a_pLeftExpression
-                                 , const string& a_strName
-                                 , const vector<TemplateElement*>* a_pTemplateSpecialization
-                                 , const vector<LanguageElement*>* a_pFunctionSignature
-                                 , modifiers_t a_Modifiers /*= 0*/ ) const
-{
-    if((a_pLeftExpression->getValueType()->removeReference()->asConstType() != nullptr) != ((a_Modifiers & o_const) == o_const))
-    {
-        o_exception(exception::reflection_runtime_exception, "Incoherency between const modifier and expression const type");
-    }
-    if(a_pLeftExpression->getValueType()->removeReference()->removeConst() != removeConst())
-    {
-        o_exception(exception::reflection_runtime_exception, "LHS Expression type doesn't match current class");
-    }
-    Expression* pExpression = ClassType::solveExpression(a_pLeftExpression, a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers);
-    if(pExpression) return pExpression;
-    a_pLeftExpression->detach();
-    auto it = m_BaseClasses.begin();
-    auto end = m_BaseClasses.end();
-    for(;it != end; ++it)
-    {
-        Expression* pCast = a_pLeftExpression->implicitCast(it->m_pClass->referenceType());
-        if(pExpression = it->m_pClass->solveExpression(pCast, a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers))
-        {
-            return pExpression;
-        }
-        else
-        {
-            a_pLeftExpression->detach(); // ensure left expression is detached from owner before destroying pCast
-            o_dynamic_delete (pCast);
-        }
-    }
-    return nullptr;
 }
 
 bool Class::referencesData(const void* a_pInstance, const phantom::data& a_Data) const
@@ -2017,17 +1965,6 @@ void Class::finalize()
         + pCompilationData->m_bHasStateMachineDataPtr *sizeof(void*);
 
     ClassType::finalize();
-}
-
-variant Class::compile(Compiler* a_pCompiler)
-{
-    // layout : [vtableptr] [baselayout] [smdataptr] [data_members]
-    ClassType::compile(a_pCompiler);
-
-    if(m_pStateMachine)
-        a_pCompiler->compile(m_pStateMachine);
-
-    return a_pCompiler->compile(this);
 }
 
 void Class::install( void* a_pInstance, const rtti_data* a_pOwner ) const

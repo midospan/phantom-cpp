@@ -51,24 +51,32 @@ BranchStatement::BranchStatement()
 {
 }
 
-void BranchStatement::eval() const
+BranchStatement::BranchStatement(LabelStatement* a_pLabelStatement) 
+    : Statement("")
+    , m_pLabelStatement(nullptr)
+    , m_uiLabelStatementIndex(0xffffffff)
+{
+    setLabelStatement(a_pLabelStatement);
+}
+
+void BranchStatement::internalEval() const 
 {
     phantom::interpreter()->setNextStatement(m_pLabelStatement);
 }
 
-variant BranchStatement::compile( Compiler* a_pCompiler )
-{
-    return a_pCompiler->compile(this);
-}
-
 void BranchStatement::setLabelStatement( LabelStatement* a_pLabelStatement )
 {
-    addReferencedElement(a_pLabelStatement);
-    m_pLabelStatement = a_pLabelStatement;
-    if(getSubroutine())
+    if(a_pLabelStatement)
     {
-        m_uiLabelStatementIndex = m_pLabelStatement->getIndex();
+        addReferencedElement(a_pLabelStatement);
+        m_pLabelStatement = a_pLabelStatement;
+        if(getSubroutine())
+        {
+            m_uiLabelStatementIndex = m_pLabelStatement->getIndex();
+        }
+        m_pLabelStatement->m_uiBranchCount++;
     }
+    else setInvalid();
 }
 
 void BranchStatement::restore()

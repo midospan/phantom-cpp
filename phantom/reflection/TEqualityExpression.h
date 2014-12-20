@@ -51,26 +51,26 @@ class  TEqualityExpression : public BinaryOperationExpression
     o_static_assert(boost::is_fundamental<t_Ty>::value);
     typedef o_NESTED_TYPE boost::promote<t_Ty>::type promoted_type;
 public:
-    TEqualityExpression( const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression )
+    TEqualityExpression( const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression )
         : BinaryOperationExpression(
         typeOf<bool>()
         , typeOf<promoted_type>()
         , typeOf<promoted_type>()
         , a_strOperator
-        , a_pLHSExpression
-        , a_pRHSExpression)
+        , a_pLeftExpression
+        , a_pRightExpression)
     {
         o_assert(a_strOperator == "==" OR a_strOperator == "!=");
-        o_assert(m_pLHSConvertedExpression->getValueType()->removeReference() == typeOf<promoted_type>());
-        o_assert(m_pRHSConvertedExpression->getValueType()->removeReference() == typeOf<promoted_type>());
+        o_assert(m_pConvertedLeftExpression->getValueType()->removeReference() == typeOf<promoted_type>());
+        o_assert(m_pConvertedRightExpression->getValueType()->removeReference() == typeOf<promoted_type>());
     }
 
-    virtual void    getValue(void* a_pDest) const 
+    virtual void    internalEval(void* a_pDest) const 
     {
         promoted_type l;
         promoted_type r;
-        m_pLHSConvertedExpression->load(&l);
-        m_pRHSConvertedExpression->load(&r);
+        m_pConvertedLeftExpression->load(&l);
+        m_pConvertedRightExpression->load(&r);
         switch(m_strOperator[0])
         {
         case '!':
@@ -84,7 +84,7 @@ public:
 
     virtual TEqualityExpression<t_Ty>*     clone() const 
     {
-        return o_new(TEqualityExpression<t_Ty>)(m_strOperator, m_pLHSExpression, m_pRHSExpression);
+        return o_new(TEqualityExpression<t_Ty>)(m_strOperator, m_pLeftExpression, m_pRightExpression);
     }
 };
 

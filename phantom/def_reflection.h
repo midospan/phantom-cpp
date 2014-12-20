@@ -234,13 +234,58 @@ namespace detail
 
 #undef x_specialize____meta_type_base_class_solver
 
+    enum advanced_pointer_type
+    {
+        member_function_pointer,
+        function_pointer,
+        member_object_pointer,
+    };
+
+    template<typename t_Ty, advanced_pointer_type t_advanced_pointer_type>
+    struct meta_class_type_of_advanced_pointer;
+
+
+    template<typename t_Ty>
+    struct meta_class_type_of_advanced_pointer<t_Ty, member_function_pointer>
+    {
+        typedef phantom::reflection::native::TNativeMemberFunctionPointerType<t_Ty> type;
+    };
+
+    template<typename t_Ty>
+    struct meta_class_type_of_advanced_pointer<t_Ty, function_pointer>
+    {
+        o_static_assert(is_function_pointer<t_Ty>::value);
+        typedef phantom::reflection::native::TNativeFunctionPointerType<t_Ty> type;
+    };
+
+    template<typename t_Ty>
+    struct meta_class_type_of_advanced_pointer<t_Ty, member_object_pointer>
+    {
+        typedef phantom::reflection::native::TNativeDataMemberPointerType<t_Ty> type;
+    };
+
+    template<typename t_Ty, bool is_advanced_pointer, int t_TemplateNestedModifiers = 0>
+    struct meta_class_type_of_helper : public meta_class_type_of_advanced_pointer<t_Ty
+        , boost::is_member_function_pointer<t_Ty>::value 
+            ? member_function_pointer
+            : boost::is_member_object_pointer<t_Ty>::value 
+                ? member_object_pointer
+                : function_pointer>
+    {
+    };
+
+    template<typename t_Ty, int t_TemplateNestedModifiers>
+    struct meta_class_type_of_helper<t_Ty, false, t_TemplateNestedModifiers>
+    {
+        typedef phantom::reflection::native::TType<t_Ty, t_TemplateNestedModifiers> type;
+    };
 
 } // namespace detail
 
 template<typename t_Ty, int t_TemplateNestedModifiers = 0>
-struct meta_class_type_of
+struct meta_class_type_of 
+    : public detail::meta_class_type_of_helper<t_Ty, boost::is_member_pointer<t_Ty>::value OR phantom::is_function_pointer<t_Ty>::value, t_TemplateNestedModifiers>
 {
-    typedef phantom::reflection::native::TType<t_Ty, t_TemplateNestedModifiers> type;
 };
 
 template<typename t_Ty>
@@ -270,7 +315,7 @@ struct meta_class_type_of<t_Ty&, 0>
 template<typename t_Ty>
 struct meta_class_type_of <t_Ty const, 0>
 {
-    typedef Type type;
+    typedef ConstType type;
 };
 
 template<typename t_Ty, size_t t_size>
@@ -301,7 +346,7 @@ struct typedef_registrer
         }
         else
         {
-            Namespace* pNamespace = phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strScope);
+            Namespace* pNamespace = phantom::globalNamespace()->findOrCreateNamespaceCascade(a_strScope);
             o_assert(pNamespace);
             pNamespace->addTypedef(a_strTypedef, pTypedefType);
         }
@@ -311,7 +356,7 @@ struct typedef_registrer
     typedef_registrer( const char* a_strTypedef )
     {
         dynamic_initializer()->setActive(true);
-        phantom::rootNamespace()->addTypedef(a_strTypedef, phantom::typeOf<t_Ty>());
+        phantom::globalNamespace()->addTypedef(a_strTypedef, phantom::typeOf<t_Ty>());
         dynamic_initializer()->setActive(false);
     }
 };
@@ -633,7 +678,7 @@ template<ulonglong value>
 class template_signature_parameter_enum
 {
 public:
-    static phantom::reflection::TemplateElement* object();
+    static phantom::reflection::LanguageElement* object();
 };
 
 

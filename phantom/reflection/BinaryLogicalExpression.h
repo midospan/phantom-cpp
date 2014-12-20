@@ -45,10 +45,11 @@ o_namespace_begin(phantom, reflection)
 class o_export BinaryLogicalExpression : public BinaryOperationExpression
 {
 public:
-    BinaryLogicalExpression ( const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression );
+    BinaryLogicalExpression ( const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression );
 
-    virtual void    getValue(void* a_pDest) const;
+    virtual void    internalEval(void* a_pDest) const;
 
+    virtual BinaryLogicalExpression*    asBinaryLogicalExpression() const { return (BinaryLogicalExpression*)this; }
 
     virtual BinaryLogicalExpression*     clone() const;
 };

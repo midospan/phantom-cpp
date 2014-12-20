@@ -48,7 +48,7 @@ o_namespace_begin(phantom, reflection)
 Class* const InstanceMemberFunction::metaType = o_type_of(InstanceMemberFunction);
 
 InstanceMemberFunction::InstanceMemberFunction()
-    : Subroutine(e_ABI_thiscall)
+    : Subroutine(e_thiscall)
     , m_uiVirtualTableIndex(~size_t(0))
     , m_pVTableClosures(nullptr)
 {
@@ -57,7 +57,7 @@ InstanceMemberFunction::InstanceMemberFunction()
 InstanceMemberFunction::InstanceMemberFunction(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers /*= 0*/ )
     : Subroutine(a_strName
                 , a_pSignature
-                , e_ABI_thiscall
+                , e_thiscall
                 , ((a_Modifiers & o_const) != 0) ? a_Modifiers : (a_Modifiers | o_noconst) )
     , m_uiVirtualTableIndex(~size_t(0))
     , m_pVTableClosures(nullptr)
@@ -71,7 +71,7 @@ InstanceMemberFunction::InstanceMemberFunction(const string& a_strName, Signatur
 InstanceMemberFunction::InstanceMemberFunction( const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers, int )
     : Subroutine(a_strName
     , a_pSignature
-    , e_ABI_thiscall
+    , e_thiscall
     , ((a_Modifiers & o_const) != 0) ? a_Modifiers : (a_Modifiers | o_noconst) )
     , m_uiVirtualTableIndex(~size_t(0))
     , m_pVTableClosures(nullptr)
@@ -217,11 +217,6 @@ void InstanceMemberFunction::setVirtual()
     m_Modifiers |= o_virtual;
 }
 
-variant InstanceMemberFunction::compile( Compiler* a_pCompiler )
-{
-    return a_pCompiler->compile(this);
-}
-
 void* InstanceMemberFunction::getVTableClosure( size_t a_uiOffset ) const
 {
     if(m_pVTableClosures == nullptr) return nullptr;
@@ -252,18 +247,12 @@ void InstanceMemberFunction::getOriginalOverriddenMemberFunctions( vector<Instan
     }
 }
 
-void InstanceMemberFunction::ancestorChanged( LanguageElement* a_pOwner )
+Block* InstanceMemberFunction::createBlock()
 {
-    if(a_pOwner == m_pOwner)
-    {
-        if(!testModifiers(o_pure_virtual) AND !isNative())
-        {
-            createBlock(o_new(LocalVariable)(
-                isConst() 
-                ? m_pOwner->asClassType()->constType()->pointerType()->constType()
-                : m_pOwner->asClassType()->pointerType()->constType(), "this"));
-        }
-    }
+    return Subroutine::createBlock(o_new(LocalVariable)(
+        isConst() 
+        ? m_pOwner->asClassType()->constType()->pointerType()->constType()
+        : m_pOwner->asClassType()->pointerType()->constType(), "this"));
 }
 
 o_namespace_end(phantom, reflection) 

@@ -42,7 +42,7 @@ o_namespace_begin(phantom, reflection)
 
 o_define_meta_type(AnonymousSection) = o_type_of(AnonymousSection);
 
-AnonymousSection::AnonymousSection( modifiers_t modifiers /*= modifiers_t()*/ )
+AnonymousSection::AnonymousSection( modifiers_t modifiers /*= 0*/ )
     : LanguageElement("", modifiers)
 {
 

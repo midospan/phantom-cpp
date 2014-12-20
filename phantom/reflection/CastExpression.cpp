@@ -40,19 +40,16 @@ o_registerN((phantom, reflection), CastExpression);
 
 o_namespace_begin(phantom, reflection) 
 
-CastExpression::CastExpression( Type* a_pCastType, Expression* a_pCastedExpression, bool a_bImplicit ) 
-    : Expression(a_pCastType, a_bImplicit 
-                                    ? a_pCastedExpression->getName() 
-                                    : ("static_cast<"+a_pCastType->getQualifiedDecoratedName()+">("+a_pCastedExpression->getName()+")")
-                              , a_pCastedExpression->getModifiers())
+CastExpression::CastExpression( Type* a_pCastType, Expression* a_pCastedExpression, ECastType a_eCastType ) 
+    : Expression(a_pCastType, a_pCastedExpression->getModifiers())
     , m_pCastedExpression(a_pCastedExpression)
     , m_pTempValue(nullptr)
     , m_pIntermediateBuffer(nullptr)
     , m_pIntermediateBufferType(nullptr)
-    , m_bImplicit(a_bImplicit)
+    , m_eCastType(a_eCastType)
 {
-    if((m_bImplicit AND NOT(m_pCastedExpression->getValueType()->isImplicitlyConvertibleTo(getValueType())))
-        OR (!m_bImplicit AND NOT(m_pCastedExpression->getValueType()->isConvertibleTo(getValueType()))))
+    if(((m_eCastType == e_implicit_cast) AND NOT(m_pCastedExpression->getValueType()->isImplicitlyConvertibleTo(getValueType())))
+        OR ((m_eCastType != e_implicit_cast) AND NOT(m_pCastedExpression->getValueType()->isConvertibleTo(getValueType()))))
     {
         setInvalid();
     }
@@ -64,11 +61,11 @@ CastExpression::~CastExpression()
     
 }
 
-void CastExpression::getValue( void* a_pDest ) const
+void CastExpression::internalEval( void* a_pDest ) const
 {
     if(m_pTempValue)
     {
-        m_pCastedExpression->getValue(m_pTempValue);
+        m_pCastedExpression->internalEval(m_pTempValue);
     }
     if(m_pIntermediateBuffer)
     {
@@ -108,7 +105,7 @@ o_terminate_cpp(CastExpression)
 
 CastExpression* CastExpression::clone() const
 {
-    return o_new(CastExpression)(m_pValueType, m_pCastedExpression, m_bImplicit);
+    return o_new(CastExpression)(m_pValueType, m_pCastedExpression, m_eCastType);
 }
 
 void CastExpression::elementRemoved( LanguageElement* a_pElement )

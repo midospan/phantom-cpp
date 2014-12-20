@@ -68,6 +68,8 @@ struct state_compilation_data
 
 class o_export State : public StateMachineElement
 {
+    o_language_element;
+
     friend class Track;
     friend class StateMachine;
 
@@ -172,7 +174,6 @@ public:
     void enter( dynamic_state_machine_data* smdataptr );
     void update( dynamic_state_machine_data* smdataptr );
     void leave( dynamic_state_machine_data* smdataptr );
-    virtual variant compile(reflection::Compiler* a_pCompiler);
 
 protected:
     State(const string& a_strName, uint a_uiOrderingFactor, modifiers_t modifiers = 0);

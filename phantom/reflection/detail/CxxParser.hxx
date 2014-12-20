@@ -1,99 +1,358 @@
-#define	ARROW	258
-#define	ARROW_STAR	259
-#define	DEC	260
-#define	EQ	261
-#define	GE	262
-#define	INC	263
-#define	LE	264
-#define	LOG_AND	265
-#define	LOG_OR	266
-#define	NE	267
-#define	SHL	268
-#define	SHR	269
-#define	ASS_ADD	270
-#define	ASS_AND	271
-#define	ASS_DIV	272
-#define	ASS_MOD	273
-#define	ASS_MUL	274
-#define	ASS_OR	275
-#define	ASS_SHL	276
-#define	ASS_SHR	277
-#define	ASS_SUB	278
-#define	ASS_XOR	279
-#define	DOT_STAR	280
-#define	ELLIPSIS	281
-#define	SCOPE	282
-#define	PRIVATE	283
-#define	PROTECTED	284
-#define	PUBLIC	285
-#define	BOOL	286
-#define	CHAR	287
-#define	DOUBLE	288
-#define	FLOAT	289
-#define	INT	290
-#define	LONG	291
-#define	SHORT	292
-#define	SIGNED	293
-#define	UNSIGNED	294
-#define	VOID	295
-#define	WCHAR_T	296
-#define	CLASS	297
-#define	ENUM	298
-#define	NAMESPACE	299
-#define	STRUCT	300
-#define	TYPENAME	301
-#define	UNION	302
-#define	CONST	303
-#define	VOLATILE	304
-#define	AUTO	305
-#define	EXPLICIT	306
-#define	EXPORT	307
-#define	EXTERN	308
-#define	FRIEND	309
-#define	INLINE	310
-#define	MUTABLE	311
-#define	REGISTER	312
-#define	STATIC	313
-#define	TEMPLATE	314
-#define	TYPEDEF	315
-#define	USING	316
-#define	VIRTUAL	317
-#define	ASM	318
-#define	BREAK	319
-#define	CASE	320
-#define	CATCH	321
-#define	CONST_CAST	322
-#define	CONTINUE	323
-#define	DEFAULT	324
-#define	DELETE	325
-#define	DO	326
-#define	DYNAMIC_CAST	327
-#define	ELSE	328
-#define	FALSE	329
-#define	FOR	330
-#define	GOTO	331
-#define	IF	332
-#define	NEW	333
-#define	OPERATOR	334
-#define	REINTERPRET_CAST	335
-#define	RETURN	336
-#define	SIZEOF	337
-#define	STATIC_CAST	338
-#define	SWITCH	339
-#define	THIS	340
-#define	THROW	341
-#define	TRUE	342
-#define	TRY	343
-#define	TYPEID	344
-#define	WHILE	345
-#define	CharacterLiteral	346
-#define	FloatingLiteral	347
-#define	Identifier	348
-#define	IntegerLiteral	349
-#define	NumberLiteral	350
-#define	StringLiteral	351
-#define	SHIFT_THERE	352
-#define	REDUCE_HERE_MOSTLY	353
+/* A Bison parser, made by GNU Bison 2.7.  */
+
+/* Skeleton interface for Bison LALR(1) parsers in C++
+   
+      Copyright (C) 2002-2012 Free Software Foundation, Inc.
+   
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
+/* As a special exception, you may create a larger work that contains
+   part or all of the Bison parser skeleton and distribute that work
+   under terms of your choice, so long as that work isn't itself a
+   parser generator using the skeleton or a modified version thereof
+   as a parser skeleton.  Alternatively, if you modify or redistribute
+   the parser skeleton itself, you may (at your option) remove this
+   special exception, which will cause the skeleton and the resulting
+   Bison output files to be licensed under the GNU General Public
+   License without this special exception.
+   
+   This special exception was added by the Free Software Foundation in
+   version 2.2 of Bison.  */
+
+/**
+ ** \file CxxParser.hxx
+ ** Define the phantom::parser class.
+ */
+
+/* C++ LALR(1) parser skeleton written by Akim Demaille.  */
+
+#ifndef YY_PHANTOM_CXXPARSER_HXX_INCLUDED
+# define YY_PHANTOM_CXXPARSER_HXX_INCLUDED
 
 
-extern YYSTYPE yylval;
+
+#include <string>
+#include <iostream>
+#include "stack.hh"
+#include "location.hh"
+
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 1
+#endif
+
+
+namespace phantom {
+/* Line 33 of lalr1.cc  */
+#line 59 "CxxParser.hxx"
+
+  /// A Bison parser.
+  class CxxParser
+  {
+  public:
+    /// Symbol semantic values.
+#ifndef YYSTYPE
+    typedef YYSTYPE semantic_type;
+#else
+    typedef YYSTYPE semantic_type;
+#endif
+    /// Symbol locations.
+    typedef location location_type;
+    /// Tokens.
+    struct token
+    {
+      /* Tokens.  */
+   enum yytokentype {
+     ARROW = 258,
+     ARROW_STAR = 259,
+     DEC = 260,
+     EQ = 261,
+     GE = 262,
+     INC = 263,
+     LE = 264,
+     LOG_AND = 265,
+     LOG_OR = 266,
+     NE = 267,
+     SHL = 268,
+     SHR = 269,
+     ASS_ADD = 270,
+     ASS_AND = 271,
+     ASS_DIV = 272,
+     ASS_MOD = 273,
+     ASS_MUL = 274,
+     ASS_OR = 275,
+     ASS_SHL = 276,
+     ASS_SHR = 277,
+     ASS_SUB = 278,
+     ASS_XOR = 279,
+     DOT_STAR = 280,
+     ELLIPSIS = 281,
+     SCOPE = 282,
+     PRIVATE = 283,
+     PROTECTED = 284,
+     PUBLIC = 285,
+     BOOL = 286,
+     CHAR = 287,
+     DOUBLE = 288,
+     FLOAT = 289,
+     INT = 290,
+     LONG = 291,
+     SHORT = 292,
+     SIGNED = 293,
+     UNSIGNED = 294,
+     VOID = 295,
+     WCHAR_T = 296,
+     CLASS = 297,
+     ENUM = 298,
+     NAMESPACE = 299,
+     STRUCT = 300,
+     TYPENAME = 301,
+     UNION = 302,
+     CONST = 303,
+     VOLATILE = 304,
+     AUTO = 305,
+     EXPLICIT = 306,
+     EXPORT = 307,
+     EXTERN = 308,
+     FRIEND = 309,
+     INLINE = 310,
+     MUTABLE = 311,
+     REGISTER = 312,
+     STATIC = 313,
+     TEMPLATE = 314,
+     TYPEDEF = 315,
+     USING = 316,
+     VIRTUAL = 317,
+     ASM = 318,
+     BREAK = 319,
+     CASE = 320,
+     CATCH = 321,
+     CONST_CAST = 322,
+     CONTINUE = 323,
+     DEFAULT = 324,
+     DELETE = 325,
+     DO = 326,
+     DYNAMIC_CAST = 327,
+     ELSE = 328,
+     FALSE = 329,
+     FOR = 330,
+     GOTO = 331,
+     IF = 332,
+     NEW = 333,
+     OPERATOR = 334,
+     REINTERPRET_CAST = 335,
+     RETURN = 336,
+     SIZEOF = 337,
+     STATIC_CAST = 338,
+     SWITCH = 339,
+     THIS = 340,
+     THROW = 341,
+     TRUE = 342,
+     TRY = 343,
+     TYPEID = 344,
+     WHILE = 345,
+     CharacterLiteral = 346,
+     Identifier = 347,
+     HexLiteral = 348,
+     LongDoubleLiteral = 349,
+     DoubleLiteral = 350,
+     FloatLiteral = 351,
+     UIntLiteral = 352,
+     ULongLiteral = 353,
+     ULongLongLiteral = 354,
+     StringLiteral = 355,
+     SHIFT_THERE = 356,
+     REDUCE_HERE_MOSTLY = 357
+   };
+
+    };
+    /// Token type.
+    typedef token::yytokentype token_type;
+
+    /// Build a parser object.
+    CxxParser (class CxxDriver* m_pDriver_yyarg);
+    virtual ~CxxParser ();
+
+    /// Parse.
+    /// \returns  0 iff parsing succeeded.
+    virtual int parse ();
+
+#if YYDEBUG
+    /// The current debugging stream.
+    std::ostream& debug_stream () const;
+    /// Set the current debugging stream.
+    void set_debug_stream (std::ostream &);
+
+    /// Type for debugging levels.
+    typedef int debug_level_type;
+    /// The current debugging level.
+    debug_level_type debug_level () const;
+    /// Set the current debugging level.
+    void set_debug_level (debug_level_type l);
+#endif
+
+  private:
+    /// Report a syntax error.
+    /// \param loc    where the syntax error is found.
+    /// \param msg    a description of the syntax error.
+    virtual void error (const location_type& loc, const std::string& msg);
+
+    /// Generate an error message.
+    /// \param state   the state where the error occurred.
+    /// \param tok     the lookahead token.
+    virtual std::string yysyntax_error_ (int yystate, int tok);
+
+#if YYDEBUG
+    /// \brief Report a symbol value on the debug stream.
+    /// \param yytype       The token type.
+    /// \param yyvaluep     Its semantic value.
+    /// \param yylocationp  Its location.
+    virtual void yy_symbol_value_print_ (int yytype,
+					 const semantic_type* yyvaluep,
+					 const location_type* yylocationp);
+    /// \brief Report a symbol on the debug stream.
+    /// \param yytype       The token type.
+    /// \param yyvaluep     Its semantic value.
+    /// \param yylocationp  Its location.
+    virtual void yy_symbol_print_ (int yytype,
+				   const semantic_type* yyvaluep,
+				   const location_type* yylocationp);
+#endif
+
+
+    /// State numbers.
+    typedef int state_type;
+    /// State stack type.
+    typedef stack<state_type>    state_stack_type;
+    /// Semantic value stack type.
+    typedef stack<semantic_type> semantic_stack_type;
+    /// location stack type.
+    typedef stack<location_type> location_stack_type;
+
+    /// The state stack.
+    state_stack_type yystate_stack_;
+    /// The semantic value stack.
+    semantic_stack_type yysemantic_stack_;
+    /// The location stack.
+    location_stack_type yylocation_stack_;
+
+    /// Whether the given \c yypact_ value indicates a defaulted state.
+    /// \param yyvalue   the value to check
+    static bool yy_pact_value_is_default_ (int yyvalue);
+
+    /// Whether the given \c yytable_ value indicates a syntax error.
+    /// \param yyvalue   the value to check
+    static bool yy_table_value_is_error_ (int yyvalue);
+
+    /// Internal symbol numbers.
+    typedef unsigned char token_number_type;
+    /* Tables.  */
+    /// For a state, the index in \a yytable_ of its portion.
+    static const short int yypact_[];
+    static const short int yypact_ninf_;
+
+    /// For a state, default reduction number.
+    /// Unless\a  yytable_ specifies something else to do.
+    /// Zero means the default is an error.
+    static const unsigned short int yydefact_[];
+
+    static const short int yypgoto_[];
+    static const short int yydefgoto_[];
+
+    /// What to do in a state.
+    /// \a yytable_[yypact_[s]]: what to do in state \a s.
+    /// - if positive, shift that token.
+    /// - if negative, reduce the rule which number is the opposite.
+    /// - if zero, do what YYDEFACT says.
+    static const short int yytable_[];
+    static const short int yytable_ninf_;
+
+    static const short int yycheck_[];
+
+    /// For a state, its accessing symbol.
+    static const unsigned short int yystos_[];
+
+    /// For a rule, its LHS.
+    static const unsigned short int yyr1_[];
+    /// For a rule, its RHS length.
+    static const unsigned char yyr2_[]; 
+
+    /// Convert the symbol name \a n to a form suitable for a diagnostic.
+    static std::string yytnamerr_ (const char *n);
+
+
+    /// For a symbol, its name in clear.
+    static const char* const yytname_[];
+#if YYDEBUG
+    /// A type to store symbol numbers and -1.
+    typedef short int rhs_number_type;
+    /// A `-1'-separated list of the rules' RHS.
+    static const rhs_number_type yyrhs_[];
+    /// For each rule, the index of the first RHS symbol in \a yyrhs_.
+    static const unsigned short int yyprhs_[];
+    /// For each rule, its source line number.
+    static const unsigned short int yyrline_[];
+    /// For each scanner token number, its symbol number.
+    static const unsigned short int yytoken_number_[];
+    /// Report on the debug stream that the rule \a r is going to be reduced.
+    virtual void yy_reduce_print_ (int r);
+    /// Print the state stack on the debug stream.
+    virtual void yystack_print_ ();
+
+    /* Debugging.  */
+    int yydebug_;
+    std::ostream* yycdebug_;
+#endif
+
+    /// Convert a scanner token number \a t to a symbol number.
+    token_number_type yytranslate_ (int t);
+
+    /// \brief Reclaim the memory associated to a symbol.
+    /// \param yymsg        Why this token is reclaimed.
+    ///                     If null, do not display the symbol, just free it.
+    /// \param yytype       The symbol type.
+    /// \param yyvaluep     Its semantic value.
+    /// \param yylocationp  Its location.
+    inline void yydestruct_ (const char* yymsg,
+			     int yytype,
+			     semantic_type* yyvaluep,
+			     location_type* yylocationp);
+
+    /// Pop \a n symbols the three stacks.
+    inline void yypop_ (unsigned int n = 1);
+
+    /* Constants.  */
+    static const int yyeof_;
+    /* LAST_ -- Last index in TABLE_.  */
+    static const int yylast_;
+    static const int yynnts_;
+    static const int yyempty_;
+    static const int yyfinal_;
+    static const int yyterror_;
+    static const int yyerrcode_;
+    static const int yyntokens_;
+    static const unsigned int yyuser_token_number_max_;
+    static const token_number_type yyundef_token_;
+
+    /* User arguments.  */
+    class CxxDriver* m_pDriver;
+  };
+
+} // phantom
+/* Line 33 of lalr1.cc  */
+#line 355 "CxxParser.hxx"
+
+
+
+#endif /* !YY_PHANTOM_CXXPARSER_HXX_INCLUDED  */

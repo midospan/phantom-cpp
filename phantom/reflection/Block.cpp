@@ -2,6 +2,7 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/Block.h>
 #include <phantom/reflection/Block.hxx>
+#include <phantom/reflection/Parameter.h>
 #include <phantom/reflection/Compiler.h>
 #include <phantom/reflection/Interpreter.h>
 #include <phantom/reflection/ExpressionStatement.h>
@@ -11,7 +12,7 @@
 #include <phantom/reflection/BranchIfNotStatement.h>
 #include <phantom/reflection/BranchIfStatement.h>
 #include "LocalVariable.h"
-#include "LocalVariableAccess.h"
+#include "LocalVariableExpression.h"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 /* *********************************************** */
@@ -42,7 +43,7 @@ Block::Block( Subroutine* a_pSubroutine, LocalVariable* a_pThis )
     for(size_t i = 0; i<count; ++i)
     {
         string name = pSignature->getParameterName(i);
-        addLocalVariable(pSignature->getParameterType(i), name.empty() ? "$"+lexical_cast<string>(i) : name);
+        addLocalVariable(pSignature->getParameter(i));
     }
 }
 
@@ -67,15 +68,22 @@ void Block::addLocalVariable( LocalVariable* a_pVariable )
         Class* pClass = a_pVariable->getValueType() ? a_pVariable->getValueType()->asClass() : nullptr;
         if(pClass)
         {
-            addRAIIDestructionExpressionStatement(o_new(CallExpression)(pClass->getDestructor(), a_pVariable->createAccess()->address()));
+            addRAIIDestructionExpressionStatement(o_new(CallExpression)(pClass->getDestructor(), a_pVariable->createExpression()->address()));
         }
     }
-    addElement(a_pVariable);
+    if(a_pVariable->asParameter() == nullptr) // parameters are owned by signature
+    {
+        addElement(a_pVariable);
+    }
+    else 
+    {
+        addReferencedElement(a_pVariable);
+    }
 }
 
-void Block::addLocalVariable( Type* a_pType, const string& a_strName, modifiers_t a_Modifiers /*= 0*/ )
+void Block::addLocalVariable( Type* a_pType, const string& a_strName, Expression* a_pInit /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
 {
-    addLocalVariable(o_new(LocalVariable)(a_pType, a_strName, a_Modifiers));
+    addLocalVariable(o_new(LocalVariable)(a_pType, a_strName, a_pInit, a_Modifiers));
 }
 
 LocalVariable* Block::getLocalVariableCascade( const string& a_strName ) const
@@ -118,40 +126,6 @@ LocalVariable* Block::getAccessibleLocalVariable( const string& a_strName, const
     LocalVariable* pLocalVariable = getLocalVariable(a_strName);
     if(pLocalVariable && pLocalVariable->isAccessibleAtCodePosition(a_Position)) return pLocalVariable;
     return getBlock() ? getBlock()->getAccessibleLocalVariable(a_strName, a_Position) : nullptr;
-}
-
-reflection::LanguageElement* Block::solveElement( const string& a_strName, const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, modifiers_t a_Modifiers /* = modifiers_t */ ) const
-{
-    LocalVariable* pLocal = getLocalVariable(a_strName);
-    if(pLocal) return o_new(LocalVariableAccess)(pLocal);
-    int blockIndex = -1;
-    sscanf(a_strName.c_str(), "%d", &blockIndex);
-    if(blockIndex >= 0 AND blockIndex < (int)m_Statements.size())
-    {
-        size_t c = 0;
-        for(auto it = m_Statements.begin(); it != m_Statements.end(); ++it)
-        {
-            Block* pChildBlock = (*it)->asBlock();
-            if(pChildBlock)
-            {
-                if(c == blockIndex)
-                {
-                    return pChildBlock;
-                }
-                ++c;
-            }
-        }
-    }
-    pLocal = getLocalVariable("this");
-    if(pLocal)
-    {
-        LocalVariableAccess* pThis = o_new(LocalVariableAccess)(pLocal);
-        Expression* pThisDereferenced = pThis->dereference();
-        LanguageElement* pElement = pThisDereferenced->solveElement(a_strName, a_pTS, a_pFS, a_Modifiers);
-        if(pElement) return pElement;
-        o_dynamic_delete pThisDereferenced;
-    }
-    return nullptr;
 }
 
 Block* Block::findBlockAtCodePosition( const CodePosition& a_Position ) const
@@ -220,12 +194,7 @@ void Block::addStatement( Statement* a_pStatement )
     m_Statements.push_back(a_pStatement); 
 }
 
-variant Block::compile( Compiler* a_pCompiler )
-{
-    return a_pCompiler->compile(this);
-}
-
-void Block::eval() const
+void Block::internalEval() const 
 {
     if(isInvalid())
     {
@@ -636,6 +605,14 @@ void Block::getRAIIDestructionStatementsCascade( vector<Statement*>& out ) const
     if(getBlock())
     {
         getBlock()->getRAIIDestructionStatementsCascade(out);
+    }
+}
+
+void Block::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    if(a_pElement->asParameter())
+    {
+        m_LocalVariables.erase(std::find(m_LocalVariables.begin(), m_LocalVariables.end(), a_pElement->asParameter()));
     }
 }
 

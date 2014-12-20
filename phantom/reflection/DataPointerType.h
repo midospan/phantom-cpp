@@ -44,6 +44,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export DataPointerType : public PointerType
 {
+    o_type;
+
     o_declare_meta_type(DataPointerType);
 
 public:
@@ -94,7 +96,6 @@ public:
     virtual void        deserialize(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
 
     virtual boolean     isImplicitlyConvertibleTo(Type* a_pType) const;
-    virtual boolean     hasTrivialCastTo(Type* a_pType) const;
 
     virtual uint        getDataPointerLevel() const { return m_pPointedType->getDataPointerLevel() + 1; }
 
@@ -115,7 +116,6 @@ public:
 
     virtual bool        isCopyable() const { return true; }
 
-    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const;
 protected:
     virtual void        referencedElementRemoved(LanguageElement* a_pElement);
 

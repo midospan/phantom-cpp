@@ -40,7 +40,7 @@
 
 o_namespace_begin(phantom, reflection)
 
-class o_export NumericConstant : public Constant, public TemplateElement
+class o_export NumericConstant : public Constant
 {
 public:
     static Class* const metaType;
@@ -56,9 +56,10 @@ public:
 
     }
 
-    virtual TemplateElement* asTemplateElement() const { return const_cast<NumericConstant*>(this); }
+    virtual LanguageElement* asTemplateElement() const { return const_cast<NumericConstant*>(this); }
     virtual LanguageElement* asLanguageElement() const { return const_cast<NumericConstant*>(this); }
     virtual NumericConstant* asNumericConstant() const { return const_cast<NumericConstant*>(this); }
+
 
 protected:
 };

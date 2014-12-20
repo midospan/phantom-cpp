@@ -53,9 +53,7 @@ public:
     Statement();
     Statement(const string& a_strName);
 
-    virtual void            eval() const = 0;
-
-    virtual variant         compile(Compiler* a_pCompiler) { return variant(); }
+    virtual void            internalEval() const = 0;
 
     virtual Statement*      asStatement() const { return (Statement*)this; }
     

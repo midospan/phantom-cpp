@@ -52,7 +52,7 @@ DataPointerType::DataPointerType( Type* a_pPointedType )
 : PointerType(a_pPointedType->getName()
             , sizeof(void*)
             , boost::alignment_of<void*>::value
-            , a_pPointedType->isNative() ? modifiers_t(o_native) : modifiers_t())    
+            , a_pPointedType->isNative() ? modifiers_t(o_native) : 0)    
             , m_pPointedType(a_pPointedType)
 {
     addReferencedElement(m_pPointedType);
@@ -90,11 +90,6 @@ boolean DataPointerType::isConvertibleTo( Type* a_pType ) const
 {
     o_assert(a_pType);
     return a_pType->asIntegralType() OR a_pType->asPointerType() OR isImplicitlyConvertibleTo(a_pType);
-}
-
-bool DataPointerType::hasTrivialCastTo( Type* a_pType ) const
-{
-    return isImplicitlyConvertibleTo(a_pType);
 }
 
 boolean DataPointerType::isImplicitlyConvertibleTo( Type* a_pType ) const
@@ -580,84 +575,6 @@ bool DataPointerType::referencesData( const void* a_pInstance, const phantom::da
     if(pointerValue == nullptr) 
         return false;
     return m_pPointedType->cast(a_Data.type(), (void*)pointerValue) == a_Data.address();
-}
-
-Expression* DataPointerType::solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const
-{
-    o_assert(a_Expressions[0]->getValueType()->removeReference()->removeConst() == this);
-    if(a_strOp == "*" && a_Expressions.size() == 1)
-    {
-        return a_Expressions.back()->dereference();
-    }
-    if(a_strOp == "->")
-    {
-        if(a_Expressions.size() != 1) return nullptr;
-        return a_Expressions.back()->dereference();
-    }
-    else if(a_strOp.size() == 2 && a_Expressions.size() == 2)
-    {
-        if(a_strOp == "&&" OR a_strOp == "||")
-        {
-            return o_new(BinaryLogicalExpression)(a_strOp, a_Expressions[0], a_Expressions[1]);
-        }/*
-        else if(a_strOp == ">>" OR a_strOp == "<<")
-        {
-            return o_new(TBinaryBitExpression<void*>)(a_strOp, a_Expressions[0], a_Expressions[1]);
-        }*/
-        else if(a_strOp[1] == '=') // Assignment operation
-        {
-            Expression* pSubExpression = nullptr;
-            switch(a_strOp[0])
-            {
-            case '+':
-            case '-':
-                if(a_Expressions[1]->getValueType()->isImplicitlyConvertibleTo(typeOf<int>()))
-                {
-                    pSubExpression = o_new(PointerArithmeticExpression)(a_strOp.substr(0, 1), a_Expressions[0], a_Expressions[1]);
-                }
-                break;
-            case '=':
-            case '!':
-            case '<':
-            case '>':
-                return o_new(TBinaryBooleanExpression<void*>)(a_strOp, a_Expressions[0], a_Expressions[1]);
-            /*case '|':
-            case '&':
-            case '^':
-                pSubExpression = o_new(TBinaryBitExpression<void*>)(a_strOp.substr(0, 1), a_Expressions[0], a_Expressions[1]);
-                break;*/
-
-            }
-            if(pSubExpression)
-            {
-                return o_new(AssignmentExpression)(a_Expressions[0], pSubExpression);
-            }
-        }
-    }
-    else if(a_strOp.size() == 1 && a_Expressions.size() == 2)
-    {
-        Expression* pRightExpression = a_Expressions[1];
-        ConstantExpression* pConstantRightExpression = as<ConstantExpression*>(pRightExpression);
-        if(pConstantRightExpression AND pConstantRightExpression->getValueType()->asIntegralType())
-        {
-            pRightExpression = pConstantRightExpression->cast(a_Expressions[0]->getValueType()->removeReference());
-        }
-        switch(a_strOp[0])
-        {
-        case '=': // Assignment operation
-            {
-                if(pRightExpression->getValueType()->isImplicitlyConvertibleTo(a_Expressions[0]->getValueType()->removeReference()))
-                {
-                    return o_new(AssignmentExpression)(a_Expressions[0], pRightExpression);
-                }
-            }
-    
-        case '<':
-        case '>':
-            return o_new(TBinaryBooleanExpression<void*>)(a_strOp, a_Expressions[0], pRightExpression);
-        }
-    }
-    return PointerType::solveOperator(a_strOp, a_Expressions, a_Modifiers);
 }
 
 void DataPointerType::valueToLiteral( string& a_str, const void* src ) const

@@ -43,6 +43,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Union : public ClassType
 {
+    o_type;
+
     o_declare_meta_type(Union);
 
 public:

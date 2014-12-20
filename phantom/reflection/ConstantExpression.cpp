@@ -40,15 +40,8 @@
 o_registerN((phantom, reflection), ConstantExpression);
 o_namespace_begin(phantom, reflection) 
 
-string ConstantExpression_formatConstantName(Constant* a_pConstant)
-{
-    LanguageElement* pOwner = a_pConstant->getOwner();
-    Enum* pEnum = pOwner ? pOwner->asEnum() : nullptr;
-    return (pEnum AND pEnum->getOwner()) ? pEnum->getOwner()->getQualifiedName() + "::" + a_pConstant->getName() : a_pConstant->getName();
-}
-
 ConstantExpression::ConstantExpression(Constant* a_pConstant, Expression* a_pChildExpression /*= nullptr*/)
-    : Expression(a_pConstant->getValueType(), a_pConstant ? ConstantExpression_formatConstantName(a_pConstant) : "", 0)
+    : Expression(a_pConstant->getValueType(), 0)
     , m_pConstant(a_pConstant)
 {
     if(a_pChildExpression)
@@ -71,7 +64,7 @@ void ConstantExpression::setValue( void const* a_pSrc ) const
     o_exception(exception::reflection_runtime_exception, "Constant cannot be assigned");
 }
 
-void ConstantExpression::getValue( void* a_pDest ) const
+void ConstantExpression::internalEval( void* a_pDest ) const
 {
     m_pConstant->getValue(a_pDest);
 }

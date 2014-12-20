@@ -205,25 +205,6 @@ public:
     }
 };
 
-variant State::compile(reflection::Compiler* a_pCompiler)
-{
-    return a_pCompiler->compile(this);
-    /*auto closureptr = &FakeClosure::method;
-    void* ptr = *((void**)&closureptr);
-    if(m_pEnterClosure == nullptr)
-    {
-        m_pEnterClosure = ptr;
-    }
-    if(m_pUpdateClosure == nullptr)
-    {
-        m_pUpdateClosure = ptr;
-    }
-    if(m_pLeaveClosure == nullptr)
-    {
-        m_pLeaveClosure = ptr;
-    }*/
-}
-
 reflection::InstanceMemberFunction* State::createEnterMemberFunction( void )
 {
     o_assert(m_pCompilationData->m_pEnterMemberFunction == nullptr); 

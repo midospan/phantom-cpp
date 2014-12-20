@@ -45,6 +45,8 @@ o_namespace_begin(phantom, reflection)
     
 class o_export InstanceMemberFunction : public Subroutine, public MemberFunction
 {
+    o_language_element;
+
     friend class Class;
     friend class ClassType;
     friend class Structure;
@@ -91,13 +93,13 @@ public:
     
     void                                setVirtual();
 
-    virtual variant                     compile(Compiler* a_pCompiler);
-
     virtual void*                       getVTableClosure(size_t a_uiOffset) const;
 
     void                                setVTableClosure(size_t a_uiOffset, void* a_pClosure);
 
     void                                getOriginalOverriddenMemberFunctions(vector<InstanceMemberFunction*>& a_Out) const;
+
+    virtual Block*                      createBlock();
 
 protected:
     InstanceMemberFunction(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers, int);
@@ -106,8 +108,6 @@ protected:
         o_assert(m_uiVirtualTableIndex == ~size_t(0)); 
         m_uiVirtualTableIndex = index; 
     }
-
-    void ancestorChanged(LanguageElement* a_pOwner);
 
 protected:
     size_t              m_uiVirtualTableIndex;

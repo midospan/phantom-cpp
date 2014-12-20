@@ -46,10 +46,12 @@ o_namespace_begin(phantom, reflection)
 
 class o_export ReferenceExpression : public Expression
 {
+    o_language_element;
+
 public:
     ReferenceExpression(Expression* a_pReferenceableExpression);
 
-    virtual void                    getValue(void* a_pDest) const 
+    virtual void                    internalEval(void* a_pDest) const 
     {
         *((void**)a_pDest) = m_pReferencedExpression->loadEffectiveAddress();
     }

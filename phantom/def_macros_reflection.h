@@ -792,43 +792,43 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
     o_PP_CAT o_PP_LEFT_PAREN o_reflection_add_template_parameter_reflection_,o_PP_NARG_FUNC()l0 o_PP_RIGHT_PAREN (l0,l1)
 
 #define o_reflection_add_template_parameter_reflection_1(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_CAT(o_PP_ARG_0,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_0,l0))< o_PP_CAT(o_PP_ARG_0,l1) >::object()); \
+    pTemplateSpecialization->setArgument(0, o_PP_QUOTE(o_PP_CAT(o_PP_ARG_0,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_0,l0))< o_PP_CAT(o_PP_ARG_0,l1) >::object()); \
 
 #define o_reflection_add_template_parameter_reflection_2(l0,l1) \
     o_reflection_add_template_parameter_reflection_1(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_CAT(o_PP_ARG_1,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_1,l0))< o_PP_CAT(o_PP_ARG_1,l1) >::object());
+    pTemplateSpecialization->setArgument(1, o_PP_QUOTE(o_PP_CAT(o_PP_ARG_1,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_1,l0))< o_PP_CAT(o_PP_ARG_1,l1) >::object());
 
 #define o_reflection_add_template_parameter_reflection_3(l0,l1) \
     o_reflection_add_template_parameter_reflection_2(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_CAT(o_PP_ARG_2,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_2,l0))< o_PP_CAT(o_PP_ARG_2,l1) >::object());
+    pTemplateSpecialization->setArgument(2, o_PP_QUOTE(o_PP_CAT(o_PP_ARG_2,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_2,l0))< o_PP_CAT(o_PP_ARG_2,l1) >::object());
 
 #define o_reflection_add_template_parameter_reflection_4(l0,l1) \
     o_reflection_add_template_parameter_reflection_3(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_CAT(o_PP_ARG_3,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_3,l0))< o_PP_CAT(o_PP_ARG_3,l1) >::object());
+    pTemplateSpecialization->setArgument(3, o_PP_QUOTE(o_PP_CAT(o_PP_ARG_3,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_3,l0))< o_PP_CAT(o_PP_ARG_3,l1) >::object());
 
 #define o_reflection_add_template_parameter_reflection_5(l0,l1) \
     o_reflection_add_template_parameter_reflection_4(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_CAT(o_PP_ARG_4,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_4,l0))< o_PP_CAT(o_PP_ARG_4,l1) >::object());
+    pTemplateSpecialization->setArgument(4, o_PP_QUOTE(o_PP_CAT(o_PP_ARG_4,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_4,l0))< o_PP_CAT(o_PP_ARG_4,l1) >::object());
 
 #define o_reflection_add_template_parameter_reflection_6(l0,l1) \
     o_reflection_add_template_parameter_reflection_5(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_CAT(o_PP_ARG_5,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_5,l0))< o_PP_CAT(o_PP_ARG_5,l1) >::object());
+    pTemplateSpecialization->setArgument(5, o_PP_QUOTE(o_PP_CAT(o_PP_ARG_5,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_5,l0))< o_PP_CAT(o_PP_ARG_5,l1) >::object());
 
 #define o_reflection_add_template_parameter_reflection_7(l0,l1) \
     o_reflection_add_template_parameter_reflection_6(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_CAT(o_PP_ARG_6,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_6,l0))< o_PP_CAT(o_PP_ARG_6,l1) >::object());
+    pTemplateSpecialization->setArgument(6, o_PP_QUOTE(o_PP_CAT(o_PP_ARG_6,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_6,l0))< o_PP_CAT(o_PP_ARG_6,l1) >::object());
 
 #define o_reflection_add_template_parameter_reflection_8(l0,l1) \
     o_reflection_add_template_parameter_reflection_7(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_CAT(o_PP_ARG_7,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_7,l0))< o_PP_CAT(o_PP_ARG_7,l1) >::object());
+    pTemplateSpecialization->setArgument(7, o_PP_QUOTE(o_PP_CAT(o_PP_ARG_7,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_7,l0))< o_PP_CAT(o_PP_ARG_7,l1) >::object());
 
 #define o_reflection_add_template_parameter_reflection_9(l0,l1) \
     o_reflection_add_template_parameter_reflection_8(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_CAT(o_PP_ARG_8,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_8,l0))< o_PP_CAT(o_PP_ARG_8,l1) >::object());
+    pTemplateSpecialization->setArgument(8, o_PP_QUOTE(o_PP_CAT(o_PP_ARG_8,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_8,l0))< o_PP_CAT(o_PP_ARG_8,l1) >::object());
 
 #define o_reflection_add_template_parameter_reflection_10(l0,l1) \
     o_reflection_add_template_parameter_reflection_9(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_CAT(o_PP_ARG_9,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_9,l0))< o_PP_CAT(o_PP_ARG_9,l1) >::object());
+    pTemplateSpecialization->setArgument(9, o_PP_QUOTE(o_PP_CAT(o_PP_ARG_9,l1)), o_PP_CAT(detail::template_signature_parameter_,o_PP_CAT(o_PP_ARG_9,l0))< o_PP_CAT(o_PP_ARG_9,l1) >::object());
 
 #else /// NOT VISUAL STUDIO
 
@@ -836,43 +836,43 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
     o_PP_CAT( o_reflection_add_template_parameter_reflection_,o_PP_NARG_FUNC()l0 ) (l0,l1)
 
 #define o_reflection_add_template_parameter_reflection_1(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_ARG_0 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_0 l0)< o_PP_ARG_0 l1 >::object()); \
+    pTemplateSpecialization->setArgument(0, o_PP_QUOTE(o_PP_ARG_0 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_0 l0)< o_PP_ARG_0 l1 >::object()); \
 
 #define o_reflection_add_template_parameter_reflection_2(l0,l1) \
     o_reflection_add_template_parameter_reflection_1(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_ARG_1 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_1 l0)< o_PP_ARG_1 l1 >::object());
+    pTemplateSpecialization->setArgument(1, o_PP_QUOTE(o_PP_ARG_1 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_1 l0)< o_PP_ARG_1 l1 >::object());
 
 #define o_reflection_add_template_parameter_reflection_3(l0,l1) \
     o_reflection_add_template_parameter_reflection_2(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_ARG_2 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_2 l0)< o_PP_ARG_2 l1>::object());
+    pTemplateSpecialization->setArgument(2, o_PP_QUOTE(o_PP_ARG_2 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_2 l0)< o_PP_ARG_2 l1>::object());
 
 #define o_reflection_add_template_parameter_reflection_4(l0,l1) \
     o_reflection_add_template_parameter_reflection_3(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_ARG_3 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_3 l0)< o_PP_ARG_3 l1>::object());
+    pTemplateSpecialization->setArgument(3, o_PP_QUOTE(o_PP_ARG_3 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_3 l0)< o_PP_ARG_3 l1>::object());
 
 #define o_reflection_add_template_parameter_reflection_5(l0,l1) \
     o_reflection_add_template_parameter_reflection_4(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_ARG_4 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_4 l0)< o_PP_ARG_4 l1>::object());
+    pTemplateSpecialization->setArgument(4, o_PP_QUOTE(o_PP_ARG_4 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_4 l0)< o_PP_ARG_4 l1>::object());
 
 #define o_reflection_add_template_parameter_reflection_6(l0,l1) \
     o_reflection_add_template_parameter_reflection_5(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_ARG_5 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_5 l0)< o_PP_ARG_5 l1 >::object());
+    pTemplateSpecialization->setArgument(5, o_PP_QUOTE(o_PP_ARG_5 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_5 l0)< o_PP_ARG_5 l1 >::object());
 
 #define o_reflection_add_template_parameter_reflection_7(l0,l1) \
     o_reflection_add_template_parameter_reflection_6(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_ARG_6 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_6 l0)< o_PP_ARG_6 l1 >::object());
+    pTemplateSpecialization->setArgument(6, o_PP_QUOTE(o_PP_ARG_6 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_6 l0)< o_PP_ARG_6 l1 >::object());
 
 #define o_reflection_add_template_parameter_reflection_8(l0,l1) \
     o_reflection_add_template_parameter_reflection_7(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_ARG_7 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_7 l0)< o_PP_ARG_7 l1 >::object());
+    pTemplateSpecialization->setArgument(7, o_PP_QUOTE(o_PP_ARG_7 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_7 l0)< o_PP_ARG_7 l1 >::object());
 
 #define o_reflection_add_template_parameter_reflection_9(l0,l1) \
     o_reflection_add_template_parameter_reflection_8(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_ARG_8 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_8 l0)< o_PP_ARG_8 l1 >::object());
+    pTemplateSpecialization->setArgument(8, o_PP_QUOTE(o_PP_ARG_8 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_8 l0)< o_PP_ARG_8 l1 >::object());
 
 #define o_reflection_add_template_parameter_reflection_10(l0,l1) \
     o_reflection_add_template_parameter_reflection_9(l0,l1) \
-    pTemplateSpecialization->setArgument(o_PP_QUOTE(o_PP_ARG_9 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_9 l0)< o_PP_ARG_9 l1 >::object());
+    pTemplateSpecialization->setArgument(9, o_PP_QUOTE(o_PP_ARG_9 l1), o_PP_CAT(detail::template_signature_parameter_,o_PP_ARG_9 l0)< o_PP_ARG_9 l1 >::object());
 
 #endif // o_COMPILER
 
@@ -1170,7 +1170,7 @@ private:
 
 #define o_define_template_signature_parameter_phantom_element_impl(_type_) \
     template<_type_ value>\
-    reflection::TemplateElement* \
+    reflection::LanguageElement* \
     reflection::detail::template_signature_parameter_phantom::_type_<value>::object()\
 {\
     return o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<_type_>)(value, o_native);\
@@ -1181,7 +1181,7 @@ private:
 class _type_\
 {\
 public:\
-    inline static phantom::reflection::TemplateElement* object();\
+    inline static phantom::reflection::LanguageElement* object();\
 };
 
 #define o_define_template_signature_parameter_name_phantom(_type_) \
@@ -1198,7 +1198,7 @@ public:\
 
 #define o_define_template_signature_parameter_element_impl(_type_) \
     template<_type_ value>\
-    reflection::TemplateElement* \
+    reflection::LanguageElement* \
     reflection::detail::template_signature_parameter_##_type_<value>::object()\
 {\
     return o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<_type_>)("", value, o_native);\
@@ -1209,7 +1209,7 @@ public:\
 class template_signature_parameter_##_type_\
 {\
 public:\
-    inline static phantom::reflection::TemplateElement* object();\
+    inline static phantom::reflection::LanguageElement* object();\
 };\
     template<_type_ value>\
 class template_signature_parameter_name_##_type_\

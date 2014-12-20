@@ -42,6 +42,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Constant : public LanguageElement
 {
+    o_language_element;
+
 public:
     static Class* const metaType;
 
@@ -61,11 +63,20 @@ public:
     virtual bool                    hasValue(void* a_pSrc) const = 0;
     virtual Constant*               asConstant() const { return const_cast<Constant*>(this); }
 
-    virtual string                  getQualifiedName() const { return m_strName; }
-    virtual string                  getQualifiedDecoratedName() const { return m_strName; }
-    virtual string                  getDecoratedName() const { return m_strName; }
+    virtual string                  getQualifiedName() const { return m_strName.empty() ? "" : LanguageElement::getQualifiedName(); }
+    virtual string                  getQualifiedDecoratedName() const { return m_strName.empty() ? "" : LanguageElement::getQualifiedDecoratedName(); }
+    virtual string                  getDecoratedName() const { return m_strName.empty() ? "" : LanguageElement::getDecoratedName(); }
 
     virtual Constant*               clone() const = 0;
+
+    virtual bool                    isIntegral() const { return getValueType()->asIntegralType() != nullptr; }
+    virtual bool                    isZero() const = 0;
+
+    inline  bool                    isIntegralZero() const { return isIntegral() AND isZero(); }
+
+    virtual void                    toString(string& out) const = 0;
+
+    virtual void                    toLiteral(string& out) const = 0;
 
 protected:
 };

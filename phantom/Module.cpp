@@ -66,13 +66,22 @@ struct ModuleLanguageElementSorter
     }
 };
 
+Module::Module( const string& a_strName )
+    : m_strName(a_strName)
+    , m_pParentModule(nullptr)
+    , m_PlatformHandle(0)
+{
+
+}
+
 Module::Module( const string& a_strName, const string& a_strFilePath, size_t a_PlatformHandle )
     : m_strName(a_strName)
     , m_pParentModule(nullptr)
     , m_PlatformHandle(a_PlatformHandle)
     , m_strFilePath(a_strFilePath)
 {
-
+    o_assert(a_PlatformHandle != 0);
+    o_assert(a_strFilePath.size());
 }
 
 Module::~Module()

@@ -44,14 +44,6 @@
 
 o_namespace_begin(phantom, reflection)
 
-enum EABI
-{
-    e_ABI_stdcall,
-    e_ABI_fastcall,
-    e_ABI_cdecl,
-    e_ABI_thiscall,
-};
-
 typedef fastdelegate::FastDelegate4<void*, void**, size_t, void*> closure_call_delegate;
 
 struct MemoryLocation
@@ -142,6 +134,8 @@ protected:
 
 class o_export Subroutine : public LanguageElement
 {
+    o_language_element;
+
     friend class Block;
     friend class LabelStatement;
     friend class ClassType;
@@ -212,9 +206,8 @@ public:
     Block*              getBlock() const { return m_pBlock; }
     void                setBlock(Block* a_pBlock);
 
-    virtual 
-    LanguageElement*    solveElement( const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, modifiers_t a_Modifiers /* = modifiers_t */ ) const;
-    
+    virtual Block*      createBlock() { return createBlock(nullptr); }
+
     bool                containsMemoryAddress(const byte* a_pAddress);
 
     virtual void*       getAddress(void* a_pObject, void** a_pParams) const
@@ -246,7 +239,7 @@ protected:
     void                registerLabelStatement(LabelStatement* a_pLabelStatement);
     void                unregisterLabelStatement(LabelStatement* a_pLabelStatement);
     virtual void        finalize();
-    void                createBlock(LocalVariable* a_pThis);
+    Block*              createBlock(LocalVariable* a_pThis);
 
 protected:
     Signature*                      m_pSignature;

@@ -36,9 +36,10 @@
 
 /* ****************** Includes ******************* */
 #include "LanguageElement.h"
-#include "TemplateElement.h"
 /* **************** Declarations ***************** */
 /* *********************************************** */
+
+#define o_type o_language_element 
 
 o_namespace_begin(phantom, reflection)
 
@@ -46,35 +47,39 @@ enum ETypeId
 {
     e_void,
     e_char,
-    e_unsigned_char,
-    e_signed_char,
+    e_uchar,
+    e_schar,
     e_short,
-    e_unsigned_short,
+    e_ushort,
     e_int,
-    e_unsigned_int,
+    e_uint,
     e_long,
-    e_unsigned_long,
-    e_long_long,
-    e_unsigned_long_long,
+    e_ulong,
+    e_longlong,
+    e_ulonglong,
     e_float,
     e_double,
-    e_long_double,
+    e_longdouble,
     e_bool,
     e_wchar_t,
     e_enum,
     e_nullptr_t,
     e_signal_t,
     e_pointer,
+    e_member_pointer,
     e_reference,
     e_array,
     e_struct,
     e_union,
     e_class,
+    e_placeholder,
     e_other,
 };
 
-class o_export Type : public LanguageElement, public TemplateElement
+class o_export Type : public LanguageElement
 {
+    o_type;
+
     friend class phantom::reflection::Namespace;
 
     o_declare_meta_type(Type);
@@ -163,6 +168,7 @@ public:
 
     o_terminate();
 
+    bool                    matches(const string& a_strName, const vector<LanguageElement*>* a_pTemplateSignature) const;
     o_forceinline ETypeId   getTypeId() const { return m_eTypeId; }
     o_forceinline ushort    getSize() const { return m_uiSize; }
     o_forceinline ushort    getAlignment() const { return m_uiAlignment; }
@@ -178,7 +184,7 @@ public:
     virtual ComponentClass* asComponentClass() const { return nullptr; }
     virtual CompositionClass* asCompositionClass() const { return nullptr; }
     virtual AggregationClass* asAggregationClass() const { return nullptr; }
-    virtual TemplateElement*asTemplateElement() const { return const_cast<Type*>(this); }
+    virtual LanguageElement*asTemplateElement() const { return const_cast<Type*>(this); }
     virtual LanguageElement*asLanguageElement() const { return const_cast<Type*>(this); }
     virtual Type*           removeConst() const { return const_cast<Type*>(this); }
     Type*                   removeConstReference() const { return removeReference()->removeConst(); }
@@ -286,25 +292,7 @@ public:
     virtual void            copy(void* a_pDest, void const* a_pSrc) const { o_exception(exception::unsupported_member_function_exception, "not implemented yet"); }
     virtual void            smartCopy(reflection::Type* a_pDestType, void* a_pDest, void const* a_pSource) const;
 
-
-    virtual LanguageElement*            solveElement(
-        const string& a_strName
-        , const vector<TemplateElement*>*
-        , const vector<LanguageElement*>*
-        , modifiers_t a_Modifiers = 0) const;
-
     virtual void getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr ) const;
-
-    virtual Expression*     solveExpression( Expression* a_pLeftExpression
-        , const string& a_strName
-        , const vector<TemplateElement*>*
-        , const vector<LanguageElement*>*
-        , modifiers_t a_Modifiers = 0) const 
-    { 
-        return nullptr; 
-    }
-
-    virtual Expression*     solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const;
 
     virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
     
@@ -363,8 +351,6 @@ public:
     virtual bool            hasPreIncrement() const { return false; }
     virtual bool            hasRightShift() const { return false; }
     virtual bool            hasRightShiftAssign() const { return false; }
-
-    virtual bool            hasTrivialCastTo(Type* a_pType) const { return a_pType == this; }
 
     virtual Type*           promote() const { return const_cast<Type*>(this); }
 

@@ -7,7 +7,6 @@
 
 /* ****************** Includes ******************* */
 #include <phantom/phantom.h>
-#include "phantom/Message.h"
 #include <queue>
 #include <stack>
 /* **************** Declarations ***************** */
@@ -15,35 +14,7 @@ o_declareN(class, (phantom, reflection), Compiler);
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection)
-
-class LanguageElement;
-class InstanceDataMemberVariable;
-
-class IncompleteStatement;
-class BreakStatement;
-class ContinueStatement;
-class ForStatement;
-class WhileStatement;
-class DoWhileStatement;
-class SwitchStatement;
-class CaseStatement;
-class LabelStatement;
-class IfStatement;
-class ExpressionStatement;
-
-class Block;
-class CallExpression;
-class CastExpression;
-class DereferenceExpression;
-class AddressExpression;
-class ConstantExpression;
-class DataExpression;
-class InstanceDataMemberAccess;
-class PropertyAccess;
-class StaticVariableAccess;
-class ArrayElementAccess;
-class StringLiteralExpression;
-
+    
 struct CompilerData
 {
     CompilerData(LanguageElement* a_pElement) : m_pElement(a_pElement) {}
@@ -126,63 +97,90 @@ public:
         return m_CompilationQueues[a_iPass];
     }
 
-    // User custom elements
-    template<typename t_LanguageElement>
-    variant compile(t_LanguageElement* a_pElement) 
-    { 
-        LanguageElement* pLanguageElementCastCompileTimeAssert = a_pElement;
-        auto it = m_CompilationDelegates.find(typeOf<t_LanguageElement>());
-        if(it == m_CompilationDelegates.end()) return variant();
-        fastdelegate::FastDelegate1< variant, t_LanguageElement* > delegate;
-        delegate.SetMemento(it->second); 
-        return delegate(a_pElement);
-    }
+    // Default cplusplus like elements
+    virtual variant compile(LanguageElement* a_pElement) { return variant(); }
 
-    template<typename t_LanguageElement>
-    void registerCompilationDelegate(fastdelegate::FastDelegate1<variant, t_LanguageElement*> a_Delegate)
-    {
-        LanguageElement* pLanguageElementCastCompileTimeAssert = (t_LanguageElement*)nullptr;
-        o_assert(typeOf<t_LanguageElement>()->isKindOf(typeOf<LanguageElement>()));
-        m_CompilationDelegates[typeOf<t_LanguageElement>()] = a_Delegate.GetMemento();
-    }
+    // Namespace
+    virtual variant compile(Namespace* a_pNamespace) { return variant(); }
 
-    // Default basic elements
+    // Types 
+    virtual variant compile(Type* a_pType) { return variant(); }
+    virtual variant compile(PrimitiveType* a_pType) { return variant(); }
+    virtual variant compile(FunctionPointerType* a_pType) { return variant(); }
+    virtual variant compile(MemberFunctionPointerType* a_pType) { return variant(); }
+    virtual variant compile(DataMemberPointerType* a_pType) { return variant(); }
+    virtual variant compile(DataPointerType* a_pType) { return variant(); }
+    virtual variant compile(ReferenceType* a_pType) { return variant(); }
+    virtual variant compile(ConstType* a_pType) { return variant(); }
+    virtual variant compile(ArrayType* a_pType) { return variant(); }
+    virtual variant compile(Enum* a_pEnum) { return variant(); }
+    virtual variant compile(ClassType* a_pClassType);
+    virtual variant compile(Class* a_pClass);
+    virtual variant compile(Structure* a_pStructure) { return variant(); }
+    virtual variant compile(Union* a_pUnion) { return variant(); }
+    virtual variant compile(PODUnion* a_pPODUnion) { return variant(); }
+    virtual variant compile(AnonymousSection* a_pAnonymousSection) { return variant(); }
+    virtual variant compile(AnonymousStruct* a_pAnonymousStruct) { return variant(); }
+    virtual variant compile(AnonymousUnion* a_pAnonymousUnion) { return variant(); }
+    virtual variant compile(Template* a_pTemplate) { return variant(); }
+    virtual variant compile(TemplateSpecialization* a_pTemplateSpecialization) { return variant(); }
+
+    // Subroutines
+    virtual variant compile(Subroutine* a_pSubroutine) { return variant(); }
+    virtual variant compile(Constructor* a_pConstructor) { return variant(); }
+    virtual variant compile(Function* a_pFunction) { return variant(); }
+    virtual variant compile(StaticMemberFunction* a_pStaticMemberFunction) { return variant(); }
+    virtual variant compile(InstanceMemberFunction* a_pInstanceMemberFunction) { return variant(); }
+    virtual variant compile(Signal* a_pSignal) { return variant(); }
+
+    // Variables
+    virtual variant compile(StaticDataMember* a_pStaticDataMember) { return variant(); }
+    virtual variant compile(StaticVariable* a_pStaticVariable) { return variant(); }
+    virtual variant compile(InstanceDataMember* a_pInstanceDataMember) { return variant(); }
+    virtual variant compile(Property* a_pProperty) { return variant(); }
+
+    // Statechart
+    virtual variant compile(state::StateMachine* a_pStateMachine);
+    virtual variant compile(state::State* a_pState) { return variant(); }
+    virtual variant compile(state::Track* a_pTrack) { return variant(); }
 
     // Statements
-    virtual variant compile(LanguageElement* a_pElement) { return variant(); }
     virtual variant compile(Block* a_pBlock) { return variant(); }
-    virtual variant compile(ForStatement* a_pForStatement) { return variant(); }
-    virtual variant compile(WhileStatement* a_pWhileStatement) { return variant(); }
-    virtual variant compile(IfStatement* a_pIfStatement) { return variant(); }
-    virtual variant compile(SwitchStatement* a_pSwitchStatement) { return variant(); }
-    virtual variant compile(DoWhileStatement* a_pDoWhileStatement) { return variant(); }
+    virtual variant compile(LocalVariable* a_pLocalVariable) { return variant(); }
+    virtual variant compile(Parameter* a_pParameter) { return variant(); }
+    virtual variant compile(Signature* a_pSignature) { return variant(); }
+    virtual variant compile(BranchStatement* a_pBranchStatement) { return variant(); }
+    virtual variant compile(BranchIfStatement* a_pBranchIfStatement) { return variant(); }
+    virtual variant compile(BranchIfNotStatement* a_pBranchIfNotStatement) { return variant(); }
     virtual variant compile(ExpressionStatement* a_pExpressionStatement) { return variant(); }
-    virtual variant compile(IncompleteStatement* a_pIncompleteStatement) { return variant(); }
-    virtual variant compile(BreakStatement* a_pBreakStatement) { return variant(); }
-    virtual variant compile(ContinueStatement* a_pContinueStatement) { return variant(); }
+    virtual variant compile(ReturnStatement* a_pReturnStatement) { return variant(); }
+    virtual variant compile(LabelStatement* a_pLabelStatement) { return variant(); }
 
     // Expressions
     virtual variant compile(CallExpression* a_pCallExpression) { return variant(); }
     virtual variant compile(CastExpression* a_pCastExpression) { return variant(); }
     virtual variant compile(DereferenceExpression* a_pDereferenceExpression) { return variant(); }
     virtual variant compile(AddressExpression* a_pAddressExpression) { return variant(); }
+    virtual variant compile(ReferenceExpression* a_pReferenceExpression) { return variant(); }
     virtual variant compile(ConstantExpression* a_pConstantExpression) { return variant(); }
     virtual variant compile(DataExpression* a_pDataExpression) { return variant(); }
-    virtual variant compile(InstanceDataMemberAccess* a_pInstanceDataMemberAccess) { return variant(); }
-    virtual variant compile(PropertyAccess* a_pPropertyAccess) { return variant(); }
-    virtual variant compile(StaticVariableAccess* a_pStaticVariableAccess) { return variant(); }
-    virtual variant compile(ArrayElementAccess* a_pArrayElementAccess) { return variant(); }
+    virtual variant compile(InstanceDataMemberExpression* a_pInstanceDataMemberExpression) { return variant(); }
+    virtual variant compile(LocalVariableExpression* a_pLocalVariableExpression) { return variant(); }
+    virtual variant compile(PropertyExpression* a_pPropertyExpression) { return variant(); }
+    virtual variant compile(StaticVariableExpression* a_pStaticVariableExpression) { return variant(); }
+    virtual variant compile(ArrayExpression* a_pArrayExpression) { return variant(); }
     virtual variant compile(StringLiteralExpression* a_pStringLiteralExpression) { return variant(); }
+    virtual variant compile(MemberFunctionPointerCallExpression* a_pMemberFunctionPointerCallExpression) { return variant(); }
+    virtual variant compile(DataMemberPointerExpression* a_pDataMemberPointerExpression) { return variant(); }
+    virtual variant compile(AssignmentExpression* a_pAssignmentExpression) { return variant(); }
+    virtual variant compile(ConstructorCallExpression* a_pConstructorCallExpression) { return variant(); }
+    virtual variant compile(PlacementConstructionExpression* a_pPlacementConstructionExpression) { return variant(); }
+    virtual variant compile(BinaryOperationExpression* a_pBinaryOperatorExpression) { return variant(); }
+    virtual variant compile(PreUnaryOperationExpression* a_pPreUnaryOperationExpression) { return variant(); }
+    virtual variant compile(PostUnaryOperationExpression* a_pPostUnaryOperationExpression) { return variant(); }
+    virtual variant compile(SingleParameterFunctionExpression* a_pSingleParameterFunctionExpression) { return variant(); }
 
-    // Elements 
-    virtual variant compile(Structure* a_pStructure) { return variant(); }
-    virtual variant compile(ClassType* a_pType) { return variant(); }
-    virtual variant compile(Class* a_pClass) { return variant(); }
-    virtual variant compile(InstanceMemberFunction* a_pInstanceMemberFunction) { return variant(); }
-    virtual variant compile(Signal* a_pSignal) { return variant(); }
-    virtual variant compile(state::StateMachine* a_pStateMachine) { return variant(); }
-    virtual variant compile(state::State* a_pState) { return variant(); }
-    virtual variant compile(state::Track* a_pTrack) { return variant(); }
+    virtual variant compile(Constant* a_pConstant) { return variant(); }
 
 protected:
     virtual void    preCompile(LanguageElement* a_pLanguageElement) {}
@@ -201,7 +199,7 @@ protected:
 	map<LanguageElement*, variant_map>	m_RememberedSolvingData;
 	uint 			                    m_Flags;
 	LanguageElement*				    m_pCompiledElement;
-    map<Class*, fastdelegate::DelegateMemento>        m_CompilationDelegates;
+    // map<Class*, fastdelegate::DelegateMemento>        m_CompilationDelegates;
 };
 
 o_namespace_end(phantom, reflection)

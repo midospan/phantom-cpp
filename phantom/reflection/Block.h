@@ -1,9 +1,5 @@
-
-
 #ifndef o_reflection_Block_h__
 #define o_reflection_Block_h__
-
-
 
 /* ****************** Includes ******************* */
 #include <phantom/reflection/Statement.h>
@@ -19,20 +15,20 @@ class ReturnStatement;
 
 class o_export Block : public Statement
 {
+    o_language_element;
+
     friend class Subroutine;
     friend class ClassType;
     friend class ReturnStatement;
 
 public:
-#ifndef WIN32
-    Block(); // used for serialization
-#endif //WIN32
+
     Block(Block* a_pBlock, const string& a_strName = "");
-    virtual ~Block();
+    ~Block();
 
     virtual Block* asBlock() const  { return (Block*)this; }
 
-    void addLocalVariable(Type* a_pType, const string& a_strName, modifiers_t a_Modifiers = 0);
+    void addLocalVariable(Type* a_pType, const string& a_strName, Expression* a_pInit = nullptr, modifiers_t a_Modifiers = 0);
 	void addLocalVariable(LocalVariable* a_pVariable);
     void addStatement(Statement* a_pStatement);
     
@@ -78,13 +74,11 @@ public:
 
     bool containsLine(int line) const;
 
-    virtual LanguageElement* solveElement(const string& a_strName, const vector<TemplateElement*>* , const vector<LanguageElement*>* , modifiers_t a_Modifiers /* = modifiers_t */) const;
-
     Block* findBlockAtCodePosition(const CodePosition& a_Position) const;
 
     virtual void getAccessibleElementsAt(const CodePosition& a_Position, vector<LanguageElement*>& a_Elements) const;
 
-    virtual void eval() const;
+    virtual void internalEval() const ;
 
     vector<LocalVariable*>::const_iterator  beginLocalVariables() const { return m_LocalVariables.begin(); }
     vector<LocalVariable*>::const_iterator  endLocalVariables() const { return m_LocalVariables.end(); }
@@ -102,13 +96,12 @@ public:
 
     void addRAIIDestructionExpressionStatement(Expression* a_pExpression);
 
-    virtual variant compile(Compiler* a_pCompiler);
-
     Block*  getRootBlock() const { return (m_pOwner && m_pOwner->asBlock()) ? m_pOwner->asBlock()->getRootBlock() : const_cast<Block*>(this); }
     
 protected:
     virtual void restore();
     virtual void elementRemoved( LanguageElement* a_pElement );
+    virtual void referencedElementRemoved( LanguageElement* a_pElement );
 
 protected:
     vector<LocalVariable*>  getLocalVariables() const { return m_LocalVariables; }
@@ -120,9 +113,7 @@ protected:
     void                    setRAIIDestructionStatements(vector<Statement*> list);
 
 protected:
-#ifdef WIN32
     Block(); // used for serialization
-#endif //WIN32
     Block(Subroutine* a_pSubroutine, LocalVariable* a_pThis = nullptr); // used to create root block in a subroutine
 
 protected:

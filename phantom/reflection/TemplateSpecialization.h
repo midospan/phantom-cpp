@@ -46,13 +46,13 @@ o_namespace_begin(phantom, reflection)
 
 class o_export TemplateSpecialization : public LanguageElement
 {
-    friend class TemplateElement;
+    o_language_element;
+
     friend class LanguageElement;
 public:
 
 public:
-
-    TemplateSpecialization(Template* a_pTemplate);
+    TemplateSpecialization(Template* a_pTemplate, TemplateSignature* a_pSignature = nullptr);
     o_destructor ~TemplateSpecialization();
 
     virtual TemplateSpecialization* asTemplateSpecialization() const { return (TemplateSpecialization*)this; }
@@ -60,25 +60,35 @@ public:
     uint                getArgumentCount() const { return m_Arguments.size(); }
     Type*               getType(const string& a_strTypenameVariableName) const;
     ClassType*          getClassType() const { return m_pOwner ? m_pOwner->asClassType() : nullptr; }
-    TemplateElement*    getArgumentElement(const string& a_strTypenameVariableName) const;
+    LanguageElement*    getArgument(const string& a_strTypenameVariableName) const;
     size_t              getArgumentIndex(const string& a_strTemplateTypeName) const;
 
-    void                setArgument(const string& a_strTemplateTypeName, TemplateElement* a_pElement);
-    void                removeArgument(TemplateElement* a_pElement);
-
-    void                setDefaultArgument(const string& a_strParameterName, TemplateElement* a_pElement);
-    TemplateElement*    getDefaultArgument(const string& a_strParameterName) const;
+    void                setArgument(size_t a_uiIndex, LanguageElement* a_pElement);
+    void                setArgument(size_t a_uiIndex, const string& a_strTemplateTypeName, LanguageElement* a_pElement);
+    void                removeArgument(LanguageElement* a_pElement);
 
     string              getQualifiedName() const;
     string              getQualifiedDecoratedName() const;
 
-    boolean             matches(const vector<TemplateElement*>* a_TemplateSpecialization) const;
+    boolean             matches(const vector<LanguageElement*>* a_TemplateSpecialization) const;
   
     Template*           getTemplate() const { return m_pTemplate; }
 
     virtual void        checkCompleteness() const;
     virtual bool        canBeDestroyed() const;
- 
+
+    bool                isEmpty() const;
+
+    bool                isPartial() const;
+    
+    LanguageElement*    getSpecializedElement() const { return m_pOwner; }
+
+    virtual LanguageElement* internalInstanciateTemplate(TemplateSpecialization* a_pSpecialization);
+
+    bool                isSpecializingParameter(TemplateParameter* a_pParameter) const;
+
+    bool                isSpecializing(LanguageElement* a_pLanguageElement);
+
 protected:
     void                _updateName();
     void                referencedElementAdded(LanguageElement* a_pElement);
@@ -87,19 +97,11 @@ protected:
     void                elementRemoved(LanguageElement* a_pElement);
 
 protected:
-    typedef phantom::map<string, TemplateElement*>  template_element_map;
+    typedef phantom::map<string, LanguageElement*>  template_element_map;
     typedef phantom::map<string, size_t>            template_element_index_map;
-    struct Argument
-    {
-        Argument() : element(nullptr), defaultElement(nullptr) {}
-        Argument(const string& n, TemplateElement* e, TemplateElement* d = nullptr) : name(n), element(e), defaultElement(d) {}
-        string name;
-        TemplateElement* element;
-        TemplateElement* defaultElement;
-    };
-    vector<Argument>            m_Arguments;
-    size_t                      m_DefaultArgumentsCount;
     Template*                   m_pTemplate;
+    TemplateSignature*          m_pTemplateSignature;
+    vector<LanguageElement*>    m_Arguments;
 
 };
 

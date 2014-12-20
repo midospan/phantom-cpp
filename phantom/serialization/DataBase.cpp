@@ -635,7 +635,7 @@ uint DataBase::getGuid( const phantom::data& a_Data ) const
 modifiers_t DataBase::getDataModifiers( const phantom::data& a_Data ) const
 {
     auto found = m_DataModifiers.find(getGuid(a_Data));
-    return found == m_DataModifiers.end() ? modifiers_t() : found->second;
+    return found == m_DataModifiers.end() ? 0 : found->second;
 }
 
 void DataBase::setDataModifiers( const phantom::data& a_Data, modifiers_t a_Modifiers)
@@ -1016,7 +1016,7 @@ void DataBase::connectData( const phantom::data& a_Data, bool a_bCollectComponen
                     uint newGuid = getGuid(d);
                     if(newGuid != o_invalid_guid)
                     {
-                        addDataReferenceExpression(newGuid, pExpression->getName());
+                        addDataReferenceExpression(newGuid, pExpression->translate());
                     }
                 }
             }
@@ -1047,7 +1047,7 @@ void DataBase::connectData( const phantom::data& a_Data, bool a_bCollectComponen
                         pCompositionClass->get(pComposition, i, &pComponent);
                         if(pComponent != nullptr AND getGuid(pComponent) == o_invalid_guid)
                         {
-                            string expression = formatIndexedExpression(pExpression->getName(), i, "()");
+                            string expression = formatIndexedExpression(pExpression->translate(), i, "()");
                             pNode->addComponentData(pComponent, a_Data, expression, pExpression->getModifiers());
 //                                 if(m_pCurrentRecord)
 //                                 {
@@ -1071,7 +1071,7 @@ void DataBase::connectData( const phantom::data& a_Data, bool a_bCollectComponen
                     o_verify(phantom::connect( rd, pAggregationClass->getMovedSignal(), rttiDataOf(this), pDataBaseClass->getSlot("aggregateMoved(size_t, size_t, void*)")), "");
                     o_verify(phantom::connect( rd, pAggregationClass->getReplacedSignal(), rttiDataOf(this), pDataBaseClass->getSlot("aggregateReplaced(size_t, void*, void*)")), "");
                 }
-                string expression = pExpression->getName();
+                string expression = pExpression->translate();
                 size_t count = pAggregationClass->count(pAggregation);
                 for(size_t i = 0 ;i<count; ++i)
                 {
@@ -1083,7 +1083,7 @@ void DataBase::connectData( const phantom::data& a_Data, bool a_bCollectComponen
                         if(aggregateGuid != o_invalid_guid)
                         {
                             addDataReferenceExpression(aggregateGuid, formatIndexedExpression(expression, i, "()"));
-//                                 string expression = formatIndexedExpression(pExpression->getName(), i, "()");
+//                                 string expression = formatIndexedExpression(pExpression->translate(), i, "()");
 //                                 string oldValueExpression = expression+"=0";
 //                                 string newValueExpression = expression+"=&(@"+lexical_cast<string>(getGuid(pAggregate))+")";
 //                                 if(m_pCurrentRecord)
@@ -1104,7 +1104,7 @@ void DataBase::connectData( const phantom::data& a_Data, bool a_bCollectComponen
                 {
                     o_verify(phantom::connect( rd, pComponentClass->getChangedSignal(), rttiDataOf(this), pDataBaseClass->getSlot("componentChanged(void*, void*)")), "");
                 }
-                string expression = pExpression->getName();
+                string expression = pExpression->translate();
                 void* pPointer = nullptr;
                 pComponentClass->get(pComponent, &pPointer);
                 if(pPointer != nullptr AND getGuid(pPointer) == o_invalid_guid)

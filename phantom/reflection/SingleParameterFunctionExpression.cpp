@@ -40,7 +40,7 @@ o_registerN((phantom, reflection), SingleParameterFunctionExpression);
 o_namespace_begin(phantom, reflection) 
 
 SingleParameterFunctionExpression::SingleParameterFunctionExpression(Subroutine* a_pSubroutine, Expression* a_pLeftExpression /*= nullptr*/)
-    : Expression(a_pSubroutine->getParameterType(0), a_pLeftExpression ? "("+a_pLeftExpression->getName()+ ")." + a_pSubroutine->getName() : a_pSubroutine->getName())
+    : Expression(a_pSubroutine->getParameterType(0))
     , m_pLeftExpression(a_pLeftExpression)
     , m_pSubroutine(a_pSubroutine)
 {
@@ -48,18 +48,6 @@ SingleParameterFunctionExpression::SingleParameterFunctionExpression(Subroutine*
     addReferencedElement(a_pSubroutine);
     if(a_pLeftExpression)
         addSubExpression(m_pLeftExpression);
-}
-
-void SingleParameterFunctionExpression::setValue( void const* a_pSrc ) const
-{
-    if(m_pLeftExpression)
-    {
-        m_pSubroutine->call(m_pLeftExpression->loadEffectiveAddress(), (void**)&a_pSrc);
-    }
-    else 
-    {
-        m_pSubroutine->call((void**)&a_pSrc);
-    }
 }
 
 SingleParameterFunctionExpression* SingleParameterFunctionExpression::clone() const

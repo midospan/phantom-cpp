@@ -46,10 +46,12 @@ o_namespace_begin(phantom, reflection)
 
 class o_export AddressExpression : public Expression
 {
+    o_language_element;
+
 public:
     AddressExpression(Expression* a_pReferenceableExpression);
 
-    virtual void                    getValue(void* a_pDest) const 
+    virtual void                    internalEval(void* a_pDest) const 
     {
         *((void**)a_pDest) = m_pAddressedExpression->loadEffectiveAddress();
     }
@@ -69,6 +71,8 @@ public:
     Expression* getAddressedExpression() const { return m_pAddressedExpression; }
 
     virtual AddressExpression*     clone() const;
+
+    virtual LanguageElement* internalInstanciateTemplate(TemplateSpecialization* a_pSpecialization);
 
 protected:
     Expression* m_pAddressedExpression;

@@ -47,6 +47,8 @@ o_namespace_begin(phantom, state)
 
 class o_export Track : public StateMachineElement
 {
+    o_language_element;
+
     friend class State;
     friend class StateMachine;
 
@@ -116,8 +118,6 @@ public:
     inline void update(dynamic_state_machine_data* smdataptr);
 
     inline void leave(dynamic_state_machine_data* smdataptr);
-
-    virtual variant compile(reflection::Compiler* a_pCompiler);
 
 protected:
     void                    setParentState(State* a_pState) { m_pParentState = a_pState; }

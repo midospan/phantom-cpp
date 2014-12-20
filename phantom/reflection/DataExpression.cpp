@@ -41,8 +41,7 @@ o_registerN((phantom, reflection), DataExpression);
 o_namespace_begin(phantom, reflection) 
 
 DataExpression::DataExpression(serialization::DataBase* a_pDataBase, Expression* a_pGuidExpression)
-    : Expression(a_pDataBase->getData(a_pGuidExpression->get().as<uint>()).type()->referenceType()
-                , "@("+a_pGuidExpression->getName()+")")
+    : Expression(a_pDataBase->getData(a_pGuidExpression->get().as<uint>()).type()->referenceType())
                 , m_pGuidExpression((a_pGuidExpression AND a_pGuidExpression->getOwner()) ? a_pGuidExpression->clone() : a_pGuidExpression)
     , m_pDataBase(a_pDataBase)
 {
@@ -54,7 +53,7 @@ DataExpression::DataExpression(serialization::DataBase* a_pDataBase, Expression*
     }
 }
 
-void DataExpression::getValue( void* a_pDest ) const
+void DataExpression::internalEval( void* a_pDest ) const
 {
     uint value = 0;
     m_pConvertedGuidExpression->load(&value);

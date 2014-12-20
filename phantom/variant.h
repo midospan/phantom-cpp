@@ -8,18 +8,7 @@
 
 /* *********************************************** */
 
-o_namespace_begin(phantom)
-
-class variant_generic_class
-{
-
-};
-
-o_namespace_end(phantom)
-
 o_declareN(class, (phantom), variant);
-
-o_declareN((phantom), variant_generic_class);
 
 o_namespace_begin(phantom)
 

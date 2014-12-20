@@ -55,18 +55,18 @@ public:
         o_assert(a_pExpression->isAddressable());
     }
 
-    virtual void    getValue(void* a_pDest) const 
+    virtual void    internalEval(void* a_pDest) const 
     {
         t_Ty* _where;
-        m_pExpression->getValue(&_where);
+        m_pExpression->internalEval(&_where);
         typeOf<t_Ty>()->convertValueTo(m_pValueType, a_pDest, _where);
         (*_where)++;
     }
 
-    virtual void            eval() const 
+    virtual void            internalEval() const 
     {
         t_Ty* _where;
-        m_pExpression->getValue(&_where);
+        m_pExpression->internalEval(&_where);
         (*_where)++;
     }
 

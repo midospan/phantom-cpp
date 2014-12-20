@@ -35,7 +35,7 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/ArrayType.h>
 #include <phantom/reflection/ArrayType.hxx>
-#include "phantom/reflection/ArrayElementAccess.h"
+#include "phantom/reflection/ArrayExpression.h"
 /* *********************************************** */
 o_registerN((phantom, reflection), ArrayType);
 
@@ -104,28 +104,6 @@ void ArrayType::referencedElementRemoved( LanguageElement* a_pElement )
         m_pElementType->removeExtendedType(this);
         m_pElementType = nullptr;
     }
-}
-
-Expression* ArrayType::solveOperator( const string& a_strOperator, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers ) const
-{
-    if(a_strOperator == "[]" AND a_Expressions.size() == 2)
-    {
-        if(a_Expressions[0]->getValueType()->removeReference()->removeConst() == this)
-        {
-            if(a_Expressions[1]->getValueType()->isConvertibleTo(typeOf<size_t>()))
-            {
-                if(a_Modifiers & o_const)
-                {
-                    return o_new(ArrayElementAccess)( constType(), a_Expressions[0], a_Expressions[1]);
-                }
-                else 
-                {
-                    return o_new(ArrayElementAccess)( const_cast<ArrayType*>(this), a_Expressions[0], a_Expressions[1]);
-                }
-            }
-        }
-    }
-    return Type::solveOperator(a_strOperator, a_Expressions, a_Modifiers);
 }
 
 void ArrayType::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const

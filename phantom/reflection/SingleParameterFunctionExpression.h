@@ -46,21 +46,26 @@ o_namespace_begin(phantom, reflection)
 
 class o_export SingleParameterFunctionExpression : public Expression
 {
+    o_language_element;
+
 public:
     SingleParameterFunctionExpression(Subroutine* a_pSubroutine, Expression* a_pLeftExpression = nullptr);
     o_destructor ~SingleParameterFunctionExpression(void)     {}
 
-    virtual void getValue(void* a_pDest) const 
+    virtual void internalEval(void* a_pDest) const 
     {
         o_unused(a_pDest);
     }
 
-    virtual void setValue(void const* a_pSrc) const;
-
     virtual void flush() const { m_pLeftExpression->flush(); }
 
     virtual bool isReferenceable() const { return false; }
+
     virtual bool isDereferenceable() const { return false; }
+
+    Expression* getLeftExpression() const { return m_pLeftExpression; }
+
+    Subroutine* getSubroutine() const { return m_pSubroutine; }
 
     virtual SingleParameterFunctionExpression* clone() const;
 

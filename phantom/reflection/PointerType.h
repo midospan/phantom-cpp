@@ -47,6 +47,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export PointerType : public PrimitiveType
 {
+    o_type;
+
     o_declare_meta_type(PointerType);
 
 public:

@@ -1,5 +1,4 @@
 #include "phantom\reflection\LanguageElement.hxx"
-#include "phantom\reflection\TemplateElement.hxx"
 #include "phantom\reflection\Type.hxx"
 #include "phantom\reflection\ClassType.hxx"
 #include "phantom\reflection\Class.hxx"
@@ -29,7 +28,6 @@
 #include "phantom\reflection\PointerType.hxx"
 #include "phantom\reflection\PrimitiveType.hxx"
 #include "phantom\reflection\Property.hxx"
-#include "phantom\reflection\PureVirtualMemberFunction.hxx"
 #include "phantom\reflection\Range.hxx"
 #include "phantom\reflection\SequentialContainerClass.hxx"
 #include "phantom\reflection\SetContainerClass.hxx"

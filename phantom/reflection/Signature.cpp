@@ -36,7 +36,7 @@
 #include "phantom/reflection/Signature.h"
 #include "phantom/reflection/Signature.hxx"
 #include "phantom/reflection/Expression.h"
-#include "phantom/reflection/LocalVariable.h"
+#include "phantom/reflection/Parameter.h"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 #include <sstream>
@@ -45,43 +45,53 @@ o_registerN((phantom, reflection), Signature);
 
 o_namespace_begin(phantom, reflection) 
 
-Signature* Signature::Create( void )
+Signature* Signature::Create( modifiers_t modifiers )
 {
-    return o_new(Signature);
+    return o_new(Signature)(modifiers);
 }
 
-Signature* Signature::Create( const char* a_pText, phantom::reflection::TemplateSpecialization* a_pTemplateSpecialization, phantom::reflection::LanguageElement* a_pScope )
+Signature* Signature::Create( const char* a_pText, phantom::reflection::TemplateSpecialization* a_pTemplateSpecialization, phantom::reflection::LanguageElement* a_pScope, modifiers_t modifiers )
 {
-    return o_new(Signature)(a_pText, a_pTemplateSpecialization, a_pScope);
+    return o_new(Signature)(a_pText, a_pTemplateSpecialization, a_pScope, modifiers);
 }
 
-Signature* Signature::Create( Type* a_pType )
+Signature* Signature::Create( Type* a_pType, modifiers_t modifiers )
 {
-    return o_new(Signature)(a_pType);
+    return o_new(Signature)(a_pType, modifiers);
 }
 
-Signature::Signature( void ) : m_pReturnType(NULL)
+Signature::Signature( modifiers_t modifiers ) 
+: LanguageElement("", modifiers)
+, m_pReturnType(NULL)
 , m_uiArgumentStorageSize(0)
 , m_pReturnTypeName(nullptr)
-, m_pParameterTypeNames(nullptr)
 {
 
 }
 
-Signature::Signature( Type* a_pType )
-    : m_pReturnType(NULL)
+Signature::Signature( Type* a_pType, modifiers_t modifiers )
+    : LanguageElement("", modifiers)
+    , m_pReturnType(NULL)
     , m_uiArgumentStorageSize(0)
     , m_pReturnTypeName(nullptr)
-    , m_pParameterTypeNames(nullptr)
 {
     setReturnType(a_pType);
 }
 
-Signature::Signature( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization /*= NULL*/, LanguageElement* a_pScope /*= (LanguageElement*)phantom::rootNamespace() */ )
-    : m_pReturnType(NULL)
+Signature::Signature( Type* a_pType, const vector<Parameter*>& a_Parameters, modifiers_t modifiers /*= 0 */ )
+{
+    setReturnType(a_pType);
+    for(auto it = a_Parameters.begin(); it != a_Parameters.end(); ++it)
+    {
+        addParameter(*it);
+    }
+}
+
+Signature::Signature( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization /*= NULL*/, LanguageElement* a_pScope /*= (LanguageElement*)phantom::globalNamespace() */, modifiers_t modifiers )
+    : LanguageElement("", modifiers)
+    , m_pReturnType(NULL)
     , m_uiArgumentStorageSize(0)
     , m_pReturnTypeName(nullptr)
-    , m_pParameterTypeNames(nullptr)
 {
     parse(a_strSignature, a_pTemplateSpecialization, a_pScope);
 }
@@ -147,16 +157,20 @@ Signature::~Signature( void )
 
 void Signature::addParameter( Type* a_pType, const string& a_strName, Expression* a_pExpression )
 {
-    o_assert(a_pType && a_pType->isCopyable() );
-    m_ParametersTypes.push_back(a_pType);
-    m_ParameterNames.push_back(a_strName);
-    m_ParameterDefaultValues.push_back(a_pExpression);
-    if(a_pExpression)
+    addParameter(o_new(Parameter)(a_pType, a_strName, a_pExpression));
+}
+
+void Signature::addParameter( Parameter* a_pParameter )
+{
+    m_Parameters.push_back(a_pParameter);
+    if(a_pParameter)
     {
-        addElement(a_pExpression);
+        addElement(a_pParameter);
     }
-    addReferencedElement(a_pType);
-    updateName();
+    else 
+    {
+        setInvalid();
+    }
 }
 
 void Signature::setReturnType( Type* a_pType )
@@ -164,31 +178,21 @@ void Signature::setReturnType( Type* a_pType )
     o_assert(a_pType AND (a_pType == typeOf<void>() OR a_pType->isCopyable()));
     m_pReturnType = a_pType;
     addReferencedElement(a_pType);
-    updateName();
 }
 
 void Signature::referencedElementRemoved(LanguageElement* a_pElement)
 {
-    if(a_pElement->asExpression())
-    {
-        auto found = std::find(m_ParameterDefaultValues.begin(), m_ParameterDefaultValues.end(), a_pElement->asExpression());
-        if(found != m_ParameterDefaultValues.end())
-        {
-            m_ParameterDefaultValues.erase(found);
-        }
-    }
-    else
     {
         bool bFound = true;
         while(bFound)
         {
             bFound = false;
-            for(auto it = m_ParametersTypes.begin(); it != m_ParametersTypes.end(); ++it)
+            for(auto it = m_Parameters.begin(); it != m_Parameters.end(); ++it)
             {
                 if((*it) == a_pElement)
                 {
                     bFound = true;
-                    m_ParametersTypes.erase(std::find(m_ParametersTypes.begin(), m_ParametersTypes.end(), a_pElement));
+                    m_Parameters.erase(std::find(m_Parameters.begin(), m_Parameters.end(), a_pElement));
                     break;
                 }
             }
@@ -203,13 +207,13 @@ void Signature::referencedElementRemoved(LanguageElement* a_pElement)
 
 size_t Signature::getParameterCount() const
 {
-    return m_ParametersTypes.size();
+    return m_Parameters.size();
 }
 
 Type* Signature::getParameterType( size_t a_uiParamIndex ) const
 {
     o_assert(a_uiParamIndex < getParameterCount(), "Index too big");
-    return m_ParametersTypes[a_uiParamIndex];
+    return m_Parameters[a_uiParamIndex]->getValueType();
 }
 
 Type* Signature::getReturnType() const
@@ -322,7 +326,8 @@ bool Signature::ParseParameterTypeList( const string& a_strText, TemplateSpecial
     if(words.size() != 1) return false;
     
     vector<string> parameters;
-    SeparateParameters(words.front(), a_pTemplateSpecialization, parameters, a_pScope);
+    if(NOT(SeparateParameters(words.front(), a_pTemplateSpecialization, parameters, a_pScope)))
+        return false;
     for(auto it = parameters.begin(); it != parameters.end(); ++it)
     {
         Type* pType = nullptr;
@@ -357,66 +362,84 @@ end_false:
 bool Signature::matches( const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes ) const
 {
     size_t count = a_FunctionSignature.size();
-    if(count != m_ParametersTypes.size()) return false;
-    size_t i = 0;
-    bool result = true;
-    for(;i<count;++i)
+    if(a_pPartialMatchesIndexes)
     {
-        Type* pParamType = m_ParametersTypes[i];
-        ReferenceType* pRefType = m_ParametersTypes[i]->asReferenceType();
-        if(pRefType AND pRefType->getReferencedType()->asConstType())
-            pParamType = pParamType->removeReference()->removeConst();
-        if(NOT(a_FunctionSignature[i]->isImplicitlyConvertibleTo(pParamType))) 
+        if(count != m_Parameters.size()) return false;
+        size_t i = 0;
+        bool result = true;
+        for(;i<count;++i)
         {
-            if(a_pPartialMatchesIndexes) 
+            Type* pParamType = getParameterType(i);
+            if(pParamType == a_FunctionSignature[i])
+                continue;
+            ReferenceType* pRefType = pParamType->asReferenceType();
+            if(pRefType AND pRefType->getReferencedType()->asConstType())
+                pParamType = pParamType->removeReference()->removeConst();
+            if(NOT(a_FunctionSignature[i]->isImplicitlyConvertibleTo(pParamType))) 
             {
                 result = false;
-            } 
-            else return false;
-        }
-        else if((a_FunctionSignature[i] != m_ParametersTypes[i]))
-        {
-            if(a_pPartialMatchesIndexes)
+            }
+            else
             {
                 a_pPartialMatchesIndexes->push_back(i);
             }
-            else return false;
+        }
+        return result;
+    }
+    else 
+    {
+        if(count != m_Parameters.size()) return false;
+        size_t i = 0;
+        for(;i<count;++i)
+        {
+            Type* pParamType = getParameterType(i);
+            if((a_FunctionSignature[i] != pParamType)) return false;
         }
     }
-    return result;
+    return true;
 }
 
-void Signature::updateName()
+bool Signature::matches( const vector<Expression*>& a_Arguments, vector<size_t>* a_pPartialMatchesIndexes /*= nullptr*/ ) const
 {
-    m_strName = "(";
-    auto it = m_ParametersTypes.begin();
-    auto end = m_ParametersTypes.end();
-    for(;it!=end;++it)
+    vector<Type*> types;
+    for(auto it = a_Arguments.begin(); it != a_Arguments.end(); ++it)
     {
-        if(it != m_ParametersTypes.begin())
-        {
-            m_strName += ", ";
-        }
-        m_strName += (*it)->getName();
+        if(*it == nullptr OR (*it)->getValueType() == nullptr) return nullptr;
+        types.push_back((*it)->getValueType());
     }
-    m_strName += ")";
-    //m_strName += m_pReturnType->getName();
+    return matches(types, a_pPartialMatchesIndexes);
+}
+
+bool Signature::matches( Signature* a_pOther ) const
+{
+    if(m_Modifiers != a_pOther->m_Modifiers) 
+        return false;
+    vector<Type*> types;
+    for(auto it = a_pOther->m_Parameters.begin(); it != a_pOther->m_Parameters.end(); ++it)
+    {
+        types.push_back((*it)->getValueType());
+    }
+    return matches(types);
 }
 
 string Signature::getQualifiedDecoratedName() const
 {
     string result = "(";
-    auto it = m_ParametersTypes.begin();
-    auto end = m_ParametersTypes.end();
+    auto it = m_Parameters.begin();
+    auto end = m_Parameters.end();
     for(;it!=end;++it)
     {
-        if(it != m_ParametersTypes.begin())
+        if(it != m_Parameters.begin())
         {
             result += ", ";
         }
         result += (*it)->getQualifiedDecoratedName();
     }
     result += ")";
+    if(isConst())
+    {
+        result += " const";
+    }
     //result += m_pReturnType->getQualifiedDecoratedName();
     return result;
 }
@@ -424,11 +447,11 @@ string Signature::getQualifiedDecoratedName() const
 string Signature::getQualifiedName() const
 {
     string result = "(";
-    auto it = m_ParametersTypes.begin();
-    auto end = m_ParametersTypes.end();
+    auto it = m_Parameters.begin();
+    auto end = m_Parameters.end();
     for(;it!=end;++it)
     {
-        if(it != m_ParametersTypes.begin())
+        if(it != m_Parameters.begin())
         {
             result += ", ";
         }
@@ -442,27 +465,30 @@ string Signature::getQualifiedName() const
 string Signature::getDecoratedName() const
 {
     string result = "(";
-    auto it = m_ParametersTypes.begin();
-    auto end = m_ParametersTypes.end();
+    auto it = m_Parameters.begin();
+    auto end = m_Parameters.end();
     for(;it!=end;++it)
     {
-        if(it != m_ParametersTypes.begin())
+        if(it != m_Parameters.begin())
         {
             result += ", ";
         }
         result += (*it)->getDecoratedName();
     }
     result += ")";
-    //result += m_pReturnType->getDecoratedName();
+    if(isConst())
+    {
+        result += " const";
+    }
     return result;
 }
 
 Signature* Signature::clone() const
 {
     Signature* pSignature = o_new(Signature);
-    o_foreach(Type* pParameterType, m_ParametersTypes)
+    o_foreach(Parameter* pParameter, m_Parameters)
     {
-        pSignature->addParameter(pParameterType);
+        pSignature->addParameter(pParameter->clone());
     }
     pSignature->setReturnType(m_pReturnType);
     return pSignature;
@@ -470,31 +496,10 @@ Signature* Signature::clone() const
 
 bool Signature::equals( LanguageElement* a_pOther ) const
 {
-    if(NOT(phantom::as<Signature*>(a_pOther))) return false;
+    if(NOT(a_pOther->asSignature())) return false;
     Signature*    pOther = static_cast<Signature*>(a_pOther);
-    if(NOT(compareParameterList(pOther))) return false;
+    if(NOT(matches(pOther))) return false;
     return m_pReturnType == pOther->m_pReturnType;
-}
-
-void Signature::setParameterTypeNames( vector<string> names )
-{
-    if(names.size())
-    {
-        m_pParameterTypeNames = new vector<string>(names);
-    }
-}
-
-vector<string> Signature::getParameterTypeNames() const
-{
-    vector<string> names;
-    for(auto it = m_ParametersTypes.begin(); it != m_ParametersTypes.end(); ++it)
-    {
-        if(*it)
-        {
-            names.push_back((*it)->getQualifiedDecoratedName());
-        }
-    }
-    return names;
 }
 
 void Signature::setReturnTypeName( string name )
@@ -518,25 +523,16 @@ void Signature::finalize()
         delete m_pReturnTypeName;
         m_pReturnTypeName = nullptr;
     }
-    if(m_pParameterTypeNames)
-    {
-        for(auto it = m_pParameterTypeNames->begin(); it != m_pParameterTypeNames->end(); ++it)
-        {
-            addParameter(typeByName(*it));
-        }
-        delete m_pParameterTypeNames;
-        m_pParameterTypeNames = nullptr;
-    }
 }
 
 const string& Signature::getParameterName( size_t a_uiParamIndex ) const
 {
-    return m_ParameterNames[a_uiParamIndex];
+    return m_Parameters[a_uiParamIndex]->getName();
 }
 
 Expression* Signature::getParameterDefaultValue( size_t a_uiParamIndex ) const
 {
-    return m_ParameterDefaultValues[a_uiParamIndex];
+    return m_Parameters[a_uiParamIndex]->getInitializationExpression();
 }
 
 void Signature::setParameterName( size_t i, const string& a_strName )
@@ -545,7 +541,7 @@ void Signature::setParameterName( size_t i, const string& a_strName )
     {
         o_exception(exception::base_exception, "Attempt to modify a native language element");
     }
-    m_ParameterNames[i] = a_strName;
+    m_Parameters[i]->setName(a_strName);
 }
 
 o_namespace_end(phantom, reflection)

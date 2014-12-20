@@ -41,8 +41,7 @@ o_registerN((phantom, reflection), DereferenceExpression);
 o_namespace_begin(phantom, reflection) 
     
 DereferenceExpression::DereferenceExpression( Expression* a_pDereferencedExpression ) 
-    : Expression(a_pDereferencedExpression->getValueType()->removeReference()->removeConst()->removePointer()->referenceType()
-    , "*("+a_pDereferencedExpression->getName()+")")
+    : Expression(a_pDereferencedExpression->getValueType()->removeReference()->removeConst()->removePointer()->referenceType())
     , m_pDereferencedExpression(a_pDereferencedExpression)
 {
     if(m_pDereferencedExpression)
@@ -57,7 +56,7 @@ DereferenceExpression::DereferenceExpression( Expression* a_pDereferencedExpress
     else setInvalid();
 }
 
-void DereferenceExpression::getValue( void* a_pDest ) const
+void DereferenceExpression::internalEval( void* a_pDest ) const
 {
     void* pAddress = nullptr;
     m_pDereferencedExpression->load(&pAddress);

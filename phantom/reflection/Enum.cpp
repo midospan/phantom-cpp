@@ -69,14 +69,6 @@ Enum::~Enum()
 
 }
 
-LanguageElement* Enum::solveElement( const string& a_strName , const vector<TemplateElement*>* ts , const vector<LanguageElement*>* fs , modifiers_t a_Modifiers /*= 0*/ ) const
-{
-    if(ts AND !ts->empty()) return NULL;
-    if(fs AND !fs->empty()) return NULL;
-    Constant* pConstant = getConstant(a_strName);
-    return pConstant ? o_new(ConstantExpression)(pConstant) : nullptr;
-}
-
 boolean Enum::isConvertibleTo( Type* a_pType ) const
 {
     return (a_pType->getTypeId() >= e_char AND a_pType->getTypeId() <= e_enum);

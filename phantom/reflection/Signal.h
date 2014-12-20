@@ -45,6 +45,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Signal : public InstanceMemberFunction
 {
+    o_language_element;
+
     friend struct phantom::PIMPL;
     friend class phantom::reflection::Class;
     friend class Property;
@@ -73,8 +75,6 @@ public:
     virtual Signal* asSignal() const  { return (Signal*)this; }
 
     Property* getProperty() const { return m_pProperty; }
-
-    virtual variant compile(Compiler* a_pCompiler);
 
     size_t getSlotListDataMemberOffset() const;
 

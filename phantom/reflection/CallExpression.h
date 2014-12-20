@@ -46,6 +46,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export CallExpression : public Expression
 {
+    o_language_element;
+
 public:
     CallExpression(Subroutine* a_pFunction, const vector<Expression*>& a_Arguments, Type* a_pConstructedType = nullptr);
     CallExpression(Subroutine* a_pFunction, Expression* a_pArgument, Type* a_pConstructedType = nullptr);
@@ -53,9 +55,13 @@ public:
     o_initialize();
     o_terminate(); 
 
-    virtual void  getValue(void* a_pDest) const ;
+    virtual CallExpression* asCallExpression() const { return (CallExpression*)this; }
 
-    virtual void  setValue(void const* a_pSrc) const;
+    size_t      getArgumentCount() const { return m_Arguments.size(); }
+
+    Expression* getArgument(size_t i) const { return m_Arguments[i]; }
+
+    virtual void  internalEval(void* a_pDest) const ;
 
     virtual void* getValueStorageAddress() const ;
 
@@ -63,11 +69,13 @@ public:
 
     virtual void flush() const;
 
-    virtual void eval() const;
+    virtual void internalEval() const ;
 
     void call() const { eval(); }
 
-    void call(void* a_pReturnAddress) const { getValue(a_pReturnAddress); }
+    void call(void* a_pReturnAddress) const { eval(a_pReturnAddress); }
+
+    Subroutine* getSubroutine() const { return m_pSubroutine; }
 
     vector<Expression*>::const_iterator beginArguments() const { return m_Arguments.begin(); }
     vector<Expression*>::const_iterator endArguments() const { return m_Arguments.end(); }
@@ -75,7 +83,7 @@ public:
     vector<Expression*>::const_reverse_iterator rbeginArguments() const { return m_Arguments.rbegin(); }
     vector<Expression*>::const_reverse_iterator rendArguments() const { return m_Arguments.rend(); }
 
-    virtual variant         compile(Compiler* a_pCompiler);
+    const vector<Expression*>& getArguments() const { return m_Arguments; }
 
     virtual LanguageElement*hatch();
 
@@ -86,13 +94,15 @@ public:
     virtual bool            isPersistent() const;
 
 protected:
-    static string evaluateName(Subroutine* a_pSubroutine, const vector<Expression*>& a_Arguments);
-    static string evaluateName( Subroutine* a_pSubroutine, Expression* a_pArgument );
+    void evaluateArguments( vector<void*> &addresses ) const;
 
 protected:
+    CallExpression(const vector<Expression*>& a_Arguments, Type* a_pConstructedType = nullptr);
+    CallExpression(Expression* a_pArgument, Type* a_pConstructedType = nullptr);
     virtual void ancestorChanged(LanguageElement* a_pLanguageElement);
     virtual void elementRemoved( LanguageElement* a_pElement );
     virtual void referencedElementRemoved( LanguageElement* a_pElement );
+    virtual Type* returnStorageType() const ;
 
 protected:
     Subroutine*         m_pSubroutine;

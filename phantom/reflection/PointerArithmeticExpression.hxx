@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Expression.hxx"
+#include "BinaryOperationExpression.hxx"
 
-o_classNB((phantom, reflection), PointerArithmeticExpression, (Expression)) (
+o_classNB((phantom, reflection), PointerArithmeticExpression, (BinaryOperationExpression)) (
         );
 
 

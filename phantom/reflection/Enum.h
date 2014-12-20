@@ -46,6 +46,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Enum : public PrimitiveType
 {
+    o_language_element;
+
     o_declare_meta_type(Enum);
 
 public:
@@ -63,12 +65,6 @@ public:
 
     void                addConstant(NumericConstant* a_pConstant);
     void                removeConstant(NumericConstant* a_pConstant);
-
-    virtual LanguageElement* solveElement(
-        const string& a_strName
-        , const vector<TemplateElement*>* ts
-        , const vector<LanguageElement*>* fs
-        , modifiers_t a_Modifiers = 0) const;
 
     virtual Enum*           asEnum() const { return const_cast<Enum*>(this); }
     virtual PrimitiveType*  asIntegralType() const { return const_cast<Enum*>(this); }
@@ -118,6 +114,8 @@ public:
     value_vector::const_iterator beginConstants() const { return m_Constants.begin(); }
     value_vector::const_iterator endConstants() const { return m_Constants.end(); }
 
+    PrimitiveType* getIntType() const { return m_pIntType; }
+
 protected:
     virtual void elementAdded(LanguageElement* a_pElement);
     virtual void elementRemoved(LanguageElement* a_pElement);
@@ -125,7 +123,7 @@ protected:
 
 protected:
     value_vector                                m_Constants;
-    reflection::Type*                           m_pIntType;
+    PrimitiveType*                           m_pIntType;
 };
 
 o_namespace_end(phantom, reflection)

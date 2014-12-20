@@ -12,5 +12,11 @@
 #if o_OPERATING_SYSTEM_FAMILY == o_OPERATING_SYSTEM_FAMILY_UNIX
 #   include <unistd.h>
 #endif
-using namespace std;
+
+using std::cin;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::flush;
+
 #include "CxxParser.cxx"

@@ -13,6 +13,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export AggregationClass : public Class
 {
+    o_type;
+
     o_declare_meta_type(AggregationClass);
 
 public:
@@ -76,66 +78,76 @@ public:
     
     virtual bool referencesData( const void* a_pContainer, const phantom::data& a_Data ) const;
 
-    virtual Expression* solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, modifiers_t a_Modifiers ) const;
-
     virtual void fetchExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter, uint a_uiSerializationMask ) const;
 
 public:
-    class o_export GetSetExpression : public Expression
-    {
-    public:
-        GetSetExpression(Expression* a_pLeftExpression, Expression* a_pIndexExpression, AggregationClass* a_pAggregationClass);
-
-        virtual void getValue(void* a_pDest) const;
-
-        virtual void setValue(void const* a_pSrc) const;
-
-        virtual bool hasValueStorage() const { return false; }
-
-        virtual void flush() const;
-
-        virtual GetSetExpression*     clone() const;
-
-    protected:
-        Expression* m_pLeftExpression;
-        Expression* m_pIndexExpression;
-        AggregationClass* m_pAggregationClass;
-        mutable void* m_pBufferedPointer;
-    };
-    class o_export InsertRemoveExpression : public Expression
-    {
-    public:
-        InsertRemoveExpression(Expression* a_pLeftExpression, Expression* a_pIndexExpression, AggregationClass* a_pAggregationClass);
-
-        virtual void getValue(void* a_pDest) const;
-
-        virtual void setValue(void const* a_pSrc) const;
-
-        virtual bool hasValueStorage() const { return false; }
-
-        virtual void flush() const;
-
-        virtual InsertRemoveExpression*     clone() const;
-
-        AggregationClass* getAggregationClass() const { return m_pAggregationClass; }
-
-        Expression* getAggregationExpression() const { return m_pLeftExpression; }
-
-    protected:
-        Expression* m_pLeftExpression;
-        Expression* m_pIndexExpression;
-        AggregationClass* m_pAggregationClass;
-        mutable void* m_pBufferedPointer;
-    };
 
 protected:
     Class*   m_pAggregateClass;
 
 };
+class o_export AggregationGetSetExpression : public Expression
+{
+    o_language_element;
+
+public:
+    AggregationGetSetExpression(Expression* a_pLeftExpression, Expression* a_pIndexExpression, AggregationClass* a_pAggregationClass);
+
+    virtual void internalEval(void* a_pDest) const;
+
+    virtual bool hasValueStorage() const { return false; }
+
+    virtual void setValue( void const* a_pSrc ) const;
+
+    virtual void flush() const;
+
+    Expression* getLeftExpression() const { return m_pLeftExpression; }
+
+    Expression* getIndexExpression() const { return m_pIndexExpression; }
+
+    virtual AggregationGetSetExpression*     clone() const;
+
+protected:
+    Expression* m_pLeftExpression;
+    Expression* m_pIndexExpression;
+    AggregationClass* m_pAggregationClass;
+    mutable void* m_pBufferedPointer;
+};
+class o_export AggregationInsertRemoveExpression : public Expression
+{
+    o_language_element;
+
+public:
+    AggregationInsertRemoveExpression(Expression* a_pLeftExpression, Expression* a_pIndexExpression, AggregationClass* a_pAggregationClass);
+
+    virtual void internalEval(void* a_pDest) const;
+
+    virtual bool hasValueStorage() const { return false; }
+
+    virtual void setValue( void const* a_pSrc ) const;
+
+    virtual void flush() const;
+
+    Expression* getLeftExpression() const { return m_pLeftExpression; }
+
+    Expression* getIndexExpression() const { return m_pIndexExpression; }
+
+    virtual AggregationInsertRemoveExpression*     clone() const;
+
+    AggregationClass* getAggregationClass() const { return m_pAggregationClass; }
+
+    Expression* getAggregationExpression() const { return m_pLeftExpression; }
+
+protected:
+    Expression* m_pLeftExpression;
+    Expression* m_pIndexExpression;
+    AggregationClass* m_pAggregationClass;
+    mutable void* m_pBufferedPointer;
+};
 
 o_namespace_end(phantom, reflection)
 
-o_declareNC((phantom, reflection), (AggregationClass), InsertRemoveExpression);
-o_declareNC((phantom, reflection), (AggregationClass), GetSetExpression);
+o_declareN((phantom, reflection), AggregationInsertRemoveExpression);
+o_declareN((phantom, reflection), AggregationGetSetExpression);
 
 #endif

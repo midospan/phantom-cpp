@@ -17,8 +17,56 @@
  */
 /*StartTester*/
 %{
-#include "CxxParsing.hxx"
+#include "CxxToken.h"
+#include "CxxLexer.h"
+#include "CxxParser.hxx"
+#include "CxxPrecompiler.hxx"
+#include "CxxDriver.h"
+
+#define yylex2(a,b) m_pDriver->getLexer()->lex(a,b); m_pDriver->getLexer()->setYYChar(&yychar)
+#undef yylex
+#define yylex yylex2
+#undef yyerror
+#define yyerror m_pDriver->getLexer()->error
+
 %}
+
+/*** yacc/bison Declarations ***/
+
+/* Require bison 2.3 or later */
+%require "2.3"
+
+/* add debug output code to generated parser. disable this for release
+ * versions. */
+%debug
+
+%defines
+
+/* use newer C++ skeleton file */
+%skeleton "lalr1.cc"
+
+/* namespace to enclose parser in */
+%name-prefix="phantom"
+
+/* set the parser's class identifier */
+%define "parser_class_name" "CxxParser"
+
+/* keep track of the current position within the input */
+%locations
+%initial-action
+{
+    // initialize the initial location object
+    @$.begin.filename = @$.end.filename = m_pDriver->getFileName();
+};
+
+/* The m_pDriver is passed by reference to the parser and to the scanner. This
+ * provides a simple but effective pure interface, not relying on global
+ * variables. */
+%parse-param { class CxxDriver* m_pDriver }
+
+/* verbose error messages */
+%error-verbose
+
 /*EndTester*/
 /*
  * The lexer (and/or a preprocessor) is expected to identify the following
@@ -48,10 +96,14 @@
  *  Parametric values.
  */
 %term <character_literal> CharacterLiteral
-%term <floating_literal> FloatingLiteral
 %term <identifier> Identifier
-%term <integer_literal> IntegerLiteral
-%term <number_literal> NumberLiteral
+%term <hex_literal> HexLiteral
+%term <longdouble_literal> LongDoubleLiteral
+%term <double_literal> DoubleLiteral
+%term <float_literal> FloatLiteral
+%term <uint_literal> UIntLiteral
+%term <ulong_literal> ULongLiteral
+%term <ulonglong_literal> ULongLongLiteral
 %term <string_literal> StringLiteral
 /*
  *  The lexer need not treat '0' as distinct from IntegerLiteral in the hope that pure-specifier can
@@ -62,7 +114,7 @@
  *
  *  In return for not needing to use semantic information, the lexer must support back-tracking, which
  *  is easily achieved by a simple linear buffer, a reference implementation of which may be found in the
- *  accompanying CxxParsing.cxx. Back-tracking is used to support:
+ *  accompanying CxxPrecompiler.cxx. Back-tracking is used to support:
  *
  *  Binary search for a consistent parse of the template/arithmetic ambiguity.
  *      start_search() initialises the search
@@ -211,7 +263,7 @@
 %type <condition> condition condition.opt
 %type <cv_qualifiers> cv_qualifier cv_qualifier_seq.opt
 %type <decl_specifier_id>  decl_specifier_affix decl_specifier_prefix decl_specifier_suffix function_specifier storage_class_specifier
-%type <declaration> accessibility_specifier asm_definition block_declaration declaration explicit_specialization
+%type <declaration> asm_definition block_declaration declaration explicit_specialization
 %type <declaration> looped_declaration looping_declaration namespace_alias_definition
 %type <declaration> specialised_block_declaration specialised_declaration template_declaration using_directive
 %type <declarations> compound_declaration declaration_seq.opt
@@ -221,7 +273,7 @@
 %type <enumerators> enumerator_clause enumerator_list enumerator_list_head
 %type <exception_declaration> exception_declaration
 %type <exception_specification> exception_specification
-%type <expression> abstract_declarator.opt abstract_expression abstract_parameter_declaration abstract_pointer_declaration
+%type <expression> abstract_declarator.opt abstract_expression abstract_parameter_declaration abstract_pointer_declaration single_expression
 %type <expression> additive_expression and_expression assignment_expression
 %type <expression> bit_field_declaration bit_field_init_declaration bit_field_width boolean_literal
 %type <expression> cast_expression conditional_expression constant_expression conversion_type_id ctor_definition
@@ -278,8 +330,9 @@
 /*
  *  C++ productions replaced by more generalised FOG productions
  */
-%type <declaration> looped_member_declaration looping_member_declaration member_declaration using_declaration
-%type <declarations> member_specification.opt
+%type <declaration>  using_declaration
+%type <member_declaration> looped_member_declaration looping_member_declaration member_declaration accessibility_specifier
+%type <member_declarations> member_specification.opt
 %type <expression> member_init_declaration simple_member_declaration
 %type <expressions> member_init_declarations
 
@@ -301,7 +354,7 @@
  *  a bit-field declaration or constructor definition are not allowed.
  */
 identifier_word:                    Identifier                                                  { $$ = $1; }
-identifier:                         identifier_word                     %prec SHIFT_THERE
+identifier:                         identifier_word                     %prec SHIFT_THERE       { $$ = $1; }
 /*
  *  The %prec resolves the $014.2-3 ambiguity:
  *  Identifier '<' is forced to go through the is-it-a-template-name test
@@ -314,7 +367,7 @@ id:                                 identifier                          %prec SH
     |                               identifier template_test '+' '>'                            { $$ = $1; ERRMSG("Empty template-argument-list"); }
     |                               identifier template_test '-'                                /* requeued < follows */  { $$ = YACC_NAME($1); }
     |                               template_id 
-template_test:                      '<'             /* Queue '+' or '-' < as follow on */       { template_test(); }
+template_test:                      '<'             /* Queue '+' or '-' < as follow on */       { m_pDriver->getLexer()->template_test(); }
 global_scope:                       SCOPE                                                       { $$ = IS_DEFAULT; }
     |                               TEMPLATE global_scope                                       { $$ = IS_TEMPLATE; }
 id_scope:                           id SCOPE                                                    { $$ = YACC_NESTED_SCOPE($1); }
@@ -324,7 +377,7 @@ id_scope:                           id SCOPE                                    
  */
 nested_id:                          id                                  %prec SHIFT_THERE       /* Maximise length */
     |                               id_scope nested_id                                          { $$ = YACC_NESTED_ID($1, $2); }
-scoped_id:                          nested_id
+scoped_id:                          nested_id                                                   { $$ = $1; }
     |                               global_scope nested_id                                      { $$ = YACC_GLOBAL_ID($1, $2); }
 
 /*
@@ -334,19 +387,19 @@ scoped_id:                          nested_id
  */
 destructor_id:                      '~' id                                                      { $$ = YACC_DESTRUCTOR_ID($2); }
     |                               TEMPLATE destructor_id                                      { $$ = YACC_SET_TEMPLATE_ID($2); }
-special_function_id:                conversion_function_id
-    |                               operator_function_id
+special_function_id:                conversion_function_id                                      { $$ = $1; }
+    |                               operator_function_id                                        { $$ = $1; }
     |                               TEMPLATE special_function_id                                { $$ = YACC_SET_TEMPLATE_ID($2); }
-nested_special_function_id:         special_function_id
+nested_special_function_id:         special_function_id                                         { $$ = $1; }
     |                               id_scope destructor_id                                      { $$ = YACC_NESTED_ID($1, $2); }
     |                               id_scope nested_special_function_id                         { $$ = YACC_NESTED_ID($1, $2); }
-scoped_special_function_id:         nested_special_function_id
+scoped_special_function_id:         nested_special_function_id                                  { $$ = $1; }
     |                               global_scope nested_special_function_id                     { $$ = YACC_GLOBAL_ID($1, $2); }
 
 /* declarator-id is all names in all scopes, except reserved words */
-declarator_id:                      scoped_id
-    |                               scoped_special_function_id
-    |                               destructor_id
+declarator_id:                      scoped_id                                                   { $$ = $1; }
+    |                               scoped_special_function_id                                  { $$ = $1; }
+    |                               destructor_id                                               { $$ = $1; }
 
 /*  The standard defines pseudo-destructors in terms of type-name, which is class/enum/typedef, of which
  *  class-name is covered by a normal destructor. pseudo-destructors are supposed to support ~int() in
@@ -358,9 +411,9 @@ built_in_type_id:                   built_in_type_specifier
 pseudo_destructor_id:               built_in_type_id SCOPE '~' built_in_type_id                 { $$ = YACC_PSEUDO_DESTRUCTOR_ID($1, $4); }
     |                               '~' built_in_type_id                                        { $$ = YACC_PSEUDO_DESTRUCTOR_ID(0, $2); }
     |                               TEMPLATE pseudo_destructor_id                               { $$ = YACC_SET_TEMPLATE_ID($2); }
-nested_pseudo_destructor_id:        pseudo_destructor_id
+nested_pseudo_destructor_id:        pseudo_destructor_id                                        { $$ = $1; }
     |                               id_scope nested_pseudo_destructor_id                        { $$ = YACC_NESTED_ID($1, $2); }
-scoped_pseudo_destructor_id:        nested_pseudo_destructor_id
+scoped_pseudo_destructor_id:        nested_pseudo_destructor_id                                 { $$ = $1; }
     |                               global_scope scoped_pseudo_destructor_id                    { $$ = YACC_GLOBAL_ID($1, $2); }
 
 /*---------------------------------------------------------------------------------------------------
@@ -375,18 +428,27 @@ scoped_pseudo_destructor_id:        nested_pseudo_destructor_id
 string:                             StringLiteral                                               { $$ = $1; }
 /*string:                           StringLiteral                           %prec SHIFT_THERE   { $$ = YACC_STRINGS($1, 0); } */
 /*  |                               StringLiteral string  -- Perverse order avoids conflicts -- { $$ = YACC_STRINGS($1, $2); } */
-literal:                            IntegerLiteral                                              { $$ = YACC_INTEGER_LITERAL_EXPRESSION($1); }
+literal:                            HexLiteral                                                  { $$ = YACC_HEX_LITERAL_EXPRESSION($1); }
+    |                               LongDoubleLiteral                                           { $$ = YACC_LONGDOUBLE_LITERAL_EXPRESSION($1); }
+    |                               DoubleLiteral                                               { $$ = YACC_DOUBLE_LITERAL_EXPRESSION($1); }
+    |                               FloatLiteral                                                { $$ = YACC_FLOAT_LITERAL_EXPRESSION($1); }
+    |                               UIntLiteral                                                 { $$ = YACC_UINT_LITERAL_EXPRESSION($1); }
+    |                               ULongLiteral                                                { $$ = YACC_ULONG_LITERAL_EXPRESSION($1); }
+    |                               ULongLongLiteral                                            { $$ = YACC_ULONGLONG_LITERAL_EXPRESSION($1); }
     |                               CharacterLiteral                                            { $$ = YACC_CHARACTER_LITERAL_EXPRESSION($1); }
-    |                               FloatingLiteral                                             { $$ = YACC_FLOATING_LITERAL_EXPRESSION($1); }
     |                               string                                                      { $$ = YACC_STRING_LITERAL_EXPRESSION($1); }
-    |                               boolean_literal
+    |                               boolean_literal                                             { $$ = $1; }
 boolean_literal:                    FALSE                                                       { $$ = YACC_FALSE_EXPRESSION(); }
     |                               TRUE                                                        { $$ = YACC_TRUE_EXPRESSION(); }
 
 /*---------------------------------------------------------------------------------------------------
  * A.3 Basic concepts
  *---------------------------------------------------------------------------------------------------*/
-translation_unit:                   declaration_seq.opt                                         { YACC_RESULT($1); }
+single_expression:                  special_parameter_declaration                               { $$ = $1; }
+    |                               expression                                                  { $$ = $1; }
+    |                               decl_specifier_prefix single_expression                     { $$ = YACC_DECL_SPECIFIER_EXPRESSION($2, $1); }
+translation_unit:                   declaration_seq.opt                                         { YACC_TRANSLATION_UNIT($1); }
+    |                               '$' start_search single_expression '$'                      { YACC_SINGLE_EXPRESSION($3); m_pDriver->getLexer()->end_search($3); }
 
 /*---------------------------------------------------------------------------------------------------
  * A.4 Expressions
@@ -421,10 +483,10 @@ translation_unit:                   declaration_seq.opt                         
 primary_expression:                 literal
     |                               THIS                                                    { $$ = YACC_THIS_EXPRESSION(); }
     |                               suffix_decl_specified_ids                               { $$ = $1; }
-/*  |                               SCOPE identifier                                        -- covered by suffix_decl_specified_ids */
-/*  |                               SCOPE operator_function_id                              -- covered by suffix_decl_specified_ids */
-/*  |                               SCOPE qualified_id                                      -- covered by suffix_decl_specified_ids */
-    |                               abstract_expression           %prec REDUCE_HERE_MOSTLY  /* Prefer binary to unary ops, cast to call */
+/*  |                                   SCOPE identifier                                        -- covered by suffix_decl_specified_ids */
+/*  |                                   SCOPE operator_function_id                              -- covered by suffix_decl_specified_ids */
+/*  |                                   SCOPE qualified_id                                      -- covered by suffix_decl_specified_ids */
+    |                               abstract_expression           %prec REDUCE_HERE_MOSTLY  { $$ = $1; } /* Prefer binary to unary ops, cast to call */
 /*  |                               id_expression                                           -- covered by suffix_decl_specified_ids */
 
 /*
@@ -441,16 +503,16 @@ abstract_expression:                parenthesis_clause                          
  */
 type1_parameters:       /*----*/    parameter_declaration_list ';'                          { $$ = YACC_TYPE1_PARAMETERS(0, $1); }
     |                   /*----*/    type1_parameters parameter_declaration_list ';'         { $$ = YACC_TYPE1_PARAMETERS($1, $2); }
-mark_type1:                         /* empty */                                             { $$ = mark_type1(); yyclearin; }
-postfix_expression:                 primary_expression
+mark_type1:                         /* empty */                                             { $$ = m_pDriver->getLexer()->mark_type1(); yyclearin; }
+postfix_expression:                 primary_expression                                      { $$ = $1; }
 /*  |                   /++++++/    postfix_expression parenthesis_clause                   { $$ = YACC_CALL_EXPRESSION($1, $2); } */
     |                   /*----*/    postfix_expression parenthesis_clause mark_type1 '-'    { $$ = YACC_CALL_EXPRESSION($1, $2); }
     |                   /*----*/    postfix_expression parenthesis_clause mark_type1 '+' type1_parameters mark '{' error 
-                        /*----*/                    { yyerrok; yyclearin; remark_type1($6); unmark(); unmark($5); $$ = YACC_TYPE1_EXPRESSION($1, $2, $5); }
+                        /*----*/                    { yyerrok; yyclearin; m_pDriver->getLexer()->remark_type1($6); m_pDriver->getLexer()->unmark(); m_pDriver->getLexer()->unmark($5); $$ = YACC_TYPE1_EXPRESSION($1, $2, $5); }
     |                   /*----*/    postfix_expression parenthesis_clause mark_type1 '+' type1_parameters mark error 
-                        /*----*/                    { yyerrok; yyclearin; remark_type1($3); unmark(); unmark(); $$ = YACC_CALL_EXPRESSION($1, $2); }
+                        /*----*/                    { yyerrok; yyclearin; m_pDriver->getLexer()->remark_type1($3); m_pDriver->getLexer()->unmark(); m_pDriver->getLexer()->unmark(); $$ = YACC_CALL_EXPRESSION($1, $2); }
     |                   /*----*/    postfix_expression parenthesis_clause mark_type1 '+' error
-                        /*----*/                    { yyerrok; yyclearin; remark_type1($3); unmark(); $$ = YACC_CALL_EXPRESSION($1, $2); }
+                        /*----*/                    { yyerrok; yyclearin; m_pDriver->getLexer()->remark_type1($3); m_pDriver->getLexer()->unmark(); $$ = YACC_CALL_EXPRESSION($1, $2); }
     |                               postfix_expression '[' expression.opt ']'               { $$ = YACC_ARRAY_EXPRESSION($1, $3); }
 /*  |                               destructor_id '[' expression.opt ']'                    -- not semantically valid */
 /*  |                               destructor_id parenthesis_clause                        -- omitted to resolve known ambiguity */
@@ -471,18 +533,18 @@ postfix_expression:                 primary_expression
 /*  |                               TYPEID '(' expression ')'                               -- covered by parameters_clause */
 /*  |                               TYPEID '(' type_id ')'                                  -- covered by parameters_clause */
 expression_list.opt:                /* empty */                                             { $$ = YACC_EXPRESSIONS(0, 0); }
-    |                               expression_list
+    |                               expression_list                                         { $$ = $1; }
 expression_list:                    assignment_expression                                   { $$ = YACC_EXPRESSIONS(0, $1); }
     |                               expression_list ',' assignment_expression               { $$ = YACC_EXPRESSIONS($1, $3); }
 
-unary_expression:                   postfix_expression
+unary_expression:                   postfix_expression                                      { $$ = $1; }
     |                               INC cast_expression                                     { $$ = YACC_PRE_INCREMENT_EXPRESSION($2); }
     |                               DEC cast_expression                                     { $$ = YACC_PRE_DECREMENT_EXPRESSION($2); }
     |                               ptr_operator cast_expression                            { $$ = YACC_POINTER_EXPRESSION($1, $2); }
-/*  |                               '*' cast_expression                                     -- covered by ptr_operator */
-/*  |                               '&' cast_expression                                     -- covered by ptr_operator */
-/*  |                               decl_specifier_seq '*' cast_expression                  -- covered by binary operator */
-/*  |                               decl_specifier_seq '&' cast_expression                  -- covered by binary operator */
+/*  |                                   '*' cast_expression                                     -- covered by ptr_operator */
+/*  |                                   '&' cast_expression                                     -- covered by ptr_operator */
+/*  |                                   decl_specifier_seq '*' cast_expression                  -- covered by binary operator */
+/*  |                                   decl_specifier_seq '&' cast_expression                  -- covered by binary operator */
     |                               suffix_decl_specified_scope star_ptr_operator cast_expression   /* covers e.g int ::type::* const t = 4 */
                                                                                             { $$ = YACC_SCOPED_POINTER_EXPRESSION($1, $2, $3); }
     |                               '+' cast_expression                                     { $$ = YACC_PLUS_EXPRESSION($2); }
@@ -490,13 +552,13 @@ unary_expression:                   postfix_expression
     |                               '!' cast_expression                                     { $$ = YACC_NOT_EXPRESSION($2); }
     |                               '~' cast_expression                                     { $$ = YACC_COMPLEMENT_EXPRESSION($2); }
     |                               SIZEOF unary_expression                                 { $$ = YACC_SIZEOF_EXPRESSION($2); }
-/*  |                               SIZEOF '(' type_id ')'                                  -- covered by unary_expression */
+/*  |                                   SIZEOF '(' type_id ')'                                  -- covered by unary_expression */
     |                               new_expression											{ $$ = $1; }
     |                               global_scope new_expression                             { $$ = YACC_GLOBAL_EXPRESSION($1, $2); }
     |                               delete_expression										{ $$ = $1; }
     |                               global_scope delete_expression                          { $$ = YACC_GLOBAL_EXPRESSION($1, $2); }
-/*  |                               DELETE '[' ']' cast_expression       -- covered by DELETE cast_expression since cast_expression covers ... */
-/*  |                               SCOPE DELETE '[' ']' cast_expression //  ... abstract_expression cast_expression and so [] cast_expression */
+/*  |                                   DELETE '[' ']' cast_expression       -- covered by DELETE cast_expression since cast_expression covers ... */
+/*  |                                   SCOPE DELETE '[' ']' cast_expression //  ... abstract_expression cast_expression and so [] cast_expression */
 
 delete_expression:                  DELETE cast_expression                                  /* also covers DELETE[] cast_expression */
                                                                                             { $$ = YACC_DELETE_EXPRESSION($2); }
@@ -512,7 +574,7 @@ new_type_id:                        type_specifier ptr_operator_seq.opt         
     |                               type_specifier new_declarator                           { $$ = YACC_TYPED_EXPRESSION($1, $2); }
     |                               type_specifier new_type_id                              { $$ = YACC_TYPED_EXPRESSION($1, $2); }
 new_declarator:                     ptr_operator new_declarator                             { $$ = YACC_POINTER_EXPRESSION($1, $2); }
-    |                               direct_new_declarator
+    |                               direct_new_declarator                                   { $$ = $1; }
 direct_new_declarator:              '[' expression ']'                                      { $$ = YACC_ABSTRACT_ARRAY_EXPRESSION($2); }
     |                               direct_new_declarator '[' constant_expression ']'       { $$ = YACC_ARRAY_EXPRESSION($1, $3); }
 new_initializer.opt:                /* empty */                                             { $$ = YACC_EXPRESSIONS(0, 0); }
@@ -521,95 +583,95 @@ new_initializer.opt:                /* empty */                                 
 /*  cast-expression is generalised to support a [] as well as a () prefix. This covers the omission of DELETE[] which when
  *  followed by a parenthesised expression was ambiguous. It also covers the gcc indexed array initialisation for free.
  */
-cast_expression:                    unary_expression
+cast_expression:                    unary_expression                                            { $$ = $1; }
     |                               abstract_expression cast_expression                         { $$ = YACC_CAST_EXPRESSION($1, $2); }
 /*  |                               '(' type_id ')' cast_expression                             -- covered by abstract_expression */
 
-pm_expression:                      cast_expression
+pm_expression:                      cast_expression                                             { $$ = $1; }
     |                               pm_expression DOT_STAR cast_expression                      { $$ = YACC_DOT_STAR_EXPRESSION($1, $3); }
     |                               pm_expression ARROW_STAR cast_expression                    { $$ = YACC_ARROW_STAR_EXPRESSION($1, $3); }
-multiplicative_expression:          pm_expression
+multiplicative_expression:          pm_expression                                               { $$ = $1; }
     |                               multiplicative_expression star_ptr_operator pm_expression   { $$ = YACC_MULTIPLY_EXPRESSION($1, $2, $3); }
     |                               multiplicative_expression '/' pm_expression                 { $$ = YACC_DIVIDE_EXPRESSION($1, $3); }
     |                               multiplicative_expression '%' pm_expression                 { $$ = YACC_MODULUS_EXPRESSION($1, $3); }
-additive_expression:                multiplicative_expression
+additive_expression:                multiplicative_expression                                   { $$ = $1; }
     |                               additive_expression '+' multiplicative_expression           { $$ = YACC_ADD_EXPRESSION($1, $3); }
     |                               additive_expression '-' multiplicative_expression           { $$ = YACC_SUBTRACT_EXPRESSION($1, $3); }
-shift_expression:                   additive_expression
+shift_expression:                   additive_expression                                         { $$ = $1; }
     |                               shift_expression SHL additive_expression                    { $$ = YACC_SHIFT_LEFT_EXPRESSION($1, $3); }
     |                               shift_expression SHR additive_expression                    { $$ = YACC_SHIFT_RIGHT_EXPRESSION($1, $3); }
-relational_expression:              shift_expression
+relational_expression:              shift_expression                                            { $$ = $1; }
     |                               relational_expression '<' shift_expression                  { $$ = YACC_LESS_THAN_EXPRESSION($1, $3); }
     |                               relational_expression '>' shift_expression                  { $$ = YACC_GREATER_THAN_EXPRESSION($1, $3); }
     |                               relational_expression LE shift_expression                   { $$ = YACC_LESS_EQUAL_EXPRESSION($1, $3); }
     |                               relational_expression GE shift_expression                   { $$ = YACC_GREATER_EQUAL_EXPRESSION($1, $3); }
-equality_expression:                relational_expression
+equality_expression:                relational_expression                                       { $$ = $1; }
     |                               equality_expression EQ relational_expression                { $$ = YACC_EQUAL_EXPRESSION($1, $3); }
     |                               equality_expression NE relational_expression                { $$ = YACC_NOT_EQUAL_EXPRESSION($1, $3); }
-and_expression:                     equality_expression
+and_expression:                     equality_expression                                         { $$ = $1; }
     |                               and_expression '&' equality_expression                      { $$ = YACC_AND_EXPRESSION($1, $3); }
-exclusive_or_expression:            and_expression
+exclusive_or_expression:            and_expression                                              { $$ = $1; }
     |                               exclusive_or_expression '^' and_expression                  { $$ = YACC_EXCLUSIVE_OR_EXPRESSION($1, $3); }
-inclusive_or_expression:            exclusive_or_expression
+inclusive_or_expression:            exclusive_or_expression                                     { $$ = $1; }
     |                               inclusive_or_expression '|' exclusive_or_expression         { $$ = YACC_INCLUSIVE_OR_EXPRESSION($1, $3); }
-logical_and_expression:             inclusive_or_expression
+logical_and_expression:             inclusive_or_expression                                     { $$ = $1; }
     |                               logical_and_expression LOG_AND inclusive_or_expression      { $$ = YACC_LOGICAL_AND_EXPRESSION($1, $3); }
-logical_or_expression:              logical_and_expression
+logical_or_expression:              logical_and_expression                                      { $$ = $1; }
     |                               logical_or_expression LOG_OR logical_and_expression         { $$ = YACC_LOGICAL_OR_EXPRESSION($1, $3); }
-conditional_expression:             logical_or_expression
+conditional_expression:             logical_or_expression                                       { $$ = $1; }
     |                               logical_or_expression '?' expression ':' assignment_expression
                                                                                                 { $$ = YACC_CONDITIONAL_EXPRESSION($1, $3, $5); }
 
 /*  assignment-expression is generalised to cover the simple assignment of a braced initializer in order to contribute to the
  *  coverage of parameter-declaration and init-declaration.
  */
-assignment_expression:              conditional_expression
+assignment_expression:              conditional_expression                                          { $$ = $1; }
     |                               logical_or_expression assignment_operator assignment_expression { $$ = YACC_ASSIGNMENT_EXPRESSION($1, $2, $3); }
     |                               logical_or_expression '=' braced_initializer                    { $$ = YACC_ASSIGNMENT_EXPRESSION($1, $2, $3); }
-    |                               throw_expression
+    |                               throw_expression                                                { $$ = $1; }
 assignment_operator:                '=' | ASS_ADD | ASS_AND | ASS_DIV | ASS_MOD | ASS_MUL | ASS_OR | ASS_SHL | ASS_SHR | ASS_SUB | ASS_XOR
 
 /*  expression is widely used and usually single-element, so the reductions are arranged so that a
  *  single-element expression is returned as is. Multi-element expressions are parsed as a list that
  *  may then behave polymorphically as an element or be compacted to an element. */ 
 expression.opt:                     /* empty */                                                 { $$ = YACC_EXPRESSION(0); }
-    |                               expression
-expression:                         assignment_expression
+    |                               expression                                                  { $$ = $1; }
+expression:                         assignment_expression                                       { $$ = $1; }
     |                               expression_list ',' assignment_expression                   { $$ = YACC_EXPRESSION(YACC_EXPRESSIONS($1, $3)); }
-constant_expression:                conditional_expression
+constant_expression:                conditional_expression                                      { $$ = $1; }
 
 /*  The grammar is repeated for when the parser stack knows that the next > must end a template.
  */
-templated_relational_expression:    shift_expression
+templated_relational_expression:    shift_expression                                            { $$ = $1; }
     |                               templated_relational_expression '<' shift_expression        { $$ = YACC_LESS_THAN_EXPRESSION($1, $3); }
     |                               templated_relational_expression LE shift_expression         { $$ = YACC_LESS_EQUAL_EXPRESSION($1, $3); }
     |                               templated_relational_expression GE shift_expression         { $$ = YACC_GREATER_EQUAL_EXPRESSION($1, $3); }
-templated_equality_expression:      templated_relational_expression
+templated_equality_expression:      templated_relational_expression                             { $$ = $1; }
     |                               templated_equality_expression EQ templated_relational_expression    { $$ = YACC_EQUAL_EXPRESSION($1, $3); }
     |                               templated_equality_expression NE templated_relational_expression    { $$ = YACC_NOT_EQUAL_EXPRESSION($1, $3); }
-templated_and_expression:           templated_equality_expression
+templated_and_expression:           templated_equality_expression                               { $$ = $1; }
     |                               templated_and_expression '&' templated_equality_expression  { $$ = YACC_AND_EXPRESSION($1, $3); }
-templated_exclusive_or_expression:  templated_and_expression
+templated_exclusive_or_expression:  templated_and_expression                                    { $$ = $1; }
     |                               templated_exclusive_or_expression '^' templated_and_expression
                                                                                                 { $$ = YACC_EXCLUSIVE_OR_EXPRESSION($1, $3); }
-templated_inclusive_or_expression:  templated_exclusive_or_expression
+templated_inclusive_or_expression:  templated_exclusive_or_expression                           { $$ = $1; }
     |                               templated_inclusive_or_expression '|' templated_exclusive_or_expression
                                                                                                 { $$ = YACC_INCLUSIVE_OR_EXPRESSION($1, $3); }
-templated_logical_and_expression:   templated_inclusive_or_expression
+templated_logical_and_expression:   templated_inclusive_or_expression                           { $$ = $1; }
     |                               templated_logical_and_expression LOG_AND templated_inclusive_or_expression
                                                                                                 { $$ = YACC_LOGICAL_AND_EXPRESSION($1, $3); }
-templated_logical_or_expression:    templated_logical_and_expression
+templated_logical_or_expression:    templated_logical_and_expression                            { $$ = $1; }
     |                               templated_logical_or_expression LOG_OR templated_logical_and_expression
                                                                                                 { $$ = YACC_LOGICAL_OR_EXPRESSION($1, $3); }
-templated_conditional_expression:   templated_logical_or_expression
+templated_conditional_expression:   templated_logical_or_expression                             { $$ = $1; }
     |                               templated_logical_or_expression '?' templated_expression ':' templated_assignment_expression
                                                                                                 { $$ = YACC_CONDITIONAL_EXPRESSION($1, $3, $5); }
-templated_assignment_expression:    templated_conditional_expression
+templated_assignment_expression:    templated_conditional_expression                            { $$ = $1; }
     |                               templated_logical_or_expression assignment_operator templated_assignment_expression
                                                                                                 { $$ = YACC_ASSIGNMENT_EXPRESSION($1, $2, $3); }
-    |                               templated_throw_expression
-templated_expression:               templated_assignment_expression
-    |                               templated_expression_list ',' templated_assignment_expression
+    |                               templated_throw_expression                                  { $$ = $1; }
+templated_expression:               templated_assignment_expression                             { $$ = $1; }
+    |                               templated_expression_list ',' templated_assignment_expression 
                                                                                                 { $$ = YACC_EXPRESSION(YACC_EXPRESSIONS($1, $3)); }
 templated_expression_list:          templated_assignment_expression                             { $$ = YACC_EXPRESSIONS(0, $1); }
     |                               templated_expression_list ',' templated_assignment_expression    { $$ = YACC_EXPRESSIONS($1, $3); }
@@ -619,19 +681,19 @@ templated_expression_list:          templated_assignment_expression             
  *---------------------------------------------------------------------------------------------------
  *  Parsing statements is easy once simple_declaration has been generalised to cover expression_statement.
  */
-looping_statement:                  start_search looped_statement                               { $$ = YACC_LINED_STATEMENT($2, $1); end_search($$); }
-looped_statement:                   statement
+looping_statement:                  start_search looped_statement                               { $$ = YACC_LINED_STATEMENT($2, $1); m_pDriver->getLexer()->end_search($$); }
+looped_statement:                   statement                                                   { $$ = $1; }
     |                               advance_search '+' looped_statement                         { $$ = $3; }
     |                               advance_search '-'                                          { $$ = 0; }
-statement:                          control_statement
+statement:                          control_statement                                           { $$ = $1; }
 /*  |                               expression_statement                                        -- covered by declaration_statement */
-    |                               compound_statement
-    |                               declaration_statement
+    |                               compound_statement                                          { $$ = $1; }
+    |                               declaration_statement                                       { $$ = $1; }
     |                               try_block                                                   { $$ = YACC_TRY_BLOCK_STATEMENT($1); }
-control_statement:                  labeled_statement
-    |                               selection_statement
-    |                               iteration_statement
-    |                               jump_statement
+control_statement:                  labeled_statement                                           { $$ = $1; }
+    |                               selection_statement                                         { $$ = $1; }
+    |                               iteration_statement                                         { $$ = $1; }
+    |                               jump_statement                                              { $$ = $1; }
 labeled_statement:                  identifier_word ':' looping_statement                       { $$ = YACC_LABEL_STATEMENT($1, $3); }
     |                               CASE constant_expression ':' looping_statement              { $$ = YACC_CASE_STATEMENT($2, $4); }
     |                               DEFAULT ':' looping_statement                               { $$ = YACC_DEFAULT_STATEMENT($3); }
@@ -648,7 +710,7 @@ selection_statement:                IF '(' condition ')' looping_statement    %p
     |                               IF '(' condition ')' looping_statement ELSE looping_statement { $$ = YACC_IF_STATEMENT($3, $5, $7); }
     |                               SWITCH '(' condition ')' looping_statement                  { $$ = YACC_SWITCH_STATEMENT($3, $5); }
 condition.opt:                      /* empty */                                                 { $$ = YACC_CONDITION(0); }
-    |                               condition
+    |                               condition                                                   { $$ = $1; }
 condition:                          parameter_declaration_list                                  { $$ = YACC_CONDITION($1); }
 /*  |                               expression                                                  -- covered by parameter_declaration_list */
 /*  |                               type_specifier_seq declarator '=' assignment_expression     -- covered by parameter_declaration_list */
@@ -656,7 +718,7 @@ iteration_statement:                WHILE '(' condition ')' looping_statement   
     |                               DO looping_statement WHILE '(' expression ')' ';'           { $$ = YACC_DO_WHILE_STATEMENT($2, $5); }
     |                               FOR '(' for_init_statement condition.opt ';' expression.opt ')' looping_statement
                                                                                                 { $$ = YACC_FOR_STATEMENT($3, $4, $6, $8); }
-for_init_statement:                 simple_declaration
+for_init_statement:                 simple_declaration                                          { $$ = $1; }
 /*  |                               expression_statement                                        -- covered by simple_declaration */
 jump_statement:                     BREAK ';'                                                   { $$ = YACC_BREAK_STATEMENT(); }
     |                               CONTINUE ';'                                                { $$ = YACC_CONTINUE_STATEMENT(); }
@@ -667,34 +729,34 @@ declaration_statement:              block_declaration                           
 /*---------------------------------------------------------------------------------------------------
  * A.6 Declarations
  *---------------------------------------------------------------------------------------------------*/
-compound_declaration:               '{' nest declaration_seq.opt '}'                            { $$ = $3; unnest($2); }
+compound_declaration:               '{' nest declaration_seq.opt '}'                            { $$ = $3; m_pDriver->getLexer()->unnest($2); }
     |                               '{' nest declaration_seq.opt util looping_declaration '#' bang error '}'
-                                                                                                { $$ = $3; unnest($2); YACC_UNBANG($7, "Bad declaration-seq."); }
+                                                                                                { $$ = $3; m_pDriver->getLexer()->unnest($2); YACC_UNBANG($7, "Bad declaration-seq."); }
 declaration_seq.opt:                /* empty */                                                 { $$ = YACC_DECLARATIONS(0, 0); }
     |                               declaration_seq.opt util looping_declaration                { $$ = YACC_DECLARATIONS($1, YACC_COMPILE_DECLARATION($2, $3)); }
     |                               declaration_seq.opt util looping_declaration '#' bang error ';' { $$ = $1; YACC_UNBANG($5, "Bad declaration."); }
-looping_declaration:                start_search1 looped_declaration                            { $$ = YACC_LINED_DECLARATION($2, $1); end_search($$); }
-looped_declaration:                 declaration
+looping_declaration:                start_search1 looped_declaration                            { $$ = YACC_LINED_DECLARATION($2, $1); m_pDriver->getLexer()->end_search($$); }
+looped_declaration:                 declaration                                                 { $$ = $1; }
     |                               advance_search '+' looped_declaration                       { $$ = $3; }
     |                               advance_search '-'                                          { $$ = 0; }
-declaration:                        block_declaration
+declaration:                        block_declaration                                           { $$ = $1; }
     |                               function_definition                                         { $$ = YACC_SIMPLE_DECLARATION($1); }
-    |                               template_declaration
+    |                               template_declaration                                        { $$ = $1; }
 /*  |                               explicit_instantiation                                      -- covered by relevant declarations */
-    |                               explicit_specialization
-    |                               specialised_declaration
+    |                               explicit_specialization                                     { $$ = $1; }
+    |                               specialised_declaration                                     { $$ = $1; }
 specialised_declaration:            linkage_specification                                       { $$ = YACC_LINKAGE_SPECIFICATION($1); }
     |                               namespace_definition                                        { $$ = YACC_NAMESPACE_DECLARATION($1); }
     |                               TEMPLATE specialised_declaration                            { $$ = YACC_SET_TEMPLATE_DECLARATION($2); }
 block_declaration:                  simple_declaration                                          { $$ = YACC_SIMPLE_DECLARATION($1); }
-    |                               specialised_block_declaration
-specialised_block_declaration:      asm_definition
-    |                               namespace_alias_definition
-    |                               using_declaration
-    |                               using_directive
+    |                               specialised_block_declaration                               { $$ = $1; }
+specialised_block_declaration:      asm_definition                                              { $$ = $1; }
+    |                               namespace_alias_definition                                  { $$ = $1; }
+    |                               using_declaration                                           { $$ = $1; }
+    |                               using_directive                                             { $$ = $1; }
     |                               TEMPLATE specialised_block_declaration                      { $$ = YACC_SET_TEMPLATE_DECLARATION($2); }
 simple_declaration:                 ';'                                                         { $$ = YACC_EXPRESSION(0); }
-    |                               init_declaration ';'
+    |                               init_declaration ';'                                        { $$ = $1; }
     |                               init_declarations ';'                                       { $$ = $1; }
     |                               decl_specifier_prefix simple_declaration                    { $$ = YACC_DECL_SPECIFIER_EXPRESSION($2, $1); }
 
@@ -721,48 +783,60 @@ suffix_named_decl_specifier:        scoped_id                                   
     |                               suffix_named_decl_specifier decl_specifier_suffix           { $$ = YACC_DECL_SPECIFIER_NAME($1, $2); }
 suffix_named_decl_specifier.bi:     suffix_named_decl_specifier                                 { $$ = YACC_NAME_EXPRESSION($1); }
     |                               suffix_named_decl_specifier suffix_built_in_decl_specifier.raw  { $$ = YACC_TYPED_NAME($1, $2); }
-suffix_named_decl_specifiers:       suffix_named_decl_specifier.bi
+suffix_named_decl_specifiers:       suffix_named_decl_specifier.bi                              { $$ = $1; }
     |                               suffix_named_decl_specifiers suffix_named_decl_specifier.bi { $$ = YACC_TYPED_NAME($1, $2); }
 suffix_named_decl_specifiers.sf:    scoped_special_function_id          /* operators etc */     { $$ = YACC_NAME_EXPRESSION($1); }
-    |                               suffix_named_decl_specifiers
+    |                               suffix_named_decl_specifiers                                { $$ = $1; }
     |                               suffix_named_decl_specifiers scoped_special_function_id     { $$ = YACC_TYPED_NAME($1, $2); }
-suffix_decl_specified_ids:          suffix_built_in_decl_specifier
+suffix_decl_specified_ids:          suffix_built_in_decl_specifier                              { $$ = $1; }
     |                               suffix_built_in_decl_specifier suffix_named_decl_specifiers.sf { $$ = YACC_TYPED_NAME($1, $2); }
-    |                               suffix_named_decl_specifiers.sf
-suffix_decl_specified_scope:        suffix_named_decl_specifiers SCOPE
+    |                               suffix_named_decl_specifiers.sf                             { $$ = $1; }
+suffix_decl_specified_scope:        suffix_named_decl_specifiers SCOPE                          { $$ = YACC_NAME_EXPRESSION($1); }
     |                               suffix_built_in_decl_specifier suffix_named_decl_specifiers SCOPE { $$ = YACC_TYPED_NAME($1, $2); }
-    |                               suffix_built_in_decl_specifier SCOPE                        { $$ = YACC_NAME_EXPRESSION($1); }
+    |                               suffix_built_in_decl_specifier SCOPE                        { $$ = $1; }
 
-decl_specifier_affix:               storage_class_specifier
-    |                               function_specifier
-    |                               FRIEND                                                          
-    |                               TYPEDEF
+decl_specifier_affix:               storage_class_specifier                                     { $$ = $1; }
+    |                               function_specifier                                          { $$ = $1; }
+    |                               FRIEND                                                      { $$ = $1; }    
+    |                               TYPEDEF                                                     { $$ = $1; }
     |                               cv_qualifier                                                { $$ = $1; }
 
-decl_specifier_suffix:              decl_specifier_affix
+decl_specifier_suffix:              decl_specifier_affix                                        { $$ = $1; }
 
-decl_specifier_prefix:              decl_specifier_affix
+decl_specifier_prefix:              decl_specifier_affix                                        { $$ = $1; }
     |                               TEMPLATE decl_specifier_prefix                              { $$ = YACC_SET_TEMPLATE_DECL_SPECIFIER($2); }
 
-storage_class_specifier:            REGISTER | STATIC | MUTABLE
-    |                               EXTERN                  %prec SHIFT_THERE                   /* Prefer linkage specification */
-    |                               AUTO
+storage_class_specifier:            REGISTER                                                    { $$ = $1; }
+    |                               STATIC                                                      { $$ = $1; }
+    |                               MUTABLE                                                     { $$ = $1; }
+    |                               EXTERN                  %prec SHIFT_THERE                   { $$ = $1; }/* Prefer linkage specification */
+    |                               AUTO                                                        { $$ = $1; }
 
-function_specifier:                 EXPLICIT
-    |                               INLINE
-    |                               VIRTUAL
+function_specifier:                 EXPLICIT                                                    { $$ = $1; }
+    |                               INLINE                                                      { $$ = $1; }
+    |                               VIRTUAL                                                     { $$ = $1; }
 
-type_specifier:                     simple_type_specifier
-    |                               elaborate_type_specifier
+type_specifier:                     simple_type_specifier                                       { $$ = $1; }
+    |                               elaborate_type_specifier                                    { $$ = $1; }
     |                               cv_qualifier                                                { $$ = YACC_CV_DECL_SPECIFIER($1); }
-
-elaborate_type_specifier:           class_specifier
-    |                               enum_specifier
-    |                               elaborated_type_specifier
+                                                                                                
+elaborate_type_specifier:           class_specifier                                             { $$ = $1; }
+    |                               enum_specifier                                              { $$ = $1; }
+    |                               elaborated_type_specifier                                   { $$ = $1; }
     |                               TEMPLATE elaborate_type_specifier                           { $$ = YACC_SET_TEMPLATE_ID($2); }
-simple_type_specifier:              scoped_id
-    |                               built_in_type_specifier                                     { $$ = YACC_BUILT_IN_ID_ID($1); }
-built_in_type_specifier:            CHAR | WCHAR_T | BOOL | SHORT | INT | LONG | SIGNED | UNSIGNED | FLOAT | DOUBLE | VOID
+simple_type_specifier:              scoped_id                                                   { $$ = $1; }
+    |                               built_in_type_specifier                                     { $$ = $1; }
+built_in_type_specifier:            CHAR                                                        { $$ = $1; }
+    |                               WCHAR_T                                                     { $$ = $1; }
+    |                               BOOL                                                        { $$ = $1; }
+    |                               SHORT                                                       { $$ = $1; }
+    |                               INT                                                         { $$ = $1; }
+    |                               LONG                                                        { $$ = $1; }
+    |                               SIGNED                                                      { $$ = $1; }
+    |                               UNSIGNED                                                    { $$ = $1; }
+    |                               FLOAT                                                       { $$ = $1; }
+    |                               DOUBLE                                                      { $$ = $1; }
+    |                               VOID                                                        { $$ = $1; }
 
 /*
  *  The over-general use of declaration_expression to cover decl-specifier-seq.opt declarator in a function-definition means that
@@ -773,8 +847,8 @@ built_in_type_specifier:            CHAR | WCHAR_T | BOOL | SHORT | INT | LONG |
  *  The function-definition is not syntactically valid so resolving the false conflict in favour of the
  *  elaborated_type_specifier is correct.
  */
-elaborated_type_specifier:          elaborated_class_specifier
-    |                               elaborated_enum_specifier
+elaborated_type_specifier:          elaborated_class_specifier                                  { $$ = $1; }
+    |                               elaborated_enum_specifier                                   { $$ = $1; }
     |                               TYPENAME scoped_id                                          { $$ = YACC_ELABORATED_TYPE_SPECIFIER($1, $2); }
 
 elaborated_enum_specifier:          ENUM scoped_id               %prec SHIFT_THERE              { $$ = YACC_ELABORATED_TYPE_SPECIFIER($1, $2); }
@@ -794,7 +868,7 @@ enumerator_list_head:               enumerator_definition_filler                
 enumerator_list:                    enumerator_list_head enumerator_definition                  { $$ = YACC_ENUMERATORS($1, $2); }
 enumerator_definition:              enumerator                                                  { $$ = YACC_ENUMERATOR($1, 0); }
     |                               enumerator '=' constant_expression                          { $$ = YACC_ENUMERATOR($1, $3); }
-enumerator:                         identifier
+enumerator:                         identifier                                                  { $$ = $1; }
 
 namespace_definition:               NAMESPACE scoped_id compound_declaration                    { $$ = YACC_NAMESPACE_DEFINITION($2, $3); }
     |                               NAMESPACE compound_declaration                              { $$ = YACC_NAMESPACE_DEFINITION(0, $2); }
@@ -836,7 +910,8 @@ ptr_operator_seq.opt:               /* empty */                         %prec SH
 
 cv_qualifier_seq.opt:               /* empty */                                                 { $$ = YACC_CV_QUALIFIERS(0, 0); }
     |                               cv_qualifier_seq.opt cv_qualifier                           { $$ = YACC_CV_QUALIFIERS($1, $2); }
-cv_qualifier:                       CONST | VOLATILE /* | CvQualifier */
+cv_qualifier:                       CONST                                                       { $$ = $1; }
+    |                               VOLATILE                                                    { $$ = $1; }
 
 /*type_id                                                                                       -- also covered by parameter declaration */
 type_id:                            type_specifier abstract_declarator.opt                      { $$ = YACC_TYPED_EXPRESSION($1, $2); }
@@ -845,9 +920,9 @@ type_id:                            type_specifier abstract_declarator.opt      
 /*abstract_declarator:                                                                          -- also covered by parameter declaration */
 abstract_declarator.opt:            /* empty */                                                 { $$ = YACC_EPSILON(); }
     |                               ptr_operator abstract_declarator.opt                        { $$ = YACC_POINTER_EXPRESSION($1, $2); }
-    |                               direct_abstract_declarator
+    |                               direct_abstract_declarator                                  { $$ = $1; } /* ADD JUICEBOX */
 direct_abstract_declarator.opt:     /* empty */                                                 { $$ = YACC_EPSILON(); }
-    |                               direct_abstract_declarator
+    |                               direct_abstract_declarator                                  { $$ = $1; } /* ADD JUICEBOX */
 direct_abstract_declarator:         direct_abstract_declarator.opt parenthesis_clause           { $$ = YACC_CALL_EXPRESSION($1, $2); }
     |                               direct_abstract_declarator.opt '[' ']'                      { $$ = YACC_ARRAY_EXPRESSION($1, 0); }
     |                               direct_abstract_declarator.opt '[' constant_expression ']'  { $$ = YACC_ARRAY_EXPRESSION($1, $3); }
@@ -858,7 +933,7 @@ parenthesis_clause:                 parameters_clause cv_qualifier_seq.opt      
 parameters_clause:                  '(' parameter_declaration_clause ')'                        { $$ = $2; }
 /* parameter_declaration_clause also covers init_declaration, type_id, declarator and abstract_declarator. */
 parameter_declaration_clause:       /* empty */                                                 { $$ = YACC_PARAMETERS(0, 0); }
-    |                               parameter_declaration_list
+    |                               parameter_declaration_list                                  { $$ = $1; }
     |                               parameter_declaration_list ELLIPSIS                         { $$ = YACC_PARAMETERS($1, YACC_ELLIPSIS_EXPRESSION()); }
 parameter_declaration_list:         parameter_declaration                                       { $$ = YACC_PARAMETERS(0, $1); }
     |                               parameter_declaration_list ',' parameter_declaration        { $$ = YACC_PARAMETERS($1, $3); }
@@ -868,12 +943,12 @@ parameter_declaration_list:         parameter_declaration                       
  * looks like a multiply, so pointers are parsed as their binary operation equivalents that
  * ultimately terminate with a degenerate right hand term.
  */
-abstract_pointer_declaration:       ptr_operator_seq
+abstract_pointer_declaration:       ptr_operator_seq                                            { $$ = $1; }
     |                               multiplicative_expression star_ptr_operator ptr_operator_seq.opt { $$ = YACC_MULTIPLY_EXPRESSION($1, $2, $3); }
-abstract_parameter_declaration:     abstract_pointer_declaration
+abstract_parameter_declaration:     abstract_pointer_declaration                                { $$ = $1; }
     |                               and_expression '&'                                          { $$ = YACC_AND_EXPRESSION($1, YACC_EPSILON()); }
     |                               and_expression '&' abstract_pointer_declaration             { $$ = YACC_AND_EXPRESSION($1, $3); }
-special_parameter_declaration:      abstract_parameter_declaration
+special_parameter_declaration:      abstract_parameter_declaration                              { $$ = YACC_ASSIGNMENT_EXPRESSION($1, 0, 0); }
     |                               abstract_parameter_declaration '=' assignment_expression    { $$ = YACC_ASSIGNMENT_EXPRESSION($1, $2, $3); }
     |                               ELLIPSIS                                                    { $$ = YACC_ELLIPSIS_EXPRESSION(); }
 parameter_declaration:              assignment_expression                                       { $$ = YACC_EXPRESSION_PARAMETER($1); }
@@ -884,10 +959,9 @@ parameter_declaration:              assignment_expression                       
  */
 templated_parameter_declaration:    templated_assignment_expression                             { $$ = YACC_EXPRESSION_PARAMETER($1); }
     |                               templated_abstract_declaration                              { $$ = YACC_EXPRESSION_PARAMETER($1); }
-    |                               templated_abstract_declaration '=' templated_assignment_expression
-                                                    { $$ = YACC_EXPRESSION_PARAMETER(YACC_ASSIGNMENT_EXPRESSION($1, $2, $3)); }
+    |                               templated_abstract_declaration '=' templated_assignment_expression { $$ = YACC_EXPRESSION_PARAMETER(YACC_ASSIGNMENT_EXPRESSION($1, $2, $3)); }
     |                               decl_specifier_prefix templated_parameter_declaration       { $$ = YACC_DECL_SPECIFIER_PARAMETER($2, $1); }
-templated_abstract_declaration:     abstract_pointer_declaration
+templated_abstract_declaration:     abstract_pointer_declaration                                { $$ = $1; }
     |                               templated_and_expression '&'                                { $$ = YACC_AND_EXPRESSION($1, 0); }
     |                               templated_and_expression '&' abstract_pointer_declaration   { $$ = YACC_AND_EXPRESSION($1, $3); }
 
@@ -895,8 +969,8 @@ templated_abstract_declaration:     abstract_pointer_declaration
  *  A local destructor is successfully parsed as a function-declaration but the ~ was treated as a unary operator.
  *  constructor_head is the prefix ambiguity between a constructor and a member-init-list starting with a bit-field.
  */
-function_definition:        ctor_definition
-    |                       func_definition
+function_definition:        ctor_definition                                             { $$ = $1; }
+    |                       func_definition                                             { $$ = $1; }
 func_definition:            assignment_expression function_try_block                    { $$ = YACC_FUNCTION_DEFINITION($1, $2); }
     |                       assignment_expression function_body                         { $$ = YACC_FUNCTION_DEFINITION($1, $2); }
     |                       decl_specifier_prefix func_definition                       { $$ = YACC_DECL_SPECIFIER_EXPRESSION($2, $1); }
@@ -924,7 +998,7 @@ braced_initializer:         '{' initializer_list '}'                            
                                                                                         { $$ = $2; YACC_UNBANG($6, "Bad initializer_clause."); }
 initializer_list:           looping_initializer_clause                                  { $$ = YACC_INITIALIZER_CLAUSES(0, $1); }
     |                       initializer_list ',' looping_initializer_clause             { $$ = YACC_INITIALIZER_CLAUSES($1, $3); }
-looping_initializer_clause: start_search looped_initializer_clause                      { $$ = $2; end_search($$); }
+looping_initializer_clause: start_search looped_initializer_clause                      { $$ = $2; m_pDriver->getLexer()->end_search($$); }
 looped_initializer_clause:  initializer_clause
     |                       advance_search '+' looped_initializer_clause                { $$ = $3; }
     |                       advance_search '-'                                          { $$ = 0; }
@@ -942,10 +1016,10 @@ looped_initializer_clause:  initializer_clause
  *  the correct choice so we unmark and continue. If we fail to find the { an error token causes back-tracking
  *  to the alternative parse in elaborated_class_specifier which regenerates the : and declares unconditional success.
  */
-colon_mark:                 ':'                                                         { $$ = mark(); }
+colon_mark:                 ':'                                                         { $$ = m_pDriver->getLexer()->mark(); }
 elaborated_class_specifier: class_key scoped_id                    %prec SHIFT_THERE    { $$ = YACC_ELABORATED_TYPE_SPECIFIER($1, $2); }
-    |                       class_key scoped_id colon_mark error                        { $$ = YACC_ELABORATED_TYPE_SPECIFIER($1, $2); rewind_colon($3, $$); }
-class_specifier_head:       class_key scoped_id colon_mark base_specifier_list '{'      { unmark($4); $$ = YACC_CLASS_SPECIFIER_ID($1, $2, $4); }
+    |                       class_key scoped_id colon_mark error                        { $$ = YACC_ELABORATED_TYPE_SPECIFIER($1, $2); m_pDriver->getLexer()->rewind_colon($3, $$); }
+class_specifier_head:       class_key scoped_id colon_mark base_specifier_list '{'      { m_pDriver->getLexer()->unmark($4); $$ = YACC_CLASS_SPECIFIER_ID($1, $2, $4); }
     |                       class_key ':' base_specifier_list '{'                       { $$ = YACC_CLASS_SPECIFIER_ID($1, 0, $3); }
     |                       class_key scoped_id '{'                                     { $$ = YACC_CLASS_SPECIFIER_ID($1, $2, 0); }
     |                       class_key '{'                                               { $$ = YACC_CLASS_SPECIFIER_ID($1, 0, 0); }
@@ -954,20 +1028,20 @@ class_specifier:            class_specifier_head member_specification.opt '}'   
     |                       class_specifier_head member_specification.opt util looping_member_declaration '#' bang error '}'
                                             { $$ = YACC_CLASS_MEMBERS($1, $2); YACC_UNBANG($6, "Bad member_specification.opt."); }
 member_specification.opt:   /* empty */                                                 { $$ = YACC_MEMBER_DECLARATIONS(0, 0); }
-    |                       member_specification.opt util looping_member_declaration    { $$ = YACC_MEMBER_DECLARATIONS($1, YACC_COMPILE_DECLARATION($2, $3)); }
+    |                       member_specification.opt util looping_member_declaration    { $$ = YACC_MEMBER_DECLARATIONS($1, YACC_COMPILE_MEMBER_DECLARATION($2, $3)); }
     |                       member_specification.opt util looping_member_declaration '#' bang error ';'
                                                                                                 { $$ = $1; YACC_UNBANG($5, "Bad member-declaration."); }
-looping_member_declaration: start_search looped_member_declaration                      { $$ = YACC_LINED_DECLARATION($2, $1); end_search($$); }
+looping_member_declaration: start_search looped_member_declaration                      { $$ = YACC_LINED_MEMBER_DECLARATION($2, $1); m_pDriver->getLexer()->end_search($$); }
 looped_member_declaration:  member_declaration
     |                       advance_search '+' looped_member_declaration                { $$ = $3; }
     |                       advance_search '-'                                          { $$ = 0; }
-member_declaration:         accessibility_specifier
-    |                       simple_member_declaration                                   { $$ = YACC_SIMPLE_DECLARATION($1); }
-    |                       function_definition                                         { $$ = YACC_SIMPLE_DECLARATION($1); }
+member_declaration:         accessibility_specifier                                     { $$ = $1; }
+    |                       simple_member_declaration                                   { $$ = YACC_MEMBER_DECLARATION($1); }
+    |                       function_definition                                         { $$ = YACC_MEMBER_DECLARATION($1); }
 /*  |                       function_definition ';'                                     -- trailing ; covered by null declaration */
 /*  |                       qualified_id ';'                                            -- covered by simple_member_declaration */
-    |                       using_declaration
-    |                       template_declaration
+    |                       using_declaration                                           { $$ = YACC_MEMBER_DECLARATION($1); }
+    |                       template_declaration                                        { $$ = YACC_MEMBER_DECLARATION($1); }
 
 /*  The generality of constructor names (there need be no parenthesised argument list) means that that
  *          name : f(g), h(i)
@@ -975,7 +1049,7 @@ member_declaration:         accessibility_specifier
  *  parsing the ctor-initializer of a function_definition as a bit-field.
  */
 simple_member_declaration:  ';'                                                         { $$ = YACC_EXPRESSION(0); }
-    |                       assignment_expression ';'
+    |                       assignment_expression ';'                                   { $$ = $1; }
     |                       constructor_head ';'                                        { $$ = $1; }
     |                       member_init_declarations ';'                                { $$ = $1; }
     |                       decl_specifier_prefix simple_member_declaration             { $$ = YACC_DECL_SPECIFIER_EXPRESSION($2, $1); }
@@ -1149,14 +1223,18 @@ type_id_list:                       type_id                                     
 /*---------------------------------------------------------------------------------------------------
  * Back-tracking and context support
  *---------------------------------------------------------------------------------------------------*/
-advance_search:                     error               { yyerrok; yyclearin; advance_search(); } /* Rewind and queue '+' or '-' '#' */       
+advance_search:                     error               { yyerrok; yyclearin; m_pDriver->getLexer()->advance_search(); } /* Rewind and queue '+' or '-' '#' */       
 bang:                               /* empty */         { $$ = YACC_BANG(); }   /* set flag to suppress "parse error" */ 
-mark:                               /* empty */         { $$ = mark(); }        /* Push lookahead and input token stream context onto a stack */
-nest:                               /* empty */         { $$ = nest(); }        /* Push a declaration nesting depth onto the parse stack */
-start_search:                       /* empty */         { $$ = YACC_LINE(); start_search(false); }    /* Create/reset binary search context */
-start_search1:                      /* empty */         { $$ = YACC_LINE(); start_search(true); }     /* Create/reset binary search context */
+mark:                               /* empty */         { $$ = m_pDriver->getLexer()->mark(); }        /* Push lookahead and input token stream context onto a stack */
+nest:                               /* empty */         { $$ = m_pDriver->getLexer()->nest(); }        /* Push a declaration nesting depth onto the parse stack */
+start_search:                       /* empty */         { $$ = YACC_LINE(); m_pDriver->getLexer()->start_search(false); }    /* Create/reset binary search context */
+start_search1:                      /* empty */         { $$ = YACC_LINE(); m_pDriver->getLexer()->start_search(true); }     /* Create/reset binary search context */
 util:                               /* empty */         { $$ = YACC_UTILITY_MODE(); }           /* Get current utility mode */
 /*StartTester*/
 %%
-#include "CxxParsing.cxx"
+
+void phantom::CxxParser::error(const CxxParser::location_type& l, const string& m)
+{
+}
+
 /*EndTester*/

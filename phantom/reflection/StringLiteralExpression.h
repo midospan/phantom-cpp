@@ -46,17 +46,21 @@ o_namespace_begin(phantom, reflection)
 
 class o_export StringLiteralExpression : public Expression
 {
+    o_language_element;
+
 public:
-    StringLiteralExpression(const string& a_Value);
+    StringLiteralExpression(const string& literal, const string& a_Value);
     o_destructor ~StringLiteralExpression(void)     {}
+
+    virtual StringLiteralExpression*    asStringLiteralExpression() const { return (StringLiteralExpression*)this; }
 
     virtual void* getValueStorageAddress() const { return (void*)&m_Value; }
 
-    virtual void    setValue(void const* a_pSrc) const;
-
-    virtual void    getValue(void* a_pDest) const;
+    virtual void    internalEval(void* a_pDest) const;
 
     const char*     getString() const { return m_Value; }
+
+    const string&   getLiteral() const { return m_literal; }
 
     virtual bool    isAddressable() const { return true; }
 
@@ -65,9 +69,7 @@ public:
     virtual StringLiteralExpression*     clone() const;
 
 protected:
-    static string   Literalize(const string& a_Value);
-
-protected:
+    const string& m_literal;
     const char* m_Value;
 };
 

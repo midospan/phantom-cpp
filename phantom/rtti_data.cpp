@@ -12,7 +12,7 @@ reflection::Expression* rtti_data::createReferenceExpression(serialization::Data
         reflection::InstanceDataMember* pInstanceDataMember = owner->object_class->getInstanceDataMemberAtAddress(owner->base, base);
         if(pInstanceDataMember)
         {
-            return pInstanceDataMember->createAccessExpression(pOwnerExpression);
+            return pInstanceDataMember->createExpression(pOwnerExpression);
         }
         else 
         {

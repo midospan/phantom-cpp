@@ -42,11 +42,11 @@ o_declareNT(class, (phantom, reflection), (typename), (t_Ty), TBinaryBitExpressi
 
 o_namespace_begin(phantom, reflection)
 
-inline Type* TBinaryBitExpression_ExpressionValueType(Expression* a_pLHSExpression, Expression* a_pRHSExpression)
+inline Type* TBinaryBitExpression_ExpressionValueType(Expression* a_pLeftExpression, Expression* a_pRightExpression)
 {
-    return (a_pLHSExpression->getValueType()->getTypeId() > a_pRHSExpression->getValueType()->getTypeId()) 
-        ? a_pLHSExpression->getValueType()->promote() 
-        : a_pRHSExpression->getValueType()->promote();
+    return (a_pLeftExpression->getValueType()->getTypeId() > a_pRightExpression->getValueType()->getTypeId()) 
+        ? a_pLeftExpression->getValueType()->promote() 
+        : a_pRightExpression->getValueType()->promote();
 }
 
 template<typename t_Ty>
@@ -55,35 +55,35 @@ class TBinaryBitExpression : public BinaryOperationExpression
     o_static_assert(boost::is_integral<t_Ty>::value OR boost::is_pointer<t_Ty>::value);
     typedef o_NESTED_TYPE boost::promote<t_Ty>::type promoted_type;
 public:
-    TBinaryBitExpression( const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression )
-        : BinaryOperationExpression(TBinaryBitExpression_ExpressionValueType(a_pLHSExpression, a_pRHSExpression)
+    TBinaryBitExpression( const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression )
+        : BinaryOperationExpression(TBinaryBitExpression_ExpressionValueType(a_pLeftExpression, a_pRightExpression)
         , a_strOperator
-        , a_pLHSExpression
-        , a_pRHSExpression)
+        , a_pLeftExpression
+        , a_pRightExpression)
     {
-        o_assert(m_pLHSExpression->getValueType()->removeReference() == typeOf<promoted_type>());
-        o_assert(m_pRHSExpression->getValueType()->removeReference() == typeOf<promoted_type>());
+        o_assert(m_pLeftExpression->getValueType()->removeReference() == typeOf<promoted_type>());
+        o_assert(m_pRightExpression->getValueType()->removeReference() == typeOf<promoted_type>());
     }
 
-    virtual void    getValue(void* a_pDest) const 
+    virtual void    internalEval(void* a_pDest) const 
     {
         promoted_type* _where = (promoted_type*)a_pDest;
         promoted_type _intermediate;
         switch(m_strOperator[0])
         {
         case '&':
-            m_pLHSConvertedExpression->load(_where);
-            m_pRHSConvertedExpression->load(&_intermediate);
+            m_pConvertedLeftExpression->load(_where);
+            m_pConvertedRightExpression->load(&_intermediate);
             *_where &= _intermediate;
             break;
         case '|':
-            m_pLHSConvertedExpression->load(_where);
-            m_pRHSConvertedExpression->load(&_intermediate);
+            m_pConvertedLeftExpression->load(_where);
+            m_pConvertedRightExpression->load(&_intermediate);
             *_where |= _intermediate;
             break;
         case '^':
-            m_pLHSConvertedExpression->load(_where);
-            m_pRHSConvertedExpression->load(&_intermediate);
+            m_pConvertedLeftExpression->load(_where);
+            m_pConvertedRightExpression->load(&_intermediate);
             *_where ^= _intermediate;
             break;
         }
@@ -91,7 +91,7 @@ public:
 
     virtual TBinaryBitExpression<t_Ty>*     clone() const 
     {
-        return o_new(TBinaryBitExpression<t_Ty>)(m_strOperator, m_pLHSExpression, m_pRHSExpression);
+        return o_new(TBinaryBitExpression<t_Ty>)(m_strOperator, m_pLeftExpression, m_pRightExpression);
     }
 
 };

@@ -218,20 +218,20 @@ template<typename t_Ty>
 template<typename t_Ty>
  phantom::reflection::DataPointerType*                  pointerTypeOf();
 
-o_export phantom::reflection::Namespace*                rootNamespace();
+o_export phantom::reflection::Namespace*                globalNamespace();
 o_export phantom::reflection::Namespace*                namespaceByList( list<string>* a_pNamespaceNameAsStringList );
-o_export phantom::reflection::Namespace*                namespaceByName( const string& a_strNamespaceName, reflection::Namespace* a_pScope = rootNamespace() );
+o_export phantom::reflection::Namespace*                namespaceByName( const string& a_strNamespaceName, reflection::Namespace* a_pScope = globalNamespace() );
 o_export inline phantom::reflection::SourceFile*        sourceFile(const string& a_strAbsoluteName);
 o_export inline void                                    discardSourceFile(phantom::reflection::SourceFile* a_pSourceFile);
-o_export phantom::reflection::Type*                     typeByName(const string& a_strName, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
-o_export phantom::reflection::Type*					    typeByNameCascade(const string& a_strName, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
-o_export phantom::reflection::LanguageElement*          elementByName(const string& a_strName, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
-template<typename t_Ty> o_forceinline t_Ty*             elementByNameAs(const string& a_strName, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) { return as<t_Ty*>(elementByName(a_strName, a_pRootElement)); }
-o_export phantom::reflection::Function*                 functionByName( const string& a_strName, phantom::reflection::Namespace* a_pScope = rootNamespace() );
-o_export phantom::reflection::Class*                    classByName(const string& a_strQualifiedName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
-o_export phantom::reflection::Expression*               expressionByName(const string& a_strName, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
-o_export void                                           elementsByClass(reflection::Class* a_pClass, vector<reflection::LanguageElement*>& out, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace())) ;
-o_export phantom::reflection::LanguageElement*		    elementByNameCascade(const string& a_strName, phantom::reflection::Namespace* a_pScope = rootNamespace());
+o_export phantom::reflection::Type*                     typeByName(const string& a_strName, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(globalNamespace())) ;
+o_export phantom::reflection::Type*					    typeByNameCascade(const string& a_strName, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(globalNamespace())) ;
+o_export phantom::reflection::LanguageElement*          elementByName(const string& a_strName, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(globalNamespace())) ;
+template<typename t_Ty> o_forceinline t_Ty*             elementByNameAs(const string& a_strName, phantom::reflection::LanguageElement* a_pRootElement = reinterpret_cast<phantom::reflection::LanguageElement*>(globalNamespace())) { return as<t_Ty*>(elementByName(a_strName, a_pRootElement)); }
+o_export phantom::reflection::Function*                 functionByName( const string& a_strName, phantom::reflection::Namespace* a_pScope = globalNamespace() );
+o_export phantom::reflection::Class*                    classByName(const string& a_strQualifiedName, phantom::reflection::LanguageElement* a_pRootScope = reinterpret_cast<phantom::reflection::LanguageElement*>(globalNamespace())) ;
+o_export phantom::reflection::Expression*               expressionByName(const string& a_strName, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(globalNamespace())) ;
+o_export void                                           elementsByClass(reflection::Class* a_pClass, vector<reflection::LanguageElement*>& out, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(globalNamespace())) ;
+o_export phantom::reflection::LanguageElement*		    elementByNameCascade(const string& a_strName, phantom::reflection::Namespace* a_pScope = globalNamespace());
 
 o_export phantom::reflection::Type*                     typeByGuid(uint guid) ;
 o_export phantom::reflection::LanguageElement*          elementByGuid(uint guid) ;
@@ -300,7 +300,7 @@ o_export void                                           setCurrentDataBase(seria
 o_export serialization::DataBase*                       getCurrentDataBase();
 
 template <typename t_Ty>
-phantom::reflection::Constant*                          constant(t_Ty a_Constant);
+phantom::reflection::NumericConstant*                   constant(t_Ty a_Constant, const string& name = "");
 
 o_namespace_end(phantom)
 
@@ -340,7 +340,6 @@ protected:
 #include "phantom/Module.h"
 #include "phantom/variant.h"
 #include "phantom/reflection/LanguageElement.h"
-#include "phantom/reflection/TemplateElement.h"
 #include "phantom/reflection/Template.h"
 #include "phantom/reflection/Signature.h"
 #include "phantom/reflection/VirtualMemberFunctionTable.h"
@@ -358,7 +357,6 @@ protected:
 #include "phantom/reflection/Constant.h"
 #include "phantom/reflection/NumericConstant.h"
 #include "phantom/reflection/Variable.h"
-#include "phantom/reflection/Addressable.h"
 #include "phantom/reflection/Constant.h"
 #include "phantom/reflection/Iterator.h"
 #include "phantom/reflection/ConstIterator.h"
@@ -369,6 +367,10 @@ protected:
 #include "phantom/reflection/ClassType.h"
 #include "phantom/reflection/Class.h"
 #include "phantom/reflection/Namespace.h"
+#include "phantom/reflection/MemberPointerType.h"
+#include "phantom/reflection/DataMemberPointerType.h"
+#include "phantom/reflection/MemberFunctionPointerType.h"
+#include "phantom/reflection/FunctionPointerType.h"
 
 #include "phantom/reflection/ContainerClass.h"
 #include "phantom/reflection/SequentialContainerClass.h"
@@ -455,18 +457,22 @@ o_namespace_end(phantom, reflection, native)
 #include "phantom/reflection/native/TNativeInstanceMemberFunctionBase.h"
 #include "phantom/reflection/native/TNativeInstanceMemberFunction.h"
 #include "phantom/reflection/native/TNativeInstanceMemberFunctionConst.h"
+#include "phantom/reflection/native/TNativeMemberFunctionPointerTypeBase.h"
+#include "phantom/reflection/native/TNativeMemberFunctionPointerType.h"
+#include "phantom/reflection/native/TNativeMemberFunctionPointerTypeConst.h"
 #include "phantom/reflection/native/TNativeConstructor.h"
 
-#include "phantom/reflection/native/TNativeMemberFunctionProvider.h"
-#include "phantom/reflection/native/TNativeFunctionProvider.h"
-
+#include "phantom/reflection/native/TNativeSignatureProvider.h"
 
 #if o__int__reflection_template_use_level >= 2
-#include "phantom/reflection/native/TNativeSignatureProvider.h"
 #include "phantom/reflection/native/TNativePropertySignalProvider.h"
 #else
 #include "phantom/reflection/native/DynamicNativeSignalProvider.h"
 #endif
+
+#include "phantom/reflection/native/TNativeMemberFunctionProvider.h"
+#include "phantom/reflection/native/TNativeFunctionProvider.h"
+
 
 #include "phantom/reflection/native/TRange.h"
 
@@ -489,7 +495,6 @@ o_namespace_end(phantom, reflection, native)
 #include "phantom/reflection/native/TNativeSignalBase.h"
 #include "phantom/reflection/native/TNativeSignal.h"
 #include "phantom/reflection/ClassExtension.h"
-#include "phantom/reflection/PureVirtualMemberFunction.h"
 #include "phantom/reflection/Function.h"
 
 o_namespace_begin(phantom)
@@ -774,7 +779,7 @@ enum
     eInvalidMetaDataIndex = 0xffffffff,
 };
 
-o_export phantom::reflection::Namespace*            rootNamespace();
+o_export phantom::reflection::Namespace*            globalNamespace();
 o_export reflection::Type*                          stringType();
 
 o_export size_t                                     metaDataIndex(const string& elementName);
@@ -952,9 +957,9 @@ o_export void setLogFunc(log_func a_func);
 o_export void setWarningFunc(message_report_func a_func);
 
 template <typename t_Ty>
-phantom::reflection::Constant* constant(t_Ty a_Constant)
+phantom::reflection::NumericConstant* constant(t_Ty a_Constant, const string& name)
 {
-    return o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<t_Ty>)(lexical_cast<string>(a_Constant),a_Constant);
+    return o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<t_Ty>)(name, a_Constant);
 }
 
 o_forceinline bool dynamic_initializer_handle::dynamic_initializer_module_installation_func::operator<( const dynamic_initializer_module_installation_func& other ) const

@@ -25,62 +25,23 @@ o_terminate_cpp(ConstructorCallExpression)
     m_pReturnStorage = nullptr;
 }
 
-void ConstructorCallExpression::getValue( void* a_pDest ) const
+void ConstructorCallExpression::internalEval( void* a_pDest ) const
 {
     vector<void*> addresses;
-    addresses.resize(m_Arguments.size());
-    size_t i = m_Arguments.size();
-    while(i--) // evaluate arguments from right to left
-    {
-        Expression* pArgument = m_Arguments[i];
-        if(pArgument->hasEffectiveAddress())
-        {
-            addresses[i] = pArgument->loadEffectiveAddress();
-        }
-        else 
-        {
-            pArgument->getValue(m_TempValues[i]);
-            addresses[i] = m_TempValues[i];
-        }
-    }
+    evaluateArguments(addresses);
     m_pSubroutine->call(a_pDest, addresses.data());
 }
 
-void ConstructorCallExpression::eval() const
+void ConstructorCallExpression::internalEval() const
 {
     vector<void*> addresses;
-    addresses.resize(m_ConvertedArguments.size());
-    size_t i = m_ConvertedArguments.size();
-    while(i--) // evaluate arguments from right to left
-    {
-        Expression* pArgument = m_ConvertedArguments[i];
-        o_assert(as<Expression*>(pArgument));
-
-        if(pArgument->isAddressable())
-        {
-            pArgument->getValue(&addresses[i]);
-        }
-        else if(pArgument->hasValueStorage())
-        {
-            addresses[i] = pArgument->getValueStorageAddress();
-        }
-        else 
-        {
-            pArgument->getValue(m_TempValues[i]);
-            addresses[i] = m_TempValues[i];
-        }
-    }
+    evaluateArguments(addresses);
     m_pSubroutine->call(m_pReturnStorage, addresses.data());
     flush();
     // Directly destroy the return storage after the call
     m_pValueType->terminate(m_pReturnStorage);
     m_pValueType->uninstall(m_pReturnStorage);
     m_pValueType->destroy(m_pReturnStorage);
-}
-
-variant ConstructorCallExpression::compile( Compiler* a_pCompiler )
-{
-    return a_pCompiler->compile(this);
 }
 
 void ConstructorCallExpression::referencedElementRemoved( LanguageElement* a_pElement )

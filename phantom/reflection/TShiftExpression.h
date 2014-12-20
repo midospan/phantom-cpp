@@ -50,16 +50,16 @@ class  TShiftExpression : public BinaryOperationExpression
 {
     o_static_assert(boost::is_integral<t_Ty>::value);
 public:
-    TShiftExpression( const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression )
+    TShiftExpression( const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression )
         : BinaryOperationExpression(typeOf<t_Ty>(), typeOf<int>()
         , a_strOperator
-        , a_pLHSExpression
-        , a_pRHSExpression)
+        , a_pLeftExpression
+        , a_pRightExpression)
     {
-        o_assert(m_pRHSConvertedExpression->getValueType() == typeOf<int>());
+        o_assert(m_pConvertedRightExpression->getValueType() == typeOf<int>());
     }
 
-    virtual void    getValue(void* a_pDest) const 
+    virtual void    internalEval(void* a_pDest) const 
     {
         t_Ty* _where = (t_Ty*)a_pDest;
         int _intermediate;
@@ -68,13 +68,13 @@ public:
 #pragma warning(disable:4804)
 #pragma warning(disable:4800)
         case '<':
-            m_pLHSConvertedExpression->load(_where);
-            m_pRHSConvertedExpression->load(&_intermediate);
+            m_pConvertedLeftExpression->load(_where);
+            m_pConvertedRightExpression->load(&_intermediate);
             *_where <<= _intermediate;
             break;
         case '>':
-            m_pLHSConvertedExpression->load(_where);
-            m_pRHSConvertedExpression->load(&_intermediate);
+            m_pConvertedLeftExpression->load(_where);
+            m_pConvertedRightExpression->load(&_intermediate);
             *_where >>= _intermediate;
             break;
 #pragma warning(default:4804)
@@ -84,7 +84,7 @@ public:
 
     virtual TShiftExpression<t_Ty>*     clone() const 
     {
-        return o_new(TShiftExpression<t_Ty>)(m_strOperator, m_pLHSExpression, m_pRHSExpression);
+        return o_new(TShiftExpression<t_Ty>)(m_strOperator, m_pLeftExpression, m_pRightExpression);
     }
 
 };

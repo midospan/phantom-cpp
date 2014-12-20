@@ -44,6 +44,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Structure : public ClassType
 {
+    o_type;
+
     o_declare_meta_type(Structure);
 
 protected:

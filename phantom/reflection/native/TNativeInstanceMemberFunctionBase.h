@@ -53,9 +53,15 @@ public:
     {
         m_strName = conversionOperatorNameNormalizer(a_strName, this);
     }
-    virtual bool isNative() const { return true; }
     virtual void call( void* a_pCaller, void** a_pArgs ) const = 0;
-    virtual void call( void* a_pCaller, void** a_pArgs, void* a_pReturnAddress ) const { call(a_pCaller, a_pArgs); }
+    virtual void call( void* a_pCaller, void** a_pArgs, void* a_pReturnAddress ) const 
+    { 
+        if(a_pReturnAddress) 
+        {
+            o_exception(exception::base_exception, "Expecting return address from a void function call, use call(void*, void**) instead"); 
+        }
+        else call(a_pCaller, a_pArgs); 
+    }
     virtual void call( void** a_pArgs ) const
     {
         void* caller = *(void**)(*a_pArgs++);

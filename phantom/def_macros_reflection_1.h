@@ -471,7 +471,7 @@ class o_PP_CAT(parameter,__LINE__) \
     {\
         virtual void registerElement()\
         {\
-            phantom::reflection::Namespace* pNamespace = phantom::rootNamespace();\
+            phantom::reflection::Namespace* pNamespace = phantom::globalNamespace();\
             pNamespace->addFunction(\
                 phantom::reflection::native::TNativeFunctionProvider<_returntype_ _parameters_>::CreateFunction(#_name_, phantom::reflection::Signature::Create(o_PP_QUOTE(_returntype_)o_PP_QUOTE(_parameters_), nullptr, pNamespace), _name_,##__VA_ARGS__)\
             );\
@@ -496,7 +496,7 @@ class o_PP_CAT(parameter,__LINE__) \
     {\
         virtual void registerElement()\
         {\
-            phantom::reflection::Namespace* pNamespace = phantom::rootNamespace();\
+            phantom::reflection::Namespace* pNamespace = phantom::globalNamespace();\
             pNamespace->addVariable(o_dynamic_proxy_new(phantom::reflection::native::TNativeVariable<_type_>)(phantom::typeOf<_type_>(), #_name_, &_name_, o_range _range_,##__VA_ARGS__));\
         }\
     } o_PP_CAT(g_reflection_variable_registration_##_name_, __LINE__);

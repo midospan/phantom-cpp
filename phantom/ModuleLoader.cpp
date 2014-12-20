@@ -73,8 +73,8 @@ bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMe
     if(LoadLibrary(strPath.c_str()))
     {
         if(a_pMessage) a_pMessage->success(moduleName.c_str(), "Module loaded : %s", moduleName.c_str());
-        o_warning(m_CurrentlyLoadedModules.size(), "No module found in the loaded library");
-        m_CurrentlyLoadedModules.clear();
+        o_warning(m_CurrentlyLoadingModules.size(), "No module found in the loaded library");
+        m_CurrentlyLoadingModules.clear();
     }
     else
     {
@@ -103,7 +103,7 @@ bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMe
             LocalFree(lpMsgBuf);
 #endif
         }
-        m_CurrentlyLoadedModules.clear();
+        m_CurrentlyLoadingModules.clear();
     }
     updateReferenceCounts(strPath, true);
     if(result)
@@ -141,7 +141,7 @@ bool ModuleLoader::unloadLibrary( const string& a_strPath, phantom::Message* a_p
     Module* pModule = phantom::moduleByFilePath(strPath);
     string moduleName = strPath.substr(strPath.find_last_of("/\\")+1);
     o_assert(pModule);
-    o_assert(std::find(m_LoadedModules.begin(), m_LoadedModules.end(), pModule) != m_LoadedModules.end(), "This module was not loaded via ModuleLoader");
+    o_assert(std::find(m_LoadedNativeModules.begin(), m_LoadedNativeModules.end(), pModule) != m_LoadedNativeModules.end(), "This module was not loaded via ModuleLoader");
     Message* pMessageUnloadFailed = nullptr;
 
 #ifdef WIN32
@@ -199,9 +199,13 @@ void ModuleLoader::moduleInstanciated( void* a_pModule )
 {
     o_assert(m_OperationCounter, "DLL loader must be responsible for loading phantom modules, don't use platform specific function to load them such as LoadLibrary/FreeLibrary, use ModuleLoader::loadLibrary/unloadlibrary");
     phantom::Module* pModule = phantom::as<phantom::Module*>(a_pModule);
-    m_CurrentlyLoadedModules.push_back(pModule);
     m_LoadedModuleCounts[pModule] = 0;
     m_LoadedModules.push_back(pModule);
+    if(pModule->isNative())
+    {
+        m_CurrentlyLoadingModules.push_back(pModule);
+        m_LoadedNativeModules.push_back(pModule);
+    }
     o_connect(a_pModule, elementAdded(reflection::LanguageElement*), this, elementAdded(reflection::LanguageElement*));
     o_connect(a_pModule, elementAboutToBeRemoved(reflection::LanguageElement*), this, elementAboutToBeRemoved(reflection::LanguageElement*));
     o_connect(a_pModule, elementsAboutToBeReplaced(const vector<reflection::LanguageElement*>&), this, elementsAboutToBeReplaced(const vector<reflection::LanguageElement*>&));
@@ -219,6 +223,10 @@ void ModuleLoader::moduleDeleted( void* a_pModule )
     phantom::Module* pModule = phantom::as<phantom::Module*>(a_pModule);
     o_emit moduleUnloaded(pModule, m_LoadedModuleCounts[pModule], 0);
     m_LoadedModuleCounts.erase(pModule);
+    if(pModule->isNative())
+    {
+        m_LoadedNativeModules.erase(std::find(m_LoadedNativeModules.begin(), m_LoadedNativeModules.end(), pModule));// Remove dependencies reference of this module
+    }
     m_LoadedModules.erase(std::find(m_LoadedModules.begin(), m_LoadedModules.end(), pModule));// Remove dependencies reference of this module
     o_emit moduleDestroyed(pModule);
 }
@@ -255,7 +263,7 @@ void ModuleLoader::updateReferenceCounts(const string& a_strLibPath, bool a_bLoa
 
     string strLibPath = ModuleLoader_normalizePathString(a_strLibPath);
 
-    for(auto it = m_LoadedModules.begin(); it != m_LoadedModules.end(); ++it)
+    for(auto it = m_LoadedNativeModules.begin(); it != m_LoadedNativeModules.end(); ++it)
     {
         Module* pModule = *it;
         for(auto it = entries.begin(); it != entries.end(); ++it)
@@ -291,7 +299,7 @@ void ModuleLoader::updateReferenceCounts(const string& a_strLibPath, bool a_bLoa
             }
         }
     }
-    o_assert(matchingModuleCount == m_LoadedModules.size(), "A loaded module has not been found in the loaded dlls");
+    o_assert(matchingModuleCount == m_LoadedNativeModules.size(), "A loaded module has not been found in the loaded dlls");
     o_verify(CloseHandle(snapshotHandle), "CloseHandle(snapshotHandle)");
 #else
 	// TODO
@@ -450,9 +458,9 @@ bool ModuleLoader::isLibraryLoaded( const string& a_strPath ) const
     return false;
 }
 
-bool ModuleLoader::isModuleLoaded( const string& a_strFileName ) const
+bool ModuleLoader::isNativeModuleLoaded( const string& a_strFileName ) const
 {
-    for(auto it = m_LoadedModules.begin(); it != m_LoadedModules.end(); ++it)
+    for(auto it = m_LoadedNativeModules.begin(); it != m_LoadedNativeModules.end(); ++it)
     {
         if((*it)->getFileName() == a_strFileName) return true;
     }
@@ -473,6 +481,32 @@ void ModuleLoader::setDataBase( serialization::DataBase* a_pDataBase )
         o_connect(this, moduleLoaded(Module*, size_t, size_t), m_pDataBase, moduleLoaded(Module*, size_t, size_t));
         o_connect(this, moduleUnloaded(Module*, size_t, size_t), m_pDataBase, moduleUnloaded(Module*, size_t, size_t));
     }
+}
+
+void ModuleLoader::loadDynamicModule( Module* a_pModule )
+{
+    if(a_pModule->isNative())
+    {
+        o_exception(exception::base_exception, "cannot manually load a native module, use library loading to do so");
+    }
+    m_LoadedModules.push_back(a_pModule);
+    ;
+    size_t oldLoadCount = m_LoadedModuleCounts[a_pModule];
+    o_emit moduleLoaded(a_pModule, oldLoadCount, ++m_LoadedModuleCounts[a_pModule]);
+}
+
+void ModuleLoader::unloadDynamicModule( Module* a_pModule )
+{
+    size_t oldLoadCount = m_LoadedModuleCounts[a_pModule];
+    o_assert(oldLoadCount > 0);
+    if(oldLoadCount == 1)
+        m_LoadedModuleCounts.erase(a_pModule);
+
+    if(a_pModule->isNative())
+    {
+        o_exception(exception::base_exception, "cannot manually unload a native module, use library unloading to do so");
+    }
+    o_emit moduleUnloaded(a_pModule, oldLoadCount, --m_LoadedModuleCounts[a_pModule]);
 }
 
 auto_dll_loader::auto_dll_loader()

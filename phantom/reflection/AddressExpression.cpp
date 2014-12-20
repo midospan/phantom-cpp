@@ -42,7 +42,6 @@ o_namespace_begin(phantom, reflection)
     
 AddressExpression::AddressExpression( Expression* a_pAddressedExpression ) 
     : Expression(a_pAddressedExpression->getValueType()->removeReference()->pointerType()
-    , "&("+a_pAddressedExpression->getName()+")"
     , 0)
     , m_pAddressedExpression(a_pAddressedExpression)
 {
@@ -53,6 +52,11 @@ AddressExpression::AddressExpression( Expression* a_pAddressedExpression )
 AddressExpression* AddressExpression::clone() const
 {
     return o_new(AddressExpression)(m_pAddressedExpression);
+}
+
+LanguageElement* AddressExpression::internalInstanciateTemplate( TemplateSpecialization* a_pSpecialization )
+{
+    return o_new(AddressExpression)(instanciateTemplate(m_pAddressedExpression, a_pSpecialization));
 }
 
 o_namespace_end(phantom, reflection)

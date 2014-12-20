@@ -179,13 +179,11 @@ void Type::deallocate(void* a_pChunk, size_t a_uiCount) const
 void* Type::newInstance() const
 {
     void* pInstance = allocate(m_uiSize); 
-    construct(pInstance);
     return pInstance;
 }
 
 void Type::deleteInstance(void* a_pInstance) const
 {
-    destroy(a_pInstance);
     deallocate(a_pInstance); 
 }
 
@@ -228,35 +226,6 @@ inline Type* Type::getNestedTypedef( const string& a_strTypedef ) const
     auto found = m_pNestedTypedefs->find(a_strTypedef);
     if( found != m_pNestedTypedefs->end() ) return found->second;
     return nullptr;
-}
-
-LanguageElement* Type::solveElement( const string& a_strName, const vector<TemplateElement*>* a_pTemplateSpecialization, const vector<LanguageElement*>* a_pFunctionSignature, modifiers_t a_Modifiers /*= 0*/ ) const
-{
-    LanguageElement* pElement = LanguageElement::solveElement(a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers);
-    if(pElement) return pElement;
-    if(m_pNestedTypedefs)  
-    {
-        auto found = m_pNestedTypedefs->find(a_strName);
-        if(found != m_pNestedTypedefs->end()) return found->second;
-    }
-    if(m_pNestedTypes)  
-    {
-        vector<Type*>::const_iterator it = m_pNestedTypes->begin();
-        vector<Type*>::const_iterator end = m_pNestedTypes->end();
-        for(;it != end; ++it)
-        {
-            if((*it)->matches(a_strName, a_pTemplateSpecialization, a_Modifiers))
-            {
-                return *it;
-            }
-            else if((*it)->asEnum())
-            {
-                LanguageElement* pConstant = (*it)->solveElement(a_strName, a_pTemplateSpecialization, a_pFunctionSignature, a_Modifiers);
-                if(pConstant) return pConstant;
-            }
-        }
-    }
-    return NULL;
 }
 
 void Type::addNestedType( Type* a_pType )
@@ -807,15 +776,6 @@ void Type::referencedElementRemoved( LanguageElement* a_pElement )
     LanguageElement::referencedElementRemoved(a_pElement);
 }
 
-Expression* Type::solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const 
-{
-    if(asEnum())
-    {
-        return typeOf<int>()->solveOperator(a_strOp, a_Expressions, a_Modifiers);
-    }
-    return LanguageElement::solveOperator(a_strOp, a_Expressions, a_Modifiers);
-}
-
 void Type::construct( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const
 {
     byte* pChunk = (byte*)a_pChunk;
@@ -906,7 +866,7 @@ void Type::setOwnerByQualifiedDecoratedName( string a_Owner )
     {
         if(a_Owner.find("::") == 0)
         {
-            rootNamespace()->findOrCreateNamespaceCascade(a_Owner.substr(2))->addType(this);
+            globalNamespace()->findOrCreateNamespaceCascade(a_Owner.substr(2))->addType(this);
         }
     }
 }
@@ -926,6 +886,14 @@ bool Type::referencesData(const void* a_pInstance, const phantom::data& a_Data) 
 {
     o_unused(a_pInstance); o_unused(a_Data); 
     return false; 
+}
+
+bool Type::matches( const string& a_strName, const vector<LanguageElement*>* a_pTemplateSignature ) const
+{
+    if((a_pTemplateSignature AND m_pTemplateSpecialization == nullptr)
+        OR (a_pTemplateSignature == nullptr AND m_pTemplateSpecialization)
+        OR (m_strName != a_strName)) return false;
+    return a_pTemplateSignature ? m_pTemplateSpecialization->matches(a_pTemplateSignature) : true;
 }
 
 o_namespace_end(phantom, reflection)

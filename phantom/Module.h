@@ -45,6 +45,7 @@ class o_export Module
 {
 
 public:
+    Module(const string& a_strName);
     Module(const string& a_strName, const string& a_strFilePath, size_t a_PlatformHandle);
     ~Module();
 
@@ -76,6 +77,8 @@ public:
     void checkCompleteness();
 
     bool canBeUnloaded() const;
+
+    bool isNative() const { return m_PlatformHandle != 0; }
 
 protected:
     inline phantom::signal_t elementAdded(reflection::LanguageElement*);

@@ -46,30 +46,41 @@ o_namespace_begin(phantom, reflection)
 
 class o_export BinaryOperationExpression : public Expression
 {
+    o_language_element;
+
 public:
-    BinaryOperationExpression( Type* a_pType, const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression );
-    BinaryOperationExpression( Type* a_pLHSType, Type* a_pRHSType, const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression );
-    BinaryOperationExpression( Type* a_pValueType, Type* a_pLHSType, Type* a_pRHSType, const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression );
+    BinaryOperationExpression( Type* a_pType, const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression );
+    BinaryOperationExpression( Type* a_pLHSType, Type* a_pRHSType, const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression );
+    BinaryOperationExpression( Type* a_pValueType, Type* a_pLHSType, Type* a_pRHSType, const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression );
     ~BinaryOperationExpression();
 
-    virtual void    getValue(void* a_pDest) const = 0;
+    const string&   getOperator() const { return m_strOperator; }
 
-    virtual void    flush() const { m_pLHSExpression->flush(); m_pRHSExpression->flush(); }
+    virtual BinaryOperationExpression*  asBinaryOperationExpression() const { return (BinaryOperationExpression*)this; }
+
+    virtual void    internalEval(void* a_pDest) const { o_exception(exception::reflection_runtime_exception, "Invalid binary operation evaluation"); }
+
+    virtual void    flush() const { m_pLeftExpression->flush(); m_pRightExpression->flush(); }
 
     virtual bool    hasValueStorage() const { return false; }
 
-    Expression*     getLHSExpression() const { return m_pLHSExpression; }
-    Expression*     getRHSExpression() const { return m_pRHSExpression; }
+    Expression*     getLeftExpression() const { return m_pLeftExpression; }
+    Expression*     getRightExpression() const { return m_pRightExpression; }
 
-    Expression*     getLHSConvertedExpression() const { return m_pLHSConvertedExpression; }
-    Expression*     getRHSConvertedExpression() const { return m_pRHSConvertedExpression; }
+    Expression*     getConvertedLeftExpression() const { return m_pConvertedLeftExpression; }
+    Expression*     getConvertedRightExpression() const { return m_pConvertedRightExpression; }
+
+    virtual BinaryOperationExpression* clone() const { return nullptr; }
+
+protected:
+    void construct(Type* a_pLeftType, Type* a_pRightType);
 
 protected:
     string          m_strOperator;
-    Expression*     m_pLHSExpression;
-    Expression*     m_pRHSExpression;
-    Expression*     m_pLHSConvertedExpression;
-    Expression*     m_pRHSConvertedExpression;
+    Expression*     m_pLeftExpression;
+    Expression*     m_pRightExpression;
+    Expression*     m_pConvertedLeftExpression;
+    Expression*     m_pConvertedRightExpression;
 
 };
 

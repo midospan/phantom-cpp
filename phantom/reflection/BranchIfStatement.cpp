@@ -56,24 +56,19 @@ BranchIfStatement::BranchIfStatement( Expression* a_pExpression )
     }
 }
 
-void BranchIfStatement::eval() const
+void BranchIfStatement::internalEval() const 
 {
     bool value;
-    m_pConvertedExpression->getValue(&value);
+    m_pConvertedExpression->internalEval(&value);
     if(value)
     {
-        BranchStatement::eval();
+        BranchStatement::internalEval();
     }
 }
 
 void BranchIfStatement::flush() const
 {
     m_pConvertedExpression->flush();
-}
-
-variant BranchIfStatement::compile( Compiler* a_pCompiler )
-{
-    return a_pCompiler->compile(this);
 }
 
 void BranchIfStatement::setExpressionString( string a_Expression )

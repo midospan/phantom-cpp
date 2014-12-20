@@ -35,7 +35,7 @@
 #include "phantom/phantom.h"
 #include "InstanceDataMember.h"
 #include "InstanceDataMember.hxx"
-#include "InstanceDataMemberAccess.h"
+#include "InstanceDataMemberExpression.h"
 #include <phantom/std/vector.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), InstanceDataMember);
@@ -72,9 +72,9 @@ void InstanceDataMember::referencedElementRemoved( LanguageElement* a_pElement )
     ValueMember::referencedElementRemoved(a_pElement);
 }
 
-Expression* InstanceDataMember::createAccessExpression( Expression* a_pLeftExpression ) const
+Expression* InstanceDataMember::createExpression( Expression* a_pLeftExpression ) const
 {
-    return o_new(InstanceDataMemberAccess)(a_pLeftExpression, const_cast<InstanceDataMember*>(this));
+    return o_new(InstanceDataMemberExpression)(a_pLeftExpression, const_cast<InstanceDataMember*>(this));
 }
 
 bool InstanceDataMember::referencesData( const void* a_pInstance, const phantom::data& a_Data ) const

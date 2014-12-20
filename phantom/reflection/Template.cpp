@@ -40,9 +40,13 @@ o_registerN((phantom, reflection), Template);
 
 o_namespace_begin(phantom, reflection) 
 
-Template::Template(const string& a_strName)
-: LanguageElement(a_strName, modifiers_t())
+Template::Template(const string& a_strName, TemplateSignature* a_pSignature)
+: LanguageElement(a_strName)
+, m_pTemplateSignature(a_pSignature)
 {
+    if(m_pTemplateSignature)
+        addElement(m_pTemplateSignature);
+    else setInvalid();
 }
 
 Template::~Template()
@@ -50,5 +54,44 @@ Template::~Template()
 
 }
 
+size_t Template::getTemplateParameterIndex( const string& a_strName ) const
+{
+    m_pTemplateSignature->getParameterIndex(a_strName);
+}
+
+size_t Template::getTemplateParameterIndex( TemplateParameter* a_pTemplateParameter ) const
+{
+    m_pTemplateSignature->getParameterIndex(a_pTemplateParameter);
+}
+
+LanguageElement* Template::getDefaultArgument(const string& a_strParameterName) const 
+{
+    return m_pTemplateSignature->getDefaultArgument();
+}
+
+void Template::setDefaultArgument( const string& a_strParameterName, LanguageElement* a_pElement )
+{
+    m_pTemplateSignature->setDefaultArgument(a_pElement);
+}
+
+size_t Template::getDefaultArgumentCount() const
+{
+    return m_pTemplateSignature->getDefaultArgumentCount();
+}
+
+void Template::addTemplateParameter( TemplateParameter* a_pTemplateParameter )
+{
+    m_pTemplateSignature->addParameter(a_pTemplateParameter);
+}
+
+void Template::addTemplateParameterAliasName( size_t a_uiIndex, const string& a_strAlias )
+{
+    m_pTemplateSignature->addParameterAliasName(a_uiIndex, a_strAlias);
+}
+
+size_t Template::getTemplateParameterCount() const
+{
+    return m_pTemplateSignature->getParameterCount();
+}
 
 o_namespace_end(phantom, reflection)

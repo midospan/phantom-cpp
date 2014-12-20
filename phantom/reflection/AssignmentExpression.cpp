@@ -40,30 +40,30 @@ o_registerN((phantom, reflection), AssignmentExpression);
 
 o_namespace_begin(phantom, reflection) 
 
-AssignmentExpression::AssignmentExpression( Expression* a_pLHSExpression, Expression* a_pRHSExpression ) 
-    : Expression(a_pLHSExpression->getValueType(), "("+a_pLHSExpression->getName()+")=("+a_pRHSExpression->getName()+')'
-                , a_pLHSExpression->getModifiers())
-    , m_pLHSExpression(a_pLHSExpression)
-    , m_pRHSExpression((a_pRHSExpression AND a_pRHSExpression->getOwner()) ? a_pRHSExpression->clone() : a_pRHSExpression)
+AssignmentExpression::AssignmentExpression( Expression* a_pLeftExpression, Expression* a_pRightExpression ) 
+    : Expression(a_pLeftExpression->getValueType()
+                , a_pLeftExpression->getModifiers())
+    , m_pLeftExpression(a_pLeftExpression)
+    , m_pRightExpression((a_pRightExpression AND a_pRightExpression->getOwner()) ? a_pRightExpression->clone() : a_pRightExpression)
 {
-    m_pRHSConvertedExpression = (m_pLHSExpression AND m_pRHSExpression AND m_pLHSExpression->getValueType())
-                                    ? m_pRHSExpression->implicitCast(m_pLHSExpression->getValueType()->removeReference())
+    m_pConvertedRightExpression = (m_pLeftExpression AND m_pRightExpression AND m_pLeftExpression->getValueType())
+                                    ? m_pRightExpression->implicitCast(m_pLeftExpression->getValueType()->removeReference())
                                     : nullptr;
-    if(m_pLHSExpression)
+    if(m_pLeftExpression)
     {
-        addSubExpression(m_pLHSExpression);
+        addSubExpression(m_pLeftExpression);
     }
     else setInvalid();
-    if(m_pRHSExpression == nullptr)
+    if(m_pRightExpression == nullptr)
     {
         setInvalid();
     }
-    if(m_pRHSConvertedExpression)
+    if(m_pConvertedRightExpression)
     {
-        addSubExpression(m_pRHSConvertedExpression);
+        addSubExpression(m_pConvertedRightExpression);
     }
     else setInvalid();
-    if(!m_pLHSExpression->isAddressable())
+    if(!m_pLeftExpression->isAddressable())
     {
         setInvalid();
     }
@@ -76,7 +76,11 @@ AssignmentExpression::~AssignmentExpression()
 
 AssignmentExpression* AssignmentExpression::clone() const
 {
-    return o_new(AssignmentExpression)(m_pLHSExpression, m_pRHSExpression);
+    return o_new(AssignmentExpression)(m_pLeftExpression, m_pRightExpression);
+}
+
+LanguageElement* AssignmentExpression::internalInstanciateTemplate( TemplateSpecialization* a_pSpecialization )
+{
 }
 
 

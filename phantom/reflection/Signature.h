@@ -37,8 +37,6 @@
 
 
 /* ****************** Includes ******************* */
-
-
 /* **************** Declarations ***************** */
 /* *********************************************** */
 
@@ -46,12 +44,14 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Signature : public LanguageElement
 {
+    o_language_element;
+
     friend class Subroutine;
 
 public:
-    static Signature* Create( void );
-    static Signature* Create( Type* a_pType );
-    static Signature* Create( const char* a_pText, TemplateSpecialization* a_pTemplateSpecialization, LanguageElement* a_pScope );
+    static Signature* Create( modifiers_t modifiers = 0 );
+    static Signature* Create( Type* a_pType, modifiers_t modifiers = 0 );
+    static Signature* Create( const char* a_pText, TemplateSpecialization* a_pTemplateSpecialization, LanguageElement* a_pScope, modifiers_t modifiers = 0 );
     
     enum EState
     {
@@ -86,9 +86,10 @@ public:
 
     typedef phantom::vector<Type*> parameter_type_list;
 
-    Signature( void );
-    Signature( Type* a_pType );
-    Signature( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization = NULL, LanguageElement* a_pScope = (LanguageElement*)phantom::rootNamespace() );
+    Signature( modifiers_t modifiers = 0 );
+    Signature( Type* a_pType, modifiers_t modifiers = 0 );
+    Signature( Type* a_pType, const vector<Parameter*>& a_Parameters, modifiers_t modifiers = 0 );
+    Signature( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization = NULL, LanguageElement* a_pScope = (LanguageElement*)phantom::globalNamespace(), modifiers_t modifiers = 0 );
     o_destructor ~Signature(void);
 
     virtual Signature* asSignature() const { return (Signature*)this; }
@@ -97,10 +98,12 @@ public:
 
     virtual Signature*  clone() const;
 
-    void            parse( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization = NULL, LanguageElement* a_pScope = (LanguageElement*)phantom::rootNamespace() );
+    void            parse( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization = NULL, LanguageElement* a_pScope = (LanguageElement*)phantom::globalNamespace() );
 
     size_t          getParameterCount() const;
+    Parameter*      getParameter(size_t i) const { return m_Parameters[i]; }
     void            addParameter(Type* a_pParameterType, const string& a_strName = "", Expression* a_pDefaultValueExpression = nullptr);
+    void            addParameter(Parameter* a_pParameter);
     Type*           getParameterType(size_t a_uiParamIndex) const;
     const string&   getParameterName(size_t a_uiParamIndex) const;
     Expression*     getParameterDefaultValue(size_t a_uiParamIndex) const;
@@ -113,13 +116,12 @@ public:
     virtual string  getQualifiedDecoratedName() const;
 
     bool            matches(const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes = nullptr) const;
-    bool            compareParameterList( Signature* a_pOther ) const { return matches(a_pOther->m_ParametersTypes); }
+    bool            matches(const vector<Expression*>& a_Arguments, vector<size_t>* a_pPartialMatchesIndexes = nullptr) const;
+    bool            matches( Signature* a_pOther ) const;
     
 protected:
     static bool SeparateParameters(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<string>& a_OutParameters, LanguageElement* a_pScope);
     static bool ParseParameterTypeList(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<Type*>& a_OutParameterTypes, vector<string>& a_OutParameterNames, vector<Expression*>& a_OutParameterExps, LanguageElement* a_pScope);
-
-    void updateName();
 
     void referencedElementRemoved(LanguageElement* a_pElement);
 
@@ -127,19 +129,16 @@ protected:
 
     string getReturnTypeName() const;
 
-    void setParameterTypeNames(vector<string> names);
+    vector<Parameter*> getParameters() const { return m_Parameters; }
 
-    vector<string> getParameterTypeNames() const;
+    void setParameters(vector<Parameter*> parameters) { m_Parameters = parameters; } 
 
     virtual void finalize();
 
 protected:
     Type*               m_pReturnType;
-    vector<Type*>       m_ParametersTypes;
-    vector<string>      m_ParameterNames;
-    vector<Expression*> m_ParameterDefaultValues;
+    vector<Parameter*>  m_Parameters;
     string*             m_pReturnTypeName;
-    vector<string>*     m_pParameterTypeNames;
     size_t              m_uiArgumentStorageSize;
 };
 

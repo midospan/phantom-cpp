@@ -179,7 +179,7 @@ void StateMachine::setup( StateMachine* a_pBase )
     o_assert(m_Tracks.empty(), "Tracks have already been created, cannot inherit anymore");
     if(a_pBase == nullptr) // No base state machine, we create a root track from scratch
     {
-        setRootTrack(o_new(Track)("Root", m_Modifiers));
+        setRootTrack(o_new(Track)("Root", 0xffffffff, m_Modifiers));
         return;
     }
 
@@ -190,7 +190,7 @@ void StateMachine::setup( StateMachine* a_pBase )
     for(;i<count;++i)
     {
         Track* pSourceTrack = a_pBase->getTrack(i);
-        Track* pNewTrack = o_new(Track)(pSourceTrack->getName(), pSourceTrack->getModifiers());
+        Track* pNewTrack = o_new(Track)(pSourceTrack->getName(), pSourceTrack->getSerializationMask(), pSourceTrack->getModifiers());
         pNewTrack->m_uiIndex = i;
         pNewTrack->m_pOwner = this;
         m_Tracks[i] = pNewTrack;
@@ -333,19 +333,6 @@ State** StateMachine::getCurrentStates( void* a_pObject ) const
 {
     o_assert(m_pCompilationData);
     return (State**)o_dynamic_smdataptr(a_pObject)->current_states;
-}
-
-variant StateMachine::compile(reflection::Compiler* a_pCompiler)
-{
-    o_assert(m_pCompilationData);
-    size_t i = 0;
-    size_t count = getStateCount();
-    for(;i<count;++i)
-    {
-        static_cast<State*>(m_States[i])->compile(a_pCompiler);
-    }
-    m_pCompilationData->m_bCompiled = true;
-    return phantom::variant();
 }
 
 void StateMachine::solveQueuedTransitions( dynamic_state_machine_data* smdataptr )

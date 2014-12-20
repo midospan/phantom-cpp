@@ -61,16 +61,11 @@ ReturnStatement::ReturnStatement(Expression* a_pExpression)
     setReturnExpression(a_pExpression);
 }
 
-variant ReturnStatement::compile( Compiler* a_pCompiler )
-{
-    return a_pCompiler->compile(this);
-}
-
-void ReturnStatement::eval() const
+void ReturnStatement::internalEval() const 
 {
     if(m_pConvertedReturnExpression)
     {
-        m_pConvertedReturnExpression->getValue(phantom::interpreter()->getReturnAddress());
+        m_pConvertedReturnExpression->internalEval(phantom::interpreter()->getReturnAddress());
     }
     for(auto it = m_RAIIDestructionStatements.begin(); it != m_RAIIDestructionStatements.end(); ++it)
     {
@@ -122,7 +117,7 @@ void ReturnStatement::setExpressionString( string a_Expression )
 
 string ReturnStatement::getExpressionString() const
 {
-    return m_pReturnExpression ? m_pReturnExpression->getName() : string();
+    return m_pReturnExpression ? m_pReturnExpression->translate() : string();
 }
 
 void ReturnStatement::restore()

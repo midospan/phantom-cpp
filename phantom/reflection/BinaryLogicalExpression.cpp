@@ -40,29 +40,29 @@ o_registerN((phantom, reflection), BinaryLogicalExpression);
 
 o_namespace_begin(phantom, reflection) 
 
-BinaryLogicalExpression::BinaryLogicalExpression( const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression ) 
+BinaryLogicalExpression::BinaryLogicalExpression( const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression ) 
 : BinaryOperationExpression(typeOf<bool>()
     , a_strOperator
-    , a_pLHSExpression
-    , a_pRHSExpression)
+    , a_pLeftExpression
+    , a_pRightExpression)
 {
 
 }
 
-void BinaryLogicalExpression::getValue( void* a_pDest ) const
+void BinaryLogicalExpression::internalEval( void* a_pDest ) const
 {
     bool* _where = (bool*)a_pDest;
     bool _intermediate;
     switch(m_strOperator[0])
     {
     case '&':
-        m_pLHSConvertedExpression->load(_where);
-        m_pRHSConvertedExpression->load(&_intermediate);
+        m_pConvertedLeftExpression->load(_where);
+        m_pConvertedRightExpression->load(&_intermediate);
         *_where = *_where && _intermediate;
         break;
     case '|':
-        m_pLHSConvertedExpression->load(_where);
-        m_pRHSConvertedExpression->load(&_intermediate);
+        m_pConvertedLeftExpression->load(_where);
+        m_pConvertedRightExpression->load(&_intermediate);
         *_where = *_where || _intermediate;
         break;
     }
@@ -70,7 +70,7 @@ void BinaryLogicalExpression::getValue( void* a_pDest ) const
 
 BinaryLogicalExpression* BinaryLogicalExpression::clone() const
 {
-    return o_new(BinaryLogicalExpression)(m_strOperator, m_pLHSExpression, m_pRHSExpression);
+    return o_new(BinaryLogicalExpression)(m_strOperator, m_pLeftExpression, m_pRightExpression);
 }
 
 

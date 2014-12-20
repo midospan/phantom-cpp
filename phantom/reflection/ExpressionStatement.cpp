@@ -50,8 +50,7 @@ ExpressionStatement::ExpressionStatement()
 }
 
 ExpressionStatement::ExpressionStatement( Expression* a_pExpression ) 
-    : Statement(a_pExpression->getName()+';')
-    , m_pExpression(a_pExpression)
+    : m_pExpression(a_pExpression)
     , m_pExpressionString(nullptr)
 {
     if(m_pExpression)
@@ -64,7 +63,7 @@ ExpressionStatement::ExpressionStatement( Expression* a_pExpression )
     }
 }
 
-void ExpressionStatement::eval() const
+void ExpressionStatement::internalEval() const 
 {
     m_pExpression->eval();
 }
@@ -72,11 +71,6 @@ void ExpressionStatement::eval() const
 void ExpressionStatement::flush() const
 {
     m_pExpression->flush();
-}
-
-variant ExpressionStatement::compile( Compiler* a_pCompiler )
-{
-    return a_pCompiler->compile(this);
 }
 
 void ExpressionStatement::setExpressionString( string a_Expression )
@@ -89,14 +83,14 @@ void ExpressionStatement::setExpressionString( string a_Expression )
 
 string ExpressionStatement::getExpressionString() const
 {
-    return m_pExpression ? m_pExpression->getName() : "";
+    return m_pExpression ? m_pExpression->translate(cplusplus()) : "";
 }
 
 void ExpressionStatement::restore()
 {
     if(m_pExpressionString)
     {
-        m_pExpression = phantom::expressionByName(*m_pExpressionString, this);
+        m_pExpression = cplusplus()->expressionByName(*m_pExpressionString, this);
         if(m_pExpression)
         {
             addElement(m_pExpression);

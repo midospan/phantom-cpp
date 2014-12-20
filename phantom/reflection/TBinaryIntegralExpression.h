@@ -50,25 +50,25 @@ class  TBinaryIntegralExpression : public BinaryOperationExpression
 {
     o_static_assert(boost::is_integral<t_Ty>::value);
 public:
-    TBinaryIntegralExpression( const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression )
+    TBinaryIntegralExpression( const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression )
         : BinaryOperationExpression(typeOf<t_Ty>()
         , a_strOperator
-        , a_pLHSExpression
-        , a_pRHSExpression)
+        , a_pLeftExpression
+        , a_pRightExpression)
     {
-        o_assert(m_pLHSConvertedExpression->getValueType()->removeReference() == typeOf<t_Ty>());
-        o_assert(m_pRHSConvertedExpression->getValueType()->removeReference() == typeOf<t_Ty>());
+        o_assert(m_pConvertedLeftExpression->getValueType()->removeReference() == typeOf<t_Ty>());
+        o_assert(m_pConvertedRightExpression->getValueType()->removeReference() == typeOf<t_Ty>());
     }
 
-    virtual void    getValue(void* a_pDest) const 
+    virtual void    internalEval(void* a_pDest) const 
     {
         t_Ty* _where = (t_Ty*)a_pDest;
         t_Ty _intermediate;
         switch(m_strOperator[0])
         {
         case '%':
-            m_pLHSConvertedExpression->load(_where);
-            m_pRHSConvertedExpression->load(&_intermediate);
+            m_pConvertedLeftExpression->load(_where);
+            m_pConvertedRightExpression->load(&_intermediate);
 #pragma warning(disable:4800)
 #pragma warning(disable:4804)
             *_where %= _intermediate;
@@ -80,7 +80,7 @@ public:
 
     virtual TBinaryIntegralExpression<t_Ty>*     clone() const 
     {
-        return o_new(TBinaryIntegralExpression<t_Ty>)(m_strOperator, m_pLHSExpression, m_pRHSExpression);
+        return o_new(TBinaryIntegralExpression<t_Ty>)(m_strOperator, m_pLeftExpression, m_pRightExpression);
     }
 
 };

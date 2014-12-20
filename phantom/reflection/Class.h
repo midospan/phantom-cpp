@@ -45,6 +45,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Class : public ClassType
 {
+    o_type;
+
     o_declare_meta_type(Class);
 
 public:
@@ -667,20 +669,6 @@ public:
     void*               newInstance(Constructor* a_pConstructor, void** a_pArgs) const;
     void                deleteInstance(void* a_pInstance) const;
     virtual void        safeDeleteInstance(void* a_pObject) const;
-    virtual 
-    LanguageElement*    solveElement(
-        const string& a_strName 
-        , const vector<TemplateElement*>*
-        , const vector<LanguageElement*>*
-        , modifiers_t a_Modifiers = 0) const ;
-
-    virtual Expression*   solveExpression( Expression* a_pLeftExpression
-        , const string& a_strName 
-        , const vector<TemplateElement*>* 
-        , const vector<LanguageElement*>*
-        , modifiers_t a_Modifiers /*= 0*/ ) const;
-
-    virtual variant     compile(Compiler* a_pCompiler);
 
     size_t              getInstanceCount() const { return m_Instances.size(); }
     size_t              getKindCount() const;
@@ -698,6 +686,8 @@ public:
     virtual bool        isCopyConstructible() const { return NOT(hasCopyDisabled()); }
 
     virtual bool        hasNewVTable() const;
+
+    const extra_data*   getExtraData() const { return static_cast<extra_data*>(m_pExtraData); }
 
     virtual void        finalize();
 

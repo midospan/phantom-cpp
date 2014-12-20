@@ -12,114 +12,15 @@ o_registerN((phantom, reflection), CallExpression);
 
 o_namespace_begin(phantom, reflection)
 
-string CallExpression::evaluateName( Subroutine* a_pSubroutine, Expression* a_pArgument )
-{
-    vector<Expression*> expressions;
-    expressions.push_back(a_pArgument);
-    return evaluateName(a_pSubroutine, expressions);
-}
-
-string CallExpression::evaluateName( Subroutine* a_pSubroutine, const vector<Expression*>& a_Arguments )
-{
-    string name;
-    const string& subroutineName = a_pSubroutine->getName();
-    if(a_pSubroutine->asInstanceMemberFunction())
-    {
-        if(subroutineName.compare(0, 8, "operator") == 0)
-        {
-            char c = subroutineName[8];
-            if( NOT((c >= 'a' AND c <= 'z' )
-                OR (c >= 'A' AND c <= 'Z' )
-                OR (c >= '0' AND c <= '9')
-                OR  c == '_'))
-            {
-                string op = subroutineName.substr(8);
-                if(op == "[]")
-                {
-                    name += '(';
-                    name += a_Arguments[0]->getName();
-                    name += ")[";
-                    name += a_Arguments[1]->getName();
-                    name += ']';
-                }
-                else if(op == "()")
-                {
-                    name += '(';
-                    name += a_Arguments[0]->getName();
-                    name += ")(";
-                    if(a_Arguments.size() > 1)
-                    {
-                        for(size_t i = 1; i<a_Arguments.size(); ++i)
-                        {
-                            if(i != 1)
-                                name += ',';
-                            name += a_Arguments[i]->getName();
-                        }
-                    }
-                    name += ')';
-                }
-                else
-                {
-                    // Create operator expression
-                    name += '(';
-                    name += a_Arguments[0]->getName();
-                    name += ')';
-                    name += op;
-                    if(a_Arguments.size() == 2)
-                    {
-                        name += '(';
-                        name += a_Arguments[1]->getName();
-                        name += ')';
-                    }
-                }
-                return name;
-            }
-        }
-        name += '(';
-        name += a_Arguments[0]->getName();
-        name += ')';
-        name += '.';
-        name += a_pSubroutine->getName();
-        name += '(';
-        if(a_Arguments.size() > 1)
-        {
-            for(size_t i = 1; i<a_Arguments.size(); ++i)
-            {
-                if(i != 1)
-                    name += ',';
-                name += a_Arguments[i]->getName();
-            }
-        }
-        name += ')';
-    }
-    else 
-    {
-        name += a_pSubroutine->getQualifiedName();
-        name += '(';
-        if(a_Arguments.size())
-        {
-            for(size_t i = 0; i<a_Arguments.size(); ++i)
-            {
-                if(i != 0)
-                    name += ',';
-                name += a_Arguments[i]->getName();
-            }
-        }
-        name += ')';
-    }
-    return name;
-}
-
-
 CallExpression::CallExpression( Subroutine* a_pSubroutine, const vector<Expression*>& a_Arguments, Type* a_pConstructedType ) 
-    : Expression(a_pConstructedType ? a_pConstructedType : a_pSubroutine->getReturnType()
-                , evaluateName(a_pSubroutine, a_Arguments)
+    : Expression(a_pConstructedType ? a_pConstructedType : a_pSubroutine ? a_pSubroutine->getReturnType() : nullptr
                 , 0)
     , m_pSubroutine(a_pSubroutine)
     , m_Arguments(a_Arguments)
     , m_pReturnStorage(nullptr)
 {
     if(m_pSubroutine == nullptr) setInvalid();
+    else addReferencedElement(m_pSubroutine);
     for(size_t i = 0; i<m_Arguments.size(); ++i)
     {
         if(m_Arguments[i] AND m_Arguments[i]->getOwner()) m_Arguments[i] = m_Arguments[i]->clone();
@@ -128,31 +29,57 @@ CallExpression::CallExpression( Subroutine* a_pSubroutine, const vector<Expressi
 }
 
 CallExpression::CallExpression( Subroutine* a_pSubroutine, Expression* a_pArgument, Type* a_pConstructedType ) 
-    : Expression(a_pConstructedType ? a_pConstructedType : a_pSubroutine->getReturnType()
-    , evaluateName(a_pSubroutine, a_pArgument)
+    : Expression(a_pConstructedType ? a_pConstructedType : a_pSubroutine ? a_pSubroutine->getReturnType() : nullptr
     , 0)
     , m_pSubroutine(a_pSubroutine)
     , m_pReturnStorage(nullptr)
 {
     m_Arguments.push_back((a_pArgument AND a_pArgument->getOwner()) ? a_pArgument->clone() : a_pArgument);
     if(m_pSubroutine == nullptr) setInvalid();
+    else addReferencedElement(m_pSubroutine);
     m_pConvertedArgumentTypes = o_allocate_n(1, Type*);
+}
+
+CallExpression::CallExpression( const vector<Expression*>& a_Arguments, Type* a_pConstructedType ) 
+    : Expression(a_pConstructedType ? a_pConstructedType : nullptr, 0)
+    , m_pSubroutine(nullptr)
+    , m_Arguments(a_Arguments)
+    , m_pReturnStorage(nullptr)
+{
+    for(size_t i = 0; i<m_Arguments.size(); ++i)
+    {
+        if(m_Arguments[i] AND m_Arguments[i]->getOwner()) m_Arguments[i] = m_Arguments[i]->clone();
+    }
+    m_pConvertedArgumentTypes = m_Arguments.size() ? o_allocate_n(m_Arguments.size(), Type*) : nullptr;
+}
+
+CallExpression::CallExpression( Expression* a_pArgument, Type* a_pConstructedType ) 
+    : Expression(a_pConstructedType ? a_pConstructedType : nullptr, 0)
+    , m_pSubroutine(nullptr)
+    , m_pReturnStorage(nullptr)
+{
+    m_Arguments.push_back((a_pArgument AND a_pArgument->getOwner()) ? a_pArgument->clone() : a_pArgument);
+    m_pConvertedArgumentTypes = o_allocate_n(1, Type*);
+}
+
+Type* CallExpression::returnStorageType() const 
+{
+    return storageType(m_pSubroutine->getReturnType());
 }
 
 o_initialize_cpp(CallExpression)
 {
-    addReferencedElement(m_pSubroutine);
-    Type* pStorageType = storageType(m_pSubroutine->getReturnType());
+    Type* pStorageType = returnStorageType();
     if(pStorageType)
     {
         m_pReturnStorage = pStorageType->allocate();
     }
-    bool isInstanceMemberFunction = (m_pSubroutine->asInstanceMemberFunction() != nullptr);
-    o_assert(m_Arguments.size() == (m_pSubroutine->getParameterCount()+isInstanceMemberFunction));
+    bool isInstanceMemberFunction = m_pSubroutine ? (m_pSubroutine->asInstanceMemberFunction() != nullptr) : false;
+    o_assert(m_pSubroutine == nullptr OR m_Arguments.size() == (m_pSubroutine->getParameterCount()+isInstanceMemberFunction));
     m_TempValues.resize(m_Arguments.size(), nullptr);
     m_ConvertedArguments.resize(m_Arguments.size(), nullptr);
     Type* pThisPointerType = nullptr;
-    if(isInstanceMemberFunction)
+    if(isInstanceMemberFunction AND m_pSubroutine)
     {
         pThisPointerType = m_pSubroutine->getOwner()->asClassType();
         if(m_pSubroutine->isConst())
@@ -226,7 +153,6 @@ o_terminate_cpp(CallExpression)
         Expression* pArgument = m_ConvertedArguments[i];
         if(pArgument)
         {
-            o_assert(as<Expression*>(pArgument));
             if(m_TempValues[i])
             {
                 void* pTempValue = m_TempValues[i];
@@ -246,31 +172,10 @@ o_terminate_cpp(CallExpression)
     }
 }
 
-void CallExpression::getValue( void* a_pDest ) const
+void CallExpression::internalEval( void* a_pDest ) const
 {
     vector<void*> addresses;
-    addresses.resize(m_ConvertedArguments.size());
-    size_t i = m_ConvertedArguments.size();
-    while(i--) // evaluate arguments from right to left
-    {
-        Expression* pArgument = m_ConvertedArguments[i];
-        o_assert(as<Expression*>(pArgument));
-
-        if(pArgument->isAddressable())
-        {
-            pArgument->getValue(&addresses[i]);
-        }
-        else if(pArgument->hasValueStorage())
-        {
-            addresses[i] = pArgument->getValueStorageAddress();
-        }
-        else 
-        {
-            pArgument->getValue(m_TempValues[i]);
-            addresses[i] = m_TempValues[i];
-        }
-    }
-
+    evaluateArguments(addresses);
     if(m_pReturnStorage)
     {
         m_pSubroutine->call(addresses.data(), m_pReturnStorage); // first call
@@ -280,21 +185,11 @@ void CallExpression::getValue( void* a_pDest ) const
     {
         m_pSubroutine->call(addresses.data());
     }
-
-}
-
-void CallExpression::setValue( void const* a_pSrc ) const
-{
-    m_pValueType->copy(getValueStorageAddress(), a_pSrc);
-    for(auto it = m_ConvertedArguments.begin(); it != m_ConvertedArguments.end(); ++it)
-    {
-        (*it)->flush();
-    }
 }
 
 void* CallExpression::getValueStorageAddress() const
 {
-    getValue(m_pReturnStorage);
+    internalEval(m_pReturnStorage);
     return m_pReturnStorage;
 }
 
@@ -306,30 +201,10 @@ void CallExpression::flush() const
     }
 }
 
-void CallExpression::eval() const
+void CallExpression::internalEval() const
 {
     vector<void*> addresses;
-    addresses.resize(m_ConvertedArguments.size());
-    size_t i = m_ConvertedArguments.size();
-    while(i--) // evaluate arguments from right to left
-    {
-        Expression* pArgument = m_ConvertedArguments[i];
-        o_assert(as<Expression*>(pArgument));
-
-        if(pArgument->isAddressable())
-        {
-            pArgument->getValue(&addresses[i]);
-        }
-        else if(pArgument->hasValueStorage())
-        {
-            addresses[i] = pArgument->getValueStorageAddress();
-        }
-        else 
-        {
-            pArgument->getValue(m_TempValues[i]);
-            addresses[i] = m_TempValues[i];
-        }
-    }
+    evaluateArguments(addresses);
     if(m_pReturnStorage)
     {
         Type* pStorageType = storageType(m_pSubroutine->getReturnType());
@@ -343,11 +218,6 @@ void CallExpression::eval() const
         m_pSubroutine->call(addresses.data());
     }
     flush();
-}
-
-variant CallExpression::compile( Compiler* a_pCompiler )
-{
-    return a_pCompiler->compile(this);
 }
 
 void CallExpression::ancestorChanged( LanguageElement* a_pLanguageElement )
@@ -435,6 +305,30 @@ void CallExpression::elementRemoved( LanguageElement* a_pElement )
 bool CallExpression::isPersistent() const
 {
     return Expression::isPersistent() AND m_pSubroutine->isNative();
+}
+
+void CallExpression::evaluateArguments( vector<void*> &addresses ) const
+{
+    addresses.resize(m_ConvertedArguments.size());
+    size_t i = m_ConvertedArguments.size();
+    while(i--) // evaluate arguments from right to left
+    {
+        Expression* pArgument = m_ConvertedArguments[i];
+
+        if(pArgument->isAddressable())
+        {
+            pArgument->internalEval(&addresses[i]);
+        }
+        else if(pArgument->hasValueStorage())
+        {
+            addresses[i] = pArgument->getValueStorageAddress();
+        }
+        else 
+        {
+            pArgument->internalEval(m_TempValues[i]);
+            addresses[i] = m_TempValues[i];
+        }
+    }
 }
 
 o_namespace_end(phantom, reflection)

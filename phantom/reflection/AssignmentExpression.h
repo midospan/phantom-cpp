@@ -46,44 +46,45 @@ o_namespace_begin(phantom, reflection)
 
 class o_export AssignmentExpression : public Expression
 {
+    o_language_element;
+
 public:
-    AssignmentExpression( Expression* a_pLHSExpression, Expression* a_pRHSExpression );
+    AssignmentExpression( Expression* a_pLeftExpression, Expression* a_pRightExpression );
     ~AssignmentExpression();
 
-    virtual void    getValue(void* a_pDest) const 
+    virtual AssignmentExpression*       asAssignmentExpression() const { return (AssignmentExpression*)this; }
+
+    virtual void    internalEval(void* a_pDest) const 
     {
         void* _where = 0;
-        m_pLHSExpression->getValue(&_where); // get reference address
-        m_pRHSConvertedExpression->load(_where);
+        m_pLeftExpression->internalEval(&_where); // get reference address
+        m_pConvertedRightExpression->load(_where);
         *((void**)a_pDest) = _where;
     }
-    virtual void    setValue(const void* a_pDest) const 
-    {
-        m_pLHSExpression->setValue(a_pDest);
-    }
 
-    virtual void    flush() const { m_pLHSExpression->flush(); }
+    virtual void    flush() const { m_pLeftExpression->flush(); }
 
-    virtual void    eval() const 
+    virtual void    internalEval() const 
     {
         void* _where = 0;
-        m_pLHSExpression->getValue(&_where); // get reference address
-        m_pRHSConvertedExpression->load(_where);
+        m_pLeftExpression->internalEval(&_where); // get reference address
+        m_pConvertedRightExpression->load(_where);
         flush();
     }
 
-    virtual void* getValueStorageAddress() const { return m_pLHSExpression->loadEffectiveAddress(); }
-
-    Expression*     getLHSExpression() const { return m_pLHSExpression; }
-    Expression*     getRHSExpression() const { return m_pRHSExpression; }
-    Expression*     getRHSConvertedExpression() const { return m_pRHSConvertedExpression; }
+    Expression*     getLeftExpression() const { return m_pLeftExpression; }
+    Expression*     getRightExpression() const { return m_pRightExpression; }
+    Expression*     getConvertedRightExpression() const { return m_pConvertedRightExpression; }
 
     virtual AssignmentExpression*     clone() const;
+
+    virtual LanguageElement* internalInstanciateTemplate(TemplateSpecialization* a_pSpecialization);
+
 protected:
     string          m_strOperator;
-    Expression*     m_pLHSExpression;
-    Expression*     m_pRHSExpression;
-    Expression*     m_pRHSConvertedExpression;
+    Expression*     m_pLeftExpression;
+    Expression*     m_pRightExpression;
+    Expression*     m_pConvertedRightExpression;
 
 };
 

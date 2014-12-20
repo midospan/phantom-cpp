@@ -46,19 +46,25 @@ o_namespace_begin(phantom, reflection)
 
 class o_export CastExpression : public Expression
 {
+    o_language_element;
+
 public:
-    CastExpression( Type* a_pCastType, Expression* a_pCastedExpression, bool a_bImplicit );
+    CastExpression( Type* a_pCastType, Expression* a_pCastedExpression, ECastType a_eCastType );
     ~CastExpression();
 
     o_terminate();
 
-    virtual void    getValue(void* a_pDest) const;
+    virtual CastExpression*  asCastExpression() const { return (CastExpression*)this; }
+
+    virtual void    internalEval(void* a_pDest) const;
 
     virtual void    flush() const { m_pCastedExpression->flush(); }
 
     Expression* getCastedExpression() const { return m_pCastedExpression; }
 
     virtual CastExpression*     clone() const;
+
+    ECastType   getCastType() const { return m_eCastType; }
 
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);
@@ -71,7 +77,7 @@ protected:
     void*           m_pTempValue;
     void*           m_pIntermediateBuffer;
     Type*           m_pIntermediateBufferType;
-    bool            m_bImplicit;
+    ECastType       m_eCastType;
 };
 
 o_namespace_end(phantom, reflection)

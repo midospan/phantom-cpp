@@ -46,14 +46,16 @@ o_namespace_begin(phantom, reflection)
 
 class o_export LabelStatement : public Statement
 {
+    o_language_element;
+
     friend class Subroutine;
+    friend class BranchStatement;
+
 public:
     LabelStatement();
     LabelStatement(const string& a_strLabelName);
 
-    virtual variant compile(Compiler* a_pCompiler);
-
-    virtual void    eval() const { /*bypass*/ }
+    virtual void    internalEval() const { /*bypass*/ }
 
     virtual void    flush() const {}
 
@@ -67,6 +69,7 @@ protected:
 protected:
     string  m_strLabelName;
     size_t  m_uiIndex;
+    size_t  m_uiBranchCount;
 };
 
 o_namespace_end(phantom, reflection)

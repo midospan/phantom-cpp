@@ -1017,7 +1017,7 @@ protected:
     member_function_pointer m_member_function_pointer;
 };
 
-#ifndef o_NO_FUNCTION_STYLE_TEMPLATE_SIGNATURE
+
 
 template<typename t_Ty, typename Signature>
 class TNativeStaticMemberFunction;
@@ -1193,7 +1193,6 @@ public:
     }
 };
 
-#endif
 
 o_namespace_end(phantom, reflection, native)
 

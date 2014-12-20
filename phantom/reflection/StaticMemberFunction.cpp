@@ -46,18 +46,18 @@ o_namespace_begin(phantom, reflection)
 Class* const StaticMemberFunction::metaType = o_type_of(phantom::reflection::StaticMemberFunction);
 
 StaticMemberFunction::StaticMemberFunction()
-    : Function(e_ABI_stdcall)
+    : Function(e_stdcall)
 {
 
 }
 
 StaticMemberFunction::StaticMemberFunction(const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers /*= 0*/ )
-    : Function(a_strName, a_pSignature, e_ABI_stdcall, a_Modifiers ) // TODO : remove this stdcall
+    : Function(a_strName, a_pSignature, e_stdcall, a_Modifiers ) // TODO : remove this stdcall
 {
 }
 
 StaticMemberFunction::StaticMemberFunction( const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers, int tag)
-    : Function(a_strName, a_pSignature, e_ABI_stdcall, a_Modifiers, tag) // TODO : remove this stdcall
+    : Function(a_strName, a_pSignature, e_stdcall, a_Modifiers, tag) // TODO : remove this stdcall
 {
 
 }

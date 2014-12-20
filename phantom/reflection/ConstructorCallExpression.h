@@ -46,17 +46,19 @@ o_namespace_begin(phantom, reflection)
 
 class o_export ConstructorCallExpression : public CallExpression
 {
+    o_language_element;
+
 public:
     ConstructorCallExpression(Constructor* a_pConstructor, const vector<Expression*>& a_Expressions);
     ~ConstructorCallExpression();
 
     o_terminate();
 
-    virtual void getValue(void* a_pDest) const ;
+    virtual ConstructorCallExpression* asConstructorCallExpression() const { return (ConstructorCallExpression*)this; }
 
-    virtual void eval() const;
+    virtual void internalEval(void* a_pDest) const ;
 
-    virtual variant compile(Compiler* a_pCompiler);
+    virtual void internalEval() const ;
 
     virtual bool hasValueStorage() const { return true; }
 

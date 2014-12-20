@@ -92,7 +92,7 @@ public:
 
     virtual void*           getAddress(void const* a_pInstance) const { return NULL; }
 
-    virtual Expression*     createAccessExpression(Expression* a_pLeftExpression) const = 0;
+    virtual Expression*     createExpression(Expression* a_pLeftExpression) const = 0;
 
     virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const = 0;
 

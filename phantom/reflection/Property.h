@@ -52,6 +52,7 @@ struct property_compilation_data
 
 class o_export Property : public ValueMember
 {
+    o_language_element;
 
 public:
     static Class* const metaType;
@@ -91,7 +92,7 @@ public:
     InstanceMemberFunction* getGetMemberFunction() const { return m_pGetMemberFunction; }
     Signal*                 getSignal() const { return m_pSignal; }
 
-    virtual Expression*     createAccessExpression(Expression* a_pLeftExpression) const;
+    virtual Expression*     createExpression(Expression* a_pLeftExpression) const;
 
     virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
 

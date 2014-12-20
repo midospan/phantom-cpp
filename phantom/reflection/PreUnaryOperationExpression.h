@@ -44,10 +44,14 @@ o_namespace_begin(phantom, reflection)
 
 class o_export PreUnaryOperationExpression : public Expression
 {
+    o_language_element;
+
 public:
     PreUnaryOperationExpression( Type* a_pType, const string& a_strOperator, Expression* a_pExpression );
 
-    virtual void    getValue(void* a_pDest) const = 0;
+    virtual PreUnaryOperationExpression*asPreUnaryOperationExpression() const { return (PreUnaryOperationExpression*)this; }
+
+    virtual void    internalEval(void* a_pDest) const = 0;
 
     virtual void    flush() const;
 
@@ -56,6 +60,8 @@ public:
     Expression*     getExpression() const { return m_pExpression; }
 
     Expression*     getConvertedExpression() const { return m_pConvertedExpression; }
+
+    const string&   getOperator() const { return m_strOperator; }
 
 protected:
     string          m_strOperator;

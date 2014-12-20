@@ -45,9 +45,10 @@
 
 o_namespace_begin(phantom, reflection)
 
-
 class o_export PrimitiveType : public Type
 {
+    o_type;
+
     o_declare_meta_type(PrimitiveType);
 
 public:
@@ -60,6 +61,10 @@ public:
     virtual Type* asPOD() const { return const_cast<PrimitiveType*>(this); }
 
     virtual bool    isCopyable() const { return true; }
+
+    virtual PrimitiveType* unsignedType() { return nullptr; }
+
+    virtual PrimitiveType* signedType() { return nullptr; }
 
 protected:
     

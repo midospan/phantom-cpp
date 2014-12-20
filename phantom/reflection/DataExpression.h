@@ -46,18 +46,23 @@ o_namespace_begin(phantom, reflection)
 
 class o_export DataExpression : public Expression
 {
+    o_language_element;
 
 public:
     DataExpression(serialization::DataBase* a_pDataBase, Expression* a_pGuidExpression);
     o_destructor ~DataExpression(void)     {}
 
+    virtual DataExpression*  asDataExpression() const { return (DataExpression*)this; }
+
     virtual bool    hasValueStorage() const { return false; }
 
-    virtual void    getValue(void* a_pDest) const;
+    virtual void    internalEval(void* a_pDest) const;
 
     virtual DataExpression* clone() const;
 
     virtual bool isEffectiveAddressFixed() const { return true; }
+
+    Expression* getGuidExpression() const { return m_pGuidExpression; }
 
 protected:
     serialization::DataBase* m_pDataBase;

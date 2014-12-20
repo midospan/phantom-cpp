@@ -125,6 +125,39 @@ void Compiler::compile( int a_iPass )
     }
 }
 
+variant Compiler::compile( ClassType* a_pClassType )
+{
+    o_assert(a_pClassType->getExtraData());
+    if(a_pClassType->getExtraData()->m_iState < ClassType::extra_data::e_State_Finalized)
+    {
+        a_pClassType->finalize();
+    }
+    o_assert(a_pClassType->getExtraData()->m_iState < ClassType::extra_data::e_State_Compiling);
+    const_cast<ClassType::extra_data*>(a_pClassType->getExtraData())->m_iState = ClassType::extra_data::e_State_Compiling;
+    return variant();
+}
+
+variant Compiler::compile( Class* a_pClass )
+{
+    compile(static_cast<ClassType*>(a_pClass));
+    if(a_pClass->getStateMachine())
+        compile(a_pClass->getStateMachine());
+    return variant();
+}
+
+variant Compiler::compile( state::StateMachine* a_pStateMachine )
+{
+//     o_assert(a_pStateMachine->m_pCompilationData);
+//     size_t i = 0;
+//     size_t count = a_pStateMachine->getStateCount();
+//     for(;i<count;++i)
+//     {
+//         static_cast<State*>(a_pStateMachine->m_States[i])->compile(this);
+//     }
+//     a_pStateMachine->m_pCompilationData->m_bCompiled = true;
+    return variant();
+}
+
 void Compiler::message(EMessageType a_eType, const CodeLocation& a_Location, char* a_Format, ... )
 {
     va_list args;

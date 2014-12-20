@@ -47,7 +47,7 @@ class o_export AnonymousSection : public LanguageElement
     o_declare_meta_type(AnonymousSection);
 
 public:
-    AnonymousSection(modifiers_t modifiers = modifiers_t());
+    AnonymousSection(modifiers_t modifiers = 0);
 
     virtual AnonymousSection* asAnonymousSection() const { return (AnonymousSection*)this; }
 

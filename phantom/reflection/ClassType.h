@@ -44,9 +44,11 @@ o_namespace_begin(phantom, reflection)
     
 class o_export ClassType : public Type
 {
+    o_type;
+
     o_declare_meta_type(ClassType);
 
-protected:
+public:
     struct extra_data
     {
         enum EState
@@ -128,7 +130,7 @@ public:
     virtual void            addInstanceMemberFunction(InstanceMemberFunction* a_MetaMemberFunction);
     virtual void            addStaticMemberFunction(StaticMemberFunction* a_MetaMemberFunction);
     virtual void            addAnonymousSection(AnonymousSection* a_pAnonymousSection);
-    virtual AnonymousSection*addAnonymousSection(const string& a_strCode, modifiers_t a_Modifiers = modifiers_t());
+    virtual AnonymousSection*addAnonymousSection(const string& a_strCode, modifiers_t a_Modifiers = 0);
 
     virtual void            removeConstructor( Constructor* a_pConstructor );
     virtual void            removeValueMember( ValueMember* a_pValueMember );
@@ -142,6 +144,7 @@ public:
     virtual void            removeStaticMemberFunction(StaticMemberFunction* a_MetaMemberFunction);
 
 
+    Constructor*            getDefaultConstructor(modifiers_t a_Modifiers = 0) const;
     Constructor*            getConstructor( Type* a_pType, vector<size_t>* a_pPartialMatches = nullptr, modifiers_t a_Modifiers = 0 ) const;
     Constructor*            getConstructor( const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatches = nullptr, modifiers_t a_Modifiers = 0 ) const;
     Constructor*            getConstructor( const string& a_strDecoratedName ) const;
@@ -196,7 +199,7 @@ public:
     virtual void*           newInstance() const;
 
     virtual void*           newInstance(Constructor* a_pConstructor, void** a_pArgs = NULL) const;
-    virtual void            deleteInstance(void* a_pObject) const = 0;
+    virtual void            deleteInstance(void* a_pObject) const;
     virtual void            safeDeleteInstance(void* a_pObject) const { deleteInstance(a_pObject); }
 
     virtual void            interpolate(void* a_src_start, void* a_src_end, real a_fPercent, void* a_pDest, uint mode = 0) const;
@@ -208,33 +211,19 @@ public:
     virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
     virtual void            fetchExpressions(Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter, uint a_uiSerializationMask) const;
 
-    virtual LanguageElement*    solveElement(
-        const string& a_strName
-        , const vector<TemplateElement*>*
-        , const vector<LanguageElement*>*
-        , modifiers_t a_Modifiers = 0) const ;
-
-    virtual Expression*         solveExpression( Expression* a_pLeftExpression
-        , const string& a_strName 
-        , const vector<TemplateElement*>* 
-        , const vector<LanguageElement*>*
-        , modifiers_t a_Modifiers /*= 0*/ ) const;
-
-    virtual Expression*         solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const;
-
-    virtual variant             compile(Compiler* a_pCompiler);
-
-    virtual void                getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
+    virtual void            getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
 
     // Attributes
-    void                        addAttribute(const string& a_strName, const variant& a_Variant);
-    void                        removeAttribute( const string& a_strName );
-    const variant&              getAttribute(const string& a_strName) const;
+    void                    addAttribute(const string& a_strName, const variant& a_Variant);
+    void                    removeAttribute( const string& a_strName );
+    const variant&          getAttribute(const string& a_strName) const;
 
-    InstanceMemberFunction*     getDestructor() const;
+    InstanceMemberFunction* getDestructor() const;
+
+    const extra_data*       getExtraData() const { return m_pExtraData; }
 
 protected:
-    virtual void                finalize();
+    virtual void            finalize();
 
     bool canBeDestroyed() const;
     void elementAdded(LanguageElement* a_pElement);
@@ -257,7 +246,6 @@ protected:
     virtual void                    setProperties(vector<Property*> list);
     virtual void                    setInstanceDataMembers(vector<InstanceDataMember*> list);
     virtual void                    setInstanceMemberFunctions(vector<InstanceMemberFunction*> list);
-
 
 protected:
     vector<ValueMember*>            m_ValueMembers;

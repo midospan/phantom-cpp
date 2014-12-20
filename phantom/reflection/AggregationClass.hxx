@@ -7,10 +7,10 @@ o_classNB((phantom, reflection), AggregationClass, (Class))
 (
 );
 
-o_classNCB((phantom, reflection), (AggregationClass), GetSetExpression, (Expression))
+o_classNB((phantom, reflection), AggregationGetSetExpression, (Expression))
 (
 );
 
-o_classNCB((phantom, reflection), (AggregationClass), InsertRemoveExpression, (Expression))
+o_classNB((phantom, reflection), AggregationInsertRemoveExpression, (Expression))
 (
 );

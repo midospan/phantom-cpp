@@ -41,7 +41,7 @@ o_registerN((phantom, reflection), PreUnaryOperationExpression);
 o_namespace_begin(phantom, reflection) 
 
 PreUnaryOperationExpression::PreUnaryOperationExpression( Type* a_pType, const string& a_strOperator, Expression* a_pExpression ) 
-    : Expression(a_pType, a_strOperator+"("+a_pExpression->getName()+")")
+    : Expression(a_pType)
     , m_pExpression((a_pExpression AND a_pExpression->getOwner()) ? a_pExpression->clone() : a_pExpression)
 {
     m_pConvertedExpression = m_pExpression ? m_pExpression->implicitCast(a_pType) : nullptr;

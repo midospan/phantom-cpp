@@ -46,14 +46,14 @@ o_namespace_begin(phantom, reflection)
 
 class o_export ReturnStatement : public Statement
 {
+    o_language_element;
+
     friend class Block;
 public:
     ReturnStatement();
     ReturnStatement(Expression* a_pReturnExpression);
 
-    virtual variant compile(Compiler* a_pCompiler);
-
-    virtual void eval() const;
+    virtual void internalEval() const ;
 
     void setReturnExpression(Expression* a_pReturnExpression);
 

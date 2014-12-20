@@ -41,8 +41,6 @@ public:
     
     virtual bool referencesData( const void* a_pContainer, const phantom::data& a_Data ) const;
 
-    virtual Expression* solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, modifiers_t a_Modifiers ) const;
-
     virtual void fetchExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter, uint a_uiSerializationMask ) const;
 
 protected:

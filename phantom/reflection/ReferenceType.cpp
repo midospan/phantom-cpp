@@ -47,7 +47,7 @@ ReferenceType::ReferenceType( Type* a_pReferencedType )
     : Type(e_reference, a_pReferencedType->getName()
     , sizeof(void*)
     , boost::alignment_of<void*>::value
-    , a_pReferencedType->isNative() ? modifiers_t(o_native) : modifiers_t())    
+    , a_pReferencedType->isNative() ? modifiers_t(o_native) : 0)    
     , m_pReferencedType(a_pReferencedType)
 {
     addReferencedElement(m_pReferencedType);
@@ -115,11 +115,6 @@ void ReferenceType::referencedElementRemoved( LanguageElement* a_pElement )
     }
 }
 
-Expression* ReferenceType::solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTemplateSignature, const vector<LanguageElement*>* a_pFunctionSignature, modifiers_t a_Modifiers /* = 0 */ ) const
-{
-    return m_pReferencedType->solveExpression(a_pLeftExpression, a_strName, a_pTemplateSignature, a_pFunctionSignature, a_Modifiers);
-}
-
 void*   ReferenceType::allocate() const
 {
      return o_allocate(void*);
@@ -172,18 +167,6 @@ void ReferenceType::destroy( void* a_pBuffer, size_t a_uiCount, size_t a_uiChunk
     o_unused(a_pBuffer);
     o_unused(a_uiCount);
     o_unused(a_uiChunkSectionSize);
-}
-
-Expression* ReferenceType::solveOperator( const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers ) const
-{
-    if(a_strOp == "&" && a_Expressions.size() == 1)
-    {
-        return a_Expressions.back()->address();
-    }
-    else 
-    {
-        return m_pReferencedType->solveOperator(a_strOp, a_Expressions, a_Modifiers);
-    }
 }
 
 o_namespace_end(phantom, reflection)

@@ -130,12 +130,12 @@ void FileTreeNode::saveIndex()
         void* pAddress = it->address();
         reflection::Type* pType = it->type();
         uint guid = getDataBase()->getGuid(pAddress);
-        uint modifiers = m_pDataBase->getDataModifiers(*it);
+        modifiers_t modifiers = m_pDataBase->getDataModifiers(*it);
         property_tree dataPath;
         dataPath.put<string>("typename", pType->getQualifiedDecoratedName());
         dataPath.put<string>("module", pType->getModule() ? pType->getModule()->getFileName() : "");
         dataPath.put<string>("guid", phantom::lexical_cast<string>(reinterpret_cast<void*>(guid)));
-        dataPath.put<string>("modifiers", phantom::lexical_cast<string>(reinterpret_cast<void*>(modifiers)));
+        dataPath.put<string>("modifiers", phantom::lexical_cast<string>(modifiers));
         const data& parent = m_pDataBase->getComponentDataOwner(pAddress);
         if(NOT(parent.isNull()))
         {
@@ -284,7 +284,7 @@ bool FileTreeNode::canLoad(map<string, vector<string> >* missing_types_per_modul
         const property_tree& sub_tree = it->second;
         string typeName = sub_tree.get<string>("typename");
         string moduleName = sub_tree.get<string>("module");
-        bool bModuleLoaded = moduleLoader()->isModuleLoaded(moduleName);
+        bool bModuleLoaded = moduleLoader()->isNativeModuleLoaded(moduleName);
         reflection::Type* pType = m_pDataBase->solveTypeByName(typeName);
         if(pType == NULL)
         {
@@ -347,7 +347,7 @@ void FileTreeNode::cache( const vector<uint>* a_pGuids, vector<data>* a_pCachedD
         string typeName = sub_tree.get<string>("typename");
         string moduleName = sub_tree.get<string>("module");
         reflection::Type* pType = m_pDataBase->solveTypeByName(typeName);
-        bool bModuleLoaded = moduleLoader()->isModuleLoaded(moduleName);
+        bool bModuleLoaded = moduleLoader()->isNativeModuleLoaded(moduleName);
         if(pType == NULL)
         {
             if(bModuleLoaded)
@@ -575,7 +575,7 @@ bool FileTreeNode::cacheOne(uint a_uiIndex)
             string typeName = sub_tree.get<string>("typename");
             string moduleName = sub_tree.get<string>("module");
             reflection::Type* pType = m_pDataBase->solveTypeByName(typeName);
-            bool bModuleLoaded = moduleLoader()->isModuleLoaded(moduleName);
+            bool bModuleLoaded = moduleLoader()->isNativeModuleLoaded(moduleName);
             if(pType == NULL)
             {
                 if(bModuleLoaded)

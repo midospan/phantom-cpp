@@ -44,6 +44,7 @@ o_namespace_begin(phantom, reflection)
 LabelStatement::LabelStatement()
     : Statement("")
     , m_uiIndex(0xffffffff)
+    , m_uiBranchCount(0)
 {
 
 }
@@ -52,13 +53,9 @@ LabelStatement::LabelStatement(const string& a_strLabelName)
     : Statement(a_strLabelName+":")
     , m_strLabelName(a_strLabelName)
     , m_uiIndex(0xffffffff)
+    , m_uiBranchCount(0)
 {
 
-}
-
-variant LabelStatement::compile( Compiler* a_pCompiler )
-{
-    return a_pCompiler->compile(this);
 }
 
 void LabelStatement::ancestorChanged( LanguageElement* a_pLanguageElement )

@@ -38,9 +38,9 @@
 #include "Compiler.h"
 #include "Block.h"
 #include "LocalVariable.h"
-#include "LocalVariableAccess.h"
+#include "LocalVariableExpression.h"
 #include "ConstantExpression.h"
-#include "ArrayElementAccess.h"
+#include "ArrayExpression.h"
 #include "AssignmentExpression.h"
 #include "BranchIfNotStatement.h"
 #include "BranchIfStatement.h"
@@ -102,11 +102,6 @@ Signal::Signal( const string& a_strName, Signature* a_pSignature, modifiers_t a_
     }
 }
 
-variant Signal::compile( Compiler* a_pCompiler )
-{
-    return a_pCompiler->compile(this);
-}
-
 connection::slot::list* Signal::getSlotList( void* a_pCaller ) const
 {
     o_assert( getSlotListDataMemberOffset() != 0xffffffff);
@@ -162,18 +157,17 @@ void Signal::generateCode()
     }
     size_t paramCount = m_pSignature->getParameterCount();
     m_pSignature->setReturnType(typeOf<signal_t>());
-    LocalVariable* pThis = o_new(LocalVariable)(getOwnerClass()->pointerType()->constType(), "this");
-    createBlock(pThis);
-    Block* pBlock = o_new(Block)(m_pBlock);
-    Expression* pThisAccess = o_new(LocalVariableAccess)(pThis);
-    m_pBlock->addLocalVariable(pThis);
+    Block* pMainBlock = createBlock();
+    Block* pBlock = o_new(Block)(pMainBlock);
+    LocalVariable* pThis = pMainBlock->getLocalVariable("this");
+    Expression* pThisAccess = o_new(LocalVariableExpression)(pThis);
     vector<LocalVariable*> parameters;
     for(size_t i = 0; i<paramCount; i++)
     {
-        LocalVariable* pParameter = m_pBlock->getLocalVariable("a_"+lexical_cast<string>(i));
+        LocalVariable* pParameter = pMainBlock->getLocalVariable("a_"+lexical_cast<string>(i));
         parameters.push_back(pParameter);
     }
-    Expression* pSlotListAccess = m_pSlotListDataMember->createAccessExpression(pThisAccess->dereference());
+    Expression* pSlotListAccess = m_pSlotListDataMember->createExpression(pThisAccess->dereference());
     ///     if(PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.unblocked())
     ///     {
     InstanceMemberFunction* pFunc_unblocked = typeOf<connection::slot::list>()->getInstanceMemberFunction("unblocked()");
@@ -187,7 +181,7 @@ void Signal::generateCode()
     ///         phantom::connection::slot* pSlot = PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.head();
     LocalVariable* pSlot = o_new(LocalVariable)(typeOf<connection::slot>()->pointerType(), "pSlot");
     pBlock_if_unblocked->addLocalVariable(pSlot);
-    Expression* pSlotAccess = o_new(LocalVariableAccess)(pSlot);
+    Expression* pSlotAccess = o_new(LocalVariableExpression)(pSlot);
     InstanceMemberFunction* pFunc_head = typeOf<connection::slot::list>()->getInstanceMemberFunction("head()");
     Expression* pCall_head = o_new(CallExpression)(pFunc_head, pSlotListAccess);
     Expression* pSlotAssignment = o_new(AssignmentExpression)(pSlotAccess, pCall_head);
@@ -228,11 +222,11 @@ void Signal::generateCode()
         ArrayType* pArrayType = typeOf<void*>()->arrayType(paramCount);
         LocalVariable* pArgs = o_new(LocalVariable)(pArrayType, "args");
         pBlock_while_pSlot->addLocalVariable(pArgs);
-        LocalVariableAccess* pArgsAccess = o_new(LocalVariableAccess)(pArgs);
+        LocalVariableExpression* pArgsAccess = o_new(LocalVariableExpression)(pArgs);
         for(size_t i = 0; i<paramCount; ++i)
         {
-            ArrayElementAccess* pElementAccess = o_new(ArrayElementAccess)(pArrayType, pArgsAccess, o_new(ConstantExpression)(constant<size_t>(i)));
-            Expression* pParameterAccess = o_new(LocalVariableAccess)(parameters[i]);
+            ArrayExpression* pElementAccess = o_new(ArrayExpression)(pArrayType, pArgsAccess, o_new(ConstantExpression)(constant<size_t>(i)));
+            Expression* pParameterAccess = o_new(LocalVariableExpression)(parameters[i]);
             Expression* pElementAssignment = o_new(AssignmentExpression)(pElementAccess, pParameterAccess->address()->cast(typeOf<void*>()));
             pBlock_while_pSlot->addExpressionStatement(pElementAssignment);
         }

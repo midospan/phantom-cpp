@@ -46,14 +46,25 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Evaluable : public LanguageElement
 {
+    o_language_element;
+
 public:
     Evaluable(const string& a_strName, modifiers_t a_Modifiers = 0);
 
-    virtual void            eval() const = 0;
-
     virtual Evaluable*      asEvaluable() const { return (Evaluable*)this; }
-    
+
+    void                    eval() const 
+    {
+        if(isInvalid())
+        {
+            o_exception(exception::reflection_runtime_exception, "Invalid expression cannot be evaluated");
+        }
+        internalEval();
+    }
+
+protected:
     virtual void            flush() const {}
+    virtual void            internalEval() const = 0;
 
 };
 

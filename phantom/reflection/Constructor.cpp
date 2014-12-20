@@ -50,7 +50,7 @@ Constructor::Constructor()
 }
 
 Constructor::Constructor( const string& a_strName, Signature* a_pSignature , modifiers_t a_Modifiers) 
-: Subroutine(a_strName, a_pSignature, e_ABI_thiscall, a_Modifiers)
+: Subroutine(a_strName, a_pSignature, e_thiscall, a_Modifiers)
 {
 
 }

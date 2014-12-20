@@ -56,24 +56,19 @@ BranchIfNotStatement::BranchIfNotStatement( Expression* a_pExpression )
     }
 }
 
-void BranchIfNotStatement::eval() const
+void BranchIfNotStatement::internalEval() const 
 {
     bool value;
-    m_pConvertedExpression->getValue(&value);
+    m_pConvertedExpression->internalEval(&value);
     if(NOT(value))
     {
-        BranchStatement::eval();
+        BranchStatement::internalEval();
     }
 }
 
 void BranchIfNotStatement::flush() const
 {
     m_pConvertedExpression->flush();
-}
-
-variant BranchIfNotStatement::compile( Compiler* a_pCompiler )
-{
-    return a_pCompiler->compile(this);
 }
 
 void BranchIfNotStatement::setExpressionString( string a_Expression )

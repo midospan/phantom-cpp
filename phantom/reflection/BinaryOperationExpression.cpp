@@ -40,61 +40,58 @@ o_registerN((phantom, reflection), BinaryOperationExpression);
 
 o_namespace_begin(phantom, reflection) 
     
-BinaryOperationExpression::BinaryOperationExpression( Type* a_pType, const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression ) 
-    : Expression(a_pType
-    , "("+a_pLHSExpression->getName()+a_strOperator+a_pRHSExpression->getName()+')'
-                , a_pLHSExpression->getModifiers())
+BinaryOperationExpression::BinaryOperationExpression( Type* a_pType, const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression ) 
+    : Expression(a_pType, a_pLeftExpression->getModifiers())
     , m_strOperator(a_strOperator)
-    , m_pLHSExpression((a_pLHSExpression AND a_pLHSExpression->getOwner()) ? a_pLHSExpression->clone() : a_pLHSExpression)
-    , m_pRHSExpression((a_pRHSExpression AND a_pRHSExpression->getOwner()) ? a_pRHSExpression->clone() : a_pRHSExpression)
+    , m_pLeftExpression(a_pLeftExpression)
+    , m_pRightExpression(a_pRightExpression)
 {
-    m_pLHSConvertedExpression = m_pLHSExpression->implicitCast(a_pType);
-    m_pRHSConvertedExpression = m_pRHSExpression->implicitCast(a_pType);
-    o_assert(m_pLHSExpression);
-    o_assert(m_pRHSExpression);
-    o_assert(m_pLHSConvertedExpression);
-    o_assert(m_pRHSConvertedExpression);
-    o_assert(m_strOperator.size());
-    addSubExpression(m_pLHSConvertedExpression);
-    addSubExpression(m_pRHSConvertedExpression);
+    construct(a_pType, a_pType);
 }
 
-BinaryOperationExpression::BinaryOperationExpression( Type* a_pLHSType, Type* a_pRHSType, const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression ) 
+BinaryOperationExpression::BinaryOperationExpression( Type* a_pLHSType, Type* a_pRHSType, const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression ) 
     : Expression(a_pLHSType
-    , "("+a_pLHSExpression->getName()+a_strOperator+a_pRHSExpression->getName()+')'
-    , a_pLHSExpression->getModifiers())
+    , a_pLeftExpression->getModifiers())
     , m_strOperator(a_strOperator)
-    , m_pLHSExpression(a_pLHSExpression)
-    , m_pRHSExpression(a_pRHSExpression)
-    , m_pLHSConvertedExpression(a_pLHSExpression->implicitCast(a_pLHSType))
-    , m_pRHSConvertedExpression(a_pRHSExpression->implicitCast(a_pRHSType))
+    , m_pLeftExpression(a_pLeftExpression)
+    , m_pRightExpression(a_pRightExpression)
 {
-    o_assert(m_pLHSExpression);
-    o_assert(m_pRHSExpression);
-    o_assert(m_pLHSConvertedExpression);
-    o_assert(m_pRHSConvertedExpression);
-    o_assert(m_strOperator.size());
-    addSubExpression(m_pLHSConvertedExpression);
-    addSubExpression(m_pRHSConvertedExpression);
+    construct(a_pLHSType, a_pRHSType);
 }
 
-BinaryOperationExpression::BinaryOperationExpression( Type* a_pValueType, Type* a_pLHSType, Type* a_pRHSType, const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression ) 
+BinaryOperationExpression::BinaryOperationExpression( Type* a_pValueType, Type* a_pLHSType, Type* a_pRHSType, const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression ) 
     : Expression(a_pValueType
-    , "("+a_pLHSExpression->getName()+a_strOperator+a_pRHSExpression->getName()+')'
-    , a_pLHSExpression->getModifiers())
+    , a_pLeftExpression->getModifiers())
     , m_strOperator(a_strOperator)
-    , m_pLHSExpression(a_pLHSExpression)
-    , m_pRHSExpression(a_pRHSExpression)
-    , m_pLHSConvertedExpression(a_pLHSExpression->implicitCast(a_pLHSType))
-    , m_pRHSConvertedExpression(a_pRHSExpression->implicitCast(a_pRHSType))
+    , m_pLeftExpression(a_pLeftExpression)
+    , m_pRightExpression(a_pRightExpression)
 {
-    o_assert(m_pLHSExpression);
-    o_assert(m_pRHSExpression);
-    o_assert(m_pLHSConvertedExpression);
-    o_assert(m_pRHSConvertedExpression);
+    construct(a_pLHSType, a_pRHSType);
+}
+
+void BinaryOperationExpression::construct(Type* a_pLeftType, Type* a_pRightType)
+{
     o_assert(m_strOperator.size());
-    addSubExpression(m_pLHSConvertedExpression);
-    addSubExpression(m_pRHSConvertedExpression);
+    if(m_pLeftExpression)
+    {
+        m_pConvertedLeftExpression = m_pLeftExpression->implicitCast(a_pLeftType);
+        if(m_pConvertedLeftExpression)
+        {
+            addSubExpression(m_pConvertedLeftExpression);
+        }
+        else setInvalid();
+    }
+    else setInvalid();
+    if(m_pRightExpression)
+    {
+        m_pConvertedRightExpression = m_pRightExpression->implicitCast(a_pRightType);
+        if(m_pConvertedRightExpression)
+        {
+            addSubExpression(m_pConvertedRightExpression);
+        }
+        else setInvalid();
+    }
+    else setInvalid();
 }
 
 BinaryOperationExpression::~BinaryOperationExpression()

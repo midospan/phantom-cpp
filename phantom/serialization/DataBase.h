@@ -264,7 +264,7 @@ public:
 
     uint            getGuid( Node* a_pNode ) const;
     uint            getGuid( const phantom::data& a_Data ) const;
-    modifiers_t        getDataModifiers( const phantom::data& a_Data ) const;
+    modifiers_t     getDataModifiers( const phantom::data& a_Data ) const;
     void            setDataModifiers( const phantom::data& a_Data, modifiers_t a_Modifiers);
     void            addDataModifiers( const phantom::data& a_Data, modifiers_t a_Modifiers);
     void            removeDataModifiers( const phantom::data& a_Data, modifiers_t a_Modifiers);

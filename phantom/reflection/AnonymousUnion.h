@@ -47,7 +47,7 @@ class o_export AnonymousUnion : public AnonymousSection
     o_declare_meta_type(AnonymousUnion);
 
 public:
-    AnonymousUnion(modifiers_t modifiers = modifiers_t());
+    AnonymousUnion(modifiers_t modifiers = 0);
 
     virtual AnonymousUnion* asAnonymousUnion() const { return (AnonymousUnion*)this; }
 

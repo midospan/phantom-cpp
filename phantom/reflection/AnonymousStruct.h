@@ -47,7 +47,7 @@ class o_export AnonymousStruct : public AnonymousSection
     o_declare_meta_type(AnonymousStruct);
 
 public:
-    AnonymousStruct(modifiers_t modifiers = modifiers_t());
+    AnonymousStruct(modifiers_t modifiers = 0);
 
     virtual AnonymousStruct* asAnonymousStruct() const { return (AnonymousStruct*)this; }
 

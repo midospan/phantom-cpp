@@ -68,7 +68,9 @@ struct dynamic_state_machine_data : base_state_machine_data
 };
 
 class o_export StateMachine : public reflection::LanguageElement
-{
+{    
+    o_language_element;
+
     typedef list<Event*>        EventQueue;
     typedef map<uint, Event*>   EventMap;
 
@@ -162,9 +164,6 @@ public:
     void    solveTransitions( dynamic_state_machine_data* smdataptr, uint a_uiEventId );
     void    queue(dynamic_state_machine_data* smdataptr, uint a_uiEventId);
     virtual void    setup( StateMachine* a_pBase );
-
-protected:
-    virtual variant compile(reflection::Compiler* a_pCompiler);
 
 protected:
     void setDataPtrOffset(size_t offset)

@@ -130,7 +130,7 @@ struct map_value_type_without_const
 };
 
 template<typename t_KTy, typename t_Ty>
-struct map_value_type_without_const <std::pair<const t_KTy, t_Ty> >
+struct map_value_type_without_const <std::pair<const t_KTy, t_Ty>>
 {
     typedef std::pair<t_KTy, t_Ty> type;
 };
@@ -944,19 +944,19 @@ struct primitive_type_id_helper;
 
 template<> struct primitive_type_id_helper<void> { const static ETypeId value = e_void; };
 template<> struct primitive_type_id_helper<char> { const static ETypeId value = e_char; };
-template<> struct primitive_type_id_helper<unsigned char> { const static ETypeId value = e_unsigned_char ; };
-template<> struct primitive_type_id_helper<signed char> { const static ETypeId value = e_signed_char ; };
+template<> struct primitive_type_id_helper<unsigned char> { const static ETypeId value = e_uchar ; };
+template<> struct primitive_type_id_helper<signed char> { const static ETypeId value = e_schar ; };
 template<> struct primitive_type_id_helper<short> { const static ETypeId value = e_short ; };
-template<> struct primitive_type_id_helper<unsigned short> { const static ETypeId value = e_unsigned_short ; };
+template<> struct primitive_type_id_helper<unsigned short> { const static ETypeId value = e_ushort ; };
 template<> struct primitive_type_id_helper<int> { const static ETypeId value = e_int ; };
-template<> struct primitive_type_id_helper<unsigned int> { const static ETypeId value = e_unsigned_int ; };
+template<> struct primitive_type_id_helper<unsigned int> { const static ETypeId value = e_uint ; };
 template<> struct primitive_type_id_helper<long> { const static ETypeId value = e_long ; };
-template<> struct primitive_type_id_helper<unsigned long> { const static ETypeId value = e_unsigned_long ; };
-template<> struct primitive_type_id_helper<long long> { const static ETypeId value = e_long_long ; };
-template<> struct primitive_type_id_helper<unsigned long long> { const static ETypeId value = e_unsigned_long_long ; };
+template<> struct primitive_type_id_helper<unsigned long> { const static ETypeId value = e_ulong ; };
+template<> struct primitive_type_id_helper<long long> { const static ETypeId value = e_longlong ; };
+template<> struct primitive_type_id_helper<unsigned long long> { const static ETypeId value = e_ulonglong ; };
 template<> struct primitive_type_id_helper<float> { const static ETypeId value = e_float ; };
 template<> struct primitive_type_id_helper<double> { const static ETypeId value = e_double ; };
-template<> struct primitive_type_id_helper<long double> { const static ETypeId value = e_long_double ; };
+template<> struct primitive_type_id_helper<long double> { const static ETypeId value = e_longdouble ; };
 template<> struct primitive_type_id_helper<bool> { const static ETypeId value = e_bool ; };
 template<> struct primitive_type_id_helper<signal_t> { const static ETypeId value = e_signal_t ; };
 template<> struct primitive_type_id_helper<std::nullptr_t> { const static ETypeId value = e_nullptr_t ; };
@@ -1004,7 +1004,6 @@ template<typename t_Ty, bool t_is_not_pod_class_default_constructible_and_not_ab
 struct default_constructor_provider_helper
 {
     static Constructor* apply(const string& a_strName) { return o_dynamic_proxy_new(TNativeConstructor<t_Ty()>)(a_strName, Signature::Create(typeOf<void>()), o_public_access); }
-    //static Constructor* apply(const string& a_strName) { return o_dynamic_proxy_new(TNativeConstructor<t_Ty()>)(a_strName, o_new(Signature)(typeOf<void>()), o_public_access); }
 };
 
 template<typename t_Ty>
@@ -1037,6 +1036,31 @@ struct destructor_provider : public destructor_provider_helper<t_Ty, boost::is_c
 
 };
 
+#define o_has_unsigned ((boost::is_integral<t_Ty>::value OR boost::is_enum<t_Ty>::value) AND !boost::is_same<t_Ty, bool>::value)
+
+template<typename t_Ty, bool is_valid>
+struct safe_make_unsigned_helper : boost::make_unsigned<t_Ty> {};
+
+template<typename t_Ty>
+struct safe_make_unsigned_helper<t_Ty, false> { typedef void type; };
+
+template<typename t_Ty>
+struct safe_make_unsigned : safe_make_unsigned_helper<t_Ty, o_has_unsigned>
+{
+
+};
+template<typename t_Ty, bool is_valid>
+struct safe_make_signed_helper : boost::make_signed<t_Ty> {};
+
+template<typename t_Ty>
+struct safe_make_signed_helper<t_Ty, false> { typedef void type; };
+
+template<typename t_Ty>
+struct safe_make_signed : safe_make_signed_helper<t_Ty, o_has_unsigned>
+{
+
+};
+
 template<typename t_Ty, int t_TemplateNestedModifiers>
 class TType_
     : public base_meta_class_type_of<t_Ty>::type
@@ -1054,8 +1078,7 @@ public:
 
     template<typename> friend struct native_type_constructor;
     template<typename, typename> friend struct native_type_constructor_helper;
-    //template<typename, bool> friend struct vtable_adder_helper;
-    template<typename, bool> friend struct ::phantom::reflection::vtable_adder_helper;
+    template<typename, bool> friend struct vtable_adder_helper;
 
 protected:
     TType_(const string& a_TypeName)
@@ -1417,6 +1440,10 @@ public:
 
     virtual PrimitiveType* asNullptrType() const { return phantom::is_nullptr_t<t_Ty>::value ? (PrimitiveType*)this : nullptr;; }
 
+    virtual PrimitiveType* unsignedType() const { return o_has_unsigned ? typeOf<safe_make_unsigned<t_Ty>::type>() : nullptr; }
+
+    virtual PrimitiveType* signedType() const { return o_has_unsigned ? typeOf<safe_make_signed<t_Ty>::type>() : nullptr; }
+
     virtual void copy(void* a_pDest, void const* a_pSrc) const
     {
         template_nested_modifiers_filter<phantom::copier<t_Ty>, t_TemplateNestedModifiers>::copy(static_cast<t_Ty*>(a_pDest), static_cast<t_Ty const*>(a_pSrc));
@@ -1495,13 +1522,15 @@ o_namespace_end(phantom)
 o_namespace_begin(phantom, reflection)
 
 template<typename t_Ty>
-struct type_of<native::TType<t_Ty, 0> >
+struct type_of<native::TType<t_Ty, 0>>
 {
     static native::TType<Class, 0>* object()
     {
         return Class::metaType;
     }
 };
+
+#undef o_has_unsigned
 
 o_namespace_end(phantom, reflection)
 

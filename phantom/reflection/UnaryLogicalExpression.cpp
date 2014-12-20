@@ -45,7 +45,7 @@ UnaryLogicalExpression::UnaryLogicalExpression( const string& a_strOperator, Exp
 {
 }
 
-void UnaryLogicalExpression::getValue( void* a_pDest ) const
+void UnaryLogicalExpression::internalEval( void* a_pDest ) const
 {
     bool* _where = (bool*)a_pDest;
     switch(m_strOperator[0])

@@ -14,7 +14,7 @@ reflection::Type* variant_type_helper<t_Ty*>::type()
 { 
     reflection::Type* pType = typeOf<t_Ty*>();
     //o_warning(pType != nullptr, "variant pointer type cannot be deduced without reflection, store it as void*");
-    return pType ? pType : typeOf<variant_generic_class*>(); // no reflection, store it just as void*
+    return pType ? pType : typeOf<void*>(); // no reflection, store it just as void*
 }
 
 template<typename t_Ty>
@@ -36,7 +36,7 @@ inline reflection::Type* variant_ctor_helper<t_Ty*>::apply(byte* a_pBuffer,  t_T
         memcpy(a_pBuffer, &a_In, sizeof(t_Ty*));
         reflection::Type* pType = typeOf<t_Ty*>();
         o_assert(pType == nullptr OR pType->isCopyable());
-        return pType ? pType : typeOf<variant_generic_class*>(); // no reflection, store it just as void*
+        return pType ? pType : typeOf<void*>(); // no reflection, store it just as void*
     }
     else 
     {

@@ -48,6 +48,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export StaticDataMember : public StaticVariable, public DataMember
 {
+    o_language_element;
+
 public:
     static Class* const metaType;
 

@@ -72,7 +72,7 @@ o_declareN(class, (phantom), Module)
 o_declareN(class, (phantom, reflection), SourceFile)
 o_declareN(class, (phantom, reflection), Signature)
 
-o_functionN((phantom), phantom::reflection::Namespace*, rootNamespace, ());
+o_functionN((phantom), phantom::reflection::Namespace*, globalNamespace, ());
 o_functionN((phantom), phantom::reflection::Type*, typeByName, (const phantom::string&, phantom::reflection::LanguageElement*));
 o_functionN((phantom), phantom::reflection::Expression*, expressionByName, (const phantom::string&, phantom::reflection::LanguageElement*));
 
@@ -223,6 +223,11 @@ struct PIMPL
 
 void    dynamic_delete_function_helper::operator>>(void* instance)
 {
+    if(!instance)
+    {
+        o_warning(false, "dynamic delete applied to null pointer");
+        return;
+    }
     const phantom::rtti_data& oi = phantom::rttiDataOf(instance, (size_t)0);
     o_assert_not(oi.isNull());
 /*#if o__bool__enable_allocation_statistics
@@ -271,7 +276,13 @@ dynamic_initializer_handle::dynamic_initializer_handle()
     g_interpreter = o_static_new_alloc_and_construct_part(reflection::Interpreter);
 
     g_root_namespace = o_static_new_alloc_and_construct_part(reflection::Namespace)(o_CS(o_root_namespace_name));
+    reflection::Namespace* phantom_namespace = o_static_new_alloc_and_construct_part(reflection::Namespace)("phantom");
+    g_root_namespace->addNamespace(phantom_namespace);
+    reflection::Namespace* reflection_namespace = o_static_new_alloc_and_construct_part(reflection::Namespace)("reflection");
+    phantom_namespace->addNamespace(reflection_namespace);
     o_static_new_install_and_initialize_part(g_root_namespace);
+    o_static_new_install_and_initialize_part(phantom_namespace);
+    o_static_new_install_and_initialize_part(reflection_namespace);
 
     // Reserve space for registration steps infos
     size_t i = 0;
@@ -279,12 +290,6 @@ dynamic_initializer_handle::dynamic_initializer_handle()
     {
         m_DeferredSetupInfos.push_back(dynamic_initializer_module_installation_func_vector());
     }
-
-    o_namespace(std);
-    o_namespace(phantom);
-    o_namespace(phantom::reflection);
-    o_namespace(phantom::connection);
-    o_namespace(phantom::state);
 
     reflection::initializeSystem();
 }
@@ -369,7 +374,7 @@ phantom::reflection::LanguageElement* elementByNameCascade( const string& a_strN
 
 phantom::reflection::Type*                    typeByGuid(uint guid)
 {
-    return rootNamespace()->getTypeByGuidCascade(guid);
+    return globalNamespace()->getTypeByGuidCascade(guid);
 }
 
 phantom::reflection::LanguageElement*         elementByGuid(uint guid)
@@ -382,14 +387,14 @@ void dynamic_initializer_handle::registerType( const string& a_strQualifiedDecor
 {
     o_assert(registeredTypeByName(a_strQualifiedDecoratedName) == nullptr, "type already registered, shouldn't happen, test is in type_of to avoid that");
     m_RegisteredTypes[a_strQualifiedDecoratedName] = a_pType;
-    rootNamespace()->addType(a_pType);
+    globalNamespace()->addType(a_pType);
 }
 
 void dynamic_initializer_handle::registerType( const string& a_strQualifiedDecoratedName, const string& a_strScope, phantom::reflection::Type* a_pType )
 {
     o_assert(registeredTypeByName(a_strQualifiedDecoratedName) == nullptr, "type already registered, shouldn't happen, test is in type_of to avoid that");
     m_RegisteredTypes[a_strQualifiedDecoratedName] = a_pType;
-    phantom::reflection::LanguageElement* pScope = elementByName(a_strScope);
+    phantom::reflection::LanguageElement* pScope = a_strScope.empty() ? nullptr : elementByName(a_strScope);
 
     // Needed while boost::spirit used (TODO replace boost::spirit...), 
     // because it initialized too late for elementByName to work on C++ dynamic initialization
@@ -401,7 +406,7 @@ void dynamic_initializer_handle::registerType( const string& a_strQualifiedDecor
         words.erase( std::remove_if( words.begin(), words.end(), 
             boost::bind( &string::empty, _1 ) ), words.end() );
 
-        reflection::Namespace* pNamespace = rootNamespace();
+        reflection::Namespace* pNamespace = globalNamespace();
         reflection::Type* pNestingType = nullptr;
 
         while(words.size() AND (pNamespace OR pNestingType))
@@ -450,7 +455,7 @@ void dynamic_initializer_handle::registerType( const string& a_strQualifiedDecor
 
 phantom::reflection::Namespace* dynamic_initializer_handle::parseNamespace( const string& a_strNamespace ) const
 {
-    return rootNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
+    return globalNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
 }
 
 void dynamic_initializer_handle::registerTemplate( reflection::Template* a_pTemplate )
@@ -508,7 +513,7 @@ phantom::reflection::Namespace*            namespaceByName( const string& a_strN
 phantom::reflection::Namespace*            namespaceByList( list<string>* a_pNamespaceNameAsStringList )
 {
     o_warning(false, "deprecated function namespaceByList used");
-    return rootNamespace()->findOrCreateNamespaceCascade(a_pNamespaceNameAsStringList);
+    return globalNamespace()->findOrCreateNamespaceCascade(a_pNamespaceNameAsStringList);
 }
 
 
@@ -528,7 +533,6 @@ void dynamic_initializer_handle::installReflection(const string& a_strName, cons
     for(auto it = m_DeferredElements.begin(); it != m_DeferredElements.end(); ++it)
     {
         (*it)->registerElement();
-        delete *it;
     }
     m_DeferredElements.clear();
     o_assert(m_iCurrentInstallationStep == -1);
@@ -586,7 +590,7 @@ phantom::reflection::Class* classByName( const string& a_strQualifiedName, phant
 
 phantom::reflection::PrimitiveType* primitiveTypeByName( const string& a_strName )
 {
-    reflection::LanguageElement* pElement = phantom::elementByName(a_strName, rootNamespace());
+    reflection::LanguageElement* pElement = phantom::elementByName(a_strName, globalNamespace());
     if(pElement) return pElement->asPrimitiveType();
     return NULL;
 }
@@ -1285,15 +1289,16 @@ o_export map<string, Module*>::const_iterator          endModules()
     return g_modules.end();
 }
 
-detail::dynamic_initializer_template_registrer::dynamic_initializer_template_registrer( const string& a_strNamespace, const string& a_strName )
+detail::dynamic_initializer_template_registrer::dynamic_initializer_template_registrer( const string& a_strNamespace, const string& a_strTemplateTypes, const string& a_strTemplateParams, const string& a_strName )
 {
     dynamic_initializer()->setActive(true);
 
     // Ensure the creation of the meta type
-    reflection::Namespace* pNamespace = rootNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
+    reflection::Namespace* pNamespace = globalNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
     /// If you get an error : 'apply' : is not a member of 'phantom::detail::module_installer'
     /// It's probably because you didn't declare a reflection scope (internal or external) for the given t_Ty class
     reflection::Template* pTemplate = pNamespace->findOrCreateTemplate(a_strName);
+    pTemplate->parseParameters(a_strTemplateTypes, a_strTemplateParams)
     dynamic_initializer()->registerTemplate(pTemplate);
     dynamic_initializer()->setActive(false);
 }
@@ -1596,7 +1601,7 @@ o_export  size_t metaDataIndex( const string& elementName )
     return eInvalidMetaDataIndex;
 }
 
-o_export  phantom::reflection::Namespace* rootNamespace()
+o_export  phantom::reflection::Namespace* globalNamespace()
 {
     return g_root_namespace;
 }
@@ -1689,7 +1694,7 @@ Phantom::~Phantom()
     }
     g_source_files.clear();
 
-    rootNamespace()->teardownMetaDataCascade(g_meta_data_names->size());
+    globalNamespace()->teardownMetaDataCascade(g_meta_data_names->size());
     // Deleting all the registered singletons
     /*{
         singleton_container::reverse_iterator it = m_singleton_container->rbegin();

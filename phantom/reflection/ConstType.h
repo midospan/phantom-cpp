@@ -43,6 +43,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export ConstType : public Type
 {
+    o_type;
+
     o_declare_meta_type(ConstType);
 
     friend class phantom::reflection::Namespace;
@@ -133,21 +135,7 @@ public:
     virtual void            copy(void* a_pDest, void const* a_pSrc) const { m_pConstedType->copy(a_pDest, a_pSrc); }
     virtual void            smartCopy(reflection::Type* a_pDestType, void* a_pDest, void const* a_pSrc) const { m_pConstedType->smartCopy(a_pDestType, a_pDest, a_pSrc); }
 
-    virtual LanguageElement*solveElement(
-        const string& a_strName
-        , const vector<TemplateElement*>* a_pTS
-        , const vector<LanguageElement*>* a_pFS
-        , modifiers_t a_Modifiers = 0) const;
-
     virtual void            getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr ) const;
-
-    virtual Expression*     solveExpression( Expression* a_pLeftExpression
-        , const string& a_strName
-        , const vector<TemplateElement*>* a_pTS
-        , const vector<LanguageElement*>* a_pFS
-        , modifiers_t a_Modifiers = 0) const;
-
-    virtual Expression*     solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const;
 
     virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
     virtual void            fetchExpressions(Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter, uint a_uiSerializationMask) const;
@@ -201,8 +189,6 @@ public:
     virtual bool            hasPreIncrement() const { return m_pConstedType->hasPreIncrement(); }
     virtual bool            hasRightShift() const { return m_pConstedType->hasRightShift(); }
     virtual bool            hasRightShiftAssign() const { return m_pConstedType->hasRightShiftAssign(); }
-
-    virtual bool            hasTrivialCastTo(Type* a_pType) const { return m_pConstedType->hasTrivialCastTo(a_pType); }
 
 protected:
     virtual void            referencedElementRemoved(LanguageElement* a_pElement);

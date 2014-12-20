@@ -983,7 +983,7 @@
 #define o_always_valid              0x00100000ULL
 #define o_inherits_allocator        0x00200000ULL
 #define o_slot_member_function      0x00400000ULL
-//#define o_component                 0x008000ULL00
+#define o_mutable                   0x00800000ULL
 #define o_owner                     0x01000000ULL
 #define o_fixed_size                0x02000000ULL
 #define o_deferred                  0x04000000ULL
@@ -991,7 +991,7 @@
 #define o_mandatory                 0x10000000ULL
 #define o_stdcall                   o_readonly  // reuse non-colliding modifiers (o_readonly cannot be combined with o_stdcall)
 #define o_fastcall                  o_singleton //
-#define o_union_alternative         0x20000000ULL
+#define o_inline                    0x20000000ULL
 
 // CONSTANTS
 #define o_invalid_guid (~(uint)0)
@@ -2167,10 +2167,10 @@ struct reg \
     o_register_common(o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_)<o_PP_IDENTITY _template_args_>);
 
 #define o_registerT(_template_types_, _template_params_, _name_)\
-    static phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) ("",  #_name_) ;
+    static phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) ("", #_template_types_, #_template_params_, #_name_) ;
 
 #define o_registerNT(_namespaces_, _template_types_, _template_params_, _name_, ...)\
-    static phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) (o_PP_QUOTE(o_PP_CREATE_SCOPE _namespaces_),  #_name_) ;
+    static phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) (o_PP_QUOTE(o_PP_CREATE_SCOPE _namespaces_), #_template_types_, #_template_params_, #_name_) ;
 
 #if o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS
 #define o_module(name)\

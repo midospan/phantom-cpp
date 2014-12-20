@@ -36,6 +36,293 @@
 
 o_namespace_begin(phantom)
 
+template<typename t_Ty, bool t_is_copyable>
+struct value_getter_helper
+{
+    typedef o_NESTED_TYPE boost::remove_const<t_Ty>::type no_const;
+    static void apply(void* dest, t_Ty& src)
+    {
+        *reinterpret_cast<no_const*>(dest) = src;
+    }
+};
+
+template<typename t_Ty>
+struct value_getter_helper<t_Ty, false>
+{
+    static void apply(void* dest, t_Ty& src)
+    {
+        o_exception(exception::reflection_runtime_exception, "Non copyable data member cannot be get");
+    }
+};
+
+template<typename t_Ty>
+struct value_getter : public value_getter_helper<t_Ty
+    , NOT(has_copy_disabled<t_Ty>::value) AND (NOT(boost::is_class<t_Ty>::value) OR is_structure<t_Ty>::value OR boost::is_copy_constructible<t_Ty>::value)  >
+{
+};
+
+template<typename t_Ty, size_t t_size>
+struct value_getter<t_Ty[t_size]>
+{
+    typedef o_NESTED_TYPE boost::remove_const<t_Ty>::type no_const;
+    static void apply(void* dest, t_Ty src[t_size])
+    {
+        size_t i = 0;
+        for(;i<t_size;++i)
+        {
+            value_getter<t_Ty>::apply(&reinterpret_cast<no_const*>(dest)[i], src[i]);
+        }
+    }
+};
+
+
+template<typename t_Ty, bool t_is_copyable>
+struct value_setter_helper
+{
+    typedef o_NESTED_TYPE boost::remove_const<t_Ty>::type no_const;
+    static void apply(void const* src, t_Ty& dest)
+    {
+        dest = *const_cast<no_const*>(reinterpret_cast<t_Ty const*>(src));
+    }
+};
+
+template<typename t_Ty>
+struct value_setter_helper<t_Ty, false>
+{
+    static void apply(void const* src, t_Ty& dest)
+    {
+        o_exception(exception::reflection_runtime_exception, "Non copyable data member cannot be get");
+    }
+};
+
+template<typename t_Ty>
+struct value_setter : public value_setter_helper<t_Ty,
+    NOT(has_copy_disabled<t_Ty>::value) AND (NOT(boost::is_class<t_Ty>::value) OR is_structure<t_Ty>::value OR boost::is_copy_constructible<t_Ty>::value)  >
+{
+};
+
+template<typename t_Ty, size_t t_size>
+struct value_setter<t_Ty[t_size]>
+{
+    typedef o_NESTED_TYPE boost::remove_const<t_Ty>::type no_const;
+    static void apply(void const* src, t_Ty dest[t_size])
+    {
+        size_t i = 0;
+        for(;i<t_size;++i)
+        {
+            value_setter<t_Ty>::apply(&(const_cast<no_const*>(reinterpret_cast<t_Ty const*>(src))[i]), dest[i]);
+        }
+    }
+};
+
+
+template<int e_eConvention, typename t_Signature>
+struct native_function_pointer_type;
+
+/// STDCALL
+
+template<typename t_ReturnType>
+struct native_function_pointer_type<e_stdcall, t_ReturnType()>
+{
+    typedef t_ReturnType (__stdcall * type)();
+};
+
+template<typename t_ReturnType, typename t_Param0>
+struct native_function_pointer_type<e_stdcall, t_ReturnType(t_Param0)>
+{
+    typedef t_ReturnType (__stdcall * type)(t_Param0);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1>
+struct native_function_pointer_type<e_stdcall, t_ReturnType(t_Param0, t_Param1)>
+{
+    typedef t_ReturnType (__stdcall * type)(t_Param0, t_Param1);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2>
+struct native_function_pointer_type<e_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2)>
+{
+    typedef t_ReturnType (__stdcall * type)(t_Param0, t_Param1, t_Param2);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3>
+struct native_function_pointer_type<e_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>
+{
+    typedef t_ReturnType (__stdcall * type)(t_Param0, t_Param1, t_Param2, t_Param3);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4>
+struct native_function_pointer_type<e_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>
+{
+    typedef t_ReturnType (__stdcall * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5>
+struct native_function_pointer_type<e_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>
+{
+    typedef t_ReturnType (__stdcall * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6>
+struct native_function_pointer_type<e_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>
+{
+    typedef t_ReturnType (__stdcall * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7>
+struct native_function_pointer_type<e_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>
+{
+    typedef t_ReturnType (__stdcall * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7, typename t_Param8>
+struct native_function_pointer_type<e_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7, t_Param8)>
+{
+    typedef t_ReturnType (__stdcall * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7, t_Param8);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7, typename t_Param8, typename t_Param9>
+struct native_function_pointer_type<e_stdcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7, t_Param8, t_Param9)>
+{
+    typedef t_ReturnType (__stdcall * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7, t_Param8, t_Param9);
+};
+
+/// FASTCALL
+
+template<typename t_ReturnType>
+struct native_function_pointer_type<e_fastcall, t_ReturnType()>
+{
+    typedef t_ReturnType (__fastcall * type)();
+};
+
+template<typename t_ReturnType, typename t_Param0>
+struct native_function_pointer_type<e_fastcall, t_ReturnType(t_Param0)>
+{
+    typedef t_ReturnType (__fastcall * type)(t_Param0);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1>
+struct native_function_pointer_type<e_fastcall, t_ReturnType(t_Param0, t_Param1)>
+{
+    typedef t_ReturnType (__fastcall * type)(t_Param0, t_Param1);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2>
+struct native_function_pointer_type<e_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2)>
+{
+    typedef t_ReturnType (__fastcall * type)(t_Param0, t_Param1, t_Param2);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3>
+struct native_function_pointer_type<e_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>
+{
+    typedef t_ReturnType (__fastcall * type)(t_Param0, t_Param1, t_Param2, t_Param3);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4>
+struct native_function_pointer_type<e_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>
+{
+    typedef t_ReturnType (__fastcall * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5>
+struct native_function_pointer_type<e_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>
+{
+    typedef t_ReturnType (__fastcall * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6>
+struct native_function_pointer_type<e_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>
+{
+    typedef t_ReturnType (__fastcall * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7>
+struct native_function_pointer_type<e_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>
+{
+    typedef t_ReturnType (__fastcall * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7, typename t_Param8>
+struct native_function_pointer_type<e_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7, t_Param8)>
+{
+    typedef t_ReturnType (__fastcall * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7, t_Param8);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7, typename t_Param8, typename t_Param9>
+struct native_function_pointer_type<e_fastcall, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7, t_Param8, t_Param9)>
+{
+    typedef t_ReturnType (__fastcall * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7, t_Param8, t_Param9);
+};
+
+/// CDECL
+
+template<typename t_ReturnType>
+struct native_function_pointer_type<e_cdecl, t_ReturnType()>
+{
+    typedef t_ReturnType (__cdecl * type)();
+};
+
+template<typename t_ReturnType, typename t_Param0>
+struct native_function_pointer_type<e_cdecl, t_ReturnType(t_Param0)>
+{
+    typedef t_ReturnType (__cdecl * type)(t_Param0);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1>
+struct native_function_pointer_type<e_cdecl, t_ReturnType(t_Param0, t_Param1)>
+{
+    typedef t_ReturnType (__cdecl * type)(t_Param0, t_Param1);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2>
+struct native_function_pointer_type<e_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2)>
+{
+    typedef t_ReturnType (__cdecl * type)(t_Param0, t_Param1, t_Param2);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3>
+struct native_function_pointer_type<e_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>
+{
+    typedef t_ReturnType (__cdecl * type)(t_Param0, t_Param1, t_Param2, t_Param3);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4>
+struct native_function_pointer_type<e_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4)>
+{
+    typedef t_ReturnType (__cdecl * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5>
+struct native_function_pointer_type<e_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5)>
+{
+    typedef t_ReturnType (__cdecl * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6>
+struct native_function_pointer_type<e_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6)>
+{
+    typedef t_ReturnType (__cdecl * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7>
+struct native_function_pointer_type<e_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7)>
+{
+    typedef t_ReturnType (__cdecl * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7, typename t_Param8>
+struct native_function_pointer_type<e_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7, t_Param8)>
+{
+    typedef t_ReturnType (__cdecl * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7, t_Param8);
+};
+
+template<typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2, typename t_Param3, typename t_Param4, typename t_Param5, typename t_Param6, typename t_Param7, typename t_Param8, typename t_Param9>
+struct native_function_pointer_type<e_cdecl, t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7, t_Param8, t_Param9)>
+{
+    typedef t_ReturnType (__cdecl * type)(t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7, t_Param8, t_Param9);
+};
+
 template <typename t_Ty>
 o_forceinline string                            decoratedTypeNameOf()
 {

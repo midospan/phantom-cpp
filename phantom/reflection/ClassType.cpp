@@ -41,7 +41,7 @@
 #include <phantom/reflection/ValueMember.hxx>
 #include <phantom/reflection/CallExpression.h>
 #include <phantom/reflection/Block.h>
-#include <phantom/reflection/StaticVariableAccess.h>
+#include <phantom/reflection/StaticVariableExpression.h>
 #include <phantom/reflection/SingleParameterFunctionExpression.h>
 #include <phantom/reflection/ConstructorCallExpression.h>
 /* *********************************************** */
@@ -212,6 +212,12 @@ Constructor* ClassType::getConstructor( const string& a_strDecoratedName) const
     return pElement ? pElement->asConstructor() : nullptr; 
 }
 
+Constructor* ClassType::getDefaultConstructor(modifiers_t a_Modifiers) const 
+{
+    vector<Type*> types;
+    return getConstructor(vector<Type*>(), nullptr, a_Modifiers);
+}
+
 Constructor* ClassType::getConstructor( const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, modifiers_t a_Modifiers ) const
 {
     if(m_pConstructors) 
@@ -252,7 +258,7 @@ Constructor* ClassType::getConstructor( const vector<Type*>& a_Types, vector<siz
             }
         }
     }
-    if(a_Types.empty() )
+    if(a_Types.empty() AND isNative())
     {
         Constructor* pDefaultConstructor = createDefaultConstructor();
         if(pDefaultConstructor)
@@ -314,268 +320,6 @@ InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_st
     LanguageElement* pElement = phantom::elementByName(a_strIdentifierString, const_cast<ClassType*>(this));
     return pElement ? pElement->asInstanceMemberFunction() : nullptr; 
 }
-
-LanguageElement*            ClassType::solveElement(
-    const string& a_strName 
-    , const vector<TemplateElement*>* a_pTemplateSignature
-    , const vector<LanguageElement*>* a_pFunctionSignature
-    , modifiers_t a_Modifiers /*= 0*/) const 
-{
-    LanguageElement* pElement = nullptr;
-    pElement = Type::solveElement(a_strName, a_pTemplateSignature, a_pFunctionSignature, a_Modifiers);
-    if(pElement) return pElement;
-    if(a_pFunctionSignature == nullptr AND a_pTemplateSignature == nullptr)
-    {
-        StaticDataMember* pStaticDataMember = getStaticDataMember(a_strName);
-        if(pStaticDataMember)
-        {
-            return pStaticDataMember->asLanguageElement();
-        }
-        return getValueMember(a_strName);
-    }
-    if(a_pFunctionSignature)
-    {
-        vector<Type*> types;
-        if(a_pFunctionSignature->empty())
-        {
-            if(a_strName == m_strName)
-            {
-                // Constructor
-                return getConstructor(types, nullptr, a_Modifiers);
-            }
-            MemberFunction* pMemberFunction = getMemberFunction(a_strName, types, nullptr, a_Modifiers);
-            if(pMemberFunction AND pMemberFunction->asStaticMemberFunction())
-            {
-                vector<Expression*> arguments;
-                return o_new(CallExpression)(pMemberFunction->asStaticMemberFunction(), arguments);
-            }
-            return pMemberFunction ? pMemberFunction->asLanguageElement() : nullptr;
-        }
-        else 
-        {
-            Type* pType = a_pFunctionSignature->front()->asType();
-            Expression* pExpression;
-            if(pType)
-            {
-                types.push_back(pType);
-                for(auto it = a_pFunctionSignature->begin()+1; it != a_pFunctionSignature->end(); ++it)
-                {
-                    pType = (*it)->asType();
-                    if(pType == nullptr) return nullptr;
-                    types.push_back(pType);
-                }
-                if(a_strName == m_strName)
-                {
-                    // Constructor
-                    return getConstructor(types, nullptr, a_Modifiers);
-                }
-                // Don't accept member function with partial matches
-                MemberFunction* pMemberFunction = getMemberFunction(a_strName, types, nullptr, a_Modifiers);
-                return pMemberFunction ? pMemberFunction->asLanguageElement() : nullptr;
-            }
-            else if((pExpression = a_pFunctionSignature->front()->asExpression()))
-            {
-                vector<Expression*> expressions;
-                vector<Expression*> arguments;
-                expressions.push_back(pExpression);
-                types.push_back(pExpression->getValueType());
-                for(auto it = a_pFunctionSignature->begin()+1; it != a_pFunctionSignature->end(); ++it)
-                {
-                    pExpression = (*it)->asExpression();
-                    if(pExpression == nullptr) 
-                        return nullptr;
-                    expressions.push_back(pExpression);
-                    types.push_back(pExpression->getValueType());
-                }
-                vector<size_t> partialMatches;
-                if(m_pNestedTypes)
-                {
-                    for(auto it = m_pNestedTypes->begin(); it != m_pNestedTypes->end(); ++it)
-                    {
-                        if((*it)->getName() == a_strName)
-                        {
-                            // Constructor
-                            Constructor* pConstructor = getConstructor(types, &partialMatches, a_Modifiers);
-                            if(pConstructor == nullptr)
-                                return nullptr;
-                            if(isCopyable())
-                            {
-                                return o_new(ConstructorCallExpression)(pConstructor, expressions);
-                            }
-                        }
-                    }
-                }
-                // Accepts member function with partial matches
-                StaticMemberFunction* pStaticMemberFunction = getStaticMemberFunction(a_strName, types, &partialMatches, a_Modifiers);
-                if(pStaticMemberFunction)
-                {
-                    for(size_t i = 0; i<expressions.size(); ++i)
-                    {
-                        arguments.push_back(expressions[i]->implicitCast(pStaticMemberFunction->getParameterType(i)));
-                    }
-
-                    return o_new(CallExpression)(pStaticMemberFunction, arguments);
-                }
-            }
-        }
-    }
-    return Type::solveElement(a_strName, a_pTemplateSignature, a_pFunctionSignature, a_Modifiers);
-}
-
-Expression* ClassType::solveExpression( Expression* a_pLeftExpression
-    , const string& a_strName 
-    , const vector<TemplateElement*>* a_pTemplateSignature
-    , const vector<LanguageElement*>* a_pFunctionSignature
-    , modifiers_t a_Modifiers /*= 0*/ ) const
-{
-    if((a_pLeftExpression->getValueType()->removeReference()->asConstType() != nullptr) != ((a_Modifiers & o_const) == o_const))
-    {
-        o_exception(exception::reflection_runtime_exception, "Incoherency between const modifier and expression const type");
-    }
-    if(a_pLeftExpression->getValueType()->removeReference()->removeConst() != removeConst())
-    {
-        o_exception(exception::reflection_runtime_exception, "LHS Expression type doesn't match current class");
-    }
-    if(a_pLeftExpression->getValueType()->removeReference()->removeConst() != this) 
-        return nullptr;
-    if(NOT(a_pLeftExpression->hasEffectiveAddress())) 
-        return nullptr;
-
-    if(a_pTemplateSignature == nullptr && a_pFunctionSignature == nullptr)
-    {
-        StaticDataMember* pStaticDataMember = getStaticDataMember(a_strName);
-        if(pStaticDataMember)
-        {
-            return o_new(StaticVariableAccess)(pStaticDataMember, a_pLeftExpression);
-        }
-        ValueMember* pValueMember = getValueMember(a_strName);
-        if(pValueMember) 
-        {
-            return pValueMember->createAccessExpression(a_pLeftExpression->reference());
-        }
-        vector<Subroutine*> singleParameterMemberFunctions;
-        for(auto it = m_InstanceMemberFunctions.begin(); it != m_InstanceMemberFunctions.end(); ++it)
-        {
-            if((*it)->getName() == a_strName && (*it)->getParameterCount() == 1)
-            {
-                singleParameterMemberFunctions.push_back(*it);
-            }
-        }
-        if(m_pStaticMemberFunctions)
-        {
-            for(auto it = m_pStaticMemberFunctions->begin(); it != m_pStaticMemberFunctions->end(); ++it)
-            {
-                if((*it)->getName() == a_strName && (*it)->getParameterCount() == 1)
-                {
-                    singleParameterMemberFunctions.push_back(*it);
-                }
-            }
-        }
-        if(singleParameterMemberFunctions.size() == 1)
-        {
-            return o_new(SingleParameterFunctionExpression)(singleParameterMemberFunctions.back(), singleParameterMemberFunctions.back()->asInstanceMemberFunction() ? a_pLeftExpression->implicitCast(referenceType()) : nullptr);
-        }
-    }
-    else if(a_pFunctionSignature)
-    {
-        vector<Type*> types;
-        if(a_pFunctionSignature->empty())
-        {
-            MemberFunction* pMemberFunction = nullptr;
-            if(a_pLeftExpression->isConstExpression()) 
-            {
-                pMemberFunction = getMemberFunction(a_strName, types, nullptr, a_Modifiers|o_const);
-            }
-            else 
-            {
-                pMemberFunction = getMemberFunction(a_strName, types, nullptr, a_Modifiers|o_noconst);
-                if(pMemberFunction == nullptr)
-                {
-                    pMemberFunction = getMemberFunction(a_strName, types, nullptr, a_Modifiers|o_const);
-                }
-            }
-            vector<Expression*> arguments;
-            if(pMemberFunction)
-            {
-                if(pMemberFunction->asInstanceMemberFunction())
-                {
-                    arguments.push_back(a_pLeftExpression->reference());
-                }
-                return o_new(CallExpression)(pMemberFunction->asSubroutine(), arguments);
-            }
-        }
-        else 
-        {
-            Type* pType = a_pFunctionSignature->front()->asType();
-            Expression* pExpression = a_pFunctionSignature->front()->asExpression();
-            if(pExpression)
-            {
-                vector<Expression*> expressions;
-                vector<Expression*> arguments;
-                types.push_back(pExpression->getValueType());
-                expressions.push_back(pExpression);
-                for(auto it = a_pFunctionSignature->begin()+1; it != a_pFunctionSignature->end(); ++it)
-                {
-                    pExpression = (*it)->asExpression();
-                    if(pExpression == nullptr) 
-                        return nullptr;
-                    expressions.push_back(pExpression);
-                    types.push_back(pExpression->getValueType());
-                }
-                // Accepts member function with partial matches
-                vector<size_t> partialMatches;
-                MemberFunction* pMemberFunction = nullptr;
-                if(a_pLeftExpression->isConstExpression())
-                {
-                    pMemberFunction = getMemberFunction(a_strName, types, &partialMatches, a_Modifiers|o_const);
-                }
-                else 
-                {
-                    pMemberFunction = getMemberFunction(a_strName, types, &partialMatches, a_Modifiers|o_noconst);
-                    if(pMemberFunction == nullptr)
-                    {
-                        pMemberFunction = getMemberFunction(a_strName, types, &partialMatches, a_Modifiers|o_const);
-                    }
-                }
-                if(pMemberFunction) 
-                {
-                    for(size_t i = 0; i<expressions.size(); ++i)
-                    {
-                        arguments.push_back(expressions[i]->implicitCast(pMemberFunction->asSubroutine()->getParameterType(i)));
-                    }
-                    if(pMemberFunction->asInstanceMemberFunction())
-                    {
-                        arguments.insert(arguments.begin(), a_pLeftExpression->reference());
-                    }
-                    return o_new(CallExpression)(pMemberFunction->asSubroutine(), arguments);
-                }
-                return nullptr;
-            }
-        }
-    }
-    return Type::solveExpression(a_pLeftExpression, a_strName, a_pTemplateSignature, a_pFunctionSignature, a_Modifiers);
-}
-
-Expression* ClassType::solveOperator( const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers ) const
-{
-    o_assert(a_Expressions.size());
-    vector<LanguageElement*> expressions;
-    if(a_Expressions.size() == 2)
-    {
-        expressions.push_back(a_Expressions[1]);
-    }
-    Expression* pExpression = solveExpression(a_Expressions[0], "operator"+a_strOp, nullptr, &expressions, a_Modifiers);
-    if(pExpression)
-    {
-        return pExpression;
-    }
-    if(a_strOp == "=" AND a_Expressions[1]->getValueType()->isImplicitlyConvertibleTo(const_cast<ClassType*>(this)))
-    {
-        return o_new(AssignmentExpression)(a_Expressions[0], a_Expressions[1]);
-    }
-    return Type::solveOperator(a_strOp, a_Expressions, a_Modifiers);
-}
-
 
 InstanceMemberFunction* ClassType::getInstanceMemberFunction( const string& a_strName, const vector<Type*>& a_Types, vector<size_t>* a_pPartialMatchesIndexes, modifiers_t a_Modifiers /*= 0*/ ) const
 {
@@ -798,7 +542,7 @@ void                    ClassType::addConstructor( Constructor* a_pConstructor )
 Constructor*        ClassType::addConstructor( const string& a_strCode )
 {
     // TODO add modifiers
-    Signature* pSignature = Signature::Create(("void("+a_strCode+")").c_str(), nullptr, m_pOwner ? (LanguageElement*)this : rootNamespace());
+    Signature* pSignature = Signature::Create(("void("+a_strCode+")").c_str(), nullptr, m_pOwner ? (LanguageElement*)this : globalNamespace());
     if(pSignature == nullptr)
         return nullptr;
     Constructor* pConstructor = o_new(Constructor)(m_strName, pSignature, 0);
@@ -962,7 +706,7 @@ DataMember* ClassType::addDataMember( const string& a_strCode, uint a_uiSerializ
     if((name[0] >= '0' AND name[0] <= '9')) 
         return nullptr;
     // j points to the end of the type
-    Type* pType = phantom::typeByName(a_strCode.substr(i, 1+j-i), m_pOwner ? (LanguageElement*)this : rootNamespace()); // first check with
+    Type* pType = phantom::typeByName(a_strCode.substr(i, 1+j-i), m_pOwner ? (LanguageElement*)this : globalNamespace()); // first check with
     if(pType == nullptr)
     {
         return nullptr;
@@ -1098,10 +842,10 @@ MemberFunction* ClassType::addMemberFunction( const string& a_strCode )
     if((name[0] >= '0' AND name[0] <= '9')) 
         return nullptr;
 
-    Type* pReturnType = typeByName(a_strCode.substr(i, 1+j-i), m_pOwner ? (LanguageElement*)this : rootNamespace());
+    Type* pReturnType = typeByName(a_strCode.substr(i, 1+j-i), m_pOwner ? (LanguageElement*)this : globalNamespace());
     if(pReturnType == nullptr) return nullptr;
 
-    Signature* pSignature = Signature::Create(a_strCode.substr(openPos, 1+closePos-openPos).c_str(), getTemplateSpecialization(), m_pOwner ? (LanguageElement*)this : rootNamespace());
+    Signature* pSignature = Signature::Create(a_strCode.substr(openPos, 1+closePos-openPos).c_str(), getTemplateSpecialization(), m_pOwner ? (LanguageElement*)this : globalNamespace());
     if(pSignature == nullptr) return nullptr;
 
     size_t constPos = a_strCode.substr(closePos+1).find("const");
@@ -1340,16 +1084,22 @@ void ClassType::interpolate( void* a_src_start, void* a_src_end, real a_fPercent
 
 void* ClassType::newInstance( Constructor* a_pConstructor, void** a_pArgs /*= NULL*/ ) const
 {
-    void* pInstance = o_dynamic_pool_allocate(m_uiSize);
+    void* pInstance = allocate(m_uiSize);
     a_pConstructor->construct(pInstance, a_pArgs);
     return pInstance;
 }
 
 void* ClassType::newInstance() const
 {
-  void* pInstance = o_dynamic_pool_allocate(m_uiSize);
-  construct(pInstance);
-  return pInstance;
+    void* pInstance = allocate(m_uiSize); 
+    construct(pInstance);
+    return pInstance;
+}
+
+void ClassType::deleteInstance(void* a_pInstance) const
+{
+    destroy(a_pInstance);
+    deallocate(a_pInstance); 
 }
 
 size_t ClassType::getValueMemberCount() const
@@ -1567,9 +1317,9 @@ void ClassType::fetchExpressions( Expression* a_pInstanceExpression, vector<Expr
             ValueMember* pValueMember = *it;
             if(a_Filter(pValueMember->getValueType()))
             {
-                out.push_back(pValueMember->createAccessExpression(a_pInstanceExpression));
+                out.push_back(pValueMember->createExpression(a_pInstanceExpression));
             }
-            pValueMember->getValueType()->fetchExpressions(pValueMember->createAccessExpression(a_pInstanceExpression), out, a_Filter, a_uiSerializationMask);
+            pValueMember->getValueType()->fetchExpressions(pValueMember->createExpression(a_pInstanceExpression), out, a_Filter, a_uiSerializationMask);
         }
     }
 }
@@ -1699,18 +1449,6 @@ void    ClassType::finalize()
             }
         }
     }
-}
-
-variant     ClassType::compile(Compiler* a_pCompiler)
-{
-    o_assert(m_pExtraData);
-    if(m_pExtraData->m_iState < extra_data::e_State_Finalized)
-    {
-        finalize();
-    }
-    o_assert(m_pExtraData->m_iState < extra_data::e_State_Compiling);
-    m_pExtraData->m_iState = extra_data::e_State_Compiling;
-    return a_pCompiler->compile(this);
 }
 
 Constructor* ClassType::createDefaultConstructor() const

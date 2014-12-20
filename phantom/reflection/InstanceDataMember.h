@@ -45,6 +45,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export InstanceDataMember : public ValueMember, public DataMember
 {
+    o_language_element;
+
     friend class Class;
     friend class ClassType;
     friend class AnonymousSection;
@@ -84,7 +86,7 @@ public:
     virtual StaticDataMember*   asStaticDataMember() const  { return nullptr; }
     virtual DataMember*         asDataMember() const { return const_cast<InstanceDataMember*>(this); }
 
-    virtual Expression*         createAccessExpression(Expression* a_pLeftExpression) const;
+    virtual Expression*         createExpression(Expression* a_pLeftExpression) const;
 
     virtual bool                referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
 

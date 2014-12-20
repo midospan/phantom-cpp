@@ -44,6 +44,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export ReferenceType : public Type
 {
+    o_type;
+
     o_declare_meta_type(ReferenceType);
 
 public:
@@ -154,10 +156,6 @@ public:
     virtual string  getQualifiedDecoratedName() const { return m_pReferencedType->getQualifiedDecoratedName()+'&'; }
 
     virtual bool    isCopyable() const { return true; }
-
-    virtual Expression* solveExpression(Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTemplateSignature, const vector<LanguageElement*>* a_pFunctionSignature, modifiers_t a_Modifiers /* = 0 */) const;
-
-    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const;
 
 protected:
     virtual DataPointerType* createDataPointerType() const { return nullptr; } // cannot create reference pointers

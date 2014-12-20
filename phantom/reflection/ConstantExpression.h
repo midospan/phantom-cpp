@@ -46,15 +46,17 @@ o_namespace_begin(phantom, reflection)
 
 class o_export ConstantExpression : public Expression
 {
+    o_language_element;
+
 public:
     ConstantExpression(Constant* a_pConstant, Expression* a_pChildExpression = nullptr);
     o_destructor ~ConstantExpression(void)     {}
 
-    virtual void* getValueStorageAddress() const { return nullptr; }
+    virtual  ConstantExpression* asConstantExpression() const { return (ConstantExpression*)this; }
 
     virtual void    setValue(void const* a_pSrc) const;
 
-    virtual void    getValue(void* a_pDest) const;
+    virtual void    internalEval(void* a_pDest) const;
 
     Constant* getConstant() const { return m_pConstant; }
 
@@ -62,7 +64,7 @@ public:
 
     virtual bool hasValueStorage() const { return false; }
 
-    virtual void eval() const 
+    virtual void internalEval() const 
     {
     }
 

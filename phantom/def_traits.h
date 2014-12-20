@@ -5,6 +5,21 @@
 o_namespace_begin(phantom)
 
 template<typename t_Ty>
+struct is_data_pointer : public std::false_type {};
+
+template<typename t_Ty>
+struct is_data_pointer<t_Ty*> : public std::true_type {};
+
+template<typename t_Ty>
+struct is_data_pointer<t_Ty* const> : public std::true_type {};
+
+template<typename t_Ty>
+struct is_function_pointer 
+{
+    static const bool value = boost::is_pointer<t_Ty>::value AND !is_data_pointer<t_Ty>::value;
+};
+
+template<typename t_Ty>
 class constructor_protection_hacker : public t_Ty
 {
 public:
@@ -2428,22 +2443,7 @@ template<typename t_Ty>
 struct is_serializable : public is_default_constructible_and_not_abstract<t_Ty> {};
 
 template<typename t_Ty>
-struct is_data_pointer : public detail::false_ {};
-
-template<typename t_Ty>
 struct is_structure : public detail::false_ {};
-
-template<typename t_Ty>
-struct is_data_pointer <t_Ty*> : public detail::true_ {};
-
-template<typename t_Ty>
-struct is_data_pointer <t_Ty const*> : public detail::true_ {};
-
-template<typename t_Ty>
-struct is_data_pointer <t_Ty* const> : public detail::true_ {};
-
-template<typename t_Ty>
-struct is_data_pointer <t_Ty const* const> : public detail::true_ {};
 
 template<typename t_Ty>
 struct is_default_constructible_and_not_abstract

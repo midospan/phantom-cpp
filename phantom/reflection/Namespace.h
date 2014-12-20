@@ -47,6 +47,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Namespace : public LanguageElement
 {
+    o_language_element;
+
 public:
     typedef map<string, Type*>  typedef_map;
     typedef map<string, Namespace*> namespace_alias_map;
@@ -159,14 +161,19 @@ public:
     ReferenceType*      getReferenceType(Type* a_pPointedType) const;
     Type*               getConstType(Type* a_pPointedType) const;
     ArrayType*          getArrayType(Type* a_pPointedType, size_t a_uiCount) const;
-    virtual
-    LanguageElement*    solveElement(
-        const string& a_strName
-        , const vector<TemplateElement*>*
-        , const vector<LanguageElement*>*
-        , modifiers_t a_Modifiers = 0) const;
 
-    virtual void    getElements(vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
+    vector<Type*>::const_iterator beginTypes() const { return m_Types.begin(); }
+    vector<Type*>::const_iterator endTypes() const { return m_Types.end(); }
+    vector<Namespace*>::const_iterator beginNamespaces() const { return m_Namespaces.begin(); }
+    vector<Namespace*>::const_iterator endNamespaces() const { return m_Namespaces.end(); }
+    vector<Function*>::const_iterator beginFunctions() const { return m_Functions.begin(); }
+    vector<Function*>::const_iterator endFunctions() const { return m_Functions.end(); }
+    vector<StaticVariable*>::const_iterator beginVariables() const { return m_Variables.begin(); }
+    vector<StaticVariable*>::const_iterator endVariables() const { return m_Variables.end(); }
+
+    virtual void        getElements(vector<LanguageElement*>& out, Class* a_pClass = nullptr) const;
+
+    virtual bool        isTemplateDependant() const { return false; }
 
 protected:
     void                setParentNamespace(Namespace* a_pNamespace) { m_pOwner = a_pNamespace; }

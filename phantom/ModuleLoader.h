@@ -43,23 +43,29 @@ public:
 
     size_t                          getLoadedModuleCount() const { return m_LoadedModules.size(); }
 
+    size_t                          getLoadedNativeModuleCount() const { return m_LoadedNativeModules.size(); }
+
     size_t                          getModuleLoadCount(Module* a_pModule) const;
 
     size_t                          getLibraryModuleLoadCount(const string& a_strPath, Module* a_pModule) const;
 
     bool                            isLibraryLoaded(const string& a_strPath) const;
 
-    bool                            isModuleLoaded(const string& a_strFileName) const;
+    bool                            isNativeModuleLoaded(const string& a_strFileName) const;
 
     map<Module*, size_t>::const_iterator beginLoadedLibraryModules(const string& a_strPath) const;
     map<Module*, size_t>::const_iterator endLoadedLibraryModules(const string& a_strPath) const;
 
-    map<string, map<Module*, size_t> >::const_iterator beginLoadedLibraries() const { return m_LibraryModules.begin(); }
-    map<string, map<Module*, size_t> >::const_iterator endLoadedLibraries() const { return m_LibraryModules.end(); }
+    map<string, map<Module*, size_t>>::const_iterator beginLoadedLibraries() const { return m_LibraryModules.begin(); }
+    map<string, map<Module*, size_t>>::const_iterator endLoadedLibraries() const { return m_LibraryModules.end(); }
 
     bool                            libraryCanBeUnloaded(const string& a_strPath, phantom::Message* a_pMessage = nullptr, vector<reflection::LanguageElement*>* a_pBlockingElements = nullptr) const;
 
     void                            setDataBase(serialization::DataBase* a_pDataBase);
+
+    void                            loadDynamicModule(Module* a_pModule);
+
+    void                            unloadDynamicModule(Module* a_pModule);
 
 protected:
     void moduleInstanciated(void* a_pModule);
@@ -83,10 +89,11 @@ protected:
     o_signal_data(elementsReplaced, const vector<reflection::LanguageElement*>&, const vector<reflection::LanguageElement*>&);
 
 protected:
+    vector<Module*> m_LoadedNativeModules;
     vector<Module*> m_LoadedModules;
     map<Module*, size_t> m_LoadedModuleCounts;
-    map<string, map<Module*, size_t> > m_LibraryModules;
-    vector<Module*> m_CurrentlyLoadedModules;
+    map<string, map<Module*, size_t>> m_LibraryModules;
+    vector<Module*> m_CurrentlyLoadingModules;
     size_t m_OperationCounter;
     serialization::DataBase* m_pDataBase;
 };

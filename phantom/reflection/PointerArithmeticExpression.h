@@ -37,20 +37,23 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/reflection/Expression.h>
+#include <phantom/reflection/BinaryOperationExpression.h>
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, reflection), PointerArithmeticExpression);
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection)
 
-class o_export PointerArithmeticExpression : public Expression
+class o_export PointerArithmeticExpression : public BinaryOperationExpression
 {
+
 public:
     PointerArithmeticExpression( const string& a_strOperator, Expression* a_pPointerExpression, Expression* a_pOffsetExpression );
     ~PointerArithmeticExpression();
 
-    virtual void    getValue(void* a_pDest) const;
+    virtual PointerArithmeticExpression*asPointerArithmeticExpression() const { return (PointerArithmeticExpression*)this; }
+
+    virtual void    internalEval(void* a_pDest) const;
 
     virtual void    flush() const { m_pPointerExpression->flush(); m_pOffsetExpression->flush(); }
 

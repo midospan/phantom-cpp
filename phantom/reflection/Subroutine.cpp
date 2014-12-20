@@ -50,7 +50,7 @@ Subroutine::Subroutine()
     , m_pBlock(nullptr)
     , m_pClosure(nullptr)
     , m_uiFrameSize(0)
-    , m_eABI(e_ABI_stdcall)
+    , m_eABI(e_stdcall)
     , m_pLabelStatements(nullptr)
 {
 
@@ -124,12 +124,12 @@ phantom::string Subroutine::getQualifiedName() const
 
 phantom::string Subroutine::getQualifiedDecoratedName() const
 {
-    return m_pOwner ? (m_pOwner->getQualifiedDecoratedName() + "::" + getName() + (m_pSignature ? m_pSignature->getQualifiedDecoratedName() : "") + (isConst() ? " const" : "")) : getDecoratedName();
+    return m_pOwner ? (m_pOwner->getQualifiedDecoratedName() + "::" + getName() + (m_pSignature ? m_pSignature->getQualifiedDecoratedName() : "")) : getDecoratedName();
 }
 
 phantom::string Subroutine::getDecoratedName() const
 {
-    return getName() + (m_pSignature ? m_pSignature->getDecoratedName() : nullptr) + (isConst() ? " const" : "");
+    return getName() + (m_pSignature ? m_pSignature->getQualifiedDecoratedName() : nullptr);
 }
 
 void Subroutine::addInstruction( Instruction* a_pInstruction )
@@ -148,11 +148,6 @@ void Subroutine::addInstruction( Instruction* a_pInstruction )
         }
     };
     std::sort(m_pInstructions->begin(), m_pInstructions->end(), InstructionSorter());
-}
-
-LanguageElement* Subroutine::solveElement( const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, modifiers_t a_Modifiers /* = modifiers_t */ ) const
-{
-    return nullptr;
 }
 
 Instruction* Subroutine::findInstructionAtCodePosition( const CodePosition& position ) const
@@ -327,9 +322,17 @@ void Subroutine::finalize()
     }
 }
 
-void Subroutine::createBlock( LocalVariable* a_pThis )
+Block* Subroutine::createBlock( LocalVariable* a_pThis )
 {
-    o_new(Block)(this, a_pThis);
+    if(isNative())
+    {
+        o_exception(exception::reflection_runtime_exception, "Cannot create block on native subroutine");
+    }
+    if(testModifiers(o_pure_virtual))
+    {
+        o_exception(exception::reflection_runtime_exception, "Cannot create block on pure virtual subroutine");
+    }
+    return o_new(Block)(this, a_pThis);
 }
 
 void MemoryLocation::setStart( byte* a_pAddress )

@@ -42,6 +42,8 @@
 o_registerN((phantom, reflection), LanguageElement);
 o_registerNTI((phantom), vector, (phantom::reflection::LanguageElement*));
 
+static vector<LanguageElement*> empty_elements;
+
 o_namespace_begin(phantom, reflection)
 
 LanguageElement::LanguageElement()
@@ -61,6 +63,7 @@ LanguageElement::LanguageElement()
     , m_pLanguage(cplusplus())
     , m_pUsings(nullptr)
     , m_pFriends(nullptr)
+    , m_pTemplateParameterDependencies(nullptr)
 {
 	Register(this);
 }
@@ -83,6 +86,7 @@ LanguageElement::LanguageElement( const string& a_strName, modifiers_t a_Modifie
     , m_pLanguage(cplusplus())
     , m_pUsings(nullptr)
     , m_pFriends(nullptr)
+    , m_pTemplateParameterDependencies(nullptr)
 {
     o_assert(NOT(isPublic() AND isProtected()), "o_public_access and o_protected_access cannot co-exist");
 	Register(this);
@@ -143,6 +147,26 @@ o_terminate_cpp(LanguageElement)
     }
     Unregister(this);
     m_uiGuid = o_invalid_guid;
+}
+
+vector<LanguageElement*>::const_iterator LanguageElement::beginElements() const
+{
+    return m_pElements ? m_pElements->begin() : empty_elements.begin();
+}
+
+vector<LanguageElement*>::const_iterator LanguageElement::endElements() const
+{
+    return m_pElements ? m_pElements->end() : empty_elements.end();
+}
+
+vector<LanguageElement*>::const_iterator LanguageElement::beginReferencedElements() const
+{
+    return m_pReferencedElements ? m_pReferencedElements->begin() : empty_elements.begin();
+}
+
+vector<LanguageElement*>::const_iterator LanguageElement::endReferencedElements() const
+{
+    return m_pReferencedElements ? m_pReferencedElements->end() : empty_elements.end();
 }
 
 phantom::string LanguageElement::getQualifiedName() const
@@ -264,23 +288,13 @@ LanguageElement* LanguageElement::getLeafElementAt( const CodePosition& a_Positi
     return nullptr;
 }
 
-LanguageElement* LanguageElement::solveElement( const string& a_strName , const vector<TemplateElement*>* , const vector<LanguageElement*>* , modifiers_t a_Modifiers /*= 0*/ ) const
-{
-    if(m_pTemplateSpecialization)
-    {
-        LanguageElement* pElement = m_pTemplateSpecialization->getType(a_strName);
-        if(pElement) return pElement;
-    }
-    return nullptr;
-}
-
 void LanguageElement::setTemplateSpecialization( TemplateSpecialization* a_pTemplateSpecialization )
 {
     o_assert(m_pTemplateSpecialization == nullptr);
     o_assert(a_pTemplateSpecialization == nullptr OR a_pTemplateSpecialization->m_pOwner == nullptr);
     if(a_pTemplateSpecialization)
     {
-        addElement(a_pTemplateSpecialization);
+        addReferencedElement(a_pTemplateSpecialization);
     }
 }
 
@@ -498,7 +512,7 @@ void LanguageElement::setModifiers( modifiers_t a_Modifiers )
     o_assert(NOT(isPublic() AND isProtected()), "o_public_access and o_protected_access cannot co-exist");
 }
 
-bool LanguageElement::matches( const string& a_strName, const vector<TemplateElement*>* a_TemplateSpecialization /*= NULL*/, modifiers_t a_Modifiers /*= 0*/ ) const
+bool LanguageElement::matches( const string& a_strName, const vector<LanguageElement*>* a_TemplateSpecialization /*= NULL*/, modifiers_t a_Modifiers /*= 0*/ ) const
 {
     if(m_strName != a_strName)
         return false;
@@ -512,7 +526,7 @@ bool LanguageElement::matches( const string& a_strName, const vector<TemplateEle
     return false;
 }
 
-bool LanguageElement::matches( const vector<TemplateElement*>* a_pElements ) const
+bool LanguageElement::matches( const vector<LanguageElement*>* a_pElements ) const
 {
     return m_pTemplateSpecialization
         ? m_pTemplateSpecialization->matches(a_pElements)
@@ -583,14 +597,15 @@ void LanguageElement::elementRemoved( LanguageElement* a_pElement )
     }
 }
 
-variant LanguageElement::compile( Compiler* a_pCompiler )
-{
-    return variant();
-}
-
 bool LanguageElement::isInvalid() const
 {
     return (m_Modifiers & o_invalid) != 0;
+}
+
+bool LanguageElement::isTemplateDependant() const
+{
+    return m_pTemplateParameterDependencies != nullptr 
+        OR hasTemplateDependantElement();
 }
 
 void LanguageElement::referencedElementInvalidated( LanguageElement* a_pElement )
@@ -658,9 +673,13 @@ string LanguageElement::getOwnerQualifiedDecoratedName() const
 
 void LanguageElement::setInvalid()
 {
-    if((m_Modifiers & o_invalid) != 0 OR (m_Modifiers & o_always_valid) != 0)
+    if((m_Modifiers & o_invalid) != 0 OR (m_Modifiers & o_always_valid) != 0 OR (m_Modifiers & o_template_dependant) != 0)
         return;
     m_Modifiers |= o_invalid;
+    /// When an element becomes invalid, the following becomes invalid too :
+    /// - the elements who have reference to it
+    /// - its owner element
+    /// - its children elements  
     if(m_pReferencingElements)
     {
         for(auto it = m_pReferencingElements->begin(); it != m_pReferencingElements->end(); ++it)
@@ -726,6 +745,41 @@ void LanguageElement::addFriend( LanguageElement* a_pFriend )
 bool LanguageElement::hasFriend( LanguageElement* a_pFriend ) const
 {
     return std::find(m_pFriends->begin(), m_pFriends->end(), a_pFriend) != m_pFriends->end();
+}
+
+ReferenceType* LanguageElement::asConstReferenceType() const
+{
+    ReferenceType* pReferenceType = asReferenceType(); 
+    return (pReferenceType AND pReferenceType->getReferencedType()->asConstType()) 
+        ? pReferenceType 
+        : nullptr;
+}
+
+LanguageElement* LanguageElement::precompileScopeCascade( Precompiler* a_pPrecompiler, const string& a_strName , const vector<LanguageElement*>* a_pTemplateArguments , const vector<LanguageElement*>* a_pFunctionArgumentsOrParameters , modifiers_t a_Modifiers /*= 0*/ ) 
+{
+    LanguageElement* pElement = precompileScope(a_pPrecompiler, a_strName, a_pTemplateArguments, a_pFunctionArgumentsOrParameters, a_Modifiers);
+    if(pElement) return pElement;
+    return m_pOwner ? m_pOwner->precompileScopeCascade(a_pPrecompiler, a_strName, a_pTemplateArguments, a_pFunctionArgumentsOrParameters, a_Modifiers) : nullptr;
+}
+
+bool LanguageElement::hasTemplateDependantElement() const
+{
+    if(m_pElements)
+    {
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            if((*it)->isTemplateDependant()) return true;
+        }
+    }
+    return false;
+}
+
+void LanguageElement::addTemplateParameterDependency( TemplateParameter* a_pParameter )
+{
+    o_assert(a_pParameter);
+    if(m_pTemplateParameterDependencies == nullptr) m_pTemplateParameterDependencies = new vector<TemplateParameter*>;
+    m_pTemplateParameterDependencies->push_back(a_pParameter);
+    addReferencedElement(a_pParameter);
 }
 
 vector<LanguageElement*> LanguageElement::sm_Elements;// TODO remove

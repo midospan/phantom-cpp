@@ -46,12 +46,14 @@ o_namespace_begin(phantom, reflection)
 
 class o_export DereferenceExpression : public Expression
 {
+    o_language_element;
+
 public:
     DereferenceExpression(Expression* a_pDereferenceableExpression);
 
-    virtual void                    getValue(void* a_pDest) const;
+    virtual DereferenceExpression*  asDereferenceExpression() const { return (DereferenceExpression*)this; }
 
-    virtual DereferenceExpression*    asDereferenceExpression() const  { return const_cast<DereferenceExpression*>(this); }
+    virtual void                    internalEval(void* a_pDest) const;
 
     virtual void flush() const;
 

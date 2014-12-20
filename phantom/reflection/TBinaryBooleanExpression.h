@@ -51,21 +51,21 @@ class  TBinaryBooleanExpression : public BinaryOperationExpression
     o_static_assert(boost::is_fundamental<t_Ty>::value OR boost::is_pointer<t_Ty>::value);
     typedef o_NESTED_TYPE boost::promote<t_Ty>::type promoted_type;
 public:
-    TBinaryBooleanExpression( const string& a_strOperator, Expression* a_pLHSExpression, Expression* a_pRHSExpression )
+    TBinaryBooleanExpression( const string& a_strOperator, Expression* a_pLeftExpression, Expression* a_pRightExpression )
         : BinaryOperationExpression(typeOf<bool>()
         , typeOf<t_Ty>()
         , typeOf<t_Ty>()
         , a_strOperator
-        , a_pLHSExpression
-        , a_pRHSExpression)
+        , a_pLeftExpression
+        , a_pRightExpression)
     {
-        o_assert(m_pLHSExpression->getValueType()->removeReference()->removeConst()->getTypeId() <= typeOf<t_Ty>()->getTypeId());
-        o_assert(m_pRHSExpression->getValueType()->removeReference()->removeConst()->getTypeId() <= typeOf<t_Ty>()->getTypeId());
-        o_assert(m_pLHSConvertedExpression->getValueType()->removeReference() == typeOf<t_Ty>());
-        o_assert(m_pRHSConvertedExpression->getValueType()->removeReference() == typeOf<t_Ty>());
+        o_assert(m_pLeftExpression->getValueType()->removeReference()->removeConst()->getTypeId() <= typeOf<t_Ty>()->getTypeId());
+        o_assert(m_pRightExpression->getValueType()->removeReference()->removeConst()->getTypeId() <= typeOf<t_Ty>()->getTypeId());
+        o_assert(m_pConvertedLeftExpression->getValueType()->removeReference() == typeOf<t_Ty>());
+        o_assert(m_pConvertedRightExpression->getValueType()->removeReference() == typeOf<t_Ty>());
     }
 
-    virtual void    getValue(void* a_pDest) const 
+    virtual void    internalEval(void* a_pDest) const 
     {
         bool* _where = (bool*)a_pDest;
         promoted_type _op0;
@@ -76,23 +76,23 @@ public:
             switch(m_strOperator[0])
             {
             case '<':
-                m_pLHSConvertedExpression->load(&_op0);
-                m_pRHSConvertedExpression->load(&_op1);
+                m_pConvertedLeftExpression->load(&_op0);
+                m_pConvertedRightExpression->load(&_op1);
                 *_where = _op0 <= _op1;
                 break;
             case '>':
-                m_pLHSConvertedExpression->load(&_op0);
-                m_pRHSConvertedExpression->load(&_op1);
+                m_pConvertedLeftExpression->load(&_op0);
+                m_pConvertedRightExpression->load(&_op1);
                 *_where = _op0 >= _op1;
                 break;
             case '=':
-                m_pLHSConvertedExpression->load(&_op0);
-                m_pRHSConvertedExpression->load(&_op1);
+                m_pConvertedLeftExpression->load(&_op0);
+                m_pConvertedRightExpression->load(&_op1);
                 *_where = _op0 == _op1;
                 break;
             case '!':
-                m_pLHSConvertedExpression->load(&_op0);
-                m_pRHSConvertedExpression->load(&_op1);
+                m_pConvertedLeftExpression->load(&_op0);
+                m_pConvertedRightExpression->load(&_op1);
                 *_where = _op0 != _op1;
                 break;
             }
@@ -103,13 +103,13 @@ public:
             switch(m_strOperator[0])
             {
             case '<':
-                m_pLHSConvertedExpression->load(&_op0);
-                m_pRHSConvertedExpression->load(&_op1);
+                m_pConvertedLeftExpression->load(&_op0);
+                m_pConvertedRightExpression->load(&_op1);
                 *_where = _op0 < _op1;
                 break;
             case '>':
-                m_pLHSConvertedExpression->load(&_op0);
-                m_pRHSConvertedExpression->load(&_op1);
+                m_pConvertedLeftExpression->load(&_op0);
+                m_pConvertedRightExpression->load(&_op1);
                 *_where = _op0 > _op1;
                 break;
 
@@ -119,7 +119,7 @@ public:
 
     virtual TBinaryBooleanExpression<t_Ty>*     clone() const 
     {
-        return o_new(TBinaryBooleanExpression<t_Ty>)(m_strOperator, m_pLHSExpression, m_pRHSExpression);
+        return o_new(TBinaryBooleanExpression<t_Ty>)(m_strOperator, m_pLeftExpression, m_pRightExpression);
     }
 
 };

@@ -47,7 +47,9 @@ class o_export UnaryLogicalExpression : public PreUnaryOperationExpression
 public:
     UnaryLogicalExpression ( const string& a_strOperator, Expression* a_pExpression );
 
-    virtual void    getValue(void* a_pDest) const ;
+    virtual UnaryLogicalExpression*     asUnaryLogicalExpression() const { return (UnaryLogicalExpression*)this; }
+
+    virtual void    internalEval(void* a_pDest) const ;
 
     virtual UnaryLogicalExpression*     clone() const;
 };

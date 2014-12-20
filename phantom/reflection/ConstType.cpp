@@ -100,21 +100,6 @@ void ConstType::getElements( vector<LanguageElement*>& out, Class* a_pClass /*= 
     m_pConstedType->getElements(out, a_pClass);
 }
 
-LanguageElement* ConstType::solveElement( const string& a_strName , const vector<TemplateElement*>* a_pTS , const vector<LanguageElement*>* a_pFS , modifiers_t a_Modifiers /*= 0*/ ) const
-{
-    return m_pConstedType->solveElement(a_strName, a_pTS, a_pFS, a_Modifiers|o_const);
-}
-
-Expression* ConstType::solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTS , const vector<LanguageElement*>* a_pFS , modifiers_t a_Modifiers /*= 0*/ ) const
-{
-    return m_pConstedType->solveExpression(a_pLeftExpression, a_strName, a_pTS, a_pFS, a_Modifiers|o_const );
-}
-
-Expression* ConstType::solveOperator( const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers ) const
-{
-    return m_pConstedType->solveOperator(a_strOp, a_Expressions, a_Modifiers|o_const);
-}
-
 bool ConstType::referencesData( const void* a_pInstance, const phantom::data& a_Data ) const
 {
     return m_pConstedType->referencesData(a_pInstance, a_Data);

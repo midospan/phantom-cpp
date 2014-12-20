@@ -78,7 +78,7 @@ Type* Namespace::getType( const string& a_strName ) const
     {
         if((*it)->getName() == a_strName) return *it;
     }
-    return NULL;
+    return false;
 }
 
 Type* Namespace::getTypeByGuid( uint a_uiGuid ) const
@@ -89,7 +89,7 @@ Type* Namespace::getTypeByGuid( uint a_uiGuid ) const
 	{
 		if((*it)->getGuid() == a_uiGuid) return *it;
 	}
-	return NULL;
+	return false;
 }
 
 Template* Namespace::getTemplate( const string& a_strName ) const
@@ -100,7 +100,7 @@ Template* Namespace::getTemplate( const string& a_strName ) const
     {
         if((*it)->getName() == a_strName) return *it;
     }
-    return NULL;
+    return false;
 }
 
 Namespace* Namespace::getNamespaceCascade( list<string>* a_HierarchyWords ) const
@@ -532,137 +532,6 @@ Type* Namespace::getTypeByGuidCascade( uint a_uiGuid ) const
 		if(pType != NULL) return pType;
 	}
 	return NULL;
-}
-
-LanguageElement* Namespace::solveElement(
-    const string& a_strName 
-    , const vector<TemplateElement*>* a_TemplateSpecialization
-    , const vector<LanguageElement*>* a_FunctionSignature
-    , modifiers_t a_Modifiers /*= 0*/) const 
-{
-    LanguageElement* pUsing = getUsing(a_strName);
-    if(pUsing)
-    {
-        if(a_TemplateSpecialization AND pUsing->asTemplate())
-        {
-            return pUsing->getOwner()->solveElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
-        }
-        else if(a_TemplateSpecialization == nullptr)
-        {
-            return pUsing;
-        }
-    }
-    if(a_FunctionSignature)
-    {
-        vector<Expression*> expressions;
-        vector<Type*> types;
-        bool bTypes = true;
-        bool bExpressions = true;
-        for( auto it = a_FunctionSignature->begin(); it != a_FunctionSignature->end(); ++it)
-        {
-            LanguageElement* pElement = (*it);
-            if(pElement)
-            {
-                Expression* pExpression = pElement->asExpression();
-                Type* pType = pElement->asType();
-                if(pExpression AND bExpressions)
-                {
-                    bTypes = false;
-                    expressions.push_back(pExpression);
-                    types.push_back(pExpression->getValueType());
-                }
-                else if(pType AND bTypes)
-                {
-                    bExpressions = false;
-                    types.push_back(pType);
-                }
-                else return nullptr;
-            }
-            else return nullptr;
-        }
-
-        if(bExpressions)
-        {
-            o_foreach(Type* pType, m_Types)
-            {
-                if(pType->getName() == a_strName AND pType->asClassType())
-                {
-                    vector<size_t> partialMatches;
-                    Constructor* pConstructor = pType->asClassType()->getConstructor(types, &partialMatches, a_Modifiers);
-                    if(pConstructor == nullptr)
-                        return nullptr;
-                    if(pType->isCopyable())
-                    {
-                        return o_new(ConstructorCallExpression)(pConstructor, expressions);
-                    }
-                }
-            }
-            map<Function*, vector<size_t> > functionsPartialMatches;
-            o_foreach(Function* pFunction, m_Functions)
-            {
-                vector<size_t> partialMatches;
-                if(pFunction->matches(a_strName, types, &partialMatches, a_Modifiers))
-                {
-                    if(partialMatches.empty()) 
-                        return o_new(CallExpression)(pFunction, expressions); 
-                    functionsPartialMatches[pFunction] = partialMatches;
-                }
-            }
-            if(functionsPartialMatches.size() == 1)
-            {
-                return o_new(CallExpression)(functionsPartialMatches.begin()->first, expressions);
-            }
-            return nullptr;
-        }
-        if(bTypes)
-        {
-            o_foreach(Function* pFunction, m_Functions)
-            {
-                if(pFunction->matches(a_strName, types, nullptr, a_Modifiers))
-                {
-                    return pFunction;
-                }
-            }
-        }
-    }
-    else 
-    {
-        if(a_TemplateSpecialization == nullptr OR a_TemplateSpecialization->empty())
-        {
-            Type* pTypedef = getTypedef(a_strName);
-            if(pTypedef != nullptr) return pTypedef;
-            Namespace* pNamespaceAlias = getNamespaceAlias(a_strName);
-            if(pNamespaceAlias != nullptr) return pNamespaceAlias;
-            Template* pTemplate = getTemplate(a_strName);
-            if(pTemplate != nullptr) return pTemplate;
-        }
-        o_foreach(Type* pType, m_Types)
-        {
-            if(pType->matches(a_strName, a_TemplateSpecialization, a_Modifiers))
-            {
-                return pType;
-            }
-            else if(pType->asEnum())
-            {
-                LanguageElement* pEnumConstant = pType->solveElement(a_strName, a_TemplateSpecialization, a_FunctionSignature, a_Modifiers);
-                if(pEnumConstant) return pEnumConstant;
-            }
-        }
-        o_foreach(StaticVariable* pVariable, m_Variables)
-        {
-            if(pVariable->getName() == a_strName)
-            {
-                return pVariable;
-            }
-        }
-    }
-    if(a_TemplateSpecialization != nullptr AND NOT(a_TemplateSpecialization->empty())) return nullptr;
-    o_foreach(Namespace* pNamespace, m_Namespaces)
-    {
-        if(pNamespace->getName() == a_strName )
-            return pNamespace;
-    }
-    return nullptr;
 }
 
 void Namespace::addTypedef( const string& a_strTypedef, Type* a_pType )

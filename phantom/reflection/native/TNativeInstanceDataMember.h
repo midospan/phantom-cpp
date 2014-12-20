@@ -45,96 +45,17 @@ using namespace fastdelegate;
 
 o_namespace_begin(phantom, reflection, native)
 
-template<typename t_Ty, bool t_is_copyable>
-struct value_getter_helper
-{
-    typedef o_NESTED_TYPE boost::remove_const<t_Ty>::type no_const;
-    static void apply(void* dest, t_Ty& src)
-    {
-        *reinterpret_cast<no_const*>(dest) = src;
-    }
-};
-
-template<typename t_Ty>
-struct value_getter_helper<t_Ty, false>
-{
-    static void apply(void* dest, t_Ty& src)
-    {
-        o_exception(exception::reflection_runtime_exception, "Non copyable data member cannot be get");
-    }
-};
-
-    template<typename t_Ty>
-struct value_getter : public value_getter_helper<t_Ty
-    , NOT(has_copy_disabled<t_Ty>::value) AND (NOT(boost::is_class<t_Ty>::value) OR is_structure<t_Ty>::value OR boost::is_copy_constructible<t_Ty>::value)  >
-{
-};
-
-template<typename t_Ty, size_t t_size>
-struct value_getter<t_Ty[t_size]>
-{
-    typedef o_NESTED_TYPE boost::remove_const<t_Ty>::type no_const;
-    static void apply(void* dest, t_Ty src[t_size])
-    {
-        size_t i = 0;
-        for(;i<t_size;++i)
-        {
-            value_getter<t_Ty>::apply(&reinterpret_cast<no_const*>(dest)[i], src[i]);
-        }
-    }
-};
-
-
-template<typename t_Ty, bool t_is_copyable>
-struct value_setter_helper
-{
-    typedef o_NESTED_TYPE boost::remove_const<t_Ty>::type no_const;
-    static void apply(void const* src, t_Ty& dest)
-    {
-        dest = *const_cast<no_const*>(reinterpret_cast<t_Ty const*>(src));
-    }
-};
-
-template<typename t_Ty>
-struct value_setter_helper<t_Ty, false>
-{
-    static void apply(void const* src, t_Ty& dest)
-    {
-        o_exception(exception::reflection_runtime_exception, "Non copyable data member cannot be get");
-    }
-};
-
-template<typename t_Ty>
-struct value_setter : public value_setter_helper<t_Ty,
-    NOT(has_copy_disabled<t_Ty>::value) AND (NOT(boost::is_class<t_Ty>::value) OR is_structure<t_Ty>::value OR boost::is_copy_constructible<t_Ty>::value)  >
-{
-};
-
-template<typename t_Ty, size_t t_size>
-struct value_setter<t_Ty[t_size]>
-{
-    typedef o_NESTED_TYPE boost::remove_const<t_Ty>::type no_const;
-    static void apply(void const* src, t_Ty dest[t_size])
-    {
-        size_t i = 0;
-        for(;i<t_size;++i)
-        {
-            value_setter<t_Ty>::apply(&(const_cast<no_const*>(reinterpret_cast<t_Ty const*>(src))[i]), dest[i]);
-        }
-    }
-};
-
 template<typename t_Ty, typename t_ContentType>
 class TNativeInstanceDataMember : public InstanceDataMember
 {
 public:
     typedef TNativeInstanceDataMember<t_Ty, t_ContentType> self_type;
-    typedef t_ContentType (t_Ty::*member_field_pointer);
+    typedef t_ContentType (t_Ty::*data_member_pointer_t);
     typedef o_NESTED_TYPE boost::remove_const<t_ContentType>::type t_ContentTypeNoConst;
     typedef o_NESTED_TYPE canonical_meta_class_type_of<t_ContentTypeNoConst>::type meta_value_type;
 
 public:
-    TNativeInstanceDataMember(Type* a_pContentType, const string& a_strName, member_field_pointer a_member_field_pointer, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_uiModifiers = 0 )
+    TNativeInstanceDataMember(Type* a_pContentType, const string& a_strName, data_member_pointer_t a_member_field_pointer, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_uiModifiers = 0 )
         : InstanceDataMember(a_pContentType
                             , a_strName
                             , (size_t)const_cast<t_ContentTypeNoConst*>(&(((t_Ty const*)nullptr)->*a_member_field_pointer))
@@ -143,8 +64,6 @@ public:
                             , a_uiModifiers|o_native)
      , m_member_field_pointer(a_member_field_pointer)
     {}
-
-    virtual boolean      isNative() const { return true; }
 
     virtual void*        getAddress( void const* a_pObject ) const
     {
@@ -301,7 +220,7 @@ public:
         }
     }
 
-    member_field_pointer    m_member_field_pointer;
+    data_member_pointer_t    m_member_field_pointer;
 };
 
 template<typename t_Ty, typename t_ContentType>
@@ -310,14 +229,14 @@ class TNativeInstanceDataMember<t_Ty, t_ContentType const>
 {
 public:
     typedef TNativeInstanceDataMember<t_Ty, t_ContentType const> self_type;
-    typedef t_ContentType const (t_Ty::*member_field_pointer);
+    typedef t_ContentType const (t_Ty::*data_member_pointer_t);
 
 public:
-    TNativeInstanceDataMember(Type* a_pContentType, const string& a_strName, member_field_pointer a_member_field_pointer, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_uiModifiers = 0)
+    TNativeInstanceDataMember(Type* a_pContentType, const string& a_strName, data_member_pointer_t a_member_field_pointer, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_uiModifiers = 0)
         : TNativeInstanceDataMember<t_Ty,t_ContentType>(a_pContentType, a_strName
 
         // We manage const-type attributes like no-const-type attributes : we break the const qualifier to be able to force write with "setValue"
-        , const_cast<typename TNativeInstanceDataMember<t_Ty,t_ContentType>::member_field_pointer>(a_member_field_pointer)
+        , const_cast<typename TNativeInstanceDataMember<t_Ty,t_ContentType>::data_member_pointer_t>(a_member_field_pointer)
         , a_pRange
         , a_uiSerializationMask
         , a_uiModifiers)

@@ -37,7 +37,7 @@
 #include "Record.hxx"
 #include "DataBase.h"
 #include "Node.h"
-#include "phantom/reflection/PropertyAccess.h"
+#include "phantom/reflection/PropertyExpression.h"
 #include <phantom/serialization/DataStateBase.h>
 #include <phantom/reflection/CompositionClass.h>
 /* *********************************************** */

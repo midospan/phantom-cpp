@@ -16,11 +16,6 @@ bool ComponentClass::referencesData( const void* a_pComponent, const phantom::da
     return baseOf(pPointer) == a_Data.address();
 }
 
-Expression* ComponentClass::solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, modifiers_t a_Modifiers ) const
-{
-    return Class::solveExpression(a_pLeftExpression, a_strName, a_pTS, a_pFS, a_Modifiers);
-}
-
 void ComponentClass::fetchExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter, uint a_uiSerializationMask ) const
 {
     if(a_Filter(getPointedClass()->pointerType()))

@@ -44,10 +44,16 @@ o_namespace_begin(phantom, reflection)
 
 class o_export PostUnaryOperationExpression : public Expression
 {
+    o_language_element;
+
 public:
     PostUnaryOperationExpression( Type* a_pType, const string& a_strOperator, Expression* a_pExpression );
 
-    virtual void    getValue(void* a_pDest) const = 0;
+    virtual PostUnaryOperationExpression*asPostUnaryOperationExpression() const { return (PostUnaryOperationExpression*)this; }
+
+    const string& getOperator() const { return m_strOperator; }
+
+    virtual void    internalEval(void* a_pDest) const = 0;
 
     virtual void    flush() const;
 

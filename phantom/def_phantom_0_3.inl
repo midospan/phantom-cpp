@@ -266,7 +266,7 @@ struct module_installer_registrer
 
 struct o_export dynamic_initializer_template_registrer
 {
-    dynamic_initializer_template_registrer(const string& a_strNamespace, const string& a_strName);
+    dynamic_initializer_template_registrer(const string& a_strNamespace, const string& a_strTemplateTypes, const string& a_strTemplateParams, const string& a_strName);
 };
 
 o_namespace_end(phantom, detail)

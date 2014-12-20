@@ -34,14 +34,11 @@
     <Filter Include="math">
       <UniqueIdentifier>{ce06cafd-e991-47ee-a904-73db5d3ae4ec}</UniqueIdentifier>
     </Filter>
-    <Filter Include="reflection\eval">
-      <UniqueIdentifier>{35ca8b63-443d-45ce-9244-de9e61ae6021}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="reflection\eval\cpp">
-      <UniqueIdentifier>{c455ee25-aa91-4152-8740-035fcc723202}</UniqueIdentifier>
-    </Filter>
     <Filter Include="macros">
       <UniqueIdentifier>{e8558957-b10b-4d40-80b7-e3b558d62265}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="reflection\cpp">
+      <UniqueIdentifier>{35ca8b63-443d-45ce-9244-de9e61ae6021}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -202,9 +199,6 @@
     <ClInclude Include="..\..\..\phantom\reflection\Namespace.hxx">
       <Filter>reflection</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\Scope.h">
-      <Filter>reflection</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\Function.h">
       <Filter>reflection</Filter>
     </ClInclude>
@@ -281,12 +275,6 @@
       <Filter>reflection</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\Enum.hxx">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\TemplateElement.h">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\TemplateElement.hxx">
       <Filter>reflection</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\ArrayType.h">
@@ -480,12 +468,6 @@
       <Filter>reflection</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\DataMember.hxx">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\PureVirtualMemberFunction.h">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\PureVirtualMemberFunction.hxx">
       <Filter>reflection</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeDataMemberProvider.h">
@@ -875,21 +857,6 @@
     <ClInclude Include="..\..\..\phantom\reflection\InstanceDataMemberBinding.h">
       <Filter>reflection</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\Addressable.h">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\InstanceDataMemberAccess.h">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\InstanceDataMemberAccess.hxx">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\PropertyAccess.h">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\PropertyAccess.hxx">
-      <Filter>reflection</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\CastExpression.hxx">
       <Filter>reflection</Filter>
     </ClInclude>
@@ -915,15 +882,6 @@
       <Filter>reflection</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\ConstIterator.hxx">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\Addressable.hxx">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\ArrayElementAccess.h">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\ArrayElementAccess.hxx">
       <Filter>reflection</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\CallExpression.h">
@@ -962,12 +920,6 @@
     <ClInclude Include="..\..\..\phantom\reflection\Statement.hxx">
       <Filter>reflection</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\StaticVariableAccess.h">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\StaticVariableAccess.hxx">
-      <Filter>reflection</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\AddressExpression.h">
       <Filter>reflection</Filter>
     </ClInclude>
@@ -998,26 +950,8 @@
     <ClInclude Include="..\..\..\phantom\reflection\Evaluable.hxx">
       <Filter>reflection</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\detail\tokens.h">
-      <Filter>reflection\eval</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\detail\lexer.h">
-      <Filter>reflection\eval</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\detail\ast.h">
-      <Filter>reflection\eval</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\detail\error_handler.h">
-      <Filter>reflection\eval</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\detail\precompiler.h">
-      <Filter>reflection\eval</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\Compiler.h">
       <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\detail\grammar.h">
-      <Filter>reflection\eval</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\LabelStatement.h">
       <Filter>reflection</Filter>
@@ -1037,9 +971,6 @@
     <ClInclude Include="..\..\..\phantom\reflection\CPlusPlus.hxx">
       <Filter>reflection</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\shaman\shaman.h">
-      <Filter>reflection\eval</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\Compiler.hxx">
       <Filter>reflection</Filter>
     </ClInclude>
@@ -1047,21 +978,6 @@
       <Filter>reflection</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\ConstType.hxx">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\detail\cpp.h">
-      <Filter>reflection\eval</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\BreakStatement.h">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\BreakStatement.hxx">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\ContinueStatement.h">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\ContinueStatement.hxx">
       <Filter>reflection</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\Structure.h">
@@ -1078,9 +994,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\ReturnStatement.hxx">
       <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\detail\ast_adapted_structs.h">
-      <Filter>reflection\eval</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\AssignmentExpression.h">
       <Filter>reflection</Filter>
@@ -1174,12 +1087,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeConstructorBase.h">
       <Filter>reflection\native</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\LocalVariableAccess.h">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\LocalVariableAccess.hxx">
-      <Filter>reflection</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeDestructor.h">
       <Filter>reflection\native</Filter>
@@ -1427,17 +1334,173 @@
     <ClInclude Include="..\..\..\phantom\math\rect.hxx">
       <Filter>math</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\ConditionalExpression.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\ConditionalExpression.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\LocalVariableExpression.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\LocalVariableExpression.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\ArrayExpression.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\ArrayExpression.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\StaticVariableExpression.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\StaticVariableExpression.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\InstanceDataMemberExpression.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\InstanceDataMemberExpression.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\PropertyExpression.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\PropertyExpression.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\CommaExpression.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\CommaExpression.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\PlacementConstructionExpression.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\PlacementConstructionExpression.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeMemberFunctionPointerTypeBase.h">
+      <Filter>reflection\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeMemberFunctionPointerTypeConst.h">
+      <Filter>reflection\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeMemberFunctionPointerType.h">
+      <Filter>reflection\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\MemberFunctionPointerType.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\MemberFunctionPointerType.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\MemberFunctionPointerCallExpression.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\MemberFunctionPointerCallExpression.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeFunctionPointerType.h">
+      <Filter>reflection\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeFunctionPointerTypeCustomConvention.h">
+      <Filter>reflection\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\FunctionPointerType.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\FunctionPointerType.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeDataMemberPointerType.h">
+      <Filter>reflection\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\DataMemberPointerType.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\DataMemberPointerType.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\MemberPointerType.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\MemberPointerType.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\DataMemberPointerExpression.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\DataMemberPointerExpression.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\Parameter.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\Parameter.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\Precompiler.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\Precompiler.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxDriver.h">
+      <Filter>reflection\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxLexer.h">
+      <Filter>reflection\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxParser.h">
+      <Filter>reflection\cpp</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\detail\CxxParser.hxx">
-      <Filter>reflection\eval\cpp</Filter>
+      <Filter>reflection\cpp</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxParsing.hxx">
-      <Filter>reflection\eval\cpp</Filter>
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxPrecompiler.hxx">
+      <Filter>reflection\cpp</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxToken.hxx">
-      <Filter>reflection\eval\cpp</Filter>
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxSearchContext.h">
+      <Filter>reflection\cpp</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxLexing.hxx">
-      <Filter>reflection\eval\cpp</Filter>
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxToken.h">
+      <Filter>reflection\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\detail\FlexLexer.h">
+      <Filter>reflection\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\WStringLiteralExpression.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\WStringLiteralExpression.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\TemplateParameter.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\TemplateParameter.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\PlaceholderType.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\PlaceholderType.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\Placeholder.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\Placeholder.hxx">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\TemplateSignature.h">
+      <Filter>reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\phantom\reflection\TemplateSignature.hxx">
+      <Filter>reflection</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1580,9 +1643,6 @@
     <ClCompile Include="..\..\..\phantom\reflection\Enum.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\TemplateElement.cpp">
-      <Filter>reflection</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\ArrayType.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
@@ -1648,9 +1708,6 @@
       <Filter>reflection</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\DataMember.cpp">
-      <Filter>reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\PureVirtualMemberFunction.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\ValueMember.cpp">
@@ -1764,12 +1821,6 @@
     <ClCompile Include="..\..\..\phantom\reflection\InstanceDataMemberBinding.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\InstanceDataMemberAccess.cpp">
-      <Filter>reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\PropertyAccess.cpp">
-      <Filter>reflection</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\CastExpression.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
@@ -1780,12 +1831,6 @@
       <Filter>reflection</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\ConstIterator.cpp">
-      <Filter>reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\Addressable.cpp">
-      <Filter>reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\ArrayElementAccess.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\CallExpression.cpp">
@@ -1806,9 +1851,6 @@
     <ClCompile Include="..\..\..\phantom\reflection\Statement.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\StaticVariableAccess.cpp">
-      <Filter>reflection</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\AddressExpression.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
@@ -1824,9 +1866,6 @@
     <ClCompile Include="..\..\..\phantom\reflection\Evaluable.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\detail\tokens.cpp">
-      <Filter>reflection\eval</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\Compiler.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
@@ -1839,19 +1878,7 @@
     <ClCompile Include="..\..\..\phantom\reflection\CPlusPlus.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\detail\precompiler.cpp">
-      <Filter>reflection\eval</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\detail\lexer.cpp">
-      <Filter>reflection\eval</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\ConstType.cpp">
-      <Filter>reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\BreakStatement.cpp">
-      <Filter>reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\ContinueStatement.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\Structure.cpp">
@@ -1906,9 +1933,6 @@
       <Filter>reflection</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\TShiftExpression.cpp">
-      <Filter>reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\LocalVariableAccess.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\BranchIfStatement.cpp">
@@ -2003,23 +2027,92 @@
     <ClCompile Include="..\..\..\phantom\math\rect.cpp">
       <Filter>math</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxParsing.cxx">
-      <Filter>reflection\eval\cpp</Filter>
+    <ClCompile Include="..\..\..\phantom\reflection\ConditionalExpression.cpp">
+      <Filter>reflection</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxToken.cpp">
-      <Filter>reflection\eval\cpp</Filter>
+    <ClCompile Include="..\..\..\phantom\reflection\LocalVariableExpression.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\ArrayExpression.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\StaticVariableExpression.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\InstanceDataMemberExpression.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\PropertyExpression.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\CommaExpression.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\PlacementConstructionExpression.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\MemberFunctionPointerType.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\MemberFunctionPointerCallExpression.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\FunctionPointerType.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\DataMemberPointerType.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\MemberPointerType.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\DataMemberPointerExpression.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\Parameter.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\Precompiler.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxDriver.cpp">
+      <Filter>reflection\cpp</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\detail\CxxLexer.cpp">
-      <Filter>reflection\eval\cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxParser.cpp">
-      <Filter>reflection\eval\cpp</Filter>
+      <Filter>reflection\cpp</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\detail\CxxLexer.cxx">
-      <Filter>reflection\eval\cpp</Filter>
+      <Filter>reflection\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxParser.cpp">
+      <Filter>reflection\cpp</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\detail\CxxParser.cxx">
-      <Filter>reflection\eval\cpp</Filter>
+      <Filter>reflection\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxParsing.cxx">
+      <Filter>reflection\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxSearchContext.cpp">
+      <Filter>reflection\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxToken.cpp">
+      <Filter>reflection\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\WStringLiteralExpression.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\TemplateParameter.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\PlaceholderType.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\Placeholder.cpp">
+      <Filter>reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\TemplateSignature.cpp">
+      <Filter>reflection</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2153,14 +2246,21 @@
     <None Include="..\..\..\phantom\def_new_delete.h">
       <Filter>defs</Filter>
     </None>
-    <None Include="..\..\..\phantom\reflection\detail\CxxParser.y">
-      <Filter>reflection\eval\cpp</Filter>
+    <None Include="..\..\..\phantom\reflection\detail\position.hh">
+      <Filter>reflection\cpp</Filter>
     </None>
-    <None Include="..\..\..\phantom\reflection\detail\CxxLexer.l">
-      <Filter>reflection\eval\cpp</Filter>
+    <None Include="..\..\..\phantom\reflection\detail\location.hh">
+      <Filter>reflection\cpp</Filter>
     </None>
-    <None Include="..\..\..\phantom\reflection\detail\cpp-grammar.y">
-      <Filter>reflection\eval</Filter>
-    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Flex Include="..\..\..\phantom\reflection\detail\CxxLexer.l">
+      <Filter>reflection\cpp</Filter>
+    </Flex>
+  </ItemGroup>
+  <ItemGroup>
+    <Bison Include="..\..\..\phantom\reflection\detail\CxxParser.y">
+      <Filter>reflection\cpp</Filter>
+    </Bison>
   </ItemGroup>
 </Project>

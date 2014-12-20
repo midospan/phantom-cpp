@@ -565,13 +565,13 @@ int main(int argc, char **argv)
     o_assert(pCompositionClass->getAboutToBeSwappedSignal() ); 
     o_assert(pCompositionClass->getSwappedSignal() );          
 
-    auto composition_ADD_exp = phantom::expressionByName("static_cast<OwnerTest*>(0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+")->m_ComponentTests.add");
-
-    auto composition_ADD_exp_reeval = phantom::expressionByName(composition_ADD_exp->getName());
-
     ComponentTest* pComponentTestAddedViaExp = o_new(ComponentTest);
 
-    composition_ADD_exp->store(&pComponentTestAddedViaExp);
+    auto composition_ADD_exp = phantom::expressionByName("static_cast<OwnerTest*>(0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+")->m_ComponentTests.add((ComponentTest*)0x"+phantom::lexical_cast<phantom::string>((void*)pComponentTestAddedViaExp)+")");
+
+    auto composition_ADD_exp_reeval = phantom::expressionByName(composition_ADD_exp->translate());
+
+    composition_ADD_exp->eval();
 
     o_dynamic_delete (composition_ADD_exp);
 
@@ -591,8 +591,7 @@ int main(int argc, char **argv)
 
     auto composition_GetSet_exp = phantom::expressionByName("(*static_cast<OwnerTest*>(0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+")).m_ComponentTests[0]");
 
-
-    auto stringLiteral = phantom::expressionByName("\"I'm a string in a string\\n\\t\\r\"");
+    auto stringLiteral = phantom::expressionByName("\"I'm a string in\\xfE a\\u4565 \\U12345678 string\\n\\t\\r\"");
 
     ComponentTest* pGettedComponentTest = 0;
 
@@ -674,7 +673,7 @@ int main(int argc, char **argv)
     float* ref_float_value_y = 0;
 
     vector2_float_x->load(&float_value_x);
-    vector2_float_y->getValue(&ref_float_value_y);
+    vector2_float_y->eval(&ref_float_value_y);
     float new_float_value_x = 8.f;
     vector2_float_x->store(&new_float_value_x);
 
@@ -691,46 +690,47 @@ int main(int argc, char **argv)
 //     phantom::reflection::LanguageElement* pTypeAddedSignal 
 //         = phantom::reflection::detail::element_finder_spirit::find("phantom::reflection::Namespace::typeAdded(phantom::reflection::Type*)");
     phantom::reflection::LanguageElement* pPhantomVector 
-        = phantom::elementByName("std::vector<int, std::allocator<int>>");
+        = phantom::elementByName("std::vector<int, std::allocator<int> >");
 
     
     phantom::cplusplus()->compile(
 
         "class CompiledClass "                                                                     "\n"
         "{"                                                                                         "\n"
-        "   phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_signalName; "       "\n"
-        "   phantom::signal_t signalName(int a_0)                                     "       "\n"
-        "   {                                                                                          "       "\n"
-        "       phantom::connection::slot* pSlot = nullptr;                                            "       "\n"
-        "       while(pSlot)                                                                           "       "\n"
-        "       {                                                                                      "       "\n"
-        "           phantom::connection::pair::push(this, pSlot);                                      "       "\n"
-        "           void* args[1] = {static_cast<void*>(&a_0)};                                                        "       "\n"
-        "           pSlot->subroutine()->call( pSlot->receiver(), args );                              "       "\n"
-        "           pSlot = pSlot->next();                                                             "       "\n"
-        "           phantom::connection::pair::pop();                                                  "       "\n"
-        "       }                                                                                      "       "\n"
-        "       return phantom::signal_t();                                                            "       "\n"
-        "   }"                                                                                                 "\n"
-        "   int increment(int i) const { return i++; }"                                                        "\n"
-        "   const char* thenMethod() const { return \"then\"; }"                                               "\n"
-        "   const char* elseMethod() const { return \"else\"; }"                                               "\n"
-        "   void testFor() const"                                                                              "\n"
-        "   {"                                                                                                 "\n"
-        "       for(int i = 0; i<6; ++i)"                                                       "\n"
-        "       {"                                                                                             "\n"
-        "           if(i%2 == 0)"                                                                              "\n"
-        "           {"                                                                                         "\n"
-        "               thenMethod();"                                                                         "\n"
-        "           }"                                                                                         "\n"
-        "           else"                                                                                      "\n"
-        "           {"                                                                                         "\n"
-        "               elseMethod();"                                                                         "\n"
-        "           }"                                                                                         "\n"
-        "       }"                                                                                              "\n"
-        "   }"                                                                                                 "\n"
+//         "   phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_signalName; "       "\n"
+//         "   phantom::signal_t signalName(int a_0)                                     "       "\n"
+//         "   {                                                                                          "       "\n"
+//         "       phantom::connection::slot* pSlot = nullptr;                                            "       "\n"
+//         "       while(pSlot)                                                                           "       "\n"
+//         "       {                                                                                      "       "\n"
+//         "           phantom::connection::pair::push(this, pSlot);                                      "       "\n"
+//         "           void* args[1] = {static_cast<void*>(&a_0)};                                                        "       "\n"
+//         "           pSlot->subroutine()->call( pSlot->receiver(), args );                              "       "\n"
+//         "           pSlot = pSlot->next();                                                             "       "\n"
+//         "           phantom::connection::pair::pop();                                                  "       "\n"
+//         "       }                                                                                      "       "\n"
+//         "       return phantom::signal_t();                                                            "       "\n"
+//         "   }"                                                                                                 "\n"
+//         "   int increment(int i) const { return i++; }"                                                        "\n"
+//         "   const char* thenMethod() const { return \"then\"; }"                                               "\n"
+//         "   const char* elseMethod() const { return \"else\"; }"                                               "\n"
+        "   const char onyDeclared();"                                                                        "\n"
+//         "   void testFor() const"                                                                              "\n"
+//         "   {"                                                                                                 "\n"
+//         "       for(int i = 0; i<6; ++i)"                                                                      "\n"
+//         "       {"                                                                                             "\n"
+//         "           if(i%2 == 0)"                                                                              "\n"
+//         "           {"                                                                                         "\n"
+//         "               thenMethod();"                                                                         "\n"
+//         "           }"                                                                                         "\n"
+//         "           else"                                                                                      "\n"
+//         "           {"                                                                                         "\n"
+//         "               elseMethod();"                                                                         "\n"
+//         "           }"                                                                                         "\n"
+//         "       }"                                                                                              "\n"
+//         "   }"                                                                                                 "\n"
         "};                                                                                          "       "\n"
-        , nullptr, nullptr, nullptr);
+        , nullptr, nullptr, o_new(phantom::Module)("test_compilation"), nullptr);
 
     //phantom::reflection::Type* pType = phantom::typeOf<phantom::string>();
     phantom::reflection::Type* pStringType = phantom::typeByName("phantom::string");

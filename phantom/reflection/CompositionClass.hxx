@@ -7,10 +7,10 @@ o_classNB((phantom, reflection), CompositionClass, (Class))
 (
 );
 
-o_classNCB((phantom, reflection), (CompositionClass), GetSetExpression, (Expression))
+o_classNB((phantom, reflection), CompositionGetSetExpression, (Expression))
 (
 );
 
-o_classNCB((phantom, reflection), (CompositionClass), InsertRemoveExpression, (Expression))
+o_classNB((phantom, reflection), CompositionInsertRemoveExpression, (Expression))
 (
 );

@@ -185,9 +185,4 @@ void Track::copyHierarchy( StateMachine* a_pStateMachine, Track* a_pSourceTrack 
     }
 }
 
-variant Track::compile( reflection::Compiler* a_pCompiler )
-{
-    return a_pCompiler->compile(this);
-}
-
 o_namespace_end(phantom, state)

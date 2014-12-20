@@ -18,18 +18,21 @@
 #include "phantom/reflection/TShiftExpression.h"
 #include "phantom/reflection/DataExpression.h"
 
-o_enumN((phantom, reflection), EABI)(e_ABI_stdcall,
-    e_ABI_fastcall,
-    e_ABI_cdecl,
-    e_ABI_thiscall);
+o_enumN((phantom), EABI)(e_stdcall,
+    e_fastcall,
+    e_cdecl,
+    e_thiscall);
 
-o_registerN((phantom, reflection), EABI);
+o_registerN((phantom), EABI);
 
 o_namespace_begin(phantom, reflection, native)
+
 
 template<typename t_Ty>
 class TFundamentalType : public TPrimitiveType<t_Ty>
 {
+    o_type;
+
 public:
     TFundamentalType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
         : TPrimitiveType<t_Ty>(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
@@ -41,89 +44,21 @@ public:
 template<typename t_Ty>
 class TArithmeticType : public TFundamentalType<t_Ty>
 {
+    o_type;
+
 public:
     TArithmeticType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
         : TFundamentalType<t_Ty>(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
 
     virtual PrimitiveType* asArithmeticType() const { return (PrimitiveType*)this; }
 
-    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const
-    {
-        o_assert(a_Expressions.size());
-        o_assert(a_Expressions[0]->getValueType()->isImplicitlyConvertibleTo(const_cast<TArithmeticType<t_Ty>*>(this)));
-        if(a_Expressions.size() == 2)
-        {
-            if(a_strOp.size() == 2)
-            {
-                if(a_strOp == "==" OR a_strOp == "!=")
-                {
-                    return o_new(TEqualityExpression<t_Ty>)(a_strOp, a_Expressions[0], a_Expressions[1]);
-                }
-                else if(a_strOp[1] == '=') // Assignment operation or equality test
-                {
-                    Expression* pSubExpression = nullptr;
-                    switch(a_strOp[0])
-                    {
-                    case '+':
-                    case '-':
-                    case '*':
-                    case '/':
-                        pSubExpression = o_new(TBinaryArithmeticExpression<t_Ty>)(a_strOp.substr(0, 1), a_Expressions[0], a_Expressions[1]);
-                        break;
-
-                    case '=':
-                    case '!':
-                    case '<':
-                    case '>':
-                        return o_new(TBinaryBooleanExpression<t_Ty>)(a_strOp, a_Expressions[0], a_Expressions[1]);
-
-                    }
-                    if(pSubExpression)
-                    {
-                        return o_new(AssignmentExpression)(a_Expressions[0], pSubExpression);
-                    }
-                }
-            }
-            else if(a_strOp.size() == 1)
-            {
-                switch(a_strOp[0])
-                {
-                case '=':
-                    {
-                        return o_new(AssignmentExpression)(a_Expressions[0], a_Expressions[1]);
-                    }
-                case '+':
-                case '-':
-                case '*':
-                case '/':
-                    {
-                        return o_new(TBinaryArithmeticExpression<t_Ty>)(a_strOp, a_Expressions[0], a_Expressions[1]);
-                    }
-                case '<':
-                case '>':
-                    {
-                        return o_new(TBinaryBooleanExpression<t_Ty>)(a_strOp, a_Expressions[0], a_Expressions[1]);
-                    }
-                }
-            }
-        }
-        else if(a_Expressions.size() == 1)
-        {
-            if(a_strOp.size() == 1)
-            {
-                if(a_strOp[0] == '+' OR a_strOp[0] == '-')
-                {
-                    return o_new(TUnaryArithmeticExpression<t_Ty>)(a_strOp, a_Expressions[0]);
-                }
-            }
-        }
-        return TFundamentalType<t_Ty>::solveOperator(a_strOp, a_Expressions, a_Modifiers);
-    }
 };
 
 template<typename t_Ty>
 class TFloatingPointType : public TArithmeticType<t_Ty>
 {
+    o_type;
+
 public:
     TFloatingPointType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
         : TArithmeticType<t_Ty>(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
@@ -134,108 +69,13 @@ public:
 template<typename t_Ty>
 class TIntegralType : public TArithmeticType<t_Ty>
 {
+    o_type;
+
 public:
     TIntegralType(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
         : TArithmeticType<t_Ty>(a_strName, a_uiSize, a_uiAlignment, a_Modifiers) {}
 
     virtual PrimitiveType* asIntegralType() const { return (PrimitiveType*)this; }
-
-    virtual Expression* solveOperator(const string& a_strOp, const vector<Expression*>& a_Expressions, modifiers_t a_Modifiers) const
-    {
-        o_assert(a_Expressions.size());
-        o_assert(a_Expressions[0]->getValueType()->isImplicitlyConvertibleTo((Type*)this));
-        if(a_strOp.size() == 3)
-        {
-            if((a_strOp == ">>=" OR a_strOp == "<<=") AND a_Expressions.size() == 2)
-            {
-                return o_new(AssignmentExpression)(a_Expressions[0], o_new(TShiftExpression<t_Ty>)(a_strOp, a_Expressions[0], a_Expressions[1]));
-            }
-        }
-        else if(a_strOp.size() == 2)
-        {
-            if(a_Expressions.size() == 2)
-            {
-                if(a_strOp == "&&" OR a_strOp == "||")
-                {
-                    return o_new(BinaryLogicalExpression)(a_strOp, a_Expressions[0], a_Expressions[1]);
-                }
-                else if(a_strOp == "++" OR a_strOp == "--")
-                {
-                    if(a_Expressions[0]->getValueType() == this->referenceType())
-                    {
-                        return o_new(TPostIncrementExpression<t_Ty>)(a_strOp, a_Expressions[0]);
-                    }
-                }
-                else if(a_strOp == ">>" OR a_strOp == "<<")
-                {
-                    return o_new(TShiftExpression<t_Ty>)(a_strOp, a_Expressions[0], a_Expressions[1]);
-                }
-                else if(a_strOp[1] == '=') // Assignment operation
-                {
-                    Expression* pSubExpression = nullptr;
-                    switch(a_strOp[0])
-                    {
-                    case '|':
-                    case '&':
-                    case '^':
-                        pSubExpression = o_new(TBinaryBitExpression<t_Ty>)(a_strOp.substr(0, 1), a_Expressions[0], a_Expressions[1]);
-                        break;
-
-                    case '%':
-                        pSubExpression = o_new(TBinaryIntegralExpression<t_Ty>)(a_strOp.substr(0, 1), a_Expressions[0], a_Expressions[1]);
-                        break;
-                    }
-                    if(pSubExpression)
-                    {
-                        return o_new(AssignmentExpression)(a_Expressions[0], pSubExpression);
-                    }
-                }
-            }
-            else
-            {
-                if(a_strOp == "++" OR a_strOp == "--")
-                {
-                    if(a_Expressions[0]->getValueType() == this->referenceType())
-                    {
-                        return o_new(TPreIncrementExpression<t_Ty>)(a_strOp, a_Expressions[0]);
-                    }
-                }
-            }
-        }
-        else if(a_strOp.size() == 1)
-        {
-            if(a_Expressions.size() == 2)
-            {
-                if(a_strOp[0] == '&' OR a_strOp[0] == '|' OR a_strOp[0] == '^')
-                {
-                    return o_new(TBinaryBitExpression<t_Ty>)(a_strOp, a_Expressions[0], a_Expressions[1]);
-                }
-                else if(a_strOp[0] == '%')
-                {
-                    return o_new(TBinaryIntegralExpression<t_Ty>)(a_strOp, a_Expressions[0], a_Expressions[1]);
-                }
-            }
-            else if(a_Expressions.size() == 1)
-            {
-                if(a_strOp[0] == '!' )
-                {
-                    return o_new(UnaryLogicalExpression)(a_strOp, a_Expressions[0]);
-                }
-                else if(a_strOp[0] == '~')
-                {
-                    return o_new(TUnaryBitExpression<t_Ty>)(a_strOp, a_Expressions[0]);
-                }
-                else if(a_strOp[0] == '@')
-                {
-                    if(phantom::getCurrentDataBase())
-                    {
-                        return o_new(DataExpression)(phantom::getCurrentDataBase(), a_Expressions.back());
-                    }
-                }
-            }
-        }
-        return TArithmeticType<t_Ty>::solveOperator(a_strOp, a_Expressions, a_Modifiers);
-    }
 
 };
 o_namespace_end(phantom, reflection, native)
@@ -259,6 +99,10 @@ o_namespace_end(phantom, reflection, native)
 #include "phantom/reflection/MapContainerClass.hxx"
 #include "phantom/reflection/SequentialContainerClass.hxx"
 #include "phantom/reflection/SetContainerClass.hxx"
+#include "phantom/reflection/LocalVariable.h"
+#include "phantom/reflection/LocalVariable.hxx"
+#include "phantom/reflection/Parameter.h"
+#include "phantom/reflection/Parameter.hxx"
 #include "phantom/std/string.h"
 #include "phantom/std/string.hxx"
 
@@ -309,10 +153,13 @@ void Types::Install()
     MapContainerClass::metaType = type_of<MapContainerClass>::object();
     SequentialContainerClass::metaType = type_of<SequentialContainerClass>::object();
     SetContainerClass::metaType = type_of<SetContainerClass>::object();
+    LocalVariable::metaType = type_of<LocalVariable>::object();
+    Parameter::metaType = type_of<Parameter>::object();
 
 #define o_build_fundamental_meta_type(_var_, _type_)\
     _var_ = o_dynamic_proxy_new(meta_class_type_of<_type_>::type)(typeNameOf<_type_>());\
 
+    {o_namespace(std);}
     dynamic_initializer()->setActive(true);
     o_build_fundamental_meta_type(TYPE_VOID, void);
     o_build_fundamental_meta_type(TYPE_CHAR, char);
@@ -451,8 +298,8 @@ Type* Types::TYPE_VOID_PTR = nullptr;
 namespace_alias_registrer::namespace_alias_registrer( const char* a_strNamespace, const char* a_strAlias, const char* a_strAliasedNamespace )
 {
     dynamic_initializer()->setActive(true);
-    Namespace* pNamespace = phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
-    Namespace* pAliasedNamespace = phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strAliasedNamespace);
+    Namespace* pNamespace = phantom::globalNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
+    Namespace* pAliasedNamespace = phantom::globalNamespace()->findOrCreateNamespaceCascade(a_strAliasedNamespace);
     pNamespace->addNamespaceAlias(a_strAlias, pAliasedNamespace);
     dynamic_initializer()->setActive(false);
 }
@@ -460,14 +307,14 @@ namespace_alias_registrer::namespace_alias_registrer( const char* a_strNamespace
 namespace_alias_registrer::namespace_alias_registrer( const char* a_strAlias, const char* a_strAliasedNamespace )
 {
     dynamic_initializer()->setActive(true);
-    phantom::rootNamespace()->addNamespaceAlias(a_strAlias, phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strAliasedNamespace));
+    phantom::globalNamespace()->addNamespaceAlias(a_strAlias, phantom::globalNamespace()->findOrCreateNamespaceCascade(a_strAliasedNamespace));
     dynamic_initializer()->setActive(false);
 }
 
 namespace_registrer::namespace_registrer( const char* a_strNamespace )
 {
     dynamic_initializer()->setActive(true);
-    phantom::rootNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
+    phantom::globalNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
     dynamic_initializer()->setActive(false);
 }
 

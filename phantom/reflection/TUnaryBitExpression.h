@@ -54,7 +54,7 @@ public:
     {
     }
 
-    virtual void    getValue(void* a_pDest) const 
+    virtual void    internalEval(void* a_pDest) const 
     {
         t_Ty* _where = (t_Ty*)a_pDest;
         switch(m_strOperator[0])

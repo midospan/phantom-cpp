@@ -13,6 +13,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export CompositionClass : public Class
 {
+    o_type;
+
     o_declare_meta_type(CompositionClass);
 
 public:
@@ -80,8 +82,6 @@ public:
     
     virtual bool referencesData( const void* a_pContainer, const phantom::data& a_Data ) const;
 
-    virtual Expression* solveExpression( Expression* a_pLeftExpression , const string& a_strName , const vector<TemplateElement*>* a_pTS, const vector<LanguageElement*>* a_pFS, modifiers_t a_Modifiers ) const;
-
     virtual void fetchExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter, uint a_uiSerializationMask ) const;
 
     virtual void fetchCollectionExpressions( Expression* a_pInstanceExpression, vector<Expression*>& out, uint a_uiSerializationMask ) const 
@@ -89,62 +89,73 @@ public:
         out.push_back(a_pInstanceExpression);
     }
 
-public:
-    class o_export GetSetExpression : public Expression
-    {
-    public:
-        GetSetExpression(Expression* a_pLeftExpression, Expression* a_pIndexExpression, CompositionClass* a_pCompositionClass);
-
-        virtual void getValue(void* a_pDest) const;
-
-        virtual void setValue(void const* a_pSrc) const;
-
-        virtual bool hasValueStorage() const { return false; }
-
-        virtual void flush() const;
-
-        virtual GetSetExpression*     clone() const;
-
-    protected:
-        Expression* m_pLeftExpression;
-        Expression* m_pIndexExpression;
-        CompositionClass* m_pCompositionClass;
-        mutable void* m_pBufferedPointer;
-    };
-    class o_export InsertRemoveExpression : public Expression
-    {
-    public:
-        InsertRemoveExpression(Expression* a_pLeftExpression, Expression* a_pIndexExpression, CompositionClass* a_pCompositionClass);
-
-        virtual void getValue(void* a_pDest) const;
-
-        virtual void setValue(void const* a_pSrc) const;
-
-        virtual bool hasValueStorage() const { return false; }
-
-        virtual void flush() const;
-
-        virtual InsertRemoveExpression*     clone() const;
-
-        CompositionClass* getCompositionClass() const { return m_pCompositionClass; }
-
-        Expression* getCompositionExpression() const { return m_pLeftExpression; }
-
-    protected:
-        Expression* m_pLeftExpression;
-        Expression* m_pIndexExpression;
-        CompositionClass* m_pCompositionClass;
-        mutable void* m_pBufferedPointer;
-    };
-
 protected:
     Class*   m_pComponentClass;
 
 };
 
+class o_export CompositionGetSetExpression : public Expression
+{
+    o_language_element;
+
+public:
+    CompositionGetSetExpression(Expression* a_pLeftExpression, Expression* a_pIndexExpression, CompositionClass* a_pCompositionClass);
+
+    virtual void internalEval(void* a_pDest) const;
+
+    virtual void setValue(void const* a_pSrc) const;
+
+    virtual bool hasValueStorage() const { return false; }
+
+    virtual void flush() const;
+
+    Expression* getLeftExpression() const { return m_pLeftExpression; }
+
+    Expression* getIndexExpression() const { return m_pIndexExpression; }
+
+    virtual CompositionGetSetExpression*     clone() const;
+
+protected:
+    Expression* m_pLeftExpression;
+    Expression* m_pIndexExpression;
+    CompositionClass* m_pCompositionClass;
+    mutable void* m_pBufferedPointer;
+};
+class o_export CompositionInsertRemoveExpression : public Expression
+{
+    o_language_element;
+
+public:
+    CompositionInsertRemoveExpression(Expression* a_pLeftExpression, Expression* a_pIndexExpression, CompositionClass* a_pCompositionClass);
+
+    virtual void internalEval(void* a_pDest) const;
+
+    virtual void setValue(void const* a_pSrc) const;
+
+    virtual bool hasValueStorage() const { return false; }
+
+    virtual void flush() const;
+
+    Expression* getLeftExpression() const { return m_pLeftExpression; }
+
+    Expression* getIndexExpression() const { return m_pIndexExpression; }
+
+    virtual CompositionInsertRemoveExpression*     clone() const;
+
+    CompositionClass* getCompositionClass() const { return m_pCompositionClass; }
+
+    Expression* getCompositionExpression() const { return m_pLeftExpression; }
+
+protected:
+    Expression* m_pLeftExpression;
+    Expression* m_pIndexExpression;
+    CompositionClass* m_pCompositionClass;
+    mutable void* m_pBufferedPointer;
+};
+
 o_namespace_end(phantom, reflection)
 
-o_declareNC((phantom, reflection), (CompositionClass), InsertRemoveExpression);
-o_declareNC((phantom, reflection), (CompositionClass), GetSetExpression);
+o_declareN((phantom, reflection), CompositionInsertRemoveExpression);
+o_declareN((phantom, reflection), CompositionGetSetExpression);
 
 #endif
