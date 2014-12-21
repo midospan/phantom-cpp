@@ -116,6 +116,8 @@ public:
 
     virtual bool        isCopyable() const { return true; }
 
+    virtual bool        templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_DeducedConstants) const;
+
 protected:
     virtual void        referencedElementRemoved(LanguageElement* a_pElement);
 

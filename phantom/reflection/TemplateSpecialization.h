@@ -64,6 +64,7 @@ public:
     LanguageElement*    getArgument(const string& a_strTypenameVariableName) const;
     LanguageElement*    getArgument(size_t i) const { return m_Arguments[i]; }
     size_t              getArgumentIndex(const string& a_strTemplateTypeName) const;
+    const vector<LanguageElement*>& getArguments() const { return m_Arguments; }
 
     void                setArgument(size_t a_uiIndex, LanguageElement* a_pElement);
     void                setArgument(size_t a_uiIndex, const string& a_strTemplateTypeName, LanguageElement* a_pElement);
@@ -71,8 +72,6 @@ public:
 
     string              getQualifiedName() const;
     string              getQualifiedDecoratedName() const;
-
-    boolean             matches(const vector<LanguageElement*>* a_TemplateSpecialization) const;
   
     Template*           getTemplate() const { return m_pTemplate; }
 
@@ -89,6 +88,11 @@ public:
 
     bool                isSpecializing(LanguageElement* a_pLanguageElement);
 
+
+    bool                matches(const vector<LanguageElement*>& a_TemplateSpecialization) const;
+    int                 score(const vector<LanguageElement*>& a_TemplateSpecialization) const;
+    bool                equals(TemplateSpecialization* a_pTemplateSpecialization) const;
+
 protected:
     void                _updateName();
     void                referencedElementAdded(LanguageElement* a_pElement);
@@ -102,6 +106,7 @@ protected:
     Template*                   m_pTemplate;
     TemplateSignature*          m_pTemplateSignature;
     vector<LanguageElement*>    m_Arguments;
+    ClassType*                  m_pTemplated;
 
 };
 

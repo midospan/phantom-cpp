@@ -598,7 +598,7 @@ ArrayType* Type::getArrayType( size_t a_uiCount ) const
     for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
     {
         ArrayType* pArrayType = (*it)->asArrayType();
-        if(pArrayType && pArrayType->getElementCount() == a_uiCount) return pArrayType;
+        if(pArrayType && pArrayType->getItemCount() == a_uiCount) return pArrayType;
     }
     return nullptr;
 }

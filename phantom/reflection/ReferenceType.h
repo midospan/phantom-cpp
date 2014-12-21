@@ -157,6 +157,10 @@ public:
 
     virtual bool    isCopyable() const { return true; }
 
+    virtual void    qualifiersToString( string& out ) const;
+
+    virtual bool    templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_DeducedConstants) const;
+
 protected:
     virtual DataPointerType* createDataPointerType() const { return nullptr; } // cannot create reference pointers
 

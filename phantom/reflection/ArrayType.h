@@ -54,15 +54,15 @@ public:
     friend class Type;
 
 protected:
-    ArrayType(Type* a_pElementType, size_t a_uiCount);
+    ArrayType(Type* a_pItemType, size_t a_uiCount, modifiers_t modifiers = 0);
 
 public:
     o_destructor ~ArrayType(void);
 
-    virtual boolean     isPOD() const { return m_pElementType->isPOD(); }
+    virtual boolean     isPOD() const { return m_pItemType->isPOD(); }
     virtual boolean     isArrayType() const { return true; }
     virtual ArrayType*  asArrayType() const { return (ArrayType*)this; }
-    size_t              getElementCount() const { return m_uiCount; }
+    size_t              getItemCount() const { return m_uiCount; }
 
     virtual void        safeConstruct(void* a_pBuffer) const 
     {
@@ -98,41 +98,41 @@ public:
 
     virtual void*   allocate() const
     {
-        return m_pElementType->allocate(m_uiCount);
+        return m_pItemType->allocate(m_uiCount);
     }
     virtual void    deallocate(void* a_pInstance) const
     {
-        m_pElementType->deallocate(a_pInstance, m_uiCount);
+        m_pItemType->deallocate(a_pInstance, m_uiCount);
     }
     virtual void*   allocate(size_t a_uiCount) const
     {
-        return m_pElementType->allocate(m_uiCount*a_uiCount);
+        return m_pItemType->allocate(m_uiCount*a_uiCount);
     }
     virtual void    deallocate(void* a_pChunk, size_t a_uiCount) const
     {
-        m_pElementType->deallocate(a_pChunk, m_uiCount*a_uiCount);
+        m_pItemType->deallocate(a_pChunk, m_uiCount*a_uiCount);
     }
 
-    Type*               getElementType() const { return m_pElementType; }
+    Type*               getItemType() const { return m_pItemType; }
 
-    void*               getElementAddress(void* a_pArrayAddress, size_t a_uiIndex) const 
+    void*               getItemAddress(void* a_pArrayAddress, size_t a_uiIndex) const 
     { 
-        return ((byte*)a_pArrayAddress)+(a_uiIndex*m_pElementType->getSize()); 
+        return ((byte*)a_pArrayAddress)+(a_uiIndex*m_pItemType->getSize()); 
     }
 
-    const void*         getElementAddress(const void* a_pArrayAddress, size_t a_uiIndex) const 
+    const void*         getItemAddress(const void* a_pArrayAddress, size_t a_uiIndex) const 
     { 
-        return ((const byte*)a_pArrayAddress)+(a_uiIndex*m_pElementType->getSize()); 
+        return ((const byte*)a_pArrayAddress)+(a_uiIndex*m_pItemType->getSize()); 
     }
 
-    void                getElementValue(const void* a_pArrayAddress, size_t a_uiIndex, void* a_pDest) const 
+    void                getItemValue(const void* a_pArrayAddress, size_t a_uiIndex, void* a_pDest) const 
     { 
-        return m_pElementType->copy(a_pDest, getElementAddress(a_pArrayAddress, a_uiIndex)); 
+        return m_pItemType->copy(a_pDest, getItemAddress(a_pArrayAddress, a_uiIndex)); 
     }
 
-    void                setElementValue(void* a_pArrayAddress, size_t a_uiIndex, const void* a_pSrc) const 
+    void                setItemValue(void* a_pArrayAddress, size_t a_uiIndex, const void* a_pSrc) const 
     { 
-        return m_pElementType->copy(getElementAddress(a_pArrayAddress, a_uiIndex), a_pSrc); 
+        return m_pItemType->copy(getItemAddress(a_pArrayAddress, a_uiIndex), a_pSrc); 
     }
     
     virtual boolean     isConvertibleTo(Type* a_pType) const;
@@ -147,12 +147,12 @@ public:
 
     virtual void        serialize(void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        m_pElementType->serialize(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+        m_pItemType->serialize(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
     }
 
     virtual void        deserialize(void* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
     {
-        m_pElementType->deserialize(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+        m_pItemType->deserialize(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
     }
 
     virtual void        serialize(void const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
@@ -164,7 +164,7 @@ public:
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         while(a_uiCount--)
         {
-            m_pElementType->serialize(pChunk, m_uiCount, m_uiSize/m_uiCount, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+            m_pItemType->serialize(pChunk, m_uiCount, m_uiSize/m_uiCount, a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
             pChunk += a_uiChunkSectionSize;
         }
     }
@@ -174,7 +174,7 @@ public:
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         while(a_uiCount--)
         {
-            m_pElementType->deserialize(pChunk, m_uiCount, m_uiSize/m_uiCount, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+            m_pItemType->deserialize(pChunk, m_uiCount, m_uiSize/m_uiCount, a_pInBuffer, a_uiSerializationMask, a_pDataBase);
             pChunk += a_uiChunkSectionSize;
         }
     }
@@ -184,7 +184,7 @@ public:
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         while(a_uiCount--)
         {
-            m_pElementType->serialize(pChunk, m_uiCount, m_uiSize/m_uiCount, a_OutBranch, a_uiSerializationMask, a_pDataBase);
+            m_pItemType->serialize(pChunk, m_uiCount, m_uiSize/m_uiCount, a_OutBranch, a_uiSerializationMask, a_pDataBase);
             pChunk += a_uiChunkSectionSize;
         }
     }
@@ -194,54 +194,57 @@ public:
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         while(a_uiCount--)
         {
-            m_pElementType->deserialize(pChunk, m_uiCount, m_uiSize/m_uiCount, a_InBranch, a_uiSerializationMask, a_pDataBase);
+            m_pItemType->deserialize(pChunk, m_uiCount, m_uiSize/m_uiCount, a_InBranch, a_uiSerializationMask, a_pDataBase);
             pChunk += a_uiChunkSectionSize;
         }
     }
 
     virtual void        remember(void const* a_pInstance, byte*& a_pOutBuffer) const 
     {
-        m_pElementType->remember(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_pOutBuffer);
+        m_pItemType->remember(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_pOutBuffer);
     }
     virtual void        remember(void const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) const 
     {
         byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
         while(a_uiCount--)
         {
-            m_pElementType->remember(pChunk, m_uiCount, m_uiSize/m_uiCount, a_pOutBuffer);
+            m_pItemType->remember(pChunk, m_uiCount, m_uiSize/m_uiCount, a_pOutBuffer);
             pChunk += a_uiChunkSectionSize;
         }
     }
     virtual void        reset(void* a_pInstance, byte const*& a_pInBuffer) const 
     {
-        m_pElementType->reset(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_pInBuffer);
+        m_pItemType->reset(a_pInstance, m_uiCount, m_uiSize/m_uiCount, a_pInBuffer);
     }
     virtual void        reset(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pBuffer) const
     {
         byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
         while(a_uiCount--)
         {
-            m_pElementType->reset(pChunk, m_uiCount, m_uiSize/m_uiCount, a_pBuffer);
+            m_pItemType->reset(pChunk, m_uiCount, m_uiSize/m_uiCount, a_pBuffer);
             pChunk += a_uiChunkSectionSize;
         }
     }
 
 
-    virtual Type*                   removeArray() const { return m_pElementType; }
+    virtual Type*           removeArray() const { return m_pItemType; }
 
     virtual string          getDecoratedName() const;
     virtual string          getQualifiedDecoratedName() const;
 
     virtual void            copy(void* a_pDest, void const* a_pSrc) const;
-    virtual bool            isCopyable() const { return m_pElementType->isCopyable(); }
+    virtual bool            isCopyable() const { return m_pItemType->isCopyable(); }
 
-    virtual Type*           asPOD() const { return m_pElementType->asPOD() ? (Type*)this : nullptr; }
+    virtual Type*           asPOD() const { return m_pItemType->asPOD() ? (Type*)this : nullptr; }
+
+    virtual bool            templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
 
 protected:
-    virtual void referencedElementRemoved(LanguageElement* a_pElement);
+    size_t                  getElementCount() const { return m_uiCount; } // just to check compile error, must be removed !!
+    virtual void            referencedItemRemoved(LanguageElement* a_pItem);
 
 protected:
-    Type*       m_pElementType;
+    Type*       m_pItemType;
     size_t      m_uiCount;
 };
 

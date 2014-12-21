@@ -188,6 +188,7 @@ public:
     virtual LanguageElement*asLanguageElement() const { return const_cast<Type*>(this); }
     virtual Type*           removeConst() const { return const_cast<Type*>(this); }
     Type*                   removeConstReference() const { return removeReference()->removeConst(); }
+    virtual Type*           removeArray() const { return const_cast<Type*>(this); }
     virtual Type*           removeReference() const { return const_cast<Type*>(this); }
     virtual Type*           removePointer() const { return const_cast<Type*>(this); }
 
@@ -292,7 +293,7 @@ public:
     virtual void            copy(void* a_pDest, void const* a_pSrc) const { o_exception(exception::unsupported_member_function_exception, "not implemented yet"); }
     virtual void            smartCopy(reflection::Type* a_pDestType, void* a_pDest, void const* a_pSource) const;
 
-    virtual void getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr ) const;
+    virtual void            getElements( vector<LanguageElement*>& out, Class* a_pClass = nullptr ) const;
 
     virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
     
@@ -402,6 +403,8 @@ public:
     ReferenceType*          referenceType() const;
     ArrayType*              arrayType(size_t a_uiCount) const;
     ConstType*              constType() const;
+
+    virtual bool            templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_DeducesConstants) { if(a_pType == this) { a_Score = ~size_t(0); return true; } return false; }
 
 protected:
     virtual void            elementAdded(LanguageElement* a_pElement);

@@ -19,6 +19,8 @@ o_classNB((phantom, reflection), PlaceholderConstant, (Constant, Placeholder), o
 
 o_classNB((phantom, reflection), PlaceholderInstanceDataMember, (InstanceDataMember, Placeholder), o_deferred) ();
 
+o_classNB((phantom, reflection), PlaceholderArrayType, (ArrayType, Placeholder), o_deferred) ();
+
 
 
 

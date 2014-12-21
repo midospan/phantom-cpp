@@ -46,11 +46,42 @@ o_define_meta_type(PlaceholderClass);
 o_define_meta_type(PlaceholderSubroutine);
 o_define_meta_type(PlaceholderConstant);
 o_define_meta_type(PlaceholderInstanceDataMember);
+o_define_meta_type(PlaceholderArrayType);
 
 Constant* PlaceholderConstant::clone() const
 {
     return o_new(PlaceholderConstant)(m_pType, m_strName, m_pTemplateParameterDependencies->front(), m_Modifiers);
 }
 
+bool PlaceholderArrayType::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+{
+    if(a_pType->asArrayType())
+    {
+        a_Score+=5;
+        if(a_Deductions.find(m_p) != a_Deductions.end())
+            return false;
+        a_Deductions[m_pPlaceholderConstant] = a_pType->asArrayType()->getItemCount();
+        return m_pItemType ? m_pItemType->templatePartialMatch(a_pType->removeArray()) : false;
+    }
+    return false;
+}
+
+bool PlaceholderClass::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+{
+    if(a_pType->asClass()) 
+    {
+        a_Score += 10;
+        return true;
+    }
+    return false;
+}
+
+bool PlaceholderType::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+{
+    a_Score += 10;
+    return true;
+}
+
 o_namespace_end(phantom, reflection)
+
 

@@ -174,7 +174,7 @@ void TemplateSpecialization::referencedElementRemoved(LanguageElement* a_pElemen
     }
 }
 
-boolean TemplateSpecialization::matches( const vector<LanguageElement*>* a_TemplateSpecialization ) const
+boolean TemplateSpecialization::matches( const vector<LanguageElement*>& a_TemplateSpecialization ) const
 {
     size_t s0 = a_TemplateSpecialization->size();
     if((s0 < m_Arguments.size()-m_pTemplate->getDefaultArgumentCount()) || (s0 > m_Arguments.size())) 
@@ -276,6 +276,17 @@ bool TemplateSpecialization::isSpecializing( LanguageElement* a_pLanguageElement
         }
     }
     return false;
+}
+
+bool TemplateSpecialization::equals( TemplateSpecialization* a_pTemplateSpecialization ) const
+{
+    return a_pTemplateSpecialization->getTemplate() == m_pTemplate 
+        AND matches(a_pTemplateSpecialization->getArguments());
+}
+
+int TemplateSpecialization::score( const vector<LanguageElement*>& a_TemplateSpecialization ) const
+{
+
 }
 
 o_namespace_end(phantom, reflection)

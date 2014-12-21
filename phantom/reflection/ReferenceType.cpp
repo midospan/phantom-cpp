@@ -169,4 +169,20 @@ void ReferenceType::destroy( void* a_pBuffer, size_t a_uiCount, size_t a_uiChunk
     o_unused(a_uiChunkSectionSize);
 }
 
+void ReferenceType::qualifiersToString( string& out ) const
+{
+    m_pConstedType->qualifiersToString(out);
+    out+='&';
+}
+
+bool ReferenceType::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_DeducedConstants ) const
+{
+    if(a_pType->asReferenceType())
+    {
+        a_Score += 10;
+        return m_pReferencedType ? m_pReferencedType->templatePartialMatch(a_pType->removeReference(), a_Score, a_DeducedConstants) : false;
+    }
+    return false;
+}
+
 o_namespace_end(phantom, reflection)

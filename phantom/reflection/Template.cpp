@@ -118,4 +118,25 @@ void Template::createEmptySpecialization()
     registerSpecialization(o_new(TemplateSpecialization)(this, m_pTemplateSignature->getPlaceholders(), m_pTemplateSignature));
 }
 
+void Template::registerSpecialization( TemplateSpecialization* a_pTemplateSpecialization )
+{
+#ifndef NDEBUG
+    for(auto it = m_Specializations.begin(); it != m_Specializations.end(); ++it)
+    {
+        o_assert(!(*it)->equals(a_pTemplateSpecialization));
+    }
+#endif
+    m_Specializations.push_back(a_pTemplateSpecialization);
+}
+
+void Template::createSpecialization( const vector<LanguageElement*>& arguments, TemplateSignature* a_pTemplateSignature )
+{
+    registerSpecialization(o_new(TemplateSpecialization)(this, arguments, a_pTemplateSignature));
+}
+
+ClassType* Template::instanciate( const vector<LanguageElement*>& arguments )
+{
+
+}
+
 o_namespace_end(phantom, reflection)

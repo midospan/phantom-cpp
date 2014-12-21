@@ -82,22 +82,18 @@ public:
 
     TemplateSignature*  getTemplateSignature() const { return m_pTemplateSignature; }
 
-    void                createSpecialization(const vector<LanguageElement*>& arguments, TemplateSignature* a_pTemplateSignature)
-    {
-        registerSpecialization(o_new(TemplateSpecialization)(this, arguments, a_pTemplateSignature));
-    }
-    void addTemplateParameterAliasName(size_t a_uiIndex, const string& a_strAlias);
+    void                createSpecialization(const vector<LanguageElement*>& arguments, TemplateSignature* a_pTemplateSignature);
+    
+    void                addTemplateParameterAliasName(size_t a_uiIndex, const string& a_strAlias);
+
+    ClassType*          instanciate(const vector<LanguageElement*>& arguments);
 
 protected:
     void                createEmptySpecialization();
     virtual bool canBeDestroyed() const { return m_Specializations.empty(); }
 
 protected:
-    void registerSpecialization(TemplateSpecialization* a_pTemplateSpecialization) 
-    { 
-        
-        m_Specializations.push_back(a_pTemplateSpecialization); 
-    }
+    void registerSpecialization(TemplateSpecialization* a_pTemplateSpecialization);
     
 protected:
     TemplateSignature*              m_pTemplateSignature;

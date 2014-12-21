@@ -110,6 +110,16 @@ void ConstType::fetchExpressions( Expression* a_pInstanceExpression, vector<Expr
     m_pConstedType->fetchExpressions(a_pInstanceExpression, out, a_Filter, a_uiSerializationMask);
 }
 
+bool ConstType::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_DeducesConstants )
+{
+    if(a_pType->asConstType())
+    {
+        a_Score += 10;
+        return m_pConstedType ? m_pConstedType->templatePartialMatch(a_pType->removeConst(), a_Score, a_DeducesConstants) : nullptr;
+    }
+    return false;
+}
+
 o_namespace_end(phantom, reflection)
 
 

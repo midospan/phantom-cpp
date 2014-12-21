@@ -617,4 +617,14 @@ void        DataPointerType::reset(void* a_pChunk, size_t a_uiCount, size_t a_ui
     phantom::resetter<void*>::reset(const_cast<DataPointerType*>(this), (void**)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
 }
 
+bool DataPointerType::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_DeducedConstants ) const
+{
+    if(a_pType->asDataPointerType())
+    {
+        a_Score += 10;
+        return m_pPointedType->templatePartialMatch(a_pType->removePointer(), a_Score, a_DeducedConstants);
+    }
+    return false;
+}
+
 o_namespace_end(phantom, reflection)
