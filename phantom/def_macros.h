@@ -992,6 +992,7 @@
 #define o_stdcall                   o_readonly  // reuse non-colliding modifiers (o_readonly cannot be combined with o_stdcall)
 #define o_fastcall                  o_singleton //
 #define o_inline                    0x20000000ULL
+#define o_placeholder               0x40000000ULL
 
 // CONSTANTS
 #define o_invalid_guid (~(uint)0)
@@ -1169,6 +1170,8 @@ struct o_PP_CAT(static_warning,__LINE__) { \
 #    define o_exception_1(_exception_class_) o_error(false, #_exception_class_)
 #    define o_exception_2(_exception_class_, _what_) o_error( false, phantom::to_astring(#_exception_class_) + phantom::to_astring(" : ") + phantom::to_astring(_exception_class_(phantom::to_string(_what_).c_str()).what()) )
 #endif
+
+#define o_exception_no_implementation() o_exception_2(phantom::exception::reflection_runtime_exception, __FUNCTION__" : no implementation available")
 
 #define o_message(type, ...) // TODO : define
 #define o_push_message(type, ...)

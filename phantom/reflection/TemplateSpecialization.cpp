@@ -41,10 +41,11 @@ o_registerN((phantom, reflection), TemplateSpecialization);
 
 o_namespace_begin(phantom, reflection) 
 
-TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate, TemplateSignature* a_pSignature = nullptr )
+TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate, const vector<LanguageElement*>& arguments, TemplateSignature* a_pSignature = nullptr )
     : m_pTemplate(a_pTemplate)
     , m_pTemplateSignature(a_pSignature)
 {
+    o_assert(m_pTemplate->getTemplateParameterCount() == arguments.size());
     m_pTemplate->registerSpecialization(this);
     m_Arguments.resize(a_pTemplate->getTemplateParameterCount());
 }
@@ -242,7 +243,7 @@ bool TemplateSpecialization::isEmpty() const
 {
     for(auto it = m_Arguments.begin(); it != m_Arguments.end(); ++it)
     {
-        if(*it != nullptr) return false;
+        if((*it)->asPlaceholder() != nullptr) return false; // we found a placeholder => still template dependant
     }
     return true;
 }
@@ -275,18 +276,6 @@ bool TemplateSpecialization::isSpecializing( LanguageElement* a_pLanguageElement
         }
     }
     return false;
-}
-
-LanguageElement* TemplateSpecialization::internalInstanciateTemplate( TemplateSpecialization* a_pSpecialization )
-{
-    TemplateSpecialization* pInstanciated = o_new(TemplateSpecialization)(m_pTemplate);
-    vector<LanguageElement*> specializedAguments;
-    for(size_t i = 0; i<m_Arguments.size(); ++i)
-    {
-        LanguageElement* pArgument = (*it)->internalInstanciateTemplate(a_pSpecialization);
-        pInstanciated->setArgument(i, pArgument);
-    }
-    return pInstanciated;
 }
 
 o_namespace_end(phantom, reflection)

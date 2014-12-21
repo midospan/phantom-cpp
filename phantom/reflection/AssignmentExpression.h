@@ -78,8 +78,6 @@ public:
 
     virtual AssignmentExpression*     clone() const;
 
-    virtual LanguageElement* internalInstanciateTemplate(TemplateSpecialization* a_pSpecialization);
-
 protected:
     string          m_strOperator;
     Expression*     m_pLeftExpression;

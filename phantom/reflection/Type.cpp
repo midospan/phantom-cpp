@@ -888,11 +888,12 @@ bool Type::referencesData(const void* a_pInstance, const phantom::data& a_Data) 
     return false; 
 }
 
-bool Type::matches( const string& a_strName, const vector<LanguageElement*>* a_pTemplateSignature ) const
+bool Type::matches( const string& a_strName, const vector<LanguageElement*>* a_pTemplateSignature, modifiers_t modifiers = 0 ) const
 {
     if((a_pTemplateSignature AND m_pTemplateSpecialization == nullptr)
         OR (a_pTemplateSignature == nullptr AND m_pTemplateSpecialization)
-        OR (m_strName != a_strName)) return false;
+        OR (m_strName != a_strName)
+        OR (m_Modifiers&modifiers) != modifiers) return false;
     return a_pTemplateSignature ? m_pTemplateSpecialization->matches(a_pTemplateSignature) : true;
 }
 

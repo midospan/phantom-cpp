@@ -168,7 +168,7 @@ public:
 
     o_terminate();
 
-    bool                    matches(const string& a_strName, const vector<LanguageElement*>* a_pTemplateSignature) const;
+    bool                    matches(const string& a_strName, const vector<LanguageElement*>* a_pTemplateSignature, modifiers_t modifiers = 0) const;
     o_forceinline ETypeId   getTypeId() const { return m_eTypeId; }
     o_forceinline ushort    getSize() const { return m_uiSize; }
     o_forceinline ushort    getAlignment() const { return m_uiAlignment; }

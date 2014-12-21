@@ -55,7 +55,9 @@ public:
 
     virtual void internalEval() const ;
 
-    void setReturnExpression(Expression* a_pReturnExpression);
+    void setExpression(Expression* a_pReturnExpression);
+
+    Expression* getExpression() const { return m_pReturnExpression; }
 
 protected:
     void setExpressionString(string a_Expression);

@@ -47,6 +47,15 @@ Template::Template(const string& a_strName, TemplateSignature* a_pSignature)
     if(m_pTemplateSignature)
         addElement(m_pTemplateSignature);
     else setInvalid();
+    createEmptySpecialization();
+}
+
+Template::Template(const string& a_strName, const string& a_strTemplateTypes, const string& a_strTemplateParam)
+    : LanguageElement(a_strName)
+    , m_pTemplateSignature(o_new(TemplateSignature)(a_strTemplateTypes, a_strTemplateParam))
+{
+    addElement(m_pTemplateSignature);
+    createEmptySpecialization();
 }
 
 Template::~Template()
@@ -92,6 +101,21 @@ void Template::addTemplateParameterAliasName( size_t a_uiIndex, const string& a_
 size_t Template::getTemplateParameterCount() const
 {
     return m_pTemplateSignature->getParameterCount();
+}
+
+vector<TemplateParameter*>::const_iterator Template::beginTemplateParameters() const
+{
+    return m_pTemplateSignature->beginParameters();
+}
+
+vector<TemplateParameter*>::const_iterator Template::endTemplateParameters() const
+{
+    return m_pTemplateSignature->endTemplateParameters();
+}
+
+void Template::createEmptySpecialization()
+{
+    registerSpecialization(o_new(TemplateSpecialization)(this, m_pTemplateSignature->getPlaceholders(), m_pTemplateSignature));
 }
 
 o_namespace_end(phantom, reflection)

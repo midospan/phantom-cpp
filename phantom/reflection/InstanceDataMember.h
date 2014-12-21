@@ -56,8 +56,8 @@ public:
 
 public:
     InstanceDataMember();
-    InstanceDataMember(Type* a_pValueType, const string& a_strName, Range* a_pRange = nullptr, uint a_uiSerializationMask = 0xffffffff, modifiers_t a_uiModifiers = 0);
-    InstanceDataMember(Type* a_pValueType, const string& a_strName, size_t a_uiOffset, Range* a_pRange = nullptr, uint a_uiSerializationMask = 0xffffffff, modifiers_t a_uiModifiers = 0);
+    InstanceDataMember(Type* a_pValueType, const string& a_strName, Range* a_pRange = nullptr, uint a_uiSerializationMask = o_save_data, modifiers_t a_uiModifiers = 0);
+    InstanceDataMember(Type* a_pValueType, const string& a_strName, size_t a_uiOffset, Range* a_pRange = nullptr, uint a_uiSerializationMask = o_save_data, modifiers_t a_uiModifiers = 0);
     o_destructor ~InstanceDataMember()
     {
 

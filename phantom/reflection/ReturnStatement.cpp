@@ -58,7 +58,7 @@ ReturnStatement::ReturnStatement(Expression* a_pExpression)
     , m_pConvertedReturnExpression(nullptr)
     , m_pExpressionString(nullptr)
 {
-    setReturnExpression(a_pExpression);
+    setExpression(a_pExpression);
 }
 
 void ReturnStatement::internalEval() const 
@@ -91,7 +91,7 @@ void ReturnStatement::checkValidity()
     }
 }
 
-void ReturnStatement::setReturnExpression( Expression* a_pReturnExpression )
+void ReturnStatement::setExpression( Expression* a_pReturnExpression )
 {
     o_assert(m_pConvertedReturnExpression == nullptr);
     m_pReturnExpression = (a_pReturnExpression AND a_pReturnExpression->getOwner()) ? a_pReturnExpression->clone() : a_pReturnExpression ;
@@ -127,7 +127,7 @@ void ReturnStatement::restore()
         Expression* pExpression = phantom::expressionByName(*m_pExpressionString, this);
         if(pExpression)
         {
-            setReturnExpression(pExpression);
+            setExpression(pExpression);
         }
         delete m_pExpressionString;
         m_pExpressionString = nullptr;

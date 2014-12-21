@@ -64,6 +64,8 @@ public:
 
     Expression* getMemberExpression() const { return m_pMemberExpression; }
 
+    MemberFunctionPointerType* getMemberFunctionPointerType() const { return m_pMemberFunctionPointerType; }
+
 protected:
     virtual Type* returnStorageType() const { return m_pMemberFunctionPointerType->getReturnType(); }
 

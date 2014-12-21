@@ -57,5 +57,10 @@ void PostUnaryOperationExpression::flush() const
     m_pExpression->flush();
 }
 
+PostUnaryOperationExpression* PostUnaryOperationExpression::clone() const
+{
+    return o_new(PostUnaryOperationExpression)(m_pValueType, getOperator(), m_pExpression);
+}
+
 
 o_namespace_end(phantom, reflection)

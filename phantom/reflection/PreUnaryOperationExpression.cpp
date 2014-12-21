@@ -56,5 +56,10 @@ void PreUnaryOperationExpression::flush() const
     m_pExpression->flush();
 }
 
+PreUnaryOperationExpression* PreUnaryOperationExpression::clone() const
+{
+    return o_new(PreUnaryOperationExpression)(m_pValueType, getOperator(), m_pExpression);
+}
+
 
 o_namespace_end(phantom, reflection)

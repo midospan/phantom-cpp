@@ -51,8 +51,6 @@ public:
 
     virtual PreUnaryOperationExpression*asPreUnaryOperationExpression() const { return (PreUnaryOperationExpression*)this; }
 
-    virtual void    internalEval(void* a_pDest) const = 0;
-
     virtual void    flush() const;
 
     virtual bool    isAddressable() const { return false; }
@@ -62,6 +60,14 @@ public:
     Expression*     getConvertedExpression() const { return m_pConvertedExpression; }
 
     const string&   getOperator() const { return m_strOperator; }
+
+    virtual PreUnaryOperationExpression* clone() const;
+
+protected:
+    void internalEval(void* a_pDest) const 
+    {
+        o_exception_no_implementation();
+    }
 
 protected:
     string          m_strOperator;

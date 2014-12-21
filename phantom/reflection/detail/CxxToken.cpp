@@ -2268,7 +2268,7 @@ namespace phantom
                 pReturnStatement->setInvalid();
                 o_semantic_error("cannot convert return value from '"<<pExpression->getValueType()->getQualifiedDecoratedName()<<"' to '"<<pReturnType->getQualifiedDecoratedName()<<"'");
             }
-            pReturnStatement->setReturnExpression(pExpression);
+            pReturnStatement->setExpression(pExpression);
         }
         return pReturnStatement;
     }

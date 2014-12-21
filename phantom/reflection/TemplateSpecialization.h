@@ -49,10 +49,11 @@ class o_export TemplateSpecialization : public LanguageElement
     o_language_element;
 
     friend class LanguageElement;
-public:
+
+protected:
+    TemplateSpecialization(Template* a_pTemplate, const vector<LanguageElement*>& arguments, TemplateSignature* a_pSignature = nullptr);
 
 public:
-    TemplateSpecialization(Template* a_pTemplate, TemplateSignature* a_pSignature = nullptr);
     o_destructor ~TemplateSpecialization();
 
     virtual TemplateSpecialization* asTemplateSpecialization() const { return (TemplateSpecialization*)this; }
@@ -61,6 +62,7 @@ public:
     Type*               getType(const string& a_strTypenameVariableName) const;
     ClassType*          getClassType() const { return m_pOwner ? m_pOwner->asClassType() : nullptr; }
     LanguageElement*    getArgument(const string& a_strTypenameVariableName) const;
+    LanguageElement*    getArgument(size_t i) const { return m_Arguments[i]; }
     size_t              getArgumentIndex(const string& a_strTemplateTypeName) const;
 
     void                setArgument(size_t a_uiIndex, LanguageElement* a_pElement);
@@ -82,8 +84,6 @@ public:
     bool                isPartial() const;
     
     LanguageElement*    getSpecializedElement() const { return m_pOwner; }
-
-    virtual LanguageElement* internalInstanciateTemplate(TemplateSpecialization* a_pSpecialization);
 
     bool                isSpecializingParameter(TemplateParameter* a_pParameter) const;
 

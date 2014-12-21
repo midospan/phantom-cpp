@@ -69,12 +69,13 @@ class SourceFile;
     { static_cast<Language_*>(a_pLanguage)->translate(this, out, options); }\
     virtual phantom::string                         translate(phantom::reflection::Language* a_pLanguage, int options = 0) \
     { phantom::string result; static_cast<Language_*>(a_pLanguage)->translate(this, result, options); return result; }\
-    inline string                                   translate() { return translate(phantom::cplusplus(), 0); }\
-    inline void                                     translate(string& out) { return translate(phantom::cplusplus(), out, 0); }\
-    virtual void                                    instanciateTemplate(TemplateSpecialization* a_pSpec) \
+    inline phantom::string                          translate() { return translate(phantom::cplusplus(), 0); }\
+    inline void                                     translate(phantom::string& out) { return translate(phantom::cplusplus(), out, 0); }\
+    virtual phantom::reflection::LanguageElement*                        instanciateTemplate(phantom::reflection::Precompiler* a_pPrecompiler, phantom::reflection::TemplateSpecialization* a_pSpec) \
     { \
-        if(NOT(a_pSpec->isSpecializing(this))) return this;\
-        LanguageElement* pElement = static_cast<Precompiler_*>(a_pPrecompiler)->instanciateTemplate(this, a_pSpec);\
+        if(NOT(isSpecializedBy(a_pSpec))) {return  this;}\
+        phantom::reflection::LanguageElement* pElement = nullptr;\
+        static_cast<Precompiler_*>(a_pPrecompiler)->instanciateTemplate(this, a_pSpec, pElement);\
         if(pElement) pElement->setTemplateSpecialization(a_pSpec);\
         return pElement;\
     }\
@@ -175,6 +176,7 @@ public:
     virtual InstanceDataMember*         asInstanceDataMember() const { return nullptr; }
     virtual InstanceMemberFunction*     asInstanceMemberFunction() const { return nullptr; }
     virtual PrimitiveType*              asIntegralType() const { return nullptr; }
+            LanguageElement*            asLanguageElement() const { return (LanguageElement*)this; }
     virtual LocalVariable*              asLocalVariable() const { return nullptr; }
     virtual MapContainerClass*          asMapContainerClass() const { return nullptr; }
     virtual Member*                     asMember() const { return nullptr; }
@@ -185,10 +187,12 @@ public:
     virtual PrimitiveType*              asNullptrType() const { return nullptr; }
     virtual NumericConstant*            asNumericConstant() const { return nullptr; }
     virtual Parameter*                  asParameter() const { return nullptr; }
+    virtual Placeholder*                asPlaceholder() const { return nullptr; }
     virtual Type*                       asPOD() const { return nullptr; }
     virtual PointerType*                asPointerType() const { return nullptr; }
     virtual PrimitiveType*              asPrimitiveType() const { return nullptr; }
     virtual Property*                   asProperty() const { return nullptr; }
+    virtual Range*                      asRange() const { return nullptr; }
     virtual ReferenceType*              asReferenceType() const { return nullptr; }
     virtual SequentialContainerClass*   asSequentialContainerClass() const { return nullptr; }
     virtual SetContainerClass*          asSetContainerClass() const { return nullptr; }
@@ -215,10 +219,13 @@ public:
     virtual VirtualMemberFunctionTable* asVirtualMemberFunctionTable() const { return nullptr; }
 
     void                                setInvalid();
+    void                                setPlaceholder();
     virtual void                        setTemplateDependant();
+    bool                                isSpecializedBy(TemplateSpecialization* a_pSpec) const;
     virtual bool                        isDeclared() const { return true; }
     virtual bool                        isDefined() const { return true; }
     virtual bool                        isLinked() const { return true; }
+    bool                                isInsideTemplate() const { return m_pOwner ? m_pOwner->asTemplate() ? true : m_pOwner->isInsideTemplate() : false; }
     virtual bool                        isMemberPointerType() const { return false; }
     virtual bool                        isFunctionPointerType() const { return false; }
     virtual bool                        isDataMemberPointerType() const { return false; }
@@ -226,13 +233,13 @@ public:
     virtual bool                        isTemplateInstance() const { return m_pTemplateSpecialization != NULL; }
     virtual bool                        isPOD() const { return false; }
     bool                                isInvalid() const;
+    bool                                isPlaceholder() const;
     virtual bool                        isTemplateDependant() const;
     bool                                hasTemplateDependantElement() const;
     o_forceinline bool                  isStatic() const  { return ((m_Modifiers & o_static) == o_static); }
     o_forceinline bool                  isProtected() const { return ((m_Modifiers & o_protected_access) == o_protected_access) ; }
     o_forceinline bool                  isPrivate() const { return (m_Modifiers & (o_protected_access|o_public_access)) == 0; }
     o_forceinline bool                  isPublic() const { return ((m_Modifiers & o_public_access) == o_public_access); }
-    o_forceinline bool                  isUnionAlternative() const { return ((m_Modifiers & o_union_alternative) == o_union_alternative) ; }
     o_forceinline bool                  isOwner() const { return ((m_Modifiers & o_owner) == o_owner) ; }
     o_forceinline bool                  isAbstract() const { return ((m_Modifiers & o_abstract) == o_abstract); }
     o_forceinline bool                  isVirtual() const { return ((m_Modifiers & o_virtual) == o_virtual); }
@@ -328,7 +335,6 @@ public:
     void        addTemplateParameterDependency(TemplateParameter* a_pParameter);
 
 protected:
-    virtual LanguageElement* internalInstanciateTemplate(TemplateSpecialization* a_pSpecialization) = 0;
     void setGuid(uint a_uiGuid);
     void setName(const string& a_strName) { m_strName = a_strName; }
     void setOwner(LanguageElement* a_pOwner);

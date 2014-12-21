@@ -164,6 +164,8 @@ public:
 
     vector<Type*>::const_iterator beginTypes() const { return m_Types.begin(); }
     vector<Type*>::const_iterator endTypes() const { return m_Types.end(); }
+    vector<Template*>::const_iterator beginTemplates() const { return m_Templates.begin(); }
+    vector<Template*>::const_iterator endTemplates() const { return m_Templates.end(); }
     vector<Namespace*>::const_iterator beginNamespaces() const { return m_Namespaces.begin(); }
     vector<Namespace*>::const_iterator endNamespaces() const { return m_Namespaces.end(); }
     vector<Function*>::const_iterator beginFunctions() const { return m_Functions.begin(); }

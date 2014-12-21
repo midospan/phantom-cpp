@@ -54,9 +54,4 @@ AddressExpression* AddressExpression::clone() const
     return o_new(AddressExpression)(m_pAddressedExpression);
 }
 
-LanguageElement* AddressExpression::internalInstanciateTemplate( TemplateSpecialization* a_pSpecialization )
-{
-    return o_new(AddressExpression)(instanciateTemplate(m_pAddressedExpression, a_pSpecialization));
-}
-
 o_namespace_end(phantom, reflection)

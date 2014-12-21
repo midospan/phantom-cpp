@@ -1484,12 +1484,6 @@
     <ClInclude Include="..\..\..\phantom\reflection\TemplateParameter.hxx">
       <Filter>reflection</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\PlaceholderType.h">
-      <Filter>reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\phantom\reflection\PlaceholderType.hxx">
-      <Filter>reflection</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\phantom\reflection\Placeholder.h">
       <Filter>reflection</Filter>
     </ClInclude>
@@ -2103,9 +2097,6 @@
       <Filter>reflection</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\TemplateParameter.cpp">
-      <Filter>reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\phantom\reflection\PlaceholderType.cpp">
       <Filter>reflection</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\Placeholder.cpp">

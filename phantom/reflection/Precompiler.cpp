@@ -3,6 +3,7 @@
 #include "Precompiler.h"
 #include "Precompiler.hxx"
 // Fundamental expressions
+#include <phantom/reflection/Placeholder.h>
 #include <phantom/reflection/SingleParameterFunctionExpression.h>
 #include <phantom/reflection/ConstructorCallExpression.h>
 #include <phantom/reflection/LocalVariableExpression.h>
@@ -21,12 +22,16 @@
 #include <phantom/reflection/TPostIncrementExpression.h>
 #include <phantom/reflection/TShiftExpression.h>
 #include <phantom/reflection/PointerArithmeticExpression.h>
-#include <phantom/reflection/DataExpression.h>
+#include <phantom/reflection/ArrayExpression.h>
+#include <phantom/reflection/PropertyExpression.h>
 #include <phantom/reflection/Expression.h>
 #include <phantom/reflection/ConstantExpression.h>
 #include <phantom/reflection/Block.h>
 #include <phantom/reflection/LocalVariable.h>
-#include <phantom/reflection/ArrayExpression.h>
+#include <phantom/reflection/DereferenceExpression.h>
+#include <phantom/reflection/AddressExpression.h>
+#include <phantom/reflection/ReferenceExpression.h>
+#include <phantom/reflection/DataExpression.h>
 #include <phantom/reflection/StringLiteralExpression.h>
 #include <phantom/reflection/ConditionalExpression.h>
 #include <phantom/reflection/PlacementConstructionExpression.h>
@@ -168,6 +173,12 @@ LanguageElement* Precompiler::precompileScope( Namespace* a_pScope, const string
             if(pNamespaceAlias != nullptr) return pNamespaceAlias;
             Template* pTemplate = a_pScope->getTemplate(a_strName);
             if(pTemplate != nullptr) return pTemplate;
+        }
+        else 
+        {
+            for(auto it = a_pScope->beginTemplates(); it != a_pScope->endTemplates(); ++it)
+            {
+            }
         }
         for(auto it = a_pScope->beginTypes(); it != a_pScope->endTypes(); ++it)
         {
@@ -1123,367 +1134,722 @@ Expression* Precompiler::precompileOperator( Expression* a_pExpression, const st
 
 /// TEMPLATE INSTANCIATION
 
+#define o_instanciateT(type, element)\
+    (((element) == nullptr) ? nullptr : m_Templated[a_pSpec][element] ? m_Templated[a_pSpec][element]->as##type() : ((m_Templated[a_pSpec][element] = (element)->instanciateTemplate(this, a_pSpec))->as##type()))\
 
 
-LanguageElement* Precompiler::instanciateTemplate( LanguageElement* a_pElement, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( LanguageElement* a_pElement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Namespace* a_pNamespace, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Namespace* a_pNamespace, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Type* a_pType, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Type* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( PrimitiveType* a_pType, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( PrimitiveType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate(FunctionPointerType* a_pType, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate(FunctionPointerType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate(MemberFunctionPointerType* a_pType, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate(MemberFunctionPointerType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate(DataMemberPointerType* a_pType, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate(DataMemberPointerType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate(DataPointerType* a_pType, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate(DataPointerType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate(ReferenceType* a_pType, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate(ReferenceType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate(ConstType* a_pType, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate(ConstType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate(ArrayType* a_pType, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate(ArrayType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Enum* a_pEnum, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Enum* a_pEnum, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( ClassType* a_pClassType, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( ClassType* a_pClassType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    instanciateTemplate(static_cast<Type*>(a_pClassType), a_pSpec, a_pInstanciated);
+    ClassType* pClassType = a_pInstanciated->asClassType();
+    for(auto it = a_pClassType->beginInstanceMemberFunctions(); it != a_pClassType->endInstanceMemberFunctions(); ++it)
+    {
+        InstanceMemberFunction* pInstanceMemberFunction = o_instanciateT(InstanceMemberFunction, *it);
+        if(pInstanceMemberFunction->asSignal() == nullptr)
+        {
+            pClassType->addInstanceMemberFunction(pInstanceMemberFunction);
+        }
+    }
+    for(auto it = a_pClassType->beginInstanceDataMembers(); it != a_pClassType->endInstanceDataMembers(); ++it)
+    {
+        pClassType->addInstanceDataMember(o_instanciateT(InstanceDataMember, *it));
+    }
+    for(auto it = a_pClassType->beginStaticDataMembers(); it != a_pClassType->endStaticDataMembers(); ++it)
+    {
+        pClassType->addStaticDataMember(o_instanciateT(StaticDataMember, *it));
+    }
+    for(auto it = a_pClassType->beginStaticMemberFunctions(); it != a_pClassType->endStaticMemberFunctions(); ++it)
+    {
+        pClassType->addStaticMemberFunction(o_instanciateT(StaticMemberFunction, *it));
+    }
+    for(auto it = a_pClassType->beginConstructors(); it != a_pClassType->endConstructors(); ++it)
+    {
+        pClassType->addConstructor(o_instanciateT(Constructor, *it));
+    }
+    for(auto it = a_pClassType->beginProperties(); it != a_pClassType->endProperties(); ++it)
+    {
+        pClassType->addProperty(o_instanciateT(Property, *it));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Class* a_pClass, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Class* a_pClass, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) a_pInstanciated = o_new(Class)(a_pClass->getName(), a_pClass->getModifiers());
+    Class* pClass = a_pInstanciated->asClass();
+    o_assert(pClass);
+    for(auto it = a_pClass->beginBaseClasses(); it != a_pClass->beginBaseClasses(); ++it)
+    {
+        pClass->addBaseClass(o_instanciateT(Class, it->m_pClass));
+    }
+    for(auto it = a_pClass->beginSignals(); it != a_pClass->endSignals(); ++it)
+    {
+        pClass->addSignal(o_instanciateT(Signal, *it));
+    }
+    instanciateTemplate(static_cast<ClassType*>(a_pClass), a_pSpec, a_pInstanciated);
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Structure* a_pStructure, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Structure* a_pStructure, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) a_pInstanciated = o_new(Structure)(a_pStructure->getName(), a_pStructure->getModifiers());
+    instanciateTemplate(static_cast<ClassType*>(a_pStructure), a_pSpec, a_pInstanciated);
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Union* a_pUnion, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Union* a_pUnion, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) a_pInstanciated = o_new(Union)(a_pUnion->getName(), a_pUnion->getModifiers());
+    instanciateTemplate(static_cast<ClassType*>(a_pUnion), a_pSpec, a_pInstanciated);
 }
 
-LanguageElement* Precompiler::instanciateTemplate( PODUnion* a_pPODUnion, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( PODUnion* a_pPODUnion, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) a_pInstanciated = o_new(PODUnion)(a_pPODUnion->getName(), a_pPODUnion->getModifiers());
+    instanciateTemplate(static_cast<ClassType*>(a_pPODUnion), a_pSpec, a_pInstanciated);
 }
 
-LanguageElement* Precompiler::instanciateTemplate( AnonymousSection* a_pAnonymousSection, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( AnonymousSection* a_pAnonymousSection, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( AnonymousStruct* a_pAnonymousStruct, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( AnonymousStruct* a_pAnonymousStruct, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( AnonymousUnion* a_pAnonymousUnion, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( AnonymousUnion* a_pAnonymousUnion, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Template* a_pTemplate, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Template* a_pTemplate, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( TemplateSpecialization* a_pTemplateSpecialization, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( TemplateSpecialization* a_pTemplateSpecialization, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) a_pInstanciated = o_new(TemplateSpecialization)(a_pTemplateSpecialization->getTemplate());
+    TemplateSpecialization* pTemplateSpecialization = a_pInstanciated->asTemplateSpecialization();
+    for(size_t i = 0; i<a_pTemplateSpecialization->getArgumentCount(); ++i)
+    {
+        pTemplateSpecialization->setArgument(i, o_instanciateT(LanguageElement, a_pTemplateSpecialization->getArgument(i)));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Subroutine* a_pSubroutine, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Subroutine* a_pSubroutine, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    Subroutine* pSubroutine = a_pInstanciated->asSubroutine();
+    o_assert(pSubroutine);
+    if(a_pSubroutine->getBlock()) { o_instanciateT(Block, a_pSubroutine->getBlock()); }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Constructor* a_pConstructor, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Constructor* a_pConstructor, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(Constructor)(a_pConstructor->getName(), o_instanciateT(Signature, a_pConstructor->getSignature()), a_pConstructor->getModifiers());
+    }
+    instanciateTemplate(static_cast<Subroutine*>(a_pConstructor), a_pSpec, a_pInstanciated);
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Function* a_pFunction, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Function* a_pFunction, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(Function)(a_pFunction->getName(), o_instanciateT(Signature, a_pFunction->getSignature()), a_pFunction->getABI(), a_pFunction->getModifiers());
+    }
+    instanciateTemplate(static_cast<Subroutine*>(a_pFunction), a_pSpec, a_pInstanciated);
 }
 
-LanguageElement* Precompiler::instanciateTemplate( StaticMemberFunction* a_pStaticMemberFunction, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( StaticMemberFunction* a_pStaticMemberFunction, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(StaticMemberFunction)(a_pStaticMemberFunction->getName(), o_instanciateT(Signature, a_pStaticMemberFunction->getSignature()), a_pStaticMemberFunction->getModifiers());
+    }
+    instanciateTemplate(static_cast<Subroutine*>(a_pStaticMemberFunction), a_pSpec, a_pInstanciated);
 }
 
-LanguageElement* Precompiler::instanciateTemplate( InstanceMemberFunction* a_pInstanceMemberFunction, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( InstanceMemberFunction* a_pInstanceMemberFunction, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(InstanceMemberFunction)(a_pInstanceMemberFunction->getName(), o_instanciateT(Signature, a_pInstanceMemberFunction->getSignature()), a_pInstanceMemberFunction->getModifiers());
+    }
+    instanciateTemplate(static_cast<Subroutine*>(a_pInstanceMemberFunction), a_pSpec, a_pInstanciated);
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Signal* a_pSignal, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Signal* a_pSignal, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(Signal)(a_pSignal->getName(), o_instanciateT(Signature, a_pSignal->getSignature()), a_pSignal->getModifiers());
+    }
+    instanciateTemplate(static_cast<Subroutine*>(a_pSignal), a_pSpec, a_pInstanciated);
 }
 
-LanguageElement* Precompiler::instanciateTemplate( StaticDataMember* a_pStaticDataMember, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( StaticDataMember* a_pStaticDataMember, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(StaticDataMember)(o_instanciateT(Type, a_pStaticDataMember->getValueType())
+                                                , a_pStaticDataMember->getName(), o_instanciateT(Range, a_pStaticDataMember->getRange()), a_pStaticDataMember->getModifiers());
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( StaticVariable* a_pStaticVariable, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( StaticVariable* a_pStaticVariable, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(StaticDataMember)(o_instanciateT(Type, a_pStaticVariable->getValueType())
+            , a_pStaticVariable->getName(), o_instanciateT(Range, a_pStaticVariable->getRange()), a_pStaticVariable->getModifiers());
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( InstanceDataMember* a_pInstanceDataMember, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( InstanceDataMember* a_pInstanceDataMember, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(InstanceDataMember)(o_instanciateT(Type, a_pInstanceDataMember->getValueType())
+            , a_pInstanceDataMember->getName(), o_instanciateT(Range, a_pInstanceDataMember->getRange()), a_pInstanceDataMember->getSerializationMask(), a_pInstanceDataMember->getModifiers());
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Property* a_pProperty, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Property* a_pProperty, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(Property)(o_instanciateT(Type, a_pProperty->getValueType())
+            , a_pProperty->getName()
+            , o_instanciateT(InstanceMemberFunction, a_pProperty->getGetMemberFunction())
+            , o_instanciateT(InstanceMemberFunction, a_pProperty->getGetMemberFunction())
+            , o_instanciateT(Signal, a_pProperty->getSignal())
+            , o_instanciateT(Range, a_pProperty->getRange())
+            , a_pProperty->getSerializationMask()
+            , a_pProperty->getModifiers());
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( state::StateMachine* a_pStateMachine, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( state::StateMachine* a_pStateMachine, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(state::StateMachine)(a_pStateMachine->getModifiers());
+    }
+    state::StateMachine* pStateMachine = a_pInstanciated->asStateMachine();
+    pStateMachine->setRootTrack(o_instanciateT(Track, a_pStateMachine->getRootTrack()));
 }
 
-LanguageElement* Precompiler::instanciateTemplate( state::State* a_pState, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( state::State* a_pState, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(state::State)(a_pState->getName(), a_pState->getModifiers());
+    }
+    state::State* pState = a_pInstanciated->asState();
+    for(auto it = a_pState->beginTracks(); it != a_pState->endTracks(); ++it)
+    {
+        pState->addTrack(o_instanciateT(Track, *it));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( state::Track* a_pTrack, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( state::Track* a_pTrack, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(state::Track)(a_pTrack->getName(), a_pTrack->getSerializationMask(), a_pTrack->getModifiers());
+    }
+    state::Track* pTrack = a_pInstanciated->asTrack();
+    for(auto it = a_pTrack->beginStates(); it != a_pTrack->endStates(); ++it)
+    {
+        pTrack->addState(o_instanciateT(State, *it));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Block* a_pBlock, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Block* a_pBlock, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        LocalVariable* pThis = a_pBlock->getLocalVariable("this");
+        a_pInstanciated = a_pBlock->getBlock() ? o_new(Block)(a_pBlock->getBlock()) 
+                                               : o_new(Block)(o_instanciateT(Subroutine, a_pBlock->getSubroutine()), pThis);
+    }
+    Block* pBlock = a_pInstanciated->asBlock();
+    for(auto it = a_pBlock->beginLocalVariables(); it != a_pBlock->endLocalVariables(); ++it)
+    {
+        pBlock->addLocalVariable(o_instanciateT(LocalVariable, *it));
+    }
+    for(auto it = a_pBlock->beginStatements(); it != a_pBlock->endStatements(); ++it)
+    {
+        pBlock->addStatement(o_instanciateT(Statement, *it));
+    }
+    for(auto it = a_pBlock->beginRAIIDestructionStatements(); it != a_pBlock->endRAIIDestructionStatements(); ++it)
+    {
+        pBlock->addRAIIDestructionStatement(o_instanciateT(Statement, *it));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( LocalVariable* a_pLocalVariable, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( LocalVariable* a_pLocalVariable, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(LocalVariable)(o_instanciateT(Type, a_pLocalVariable->getValueType())
+                                                , a_pLocalVariable->getName()
+                                                , o_instanciateT(Expression, a_pLocalVariable->getInitializationExpression())
+                                                , a_pLocalVariable->getModifiers());
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Parameter* a_pParameter, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Parameter* a_pParameter, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(Parameter)(o_instanciateT(Type, a_pParameter->getValueType())
+            , a_pParameter->getName()
+            , o_instanciateT(Expression, a_pParameter->getInitializationExpression())
+            , a_pParameter->getModifiers());
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Signature* a_pSignature, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Signature* a_pSignature, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        vector<Parameter*> parameters;
+        for(auto it = a_pSignature->beginParameters(); it != a_pSignature->endParameters(); ++it)
+        {
+            parameters.push_back(o_instanciateT(Parameter, *it));
+        }
+        a_pInstanciated = o_new(Signature)(o_instanciateT(Type, a_pSignature->getReturnType())
+            , parameters
+            , a_pSignature->getModifiers());
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( BranchStatement* a_pBranchStatement, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( BranchStatement* a_pBranchStatement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( BranchIfStatement* a_pBranchIfStatement, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( BranchIfStatement* a_pBranchIfStatement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(BranchIfStatement)(o_instanciateT(Expression, a_pBranchIfStatement->getExpression()));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( BranchIfNotStatement* a_pBranchIfNotStatement, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( BranchIfNotStatement* a_pBranchIfNotStatement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(BranchIfNotStatement)(o_instanciateT(Expression, a_pBranchIfNotStatement->getExpression()));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( ExpressionStatement* a_pExpressionStatement, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( ExpressionStatement* a_pExpressionStatement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(ExpressionStatement)(o_instanciateT(Expression, a_pExpressionStatement->getExpression()));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( ReturnStatement* a_pReturnStatement, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( ReturnStatement* a_pReturnStatement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        if(a_pReturnStatement->getExpression())
+            a_pInstanciated = o_new(ReturnStatement)(o_instanciateT(Expression, a_pReturnStatement->getExpression()));
+        else 
+            { o_assert_no_implementation(); }
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( LabelStatement* a_pLabelStatement, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( LabelStatement* a_pLabelStatement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( CallExpression* a_pCallExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( CallExpression* a_pCallExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        vector<Expression*> arguments;
+        bool bTemplateDependant = false;
+        for(auto it = a_pCallExpression->beginArguments(); it != a_pCallExpression->endArguments(); ++it)
+        {
+            Expression* pExpression = o_instanciateT(Expression, *it);
+            bTemplateDependant = bTemplateDependant OR pExpression->isTemplateDependant();
+            arguments.push_back(pExpression);
+        }
+        Type* pConstrucionType = a_pCallExpression->getValueType() == a_pCallExpression->getSubroutine()->getReturnType() ? nullptr : a_pCallExpression->getValueType();
+        if(bTemplateDependant OR a_pCallExpression->getSubroutine()->asPlaceholder() == nullptr)
+        {
+            a_pInstanciated = o_new(CallExpression)(o_instanciateT(Subroutine, a_pCallExpression->getSubroutine()), arguments, pConstrucionType);
+        }
+        else 
+        {
+            o_assert(a_pCallExpression->getSubroutine()->asPlaceholder());
+            Expression* pThis = arguments[0];
+            arguments.erase(arguments.begin());
+            string name = a_pCallExpression->getSubroutine()->getName();
+            size_t pos = 0;
+            if((pos = name.find_last_of(":")) != string::npos)
+            {
+                Class* pClass = pThis->getValueType()->removeConstReference()->asClass();
+                if(pClass == nullptr) 
+                {
+                    a_pInstanciated = o_new(CallExpression)(o_instanciateT(Subroutine, a_pCallExpression->getSubroutine()), arguments, pConstrucionType);
+                    return; 
+                }
+                LanguageElement* pScope = phantom::elementByName(name.substr(0, pos-1), pClass);
+                if(pScope == nullptr 
+                    OR pScope->asClass() == nullptr 
+                    OR NOT(pClass->hasBaseClassCascade(pScope->asClass())))
+                {
+                    a_pInstanciated = o_new(CallExpression)(o_instanciateT(Subroutine, a_pCallExpression->getSubroutine()), arguments, pConstrucionType);
+                    return; 
+                }
+                a_pInstanciated = pClass->precompileExpression(this, pThis->implicitCast(pClass->referenceType()), name.substr(pos+1), nullptr, &arguments);
+            }
+            else a_pInstanciated = pThis->getValueType()->precompileExpression(this, pThis, name, nullptr, &arguments);
+        }
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( CastExpression* a_pCastExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( CastExpression* a_pCastExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(CastExpression)(o_instanciateT(Type, a_pCastExpression->getValueType())
+                                                , o_instanciateT(Expression, a_pCastExpression->getCastedExpression())
+                                                , a_pCastExpression->getCastType());
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( DereferenceExpression* a_pDereferenceExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( DereferenceExpression* a_pDereferenceExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(DereferenceExpression)(o_instanciateT(Expression, a_pDereferenceExpression->getDereferencedExpression()));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( AddressExpression* a_pAddressExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( AddressExpression* a_pAddressExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(AddressExpression)(o_instanciateT(Expression, a_pAddressExpression->getAddressedExpression()));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( ReferenceExpression* a_pReferenceExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( ReferenceExpression* a_pReferenceExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(ReferenceExpression)(o_instanciateT(Expression, a_pReferenceExpression->getReferencedExpression()));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( ConstantExpression* a_pConstantExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( ConstantExpression* a_pConstantExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(ConstantExpression)(o_instanciateT(Constant, a_pConstantExpression->getConstant()));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( DataExpression* a_pDataExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( DataExpression* a_pDataExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(DataExpression)(a_pDataExpression->getDataBase(), o_instanciateT(Expression, a_pDataExpression->getGuidExpression()));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( InstanceDataMemberExpression* a_pInstanceDataMemberExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( InstanceDataMemberExpression* a_pInstanceDataMemberExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        o_assert(a_pInstanceDataMemberExpression->getInstanceDataMember()->asPlaceholder());
+        Expression* pExpression = o_instanciateT(Expression, a_pInstanceDataMemberExpression->getLeftExpression());
+        if(pExpression->isTemplateDependant())
+        {
+            a_pInstanciated = o_new(InstanceDataMemberExpression)(pExpression
+                , o_instanciateT(InstanceDataMember, a_pInstanceDataMemberExpression->getInstanceDataMember()));
+        }
+        else 
+        {
+            // no more dependencies, resolve instance data member access
+            a_pInstanciated = precompileScope(pExpression, a_pInstanceDataMemberExpression->getName(), nullptr, nullptr, a_pInstanceDataMemberExpression->getModifiers());
+        }
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( LocalVariableExpression* a_pLocalVariableExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( LocalVariableExpression* a_pLocalVariableExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(LocalVariableExpression)(o_instanciateT(LocalVariable, a_pLocalVariableExpression->getLocalVariable()));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( PropertyExpression* a_pPropertyExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( PropertyExpression* a_pPropertyExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(PropertyExpression)(o_instanciateT(Expression, a_pPropertyExpression->getLeftExpression())
+            , o_instanciateT(Property, a_pPropertyExpression->getProperty()));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( StaticVariableExpression* a_pStaticVariableExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( StaticVariableExpression* a_pStaticVariableExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(StaticVariableExpression)(o_instanciateT(StaticVariable, a_pStaticVariableExpression->getStaticVariable()));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( ArrayExpression* a_pArrayExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( ArrayExpression* a_pArrayExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(ArrayExpression)(o_instanciateT(Expression, a_pArrayExpression->getLeftExpression())
+                                                , o_instanciateT(Expression, a_pArrayExpression->getIndexExpression()));
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( StringLiteralExpression* a_pStringLiteralExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( StringLiteralExpression* a_pStringLiteralExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( MemberFunctionPointerCallExpression* a_pMemberFunctionPointerCallExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( MemberFunctionPointerCallExpression* a_pMemberFunctionPointerCallExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        vector<Expression*> arguments;
+        for(auto it = a_pMemberFunctionPointerCallExpression->beginArguments(); it != a_pMemberFunctionPointerCallExpression->endArguments(); ++it)
+        {
+            arguments.push_back(o_instanciateT(Expression, *it));
+        }
+        a_pInstanciated = o_new(MemberFunctionPointerCallExpression)(
+              o_instanciateT(MemberFunctionPointerType, a_pMemberFunctionPointerCallExpression->getMemberFunctionPointerType())
+            , o_instanciateT(Expression, a_pMemberFunctionPointerCallExpression->getObjectExpression())
+            , o_instanciateT(Expression, a_pMemberFunctionPointerCallExpression->getMemberExpression())
+            , arguments
+        );
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( DataMemberPointerExpression* a_pDataMemberPointerExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( DataMemberPointerExpression* a_pDataMemberPointerExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    if(a_pInstanciated == nullptr) 
+    {
+        a_pInstanciated = o_new(DataMemberPointerExpression)(
+            o_instanciateT(DataMemberPointerType, a_pDataMemberPointerExpression->getDataMemberPointerType())
+            , o_instanciateT(Expression, a_pDataMemberPointerExpression->getObjectExpression())
+            , o_instanciateT(Expression, a_pDataMemberPointerExpression->getMemberExpression())
+            );
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( AssignmentExpression* a_pAssignmentExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( AssignmentExpression* a_pAssignmentExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    return o_new(AssignmentExpression)(instanciateTemplate(a_pAssignmentExpression->getLeftExpression(), a_pSpec)
-        , instanciateTemplate(a_pAssignmentExpression->getRightExpression(), a_pSpec));
+    a_pInstanciated = o_new(AssignmentExpression)(o_instanciateT(Expression, a_pAssignmentExpression->getLeftExpression())
+        , o_instanciateT(Expression, a_pAssignmentExpression->getRightExpression()));
 }
 
-LanguageElement* Precompiler::instanciateTemplate( ConstructorCallExpression* a_pConstructorCallExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( ConstructorCallExpression* a_pConstructorCallExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    vector<Expression*> arguments;
+    for(auto it = a_pConstructorCallExpression->beginArguments(); it != a_pConstructorCallExpression->endArguments(); ++it)
+    {
+        arguments.push_back(o_instanciateT(Expression, *it));
+    }
+    a_pInstanciated = o_new(ConstructorCallExpression)(
+        o_instanciateT(Constructor, a_pConstructorCallExpression->getSubroutine())
+        , arguments
+        );
 }
 
-LanguageElement* Precompiler::instanciateTemplate( PlacementConstructionExpression* a_pPlacementConstructionExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( PlacementConstructionExpression* a_pPlacementConstructionExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    vector<Expression*> arguments;
+    for(auto it = a_pPlacementConstructionExpression->beginArguments(); it != a_pPlacementConstructionExpression->endArguments(); ++it)
+    {
+        arguments.push_back(o_instanciateT(Expression, *it));
+    }
+    a_pInstanciated = o_new(PlacementConstructionExpression)(
+        o_instanciateT(Constructor, a_pPlacementConstructionExpression->getSubroutine())
+        , o_instanciateT(Expression, a_pPlacementConstructionExpression->getPlaceExpression())
+        , arguments
+        );
 }
 
-LanguageElement* Precompiler::instanciateTemplate( BinaryOperationExpression* a_pBinaryOperatorExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( BinaryOperationExpression* a_pBinaryOperatorExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    Expression* pLeft = o_instanciateT(Expression, a_pBinaryOperatorExpression->getLeftExpression());
+    Expression* pRight = o_instanciateT(Expression, a_pBinaryOperatorExpression->getRightExpression());
+    if(NOT(pLeft->isTemplateDependant()) AND NOT(pRight->isTemplateDependant()))
+    {
+        // No more template dependencies in expressions, we can re-precompile them
+        a_pInstanciated = pLeft->precompileBinaryOperator(this, a_pBinaryOperatorExpression->getOperator(), pRight, a_pBinaryOperatorExpression->getModifiers());
+    }
+    else 
+    {
+        a_pInstanciated = o_new(BinaryOperationExpression)(a_pBinaryOperatorExpression->getValueType(), a_pBinaryOperatorExpression->getOperator(), pLeft, pRight);
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( PreUnaryOperationExpression* a_pPreUnaryOperationExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( PreUnaryOperationExpression* a_pPreUnaryOperationExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    Expression* pExpr = o_instanciateT(Expression, a_pPreUnaryOperationExpression->getExpression());
+    if(NOT(pExpr->isTemplateDependant()))
+    {
+        // No more template dependencies in expressions, we can re-precompile them
+        a_pInstanciated = pExpr->precompilePreUnaryOperator(this, a_pPreUnaryOperationExpression->getOperator(), a_pPreUnaryOperationExpression->getModifiers());
+    }
+    else 
+    {
+        a_pInstanciated = o_new(PreUnaryOperationExpression)(a_pPreUnaryOperationExpression->getValueType(), a_pPreUnaryOperationExpression->getOperator(), pExpr);
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( PostUnaryOperationExpression* a_pPostUnaryOperationExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( PostUnaryOperationExpression* a_pPostUnaryOperationExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    Expression* pExpr = o_instanciateT(Expression, a_pPostUnaryOperationExpression->getExpression());
+    if(NOT(pExpr->isTemplateDependant()))
+    {
+        // No more template dependencies in expressions, we can re-precompile them
+        a_pInstanciated = pExpr->precompilePostUnaryOperator(this, a_pPostUnaryOperationExpression->getOperator(), a_pPostUnaryOperationExpression->getModifiers());
+    }
+    else 
+    {
+        a_pInstanciated = o_new(PostUnaryOperationExpression)(a_pPostUnaryOperationExpression->getValueType(), a_pPostUnaryOperationExpression->getOperator(), pExpr);
+    }
 }
 
-LanguageElement* Precompiler::instanciateTemplate( CompositionGetSetExpression* a_pCompositionGetSetExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( CompositionGetSetExpression* a_pCompositionGetSetExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( AggregationGetSetExpression* a_pAggregationGetSetExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( AggregationGetSetExpression* a_pAggregationGetSetExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( CompositionInsertRemoveExpression* a_pCompositionInsertRemoveExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( CompositionInsertRemoveExpression* a_pCompositionInsertRemoveExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( AggregationInsertRemoveExpression* a_pAggregationInsertRemoveExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( AggregationInsertRemoveExpression* a_pAggregationInsertRemoveExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( SingleParameterFunctionExpression* a_pSingleParameterFunctionExpression, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( SingleParameterFunctionExpression* a_pSingleParameterFunctionExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
 }
 
-LanguageElement* Precompiler::instanciateTemplate( Constant* a_pConstant, TemplateSpecialization* a_pSpec )
+void Precompiler::instanciateTemplate( Constant* a_pConstant, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation(); return nullptr;
+    o_assert_no_implementation();
+}
+
+void Precompiler::instanciateTemplate( PlaceholderConstant* a_pPlaceholderConstant, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
+{
+    a_pInstanciated = a_pSpec->getArgument(a_pPlaceholderConstant->getName());
+    if(a_pInstanciated == nullptr) return;
+    if(a_pInstanciated->asConstant() == nullptr) { a_pInstanciated = nullptr; return; }
+}
+
+void Precompiler::instanciateTemplate( PlaceholderType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
+{
+    a_pInstanciated = a_pSpec->getArgument(a_pType->getName());
+    if(a_pInstanciated == nullptr OR a_pInstanciated->asType() == nullptr) 
+    {
+        a_pInstanciated = nullptr;
+    }
+}
+
+void Precompiler::instanciateTemplate( PlaceholderClass* a_pPlaceholderClass, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
+{
+    a_pInstanciated = a_pSpec->getArgument(a_pPlaceholderClass->getName());
+    if(a_pInstanciated == nullptr OR a_pInstanciated->asClass() == nullptr) 
+    {
+        a_pInstanciated = nullptr;
+    }
+}
+
+void Precompiler::instanciateTemplate( PlaceholderInstanceDataMember* a_pPlaceholderInstanceDataMember, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
+{
+    o_assert_no_implementation();
 }
 
 

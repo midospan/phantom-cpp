@@ -45,6 +45,7 @@ o_namespace_begin(phantom, reflection)
 
 o_static_assert((boost::is_same<phantom::reflection::ClassType, phantom::base_class_of<phantom::reflection::Class, 0>::type>::value));
 // Set by reflection::Types::Install because Class meta type is a recursive meta type, indeed it's its own meta type (meta meta type)
+static vector<Signal*> empty_signals;
 
 o_define_meta_type(Class);
 
@@ -393,7 +394,7 @@ void Class::addBaseClass( Class* a_pClass, size_t a_uiOffset )
     addReferencedElement(a_pClass);
 }
 
-boolean Class::hasBaseClass( Class* a_pClass ) const
+bool Class::hasBaseClass( Class* a_pClass ) const
 {
     base_class_table::const_iterator it = m_BaseClasses.begin();
     base_class_table::const_iterator end = m_BaseClasses.end();
@@ -403,6 +404,16 @@ boolean Class::hasBaseClass( Class* a_pClass ) const
         {
             return true;
         }
+    }
+    return false;
+}
+
+bool Class::hasBaseClassCascade( Class* a_pClass ) const
+{
+    for(auto it = m_BaseClasses.begin(); it != m_BaseClasses.end(); ++it)
+    {
+        if(it->m_pClass == a_pClass) return true;
+        if(it->m_pClass->hasBaseClassCascade(a_pClass)) return true;
     }
     return false;
 }
@@ -2065,6 +2076,16 @@ InstanceDataMember* Class::getInstanceDataMemberByOffset( size_t a_uiOffset ) co
         if(pInstanceDataMember) return pInstanceDataMember;
     }
     return nullptr;
+}
+
+vector<Signal*>::const_iterator Class::beginSignals() const
+{
+    return m_pSignals ? m_pSignals.begin() : empty_signals.begin();
+}
+
+vector<Signal*>::const_iterator Class::endSignals() const
+{
+    return m_pSignals ? m_pSignals.end() : empty_signals.end();
 }
 
 o_namespace_end(phantom, reflection)

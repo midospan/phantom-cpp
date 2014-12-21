@@ -602,6 +602,11 @@ bool LanguageElement::isInvalid() const
     return (m_Modifiers & o_invalid) != 0;
 }
 
+bool LanguageElement::isPlaceholder() const
+{
+    return (m_Modifiers & o_placeholder) != 0;
+}
+
 bool LanguageElement::isTemplateDependant() const
 {
     return m_pTemplateParameterDependencies != nullptr 
@@ -671,9 +676,14 @@ string LanguageElement::getOwnerQualifiedDecoratedName() const
     return m_pOwner ? m_pOwner->getQualifiedDecoratedName() : "";
 }
 
+void LanguageElement::setPlaceholder()
+{
+    m_Modifiers |= o_placeholder;
+}
+
 void LanguageElement::setInvalid()
 {
-    if((m_Modifiers & o_invalid) != 0 OR (m_Modifiers & o_always_valid) != 0 OR (m_Modifiers & o_template_dependant) != 0)
+    if((m_Modifiers & o_invalid) != 0 OR (m_Modifiers & o_always_valid) != 0 OR isPlaceholder())
         return;
     m_Modifiers |= o_invalid;
     /// When an element becomes invalid, the following becomes invalid too :
@@ -780,6 +790,11 @@ void LanguageElement::addTemplateParameterDependency( TemplateParameter* a_pPara
     if(m_pTemplateParameterDependencies == nullptr) m_pTemplateParameterDependencies = new vector<TemplateParameter*>;
     m_pTemplateParameterDependencies->push_back(a_pParameter);
     addReferencedElement(a_pParameter);
+}
+
+bool LanguageElement::isSpecializedBy( TemplateSpecialization* a_pSpec ) const
+{
+    return a_pSpec->isSpecializing((LanguageElement*)this);
 }
 
 vector<LanguageElement*> LanguageElement::sm_Elements;// TODO remove

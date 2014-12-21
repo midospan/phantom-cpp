@@ -101,9 +101,16 @@ public:
 
     bool                    isConstExpression() const;
 
-    Expression*             precompileUnaryOperator(Precompiler* a_pPrecompiler, const string& a_strOp, modifiers_t a_Modifiers = 0) 
+    Expression*             precompilePreUnaryOperator(Precompiler* a_pPrecompiler, const string& a_strOp, modifiers_t a_Modifiers = 0) 
     {
         vector<Expression*> elements;
+        return precompileOperator(a_pPrecompiler, a_strOp, elements, a_Modifiers); 
+    }
+
+    Expression*             precompilePostUnaryOperator(Precompiler* a_pPrecompiler, const string& a_strOp, modifiers_t a_Modifiers = 0) 
+    {
+        vector<Expression*> elements;
+        elements.push_back(nullptr);
         return precompileOperator(a_pPrecompiler, a_strOp, elements, a_Modifiers); 
     }
 

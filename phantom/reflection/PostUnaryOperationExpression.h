@@ -53,8 +53,6 @@ public:
 
     const string& getOperator() const { return m_strOperator; }
 
-    virtual void    internalEval(void* a_pDest) const = 0;
-
     virtual void    flush() const;
 
     virtual bool    isAddressable() const { return false; }
@@ -62,6 +60,14 @@ public:
     Expression*     getExpression() const { return m_pExpression; }
 
     Expression*     getConvertedExpression() const { return m_pConvertedExpression; }
+
+    virtual PostUnaryOperationExpression* clone() const;
+
+protected:
+    void internalEval(void* a_pDest) const 
+    {
+        o_exception_no_implementation();
+    }
 
 protected:
     string          m_strOperator;

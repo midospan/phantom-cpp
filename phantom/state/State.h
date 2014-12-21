@@ -89,6 +89,9 @@ public:
     void            removeTrack(Track* a_pTrack);
     void            replaceTrack( Track* a_pOld, Track* a_pNew );
 
+    track_vector::const_iterator beginTracks() const { return m_Tracks.begin(); }
+    track_vector::const_iterator endTracks() const { return m_Tracks.end(); }
+
     Track*          getTrack(const string& a_strName) const;
     inline Track*   getTrack(uint a_uiIndex) const    { return m_Tracks[a_uiIndex]; }
     inline Track*   getParentTrack() const            { return m_pParentTrack;    }

@@ -49,12 +49,18 @@ class o_export PODUnion : public ClassType
     o_declare_meta_type(PODUnion);
 
 public:
+    PODUnion(const string& a_strName, modifiers_t a_Modifiers = 0)
+        : ClassType(e_union, new extra_data, a_strName, a_Modifiers) 
+    {
+    }
 
+protected:
     PODUnion(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
         : ClassType(e_union, a_strName, a_uiSize, a_uiAlignment, a_Modifiers) 
     {
     }
 
+public:
     o_destructor ~PODUnion(void)     
     {
     }

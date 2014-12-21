@@ -70,7 +70,9 @@ public:
 
     virtual void                flush() const;
 
-    virtual ArrayExpression* clone() const;
+    virtual ArrayExpression*    clone() const;
+
+    ArrayType*                  getArrayType() const { return m_pArrayType; }
 
 protected:
     void referencedElementRemoved( LanguageElement* a_pElement );

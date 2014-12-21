@@ -118,7 +118,10 @@ public:
     bool            matches(const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes = nullptr) const;
     bool            matches(const vector<Expression*>& a_Arguments, vector<size_t>* a_pPartialMatchesIndexes = nullptr) const;
     bool            matches( Signature* a_pOther ) const;
-    
+
+    vector<Parameter*>::const_iterator beginParameters() const { return m_Parameters.begin(); }
+    vector<Parameter*>::const_iterator endParameters() const { return m_Parameters.end(); }
+
 protected:
     static bool SeparateParameters(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<string>& a_OutParameters, LanguageElement* a_pScope);
     static bool ParseParameterTypeList(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<Type*>& a_OutParameterTypes, vector<string>& a_OutParameterNames, vector<Expression*>& a_OutParameterExps, LanguageElement* a_pScope);

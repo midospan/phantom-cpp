@@ -21,7 +21,7 @@ class o_export TemplateParameter : public LanguageElement
 
 public:
     TemplateParameter();
-    TemplateParameter(Type* a_pElementType, const string& a_strName, LanguageElement* a_pDefaultArgument = nullptr, modifiers_t modifiers = 0);
+    TemplateParameter(Placeholder* a_pPlaceholder, LanguageElement* a_pDefaultArgument = nullptr, modifiers_t modifiers = 0);
 	~TemplateParameter(void) 	{}
 
     virtual TemplateParameter*  asTemplateParameter() const { return (TemplateParameter*)this; }
@@ -36,13 +36,16 @@ public:
 
     Type*   getElementType() const { return m_pElementType; }
 
+    Placeholder* getPlaceholder() const { return m_pPlaceholder; }
+
 protected:
     void elementRemoved( LanguageElement* a_pElement );
     void referencedElementRemoved( LanguageElement* a_pElement );
 
 protected:
-    Type* m_pElementType;
+    Placeholder*     m_pPlaceholder;
     LanguageElement* m_pDefaultArgument;
+    LanguageElement* m_pPlaceholder;
 };
 
 o_namespace_end(phantom, reflection)

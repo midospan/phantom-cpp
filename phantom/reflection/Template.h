@@ -54,6 +54,7 @@ class o_export Template : public LanguageElement
 
 public:
     Template(const string& a_strName, TemplateSignature* a_pSignature);
+    Template(const string& a_strName, const string& a_strTemplateTypes, const string& a_strTemplateParam);
     o_destructor ~Template();
 
     Namespace* getNamespace() const { return m_pOwner ? m_pOwner->asNamespace() : nullptr; }
@@ -61,8 +62,8 @@ public:
     vector<TemplateSpecialization*>::const_iterator beginSpecializations() const { return m_Specializations.begin(); }
     vector<TemplateSpecialization*>::const_iterator endSpecializations() const { return m_Specializations.end(); }
 
-    vector<TemplateParameter*>::const_iterator beginTemplateParameters() const { return m_pTemplateSignature->beginParameters(); }
-    vector<TemplateParameter*>::const_iterator endTemplateParameters() const { return m_pTemplateSignature->endTemplateParameters(); }
+    vector<TemplateParameter*>::const_iterator beginTemplateParameters() const;
+    vector<TemplateParameter*>::const_iterator endTemplateParameters() const;
 
     void parseParameters(const string& a_strTemplateTypes, const string& a_strTemplateParams);
 
@@ -81,14 +82,23 @@ public:
 
     TemplateSignature*  getTemplateSignature() const { return m_pTemplateSignature; }
 
+    void                createSpecialization(const vector<LanguageElement*>& arguments, TemplateSignature* a_pTemplateSignature)
+    {
+        registerSpecialization(o_new(TemplateSpecialization)(this, arguments, a_pTemplateSignature));
+    }
+    void addTemplateParameterAliasName(size_t a_uiIndex, const string& a_strAlias);
+
 protected:
+    void                createEmptySpecialization();
     virtual bool canBeDestroyed() const { return m_Specializations.empty(); }
 
 protected:
-    void registerSpecialization(TemplateSpecialization* a_pTemplateSpecialization) { m_Specializations.push_back(a_pTemplateSpecialization); }
-    void unregisterSpecialization(TemplateSpecialization* a_pTemplateSpecialization) { m_Specializations.erase(std::find(m_Specializations.begin(), m_Specializations.end(), a_pTemplateSpecialization)); }
-    void addTemplateParameterAliasName(size_t a_uiIndex, const string& a_strAlias);
-
+    void registerSpecialization(TemplateSpecialization* a_pTemplateSpecialization) 
+    { 
+        
+        m_Specializations.push_back(a_pTemplateSpecialization); 
+    }
+    
 protected:
     TemplateSignature*              m_pTemplateSignature;
     vector<TemplateSpecialization*> m_Specializations;

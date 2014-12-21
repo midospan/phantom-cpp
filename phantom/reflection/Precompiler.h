@@ -101,102 +101,107 @@ public:
     virtual Expression* precompileOperator( Expression* a_pExpression, const string& a_strOperator, const vector<Expression*>& a_Arguments, modifiers_t a_Modifiers /*= 0*/ );
 
     /// TEMPLATE INSTANCIATION
-
+    
 
     // Default cplusplus like elements
-    virtual LanguageElement* instanciateTemplate(LanguageElement* a_pElement, TemplateSpecialization* a_pSpec);
+    virtual void instanciateTemplate(LanguageElement* a_pElement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
 
     // Namespace
-    virtual LanguageElement* instanciateTemplate(Namespace* a_pNamespace, TemplateSpecialization* a_pSpec);
+    virtual void instanciateTemplate(Namespace* a_pNamespace, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
 
     // Types 
-    virtual LanguageElement* instanciateTemplate(Type* a_pType, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(PrimitiveType* a_pType, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(FunctionPointerType* a_pType, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(MemberFunctionPointerType* a_pType, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(DataMemberPointerType* a_pType, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(DataPointerType* a_pType, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(ReferenceType* a_pType, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(ConstType* a_pType, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(ArrayType* a_pType, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(Enum* a_pEnum, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(ClassType* a_pClassType, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(Class* a_pClass, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(Structure* a_pStructure, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(Union* a_pUnion, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(PODUnion* a_pPODUnion, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(AnonymousSection* a_pAnonymousSection, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(AnonymousStruct* a_pAnonymousStruct, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(AnonymousUnion* a_pAnonymousUnion, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(Template* a_pTemplate, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(TemplateSpecialization* a_pTemplateSpecialization, TemplateSpecialization* a_pSpec);
+    virtual void instanciateTemplate(Type* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(PrimitiveType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(FunctionPointerType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(MemberFunctionPointerType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(DataMemberPointerType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(DataPointerType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(ReferenceType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(ConstType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(ArrayType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(Enum* a_pEnum, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(ClassType* a_pClassType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(Class* a_pClass, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(Structure* a_pStructure, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(Union* a_pUnion, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(PODUnion* a_pPODUnion, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(AnonymousSection* a_pAnonymousSection, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(AnonymousStruct* a_pAnonymousStruct, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(AnonymousUnion* a_pAnonymousUnion, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(Template* a_pTemplate, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(TemplateSpecialization* a_pTemplateSpecialization, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
 
     // Subroutines
-    virtual LanguageElement* instanciateTemplate(Subroutine* a_pSubroutine, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(Constructor* a_pConstructor, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(Function* a_pFunction, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(StaticMemberFunction* a_pStaticMemberFunction, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(InstanceMemberFunction* a_pInstanceMemberFunction, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(Signal* a_pSignal, TemplateSpecialization* a_pSpec);
+    virtual void instanciateTemplate(Subroutine* a_pSubroutine, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(Constructor* a_pConstructor, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(Function* a_pFunction, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(StaticMemberFunction* a_pStaticMemberFunction, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(InstanceMemberFunction* a_pInstanceMemberFunction, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(Signal* a_pSignal, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
 
     // Variables
-    virtual LanguageElement* instanciateTemplate(StaticDataMember* a_pStaticDataMember, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(StaticVariable* a_pStaticVariable, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(InstanceDataMember* a_pInstanceDataMember, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(Property* a_pProperty, TemplateSpecialization* a_pSpec);
+    virtual void instanciateTemplate(StaticDataMember* a_pStaticDataMember, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(StaticVariable* a_pStaticVariable, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(InstanceDataMember* a_pInstanceDataMember, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(Property* a_pProperty, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
 
     // Statechart
-    virtual LanguageElement* instanciateTemplate(state::StateMachine* a_pStateMachine, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(state::State* a_pState, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(state::Track* a_pTrack, TemplateSpecialization* a_pSpec);
+    virtual void instanciateTemplate(state::StateMachine* a_pStateMachine, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(state::State* a_pState, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(state::Track* a_pTrack, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
 
     // Statements
-    virtual LanguageElement* instanciateTemplate(Block* a_pBlock, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(LocalVariable* a_pLocalVariable, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(Parameter* a_pParameter, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(Signature* a_pSignature, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(BranchStatement* a_pBranchStatement, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(BranchIfStatement* a_pBranchIfStatement, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(BranchIfNotStatement* a_pBranchIfNotStatement, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(ExpressionStatement* a_pExpressionStatement, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(ReturnStatement* a_pReturnStatement, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(LabelStatement* a_pLabelStatement, TemplateSpecialization* a_pSpec);
+    virtual void instanciateTemplate(Block* a_pBlock, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(LocalVariable* a_pLocalVariable, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(Parameter* a_pParameter, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(Signature* a_pSignature, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(BranchStatement* a_pBranchStatement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(BranchIfStatement* a_pBranchIfStatement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(BranchIfNotStatement* a_pBranchIfNotStatement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(ExpressionStatement* a_pExpressionStatement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(ReturnStatement* a_pReturnStatement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(LabelStatement* a_pLabelStatement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
 
     // Expressions
-    virtual LanguageElement* instanciateTemplate(CallExpression* a_pCallExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(CastExpression* a_pCastExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(DereferenceExpression* a_pDereferenceExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(AddressExpression* a_pAddressExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(ReferenceExpression* a_pReferenceExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(ConstantExpression* a_pConstantExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(DataExpression* a_pDataExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(InstanceDataMemberExpression* a_pInstanceDataMemberExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(LocalVariableExpression* a_pLocalVariableExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(PropertyExpression* a_pPropertyExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(StaticVariableExpression* a_pStaticVariableExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(ArrayExpression* a_pArrayExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(StringLiteralExpression* a_pStringLiteralExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(MemberFunctionPointerCallExpression* a_pMemberFunctionPointerCallExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(DataMemberPointerExpression* a_pDataMemberPointerExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(AssignmentExpression* a_pAssignmentExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(ConstructorCallExpression* a_pConstructorCallExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(PlacementConstructionExpression* a_pPlacementConstructionExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(BinaryOperationExpression* a_pBinaryOperatorExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(PreUnaryOperationExpression* a_pPreUnaryOperationExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(PostUnaryOperationExpression* a_pPostUnaryOperationExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(CompositionGetSetExpression* a_pCompositionGetSetExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(AggregationGetSetExpression* a_pAggregationGetSetExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(CompositionInsertRemoveExpression* a_pCompositionInsertRemoveExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(AggregationInsertRemoveExpression* a_pAggregationInsertRemoveExpression, TemplateSpecialization* a_pSpec);
-    virtual LanguageElement* instanciateTemplate(SingleParameterFunctionExpression* a_pSingleParameterFunctionExpression, TemplateSpecialization* a_pSpec);
+    virtual void instanciateTemplate(CallExpression* a_pCallExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(CastExpression* a_pCastExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(DereferenceExpression* a_pDereferenceExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(AddressExpression* a_pAddressExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(ReferenceExpression* a_pReferenceExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(ConstantExpression* a_pConstantExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(DataExpression* a_pDataExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(InstanceDataMemberExpression* a_pInstanceDataMemberExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(LocalVariableExpression* a_pLocalVariableExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(PropertyExpression* a_pPropertyExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(StaticVariableExpression* a_pStaticVariableExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(ArrayExpression* a_pArrayExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(StringLiteralExpression* a_pStringLiteralExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(MemberFunctionPointerCallExpression* a_pMemberFunctionPointerCallExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(DataMemberPointerExpression* a_pDataMemberPointerExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(AssignmentExpression* a_pAssignmentExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(ConstructorCallExpression* a_pConstructorCallExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(PlacementConstructionExpression* a_pPlacementConstructionExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(BinaryOperationExpression* a_pBinaryOperatorExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(PreUnaryOperationExpression* a_pPreUnaryOperationExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(PostUnaryOperationExpression* a_pPostUnaryOperationExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(CompositionGetSetExpression* a_pCompositionGetSetExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(AggregationGetSetExpression* a_pAggregationGetSetExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(CompositionInsertRemoveExpression* a_pCompositionInsertRemoveExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(AggregationInsertRemoveExpression* a_pAggregationInsertRemoveExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(SingleParameterFunctionExpression* a_pSingleParameterFunctionExpression, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
 
     // Constant
-    virtual LanguageElement* instanciateTemplate(Constant* a_pConstant, TemplateSpecialization* a_pSpec);
+    virtual void instanciateTemplate(Constant* a_pConstant, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+   
+    // Placeholders
+    virtual void instanciateTemplate(PlaceholderConstant* a_pPlaceholderConstant, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(PlaceholderType* a_pPlaceholderType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(PlaceholderClass* a_pPlaceholderClass, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(PlaceholderInstanceDataMember* a_pPlaceholderInstanceDataMember, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
+    virtual void instanciateTemplate(PlaceholderSubroutine* a_pPlaceholderSubroutine, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
 
-
-
-
-
+protected:
+    map<TemplateSpecialization*, map<LanguageElement*, LanguageElement*>> m_Templated;
 
 };
 

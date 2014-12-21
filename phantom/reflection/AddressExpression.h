@@ -72,8 +72,6 @@ public:
 
     virtual AddressExpression*     clone() const;
 
-    virtual LanguageElement* internalInstanciateTemplate(TemplateSpecialization* a_pSpecialization);
-
 protected:
     Expression* m_pAddressedExpression;
 };

@@ -863,6 +863,7 @@ enum EABI
     e_fastcall,
     e_cdecl,
     e_thiscall,
+    e_placeholdercall,
 };
 
 typedef fastdelegate::DelegateMemento DelegateMemento;

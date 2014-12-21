@@ -122,6 +122,13 @@ o_fwd(class, phantom, reflection, CompositionInsertRemoveExpression)
 o_fwd(class, phantom, reflection, AggregationInsertRemoveExpression)
 o_fwd(class, phantom, reflection, SingleParameterFunctionExpression)
 
+o_fwd(class, phantom, reflection, Placeholder)
+o_fwd(class, phantom, reflection, PlaceholderType)
+o_fwd(class, phantom, reflection, PlaceholderClass)
+o_fwd(class, phantom, reflection, PlaceholderConstant)
+o_fwd(class, phantom, reflection, PlaceholderInstanceDataMember)
+o_fwd(class, phantom, reflection, PlaceholderSubroutine)
+
 o_fwd(class, phantom, state, StateMachine)
 o_fwd(class, phantom, state, StateMachineElement)
 o_fwd(class, phantom, state, State)

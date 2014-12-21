@@ -14,20 +14,20 @@ o_namespace_begin(phantom, reflection)
 o_define_meta_type(TemplateParameter);
 
 TemplateParameter::TemplateParameter()
-    , m_pElementType(nullptr)
     , m_pDefaultArgument(nullptr)
+    , m_pPlaceholder(nullptr)
 {
 
 }
 
-TemplateParameter::TemplateParameter( Type* a_pElementType, const string& a_strName, LanguageElement* a_pDefaultArgument, modifiers_t a_Modifiers /*= 0*/ ) 
-    : LanguageElement(a_strName, a_Modifiers)
-    , m_pElementType(a_pElementType)
+TemplateParameter::TemplateParameter( Placeholder* a_pPlaceholder, LanguageElement* a_pDefaultArgument, modifiers_t a_Modifiers /*= 0*/ ) 
+    : LanguageElement(a_pPlaceholder ? a_pPlaceholder->asLanguageElement()->getName() : "", a_Modifiers)
     , m_pDefaultArgument(nullptr)
+    , m_pPlaceholder(a_pPlaceholder)
 {
-    if(m_pElementType)
+    if(m_pPlaceholder)
     {
-        addReferencedElement(m_pElementType);
+        addElement(m_pPlaceholder->asLanguageElement());
     }
     else setInvalid();
     setDefaultArgument(a_pDefaultArgument);
@@ -35,7 +35,7 @@ TemplateParameter::TemplateParameter( Type* a_pElementType, const string& a_strN
 
 TemplateParameter* TemplateParameter::clone() const
 {
-    return o_new(TemplateParameter)(m_pElementType, m_strName, m_pDefaultArgument, m_Modifiers);
+    return o_new(TemplateParameter)(m_pPlaceholder, m_strName, m_pDefaultArgument, m_Modifiers);
 }
 
 void TemplateParameter::elementRemoved( LanguageElement* a_pElement )

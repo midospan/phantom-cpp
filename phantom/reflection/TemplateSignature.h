@@ -71,8 +71,11 @@ public:
     void                addParameter(TemplateParameter* a_pTemplateSignatureParameter);
     void                addParameterAliasName(size_t a_uiIndex, const string& a_strAlias);
 
+    const vector<LanguageElement*>& getPlaceholders() const { return m_Placeholders; }
+
 protected:
     vector<TemplateParameter*> m_Parameters;
+    vector<LanguageElement*> m_Placeholders;
     map<string, size_t>        m_ParameterAliasNames;
 };
 

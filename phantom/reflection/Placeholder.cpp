@@ -41,5 +41,16 @@ o_registerN((phantom, reflection), Placeholder);
 o_namespace_begin(phantom, reflection) 
 
 o_define_meta_type(Placeholder);
+o_define_meta_type(PlaceholderType);
+o_define_meta_type(PlaceholderClass);
+o_define_meta_type(PlaceholderSubroutine);
+o_define_meta_type(PlaceholderConstant);
+o_define_meta_type(PlaceholderInstanceDataMember);
+
+Constant* PlaceholderConstant::clone() const
+{
+    return o_new(PlaceholderConstant)(m_pType, m_strName, m_pTemplateParameterDependencies->front(), m_Modifiers);
+}
 
 o_namespace_end(phantom, reflection)
+

@@ -58,6 +58,8 @@ public:
 
     virtual void internalEval(void* a_pDest) const ;
 
+    DataMemberPointerType* getDataMemberPointerType() const { return m_pDataMemberPointerType; }
+
     Expression* getObjectExpression() const { return m_pObjectExpression; }
 
     Expression* getMemberExpression() const { return m_pMemberExpression; }

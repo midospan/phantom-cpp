@@ -52,17 +52,19 @@ public:
     DataExpression(serialization::DataBase* a_pDataBase, Expression* a_pGuidExpression);
     o_destructor ~DataExpression(void)     {}
 
-    virtual DataExpression*  asDataExpression() const { return (DataExpression*)this; }
+    virtual DataExpression* asDataExpression() const { return (DataExpression*)this; }
 
-    virtual bool    hasValueStorage() const { return false; }
+    virtual bool hasValueStorage() const { return false; }
 
-    virtual void    internalEval(void* a_pDest) const;
+    virtual void internalEval(void* a_pDest) const;
 
     virtual DataExpression* clone() const;
 
     virtual bool isEffectiveAddressFixed() const { return true; }
 
     Expression* getGuidExpression() const { return m_pGuidExpression; }
+
+    serialization::DataBase* getDataBase() const { return m_pDataBase; }
 
 protected:
     serialization::DataBase* m_pDataBase;

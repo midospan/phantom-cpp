@@ -79,9 +79,4 @@ AssignmentExpression* AssignmentExpression::clone() const
     return o_new(AssignmentExpression)(m_pLeftExpression, m_pRightExpression);
 }
 
-LanguageElement* AssignmentExpression::internalInstanciateTemplate( TemplateSpecialization* a_pSpecialization )
-{
-}
-
-
 o_namespace_end(phantom, reflection)

@@ -103,19 +103,25 @@ size_t TemplateSignature::getDefaultArgumentCount() const
     return i;
 }
 
-void TemplateSignature::addTemplateSignatureParameter( TemplateParameter* a_pTemplateParameter )
+void TemplateSignature::addParameter( TemplateParameter* a_pTemplateParameter )
 {
     if(getParameterIndex(a_pTemplateParameter->getName()) != ~size_t(0))
     {
         setInvalid();
     }
     m_Parameters.push_back(a_pTemplateParameter);
+    LanguageElement* pPH = a_pTemplateParameter->getPlaceholder() ? a_pTemplateParameter->getPlaceholder()->asLanguageElement() : nullptr;
+    m_Placeholders.push_back(pPH);
+    if(pPH)
+    {
+        addReferencedElement(pPH);
+    }
 }
 
-void TemplateSignature::registerTemplateSignatureParameterAliasName( size_t a_uiIndex, const string& a_strAlias )
+void TemplateSignature::addParameterAliasName( size_t a_uiIndex, const string& a_strAlias )
 {
     o_assert(getParameterIndex(a_strAlias) == ~size_t(0));
-    m_Parameters[a_strAlias] = a_uiIndex;
+    m_ParameterAliasNames[a_strAlias] = a_uiIndex;
 }
 
 o_namespace_end(phantom, reflection)

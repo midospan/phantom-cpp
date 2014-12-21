@@ -138,10 +138,4 @@ void ArrayExpression::flush() const
     m_pIndexExpression->flush(); m_pLeftExpression->flush();
 }
 
-LanguageElement* ArrayExpression::internalInstanciateTemplate( TemplateSpecialization* a_pSpecialization )
-{
-    return o_new(ArrayExpression)(instanciateTemplate(m_pLeftExpression, a_pSpecialization)
-                                , instanciateTemplate(m_pIndexExpression, a_pSpecialization))
-}
-
 o_namespace_end(phantom, reflection)

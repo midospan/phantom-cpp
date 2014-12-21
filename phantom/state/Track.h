@@ -52,7 +52,7 @@ class o_export Track : public StateMachineElement
     friend class State;
     friend class StateMachine;
 
-    typedef vector<State*>    StateVector;
+    typedef vector<State*>    state_vector;
 
 public:
     static reflection::Class* const metaType;
@@ -86,6 +86,10 @@ public:
     boolean                 isActive(void* a_pObject) const { return getOwnerStateMachine()->isTrackActive(a_pObject, this); }
 
     State*                  getInitialState() const {     return isEmpty() ? NULL : m_States[0]; }
+
+
+    state_vector::const_iterator beginStates() const { return m_States.begin(); }
+    state_vector::const_iterator endStates() const { return m_States.end(); }
 
     void                    addState(State* a_pState);
     State*                  getParentState() const { return m_pParentState; }
@@ -123,7 +127,7 @@ protected:
     void                    setParentState(State* a_pState) { m_pParentState = a_pState; }
 
 protected:
-    vector<State*>          m_States;
+    state_vector            m_States;
     size_t                  m_uiIndex;
     State*                  m_pParentState;
     uint                    m_uiSerializationMask;

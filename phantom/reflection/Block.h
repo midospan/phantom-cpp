@@ -22,8 +22,8 @@ class o_export Block : public Statement
     friend class ReturnStatement;
 
 public:
-
     Block(Block* a_pBlock, const string& a_strName = "");
+    Block(Subroutine* a_pSubroutine, LocalVariable* a_pThis = nullptr); // used to create root block in a subroutine
     ~Block();
 
     virtual Block* asBlock() const  { return (Block*)this; }
@@ -114,7 +114,6 @@ protected:
 
 protected:
     Block(); // used for serialization
-    Block(Subroutine* a_pSubroutine, LocalVariable* a_pThis = nullptr); // used to create root block in a subroutine
 
 protected:
     vector<LocalVariable*>  m_LocalVariables;

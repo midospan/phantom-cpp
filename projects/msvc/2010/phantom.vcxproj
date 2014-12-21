@@ -329,8 +329,6 @@
     <ClInclude Include="..\..\..\phantom\reflection\Parameter.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Placeholder.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Placeholder.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\PlaceholderType.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\PlaceholderType.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\PlacementConstructionExpression.h" />
     <ClInclude Include="..\..\..\phantom\reflection\PlacementConstructionExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Precompiler.h" />
@@ -732,7 +730,6 @@
     <ClCompile Include="..\..\..\phantom\reflection\MemberPointerType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Parameter.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Placeholder.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\PlaceholderType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\PlacementConstructionExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Precompiler.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\TBinaryBooleanExpression.cpp" />

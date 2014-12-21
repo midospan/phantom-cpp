@@ -514,15 +514,16 @@ public:
     vector<VirtualMemberFunctionTable*>::const_iterator beginVirtualMemberFunctionsTables() const { return m_VirtualMemberFunctionTables.begin(); }
     vector<VirtualMemberFunctionTable*>::const_iterator endVirtualMemberFunctionsTables() const { return m_VirtualMemberFunctionTables.end(); }
 
-    vector<InstanceMemberFunction*>::const_iterator beginMemberFunctions() const { return m_InstanceMemberFunctions.begin(); }
-    vector<InstanceMemberFunction*>::const_iterator endMemberFunctions() const { return m_InstanceMemberFunctions.end(); }
+    vector<Signal*>::const_iterator beginSignals() const;
+    vector<Signal*>::const_iterator endSignals() const;
 
     virtual void        addBaseClass(Class* a_pClass);
 
     const 
-    base_class_table&  getBaseClasses() const { return m_BaseClasses; }
+    base_class_table&   getBaseClasses() const { return m_BaseClasses; }
     uint                getBaseClassCount(void) const { return m_BaseClasses.size(); }
-    boolean             hasBaseClass( Class* a_pClass ) const;
+    bool                hasBaseClass( Class* a_pClass ) const;
+    bool                hasBaseClassCascade( Class* a_pClass ) const;
 
     Class*              getDerivedClass(uint a_uiIndex) const { return m_DerivedClasses[a_uiIndex]; }
     uint                getDerivedClassCount(void) const { return m_DerivedClasses.size(); }
@@ -580,32 +581,33 @@ public:
     static void         installRTTI(Class* a_pLayoutClass, void* a_pLayout, Class* a_pBaseClass, void* a_pBase, connection::slot_pool* sp, const rtti_data* a_pOwner, const rtti_data* a_pRTTI);
     static void         uninstallRTTI(void* a_pLayout, Class* a_pLayoutClass, size_t a_uiLevel, bool a_bRemoveRTTI);
 
-    virtual void initialize( void* a_pInstance ) const;
-    virtual void initialize(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { ClassType::initialize(a_pChunk, a_uiCount, a_uiChunkSectionSize); }
-    virtual void terminate( void* a_pInstance ) const;
-    virtual void terminate(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { ClassType::terminate(a_pChunk, a_uiCount, a_uiChunkSectionSize); ; }
-    virtual void install( void* a_pInstance, const rtti_data* a_pOwner = 0 ) const;
-    virtual void install(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const rtti_data* a_pOwner = 0 ) const { ClassType::install(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOwner); }
-    virtual void uninstall( void* a_pInstance, size_t a_uiLevel = 0) const;
-    virtual void uninstall(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const { ClassType::uninstall(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_uiLevel); ; }
+    virtual void        initialize( void* a_pInstance ) const;
+    virtual void        initialize(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { ClassType::initialize(a_pChunk, a_uiCount, a_uiChunkSectionSize); }
+    virtual void        terminate( void* a_pInstance ) const;
+    virtual void        terminate(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize ) const { ClassType::terminate(a_pChunk, a_uiCount, a_uiChunkSectionSize); ; }
+    virtual void        install( void* a_pInstance, const rtti_data* a_pOwner = 0 ) const;
+    virtual void        install(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const rtti_data* a_pOwner = 0 ) const { ClassType::install(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOwner); }
+    virtual void        uninstall( void* a_pInstance, size_t a_uiLevel = 0) const;
+    virtual void        uninstall(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, size_t a_uiLevel = 0 ) const { ClassType::uninstall(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_uiLevel); ; }
 
-    virtual restore_state   restore(void* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass) const;
+    virtual 
+        restore_state   restore(void* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass) const;
 
-    virtual size_t  getVirtualMemberFunctionCount(size_t a_uiOffset) const;
+    virtual size_t      getVirtualMemberFunctionCount(size_t a_uiOffset) const;
 
-    virtual void*   allocate() const;
-    virtual void    deallocate(void* a_pInstance) const;
-    virtual void*   allocate(size_t a_uiCount) const;
-    virtual void    deallocate(void* a_pInstance, size_t a_uiCount) const;
-    virtual void    construct(void* a_pObject) const;
-    virtual void    destroy(void* a_pObject) const;
-    virtual void    construct(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize) const;
-    virtual void    destroy(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize) const;
+    virtual void*       allocate() const;
+    virtual void        deallocate(void* a_pInstance) const;
+    virtual void*       allocate(size_t a_uiCount) const;
+    virtual void        deallocate(void* a_pInstance, size_t a_uiCount) const;
+    virtual void        construct(void* a_pObject) const;
+    virtual void        destroy(void* a_pObject) const;
+    virtual void        construct(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize) const;
+    virtual void        destroy(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize) const;
 
-    virtual void    remember(void const* a_pInstance, byte*& a_pOutBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
-    virtual void    reset(void* a_pInstance, byte const*& a_pInBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
-    virtual void    remember(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
-    virtual void    reset(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        remember(void const* a_pInstance, byte*& a_pOutBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        reset(void* a_pInstance, byte const*& a_pInBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        remember(void const* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
+    virtual void        reset(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
 
     // TODO : COMPILER
     /*InstanceMemberFunction* addRestoreMemberFunction();
