@@ -55,7 +55,7 @@ void AnonymousSection::addInstanceDataMember( InstanceDataMember* a_pDataMember 
         o_exception(exception::base_exception, "null data member");
     }
     addReferencedElement(a_pDataMember);
-    m_Elements.push_back(a_pDataMember);
+    m_Members.push_back(a_pDataMember);
     o_assert(a_pDataMember->m_pAnonymousSection == nullptr);
     a_pDataMember->m_pAnonymousSection = this;
 }
@@ -63,15 +63,15 @@ void AnonymousSection::addInstanceDataMember( InstanceDataMember* a_pDataMember 
 void AnonymousSection::addAnonymousSection( AnonymousSection* a_pAnonymousSection )
 {
     addElement(a_pAnonymousSection);
-    m_Elements.push_back(a_pAnonymousSection);
+    m_Members.push_back(a_pAnonymousSection);
 }
 
 void AnonymousSection::referencedElementRemoved( LanguageElement* a_pElement )
 {
-    auto found = std::find(m_Elements.begin(), m_Elements.end(), a_pElement);
-    if(found != m_Elements.end())
+    auto found = std::find(m_Members.begin(), m_Members.end(), a_pElement);
+    if(found != m_Members.end())
     {
-        m_Elements.erase(found);
+        m_Members.erase(found);
         o_assert(a_pElement->asInstanceDataMember());
         static_cast<InstanceDataMember*>(a_pElement)->m_pAnonymousSection = nullptr;
     }

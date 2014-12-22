@@ -96,7 +96,6 @@ struct default_converter_integral
             return isImplicitlyConvertibleTo(a_pType, a_pDestType->removeReference()->removeConst());
         return a_pDestType == a_pType
             OR ((a_pDestType->getTypeId() >= reflection::e_char) AND (a_pDestType->getTypeId() <= reflection::e_wchar_t))
-
             ;
     }
 };

@@ -348,16 +348,15 @@ void Type::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_
 
 boolean Type::isConvertibleTo( Type* a_pType ) const
 {
-    if(a_pType->removeConst() == removeConst()) return true;
-    return isImplicitlyConvertibleTo(a_pType);
+    return a_pType->removeConst() == this OR isImplicitlyConvertibleTo(a_pType);
 }
 
 boolean Type::isImplicitlyConvertibleTo( Type* a_pType ) const
 {
-    if (a_pType == this) return true;
+    if (a_pType == this OR a_pType->isPlaceholder()) return true;
     
     // if a_pType is a const reference, it is possible to convert to it via a temporary constructed buffer
-    a_pType = (a_pType->asReferenceType() AND a_pType->asReferenceType()->getReferencedType()->asConstType()) ? a_pType->removeConstReference() : a_pType;
+    a_pType = (a_pType->asConstReferenceType()) ? a_pType->removeConstReference() : a_pType;
     if (a_pType == this) return true;
     
     return (a_pType->asClassType() != nullptr) 
@@ -888,13 +887,33 @@ bool Type::referencesData(const void* a_pInstance, const phantom::data& a_Data) 
     return false; 
 }
 
-bool Type::matches( const string& a_strName, const vector<LanguageElement*>* a_pTemplateSignature, modifiers_t modifiers = 0 ) const
+bool Type::matches( const string& a_strName, const vector<LanguageElement*>* a_pTemplateSignature, modifiers_t modifiers /*= 0*/ ) const
 {
     if((a_pTemplateSignature AND m_pTemplateSpecialization == nullptr)
         OR (a_pTemplateSignature == nullptr AND m_pTemplateSpecialization)
         OR (m_strName != a_strName)
         OR (m_Modifiers&modifiers) != modifiers) return false;
-    return a_pTemplateSignature ? m_pTemplateSpecialization->matches(a_pTemplateSignature) : true;
+    return a_pTemplateSignature ? m_pTemplateSpecialization->matches(*a_pTemplateSignature) : true;
+}
+
+bool Type::templatePartialMatch( LanguageElement* a_pLanguageElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+{
+    Type* pType = a_pLanguageElement->asType();
+    if(pType) 
+    { 
+        return templatePartialMatch(pType, a_Score, a_Deductions); 
+    } 
+    return false;
+}
+
+bool Type::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+{
+    if(a_pType == this) 
+    { 
+        a_Score = ~size_t(0); 
+        return true; 
+    } 
+    return false;
 }
 
 o_namespace_end(phantom, reflection)

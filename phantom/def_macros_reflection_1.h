@@ -399,7 +399,7 @@
         {\
             reg() \
             {\
-                phantom::reflection::Types::currentInstalledTemplateSpecialization->setDefaultArgument(#parameter, phantom::reflection::type_of<__VA_ARGS__>::object());\
+                phantom::reflection::Types::currentInstalledTemplateSpecialization->getTemplate()->getTemplateSignature()->setDefaultArgument(#parameter, phantom::reflection::type_of<__VA_ARGS__>::object());\
             }\
         } regi;\
     } o_PP_CAT(default_template_argument_type,__COUNTER__);

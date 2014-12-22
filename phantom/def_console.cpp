@@ -87,19 +87,23 @@ static class con_dev
 private:
     HANDLE                      hCon;
     DWORD                       cCharsWritten; 
-    CONSOLE_SCREEN_BUFFER_INFO  csbi; 
+    std::stack<CONSOLE_SCREEN_BUFFER_INFO>  csbi_stack; 
     DWORD                       dwConSize;
 
 public:
     con_dev() 
     { 
+        csbi_stack.push(CONSOLE_SCREEN_BUFFER_INFO());
         hCon = GetStdHandle( STD_OUTPUT_HANDLE );
     }
+
+    CONSOLE_SCREEN_BUFFER_INFO& csbi() { return csbi_stack.top(); }
+
 private:
     void GetInfo()
     {
-        GetConsoleScreenBufferInfo( hCon, &csbi );
-        dwConSize = csbi.dwSize.X * csbi.dwSize.Y; 
+        GetConsoleScreenBufferInfo( hCon, &csbi() );
+        dwConSize = csbi().dwSize.X * csbi().dwSize.Y; 
     }
 public:
     void Clear()
@@ -113,7 +117,7 @@ public:
             &cCharsWritten ); 
         GetInfo(); 
         FillConsoleOutputAttribute( hCon,
-            csbi.wAttributes,
+            csbi().wAttributes,
             dwConSize,
             coordScreen,
             &cCharsWritten ); 
@@ -122,9 +126,9 @@ public:
     void SetColor( WORD wRGBI, WORD Mask )
     {
         GetInfo();
-        csbi.wAttributes &= Mask; 
-        csbi.wAttributes |= wRGBI; 
-        SetConsoleTextAttribute( hCon, csbi.wAttributes );
+        csbi().wAttributes &= Mask; 
+        csbi().wAttributes |= wRGBI; 
+        SetConsoleTextAttribute( hCon, csbi().wAttributes );
     }
 
     void SetSize( size_t width, size_t height )
@@ -134,6 +138,17 @@ public:
         c.X = width;
         c.Y = height;
         SetConsoleScreenBufferSize(hCon, c);
+    }
+
+    void Push()
+    {
+        csbi_stack.push(CONSOLE_SCREEN_BUFFER_INFO());
+    }
+
+    void Pop()
+    {
+        csbi_stack.pop();
+        SetConsoleTextAttribute( hCon, csbi().wAttributes );
     }
 
 } console;
@@ -147,10 +162,38 @@ std::ostream& clr( std::ostream& os )
     return os;
 }
 
+std::ostream& push( std::ostream& os )
+{
+    os.flush();
+    console.Push();
+    return os;
+}
+
+std::ostream& pop( std::ostream& os )
+{
+    os.flush();
+    console.Pop();
+    return os;
+}
+
 std::wostream& clr( std::wostream& os )
 {
     os.flush();
     console.Clear();
+    return os;
+}
+
+std::wostream& push( std::wostream& os )
+{
+    os.flush();
+    console.Push();
+    return os;
+}
+
+std::wostream& pop( std::wostream& os )
+{
+    os.flush();
+    console.Pop();
     return os;
 }
 
@@ -472,7 +515,9 @@ std::string createSpaces( int count )
 
 o_namespace_end(phantom, console)
 
-#else
+#else // o_COMPILER
+
+#pragma message("WARNING : CONSOLE COLORING NOT DEFINED FOR CURRENT COMPILER")
 
 o_namespace_begin(phantom, console)
 

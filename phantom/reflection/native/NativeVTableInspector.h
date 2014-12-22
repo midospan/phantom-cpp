@@ -699,7 +699,7 @@ public:
         return result;
 #endif
     }
-
+    
     template<typename t_Ty>
     static size_t  getDestructorIndex()
     {
@@ -709,22 +709,6 @@ public:
         size_t result = sm_ResultIndex;
         sm_ResultIndex = ~size_t(0);
         return result;
-    }
-
-private:
-    template<typename t_ClassPtr>
-    class VirtualMemberFunctionCountHacker : public t_ClassPtr
-    {
-    public:
-        virtual void PHANTOM_RESERVED_VirtualMemberFunctionCounter() { }
-
-    };
-
-public:
-    template<typename t_ClassPtr>
-    static size_t                        getVirtualMemberFunctionCount()
-    {
-        return getIndexOf(&VirtualMemberFunctionCountHacker<t_ClassPtr>::PHANTOM_RESERVED_VirtualMemberFunctionCounter);
     }
 };
 
@@ -779,35 +763,6 @@ namespace phantom
             enum { value = 0 };
         };
 
-        template<typename t_Ty, int vtable_id, bool is_class_not_abstract>
-        struct virtual_member_function_count_of_helper
-        {
-            static size_t value()
-            {
-                return (size_t)phantom::reflection::native::NativeVTableInspector::getVirtualMemberFunctionCount<t_Ty>();
-            }
-        };
-        template<typename t_Ty, int vtable_id>
-        struct virtual_member_function_count_of_helper<t_Ty, vtable_id, false>
-        {
-            static size_t value()
-            {
-                return 0;
-            }
-        };
-        template<typename t_Ty, int vtable_id = 0>
-        struct virtual_member_function_count_of : public virtual_member_function_count_of_helper<t_Ty, vtable_id, boost::is_class<t_Ty>::value
-                                                                                                                  AND !boost::is_abstract<t_Ty>::value
-                                                                                                                  AND std::is_default_constructible<t_Ty>::value>
-        {
-        };
-
-    }
-
-    template<typename t_Ty>
-    size_t     virtualMemberFunctionCountOf()
-    {
-        return detail::virtual_member_function_count_of<t_Ty>::value();
     }
 
     namespace detail

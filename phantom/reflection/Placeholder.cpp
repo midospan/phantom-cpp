@@ -53,14 +53,43 @@ Constant* PlaceholderConstant::clone() const
     return o_new(PlaceholderConstant)(m_pType, m_strName, m_pTemplateParameterDependencies->front(), m_Modifiers);
 }
 
+bool PlaceholderConstant::templatePartialMatch( LanguageElement* a_pElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+{
+    Constant* pConstant = a_pElement->asConstant();
+    if(pConstant == nullptr) return false;
+    if(pConstant->getValueType() == m_pType)
+    {
+        a_Score += 10;
+        return true;
+    }
+    else if(pConstant->getValueType()->isImplicitlyConvertibleTo(m_pType))
+    {
+        a_Score += 5;
+        return true;
+    }
+    return false;
+}
+
 bool PlaceholderArrayType::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
 {
     if(a_pType->asArrayType())
     {
         a_Score+=5;
-        if(a_Deductions.find(m_p) != a_Deductions.end())
-            return false;
-        a_Deductions[m_pPlaceholderConstant] = a_pType->asArrayType()->getItemCount();
+        Placeholder* pConstantPlaceholder = m_pSize->getConstant()->asPlaceholder();
+        if(pConstantPlaceholder AND pConstantPlaceholder->asPlaceholderConstant())
+        {
+            TemplateParameter* pTemplateParameter = pConstantPlaceholder->asPlaceholderConstant()->getTemplateParameterDependency();
+            auto found = a_Deductions.find(pTemplateParameter);
+            if(found != a_Deductions.end())
+            {
+                o_assert(found->second->asConstant());
+                size_t val = 0;
+                found->second->asConstant()->getValue(&val);
+                if(a_pType->asArrayType()->getItemCount() != val)
+                    return false;
+            }
+            else a_Deductions[pTemplateParameter] = a_pType->asArrayType()->getItemCount();
+        }
         return m_pItemType ? m_pItemType->templatePartialMatch(a_pType->removeArray()) : false;
     }
     return false;
@@ -80,6 +109,34 @@ bool PlaceholderType::templatePartialMatch( Type* a_pType, size_t& a_Score, map<
 {
     a_Score += 10;
     return true;
+}
+
+bool PlaceholderTemplate::templatePartialMatch( LanguageElement* a_pElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+{
+    Type* pType = a_pElement->asType();
+    if(pType == nullptr) return false;
+    TemplateSpecialization* pSpec = pType->getTemplateSpecialization();
+    if(pSpec)
+    {
+        return m_pTemplateSignature->templatePartialMatch(pSpec, a_Score, a_Deductions);
+    }
+    return false;
+}
+
+bool PlaceholderTemplateInstance::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+{
+    TemplateSpecialization* pSpec = a_pType->getTemplateSpecialization();
+    if(pSpec)
+    {
+        if(pSpec->getTemplate() != m_pTemplate) return false;
+        for(size_t i = 0; i<m_Arguments.size(); ++i)
+        {
+            if(NOT(m_Arguments[i]->templatePartialMatch(pSpec->getArgument(i), a_Score, a_Deductions)))
+                return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 o_namespace_end(phantom, reflection)

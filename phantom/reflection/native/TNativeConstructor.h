@@ -46,6 +46,19 @@ o_namespace_begin(phantom, reflection, native)
 
 /* *********************************************** */
 
+template<typename t_Signature, bool t_is_default_constructible_or_not_polymorphic>
+struct TNativeConstructorVTableHacks
+{
+    static void** getVTablePointer() { return nullptr; }
+    static size_t getVTableSize() { return 0; }
+};
+
+template<typename t_Signature>
+struct TNativeConstructorVTableHacks<t_Signature, false> 
+{
+    static void** getVTablePointer() { return NativeVTablePointerExtractor<t_Signature>::apply(); }
+    static size_t getVTableSize() { return NativeVTableSizeComputer<t_Signature>::apply(); }
+};
 
 template<typename t_Signature>
 class TNativeConstructor : public Constructor
@@ -63,6 +76,12 @@ public:
     {
         constructor_caller<t_Signature>::apply(a_pAddress, a_pParams);
     }
+
+    typedef typename boost::function_traits<t_Signature>::result_type result_type;
+    typedef TNativeConstructorVTableHacks<t_Signature, !boost::is_polymorphic<result_type>::value OR std::is_default_constructible<result_type>::value> hacker;
+
+    virtual void**  _getNativeVTablePointer() const { return hacker::getVTablePointer(); }
+    virtual size_t  _getNativeVTableSize() const { return hacker::getVTableSize(); }
 };
 
 o_namespace_end(phantom, reflection, native)

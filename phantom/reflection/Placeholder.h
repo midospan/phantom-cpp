@@ -46,11 +46,6 @@ class o_export Placeholder
     o_declare_meta_type(Placeholder);
 
 public:
-    Placeholder(TemplateParameter* a_pTemplateParameter)
-         { m_TemplateParameters.push_back(a_pTemplateParameter); }
-    Placeholder(const vector<TemplateParameter*>& a_TemplateParameters)
-        : m_TemplateParameters(a_TemplateParameters) {}
-
     virtual LanguageElement*    asLanguageElement() const = 0;
 
     virtual Placeholder*    asPlaceholder() const = 0;
@@ -65,8 +60,10 @@ public:
 
     virtual PlaceholderSubroutine*    asPlaceholderSubroutine() const { return nullptr; }
 
-protected:
-    vector<TemplateParameter*> m_TemplateParameters;
+    virtual PlaceholderTemplateInstance* asPlaceholderTemplateInstance() const { return nullptr; }
+
+    virtual PlaceholderTemplate* asPlaceholderTemplate() const { return nullptr; }
+
 };
 
 class o_export PlaceholderType : public Type, public Placeholder
@@ -86,9 +83,13 @@ public:
     virtual Placeholder*        asPlaceholder() const { return (PlaceholderType*)this; }
     virtual PlaceholderType*    asPlaceholderType() const { return (PlaceholderType*)this; }
 
-    TemplateParameter* getTemplateParameterDependency() const { return m_pTemplateParameterDependencies ? m_pTemplateParameterDependencies->front() : nullptr; }
+    virtual bool                isConvertibleTo(Type* a_pType) const { return true; }
+    virtual bool                isImplicitlyConvertibleTo(Type* a_pType) const { return true; }
+    virtual bool                isKindOf(Type* a_pType) const { return true; }
 
-    virtual bool templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
+    TemplateParameter*          getTemplateParameterDependency() const { return m_pTemplateParameterDependencies ? m_pTemplateParameterDependencies->front() : nullptr; }
+
+    virtual bool                templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
 };
 
 class o_export PlaceholderArrayType : public ArrayType, public Placeholder
@@ -98,42 +99,87 @@ class o_export PlaceholderArrayType : public ArrayType, public Placeholder
     o_declare_meta_type(PlaceholderArrayType);
 
 public:
-    PlaceholderArrayType(Type* a_pType, PlaceholderConstantExpression* a_pSize)
+    PlaceholderArrayType(Type* a_pType, ConstantExpression* a_pSize)
         : ArrayType(a_pType, a_Modifiers|o_placeholder) 
-        , m_pPlaceholderConstant(a_pSize)
+        , m_pSize(a_pSize)
     {
     }
+
+    virtual bool                    isConvertibleTo(Type* a_pType) const { return true; }
+    virtual bool                    isImplicitlyConvertibleTo(Type* a_pType) const { return true; }
+    virtual bool                    isKindOf(Type* a_pType) const { return true; }
 
     virtual LanguageElement*        asLanguageElement() const { return (PlaceholderArrayType*)this; }
     virtual Placeholder*            asPlaceholder() const { return (PlaceholderArrayType*)this; }
     virtual PlaceholderArrayType*   asPlaceholderArrayType() const { return (PlaceholderArrayType*)this; }
-    PlaceholderConstant*            getPlaceholderConstant() const { return m_pPlaceholderConstant; }
     TemplateParameter*              getTemplateParameterDependency() const { return m_pTemplateParameterDependencies ? m_pTemplateParameterDependencies->front() : nullptr; }
 
-    virtual bool templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
+    virtual bool                    templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
 
 protected:
-    PlaceholderConstant* m_pPlaceholderConstant;
+    ConstantExpression* m_pSize;
 };
 
-class o_export PlaceholderTemplate : public Type, public Placeholder
+class o_export PlaceholderTemplateInstance : public Type, public Placeholder
+{
+    o_type;
+
+    o_declare_meta_type(PlaceholderTemplateInstance);
+
+public:
+    PlaceholderTemplateInstance(Template* a_pTemplate, const vector<LanguageElement*>& a_Arguments)
+        : Type(a_pTemplate->getName(), a_Modifiers|o_placeholder) 
+        , m_pTemplate(a_pTemplate)
+        , m_Arguments(a_Arguments)
+    {
+        addReferencedElement(a_pTemplate);
+        for(auto it = m_Arguments.begin(); it != m_Arguments.end(); ++it)
+        {
+            addReferencedElement(*it);
+        }
+    }
+
+    virtual bool                    isConvertibleTo(Type* a_pType) const { return true; }
+    virtual bool                    isImplicitlyConvertibleTo(Type* a_pType) const { return true; }
+    virtual bool                    isKindOf(Type* a_pType) const { return true; }
+
+    virtual LanguageElement*        asLanguageElement() const { return (PlaceholderTemplateInstance*)this; }
+    virtual Placeholder*            asPlaceholder() const { return (PlaceholderTemplateInstance*)this; }
+    virtual PlaceholderTemplateInstance* asPlaceholderTemplateInstance() const { return (PlaceholderTemplateInstance*)this; }
+    virtual bool                    templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
+
+protected:
+    Template*                       m_pTemplate;
+    vector<LanguageElement*>        m_Arguments;
+};
+
+class o_export PlaceholderTemplate : public Template, public Placeholder
 {
     o_type;
 
     o_declare_meta_type(PlaceholderTemplate);
 
 public:
-    PlaceholderTemplate(Template* a_pTemplate, const vector<LanguageElement*>& a_Arguments)
-        : Type(a_pTemplate->getName(), a_Modifiers|o_placeholder) 
+    PlaceholderTemplate(const string& a_strName, TemplateSignature* a_pSignature)
+        : Template(a_pTemplate->getName(), a_Modifiers|o_placeholder) 
         , m_Arguments(a_Arguments)
     {
+        addReferencedElement(a_pTemplate);
+        for(auto it = m_Arguments.begin(); it != m_Arguments.end(); ++it)
+        {
+            addReferencedElement(*it);
+        }
     }
 
-    virtual LanguageElement*    asLanguageElement() const { return (PlaceholderTemplate*)this; }
-    virtual Placeholder*        asPlaceholder() const { return (PlaceholderTemplate*)this; }
-    virtual PlaceholderTemplate* asPlaceholderTemplate() const { return (PlaceholderTemplate*)this; }
+    virtual bool                    isConvertibleTo(Type* a_pType) const { return true; }
+    virtual bool                    isImplicitlyConvertibleTo(Type* a_pType) const { return true; }
+    virtual bool                    isKindOf(Type* a_pType) const { return true; }
 
-    virtual bool templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
+    virtual LanguageElement*        asLanguageElement() const { return (PlaceholderTemplate*)this; }
+    virtual Placeholder*            asPlaceholder() const { return (PlaceholderTemplate*)this; }
+    virtual PlaceholderTemplate*    asPlaceholderTemplate() const { return (PlaceholderTemplate*)this; }
+
+    virtual bool                    templatePartialMatch(LanguageElement* a_pElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
 
 protected:
     PlaceholderConstant* m_pPlaceholderConstant;
@@ -149,33 +195,38 @@ public:
     PlaceholderClass(PlaceholderType* a_pPlaceholderType)
         : Class(a_pPlaceholderType->getName(), 0, 0, a_pPlaceholderType->getModifiers()|o_placeholder) 
     {
-        addTemplateParameterDependency(a_pPlaceholderType->getTemplateParameterDependency());
+        addReferencedElement(a_pPlaceholderType);
     }
 
-    virtual LanguageElement*    asLanguageElement() const { return (PlaceholderClass*)this; }
-    virtual Placeholder*        asPlaceholder() const { return (PlaceholderClass*)this; }
-    virtual PlaceholderClass*   asPlaceholderClass() const { return (PlaceholderClass*)this; }
+    virtual bool                    isConvertibleTo(Type* a_pType) const { return true; }
+    virtual bool                    isImplicitlyConvertibleTo(Type* a_pType) const { return true; }
+    virtual bool                    isKindOf(Type* a_pType) const { return true; }
+    virtual bool                    isKindOf(Class* a_pType) const { return true; }
 
-    virtual bool templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
+    virtual LanguageElement*        asLanguageElement() const { return (PlaceholderClass*)this; }
+    virtual Placeholder*            asPlaceholder() const { return (PlaceholderClass*)this; }
+    virtual PlaceholderClass*       asPlaceholderClass() const { return (PlaceholderClass*)this; }
+
+    virtual bool                    templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
 
 };
 
-class PlaceholderConstantExpression : public ConstantExpression, public Placeholder
+class PlaceholderConstant : public Constant, public Placeholder
 {
     o_language_element;
 
-    o_declare_meta_type(PlaceholderConstantExpression);
+    o_declare_meta_type(PlaceholderConstant);
 
 public:
-    PlaceholderConstantExpression(Type* a_pType, const string& a_strName, TemplateParameter* a_pTemplateParameter, modifiers_t modifiers = 0)
-        : ConstantExpression(a_strName, modifiers|o_placeholder)
+    PlaceholderConstant(Type* a_pType, const string& a_strName, TemplateParameter* a_pTemplateParameter, modifiers_t modifiers = 0)
+        : Constant(a_strName, modifiers|o_placeholder)
         , m_pType(a_pType)
     {
         addTemplateParameterDependency(a_pTemplateParameter);
     }
-    virtual LanguageElement*        asLanguageElement() const { return (PlaceholderConstantExpression*)this; }
-    virtual Placeholder*            asPlaceholder() const { return (PlaceholderConstantExpression*)this; }
-    virtual PlaceholderConstantExpression*    asPlaceholderConstantExpression() const { return (PlaceholderConstantExpression*)this; }
+    virtual LanguageElement*        asLanguageElement() const { return (PlaceholderConstant*)this; }
+    virtual Placeholder*            asPlaceholder() const { return (PlaceholderConstant*)this; }
+    virtual PlaceholderConstant*    asPlaceholderConstant() const { return (PlaceholderConstant*)this; }
     virtual void                    getValue(void* dest) const { o_exception_no_implementation(); }
     virtual Type*                   getValueType() const { return m_pType; }
     virtual bool                    hasValue(void* a_pSrc) const { o_exception_no_implementation(); return false; }
@@ -183,6 +234,9 @@ public:
     virtual bool                    isZero() const { o_exception_no_implementation(); return false; }
     virtual void                    toString(string& out) const { o_exception_no_implementation(); }
     virtual void                    toLiteral(string& out) const { o_exception_no_implementation(); }
+
+    virtual bool                    templatePartialMatch( LanguageElement* a_pElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
+    TemplateParameter*              getTemplateParameterDependency() const { return m_pTemplateParameterDependencies->front(); }
 
 protected:
     Type* m_pType;

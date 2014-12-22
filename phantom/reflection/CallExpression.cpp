@@ -12,9 +12,9 @@ o_registerN((phantom, reflection), CallExpression);
 
 o_namespace_begin(phantom, reflection)
 
-CallExpression::CallExpression( Subroutine* a_pSubroutine, const vector<Expression*>& a_Arguments, Type* a_pConstructedType ) 
+CallExpression::CallExpression( Subroutine* a_pSubroutine, const vector<Expression*>& a_Arguments, bool a_bNonVirtual, Type* a_pConstructedType ) 
     : Expression(a_pConstructedType ? a_pConstructedType : a_pSubroutine ? a_pSubroutine->getReturnType() : nullptr
-                , 0)
+                , a_bNonVirtual*o_novirtual)
     , m_pSubroutine(a_pSubroutine)
     , m_Arguments(a_Arguments)
     , m_pReturnStorage(nullptr)
@@ -28,9 +28,9 @@ CallExpression::CallExpression( Subroutine* a_pSubroutine, const vector<Expressi
     m_pConvertedArgumentTypes = m_Arguments.size() ? o_allocate_n(m_Arguments.size(), Type*) : nullptr;
 }
 
-CallExpression::CallExpression( Subroutine* a_pSubroutine, Expression* a_pArgument, Type* a_pConstructedType ) 
+CallExpression::CallExpression( Subroutine* a_pSubroutine, Expression* a_pArgument, bool a_bNonVirtual, Type* a_pConstructedType ) 
     : Expression(a_pConstructedType ? a_pConstructedType : a_pSubroutine ? a_pSubroutine->getReturnType() : nullptr
-    , 0)
+    , a_bNonVirtual*o_novirtual)
     , m_pSubroutine(a_pSubroutine)
     , m_pReturnStorage(nullptr)
 {
@@ -249,7 +249,7 @@ Expression* CallExpression::clone() const
     {
         clonedExpressions.push_back((*it)->clone());
     }
-    return o_new(CallExpression)(m_pSubroutine, clonedExpressions, (m_pSubroutine->getReturnType() != m_pValueType) ? m_pValueType : nullptr);
+    return o_new(CallExpression)(m_pSubroutine, clonedExpressions, (m_Modifiers&o_novirtual) == o_novirtual, (m_pSubroutine->getReturnType() != m_pValueType) ? m_pValueType : nullptr);
 }
 
 void CallExpression::referencedElementRemoved( LanguageElement* a_pElement )

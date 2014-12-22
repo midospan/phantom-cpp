@@ -3,6 +3,7 @@
 #include "TemplateParameter.h"
 #include "TemplateParameter.hxx"
 #include "Expression.h"
+#include "Placeholder.h"
 #include "Block.h"
 #include <phantom/std/vector.hxx>
 /* *********************************************** */
@@ -14,7 +15,7 @@ o_namespace_begin(phantom, reflection)
 o_define_meta_type(TemplateParameter);
 
 TemplateParameter::TemplateParameter()
-    , m_pDefaultArgument(nullptr)
+    : m_pDefaultArgument(nullptr)
     , m_pPlaceholder(nullptr)
 {
 
@@ -65,6 +66,11 @@ void TemplateParameter::setDefaultArgument( LanguageElement* a_pElement )
         else 
             addElement(m_pDefaultArgument);
     }
+}
+
+bool TemplateParameter::templatePartialMatch( LanguageElement* a_pLanguageElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+{
+    return m_pPlaceholder->asLanguageElement()->templatePartialMatch(a_pLanguageElement, a_Score, a_Deductions);
 }
 
 o_namespace_end(phantom, reflection)

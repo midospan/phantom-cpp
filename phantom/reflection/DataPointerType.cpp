@@ -94,7 +94,7 @@ boolean DataPointerType::isConvertibleTo( Type* a_pType ) const
 
 boolean DataPointerType::isImplicitlyConvertibleTo( Type* a_pType ) const
 {
-    if(a_pType == this 
+    if(PointerType::isImplicitlyConvertibleTo(a_pType) 
         OR (m_pPointedType->asConstType() == nullptr AND a_pType == typeOf<void*>()) 
         OR a_pType == typeOf<void const*>()
         OR a_pType == typeOf<bool>())

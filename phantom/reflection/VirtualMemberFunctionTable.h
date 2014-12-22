@@ -53,6 +53,7 @@ class o_export VirtualMemberFunctionTable : public LanguageElement
 public:
     VirtualMemberFunctionTable();
     VirtualMemberFunctionTable(size_t a_uiSize);
+    VirtualMemberFunctionTable(void** a_ppClosures, size_t a_uiSize);
     o_destructor ~VirtualMemberFunctionTable(void);
 
     size_t getMemberFunctionCount() const { return m_pMemberFunctions->size(); }

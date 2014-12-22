@@ -592,10 +592,10 @@ phantom::reflection::PrimitiveType* primitiveTypeByName( const string& a_strName
 {
     reflection::LanguageElement* pElement = phantom::elementByName(a_strName, globalNamespace());
     if(pElement) return pElement->asPrimitiveType();
-    return NULL;
+    return nullptr;
 }
 
-void default_assert( const character* expression, const character* message, const char* file, uint line )
+void default_assert( const char* expression, const char* file, uint line, const char* format, va_list args )
 {
     string shortenFile = file;
     std::size_t pos = shortenFile.find_last_of('/');
@@ -607,19 +607,23 @@ void default_assert( const character* expression, const character* message, cons
             shortenFile = shortenFile.substr(pos+1);
         }
     }
-    std::cout
+    char message[512];
+    message[511] = '\0';
+    int r = vsnprintf(message, 511, format, args);
+
+    std::cout<<console::push
         <<console::fg_red<<"ASSERT("<<shortenFile<<"|"<<line<<")"<<std::endl
         <<console::fg_red<<"["<<std::endl
-        <<'\t'<<console::fg_blue<< expression
+        <<'\t'<<console::fg_blue<< message
         <<console::fg_white<<" is false" <<std::endl
         <<'\t'<<message<<std::endl
-        <<console::fg_red<<"]"<<std::endl;
+        <<console::fg_red<<"]"<<console::pop<<std::endl;
 
     o_debug_execution_break();
     exit(1);
 }
 
-void default_warning( const character* expression, const character* message, const char* file, uint line )
+void default_warning( const char* expression, const char* file, uint line, const char* format, va_list args )
 {
     string shortenFile = file;
     std::size_t pos = shortenFile.find_last_of('/');
@@ -631,17 +635,21 @@ void default_warning( const character* expression, const character* message, con
             shortenFile = shortenFile.substr(pos+1);
         }
     }
-    std::cout
+    char message[512];
+    message[511] = '\0';
+    int r = vsnprintf(message, 511, format, args);
+
+    std::cout<<console::push
         <<console::fg_yellow<<"WARNING("<<shortenFile<<"|"<<line<<")"<<std::endl
         <<console::fg_yellow<<"["<<std::endl
         <<'\t'<<console::fg_blue<< expression
         <<console::fg_white<<" is false" <<std::endl
         <<'\t'<<message<<std::endl
-        <<console::fg_yellow<<"]"<<std::endl;
+        <<console::fg_yellow<<"]"<<console::pop<<std::endl;
 
 }
 
-void default_error( const character* expression, const character* message, const char* file, uint line )
+void default_error( const char* expression, const char* file, uint line, const char* format, va_list args )
 {
     string shortenFile = file;
     std::size_t pos = shortenFile.find_last_of('/');
@@ -653,18 +661,22 @@ void default_error( const character* expression, const character* message, const
             shortenFile = shortenFile.substr(pos+1);
         }
     }
-    std::cout
+    char message[512];
+    message[511] = '\0';
+    int r = vsnprintf(message, 511, format, args);
+
+    std::cout<<console::push
         <<console::fg_red<<"ERROR("<<shortenFile<<"|"<<line<<")"<<std::endl
         <<console::fg_red<<"["<<std::endl
         <<'\t'<<console::fg_blue<< expression
         <<console::fg_white<<" is false" <<std::endl
         <<'\t'<<message<<std::endl
-        <<console::fg_red<<"]"<<std::endl;
+        <<console::fg_red<<"]"<<console::pop<<std::endl;
     assert(false);
     exit(1);
 }
 
-void default_log(int level, const char* file, uint line, const char* format, va_list arglist )
+void default_log(int level, const char* file, uint line, const char* format, va_list args )
 {
     string shortenFile = file;
     std::size_t pos = shortenFile.find_last_of('/');
@@ -677,13 +689,13 @@ void default_log(int level, const char* file, uint line, const char* format, va_
         }
     }
 
-    std::cout
+    std::cout<<console::push
         <<console::fg_green<<"LOG("<<console::fg_white<<shortenFile<<console::fg_green<<"|"<<console::fg_white<<line<<console::fg_green<<") "<<console::fg_gray;
 
     char buffer[512];
     buffer[511] = '\0';
-    int r = vsnprintf(buffer, 511, format, arglist);
-    std::cout<<buffer<<std::endl<<console::fg_gray;
+    int r = vsnprintf(buffer, 511, format, args);
+    std::cout<<buffer<<console::pop<<std::endl;
 }
 
 Message* topMessage(const string& a_strCategory)
@@ -1064,19 +1076,19 @@ void discardSourceFile( phantom::reflection::SourceFile* a_pSourceFile )
     o_delete(phantom::reflection::SourceFile) a_pSourceFile;
 }
 
-o_export void        assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const character* e, const character* m , const char* f , uint l)
+o_export void        assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const char* e, const char* file, uint line, const char* message, va_list arglist)
 {
-    (*g_assert_func)(e,m,f,l);
+    (*g_assert_func)(e, file,line,message,arglist);
 }
 
-o_export void        warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l)
+o_export void        warning BOOST_PREVENT_MACRO_SUBSTITUTION (const char* e, const char* file, uint line, const char* message, va_list arglist)
 {
-    (*g_warning_func)(e,m,f,l);
+    (*g_warning_func)(e, file,line,message,arglist);
 }
 
-o_export void        error BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l)
+o_export void        error BOOST_PREVENT_MACRO_SUBSTITUTION (const char* e, const char* file, uint line, const char* message, va_list arglist)
 {
-    (*g_error_func)(e,m,f,l);
+    (*g_error_func)(e,file,line,message,arglist);
 }
 
 o_export void        log BOOST_PREVENT_MACRO_SUBSTITUTION (int level, const char* file, uint line, const char* format, ...)
@@ -1297,8 +1309,7 @@ detail::dynamic_initializer_template_registrer::dynamic_initializer_template_reg
     reflection::Namespace* pNamespace = globalNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
     /// If you get an error : 'apply' : is not a member of 'phantom::detail::module_installer'
     /// It's probably because you didn't declare a reflection scope (internal or external) for the given t_Ty class
-    reflection::Template* pTemplate = pNamespace->findOrCreateTemplate(a_strName);
-    pTemplate->parseParameters(a_strTemplateTypes, a_strTemplateParams)
+    reflection::Template* pTemplate = pNamespace->findOrCreateTemplate(a_strName, a_strTemplateTypes, a_strTemplateParams);
     dynamic_initializer()->registerTemplate(pTemplate);
     dynamic_initializer()->setActive(false);
 }

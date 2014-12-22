@@ -40,9 +40,9 @@ o_registerN((phantom, reflection), Template);
 
 o_namespace_begin(phantom, reflection) 
 
-Template::Template(const string& a_strName, TemplateSignature* a_pSignature)
-: LanguageElement(a_strName)
-, m_pTemplateSignature(a_pSignature)
+Template::Template(const string& a_strName, TemplateSignature* a_pSignature, modifiers_t a_Modifiers /*= 0*/)
+    : LanguageElement(a_strName, a_Modifiers)
+    , m_pTemplateSignature(a_pSignature)
 {
     if(m_pTemplateSignature)
         addElement(m_pTemplateSignature);
@@ -50,8 +50,8 @@ Template::Template(const string& a_strName, TemplateSignature* a_pSignature)
     createEmptySpecialization();
 }
 
-Template::Template(const string& a_strName, const string& a_strTemplateTypes, const string& a_strTemplateParam)
-    : LanguageElement(a_strName)
+Template::Template(const string& a_strName, const string& a_strTemplateTypes, const string& a_strTemplateParam, modifiers_t a_Modifiers /*= 0*/)
+    : LanguageElement(a_strName, a_Modifiers)
     , m_pTemplateSignature(o_new(TemplateSignature)(a_strTemplateTypes, a_strTemplateParam))
 {
     addElement(m_pTemplateSignature);
@@ -65,22 +65,27 @@ Template::~Template()
 
 size_t Template::getTemplateParameterIndex( const string& a_strName ) const
 {
-    m_pTemplateSignature->getParameterIndex(a_strName);
+    return m_pTemplateSignature->getParameterIndex(a_strName);
 }
 
 size_t Template::getTemplateParameterIndex( TemplateParameter* a_pTemplateParameter ) const
 {
-    m_pTemplateSignature->getParameterIndex(a_pTemplateParameter);
+    return m_pTemplateSignature->getParameterIndex(a_pTemplateParameter);
 }
 
 LanguageElement* Template::getDefaultArgument(const string& a_strParameterName) const 
 {
-    return m_pTemplateSignature->getDefaultArgument();
+    return m_pTemplateSignature->getDefaultArgument(a_strParameterName);
+}
+
+LanguageElement* Template::getDefaultArgument(size_t i) const 
+{
+    return m_pTemplateSignature->getDefaultArgument(i);
 }
 
 void Template::setDefaultArgument( const string& a_strParameterName, LanguageElement* a_pElement )
 {
-    m_pTemplateSignature->setDefaultArgument(a_pElement);
+    m_pTemplateSignature->setDefaultArgument(a_strParameterName, a_pElement);
 }
 
 size_t Template::getDefaultArgumentCount() const
@@ -110,7 +115,7 @@ vector<TemplateParameter*>::const_iterator Template::beginTemplateParameters() c
 
 vector<TemplateParameter*>::const_iterator Template::endTemplateParameters() const
 {
-    return m_pTemplateSignature->endTemplateParameters();
+    return m_pTemplateSignature->endParameters();
 }
 
 void Template::createEmptySpecialization()
@@ -129,14 +134,17 @@ void Template::registerSpecialization( TemplateSpecialization* a_pTemplateSpecia
     m_Specializations.push_back(a_pTemplateSpecialization);
 }
 
-void Template::createSpecialization( const vector<LanguageElement*>& arguments, TemplateSignature* a_pTemplateSignature )
+TemplateSpecialization*  Template::createSpecialization( const vector<LanguageElement*>& arguments, TemplateSignature* a_pTemplateSignature )
 {
-    registerSpecialization(o_new(TemplateSpecialization)(this, arguments, a_pTemplateSignature));
+    TemplateSpecialization* pSpec = o_new(TemplateSpecialization)(this, arguments, a_pTemplateSignature);
+    registerSpecialization(pSpec);
+    return pSpec;
 }
 
 ClassType* Template::instanciate( const vector<LanguageElement*>& arguments )
 {
-
+    o_assert_no_implementation();
+    return nullptr;
 }
 
 o_namespace_end(phantom, reflection)

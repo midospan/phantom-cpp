@@ -59,7 +59,7 @@ public:
     {
         size_t index;
         m_pIndexExpression->internalEval(&index);
-        *((void**)a_pDest) = m_pArrayType->getElementAddress(m_pLeftExpression->loadEffectiveAddress(), index);
+        *((void**)a_pDest) = m_pArrayType->getItemAddress(m_pLeftExpression->loadEffectiveAddress(), index);
     }
 
     Expression*                 getLeftExpression() const { return m_pLeftExpression; }

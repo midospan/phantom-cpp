@@ -1354,7 +1354,8 @@ public:
 
     virtual VirtualMemberFunctionTable* createVirtualMemberFunctionTable() const
     {
-        return o_dynamic_proxy_new(VirtualMemberFunctionTable)(virtualMemberFunctionCountOf<t_Ty>());
+        void** ppNativeVTable = vtable_extractor<t_Ty>::apply(this);
+        return o_dynamic_proxy_new(VirtualMemberFunctionTable)(ppNativeVTable, virtualMemberFunctionCountOf<t_Ty>());
     }
 
     virtual VirtualMemberFunctionTable* deriveVirtualMemberFunctionTable( VirtualMemberFunctionTable* a_pVirtualMemberFunctionTable ) const
@@ -1456,12 +1457,12 @@ public:
 
     virtual bool         isConvertibleTo(Type* a_pDestType) const
     {
-        return phantom::converter<t_Ty>::isConvertibleTo(const_cast<self_type*>(this), a_pDestType);
+        return phantom::converter<t_Ty>::isConvertibleTo(const_cast<self_type*>(this), a_pDestType) OR base_type::isConvertibleTo(a_pDestType);
     }
 
     virtual bool         isImplicitlyConvertibleTo(Type* a_pDestType) const
     {
-        return phantom::converter<t_Ty>::isImplicitlyConvertibleTo(const_cast<self_type*>(this), a_pDestType);
+        return phantom::converter<t_Ty>::isImplicitlyConvertibleTo(const_cast<self_type*>(this), a_pDestType) OR base_type::isImplicitlyConvertibleTo(a_pDestType);
     }
 
 };

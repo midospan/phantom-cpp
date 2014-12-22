@@ -255,26 +255,26 @@ namespace detail
 
         static void serialize(reflection::ArrayType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
         {
-            phantom::serializer<content_type>::serialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type const*>(a_pInstance), extent, sizeof(content_type), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+            phantom::serializer<content_type>::serialize(static_cast<meta_content_type*>(a_pType->getItemType()), reinterpret_cast<content_type const*>(a_pInstance), extent, sizeof(content_type), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
         }
         static void deserialize(reflection::ArrayType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
         {
-            phantom::serializer<content_type>::deserialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type*>(a_pInstance), extent, sizeof(content_type), a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+            phantom::serializer<content_type>::deserialize(static_cast<meta_content_type*>(a_pType->getItemType()), reinterpret_cast<content_type*>(a_pInstance), extent, sizeof(content_type), a_pInBuffer, a_uiSerializationMask, a_pDataBase);
         }
         static void serialize(reflection::ArrayType* a_pType, t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase )
         {
-            phantom::serializer<content_type>::serialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type const*>(a_pInstance), extent, sizeof(content_type), a_OutBranch, a_uiSerializationMask, a_pDataBase);
+            phantom::serializer<content_type>::serialize(static_cast<meta_content_type*>(a_pType->getItemType()), reinterpret_cast<content_type const*>(a_pInstance), extent, sizeof(content_type), a_OutBranch, a_uiSerializationMask, a_pDataBase);
         }
         static void deserialize(reflection::ArrayType* a_pType, t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase )
         {
-            phantom::serializer<content_type>::deserialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type*>(a_pInstance), extent, sizeof(content_type), a_InBranch, a_uiSerializationMask, a_pDataBase);
+            phantom::serializer<content_type>::deserialize(static_cast<meta_content_type*>(a_pType->getItemType()), reinterpret_cast<content_type*>(a_pInstance), extent, sizeof(content_type), a_InBranch, a_uiSerializationMask, a_pDataBase);
         }
         static void        serialize(reflection::ArrayType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase)
         {
             byte const* pChunk = reinterpret_cast<byte const*>(a_pChunk);
             while(a_uiCount--)
             {
-                phantom::serializer<content_type>::serialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type const*>(pChunk), extent, sizeof(content_type), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
+                phantom::serializer<content_type>::serialize(static_cast<meta_content_type*>(a_pType->getItemType()), reinterpret_cast<content_type const*>(pChunk), extent, sizeof(content_type), a_pOutBuffer, a_uiSerializationMask, a_pDataBase);
                 pChunk += a_uiChunkSectionSize;
             }
         }
@@ -284,7 +284,7 @@ namespace detail
             byte* pChunk = reinterpret_cast<byte*>(a_pChunk);
             while(a_uiCount--)
             {
-                phantom::serializer<content_type>::deserialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type*>(pChunk), extent, sizeof(content_type), a_pInBuffer, a_uiSerializationMask, a_pDataBase);
+                phantom::serializer<content_type>::deserialize(static_cast<meta_content_type*>(a_pType->getItemType()), reinterpret_cast<content_type*>(pChunk), extent, sizeof(content_type), a_pInBuffer, a_uiSerializationMask, a_pDataBase);
                 pChunk += a_uiChunkSectionSize;
             }
         }
@@ -298,7 +298,7 @@ namespace detail
                 char index_buffer[32]="";
                 o_secured_sprintf(index_buffer, 32, "_%d", i++);
                 property_tree index_tree;
-                phantom::serializer<content_type>::serialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type const*>(pChunk), extent, sizeof(content_type), index_tree, a_uiSerializationMask, a_pDataBase);
+                phantom::serializer<content_type>::serialize(static_cast<meta_content_type*>(a_pType->getItemType()), reinterpret_cast<content_type const*>(pChunk), extent, sizeof(content_type), index_tree, a_uiSerializationMask, a_pDataBase);
                 a_OutBranch.add_child(index_buffer, index_tree);
                 pChunk += a_uiChunkSectionSize;
             }
@@ -315,7 +315,7 @@ namespace detail
                 boost::optional<const property_tree&> index_tree_opt = a_InBranch.get_child_optional(index_buffer);
                 if(index_tree_opt.is_initialized())
                 {
-                    phantom::serializer<content_type>::deserialize(static_cast<meta_content_type*>(a_pType->getElementType()), reinterpret_cast<content_type*>(pChunk), extent, sizeof(content_type), *index_tree_opt, a_uiSerializationMask, a_pDataBase);
+                    phantom::serializer<content_type>::deserialize(static_cast<meta_content_type*>(a_pType->getItemType()), reinterpret_cast<content_type*>(pChunk), extent, sizeof(content_type), *index_tree_opt, a_uiSerializationMask, a_pDataBase);
                 }
                 pChunk += a_uiChunkSectionSize;
             }

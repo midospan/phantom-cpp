@@ -128,6 +128,8 @@ o_fwd(class, phantom, reflection, PlaceholderClass)
 o_fwd(class, phantom, reflection, PlaceholderConstant)
 o_fwd(class, phantom, reflection, PlaceholderInstanceDataMember)
 o_fwd(class, phantom, reflection, PlaceholderSubroutine)
+o_fwd(class, phantom, reflection, PlaceholderTemplate)
+o_fwd(class, phantom, reflection, PlaceholderTemplateInstance)
 
 o_fwd(class, phantom, state, StateMachine)
 o_fwd(class, phantom, state, StateMachineElement)

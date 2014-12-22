@@ -179,7 +179,7 @@ public:
     virtual boolean         isSerializable() const { return isDefaultInstanciable(); }
     virtual bool            isDefaultConstructible() const { return (m_Modifiers & o_no_default_constructor) == 0; }
     virtual bool            isDefaultInstanciable() const { return NOT(isAbstract()) AND isDefaultConstructible(); }
-    virtual boolean         isKindOf(Type* a_pType) const { return this == a_pType; }
+    virtual boolean         isKindOf(Type* a_pType) const { return this == a_pType OR a_pType->isPlaceholder(); }
     virtual Type*           asType() const { return const_cast<Type*>(this); }
     virtual ComponentClass* asComponentClass() const { return nullptr; }
     virtual CompositionClass* asCompositionClass() const { return nullptr; }
@@ -404,7 +404,8 @@ public:
     ArrayType*              arrayType(size_t a_uiCount) const;
     ConstType*              constType() const;
 
-    virtual bool            templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_DeducesConstants) { if(a_pType == this) { a_Score = ~size_t(0); return true; } return false; }
+    virtual bool            templatePartialMatch(LanguageElement* a_pLanguageElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions) const;
+    virtual bool            templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions) const;
 
 protected:
     virtual void            elementAdded(LanguageElement* a_pElement);

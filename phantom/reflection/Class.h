@@ -705,6 +705,8 @@ protected:
     virtual VirtualMemberFunctionTable* createVirtualMemberFunctionTable() const;
     virtual VirtualMemberFunctionTable* deriveVirtualMemberFunctionTable( VirtualMemberFunctionTable* a_pVirtualMemberFunctionTable ) const;
 
+protected:
+
     void                referencedElementRemoved(LanguageElement* a_pElement);
 
     /**

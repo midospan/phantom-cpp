@@ -41,18 +41,16 @@ o_registerN((phantom, reflection), TemplateSpecialization);
 
 o_namespace_begin(phantom, reflection) 
 
-TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate, const vector<LanguageElement*>& arguments, TemplateSignature* a_pSignature = nullptr )
+TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate, const vector<LanguageElement*>& arguments, TemplateSignature* a_pSignature /*= nullptr*/ )
     : m_pTemplate(a_pTemplate)
     , m_pTemplateSignature(a_pSignature)
 {
     o_assert(m_pTemplate->getTemplateParameterCount() == arguments.size());
-    m_pTemplate->registerSpecialization(this);
     m_Arguments.resize(a_pTemplate->getTemplateParameterCount());
 }
 
 TemplateSpecialization::~TemplateSpecialization()
 {
-    m_pTemplate->unregisterSpecialization(this);
 }
 
 phantom::string TemplateSpecialization::getQualifiedName() const
@@ -62,7 +60,7 @@ phantom::string TemplateSpecialization::getQualifiedName() const
     uint count = m_Arguments.size();
     for(;i<count;++i)
     {
-        LanguageElement*  pElement = m_Arguments[i].element;
+        LanguageElement*  pElement = m_Arguments[i];
         LanguageElement*  pLanguageElement = pElement->asLanguageElement();
         if(i != 0) strQualifiedName += o_CS(", ");
         if(pLanguageElement->asNumericConstant())
@@ -82,7 +80,7 @@ phantom::string TemplateSpecialization::getQualifiedDecoratedName() const
     uint count = m_Arguments.size();
     for(;i<count;++i)
     {
-        LanguageElement*  pElement = m_Arguments[i].element;
+        LanguageElement*  pElement = m_Arguments[i];
         LanguageElement*  pLanguageElement = pElement->asLanguageElement();
         if(i != 0) strQualifiedName += o_CS(", ");
         if(pLanguageElement->asNumericConstant())
@@ -176,7 +174,7 @@ void TemplateSpecialization::referencedElementRemoved(LanguageElement* a_pElemen
 
 boolean TemplateSpecialization::matches( const vector<LanguageElement*>& a_TemplateSpecialization ) const
 {
-    size_t s0 = a_TemplateSpecialization->size();
+    size_t s0 = a_TemplateSpecialization.size();
     if((s0 < m_Arguments.size()-m_pTemplate->getDefaultArgumentCount()) || (s0 > m_Arguments.size())) 
         return false;
     size_t i = 0;
@@ -184,8 +182,8 @@ boolean TemplateSpecialization::matches( const vector<LanguageElement*>& a_Templ
     {
         if(i<s0)
         {
-            if((*a_TemplateSpecialization)[i] == nullptr) return false;
-            if(NOT( (*a_TemplateSpecialization)[i]->equals(m_Arguments[i]) )) return false;
+            if((a_TemplateSpecialization)[i] == nullptr) return false;
+            if(NOT( (a_TemplateSpecialization)[i]->equals(m_Arguments[i]) )) return false;
         }
         else 
         {
@@ -212,13 +210,7 @@ bool TemplateSpecialization::canBeDestroyed() const
 
 size_t TemplateSpecialization::getArgumentIndex( const string& a_strParameterName ) const
 {
-    for(size_t i = 0; i<m_Arguments.size(); ++i)
-    {
-        if(m_Arguments[i].name == a_strParameterName)
-            return i;
-    }
-    o_assert(false);
-    return 0xffffffff;
+    return m_pTemplate->getTemplateParameterIndex(a_strParameterName);
 }
 
 void TemplateSpecialization::elementAdded( LanguageElement* a_pElement )

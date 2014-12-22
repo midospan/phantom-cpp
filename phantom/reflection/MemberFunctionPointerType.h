@@ -48,10 +48,12 @@ class o_export MemberFunctionPointerType : public MemberPointerType
 
     o_declare_meta_type(MemberFunctionPointerType);
 
-public:
     friend class Type;
 
-protected:
+public:
+    MemberFunctionPointerType(Type* a_pObjectType, Signature* a_pSignature, modifiers_t a_Modifiers);
+
+protected: // Native constructor
     MemberFunctionPointerType(Type* a_pObjectType, Signature* a_pSignature, size_t a_Size, size_t a_Alignment, modifiers_t a_Modifiers);
 
 public:

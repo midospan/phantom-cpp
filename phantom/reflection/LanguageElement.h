@@ -71,9 +71,9 @@ class SourceFile;
     { phantom::string result; static_cast<Language_*>(a_pLanguage)->translate(this, result, options); return result; }\
     inline phantom::string                          translate() { return translate(phantom::cplusplus(), 0); }\
     inline void                                     translate(phantom::string& out) { return translate(phantom::cplusplus(), out, 0); }\
-    virtual phantom::reflection::LanguageElement*                        instanciateTemplate(phantom::reflection::Precompiler* a_pPrecompiler, phantom::reflection::TemplateSpecialization* a_pSpec) \
+    virtual phantom::reflection::LanguageElement*   instanciateTemplate(phantom::reflection::Precompiler* a_pPrecompiler, phantom::reflection::TemplateSpecialization* a_pSpec) \
     { \
-        if(NOT(isSpecializedBy(a_pSpec))) {return  this;}\
+        if(isNative()) return this;\
         phantom::reflection::LanguageElement* pElement = nullptr;\
         static_cast<Precompiler_*>(a_pPrecompiler)->instanciateTemplate(this, a_pSpec, pElement);\
         if(pElement) pElement->setTemplateSpecialization(a_pSpec);\
@@ -136,7 +136,7 @@ public:
     Template*                           getTemplate() const;
 
     virtual bool                        matches(const string& a_strName, const vector<LanguageElement*>* a_TemplateSpecialization = NULL, modifiers_t a_Modifiers = 0) const;
-    virtual bool                        matches(const vector<LanguageElement*>* a_pElements) const;
+    virtual bool                        matches(const vector<LanguageElement*>& a_Elements) const;
 
     o_forceinline void                  setShared()            { m_Modifiers |= o_shared; }
     o_forceinline boolean               isShared() const    { return ((m_Modifiers & o_shared) == o_shared); }
@@ -232,10 +232,11 @@ public:
     virtual bool                        isMemberFunctionPointerType() const { return false; }
     virtual bool                        isTemplateInstance() const { return m_pTemplateSpecialization != NULL; }
     virtual bool                        isPOD() const { return false; }
+    o_forceinline bool                  isTemplateDependant() const { return m_pTemplateParameterDependencies != nullptr OR hasTemplateDependantElement() OR hasTemplateDependantReferencedElement(); }
     bool                                isInvalid() const;
-    bool                                isPlaceholder() const;
-    virtual bool                        isTemplateDependant() const;
     bool                                hasTemplateDependantElement() const;
+    bool                                hasTemplateDependantReferencedElement() const;
+    o_forceinline bool                  isPlaceholder() const { return (m_Modifiers & o_placeholder) == o_placeholder; }
     o_forceinline bool                  isStatic() const  { return ((m_Modifiers & o_static) == o_static); }
     o_forceinline bool                  isProtected() const { return ((m_Modifiers & o_protected_access) == o_protected_access) ; }
     o_forceinline bool                  isPrivate() const { return (m_Modifiers & (o_protected_access|o_public_access)) == 0; }

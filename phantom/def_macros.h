@@ -993,6 +993,7 @@
 #define o_fastcall                  o_singleton //
 #define o_inline                    0x20000000ULL
 #define o_placeholder               0x40000000ULL
+#define o_novirtual                 0x80000000ULL
 
 // CONSTANTS
 #define o_invalid_guid (~(uint)0)
@@ -1024,13 +1025,20 @@
 // FORCE INLINE
 
 #if (o_COMPILER == o_COMPILER_VISUAL_STUDIO)
-#    define o_forceinline    __forceinline
+#   define o_forceinline    __forceinline
+#   define o_noinline __declspec(noinline)
 
 #elif (o_COMPILER == o_COMPILER_GCC)
-#    define o_forceinline    __inline __attribute__ ((always_inline))
+#   define o_forceinline    __inline __attribute__ ((always_inline))
+#   define o_noinline __attribute__ ((noinline))
+
+#elif (o_COMPILER == o_COMPILER_CLANG)
+#   define o_forceinline    __inline __attribute__ ((always_inline))
+#   define o_noinline __attribute__ ((noinline))
 
 #else
-#    define o_forceinline inline
+#   define o_forceinline inline
+#   define o_noinline 
 #endif
 
 
@@ -1150,28 +1158,28 @@ struct o_PP_CAT(static_warning,__LINE__) { \
 
 #define o_unused(var) (void)var
 
-
-
 #if o_COMPILER == o_COMPILER_VISUAL_STUDIO
-#   define o_exception(...) o_PP_CAT(o_PP_CAT(o_exception_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
-#   define o_assert(...) o_PP_CAT(o_PP_CAT(o_assert_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
-#   define o_warning(...) o_PP_CAT(o_PP_CAT(o_warning_, o_PP_NARG(__VA_ARGS__)),(__VA_ARGS__))
+#   define o_exception(...) o_PP_CAT(o_PP_CAT(o_exception_, o_PP_1_OR_X(__VA_ARGS__)),(__VA_ARGS__))
+#   define o_assert(...) o_PP_CAT(o_PP_CAT(o_assert_, o_PP_1_OR_X(__VA_ARGS__)),(__VA_ARGS__))
+#   define o_error(...) o_PP_CAT(o_PP_CAT(o_error_, o_PP_1_OR_X(__VA_ARGS__)),(__VA_ARGS__))
+#   define o_warning(...) o_PP_CAT(o_PP_CAT(o_warning_, o_PP_1_OR_X(__VA_ARGS__)),(__VA_ARGS__))
 #else
-#   define o_exception(...) o_PP_CAT(o_exception_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
-#   define o_assert(...) o_PP_CAT(o_assert_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
-#   define o_warning(...) o_PP_CAT(o_warning_, o_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
+#   define o_exception(...) o_PP_CAT(o_exception_, o_PP_1_OR_X(__VA_ARGS__))(__VA_ARGS__)
+#   define o_assert(...) o_PP_CAT(o_assert_, o_PP_1_OR_X(__VA_ARGS__))(__VA_ARGS__)
+#   define o_error(...) o_PP_CAT(o_error_, o_PP_1_OR_X(__VA_ARGS__))(__VA_ARGS__)
+#   define o_warning(...) o_PP_CAT(o_warning_, o_PP_1_OR_X(__VA_ARGS__))(__VA_ARGS__)
 #endif
 
 // EXCEPTION
 #if o__bool__use_exceptions
-#    define o_exception_1(_exception_class_) throw _exception_class_()
-#    define o_exception_2(_exception_class_, _what_) throw _exception_class_(_what_)
+#    define o_exception_1(exception) throw exception()
+#    define o_exception_X(exception, ...) throw exception(__VA_ARGS__)
 #else
-#    define o_exception_1(_exception_class_) o_error(false, #_exception_class_)
-#    define o_exception_2(_exception_class_, _what_) o_error( false, phantom::to_astring(#_exception_class_) + phantom::to_astring(" : ") + phantom::to_astring(_exception_class_(phantom::to_string(_what_).c_str()).what()) )
+#    define o_exception_1(exception) o_error(false, #exception)
+#    define o_exception_X(exception, ...) {o_error(false, #exception " : " , __VA_ARGS__ ); o_static_assert(boost::is_class<exception>::value); }
 #endif
 
-#define o_exception_no_implementation() o_exception_2(phantom::exception::reflection_runtime_exception, __FUNCTION__" : no implementation available")
+#define o_exception_no_implementation() o_exception_X(phantom::exception::reflection_runtime_exception, __FUNCTION__" : no implementation available")
 
 #define o_message(type, ...) // TODO : define
 #define o_push_message(type, ...)
@@ -1179,40 +1187,44 @@ struct o_PP_CAT(static_warning,__LINE__) { \
 
 #if (defined(_DEBUG) || defined(DEBUG))
 
-#   define o_warning_1(_Expression)    \
-        o_warning_2(_Expression, "no detail about the assertion")
+#   define o_warning_1(expression) \
+        o_warning_X(expression, "no detail about the warning")
 
-#   define o_warning_2(_Expression, _Message)    \
-        {( (!!(_Expression)) || (phantom::warning BOOST_PREVENT_MACRO_SUBSTITUTION ( #_Expression, _Message, __FILE__, __LINE__), 0) );}
+#   define o_warning_X(expression, ...) \
+        {( (!!(expression)) || (phantom::warning BOOST_PREVENT_MACRO_SUBSTITUTION ( o_CS(#expression), __FILE__, __LINE__, __VA_ARGS__), 0) );}
 
+#   define o_assert_1(expression)  \
+        o_assert_X(expression, "no detail about the assertion")
 
-#   define o_assert_1(_Expression)             o_assert_2(_Expression, "no detail about the assertion")
-#   define o_assert_2(_Expression, _Message)   {( (!!(_Expression)) || (phantom::assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( o_CS(#_Expression), phantom::to_astring(_Message).c_str(), __FILE__, __LINE__), 0) );}
-#    define o_error(_Expression, _Message, ...)    \
-        {(void)( (!!(_Expression)) || (phantom::error BOOST_PREVENT_MACRO_SUBSTITUTION ( o_CS(#_Expression), phantom::to_astring(_Message).c_str(), __FILE__, __LINE__), 0) );}
+#   define o_assert_X(expression, ...)   \
+        {( (!!(expression)) || (phantom::assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( o_CS(#expression), __FILE__, __LINE__, __VA_ARGS__), 0) );}
 
-#   define o_verify(_Expression, _Message)     o_assert(_Expression, _Message)
-#   define o_debug_only(things)                things
-#   define o_log(level, format, ...)           ::phantom::log BOOST_PREVENT_MACRO_SUBSTITUTION (level, __FILE__, __LINE__, format, __VA_ARGS__)
+#   define o_verify(expression, ...)     o_assert(expression,##__VA_ARGS__)
+#   define o_debug_only(...)                __VA_ARGS__
 
 #else // _NDEBUG
 
 #   define o_assert_1(_Expression)
-#   define o_assert_2(_Expression, _Message, ...)
+#   define o_assert_X(_Expression, ...)
 #   define o_warning_1(_Expression)
-#   define o_warning_2(_Expression, _Message, ...)
-#   define o_debug_only(thing)
+#   define o_warning_X(_Expression, ...)
+#   define o_debug_only(...)
 #   define o_verify(_Expression, _Message)     _Expression
-#   define o_log(level, format, ...)           ::phantom::log BOOST_PREVENT_MACRO_SUBSTITUTION (level, __FILE__, __LINE__, format, __VA_ARGS__)
-#   define o_error(_Expression, _Message, ...)    \
-            {(void)( (!!(_Expression)) || (phantom::error BOOST_PREVENT_MACRO_SUBSTITUTION ( o_CS(#_Expression), phantom::to_astring(_Message).c_str(), __FILE__, __LINE__), 0) );}
 
 #endif // _DEBUG
+
+#   define o_log(level, ...)           ::phantom::log BOOST_PREVENT_MACRO_SUBSTITUTION (level, __FILE__, __LINE__, __VA_ARGS__)
+
+#define o_error_1(expression)    \
+    o_error_X(expression, "no detail about the error")
+
+#define o_error_X(expression, ...)    \
+    {(void)( (!!(expression)) || (phantom::error BOOST_PREVENT_MACRO_SUBSTITUTION ( o_CS(#expression), __FILE__, __LINE__, __VA_ARGS__), 0) );}
 
 #define o_assert_not(exp)                   o_assert(NOT(exp))
 #define o_assert_default_case()             o_assert(false, "Forgotten Default Case")
 #define o_assert_no_implementation()        o_assert(false, "Not Implemented")
-#define o_assert_forbidden_call()           o_assert(false, "Call to this member_function forbidden")
+#define o_assert_forbidden_call()           o_assert(false, "Call to this function forbidden")
 
 /*************************************************************************************************
 * DEBUG BREAK

@@ -60,13 +60,13 @@ FunctionPointerType::~FunctionPointerType()
 boolean FunctionPointerType::isConvertibleTo( Type* a_pType ) const
 {
     o_assert(a_pType);
-    return a_pType->removeConst() == this OR a_pType == typeOf<void*>();
+    return PointerType::isConvertibleTo(a_pType) OR a_pType == typeOf<void*>();
 }
 
 boolean FunctionPointerType::isImplicitlyConvertibleTo( Type* a_pType ) const
 {
     o_assert(a_pType);
-    return a_pType->removeConst() == this;
+    return PointerType::isImplicitlyConvertibleTo(a_pType);
 }
 
 void FunctionPointerType::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const

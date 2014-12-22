@@ -49,6 +49,7 @@ class o_export TemplateSpecialization : public LanguageElement
     o_language_element;
 
     friend class LanguageElement;
+    friend class Template;
 
 protected:
     TemplateSpecialization(Template* a_pTemplate, const vector<LanguageElement*>& arguments, TemplateSignature* a_pSignature = nullptr);
@@ -87,7 +88,6 @@ public:
     bool                isSpecializingParameter(TemplateParameter* a_pParameter) const;
 
     bool                isSpecializing(LanguageElement* a_pLanguageElement);
-
 
     bool                matches(const vector<LanguageElement*>& a_TemplateSpecialization) const;
     int                 score(const vector<LanguageElement*>& a_TemplateSpecialization) const;

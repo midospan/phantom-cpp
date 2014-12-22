@@ -480,7 +480,7 @@ struct CxxExpression : public CxxStatement
     LanguageElement* precompileTemplateElement(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr)
     {
         LanguageElement* pElem = precompile(a_pPrecompiler, a_pScope, a_pLHS);
-        return pElem ? pElem->asTemplateElement() : nullptr;
+        return pElem;
     }
     Constructor* precompileConstructor(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr)
     {
@@ -714,7 +714,7 @@ struct CxxPreUnaryExpression : public CxxExpression
     virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr) 
     {
         Expression* expr = this->expr->precompileExpression(a_pPrecompiler, a_pScope);
-        return expr->precompileUnaryOperator(a_pPrecompiler, op);
+        return expr->precompilePreUnaryOperator(a_pPrecompiler, op);
     }
     string op;
     CxxExpression* expr;
@@ -962,7 +962,7 @@ struct CxxTypedExpression : public CxxExpression
     CxxName* name;
     CxxExpression* expr;
     virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
-    virtual LanguageElement* precompileParenthesized(Precompiler* a_pPrecompiler, CxxParenthesised* a_pParen LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompileParenthesized(Precompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
 };
 
 struct CxxThisExpression : public CxxExpression 

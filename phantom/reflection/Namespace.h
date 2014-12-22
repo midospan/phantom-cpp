@@ -114,7 +114,7 @@ public:
     size_t              getClassCount() const;
 
     Template*           getTemplate( const string& a_strName ) const ;
-    Template*           findOrCreateTemplate(const string& a_strName);
+    Template*           findOrCreateTemplate(const string& a_strName, const string& a_strTypes, const string& a_strNames);
 
     Namespace*          findTypeNamespace(Type* a_pType) const;
 

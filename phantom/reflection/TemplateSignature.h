@@ -65,6 +65,7 @@ public:
 
     void                setDefaultArgument(const string& a_strParameterName, LanguageElement* a_pElement);
     LanguageElement*    getDefaultArgument(const string& a_strParameterName) const;
+    LanguageElement*    getDefaultArgument(size_t i) const;
 
     size_t              getDefaultArgumentCount() const;
 
@@ -73,10 +74,16 @@ public:
 
     const vector<LanguageElement*>& getPlaceholders() const { return m_Placeholders; }
 
+    TemplateParameter*  getParameter(size_t i) const {return m_Parameters[i]; }
+
+    virtual bool        templatePartialMatch(LanguageElement* a_pElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
+
+    bool                matches( TemplateSpecialization* a_pTemplateSpecialization ) const;
+
 protected:
-    vector<TemplateParameter*> m_Parameters;
-    vector<LanguageElement*> m_Placeholders;
-    map<string, size_t>        m_ParameterAliasNames;
+    vector<TemplateParameter*>  m_Parameters;
+    vector<LanguageElement*>    m_Placeholders;
+    map<string, size_t>         m_ParameterAliasNames;
 };
 
 o_namespace_end(phantom, reflection)

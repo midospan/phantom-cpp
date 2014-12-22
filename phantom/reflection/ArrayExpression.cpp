@@ -49,7 +49,7 @@ ArrayType* extract_array_type(Expression* a_pLeftExpression)
 
 Type* extract_array_element_type(ArrayType* a_pArrayType)
 {
-    return a_pArrayType ? a_pArrayType->getElementType() : nullptr;
+    return a_pArrayType ? a_pArrayType->getItemType() : nullptr;
 }
 
 Type* extract_array_element_type(Expression* a_pLeftExpression)

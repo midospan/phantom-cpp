@@ -42,9 +42,10 @@
 o_registerN((phantom, reflection), LanguageElement);
 o_registerNTI((phantom), vector, (phantom::reflection::LanguageElement*));
 
-static vector<LanguageElement*> empty_elements;
 
 o_namespace_begin(phantom, reflection)
+
+static vector<LanguageElement*> empty_elements;
 
 LanguageElement::LanguageElement()
     : m_uiGuid(0)
@@ -521,16 +522,14 @@ bool LanguageElement::matches( const string& a_strName, const vector<LanguageEle
         return true;
     if(!ts_empty AND m_pTemplateSpecialization != NULL)
     {
-        return m_pTemplateSpecialization->matches(a_TemplateSpecialization);
+        return m_pTemplateSpecialization->matches(*a_TemplateSpecialization);
     }
     return false;
 }
 
-bool LanguageElement::matches( const vector<LanguageElement*>* a_pElements ) const
+bool LanguageElement::matches( const vector<LanguageElement*>& a_Elements ) const
 {
-    return m_pTemplateSpecialization
-        ? m_pTemplateSpecialization->matches(a_pElements)
-        : NULL;
+    return m_pTemplateSpecialization AND m_pTemplateSpecialization->matches(a_Elements);
 }
 
 void LanguageElement::setModule( Module* a_pModule )
@@ -600,17 +599,6 @@ void LanguageElement::elementRemoved( LanguageElement* a_pElement )
 bool LanguageElement::isInvalid() const
 {
     return (m_Modifiers & o_invalid) != 0;
-}
-
-bool LanguageElement::isPlaceholder() const
-{
-    return (m_Modifiers & o_placeholder) != 0;
-}
-
-bool LanguageElement::isTemplateDependant() const
-{
-    return m_pTemplateParameterDependencies != nullptr 
-        OR hasTemplateDependantElement();
 }
 
 void LanguageElement::referencedElementInvalidated( LanguageElement* a_pElement )
@@ -777,6 +765,18 @@ bool LanguageElement::hasTemplateDependantElement() const
     if(m_pElements)
     {
         for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            if((*it)->isTemplateDependant()) return true;
+        }
+    }
+    return false;
+}
+
+bool LanguageElement::hasTemplateDependantReferencedElement() const
+{
+    if(m_pReferencedElements)
+    {
+        for(auto it = m_pReferencedElements->begin(); it != m_pReferencedElements->end(); ++it)
         {
             if((*it)->isTemplateDependant()) return true;
         }

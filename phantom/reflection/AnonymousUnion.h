@@ -50,7 +50,6 @@ public:
     AnonymousUnion(modifiers_t modifiers = 0);
 
     virtual AnonymousUnion* asAnonymousUnion() const { return (AnonymousUnion*)this; }
-
 };
 
 o_namespace_end(phantom, reflection)

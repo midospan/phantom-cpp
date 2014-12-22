@@ -81,6 +81,15 @@ VirtualMemberFunctionTable::VirtualMemberFunctionTable( VirtualMemberFunctionTab
     }
 }
 
+VirtualMemberFunctionTable::VirtualMemberFunctionTable( void** a_ppClosures, size_t a_uiSize )
+    : m_pBaseTable(NULL)
+    , m_pMemberFunctions(new vector<InstanceMemberFunction*>(a_uiSize))
+    , m_ppClosures(a_ppClosures)
+    , m_bClosuresExtracted(false)
+{
+
+}
+
 o_destructor VirtualMemberFunctionTable::~VirtualMemberFunctionTable( void )
 {
     if(m_pBaseTable)
@@ -121,12 +130,14 @@ size_t VirtualMemberFunctionTable::getOffset() const
 
 void VirtualMemberFunctionTable::addMemberFunction( InstanceMemberFunction* a_pMemberFunction )
 {
+    o_assert(m_pOwner == a_pMemberFunction->getOwner());
     a_pMemberFunction->setVirtualTableIndex(getMemberFunctionCount());
     setMemberFunction(getMemberFunctionCount(), a_pMemberFunction);
 }
 
 void VirtualMemberFunctionTable::setMemberFunction( size_t a_uiIndex, InstanceMemberFunction* a_pMemberFunction )
 {
+    o_assert(m_pOwner == a_pMemberFunction->getOwner());
     o_assert(a_pMemberFunction->getVirtualTableIndex() == a_uiIndex);
     if(sharesMemberFunctions())
         copyOnWrite();
@@ -136,6 +147,7 @@ void VirtualMemberFunctionTable::setMemberFunction( size_t a_uiIndex, InstanceMe
 
 void VirtualMemberFunctionTable::insertMemberFunction( InstanceMemberFunction* a_pMemberFunction )
 {
+    o_assert(m_pOwner == a_pMemberFunction->getOwner());
     for(auto it = m_pMemberFunctions->begin(); it != m_pMemberFunctions->end(); ++it)
     {
         if(*it)

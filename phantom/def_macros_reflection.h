@@ -731,7 +731,7 @@ struct template_specialization_adder< ::_name_ < o_PP_IDENTITY _template_params_
     {\
     static void apply(phantom::reflection::ClassType* a_pClassType)\
         {\
-        phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->getTemplate(a_pClassType->getName());\
+        phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName(), o_PP_QUOTE _template_types_, o_PP_QUOTE _template_params_);\
         vector<LanguageElement*> arguments;\
         o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
         a_pClassType->setTemplateSpecialization(pTemplate->createSpecialization(arguments));\
@@ -746,7 +746,7 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_na
 {\
     static void apply(phantom::reflection::ClassType* a_pClassType)\
 {\
-    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName());\
+    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName(), o_PP_QUOTE _template_types_, o_PP_QUOTE _template_params_);\
     vector<LanguageElement*> arguments;\
     o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
     a_pClassType->setTemplateSpecialization(pTemplate->createSpecialization(arguments));\
@@ -762,7 +762,7 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_
 {\
     static void apply(phantom::reflection::ClassType* a_pClassType)\
 {\
-    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName());\
+    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName(), o_PP_QUOTE _template_types_, o_PP_QUOTE _template_params_);\
     vector<LanguageElement*> arguments;\
     o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
     a_pClassType->setTemplateSpecialization(pTemplate->createSpecialization(arguments));\
@@ -777,7 +777,7 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
 {\
     static void apply(phantom::reflection::ClassType* a_pClassType)\
 {\
-    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName());\
+    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName(), o_PP_QUOTE _template_types_, o_PP_QUOTE _template_params_);\
     vector<LanguageElement*> arguments;\
     o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
     a_pClassType->setTemplateSpecialization(pTemplate->createSpecialization(arguments));\

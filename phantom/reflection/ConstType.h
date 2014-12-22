@@ -190,7 +190,7 @@ public:
     virtual bool            hasRightShift() const { return m_pConstedType->hasRightShift(); }
     virtual bool            hasRightShiftAssign() const { return m_pConstedType->hasRightShiftAssign(); }
 
-    virtual bool            templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_DeducesConstants) const;
+    virtual bool            templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions) const;
 
 protected:
     virtual void            referencedElementRemoved(LanguageElement* a_pElement);

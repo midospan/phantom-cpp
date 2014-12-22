@@ -49,8 +49,8 @@ class o_export CallExpression : public Expression
     o_language_element;
 
 public:
-    CallExpression(Subroutine* a_pFunction, const vector<Expression*>& a_Arguments, Type* a_pConstructedType = nullptr);
-    CallExpression(Subroutine* a_pFunction, Expression* a_pArgument, Type* a_pConstructedType = nullptr);
+    CallExpression(Subroutine* a_pFunction, const vector<Expression*>& a_Arguments, bool a_bNonVirtual = false, Type* a_pConstructedType = nullptr);
+    CallExpression(Subroutine* a_pFunction, Expression* a_pArgument, bool a_bNonVirtual = false, Type* a_pConstructedType = nullptr);
 
     o_initialize();
     o_terminate(); 

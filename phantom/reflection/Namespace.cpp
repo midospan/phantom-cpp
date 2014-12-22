@@ -596,12 +596,12 @@ Namespace* Namespace::getNamespaceCascade( const string& a_strQualifiedName ) co
     return getNamespaceCascade(&words);
 }
 
-Template* Namespace::findOrCreateTemplate( const string& a_strName )
+Template* Namespace::findOrCreateTemplate( const string& a_strName, const string& a_strTypes, const string& a_strNames )
 {
     Template* pTemplate = getTemplate(a_strName);
     if(pTemplate == nullptr)
     {
-        pTemplate = o_new(Template)(a_strName);
+        pTemplate = o_new(Template)(a_strName, a_strTypes, a_strNames);
         addTemplate(pTemplate);
     }
     return pTemplate;

@@ -1242,7 +1242,7 @@ void Class::smartCopy(reflection::Type* a_pDestType, void* a_pDest, void const* 
 
 boolean            Class::isKindOf( Class* a_pType ) const
 {
-    if(this == a_pType) return true;
+    if(this == a_pType OR a_pType->isPlaceholder()) return true;
     base_class_table::const_iterator it = m_BaseClasses.begin();
     base_class_table::const_iterator end = m_BaseClasses.end();
     for(; it != end; ++it)
@@ -2080,12 +2080,12 @@ InstanceDataMember* Class::getInstanceDataMemberByOffset( size_t a_uiOffset ) co
 
 vector<Signal*>::const_iterator Class::beginSignals() const
 {
-    return m_pSignals ? m_pSignals.begin() : empty_signals.begin();
+    return m_pSignals ? m_pSignals->begin() : empty_signals.begin();
 }
 
 vector<Signal*>::const_iterator Class::endSignals() const
 {
-    return m_pSignals ? m_pSignals.end() : empty_signals.end();
+    return m_pSignals ? m_pSignals->end() : empty_signals.end();
 }
 
 o_namespace_end(phantom, reflection)

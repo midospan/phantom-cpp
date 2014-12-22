@@ -55,13 +55,15 @@ public:
 
     void addAnonymousSection( AnonymousSection* a_pAnonymousSection );
 
-    LanguageElement* getElement(size_t a_uiIndex) const { return m_Elements[a_uiIndex]; }
+    LanguageElement* getMember(size_t a_uiIndex) const { return m_Members[a_uiIndex]; }
 
-    size_t getElementCount() const { return m_Elements.size(); }
+    size_t getMemberCount() const { return m_Members.size(); }
 
-    vector<LanguageElement*>::const_iterator beginElements() const { return m_Elements.begin(); }
+    vector<LanguageElement*>::const_iterator beginMembers() const { return m_Members.begin(); }
 
-    vector<LanguageElement*>::const_iterator endElements() const { return m_Elements.end(); }
+    vector<LanguageElement*>::const_iterator endMembers() const { return m_Members.end(); }
+
+    ClassType* getRootOwner() const { return getOwnerSection() ? getOwnerSection()->getRootOwner() : m_pOwner ? m_pOwner->asClassType() : nullptr; }
 
     AnonymousSection* getOwnerSection() const { return m_pOwner ? m_pOwner->asAnonymousSection() : nullptr; }
 
@@ -71,7 +73,7 @@ protected:
     void referencedElementRemoved(LanguageElement* a_pElement);
 
 protected:
-    vector<LanguageElement*> m_Elements;
+    vector<LanguageElement*> m_Members;
 
 };
 

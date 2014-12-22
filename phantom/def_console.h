@@ -41,6 +41,8 @@ o_namespace_begin(phantom, console)
         
 //narrow manipulators
 o_export std::ostream& clr( std::ostream& os );
+o_export std::ostream& push( std::ostream& os );
+o_export std::ostream& pop( std::ostream& os );
 o_export std::ostream& fg_red( std::ostream& os );
 o_export std::ostream& fg_green( std::ostream& os );
 o_export std::ostream& fg_blue( std::ostream& os );
@@ -65,7 +67,9 @@ o_export std::string   createSpaces( int count );
 o_export void    setSize(size_t a_uiWidth, size_t height);
 
 //wide manipulators
-o_export std::wostream& clr( std::wostream& os );;
+o_export std::wostream& clr( std::wostream& os );
+o_export std::wostream& push( std::wostream& os );
+o_export std::wostream& pop( std::wostream& os );
 o_export std::wostream& fg_red( std::wostream& os );
 o_export std::wostream& fg_green( std::wostream& os );
 o_export std::wostream& fg_blue( std::wostream& os );

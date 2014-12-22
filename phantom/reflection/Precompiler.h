@@ -106,7 +106,6 @@ public:
     // Default cplusplus like elements
     virtual void instanciateTemplate(LanguageElement* a_pElement, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
 
-    // Namespace
     virtual void instanciateTemplate(Namespace* a_pNamespace, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated);
 
     // Types 

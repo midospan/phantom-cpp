@@ -1160,12 +1160,14 @@ void Precompiler::instanciateTemplate( PrimitiveType* a_pType, TemplateSpecializ
 
 void Precompiler::instanciateTemplate(FunctionPointerType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation();
+    a_pInstanciated = o_new(FunctionPointerType)(o_instanciateT(Signature, a_pType->getSignature()), a_pType->getModifiers());
 }
 
 void Precompiler::instanciateTemplate(MemberFunctionPointerType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
 {
-    o_assert_no_implementation();
+    a_pInstanciated = o_new(MemberFunctionPointerType)(o_instanciateT(Type, a_pType->getObjectType() 
+                                                     , o_instanciateT(Signature, a_pType->getSignature())
+                                                     , a_pType->getModifiers());
 }
 
 void Precompiler::instanciateTemplate(DataMemberPointerType* a_pType, TemplateSpecialization* a_pSpec, LanguageElement*& a_pInstanciated )
@@ -1851,11 +1853,6 @@ void Precompiler::instanciateTemplate( PlaceholderInstanceDataMember* a_pPlaceho
 {
     o_assert_no_implementation();
 }
-
-
-
-
-
 
 
 o_namespace_end(phantom, reflection)

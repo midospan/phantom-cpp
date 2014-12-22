@@ -313,6 +313,8 @@
     <ClInclude Include="..\..\..\phantom\reflection\MemberFunctionPointerType.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\MemberPointerType.h" />
     <ClInclude Include="..\..\..\phantom\reflection\MemberPointerType.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\NativeVTablePointerExtractor.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\NativeVTableSizeComputer.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TAggregationClass.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TAggregationClass.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TComponentClass.h" />

@@ -169,12 +169,6 @@ void ReferenceType::destroy( void* a_pBuffer, size_t a_uiCount, size_t a_uiChunk
     o_unused(a_uiChunkSectionSize);
 }
 
-void ReferenceType::qualifiersToString( string& out ) const
-{
-    m_pConstedType->qualifiersToString(out);
-    out+='&';
-}
-
 bool ReferenceType::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_DeducedConstants ) const
 {
     if(a_pType->asReferenceType())

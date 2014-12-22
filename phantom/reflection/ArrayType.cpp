@@ -43,14 +43,14 @@ o_namespace_begin(phantom, reflection)
 
 o_define_meta_type(ArrayType);
 
-ArrayType::ArrayType( Type* a_pItemType, size_t a_uiCount, modifiers_t modifiers = 0 ) 
+ArrayType::ArrayType( Type* a_pItemType, size_t a_uiCount, modifiers_t modifiers /*= 0*/ ) 
     : Type(e_array, a_pItemType->getName()
     , a_uiCount*a_pItemType->getSize(), a_pItemType->getAlignment(), a_pItemType->getModifiers()|modifiers)
     , m_pItemType(a_pItemType)
     , m_uiCount(a_uiCount)
 {
     o_assert(a_uiCount);
-    addReferencedItem(m_pItemType);
+    addReferencedElement(m_pItemType);
 }
 
 ArrayType::~ArrayType( void )
@@ -68,7 +68,7 @@ boolean ArrayType::isConvertibleTo( Type* a_pType ) const
 
 boolean ArrayType::isImplicitlyConvertibleTo( Type* a_pType ) const
 {
-    if(a_pType == this OR m_pItemType->pointerType()->isImplicitlyConvertibleTo(a_pType)) return true;
+    if(Type::isImplicitlyConvertibleTo(a_pType) OR m_pItemType->pointerType()->isImplicitlyConvertibleTo(a_pType)) return true;
     if(a_pType->asArrayType() == nullptr) return false;
     Type*    pItemType = static_cast<ArrayType*>(a_pType)->getItemType();
     if((pItemType->asClass() == nullptr) OR (m_pItemType->asClass() == nullptr)) return false;
@@ -96,9 +96,9 @@ void ArrayType::copy( void* a_pDest, void const* a_pSrc ) const
     }
 }
 
-void ArrayType::referencedItemRemoved( LanguageElement* a_pItem )
+void ArrayType::referencedElementRemoved( LanguageElement* a_pItem )
 {
-    Type::referencedItemRemoved(a_pItem);
+    Type::referencedElementRemoved(a_pItem);
     if(m_pItemType == a_pItem)
     {
         m_pItemType->removeExtendedType(this);
@@ -145,14 +145,10 @@ bool ArrayType::templatePartialMatch( Type* a_pType, size_t& a_Score, map<Templa
         if(a_pType->asArrayType()->getItemCount() == m_uiCount)
         {
             a_Score+=10;
-            m_pConstedType->templatePartialMatch(a_pType->removeArray());
+            return m_pItemType->templatePartialMatch(a_pType->removeArray(), a_Score, a_Deductions);
         }
     }
-    else 
-    {
-        a_Score = 0; 
-        a_Deductions.clear();
-    }
+    return false;
 }
 
 o_namespace_end(phantom, reflection)

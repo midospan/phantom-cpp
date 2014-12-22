@@ -34,9 +34,9 @@ public:
 
     void setDefaultArgument( LanguageElement* a_pElement );
 
-    Type*   getElementType() const { return m_pElementType; }
-
     Placeholder* getPlaceholder() const { return m_pPlaceholder; }
+
+    virtual bool            templatePartialMatch(LanguageElement* a_pLanguageElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions) const;
 
 protected:
     void elementRemoved( LanguageElement* a_pElement );
@@ -45,7 +45,6 @@ protected:
 protected:
     Placeholder*     m_pPlaceholder;
     LanguageElement* m_pDefaultArgument;
-    LanguageElement* m_pPlaceholder;
 };
 
 o_namespace_end(phantom, reflection)

@@ -53,8 +53,8 @@ class o_export Template : public LanguageElement
     friend class TemplateSpecialization;
 
 public:
-    Template(const string& a_strName, TemplateSignature* a_pSignature);
-    Template(const string& a_strName, const string& a_strTemplateTypes, const string& a_strTemplateParam);
+    Template(const string& a_strName, TemplateSignature* a_pSignature, modifiers_t a_Modifiers = 0);
+    Template(const string& a_strName, const string& a_strTemplateTypes, const string& a_strTemplateParam, modifiers_t a_Modifiers = 0);
     o_destructor ~Template();
 
     Namespace* getNamespace() const { return m_pOwner ? m_pOwner->asNamespace() : nullptr; }
@@ -75,6 +75,7 @@ public:
 
     void                setDefaultArgument(const string& a_strParameterName, LanguageElement* a_pElement);
     LanguageElement*    getDefaultArgument(const string& a_strParameterName) const;
+    LanguageElement*    getDefaultArgument(size_t i) const;
 
     size_t              getDefaultArgumentCount() const;
 
@@ -82,7 +83,7 @@ public:
 
     TemplateSignature*  getTemplateSignature() const { return m_pTemplateSignature; }
 
-    void                createSpecialization(const vector<LanguageElement*>& arguments, TemplateSignature* a_pTemplateSignature);
+    TemplateSpecialization* createSpecialization(const vector<LanguageElement*>& arguments, TemplateSignature* a_pTemplateSignature = nullptr);
     
     void                addTemplateParameterAliasName(size_t a_uiIndex, const string& a_strAlias);
 

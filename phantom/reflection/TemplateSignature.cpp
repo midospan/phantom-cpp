@@ -35,6 +35,7 @@
 #include "phantom/phantom.h"
 #include <phantom/reflection/TemplateSignature.h>
 #include <phantom/reflection/TemplateSignature.hxx>
+#include <boost/algorithm/string.hpp>
 /* *********************************************** */
 o_registerN((phantom, reflection), TemplateSignature);
 
@@ -53,6 +54,7 @@ TemplateSignature::TemplateSignature( const string& a_strTemplateTypes, const st
     vector<string> names;
     split( names, a_strTemplateParams, boost::is_any_of(","), boost::token_compress_on );
     o_assert(types.size() == names.size());
+    o_assert_no_implementation();
 }
 
 TemplateSignature::~TemplateSignature()
@@ -83,6 +85,11 @@ LanguageElement* TemplateSignature::getDefaultArgument(const string& a_strParame
 {
     size_t index = getParameterIndex(a_strParameterName);
     o_assert(index != ~size_t(0));
+    return m_Parameters[index]->getDefaultArgument();
+}
+
+LanguageElement* TemplateSignature::getDefaultArgument( size_t i ) const
+{
     return m_Parameters[i]->getDefaultArgument();
 }
 
@@ -90,7 +97,7 @@ void TemplateSignature::setDefaultArgument( const string& a_strParameterName, La
 {
     size_t index = getParameterIndex(a_strParameterName);
     o_assert(index != ~size_t(0));
-    m_Parameters[i]->setDefaultArgument(a_pElement);
+    m_Parameters[index]->setDefaultArgument(a_pElement);
 }
 
 size_t TemplateSignature::getDefaultArgumentCount() const
@@ -122,6 +129,30 @@ void TemplateSignature::addParameterAliasName( size_t a_uiIndex, const string& a
 {
     o_assert(getParameterIndex(a_strAlias) == ~size_t(0));
     m_ParameterAliasNames[a_strAlias] = a_uiIndex;
+}
+
+bool TemplateSignature::matches( TemplateSpecialization* a_pTemplateSpecialization ) const
+{
+    if(getParameterCount() != a_pTemplateSpecialization->getArgumentCount()) return false;
+    for(size_t i = 0; i<m_Parameters.size(); ++i)
+    {
+        if(NOT(m_Parameters[i]->getPlaceholder()->matches(a_pTemplateSpecialization->getArgument(i))))
+            return false;
+    }
+    return true;
+}
+
+bool TemplateSignature::templatePartialMatch( LanguageElement* a_pElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+{
+    TemplateSpecialization* pSpec = a_pElement->asTemplateSpecialization();
+    if(pSpec == nullptr) return false;
+    if(getParameterCount() != pSpec->getArgumentCount()) return false;
+    for(size_t i = 0; i<m_Parameters.size(); ++i)
+    {
+        if(NOT(m_Parameters[i]->templatePartialMatch(pSpec->getArgument(i), a_Score, a_Deductions)))
+            return false;
+    }
+    return true;
 }
 
 o_namespace_end(phantom, reflection)

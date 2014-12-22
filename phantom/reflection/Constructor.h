@@ -46,6 +46,12 @@ o_namespace_begin(phantom, reflection)
 class o_export Constructor : public Subroutine
 {
 public:
+    template<typename t_Ty, bool t_is_default_constructible>
+    friend struct phantom::reflection::native::detail::vtable_extractor_helper_default_constructible;
+    template<typename t_Ty, bool t_is_default_constructible>
+    friend struct phantom::reflection::native::detail::vtable_size_of_helper_default_constructible;
+
+    friend class Class;
     static Class* const metaType;
 
 public:
@@ -67,6 +73,10 @@ public:
     }
 
     virtual Constructor* asConstructor() const { return (Constructor*)this; }
+
+protected:
+    virtual void**  getNativeVTablePointer() const { o_exception_no_implementation(); return nullptr; }
+    virtual size_t  getNativeVTableSize() const { o_exception_no_implementation(); return 0; }
 
 };
 

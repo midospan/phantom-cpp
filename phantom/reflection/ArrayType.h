@@ -241,7 +241,7 @@ public:
 
 protected:
     size_t                  getElementCount() const { return m_uiCount; } // just to check compile error, must be removed !!
-    virtual void            referencedItemRemoved(LanguageElement* a_pItem);
+    virtual void            referencedElementRemoved(LanguageElement* a_pItem);
 
 protected:
     Type*       m_pItemType;

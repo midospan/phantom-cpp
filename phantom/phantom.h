@@ -145,10 +145,10 @@
 
 o_namespace_begin(phantom)
 
-o_export void       assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const character* e, const character* m , const char* f , uint l);
-o_export void       warning BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
-o_export void       error BOOST_PREVENT_MACRO_SUBSTITUTION (const character* e, const character* m, const char* f, uint l);
-o_export void       log BOOST_PREVENT_MACRO_SUBSTITUTION (int level, const char* file, uint line, const char* message, ...);
+o_export void       assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const char* e, const char* f, uint l, const char* format, ...);
+o_export void       warning BOOST_PREVENT_MACRO_SUBSTITUTION (const char* e, const char* f, uint l, const char* format, ...);
+o_export void       error BOOST_PREVENT_MACRO_SUBSTITUTION (const char* e, const char* f, uint l, const char* format, ...);
+o_export void       log BOOST_PREVENT_MACRO_SUBSTITUTION (int level, const char* file, uint line, const char* format, ...);
 
 template <typename t_Ty>
 o_forceinline string                            typeNameOf();
@@ -335,12 +335,16 @@ protected:
 #include "phantom/def_connection.h"
 
 #include "phantom/def_memory.inl"
+#include "phantom/reflection/native/NativeVTablePointerExtractor.h"
 #include "phantom/reflection/native/NativeVTableInspector.h"
+#include "phantom/reflection/native/NativeVTableSizeComputer.h"
 
 #include "phantom/Module.h"
 #include "phantom/variant.h"
 #include "phantom/reflection/LanguageElement.h"
 #include "phantom/reflection/Template.h"
+#include "phantom/reflection/TemplateParameter.h"
+#include "phantom/reflection/TemplateSignature.h"
 #include "phantom/reflection/Signature.h"
 #include "phantom/reflection/VirtualMemberFunctionTable.h"
 #include "phantom/reflection/Type.h"
@@ -673,10 +677,10 @@ o_export const phantom::rtti_data&                      rttiDataOf(void const* a
 o_export const phantom::rtti_data&                      rttiDataOf(void const* a_pThis, reflection::Class* a_pLayoutClass);
 o_export inline void                                    rttiLayoutOf(void const* a_pThis, vector<void*>& out, size_t a_uiLevel);
 
-o_export void default_assert(const character* expression, const character* message, const char* file, uint line);
-o_export void default_warning(const character* expression, const character* message, const char* file, uint line);
-o_export void default_error(const character* expression, const character* message, const char* file, uint line);
-o_export void default_log(int level, const char* file, uint line, const char* message, va_list args);
+o_export void default_assert( const char* expression, const char* file, uint line, const char* format, va_list args );
+o_export void default_warning( const char* expression, const char* file, uint line, const char* format, va_list args );
+o_export void default_error( const char* expression, const char* file, uint line, const char* format, va_list args );
+o_export void default_log(int level, const char* file, uint line, const char* format, va_list args);
 
 template <typename t_Ty>
 o_forceinline
@@ -948,7 +952,7 @@ o_forceinline void*   phantom::rtti_data::cast(phantom::reflection::Class* a_pTa
 
 o_namespace_begin(phantom)
 
-typedef void (*message_report_func)(const character*, const character*, const char*, uint);
+typedef void (*message_report_func)(const char* expression, const char* file, uint line, const char* message, va_list arglist);
 typedef void (*log_func)(int level, const char* file, uint line, const char* message, va_list arglist);
 
 o_export void setAssertFunc(message_report_func a_func);

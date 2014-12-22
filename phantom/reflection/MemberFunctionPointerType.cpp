@@ -48,6 +48,19 @@ o_namespace_begin(phantom, reflection)
 
 o_define_meta_type(MemberFunctionPointerType);
 
+MemberFunctionPointerType::MemberFunctionPointerType( Type* a_pObjectType, Signature* a_pSignature, modifiers_t a_Modifiers )
+    : MemberPointerType(a_pObjectType
+    , 4
+    , 4
+    , a_Modifiers)    
+    , m_pSignature(a_pSignature)
+    , m_pObjectType(a_pObjectType)
+{
+    o_assert(!isNative());
+    addReferencedElement(m_pObjectType);
+    addElement(m_pSignature);
+}
+
 MemberFunctionPointerType::MemberFunctionPointerType( Type* a_pObjectType, Signature* a_pSignature, size_t a_Size, size_t a_Alignment, modifiers_t a_Modifiers ) 
 : MemberPointerType(a_pObjectType
             , a_Size
@@ -56,6 +69,7 @@ MemberFunctionPointerType::MemberFunctionPointerType( Type* a_pObjectType, Signa
             , m_pSignature(a_pSignature)
             , m_pObjectType(a_pObjectType)
 {
+    o_assert(isNative());
     addReferencedElement(m_pObjectType);
     addElement(m_pSignature);
 }
