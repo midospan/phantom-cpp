@@ -1,46 +1,19 @@
 # Library name
-set (LIBRARY_NAME Phantom)
+set(LIBRARY_NAME Phantom)
 
 # Get environment
-set (PHANTOM_ROOT $ENV{PHANTOM_ROOT})
-if (PHANTOM_ROOT)
+set(PHANTOM_ROOT $ENV{PHANTOM_ROOT})
+if(PHANTOM_ROOT)
 	string(REPLACE "\\" "/" PHANTOM_ROOT ${PHANTOM_ROOT})
-endif ()
-
-set (CLANG_BIN $ENV{CLANG_BIN})
-if (CLANG_BIN)
-	string(REPLACE "\\" "/" CLANG_BIN ${CLANG_BIN})
-endif ()
+endif(PHANTOM_ROOT)
 
 # Path
-set (Phantom_SOURCE_DIR ${PHANTOM_ROOT}/phantom)
-set (Jit_INCLUDE_DIR ${PHANTOM_ROOT}/dependencies/libjit/include)
-set (CLANG_BINARY_DIR ${CLANG_BIN})
-
-# Compiler
-IF(WIN32)
-	IF(MSVC)
-		option (USE_CL "Use CL compiler" ON) 
-		option (USE_CLANG "Use CLANG compiler" OFF) 
-		option (USE_GCC "Use GCC compiler" OFF) 
-	ELSE(MSVC)
-		option (USE_CL "Use CL compiler" OFF) 
-		option (USE_CLANG "Use CLANG compiler" ON) 
-		option (USE_GCC "Use GCC compiler" OFF) 
-	ENDIF(MSVC)
-ELSEIF(APPLE)
-	option (USE_CL "Use CL compiler" OFF) 
-	option (USE_CLANG "Use CLANG compiler" ON) 
-	option (USE_GCC "Use GCC compiler" OFF) 
-ELSE()
-	option (USE_CL "Use CL compiler" OFF) 
-	option (USE_CLANG "Use CLANG compiler" OFF) 
-	option (USE_GCC "Use GCC compiler" ON) 
-ENDIF()
+set(Phantom_SOURCE_DIR ${PHANTOM_ROOT}/phantom)
+set(Jit_INCLUDE_DIR ${PHANTOM_ROOT}/dependencies/libjit/include)
 
 # Precompiled header
 MACRO(ADD_MSVC_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource)
-  IF(MSVC)
+  if(MSVC)
     get_filename_component(PrecompiledBasename ${PrecompiledHeader} NAME_WE)
     set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PrecompiledBasename}.pch")
 
@@ -50,12 +23,12 @@ MACRO(ADD_MSVC_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource)
     set_source_files_properties(${PrecompiledSource}
                                 PROPERTIES COMPILE_FLAGS "/Yc\"phantom/${PrecompiledHeader}\" /Fp\"${PrecompiledBinary}\""
                                            OBJECT_OUTPUTS "${PrecompiledBinary}")
-  ENDIF(MSVC)
+  endif(MSVC)
 ENDMACRO(ADD_MSVC_PRECOMPILED_HEADER)
 
 # Sources
-set  (GENERIC_INCLUDE_FILES 		"")
-set  (GENERIC_SRC_FILES 		${Phantom_SOURCE_DIR}/aggregation.cpp 
+set(GENERIC_INCLUDE_FILES 		"")
+set(GENERIC_SRC_FILES 			${Phantom_SOURCE_DIR}/aggregation.cpp 
 								${Phantom_SOURCE_DIR}/boost/boost.cpp 
 								${Phantom_SOURCE_DIR}/component.cpp 
 								${Phantom_SOURCE_DIR}/composition.cpp 
@@ -266,46 +239,37 @@ include_directories(${Jit_INCLUDE_DIR})
 
 # Definitions
 add_definitions(-DPHANTOM_DLL)
+add_definitions(-DPHANTOM_MODULE)
 add_definitions(-DDEBUG)
-IF(WIN32)
+if(WIN32)
 	add_definitions(-D_WIN32)
-ELSE(WIN32)
+	add_definitions(-DWIN32)
+elseif(APPLE)
+	add_definitions(-D__APPLE__)
+else(WIN32)
 	add_definitions(-D__linux__)
 	add_definitions(-D__linux)
-ENDIF(WIN32)
+endif(WIN32)
 
 # Compiler flags
-IF(USE_CL)
-	set (CMAKE_CXX_FLAGS  			  	"${CMAKE_CXX_FLAGS} /bigobj /Zm500 /MP")
+if(MSVC)
+	set(CMAKE_CXX_FLAGS  			  	"${CMAKE_CXX_FLAGS} /bigobj /Zm500 /MP")
 	ADD_MSVC_PRECOMPILED_HEADER("phantom.h" "pch.cpp")
-ENDIF(USE_CL)
-IF(USE_CLANG)
-    SET (CMAKE_C_COMPILER             	"${CLANG_BINARY_DIR}/clang")
-    SET (CMAKE_C_FLAGS                	"-std=c++0x -w")
-    SET (CMAKE_C_FLAGS_DEBUG          	"-g")
-    SET (CMAKE_C_FLAGS_MINSIZEREL     	"-Os -DNDEBUG")
-    SET (CMAKE_C_FLAGS_RELEASE        	"-O4 -DNDEBUG")
-    SET (CMAKE_C_FLAGS_RELWITHDEBINFO 	"-O2 -g")
-
-    SET (CMAKE_CXX_COMPILER             "${CLANG_BINARY_DIR}/clang++")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     SET (CMAKE_CXX_FLAGS                "-std=c++0x -w")
     SET (CMAKE_CXX_FLAGS_DEBUG          "-g")
     SET (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
     SET (CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
     SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
-
-    SET (CMAKE_AR      					"${CLANG_BINARY_DIR}/llvm-ar")
-    SET (CMAKE_LINKER  					"${CLANG_BINARY_DIR}/llvm-ld")
-    SET (CMAKE_NM      					"${CLANG_BINARY_DIR}/llvm-nm")
-    SET (CMAKE_OBJDUMP 					"${CLANG_BINARY_DIR}/llvm-objdump")
-    SET (CMAKE_RANLIB  					"${CLANG_BINARY_DIR}/llvm-ranlib")
-ENDIF(USE_CLANG)
-IF(USE_GCC)
+else(MSVC)
 	set(CMAKE_CXX_FLAGS 			  	"-std=c++0x ${CMAKE_CXX_FLAGS} -g -w -ftest-coverage -fprofile-arcs -fpermissive")
-ENDIF(USE_GCC)
+endif(MSVC)
 
 # Link mode
 set (Phantom_LINK_MODE SHARED)
+
+# Link directories
+link_directories(${Boost_LIBRARY_DIR})
 
 # Make the library
 add_library(
@@ -314,9 +278,5 @@ add_library(
     ${SRC_FILES}
     ${INCLUDE_FILES})
 
-# Target the librairies
-if(${Phantom_PROJECT_TARGET_PLATFORM} MATCHES "Ios")
-   set_target_properties(${LIBRARY_NAME} PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "NO")
-else(${Phantom_PROJECT_TARGET_PLATFORM} MATCHES "Ios")
-    target_link_libraries(${LIBRARY_NAME} ${Boost_LIBRARIES})
-endif(${Phantom_PROJECT_TARGET_PLATFORM} MATCHES "Ios")
+# Target link libraries
+target_link_libraries(${LIBRARY_NAME} ${Boost_LIBRARIES})
