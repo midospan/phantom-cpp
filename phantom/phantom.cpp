@@ -1647,13 +1647,14 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
     moduleLoader()->m_OperationCounter--;
 
 #if o_OPERATING_SYSTEM != o_OPERATING_SYSTEM_WINDOWS
+    /* TODO LINUX
     setState(eState_DynamicInitializerDone_StartingInitialization);
 
     // We initialize and give reflection to objects created before Phantom
     // was setup (for instance, Native meta-types objects)
     dynamic_initializer()->installReflection();
 
-    setState(eState_Installed);
+    setState(eState_Installed);*/
 #endif
 
     g_type_of_string = typeByName("phantom::string");

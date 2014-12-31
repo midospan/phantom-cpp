@@ -38,8 +38,10 @@
 #include <phantom/serialization/PackageNode.h>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
+#ifdef WIN32
 #include <windows.h>
 #include <Lmcons.h>
+#endif //WIN32
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

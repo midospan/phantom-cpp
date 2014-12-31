@@ -117,7 +117,12 @@ namespace connection
         o_forceinline slot*                             prev() const { return m_prev; }
         o_forceinline slot*                             next() const { return m_next; }
 
+#if o_COMPILER == o_COMPILER_GCC
+        slot*                             		clone(slot::list* list_pointer, slot* a_pPrev, slot** a_pResultQueue);
+#else
         o_forceinline slot*                             clone(slot::list* list_pointer, slot* a_pPrev, slot** a_pResultQueue);
+#endif // GCC
+
         o_forceinline void                              release();
 
         boolean                                         equals(slot* a_pOther) const
@@ -283,7 +288,11 @@ namespace connection
         slot_allocator* slotAllocator;
     };
 
+#if o_COMPILER == o_COMPILER_GCC
+    slot* slot::clone( slot::list* list_pointer, slot* a_pPrev, slot** a_pResultQueue )
+#else
     o_forceinline slot* slot::clone( slot::list* list_pointer, slot* a_pPrev, slot** a_pResultQueue )
+#endif //GCC
     {
         o_assert(m_pool);
         slot* pClone = m_pool->take();

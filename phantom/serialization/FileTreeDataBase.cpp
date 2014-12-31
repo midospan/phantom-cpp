@@ -39,8 +39,10 @@
 #include <phantom/serialization/FileTreeNode.h>
 #include <phantom/serialization/FileTreeDataBase.h>
 #include <phantom/serialization/FileTreeDataBase.hxx>
+#ifdef WIN32
 #include <windows.h>
 #include <Lmcons.h>
+#endif //WIN32
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -249,9 +251,15 @@ phantom::uint FileTreeDataBase::generateGuid()
 
 	// Create guid
 	uint c = 0;
+#ifdef WIN32
 	char username[UNLEN+1];
 	DWORD size = UNLEN+1;
 	GetUserName(username, &size);
+#else
+	// TODO
+	char username[] = "TEST";
+	unsigned int size = 5;
+#endif //WIN32
 	uint iCharCount = 0;
 	uint iCharIndex = 0;
 	while (iCharCount < 3 AND iCharIndex < size)

@@ -68,6 +68,8 @@ bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMe
     Message* pMessageLoadFailed = nullptr;
 
     bool result = true;
+
+#ifdef WIN32
     if(LoadLibrary(strPath.c_str()))
     {
         if(a_pMessage) a_pMessage->success(moduleName.c_str(), "Module loaded : %s", moduleName.c_str());
@@ -112,6 +114,10 @@ bool ModuleLoader::loadLibrary( const string& a_strPath, phantom::Message* a_pMe
     {
         o_emit libraryLoadFailed(strPath);
     }
+#else
+	// TODO
+#endif //WIN32
+
     m_OperationCounter--;
     return result;
 }
@@ -138,6 +144,7 @@ bool ModuleLoader::unloadLibrary( const string& a_strPath, phantom::Message* a_p
     o_assert(std::find(m_LoadedModules.begin(), m_LoadedModules.end(), pModule) != m_LoadedModules.end(), "This module was not loaded via ModuleLoader");
     Message* pMessageUnloadFailed = nullptr;
 
+#ifdef WIN32
     if(FreeLibrary((HMODULE)pModule->getPlatformHandle()))
     {
         if(a_pMessage) a_pMessage->success(moduleName.c_str(), "Module unloaded : %s", moduleName.c_str());
@@ -181,6 +188,9 @@ bool ModuleLoader::unloadLibrary( const string& a_strPath, phantom::Message* a_p
     {
         o_emit libraryUnloadFailed(strPath);
     }
+#else
+	// TODO
+#endif //WIN32
     m_OperationCounter--;
     return result;
 }
@@ -215,6 +225,7 @@ void ModuleLoader::moduleDeleted( void* a_pModule )
 
 void ModuleLoader::updateReferenceCounts(const string& a_strLibPath, bool a_bLoading)
 {
+#ifdef WIN32
     HANDLE snapshotHandle = CreateToolhelp32Snapshot(
         TH32CS_SNAPMODULE,
         GetCurrentProcessId()
@@ -282,6 +293,9 @@ void ModuleLoader::updateReferenceCounts(const string& a_strLibPath, bool a_bLoa
     }
     o_assert(matchingModuleCount == m_LoadedModules.size(), "A loaded module has not been found in the loaded dlls");
     o_verify(CloseHandle(snapshotHandle), "CloseHandle(snapshotHandle)");
+#else
+	// TODO
+#endif //WIN32
 }
 
 size_t ModuleLoader::getModuleLoadCount( Module* a_pModule ) const
@@ -410,7 +424,11 @@ size_t ModuleLoader::getLibraryModuleLoadCount( const string& a_strPath, Module*
 void ModuleLoader::loadMain( const string& a_strFileName, Message* a_pMessage )
 {
     m_OperationCounter++;
+#ifdef WIN32
     phantom::installReflection("main", a_strFileName, (size_t)GetModuleHandle(0));
+#else
+	// TODO
+#endif //WIN32
     m_OperationCounter--;
 }
 
