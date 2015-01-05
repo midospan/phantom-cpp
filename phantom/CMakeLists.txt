@@ -240,6 +240,8 @@ include_directories(${Jit_INCLUDE_DIR})
 # Definitions
 add_definitions(-DPHANTOM_DLL)
 add_definitions(-DPHANTOM_MODULE)
+add_definitions(-DBOOST_ALL_DYN_LINK)
+add_definitions(-DBOOST_ALL_NO_LIB)
 add_definitions(-DDEBUG)
 if(WIN32)
 	add_definitions(-D_WIN32)
