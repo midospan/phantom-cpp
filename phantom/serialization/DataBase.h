@@ -1,41 +1,10 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef serialization_DataBase_h__
 #define serialization_DataBase_h__
 
 /* ****************** Includes ******************* */
-#include "phantom/object.h"
+
 /* **************** Declarations ***************** */
 o_declareN(class, (phantom, serialization), DataBase)
 /* *********************************************** */
@@ -408,8 +377,8 @@ protected:
     void            moduleElementAboutToBeRemoved(reflection::LanguageElement* a_pLanguageElement);
     void            moduleElementsAboutToBeReplaced( const vector<reflection::LanguageElement*>& a_OldLanguageElements );
     void            moduleElementsReplaced(const vector<reflection::LanguageElement*>& a_OldLanguageElements, const vector<reflection::LanguageElement*>& a_NewLanguageElements);
-    void            moduleLoaded(Module* a_pModule, size_t a_uiOldCount, size_t a_uiNewCount);
-    void            moduleUnloaded( Module* a_pModule, size_t a_uiOldCount, size_t a_uiNewCount);
+    void            moduleLoaded(reflection::Module* a_pModule, size_t a_uiOldCount, size_t a_uiNewCount);
+    void            moduleUnloaded( reflection::Module* a_pModule, size_t a_uiOldCount, size_t a_uiNewCount);
 
     virtual void    connectData( const phantom::data& a_Data, bool a_bCollectComponents = true );
     virtual void    disconnectData( const phantom::data& a_Data );
@@ -439,7 +408,7 @@ protected:
     virtual void    createTypeEntry(reflection::Type* a_pType) = 0;
     virtual void    destroyTypeEntry(reflection::Type* a_pType) = 0;
     virtual void    saveType(reflection::Type* a_pType) = 0;
-    virtual void    loadTypes(Module* a_pModule, vector<reflection::Type*>* a_pLoadedTypes = nullptr, const vector<string>* a_pTypeNames = nullptr) = 0;
+    virtual void    loadTypes(reflection::Module* a_pModule, vector<reflection::Type*>* a_pLoadedTypes = nullptr, const vector<string>* a_pTypeNames = nullptr) = 0;
     virtual bool    hasTypeEntry(const string& a_strQualifiedDecoratedName, const string& a_strModuleFileName) const = 0;
 
     void            registerPlaceholderTypeByName(const string& qualifiedName, const string& placeHolder);
@@ -505,11 +474,11 @@ protected:
     typedef map<uint, uint>         component_data_owner_map;
     typedef map<uint, string>       component_data_reference_expression_map;
 
-    typedef map<uint,vector<string> >data_reference_expression_map;
+    typedef map<uint,vector<string>>data_reference_expression_map;
 
-    typedef map<uint, map<reflection::Property*, variant> > data_property_value_map;
+    typedef map<uint, map<reflection::Property*, variant>> data_property_value_map;
 
-    typedef map<uint, map<void*, vector<void*> > > data_aggregation_value_map;
+    typedef map<uint, map<void*, vector<void*>>> data_aggregation_value_map;
 
     string                          m_strUrl;
     data_guid_base                  m_GuidBase;

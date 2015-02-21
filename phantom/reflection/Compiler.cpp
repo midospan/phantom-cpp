@@ -53,19 +53,19 @@ variant Compiler::compileElement( LanguageElement* a_pLanguageElement )
 
 variant Compiler::compile( LanguageElement* a_pLanguageElement, const variant_map& a_InData )
 {
-	LanguageElement* a_pASTOld = m_pCompiledElement;
-	m_pCompiledElement = a_pLanguageElement;
-	m_QueuedInData.push(a_InData);
+// 	LanguageElement* a_pASTOld = m_pCompiledElement;
+// 	m_pCompiledElement = a_pLanguageElement;
+// 	m_QueuedInData.push(a_InData);
     //a_pLanguageElement->compilationStart(this);
 
-    preCompile(m_pCompiledElement);
+    //preCompile(m_pCompiledElement);
     /*jit::JitSubroutine* pPreSubroutine = in("subroutine").as<jit::JitSubroutine*>();
     if(pPreSubroutine)
     {
         pPreSubroutine->pushCodeLocation(a_pLanguageElement->getLocation());
     }*/
 
-    variant pResult = a_pLanguageElement->compile(this);
+    //variant pResult = a_pLanguageElement->compile(this);
 
     // restore previous code location (if function still being compiled)
     /*jit::JitSubroutine* pPostSubroutine = in("subroutine").as<jit::JitSubroutine*>();
@@ -73,16 +73,16 @@ variant Compiler::compile( LanguageElement* a_pLanguageElement, const variant_ma
     {
         pPreSubroutine->popCodeLocation();
     }*/
-    postCompile(m_pCompiledElement);
+    //postCompile(m_pCompiledElement);
 
-    m_RememberedSolvingData[m_pCompiledElement] = m_QueuedInData.top();
-	m_QueuedInData.pop();
-	m_pCompiledElement = a_pASTOld;
-	if(m_QueueWaitingCounter[a_pLanguageElement] == 0)
-    {
-        terminateElementCompilation(a_pLanguageElement);
-    }
-	return pResult;
+//     m_RememberedSolvingData[m_pCompiledElement] = m_QueuedInData.top();
+// 	m_QueuedInData.pop();
+// 	m_pCompiledElement = a_pASTOld;
+// 	if(m_QueueWaitingCounter[a_pLanguageElement] == 0)
+//     {
+//         terminateElementCompilation(a_pLanguageElement);
+//     }
+	return variant();//pResult;
 }
 
 void Compiler::terminateElementCompilation(LanguageElement* a_pLanguageElement)
@@ -127,13 +127,13 @@ void Compiler::compile( int a_iPass )
 
 variant Compiler::compile( ClassType* a_pClassType )
 {
-    o_assert(a_pClassType->getExtraData());
-    if(a_pClassType->getExtraData()->m_iState < ClassType::extra_data::e_State_Finalized)
-    {
-        a_pClassType->finalize();
-    }
-    o_assert(a_pClassType->getExtraData()->m_iState < ClassType::extra_data::e_State_Compiling);
-    const_cast<ClassType::extra_data*>(a_pClassType->getExtraData())->m_iState = ClassType::extra_data::e_State_Compiling;
+//     o_assert(a_pClassType->getExtraData());
+//     if(a_pClassType->getExtraData()->m_iState < ClassType::extra_data::e_State_Finalized)
+//     {
+//         a_pClassType->finalize();
+//     }
+//     o_assert(a_pClassType->getExtraData()->m_iState < ClassType::extra_data::e_State_Compiling);
+//     const_cast<ClassType::extra_data*>(a_pClassType->getExtraData())->m_iState = ClassType::extra_data::e_State_Compiling;
     return variant();
 }
 
@@ -145,7 +145,7 @@ variant Compiler::compile( Class* a_pClass )
     return variant();
 }
 
-variant Compiler::compile( state::StateMachine* a_pStateMachine )
+variant Compiler::compile( StateMachine* a_pStateMachine )
 {
 //     o_assert(a_pStateMachine->m_pCompilationData);
 //     size_t i = 0;

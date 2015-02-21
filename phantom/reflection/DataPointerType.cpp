@@ -1,46 +1,11 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <phantom/reflection/DataPointerType.h>
 #include <phantom/reflection/DataPointerType.hxx>
 #include <phantom/reflection/Expression.h>
-#include <phantom/reflection/AssignmentExpression.h>
 #include <phantom/reflection/ConstantExpression.h>
-#include <phantom/reflection/BinaryLogicalExpression.h>
-#include <phantom/reflection/PointerArithmeticExpression.h>
-#include <phantom/reflection/TBinaryBooleanExpression.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), DataPointerType);
 
@@ -49,7 +14,7 @@ o_namespace_begin(phantom, reflection)
 o_define_meta_type(DataPointerType);
 
 DataPointerType::DataPointerType( Type* a_pPointedType ) 
-: PointerType(a_pPointedType->getName()
+: PointerType("*"
             , sizeof(void*)
             , boost::alignment_of<void*>::value
             , a_pPointedType->isNative() ? modifiers_t(o_native) : 0)    
@@ -60,10 +25,6 @@ DataPointerType::DataPointerType( Type* a_pPointedType )
 
 DataPointerType::~DataPointerType()
 {
-    if(m_pPointedType)
-    {
-        m_pPointedType->removeExtendedType(this);
-    }
 }
 
 void*   DataPointerType::allocate() const
@@ -84,99 +45,6 @@ void*   DataPointerType::allocate(size_t a_uiCount) const
 void    DataPointerType::deallocate(void* a_pChunk, size_t a_uiCount) const
 {
     o_deallocate_n(static_cast<void**>(a_pChunk), a_uiCount, void*);
-}
-
-boolean DataPointerType::isConvertibleTo( Type* a_pType ) const
-{
-    o_assert(a_pType);
-    return a_pType->asIntegralType() OR a_pType->asPointerType() OR isImplicitlyConvertibleTo(a_pType);
-}
-
-boolean DataPointerType::isImplicitlyConvertibleTo( Type* a_pType ) const
-{
-    if(PointerType::isImplicitlyConvertibleTo(a_pType) 
-        OR (m_pPointedType->asConstType() == nullptr AND a_pType == typeOf<void*>()) 
-        OR a_pType == typeOf<void const*>()
-        OR a_pType == typeOf<bool>())
-    {
-        return true;
-    }
-    if(a_pType->getDataPointerLevel() == 1 AND getDataPointerLevel() == 1)
-    {
-        Type* pPointedType = static_cast<DataPointerType*>(a_pType)->getPointedType();
-        if(pPointedType == m_pPointedType) return true;
-        if(pPointedType->asConstType() AND pPointedType->asConstType() == nullptr)
-        {
-            return false;
-        }
-        if((pPointedType->asClass() != nullptr) AND (m_pPointedType->asClass() != nullptr)) 
-        {
-            reflection::Class* pDestClass  = static_cast<reflection::Class*>(pPointedType);
-            reflection::Class* pClass       = static_cast<reflection::Class*>(m_pPointedType);
-            return pClass->isKindOf(pDestClass);
-        }
-        return false;
-    }
-    return Type::isImplicitlyConvertibleTo(a_pType);
-}
-
-void DataPointerType::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const
-{
-    o_assert(isConvertibleTo(a_pDestType));
-    if(a_pDestType == this OR m_pPointedType->removeConst() == typeOf<void>())
-    {
-        *((void**)a_pDestValue) = *((void**)a_pSrcValue);
-        return;
-    }
-    if(a_pDestType->removeConst() == typeOf<bool>())
-    {
-        *((bool*)a_pDestValue) = (*((void* const*)a_pSrcValue) != nullptr);
-        return;
-    }
-    reflection::Class* pPointedClass = m_pPointedType->removeConst()->asClass();
-    if(pPointedClass == nullptr) 
-    {
-        if(a_pDestType->removeConst()->asDataPointerType())
-        {
-            *((void**)a_pDestValue) = *((void**)a_pSrcValue);
-        }
-        else Type::convertValueTo(a_pDestType, a_pDestValue, a_pSrcValue);
-    }
-    else 
-    {
-        reflection::Type* pDestPointedType = a_pDestType->asDataPointerType()->getPointedType();
-        if( pDestPointedType->removeConst() == typeOf<void>())
-        {
-            *((void**)a_pDestValue) = *((void**)a_pSrcValue);
-        }
-        else
-        {
-            reflection::Class* pDestPointedClass = pDestPointedType->removeConst()->asClass();
-            o_assert(pDestPointedClass);
-            if(pPointedClass == pDestPointedClass) 
-            {
-                *((void**)a_pDestValue) = *((void**)a_pSrcValue);
-                return;
-            }
-            size_t offset = pPointedClass->getBaseClassOffsetCascade(pDestPointedClass);
-            if(offset != 0xffffffff) 
-            {
-                byte* ptr = *((byte**)a_pSrcValue);
-                *((byte**)a_pDestValue) = (ptr == nullptr) ? nullptr : ptr+offset;
-            }
-            else 
-            {
-                offset = pDestPointedClass->getBaseClassOffsetCascade(pPointedClass);
-                if(offset == 0xffffffff)
-                {
-                    o_assert(pPointedClass->isKindOf(pDestPointedClass));
-                    offset = 0;
-                }
-                byte* ptr = *((byte**)a_pSrcValue);
-                *((byte**)a_pDestValue) = (ptr == nullptr) ? nullptr : ptr-offset;
-            }
-        }
-    }
 }
 
 void        DataPointerType::serialize(void const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const
@@ -564,7 +432,6 @@ void DataPointerType::referencedElementRemoved( LanguageElement* a_pElement )
     Type::referencedElementRemoved(a_pElement);
     if(m_pPointedType == a_pElement)
     {
-        m_pPointedType->removeExtendedType(this);
         m_pPointedType = nullptr;
     }
 }
@@ -617,14 +484,90 @@ void        DataPointerType::reset(void* a_pChunk, size_t a_uiCount, size_t a_ui
     phantom::resetter<void*>::reset(const_cast<DataPointerType*>(this), (void**)a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
 }
 
-bool DataPointerType::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_DeducedConstants ) const
+bool DataPointerType::partialAccepts( Type* a_pType, size_t& a_Score, map<Placeholder*, LanguageElement*>& a_DeducedConstants ) const
 {
     if(a_pType->asDataPointerType())
     {
         a_Score += 10;
-        return m_pPointedType->templatePartialMatch(a_pType->removePointer(), a_Score, a_DeducedConstants);
+        return m_pPointedType->partialAccepts(a_pType->removePointer(), a_Score, a_DeducedConstants);
     }
     return false;
+}
+
+void DataPointerType::preIncrement( void** a_pArgs, void* a_pOutput )
+{
+    *(byte**)a_pArgs[0] += m_pPointedType->getSize();
+    *(byte***)a_pOutput = (byte**)a_pArgs[0];
+}
+
+void DataPointerType::postIncrement( void** a_pArgs, void* a_pOutput )
+{
+    *(byte***)a_pOutput = (byte**)a_pArgs[0];
+    *(byte**)a_pArgs += m_pPointedType->getSize();
+}
+
+void DataPointerType::preDecrement( void** a_pArgs, void* a_pOutput )
+{
+    *(byte**)a_pArgs[0] -= m_pPointedType->getSize();
+    *(byte***)a_pOutput = (byte**)a_pArgs[0];
+}
+
+void DataPointerType::postDecrement( void** a_pArgs, void* a_pOutput )
+{
+    *(byte***)a_pOutput = (byte**)a_pArgs[0];
+    *(byte**)a_pArgs -= m_pPointedType->getSize();
+}
+
+void DataPointerType::assignmentAdd( void** a_pArgs, void* a_pOutput )
+{
+    *(byte**)a_pArgs[0] += m_pPointedType->getSize() * (*(ptrdiff_t*)a_pArgs[1]);
+    *(byte***)a_pOutput = (byte**)a_pArgs[0];
+}
+
+void DataPointerType::assignmentSubtract( void** a_pArgs, void* a_pOutput )
+{
+    *(byte**)a_pArgs[0] -= m_pPointedType->getSize() * (*(ptrdiff_t*)a_pArgs[1]);
+    *(byte***)a_pOutput = (byte**)a_pArgs[0];
+}
+
+void DataPointerType::subtractPointer( void** a_pArgs, void* a_pOutput )
+{
+    *(ptrdiff_t*)a_pOutput = *(byte**)a_pArgs[0] - *(byte**)a_pArgs[1];
+}
+
+void DataPointerType::dereference( void** a_pArgs, void* a_pOutput )
+{
+    *(void**)a_pOutput = *(void**)a_pArgs[0];
+}
+
+void DataPointerType::plus( void** a_pArgs, void* a_pOutput )
+{
+    *(void**)a_pOutput = *(void**)a_pArgs[0];
+}
+
+void DataPointerType::add( void** a_pArgs, void* a_pOutput )
+{
+    *(byte**)a_pOutput = *(byte**)a_pArgs[0] + m_pPointedType->getSize() * (*(ptrdiff_t*)a_pArgs[1]);
+}
+
+void DataPointerType::addRev( void** a_pArgs, void* a_pOutput )
+{
+    *(byte**)a_pOutput = m_pPointedType->getSize() * (*(ptrdiff_t*)a_pArgs[0]) + *(byte**)a_pArgs[1];
+}
+
+void DataPointerType::bracket( void** a_pArgs, void* a_pOutput )
+{
+    *(byte**)a_pOutput = *(byte**)a_pArgs[0] + m_pPointedType->getSize() * (*(ptrdiff_t*)a_pArgs[1]);
+}
+
+void DataPointerType::bracketRev( void** a_pArgs, void* a_pOutput )
+{
+    *(byte**)a_pOutput = m_pPointedType->getSize() * (*(ptrdiff_t*)a_pArgs[0]) + *(byte**)a_pArgs[1];
+}
+
+void DataPointerType::subtract( void** a_pArgs, void* a_pOutput )
+{
+    *(byte**)a_pOutput = *(byte**)a_pArgs[0] - m_pPointedType->getSize() * (*(ptrdiff_t*)a_pArgs[1]);
 }
 
 o_namespace_end(phantom, reflection)

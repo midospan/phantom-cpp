@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'DataTreeView.h'
 **
-** Created: Sat 8. Nov 18:05:16 2014
+** Created: Sat 21. Feb 11:52:14 2015
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -57,7 +57,7 @@ static const uint qt_meta_data_phantom__qt__DataTreeView[] = {
     1032,   26,   26,   26, 0x09,
     1093, 1056,   26,   26, 0x09,
     1167, 1148,   26,   26, 0x09,
-    1250, 1212,   26,   26, 0x09,
+    1253, 1215,   26,   26, 0x09,
 
        0        // eod
 };
@@ -91,7 +91,7 @@ static const char qt_meta_stringdata_phantom__qt__DataTreeView[] = {
     "a_Data,a_uiAttributeIndex,a_strValue\0"
     "dataAttributeValueChanged(phantom::data,size_t,string)\0"
     "a_Data,a_Modifiers\0"
-    "dataModifiersChanged(phantom::data,bitfield)\0"
+    "dataModifiersChanged(phantom::data,modifiers_t)\0"
     "a_pNode,a_uiAttributeIndex,a_strValue\0"
     "nodeAttributeValueChanged(phantom::serialization::Node*,size_t,string)\0"
 };
@@ -124,7 +124,7 @@ void phantom::qt::DataTreeView::qt_static_metacall(QObject *_o, QMetaObject::Cal
         case 19: _t->nodeLoaded(); break;
         case 20: _t->nodeAboutToBeUnloaded(); break;
         case 21: _t->dataAttributeValueChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
-        case 22: _t->dataModifiersChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< bitfield(*)>(_a[2]))); break;
+        case 22: _t->dataModifiersChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< modifiers_t(*)>(_a[2]))); break;
         case 23: _t->nodeAttributeValueChanged((*reinterpret_cast< phantom::serialization::Node*(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
         default: ;
         }

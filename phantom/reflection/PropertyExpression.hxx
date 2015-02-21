@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Expression.hxx"
+#include "LValueExpression.hxx"
 
-o_classNB((phantom, reflection), PropertyExpression, (Expression), o_deferred|0) (
+o_classNB((phantom, reflection), PropertyExpression, (LValueExpression), o_deferred|0) (
         );
 
 

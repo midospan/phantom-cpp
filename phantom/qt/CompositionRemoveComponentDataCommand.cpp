@@ -23,7 +23,7 @@ CompositionRemoveComponentDataCommand::CompositionRemoveComponentDataCommand( se
     , reflection::Expression* a_pCompositionExpression )
     : DataBaseCommand(a_pDataBase)
     , m_uiOwnerGuid(a_pDataBase->getGuid(a_OwnerData))
-    , m_strCompositionExpression(a_pCompositionExpression->getName())
+    , m_strCompositionExpression(a_pCompositionExpression->translate())
     , m_uiIndex(a_uiIndex)
 {
     setName("Remove component data from '" + m_pDataBase->getDataAttributeValue(a_OwnerData, "name")+"'("+boost::lexical_cast<string>((void*)m_uiOwnerGuid)+")");
@@ -63,7 +63,7 @@ void CompositionRemoveComponentDataCommand::redoReplayed()
     o_assert(pComponent);
     m_strTypeName = classOf(pComponent)->getQualifiedDecoratedName();
     pCompositionClass->remove(pComposition, m_uiIndex);
-    phantom::deleteElement(pCompositionExpression);
+    o_dynamic_delete pCompositionExpression;
 }
 
 void CompositionRemoveComponentDataCommand::undoReplayed()
@@ -80,7 +80,7 @@ void CompositionRemoveComponentDataCommand::undoReplayed()
     pAddress = pType->cast(pCompositionClass->getComponentClass(), pAddress);
     void* pComposition = pCompositionExpression->loadEffectiveAddress();
     pCompositionClass->insert(pComposition, m_uiIndex, &pAddress);
-    phantom::deleteElement(pCompositionExpression);
+    o_dynamic_delete pCompositionExpression;
 }
 
 CompositionRemoveComponentDataCommand* CompositionRemoveComponentDataCommand::clone() const
@@ -93,7 +93,7 @@ string CompositionRemoveComponentDataCommand::generateComponentName( serializati
     void* pAddress = a_Component.address();
     reflection::Expression* pCompositionExpression = phantom::expressionByName(m_strCompositionExpression);
     reflection::CompositionClass* pCompositionClass = as<reflection::CompositionClass*>(pCompositionExpression->getValueType()->removeReference()->removeConst());
-    return nameOf(pCompositionExpression->getHatchedElement())+" - "+lexical_cast<string>(pCompositionClass->indexOf(pCompositionExpression->loadEffectiveAddress(), &pAddress));
+    return nameOf(pCompositionExpression->getHatchedElement()->asNamedElement())+" - "+lexical_cast<string>(pCompositionClass->indexOf(pCompositionExpression->loadEffectiveAddress(), &pAddress));
 }
 
 }}

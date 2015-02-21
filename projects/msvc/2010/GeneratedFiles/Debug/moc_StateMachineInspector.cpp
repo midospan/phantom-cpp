@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'StateMachineInspector.h'
 **
-** Created: Wed 29. Oct 19:57:10 2014
+** Created: Fri 20. Feb 12:36:38 2015
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -110,9 +110,9 @@ static const uint qt_meta_data_phantom__qt__StateMachineInspector[] = {
       76,   36,   35,   35, 0x05,
 
  // slots: signature, parameters, type, tag, flags
-     130,   35,   35,   35, 0x0a,
-     138,   35,   35,   35, 0x0a,
-     147,   35,   35,   35, 0x0a,
+     135,   35,   35,   35, 0x0a,
+     143,   35,   35,   35, 0x0a,
+     152,   35,   35,   35, 0x0a,
 
        0        // eod
 };
@@ -120,7 +120,7 @@ static const uint qt_meta_data_phantom__qt__StateMachineInspector[] = {
 static const char qt_meta_stringdata_phantom__qt__StateMachineInspector[] = {
     "phantom::qt::StateMachineInspector\0\0"
     "a_pStateMachine,a_pInstance,a_uiEventId\0"
-    "eventPosted(phantom::state::StateMachine*,void*,uint)\0"
+    "eventPosted(phantom::reflection::StateMachine*,void*,uint)\0"
     "start()\0update()\0stop()\0"
 };
 
@@ -130,7 +130,7 @@ void phantom::qt::StateMachineInspector::qt_static_metacall(QObject *_o, QMetaOb
         Q_ASSERT(staticMetaObject.cast(_o));
         StateMachineInspector *_t = static_cast<StateMachineInspector *>(_o);
         switch (_id) {
-        case 0: _t->eventPosted((*reinterpret_cast< phantom::state::StateMachine*(*)>(_a[1])),(*reinterpret_cast< void*(*)>(_a[2])),(*reinterpret_cast< uint(*)>(_a[3]))); break;
+        case 0: _t->eventPosted((*reinterpret_cast< phantom::reflection::StateMachine*(*)>(_a[1])),(*reinterpret_cast< void*(*)>(_a[2])),(*reinterpret_cast< uint(*)>(_a[3]))); break;
         case 1: _t->start(); break;
         case 2: _t->update(); break;
         case 3: _t->stop(); break;
@@ -179,7 +179,7 @@ int phantom::qt::StateMachineInspector::qt_metacall(QMetaObject::Call _c, int _i
 }
 
 // SIGNAL 0
-void phantom::qt::StateMachineInspector::eventPosted(phantom::state::StateMachine * _t1, void * _t2, uint _t3)
+void phantom::qt::StateMachineInspector::eventPosted(phantom::reflection::StateMachine * _t1, void * _t2, uint _t3)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)), const_cast<void*>(reinterpret_cast<const void*>(&_t2)), const_cast<void*>(reinterpret_cast<const void*>(&_t3)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);

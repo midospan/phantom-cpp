@@ -27,8 +27,8 @@ void AggregationVisualizerNode::expand(VariableNode* a_pVariableNode, const vect
         reflection::Expression* pLeftExpression = a_LeftExpressions[i];
         reflection::AggregationClass* pAggregationClass = as<reflection::AggregationClass*>(pLeftExpression->getValueType()->removeReference());
         o_assert(pAggregationClass);
-        vector<reflection::LanguageElement*> signature;
-        reflection::Expression* pSizeExpression = pLeftExpression->clone()->solveElement("count", nullptr, &signature)->asExpression();
+        vector<reflection::Expression*> signature;
+        reflection::Expression* pSizeExpression = cplusplus()->qualifiedLookup(pLeftExpression->clone(), "count", nullptr, &signature)->asExpression();
         bool ok;
         size_t count = pSizeExpression->get().as<size_t>(&ok);
         o_assert(ok);
@@ -37,11 +37,11 @@ void AggregationVisualizerNode::expand(VariableNode* a_pVariableNode, const vect
         for(size_t i = 0; i<count; ++i)
         {
             reflection::Expression* pIndexExpression = o_new(reflection::ConstantExpression)(constant<size_t>(i));
-            reflection::Expression* pExpression = pLeftExpression->clone()->solveBinaryOperator("[]", pIndexExpression);
+            reflection::Expression* pExpression = cplusplus()->solveBinaryOperator("[]", pLeftExpression->clone(), pIndexExpression);
             o_assert(pExpression);
             groupedVariables[i].push_back(pExpression);
         }
-        phantom::deleteElement(pSizeExpression);
+        o_dynamic_delete pSizeExpression;
     }
     size_t i = 0;
     for(;i<groupedVariables.size(); ++i)

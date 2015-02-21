@@ -1,99 +1,43 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <phantom/reflection/MemberFunctionPointerType.h>
 #include <phantom/reflection/MemberFunctionPointerType.hxx>
-#include <phantom/reflection/Expression.h>
-#include <phantom/reflection/AssignmentExpression.h>
-#include <phantom/reflection/ConstantExpression.h>
-#include <phantom/reflection/BinaryLogicalExpression.h>
-#include <phantom/reflection/PointerArithmeticExpression.h>
-#include <phantom/reflection/TBinaryBooleanExpression.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), MemberFunctionPointerType);
 
 o_namespace_begin(phantom, reflection) 
 
+o_invalid_def(MemberFunctionPointerType, ClassType::Invalid(), Signature::Invalid(), o_invalid);
+
 o_define_meta_type(MemberFunctionPointerType);
 
-MemberFunctionPointerType::MemberFunctionPointerType( Type* a_pObjectType, Signature* a_pSignature, modifiers_t a_Modifiers )
+MemberFunctionPointerType::MemberFunctionPointerType( ClassType* a_pObjectType, Signature* a_pSignature, modifiers_t a_Modifiers )
     : MemberPointerType(a_pObjectType
-    , 4
-    , 4
+    , sizeof(MemberFunction*)
+    , boost::alignment_of<MemberFunction*>::value
     , a_Modifiers)    
     , m_pSignature(a_pSignature)
-    , m_pObjectType(a_pObjectType)
 {
     o_assert(!isNative());
-    addReferencedElement(m_pObjectType);
     addElement(m_pSignature);
 }
 
-MemberFunctionPointerType::MemberFunctionPointerType( Type* a_pObjectType, Signature* a_pSignature, size_t a_Size, size_t a_Alignment, modifiers_t a_Modifiers ) 
+MemberFunctionPointerType::MemberFunctionPointerType( ClassType* a_pObjectType, Signature* a_pSignature, size_t a_Size, size_t a_Alignment, modifiers_t a_Modifiers ) 
 : MemberPointerType(a_pObjectType
             , a_Size
             , a_Alignment
             , a_Modifiers)    
             , m_pSignature(a_pSignature)
-            , m_pObjectType(a_pObjectType)
 {
     o_assert(isNative());
-    addReferencedElement(m_pObjectType);
     addElement(m_pSignature);
 }
 
 MemberFunctionPointerType::~MemberFunctionPointerType()
 {
 
-}
-
-boolean MemberFunctionPointerType::isConvertibleTo( Type* a_pType ) const
-{
-    o_assert(a_pType);
-    return a_pType->removeConst() == this;
-}
-
-boolean MemberFunctionPointerType::isImplicitlyConvertibleTo( Type* a_pType ) const
-{
-    o_assert(a_pType);
-    return a_pType->removeConst() == this;
-}
-
-void MemberFunctionPointerType::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const
-{
-    Type::convertValueTo(a_pDestType, a_pDestValue, a_pSrcValue);
 }
 
 void MemberFunctionPointerType::referencedElementRemoved( LanguageElement* a_pElement )
@@ -123,6 +67,53 @@ void MemberFunctionPointerType::valueFromString( const string& a_str, void* dest
 void MemberFunctionPointerType::copy( void* a_pDest, void const* a_pSrc ) const
 {
     memcpy(a_pDest, a_pSrc, m_uiSize);
+}
+
+void* MemberFunctionPointerType::getClosure( void* a_pPointer ) const
+{
+    return static_cast<MemberFunction*>(a_pPointer)->getClosure();
+}
+
+void MemberFunctionPointerType::call( void* a_pPointer, void* a_pThis, void** a_pArgs ) const
+{
+    o_assert(as<MemberFunction*>(a_pPointer));
+    static_cast<MemberFunction*>(a_pPointer)->call(a_pThis, a_pArgs);
+}
+
+void MemberFunctionPointerType::call( void* a_pPointer, void* a_pThis, void** a_pArgs, void* a_pReturnAddress ) const
+{
+    o_assert(as<MemberFunction*>(a_pPointer));
+    static_cast<MemberFunction*>(a_pPointer)->call(a_pThis, a_pArgs, a_pReturnAddress);
+}
+
+void MemberFunctionPointerType::implicitConversions( const vector<Type*>& a_FunctionSignature, LanguageElement* a_pContextScope, conversions& a_ImplicitConversions ) const
+{
+    m_pSignature->implicitConversions(a_FunctionSignature, a_pContextScope, a_ImplicitConversions);
+}
+
+void MemberFunctionPointerType::implicitConversions( const vector<Expression*>& a_Arguments, LanguageElement* a_pContextScope, conversions& a_ImplicitConversions ) const
+{
+    m_pSignature->implicitConversions(a_Arguments, a_pContextScope, a_ImplicitConversions);
+}
+
+void MemberFunctionPointerType::implicitConversions( Language* a_pLanguage, const vector<Type*>& a_FunctionSignature, LanguageElement* a_pContextScope, conversions& a_ImplicitConversions ) const
+{
+    m_pSignature->implicitConversions(a_pLanguage, a_FunctionSignature, a_pContextScope, a_ImplicitConversions);
+}
+
+void MemberFunctionPointerType::implicitConversions( Language* a_pLanguage, const vector<Expression*>& a_Arguments, LanguageElement* a_pContextScope, conversions& a_ImplicitConversions ) const
+{
+    m_pSignature->implicitConversions(a_pLanguage, a_Arguments, a_pContextScope, a_ImplicitConversions);
+}
+
+bool MemberFunctionPointerType::matches( const vector<Type*>& parameters, modifiers_t a_Qualifiers ) const
+{
+    return m_pSignature->matches(parameters, a_Qualifiers);
+}
+
+bool MemberFunctionPointerType::matches( const vector<Expression*>& args, modifiers_t a_Qualifiers ) const
+{
+    return m_pSignature->matches(args, a_Qualifiers);
 }
 
 o_namespace_end(phantom, reflection)

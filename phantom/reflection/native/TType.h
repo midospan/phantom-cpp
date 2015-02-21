@@ -1,5 +1,3 @@
-#include <phantom/reflection/Type.h>
-
 o_namespace_begin(phantom, reflection, native)
 
 #define o_declare_binary_operator_caller(name, symbol)\
@@ -963,6 +961,12 @@ template<> struct primitive_type_id_helper<std::nullptr_t> { const static ETypeI
 #if o_HAS_BUILT_IN_WCHAR_T
 template<> struct primitive_type_id_helper<wchar_t> { const static ETypeId value = e_wchar_t ; };
 #endif
+#if o_HAS_BUILT_IN_CHAR16_T
+template<> struct primitive_type_id_helper<char16_t> { const static ETypeId value = e_char16_t ; };
+#endif
+#if o_HAS_BUILT_IN_CHAR32_T
+template<> struct primitive_type_id_helper<char32_t> { const static ETypeId value = e_char32_t ; };
+#endif
 
 
 template<typename t_Ty>
@@ -1018,16 +1022,37 @@ struct default_constructor_provider : public default_constructor_provider_helper
 
 };
 
+template<typename t_Ty, bool t_is_not_pod_class_copy_constructible>
+struct default_copy_constructor_provider_helper
+{
+    static Constructor* apply(Type* a_pThisType, const string& a_strName) { return o_dynamic_proxy_new(TNativeConstructor<t_Ty(const t_Ty&)>)(a_strName, Signature::Create(typeOf<void>(), a_pThisType->addConst()->addLValueReference()), o_public_access); }
+};
+
+template<typename t_Ty>
+struct default_copy_constructor_provider_helper<t_Ty, false>
+{
+    static Constructor* apply(Type* a_pThisType, const string& a_strName) { return nullptr; }
+};
+
+template<typename t_Ty>
+struct default_copy_constructor_provider : public default_copy_constructor_provider_helper<t_Ty, 
+    !boost::is_pod<t_Ty>::value 
+    AND boost::is_class<t_Ty>::value 
+    AND is_copyable<t_Ty>::value>
+{
+
+};
+
 template<typename t_Ty, bool t_is_class>
 struct destructor_provider_helper
 {
-    static InstanceMemberFunction* apply(const string& a_strName) { return o_dynamic_proxy_new(TNativeDestructor<t_Ty>)(a_strName); }
+    static MemberFunction* apply(const string& a_strName) { return o_dynamic_proxy_new(TNativeDestructor<t_Ty>)(a_strName); }
 };
 
 template<typename t_Ty>
 struct destructor_provider_helper<t_Ty, false>
 {
-    static InstanceMemberFunction* apply(const string& a_strName) { return nullptr; }
+    static MemberFunction* apply(const string& a_strName) { return nullptr; }
 };
 
 template<typename t_Ty>
@@ -1336,7 +1361,12 @@ public:
         return default_constructor_provider<t_Ty>::apply(base_type::m_strName);
     }
 
-    virtual InstanceMemberFunction* createDestructor() const
+    virtual Constructor* createDefaultCopyConstructor() const
+    {
+        return default_copy_constructor_provider<t_Ty>::apply(const_cast<self_type*>(this), base_type::m_strName);
+    }
+
+    virtual MemberFunction* createDestructor() const
     {
         return destructor_provider<t_Ty>::apply("~"+base_type::m_strName);
     }
@@ -1449,22 +1479,8 @@ public:
     {
         template_nested_modifiers_filter<phantom::copier<t_Ty>, t_TemplateNestedModifiers>::copy(static_cast<t_Ty*>(a_pDest), static_cast<t_Ty const*>(a_pSrc));
     }
-
-    virtual void convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const
-    {
-        phantom::converter<t_Ty>::convert(const_cast<self_type*>(this), a_pDestType, a_pDestValue, static_cast<t_Ty const*>(a_pSrcValue));
-    }
-
-    virtual bool         isConvertibleTo(Type* a_pDestType) const
-    {
-        return phantom::converter<t_Ty>::isConvertibleTo(const_cast<self_type*>(this), a_pDestType) OR base_type::isConvertibleTo(a_pDestType);
-    }
-
-    virtual bool         isImplicitlyConvertibleTo(Type* a_pDestType) const
-    {
-        return phantom::converter<t_Ty>::isImplicitlyConvertibleTo(const_cast<self_type*>(this), a_pDestType) OR base_type::isImplicitlyConvertibleTo(a_pDestType);
-    }
-
+    
+    virtual string getQualifiedDecoratedName() const { return qualifiedDecoratedTypeNameOf<t_Ty>(); }
 };
 
 template<typename t_Ty>
@@ -1480,6 +1496,15 @@ class TType_<t_Ty&, 0>
 public:
     o_static_assert_msg(sizeof(t_Ty) != sizeof(t_Ty), "TType_<t_Ty&> not supported, it shouldn't be instanciated because references are not represented through templates due to infinite recursions risks");
 };
+
+#if o_HAS_RVALUE_REFERENCES
+template<typename t_Ty>
+class TType_<t_Ty&&, 0>
+{
+public:
+    o_static_assert_msg(sizeof(t_Ty) != sizeof(t_Ty), "TType_<t_Ty&&> not supported, it shouldn't be instanciated because references are not represented through templates due to infinite recursions risks");
+};
+#endif
 
 template<typename t_Ty>
 class TType_<t_Ty*, 0>

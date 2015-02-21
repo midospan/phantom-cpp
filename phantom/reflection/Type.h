@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_Type_h__
 #define o_phantom_reflection_Type_h__
@@ -39,18 +8,32 @@
 /* **************** Declarations ***************** */
 /* *********************************************** */
 
-#define o_type o_language_element 
+#define o_custom_type(Visitor_, Language_) \
+    o_custom_language_element(Visitor_, Language_)
+    
+
+#define o_type o_custom_type(phantom::reflection::LanguageElementVisitor, phantom::reflection::Language)
 
 o_namespace_begin(phantom, reflection)
 
 enum ETypeId
 {
     e_void,
+    e_bool,
     e_char,
     e_uchar,
     e_schar,
     e_short,
     e_ushort,
+#if o_HAS_BUILT_IN_WCHAR_T
+    e_wchar_t,
+#endif
+#if o_HAS_BUILT_IN_CHAR16_T
+    e_char16_t,
+#endif
+#if o_HAS_BUILT_IN_CHAR32_T
+    e_char32_t,
+#endif
     e_int,
     e_uint,
     e_long,
@@ -60,43 +43,47 @@ enum ETypeId
     e_float,
     e_double,
     e_longdouble,
-    e_bool,
-    e_wchar_t,
     e_enum,
+    e_pointer,
     e_nullptr_t,
     e_signal_t,
-    e_pointer,
     e_member_pointer,
     e_reference,
+    e_rvalue_reference,
     e_array,
-    e_struct,
+    e_structure,
     e_union,
     e_class,
     e_placeholder,
+    e_template_dependant,
     e_other,
 };
 
-class o_export Type : public LanguageElement
+class o_export Type : public NamedElement
 {
     o_type;
 
-    friend class phantom::reflection::Namespace;
+    friend class phantom::reflection::Scope;
+    friend class phantom::reflection::Alias;
 
     o_declare_meta_type(Type);
 
+    o_invalid_decl(Type);
+
     friend class DataPointerType;
     friend class ReferenceType;
+    friend class LValueReferenceType;
+    friend class RValueReferenceType;
     friend class ConstType;
+    friend class VolatileType;
+    friend class ConstVolatileType;
     friend class ArrayType;
 
 public:
-    typedef vector<Type*> type_container;
-    typedef map<string, Type*> nested_typedef_map;
-    typedef map<Namespace*, std::vector<string> > typedef_namespace_map;
     typedef fastdelegate::FastDelegate<bool(Type*)> filter;
     static bool DataPointerFilter(Type* a_pType)
     {
-        return a_pType->removeReference()->removeConst()->asDataPointerType() != nullptr;
+        return a_pType->removeReference()->removeQualifiers()->asDataPointerType() != nullptr;
     }
     static bool NoFilter(Type* a_pType)
     {
@@ -161,14 +148,15 @@ public:
         size_t    m_WrittenBytes;
     };
 
-    Type(ETypeId a_eTypeId);
+    static int ConversionRank(ETypeId id);
+
+    Type(ETypeId a_eTypeId, modifiers_t a_Modifiers = 0);
     Type(ETypeId a_eTypeId, const string& a_strName, modifiers_t a_Modifiers = 0);
     Type(ETypeId a_eTypeId, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0);
     ~Type();
 
     o_terminate();
 
-    bool                    matches(const string& a_strName, const vector<LanguageElement*>* a_pTemplateSignature, modifiers_t modifiers = 0) const;
     o_forceinline ETypeId   getTypeId() const { return m_eTypeId; }
     o_forceinline ushort    getSize() const { return m_uiSize; }
     o_forceinline ushort    getAlignment() const { return m_uiAlignment; }
@@ -179,22 +167,51 @@ public:
     virtual boolean         isSerializable() const { return isDefaultInstanciable(); }
     virtual bool            isDefaultConstructible() const { return (m_Modifiers & o_no_default_constructor) == 0; }
     virtual bool            isDefaultInstanciable() const { return NOT(isAbstract()) AND isDefaultConstructible(); }
-    virtual boolean         isKindOf(Type* a_pType) const { return this == a_pType OR a_pType->isPlaceholder(); }
+    virtual boolean         isKindOf(Type* a_pType) const { return equals(a_pType) OR a_pType->isTemplateDependant(); }
     virtual Type*           asType() const { return const_cast<Type*>(this); }
     virtual ComponentClass* asComponentClass() const { return nullptr; }
     virtual CompositionClass* asCompositionClass() const { return nullptr; }
     virtual AggregationClass* asAggregationClass() const { return nullptr; }
     virtual LanguageElement*asTemplateElement() const { return const_cast<Type*>(this); }
     virtual LanguageElement*asLanguageElement() const { return const_cast<Type*>(this); }
+
+    virtual Type*           getUnderlyingType() const { return nullptr; }
+
+    virtual Type*           addConst() const;
+    virtual Type*           addVolatile() const;
+    Type*                   addConstLValueReference() const;
+    Type*                   addConstRValueReference() const;
+    Type*                   addConstVolatile() const;
+    virtual Type*           addArray(size_t a_uiCount) const;
+    virtual Type*           addLValueReference() const;
+    virtual Type*           addRValueReference() const;
+    virtual Type*           addPointer() const;
+    virtual Type*           addCustom(int id) const;
+
     virtual Type*           removeConst() const { return const_cast<Type*>(this); }
+    virtual Type*           removeVolatile() const { return const_cast<Type*>(this); }
+    virtual Type*           removeConstVolatile() const { return const_cast<Type*>(this); }
+    virtual Type*           removeQualifiers() const { return const_cast<Type*>(this); }
     Type*                   removeConstReference() const { return removeReference()->removeConst(); }
+    Type*                   removeConstLValueReference() const { return removeLValueReference()->removeConst(); }
+    Type*                   removeConstRValueReference() const { return removeRValueReference()->removeConst(); }
     virtual Type*           removeArray() const { return const_cast<Type*>(this); }
     virtual Type*           removeReference() const { return const_cast<Type*>(this); }
+    virtual Type*           removeLValueReference() const { return const_cast<Type*>(this); }
+    virtual Type*           removeRValueReference() const { return const_cast<Type*>(this); }
     virtual Type*           removePointer() const { return const_cast<Type*>(this); }
+    virtual Type*           removeAllConst() const { return const_cast<Type*>(this); }
+    virtual Type*           removeAllVolatile() const { return const_cast<Type*>(this); }
+    virtual Type*           removeAllConstVolatile() const { return const_cast<Type*>(this); }
+    virtual Type*           removeAllQualifiers() const { return const_cast<Type*>(this); }
+    virtual Type*           removeCustom(int id) const { return const_cast<Type*>(this); }
+
+    virtual Type*           replicate(Type* a_pInput) const { return a_pInput; }
 
     virtual void*           cast(Type* a_pTargetType, void* a_pSrc) const { return a_pTargetType == this ? a_pSrc : nullptr; }
     virtual void*           upcast(Type* a_pTargetType, void* a_pSrc) const { return a_pTargetType == this ? a_pSrc : nullptr; }
     virtual void*           downcast(Type* a_pTargetType, void* a_pSrc) const { return a_pTargetType == this ? a_pSrc : nullptr; }
+
 
     /// Allocation
 
@@ -283,7 +300,6 @@ public:
     virtual ERelation       getRelationWith(Type* a_pType) const;
 
     /// Value and Conversion
-    virtual void            convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;
     virtual boolean         areValueEqual(void const* a_pSrc0, void const* a_pSrc1) const;
 
     virtual void            valueFromString(const string& a_str, void* dest) const { o_exception(exception::unsupported_member_function_exception, "not available for this class"); }
@@ -301,10 +317,9 @@ public:
 
     virtual void            fetchExpressions(Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter = filter(&Type::NoFilter), uint a_uiSerializationMask = 0xffffffff) const { o_unused(a_pInstanceExpression); o_unused(out); o_unused(a_Filter); o_unused(a_uiSerializationMask); }
     // Traits
-    virtual bool            isCopyConstructible() const { return true; }
-    virtual bool            isConvertibleTo(Type* a_pType) const;
-    virtual bool            isImplicitlyConvertibleTo(Type* a_pType) const;
     virtual bool            isCopyable() const { return false; }
+
+    conversion*             conversionTo(Type* a_pOutput, int conversionType = 0, LanguageElement* a_pContextScope = nullptr, int a_iUserDefinedConversionsAllowed = e_implicit_functions);
     
     o_forceinline bool      hasPlacementExtension() const { return testModifiers(o_placement_extension); }
 
@@ -353,26 +368,25 @@ public:
     virtual bool            hasRightShift() const { return false; }
     virtual bool            hasRightShiftAssign() const { return false; }
 
-    virtual Type*           promote() const { return const_cast<Type*>(this); }
+    virtual Type*           promote() const { return const_cast<Type*>(this); } /// standard 4.x
+
+    inline bool             isPromotedArithmeticType() const /// standard 13.6.2
+    {
+        return asFloatingPointType() OR isPromotedIntegralType();
+    }
+
+    inline bool             isPromotedIntegralType() const  /// standard 13.6.2
+    {
+        return asIntegralType() AND promote() == const_cast<Type*>(this);
+    }
 
     virtual uint            getDataPointerLevel() const { return 0; }
 
-    Namespace*              getNamespace() const;
-    void                    removeFromNamespace();
+    Scope*                  getScope() const;
+    void                    removeFromScope();
 
     Type*                   getOwnerType() const;
-
-    size_t                  getNestedTypeCount() const
-    {
-        return m_pNestedTypes == NULL ? 0 : m_pNestedTypes->size();
-    }
-
-    Type*                   getNestedType(size_t index) const
-    {
-        o_assert(index < getNestedTypeCount());
-        return (*m_pNestedTypes)[index];
-    }
-
+    
     size_t                  getExtendedTypeCount() const
     {
         return m_pExtendedTypes == NULL ? 0 : m_pExtendedTypes->size();
@@ -384,42 +398,44 @@ public:
         return (*m_pExtendedTypes)[index];
     }
 
-    void                    addNestedType(Type* a_pType);
-    void                    removeNestedType(Type* a_pType);
-
-    void                    addNestedTypedef( const string& a_strTypedef, Type* a_pType );
-    void                    removeNestedTypedef( const string& a_strTypedef, Type* a_pType );
-    inline Type*            getNestedTypedef(const string& a_strTypedef) const;
-
     Type*                   getCommonAncestor(Type* a_pType) const;
 
     DataPointerType*        getDataPointerType() const;
-    ReferenceType*          getReferenceType() const;
+    LValueReferenceType*    getLValueReferenceType() const;
+    RValueReferenceType*    getRValueReferenceType() const;
     ArrayType*              getArrayType(size_t a_uiCount) const;
     ConstType*              getConstType() const;
+    VolatileType*           getVolatileType() const;
+    ConstVolatileType*      getConstVolatileType() const;
 
     Type*                   pointerType(size_t a_uiPointerLevel) const;
     DataPointerType*        pointerType() const;
-    ReferenceType*          referenceType() const;
+    LValueReferenceType*    lvalueReferenceType() const;
+    RValueReferenceType*    rvalueReferenceType() const;
     ArrayType*              arrayType(size_t a_uiCount) const;
     ConstType*              constType() const;
+    VolatileType*           volatileType() const;
+    ConstVolatileType*      constVolatileType() const;
 
-    virtual bool            templatePartialMatch(LanguageElement* a_pLanguageElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions) const;
-    virtual bool            templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions) const;
+    TemplateSpecialization* getTemplateSpecialization() const { return m_pOwner ? m_pOwner->asTemplateSpecialization() : nullptr; }
+    Template*               getTemplate() const;
+
+    virtual int             getPointerCastOffset(Type* a_pType) const { return equals(a_pType) ? 0 : o_invalid_offset; }
+
+    virtual bool            partialAccepts(LanguageElement* a_pLanguageElement, size_t& a_Score, map<Placeholder*, LanguageElement*>& a_Deductions) const;
+    virtual bool            partialAccepts(Type* a_pType, size_t& a_Score, map<Placeholder*, LanguageElement*>& a_Deductions) const;
 
 protected:
-    virtual void            elementAdded(LanguageElement* a_pElement);
     virtual void            elementRemoved(LanguageElement* a_pElement);
     virtual DataPointerType*createDataPointerType() const;
-    virtual ReferenceType*  createReferenceType() const;
+    virtual LValueReferenceType*  createLValueReferenceType() const;
+    virtual RValueReferenceType* createRValueReferenceType() const;
     virtual ArrayType*      createArrayType(size_t a_uiCount) const;
     virtual ConstType*      createConstType() const;
-    virtual void            moduleChanged(Module* a_pModule);
+    virtual VolatileType*   createVolatileType() const;
+    virtual ConstVolatileType* createConstVolatileType() const;
     void                    removeExtendedType(Type* a_pType);
     
-    void                    registerTypedef(Namespace* a_pNamespace, const string& a_strTypedefName);
-    void                    unregisterTypedef(Namespace* a_pNamespace, const string& a_strTypedefName);
-
     virtual void            referencedElementRemoved(LanguageElement* a_pElement);
 
     virtual void            setOwnerByQualifiedDecoratedName(string a_Owner);
@@ -446,10 +462,7 @@ protected:
     //@}
 protected:
     ETypeId         m_eTypeId;
-    type_container* m_pNestedTypes;
-    nested_typedef_map* m_pNestedTypedefs;
-    mutable type_container* m_pExtendedTypes;
-    typedef_namespace_map* m_pTypedefs;
+    mutable vector<Type*>* m_pExtendedTypes;
     size_t          m_uiBuildOrder;
     ushort          m_uiSize;
     ushort          m_uiAlignment;

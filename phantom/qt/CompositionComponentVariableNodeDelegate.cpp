@@ -84,8 +84,8 @@ void CompositionComponentVariableNodeDelegate::slotMoveUp()
     for(size_t i = 0; i<m_pVariableNode->getParentNode()->getExpressionCount(); ++i)
     {
         reflection::Expression* pLeftExpression = m_pVariableNode->getParentNode()->getExpression(i);
-        string undoExpression = "("+pLeftExpression->getName()+").move("+lexical_cast<string>(m_uiIndex-1)+", "+lexical_cast<string>(m_uiIndex)+")";
-        string redoExpression = "("+pLeftExpression->getName()+").move("+lexical_cast<string>(m_uiIndex)+", "+lexical_cast<string>(m_uiIndex-1)+")";
+        string undoExpression = "("+pLeftExpression->translate()+").move("+lexical_cast<string>(m_uiIndex-1)+", "+lexical_cast<string>(m_uiIndex)+")";
+        string redoExpression = "("+pLeftExpression->translate()+").move("+lexical_cast<string>(m_uiIndex)+", "+lexical_cast<string>(m_uiIndex-1)+")";
         pCommand->pushCommand(
             o_new(ExpressionCommand)(m_pVariableNode->getVariableModel()->getDataBase()
             , undoExpression
@@ -107,8 +107,8 @@ void CompositionComponentVariableNodeDelegate::slotMoveDown()
         if(m_uiIndex < count-1)
         {
             reflection::Expression* pLeftExpression = m_pVariableNode->getParentNode()->getExpression(i);
-            string undoExpression = "("+pLeftExpression->getName()+").move("+lexical_cast<string>(m_uiIndex+1)+", "+lexical_cast<string>(m_uiIndex)+")";
-            string redoExpression = "("+pLeftExpression->getName()+").move("+lexical_cast<string>(m_uiIndex)+", "+lexical_cast<string>(m_uiIndex+1)+")";
+            string undoExpression = "("+pLeftExpression->translate()+").move("+lexical_cast<string>(m_uiIndex+1)+", "+lexical_cast<string>(m_uiIndex)+")";
+            string redoExpression = "("+pLeftExpression->translate()+").move("+lexical_cast<string>(m_uiIndex)+", "+lexical_cast<string>(m_uiIndex+1)+")";
             pCommand->pushCommand(
                 o_new(ExpressionCommand)(m_pVariableNode->getVariableModel()->getDataBase()
                 , undoExpression

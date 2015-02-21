@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_def_initializer_h__
 #define o_def_initializer_h__
@@ -90,7 +59,7 @@ namespace detail
     {
         inline static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance)
         {
-            a_pClass->initializeInstanceDataMembers(a_pInstance);
+            a_pClass->initializeDataMembers(a_pInstance);
         }
     };
 
@@ -102,7 +71,7 @@ namespace detail
     {
         inline static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance)
         {
-            a_pClass->initializeInstanceDataMembers(a_pInstance);
+            a_pClass->initializeDataMembers(a_pInstance);
             static_cast<initialize_member_function_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_initialize();
         }
     };
@@ -126,7 +95,7 @@ namespace detail
     {
         inline static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance)
         {
-            a_pClass->initializeInstanceDataMembers(a_pInstance);
+            a_pClass->initializeDataMembers(a_pInstance);
         }
     };
 
@@ -163,7 +132,7 @@ namespace detail
     {
         inline static restore_state apply(reflection::Class* a_pClass, t_Ty* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass)
         {
-            restore_state result = a_pClass->restoreInstanceDataMembers(a_pInstance, a_uiSerializationFlag, a_uiPass);
+            restore_state result = a_pClass->restoreDataMembers(a_pInstance, a_uiSerializationFlag, a_uiPass);
             return combine_restore_states(result, static_cast<restore_member_function_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_restore(a_uiSerializationFlag, a_uiPass));
         }
     };
@@ -173,7 +142,7 @@ namespace detail
     {
         inline static restore_state apply(reflection::Class* a_pClass, t_Ty* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass)
         {
-            return a_pClass->restoreInstanceDataMembers(a_pInstance, a_uiSerializationFlag, a_uiPass);
+            return a_pClass->restoreDataMembers(a_pInstance, a_uiSerializationFlag, a_uiPass);
         }
     };
 
@@ -195,7 +164,7 @@ namespace detail
     {
         inline static restore_state apply(reflection::Class* a_pClass, t_Ty* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass)
         {
-            return a_pClass->restoreInstanceDataMembers(a_pInstance, a_uiSerializationFlag, a_uiPass);
+            return a_pClass->restoreDataMembers(a_pInstance, a_uiSerializationFlag, a_uiPass);
         }
     };
 
@@ -233,7 +202,7 @@ namespace detail
         inline static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance)
         {
             static_cast<terminate_member_function_caller_friend_breaker<t_Ty>*>(a_pInstance)->PHANTOM_CODEGEN_terminate();
-            a_pClass->terminateInstanceDataMembers(a_pInstance);
+            a_pClass->terminateDataMembers(a_pInstance);
         }
     };
 
@@ -242,7 +211,7 @@ namespace detail
     {
         inline static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance)
         {
-            a_pClass->terminateInstanceDataMembers(a_pInstance);
+            a_pClass->terminateDataMembers(a_pInstance);
         }
     };
 
@@ -264,7 +233,7 @@ namespace detail
     {
         inline static void apply(reflection::Class* a_pClass, t_Ty* a_pInstance)
         {
-            a_pClass->terminateInstanceDataMembers(a_pInstance);
+            a_pClass->terminateDataMembers(a_pInstance);
         }
     };
 
@@ -343,7 +312,7 @@ namespace detail
         inline static void          initialize( reflection::Class* a_pClass, t_Ty* a_pInstance )
         {
             initialize_member_function_caller<t_Ty>::apply(a_pClass, a_pInstance);
-            state::state_machine_initializer<t_Ty>::initialize(a_pInstance);
+            state_machine_initializer<t_Ty>::initialize(a_pInstance);
 #if o__bool__use_kind_creation_signal
             a_pClass->fireKindCreated(a_pInstance);
 #endif
@@ -354,7 +323,7 @@ namespace detail
 #if o__bool__use_kind_creation_signal
             if(result == restore_complete)
             {
-                state::state_machine_initializer<t_Ty>::initialize(a_pInstance);
+                state_machine_initializer<t_Ty>::initialize(a_pInstance);
                 a_pClass->fireKindCreated(a_pInstance);
             }
 #endif
@@ -368,7 +337,7 @@ namespace detail
 #if o__bool__use_destroyed_signal
             destroyed_signal_emitter<t_Ty>::apply(a_pInstance);
 #endif
-            state::state_machine_initializer<t_Ty>::terminate(a_pInstance);
+            state_machine_initializer<t_Ty>::terminate(a_pInstance);
             terminate_member_function_caller<t_Ty>::apply(a_pClass, a_pInstance);
         }
         inline static void          initialize( reflection::Class* a_pClass, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize )
@@ -377,7 +346,7 @@ namespace detail
             for(;a_uiCount--;pChunk += a_uiChunkSectionSize)
             {
                 initialize_member_function_caller<t_Ty>::apply(a_pClass, reinterpret_cast<t_Ty*>(pChunk));
-                state::state_machine_initializer<t_Ty>::initialize(reinterpret_cast<t_Ty*>(pChunk));
+                state_machine_initializer<t_Ty>::initialize(reinterpret_cast<t_Ty*>(pChunk));
 #if o__bool__use_kind_creation_signal
                 a_pClass->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
 #endif
@@ -394,7 +363,7 @@ namespace detail
 #if o__bool__use_destroyed_signal
                 destroyed_signal_emitter<t_Ty>::apply(reinterpret_cast<t_Ty*>(pChunk));
 #endif
-                state::state_machine_initializer<t_Ty>::terminate(reinterpret_cast<t_Ty*>(pChunk));
+                state_machine_initializer<t_Ty>::terminate(reinterpret_cast<t_Ty*>(pChunk));
                 terminate_member_function_caller<t_Ty>::apply(a_pClass, reinterpret_cast<t_Ty*>(pChunk));
             }
         }
@@ -409,7 +378,7 @@ namespace detail
 #if o__bool__use_kind_creation_signal
                 if(this_restore_state == restore_complete)
                 {
-                    state::state_machine_initializer<t_Ty>::initialize(reinterpret_cast<t_Ty*>(pChunk));
+                    state_machine_initializer<t_Ty>::initialize(reinterpret_cast<t_Ty*>(pChunk));
                     a_pClass->fireKindCreated(reinterpret_cast<t_Ty*>(pChunk));
                 }
 #endif

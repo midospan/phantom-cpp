@@ -10,116 +10,185 @@ o_declareN(class, (phantom, reflection), Language);
 
 o_namespace_begin(phantom, reflection)
 
-class o_export Language
+struct value_t
 {
+    value_t(Type* a_pType) : type(a_pType), category(0) {}
+    value_t(Type* a_pType, int cat) : type(a_pType), category(cat) {}
+    Type* type;
+    int   category;
+    Type* operator->() const { return type; }
+    operator Type*() const { return type; }
+};
+
+template<typename t_Type>
+struct tvalue_t : public value_t
+{
+    t_Type* operator->() const { return static_cast<t_Type*>(type); }
+    operator t_Type* ()
+    {
+        static_cast<t_Type*>(type); 
+    }
+};
+
+struct conversion
+{
+    conversion(value_t i, value_t o) : input(i), output(o) {}
+    virtual void apply(const void* a_pInput, void* a_pOutput) const = 0;
+    virtual conversion* clone() const = 0;
+    virtual ~conversion() {}
+
+    virtual int compare(const conversion& a_Other) const { o_exception_no_implementation(); return 0; }
+
+    virtual Expression* convert(Expression* a_pExpression) const = 0;
+
+    bool isIdentity() const;
+
+    value_t input;
+    value_t output;
+};
+
+class conversions 
+{
+public:
+    conversions() 
+    {
+
+    }
+    conversions(conversions&& rvalue)
+        : content(std::move(rvalue.content))
+    {
+
+    }
+    conversions& operator=(conversions&& rvalue)
+    {
+        content = std::move(rvalue.content);
+        return *this;
+    }
+
+    int compare(const conversions& other) const 
+    {
+        o_assert(other.size() == size());
+        bool thisWin = true;
+        bool otherWin = true;
+        for(size_t i=0;i<content.size(); ++i)
+        {
+            conversion* L = content[i];
+            conversion* R = other.content[i];
+            int result = L->compare(*R);
+            o_assert(R->compare(*L) == -result); /// compare() coherence test
+            if(result > 0 AND otherWin)
+                otherWin = false;
+            else if(result < 0 AND thisWin)
+                thisWin = false;
+        }
+        return thisWin-otherWin;
+    }
+
+    void push_back(conversion* conv)
+    {
+        content.push_back(conv);
+    }
+
+    bool hasNull() const 
+    {
+        return std::find(content.begin(), content.end(), nullptr) != content.end();
+    }
+
+    conversion* takeBest(size_t* a_pIndex) 
+    {
+        if(content.size() == 1) 
+        {
+            conversion* conv = content.back();
+            content.clear();
+            return conv;
+        }
+        for(size_t i = 0; i<content.size(); ++i)
+        {
+            int bestResult = -1;
+            size_t j = 0;
+            for( ;j<content.size(); ++j)
+            {
+                int result = content[i]->compare(*content[j]);
+                o_assert(content[j]->compare(*content[i]) == -result);
+                if(result >= 0)
+                {
+                    bestResult = std::max(result, bestResult);
+                }
+                else break;
+            }
+            if(j == content.size())
+            {
+                if(bestResult == 1)
+                {
+                    conversion* conv = content[i];
+                    if(a_pIndex) *a_pIndex = i;
+                    content.erase(content.begin()+bestResult);
+                    return conv;
+                }
+            }
+        }
+        return nullptr;
+    }
+
+    conversion* const& operator[](size_t index) const { return content[index]; }
+
+    size_t size() const { return content.size(); }
+
+    vector<conversion*>::const_iterator begin() const { return content.begin(); }
+    vector<conversion*>::const_iterator end() const { return content.end(); }
+
+    ~conversions()
+    {
+        for(auto it = content.begin(); it != content.end(); ++it)
+            delete *it;
+    }
+
+protected:
+    vector<conversion*> content;
+private: // cannot be copied
+    conversions& operator=(const conversions&);
+    conversions(const conversions&);
+};
+
+
+class o_export Language : public LanguageElementVisitor
+{
+    friend class Source;
+
+public:
+    enum EFunction 
+    {
+        e_Function_Conversion,
+        e_Function_ToExpression,
+        e_Function_Translate,
+    };
+
 public:
 	Language(void) {}
     ~Language(void) {}
 
-    virtual string          translate(LanguageElement* a_pElement, int options = 0);
-    virtual void            translateTo(LanguageElement* a_pElement, string& translation, int options = 0);
+//     virtual Source*         createSource(const string& a_strName) = 0;
+//     virtual void            destroySource(Source* a_pSource) = 0;
 
-    virtual LanguageElement*elementByName(const string& a_strName, LanguageElement* a_pScope = (LanguageElement*)phantom::globalNamespace()) const = 0;
-    virtual Type*           typeByName(const string& a_strName, LanguageElement* a_pScope = (LanguageElement*)phantom::globalNamespace()) const;
-    virtual Expression*     expressionByName(const string& a_strName, LanguageElement* a_pScope = (LanguageElement*)phantom::globalNamespace()) const = 0;
-    virtual void            compile(const string& a_strModuleName, Compiler* a_pCompiler, SourceFile* a_pSourceFile, Module* a_pModule, Message* a_pMessage) const = 0;
+    virtual const string&   name(NamedElement* a_pElement, int options = 0);
+    virtual void            name(NamedElement* a_pElement, string& translation, int options = 0);
+    virtual string          qualifiedName(NamedElement* a_pElement, int options = 0);
+    virtual void            qualifiedName(NamedElement* a_pElement, string& translation, int options = 0);
+    virtual string          qualifiedDecoratedName(NamedElement* a_pElement, int options = 0);
+    virtual void            qualifiedDecoratedName(NamedElement* a_pElement, string& translation, int options = 0);
+    void                    translate(LanguageElement* a_pElement, string& translation, int a_TranslationType, LanguageElement* a_pScope);
 
-    virtual const string&   name(LanguageElement* a_pElement, int options = 0);
-    virtual void            name(LanguageElement* a_pElement, string& translation, int options = 0);
-    virtual string          qualifiedName(LanguageElement* a_pElement, int options = 0);
-    virtual void            qualifiedName(LanguageElement* a_pElement, string& translation, int options = 0);
-    virtual string          qualifiedDecoratedName(LanguageElement* a_pElement, int options = 0);
-    virtual void            qualifiedDecoratedName(LanguageElement* a_pElement, string& translation, int options = 0);
+    virtual LanguageElement*elementByName(const string& a_strName, LanguageElement* a_pScope = (LanguageElement*)phantom::globalNamespace(), modifiers_t a_Modifiers = 0) const = 0;
+    virtual Type*           typeByName(const string& a_strName, LanguageElement* a_pScope = (LanguageElement*)phantom::globalNamespace(), modifiers_t a_Modifiers = 0) const;
+    virtual Expression*     expressionByName(const string& a_strName, LanguageElement* a_pScope = (LanguageElement*)phantom::globalNamespace(), modifiers_t a_Modifiers = 0) const;
+    Source*                 precompile( const string& a_strSourceName, const string& a_strCode ) const;
+    Source*                 compile( Compiler* a_pCompiler, const string& a_strSourceName, const string& a_strCode ) const;
+    
+    virtual Precompiler*    createPrecompiler(Source* a_pSource) const = 0;
+    virtual void            destroyPrecompiler(Precompiler*) const = 0;
 
-    // Default cplusplus like elements
-    virtual void translate(LanguageElement* a_pElement, string& translation, int options = 0);
-
-    // Namespace
-    virtual void translate(Namespace* a_pNamespace, string& translation, int options = 0);
-
-    // Types 
-    virtual void translate(Type* a_pType, string& translation, int options = 0);
-    virtual void translate(PrimitiveType* a_pType, string& translation, int options = 0);
-    virtual void translate(FunctionPointerType* a_pType, string& translation, int options = 0);
-    virtual void translate(MemberFunctionPointerType* a_pType, string& translation, int options = 0);
-    virtual void translate(DataMemberPointerType* a_pType, string& translation, int options = 0);
-    virtual void translate(DataPointerType* a_pType, string& translation, int options = 0);
-    virtual void translate(ReferenceType* a_pType, string& translation, int options = 0);
-    virtual void translate(ConstType* a_pType, string& translation, int options = 0);
-    virtual void translate(ArrayType* a_pType, string& translation, int options = 0);
-    virtual void translate(Enum* a_pEnum, string& translation, int options = 0);
-    virtual void translate(ClassType* a_pClassType, string& translation, int options = 0);
-    virtual void translate(Class* a_pClass, string& translation, int options = 0);
-    virtual void translate(Structure* a_pStructure, string& translation, int options = 0);
-    virtual void translate(Union* a_pUnion, string& translation, int options = 0);
-    virtual void translate(PODUnion* a_pPODUnion, string& translation, int options = 0);
-    virtual void translate(AnonymousSection* a_pAnonymousSection, string& translation, int options = 0);
-    virtual void translate(AnonymousStruct* a_pAnonymousStruct, string& translation, int options = 0);
-    virtual void translate(AnonymousUnion* a_pAnonymousUnion, string& translation, int options = 0);
-    virtual void translate(Template* a_pTemplate, string& translation, int options = 0);
-    virtual void translate(TemplateSpecialization* a_pTemplateSpecialization, string& translation, int options = 0);
-
-    // Subroutines
-    virtual void translate(Subroutine* a_pSubroutine, string& translation, int options = 0);
-    virtual void translate(Constructor* a_pConstructor, string& translation, int options = 0);
-    virtual void translate(Function* a_pFunction, string& translation, int options = 0);
-    virtual void translate(StaticMemberFunction* a_pStaticMemberFunction, string& translation, int options = 0);
-    virtual void translate(InstanceMemberFunction* a_pInstanceMemberFunction, string& translation, int options = 0);
-    virtual void translate(Signal* a_pSignal, string& translation, int options = 0);
-
-    // Variables
-    virtual void translate(StaticDataMember* a_pStaticDataMember, string& translation, int options = 0);
-    virtual void translate(StaticVariable* a_pStaticVariable, string& translation, int options = 0);
-    virtual void translate(InstanceDataMember* a_pInstanceDataMember, string& translation, int options = 0);
-    virtual void translate(Property* a_pProperty, string& translation, int options = 0);
-
-    // Statechart
-    virtual void translate(state::StateMachine* a_pStateMachine, string& translation, int options = 0);
-    virtual void translate(state::State* a_pState, string& translation, int options = 0);
-    virtual void translate(state::Track* a_pTrack, string& translation, int options = 0);
-
-    // Statements
-    virtual void translate(Block* a_pBlock, string& translation, int options = 0);
-    virtual void translate(LocalVariable* a_pLocalVariable, string& translation, int options = 0);
-    virtual void translate(Parameter* a_pParameter, string& translation, int options = 0);
-    virtual void translate(Signature* a_pSignature, string& translation, int options = 0);
-    virtual void translate(BranchStatement* a_pBranchStatement, string& translation, int options = 0);
-    virtual void translate(BranchIfStatement* a_pBranchIfStatement, string& translation, int options = 0);
-    virtual void translate(BranchIfNotStatement* a_pBranchIfNotStatement, string& translation, int options = 0);
-    virtual void translate(ExpressionStatement* a_pExpressionStatement, string& translation, int options = 0);
-    virtual void translate(ReturnStatement* a_pReturnStatement, string& translation, int options = 0);
-    virtual void translate(LabelStatement* a_pLabelStatement, string& translation, int options = 0);
-
-    // Expressions
-    virtual void translate(CallExpression* a_pCallExpression, string& translation, int options = 0);
-    virtual void translate(CastExpression* a_pCastExpression, string& translation, int options = 0);
-    virtual void translate(DereferenceExpression* a_pDereferenceExpression, string& translation, int options = 0);
-    virtual void translate(AddressExpression* a_pAddressExpression, string& translation, int options = 0);
-    virtual void translate(ReferenceExpression* a_pReferenceExpression, string& translation, int options = 0);
-    virtual void translate(ConstantExpression* a_pConstantExpression, string& translation, int options = 0);
-    virtual void translate(DataExpression* a_pDataExpression, string& translation, int options = 0);
-    virtual void translate(InstanceDataMemberExpression* a_pInstanceDataMemberExpression, string& translation, int options = 0);
-    virtual void translate(LocalVariableExpression* a_pLocalVariableExpression, string& translation, int options = 0);
-    virtual void translate(PropertyExpression* a_pPropertyExpression, string& translation, int options = 0);
-    virtual void translate(StaticVariableExpression* a_pStaticVariableExpression, string& translation, int options = 0);
-    virtual void translate(ArrayExpression* a_pArrayExpression, string& translation, int options = 0);
-    virtual void translate(StringLiteralExpression* a_pStringLiteralExpression, string& translation, int options = 0);
-    virtual void translate(MemberFunctionPointerCallExpression* a_pMemberFunctionPointerCallExpression, string& translation, int options = 0);
-    virtual void translate(DataMemberPointerExpression* a_pDataMemberPointerExpression, string& translation, int options = 0);
-    virtual void translate(AssignmentExpression* a_pAssignmentExpression, string& translation, int options = 0);
-    virtual void translate(ConstructorCallExpression* a_pConstructorCallExpression, string& translation, int options = 0);
-    virtual void translate(PlacementConstructionExpression* a_pPlacementConstructionExpression, string& translation, int options = 0);
-    virtual void translate(BinaryOperationExpression* a_pBinaryOperatorExpression, string& translation, int options = 0);
-    virtual void translate(PreUnaryOperationExpression* a_pPreUnaryOperationExpression, string& translation, int options = 0);
-    virtual void translate(PostUnaryOperationExpression* a_pPostUnaryOperationExpression, string& translation, int options = 0);
-    virtual void translate(CompositionGetSetExpression* a_pCompositionGetSetExpression, string& translation, int options = 0);
-    virtual void translate(AggregationGetSetExpression* a_pAggregationGetSetExpression, string& translation, int options = 0);
-    virtual void translate(CompositionInsertRemoveExpression* a_pCompositionInsertRemoveExpression, string& translation, int options = 0);
-    virtual void translate(AggregationInsertRemoveExpression* a_pAggregationInsertRemoveExpression, string& translation, int options = 0);
-    virtual void translate(SingleParameterFunctionExpression* a_pSingleParameterFunctionExpression, string& translation, int options = 0);
-
-    // Constant
-    virtual void translate(Constant* a_pConstant, string& translation, int options = 0);
+    conversion*             typeConversion( Type* a_pInput, Type* a_pOutput, int a_iConversionType = 0, LanguageElement* a_pContextScope = nullptr, int a_iUserDefinedAllowedConversions = 0 );
+    Expression*             toExpression( LanguageElement* a_pElement, Expression* a_pLeft = nullptr );
 
 protected:
     map<Class*, fastdelegate::DelegateMemento> m_TranslationDelegates;

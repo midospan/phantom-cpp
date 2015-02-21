@@ -2,11 +2,5 @@
 
 #include "DataBaseCommand.hxx"
 
-o_classNB((phantom, qt), AddNodeCommand, (DataBaseCommand))
-{
-    o_reflection 
-    {
-
-    };
-};
+o_classNB((phantom, qt), AddNodeCommand, (DataBaseCommand))();
 

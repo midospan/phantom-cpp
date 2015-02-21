@@ -3,20 +3,19 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include <phantom/reflection/Placeholder.h>
 #include <phantom/reflection/Expression.h>
 #include <phantom/reflection/ConstantExpression.h>
+#include <phantom/reflection/ConstructorCallExpression.h>
 #include <phantom/reflection/Block.h>
 #include <phantom/reflection/LocalVariable.h>
-#include <phantom/reflection/ArrayExpression.h>
 #include <phantom/reflection/StringLiteralExpression.h>
 #include <phantom/reflection/WStringLiteralExpression.h>
 #include <phantom/reflection/ConditionalExpression.h>
 #include <phantom/reflection/PlacementConstructionExpression.h>
-#include <phantom/reflection/AssignmentExpression.h>
-#include <phantom/reflection/InstanceDataMemberExpression.h>
-#include <phantom/reflection/AddressExpression.h>
+#include <phantom/reflection/DataMemberExpression.h>
 #include <phantom/reflection/CallExpression.h>
-#include <phantom/reflection/CastExpression.h>
+#include <phantom/reflection/BuiltInConversionExpression.h>
 #include <phantom/reflection/MemberFunctionPointerCallExpression.h>
 #include <phantom/reflection/DataMemberPointerExpression.h>
 #include <phantom/reflection/MemberFunctionPointerType.h>
@@ -30,14 +29,16 @@
 #include <phantom/reflection/Constant.h>
 #include <phantom/reflection/Statement.h>
 #include <phantom/reflection/ExpressionStatement.h>
+#include <phantom/reflection/LocalVariableExpression.h>
 #include <phantom/reflection/ReturnStatement.h>
-#include <phantom/reflection/BinaryOperationExpression.h>
+#include <phantom/reflection/TDBinaryOperationExpression.h>
 #include <phantom/reflection/Parameter.h>
+#include <phantom/reflection/DataExpression.h>
+#include <phantom/reflection/Application.h>
+#include <phantom/reflection/Package.h>
+#include <phantom/reflection/Import.h>
 #include <phantom/reflection/ReturnStatement.h>
-#include <phantom/reflection/ReturnStatement.h>
-#include <phantom/reflection/ReturnStatement.h>
-#include <phantom/reflection/ReturnStatement.h>
-#include <phantom/reflection/ReturnStatement.h>
+#include <phantom/reflection/DataMemberInitializationStatement.h>
 
 #define o__bool__add_reflection_to_precompiled_elements 1
 
@@ -49,31 +50,44 @@
 
 namespace phantom {
 
+    using reflection::ETypeId;
+    using reflection::Import;
+    using reflection::Package;
     using reflection::Expression;
     using reflection::ConstantExpression;
+    using reflection::DataExpression;
     using reflection::LanguageElement;
+    using reflection::TemplateSignature;
+    using reflection::TemplateParameter;
     using reflection::Signature;
+    using reflection::Function;
+    using reflection::MemberFunction;
     using reflection::Namespace;
+    using reflection::Template;
     using reflection::Block;
+    using reflection::Variable;
     using reflection::LocalVariable;
-    using reflection::ArrayExpression;
+    using reflection::Alias;
     using reflection::Type;
     using reflection::ClassType;
     using reflection::Class;
     using reflection::Structure;
     using reflection::Precompiler;
     using reflection::LanguageElement;
+    using reflection::NamedElement;
+    using reflection::TemplateSpecialization;
+    using reflection::Scope;
     using reflection::StringLiteralExpression;
     using reflection::WStringLiteralExpression;
     using reflection::ConditionalExpression;
     using reflection::PlacementConstructionExpression;
-    using reflection::InstanceDataMember;
+    using reflection::DataMember;
     using reflection::Constructor;
-    using reflection::AssignmentExpression;
-    using reflection::InstanceDataMemberExpression;
-    using reflection::AddressExpression;
+    using reflection::DataMemberExpression;
+    using reflection::LocalVariableExpression;
+    using reflection::ConstructorCallExpression;
     using reflection::CallExpression;
-    using reflection::CastExpression;
+    using reflection::BuiltInConversionExpression;
     using reflection::MemberFunctionPointerCallExpression;
     using reflection::DataMemberPointerExpression;
     using reflection::MemberFunctionPointerType;
@@ -89,13 +103,19 @@ namespace phantom {
     using reflection::Statement;
     using reflection::ExpressionStatement;
     using reflection::ReturnStatement;
-    using reflection::BinaryOperationExpression;
+    using reflection::TDBinaryOperationExpression;
     using reflection::Parameter;
-    using reflection::ReturnStatement;
-    using reflection::ReturnStatement;
-    using reflection::ReturnStatement;
-    using reflection::ReturnStatement;
-    using reflection::ReturnStatement;
+    using reflection::PlaceholderType;
+    using reflection::PlaceholderConstant;
+    using reflection::PlaceholderTemplate;
+    using reflection::PlaceholderClass;
+    using reflection::PlaceholderClassType;
+    using reflection::Source;
+    using reflection::Package;
+    using reflection::EConversionType;
+    using reflection::EUserDefinedFunctions;
+    using reflection::DataMemberInitializationStatement;
+    using reflection::conversions;
 
 #define YYSTYPE CxxTokenType
 #define YY_parse_STYPE CxxTokenType
@@ -105,9 +125,7 @@ namespace phantom {
 #define YACC_BANG() m_pDriver->getLexer()->push_bang()
 #define YACC_UNBANG(bangValue, msg) m_pDriver->getLexer()->pop_bang(bangValue); yyerrok; yyclearin; yyerror(msg);
 
-#define ERRMSG(a) do { std::cout << "error : syntax : " << a << std::endl; CxxDriver::Instance()->increment_error_count(); } while (0)
-
-#define o_semantic_error(a)  do { if(CxxPrecompiler::Top()->hasFlag(CxxPrecompiler::e_Flag_PrintErrors)) std::cout << "error : semantic : " << a << std::endl;  CxxPrecompiler::Top()->increment_error_count(); } while (0)
+#define ERRMSG(a) do { std::cout << "error : syntax : " << a << std::endl; CxxDriver::Instance()->incrementErrorCount(); } while (0)
 
 #ifdef NEEDS_BOOL
 enum bool { false, true };
@@ -131,10 +149,19 @@ struct CxxNumberLiteral;
 struct CxxName;
 struct CxxToken;
 
+
+namespace reflection
+{
+    class CxxPrecompiler;
+}
+
+struct CxxParenthesised;
+
+using reflection::CxxPrecompiler;
+
 struct CxxToken
 {
 private:
-    int malloced;
 	int _value;
 private:
 	CxxToken(const CxxToken&);
@@ -143,6 +170,16 @@ public:
 	CxxToken(int tokenValue = 0);
 	virtual ~CxxToken();
 	int value() const { return _value; }
+    inline void setLocation(const reflection::CodeLocation& loc) 
+    { 
+        location = loc; 
+    }
+    reflection::CodeLocation location;
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0) { o_assert_no_implementation(); return nullptr; }
+    virtual LanguageElement* precompileTypedParenthesized(CxxPrecompiler* a_pPrecompiler, Type* a_pType, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0) { o_assert_no_implementation(); return nullptr; }
+    virtual LanguageElement* precompileTemplateParenthesized( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ ) { o_assert_no_implementation(); return nullptr; }
+    virtual LanguageElement* precompileParenthesized(CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0) { o_assert_no_implementation(); return nullptr; }
+    virtual LanguageElement* precompileTemplate(CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0) { o_assert_no_implementation(); return nullptr; }
 
 public:
     static CxxToken* angleToken;
@@ -370,14 +407,23 @@ typedef CxxName CxxDeclSpecifierId;
 typedef CxxName CxxCvQualifiers;
 typedef CxxName CxxKeyword;
 
+struct CxxParenthesised;
+
 struct CxxStatement : public CxxToken 
 {
-    CxxStatement(int tokenValue = 0) : CxxToken(tokenValue), classKey(nullptr), declSpecifier(nullptr) {}
+    CxxStatement() : CxxToken(0), classKey(nullptr), declSpecifier(nullptr), priority(0) {}
+    CxxStatement(int tokenValue) : CxxToken(tokenValue), classKey(nullptr), declSpecifier(nullptr), priority(0) {}
+    CxxStatement(int tokenValue, int prior) : CxxToken(tokenValue), classKey(nullptr), declSpecifier(nullptr), priority(prior) {}
     CxxClassKey *classKey;
     CxxDeclSpecifierId *declSpecifier;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr) = 0;
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0) = 0;
+    virtual LanguageElement* precompileTypedParenthesized(CxxPrecompiler* a_pPrecompiler, Type* a_pType, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0) { return nullptr; }
+    virtual LanguageElement* precompileTemplateParenthesized( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ ) { o_assert_no_implementation(); return nullptr; }
+    virtual LanguageElement* precompileParenthesized(CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0) { return nullptr; }
+    virtual LanguageElement* precompileTemplate(CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
     virtual CxxStatements* asStatements() { return nullptr; }
     virtual CxxCaseStatement* asCaseStatement() { return nullptr; }
+    int priority;
 };
 
 struct CxxName;
@@ -388,7 +434,7 @@ struct CxxLabelStatement : public CxxStatement
         : label(aLabel), statement(aStmt) {}
     CxxName* label;
     CxxStatement* statement;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 
 };
 
@@ -399,7 +445,7 @@ struct CxxBlock : public CxxStatement
     CxxBlock(CxxStatements* aStatements) : statements(aStatements) {}
     CxxStatements* statements;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxName;
@@ -410,7 +456,7 @@ struct CxxGotoStatement : public CxxStatement
 
     CxxName* label;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxCondition;
@@ -425,7 +471,7 @@ struct CxxIfStatement : public CxxStatement
     CxxCondition* test;
     CxxStatement* thenContent;
     CxxStatement* elseContent;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxExpression;
@@ -436,7 +482,7 @@ struct CxxDoWhileStatement : public CxxStatement
     CxxStatement* statement;
     CxxExpression* testExpr;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxParameters;
@@ -445,52 +491,63 @@ struct CxxExceptionSpecification;
 
 struct CxxParenthesised : public CxxToken 
 {
-    CxxParenthesised(CxxParameters *aList, CxxCvQualifiers *cvQualifiers, CxxExceptionSpecification *exceptionSpecification)
-        : parameters(aList), cvs(cvQualifiers), exceptionSpec(exceptionSpecification) {}
+    CxxParenthesised(CxxParameters *aList, CxxCvQualifiers *cvQualifiers, CxxName *arefQualifier, CxxExceptionSpecification *exceptionSpecification)
+        : parameters(aList), cvs(cvQualifiers), refQualifier(arefQualifier), exceptionSpec(exceptionSpecification) {}
 
     CxxParameters* parameters;
     CxxCvQualifiers* cvs;
+    CxxName* refQualifier;
     CxxExceptionSpecification* exceptionSpec;
 
-    virtual void precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, vector<LanguageElement*>& out, modifiers_t* modifiers = nullptr);
+    virtual void precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, vector<LanguageElement*>& out, modifiers_t* modifiers = nullptr);
 };
 
 struct CxxExpression : public CxxStatement 
 {
-    CxxExpression(int tokenValue = 0) : CxxStatement(tokenValue) {}
+    CxxExpression() : CxxStatement(0) {}
+    CxxExpression(int tokenValue, int priority) : CxxStatement(tokenValue, priority) {}
     virtual CxxName* asName() { return nullptr; }
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr) = 0;
-    virtual LanguageElement* precompileParenthesized(Precompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr);
-    virtual LanguageElement* precompileTypedParenthesized(Precompiler* a_pPrecompiler, Type* a_pType, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr) { return nullptr; }
-    Expression* precompileExpression(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0) = 0;
+    virtual LanguageElement* precompileParenthesized(CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    virtual LanguageElement* precompileTemplateParenthesized(CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    
+    virtual LanguageElement* precompileTypedParenthesized(CxxPrecompiler* a_pPrecompiler, Type* a_pType, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0) { return nullptr; }
+    Expression* precompileExpression(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         LanguageElement* pElem = precompile(a_pPrecompiler, a_pScope, a_pLHS);
-        return pElem ? pElem->asExpression() : nullptr;
+        return pElem ? cplusplus()->toExpression(pElem) : Expression::Invalid();
     }
-    Type* precompileType(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr)
+    Type* precompileType(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         LanguageElement* pElem = precompile(a_pPrecompiler, a_pScope, a_pLHS);
-        return pElem ? pElem->asType() : nullptr;
+        return pElem ? pElem->asType() : Type::Invalid();
     }
-    Namespace* precompileNamespace(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr)
+    Namespace* precompileNamespace(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         LanguageElement* pElem = precompile(a_pPrecompiler, a_pScope, a_pLHS);
         return pElem ? pElem->asNamespace() : nullptr;
     }
-    LanguageElement* precompileTemplateElement(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr)
+    LanguageElement* precompileTemplateElement(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         LanguageElement* pElem = precompile(a_pPrecompiler, a_pScope, a_pLHS);
         return pElem;
     }
-    Constructor* precompileConstructor(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr)
+    Constructor* precompileConstructor(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         LanguageElement* pElem = precompile(a_pPrecompiler, a_pScope, a_pLHS);
         return pElem ? pElem->asConstructor() : nullptr;
     }
-    Constant* precompileConstant(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr)
+    virtual Constant* precompileConstant(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         LanguageElement* pElem = precompile(a_pPrecompiler, a_pScope, a_pLHS);
+        o_assert(pElem == nullptr OR pElem->asConstant());
         return pElem ? pElem->asConstant() : nullptr;
+    }
+    virtual  TemplateParameter* precompileTemplateParameter(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
+    {
+        LanguageElement* pElem = precompile(a_pPrecompiler, a_pScope, a_pLHS);
+        o_assert(pElem == nullptr OR pElem->asTemplateParameter());
+        return pElem ? pElem->asTemplateParameter() : nullptr;
     }
     virtual string toString() const { return "<no text>"; }
 };
@@ -503,7 +560,7 @@ struct CxxConditionalExpression : public CxxExpression
     CxxExpression* thenExpr;
     CxxExpression* elseExpr;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         return o_new_elem(ConditionalExpression)(test->precompileExpression(a_pPrecompiler, a_pScope), thenExpr->precompileExpression(a_pPrecompiler, a_pScope), elseExpr->precompileExpression(a_pPrecompiler, a_pScope));
     }
@@ -515,7 +572,20 @@ struct CxxCondition : public CxxExpression
         : parameters(aParameters) {}
     CxxParameters* parameters;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+};
+
+struct CxxDataExpression : public CxxExpression
+{
+    CxxDataExpression(CxxNumberLiteral<hex_t>* h) 
+        : hex(h)
+    {
+
+    }
+
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0 );
+
+    CxxNumberLiteral<hex_t>* hex;
 };
 
 struct CxxGlobalExpression : public CxxExpression
@@ -525,7 +595,7 @@ struct CxxGlobalExpression : public CxxExpression
     bool isTemplate;
     CxxExpression* expr;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         if(!isTemplate)
         {
@@ -548,11 +618,10 @@ struct CxxFunctionDefinition : public CxxExpression
     CxxExpression* header;
     CxxFunctionBody* body;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
-    {
-        o_assert(false);
-        return nullptr;
-    }
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+
+    virtual LanguageElement* precompileTemplate( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0 ) ;
+
 };
 
 struct CxxTemplateArguments;
@@ -562,6 +631,7 @@ struct CxxName : public CxxExpression
     virtual CxxName* asName() { return this; }
     struct word
     {
+        word() : templateArgs(nullptr) {}
         word(const string& i, CxxTemplateArguments* t = nullptr)
             : id(i), templateArgs(t) {}
         string id; 
@@ -574,10 +644,12 @@ struct CxxName : public CxxExpression
         {
             return !operator==(str);
         }
+        string toString() const;
     };
 
     CxxName() : isTemplate(false) { }
-    CxxName(int tokenValue, const char* someText, size_t len)  : CxxExpression(tokenValue), isTemplate(false) { words.push_back(word(string(someText, len))); }
+    CxxName(int tokenValue, int priority) : CxxExpression(0, priority) { }
+    CxxName(int tokenValue, const char* someText, size_t len)  : CxxExpression(tokenValue, 0), isTemplate(false) { words.push_back(word(string(someText, len))); }
     CxxName(CxxDeclSpecifierId* declSpec) : isTemplate(false) { declSpecifier = declSpec; } 
     CxxName(const string& i, bool aIsTemplate = false) 
         : isTemplate(aIsTemplate) 
@@ -596,6 +668,9 @@ struct CxxName : public CxxExpression
         words.pop_back();
         return pBack;
     }
+
+    word& front() { return words.front(); }
+    word& back() { return words.back(); }
 
     vector<word>::const_iterator begin() const { return words.begin(); }
     vector<word>::const_iterator end() const { return words.end(); }
@@ -640,19 +715,37 @@ struct CxxName : public CxxExpression
 
     virtual string toString() const;
 
-    Type* specify(Type* a_pType, modifiers_t* modifiers = 0);
+    Type* specify( CxxPrecompiler* a_pPrecompiler, Type* a_pType, modifiers_t* modifiers = 0 );
+    Type* trySpecify(CxxPrecompiler* a_pPrecompiler, Type* a_pType, modifiers_t* modifiers = 0);
+
+    void resize(size_t count) { words.resize(count); }
+
+    CxxName* extract(const string& word)
+    {
+        CxxName* pNew = new CxxName;
+        for(auto it = words.begin(); it != words.end(); )
+        {
+            if(it->id == word)
+            {
+                pNew->words.push_back(*it);
+                it = words.erase(it);
+            }
+            else ++it;
+        }
+        return pNew;
+    }
 
     vector<word> words;
     bool isTemplate;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
-    virtual LanguageElement* precompileParenthesized(Precompiler* a_pPrecompiler, CxxParenthesised* aParenthesised, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
-    virtual LanguageElement* precompileTypedParenthesized(Precompiler* a_pPrecompiler, Type* a_pType, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr);
-    string toNamespaceQualifiedName() const;
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    virtual LanguageElement* precompileParenthesized(CxxPrecompiler* a_pPrecompiler, CxxParenthesised* aParenthesised, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    virtual LanguageElement* precompileTemplateParenthesized(CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, CxxParenthesised* aParenthesised, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    virtual LanguageElement* precompileTypedParenthesized(CxxPrecompiler* a_pPrecompiler, Type* a_pType, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    string toNamespaceQualifiedName(CxxPrecompiler* a_pPrecompiler) const;
 
 protected:
     CxxName(const word& w) : isTemplate(false) { words.push_back(w); } 
-
 };
 
 struct CxxDotExpression : public CxxExpression
@@ -662,8 +755,9 @@ struct CxxDotExpression : public CxxExpression
     CxxExpression *left;
     CxxName *member;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
-    virtual LanguageElement* precompileParenthesized( Precompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ );
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    virtual LanguageElement* precompileParenthesized( CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0 );
+    virtual LanguageElement* precompileTemplateParenthesized( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ );
 };
 
 struct CxxArrowExpression : public CxxExpression
@@ -673,8 +767,8 @@ struct CxxArrowExpression : public CxxExpression
     CxxExpression *left;
     CxxName *member;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
-    virtual LanguageElement* precompileParenthesized( Precompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ );
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    virtual LanguageElement* precompileParenthesized( CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0 );
 };
 
 struct CxxDotStarExpression : public CxxExpression
@@ -684,8 +778,8 @@ struct CxxDotStarExpression : public CxxExpression
     CxxExpression *left;
     CxxExpression *member;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
-    virtual LanguageElement* precompileParenthesized( Precompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ );
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    virtual LanguageElement* precompileParenthesized( CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0 );
 };
 
 struct CxxArrowStarExpression : public CxxExpression
@@ -695,15 +789,16 @@ struct CxxArrowStarExpression : public CxxExpression
     CxxExpression *left;
     CxxExpression *member;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
-    virtual LanguageElement* precompileParenthesized( Precompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ );
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    virtual LanguageElement* precompileParenthesized( CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0 );
 };
 
 
 struct CxxCallExpression : public CxxExpression 
 {
     CxxCallExpression(CxxExpression* e, CxxParenthesised* p) : expr(e), parenthesised(p) {}
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    virtual LanguageElement* precompileTemplate( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ );
     CxxExpression* expr;
     CxxParenthesised* parenthesised;
 };
@@ -711,11 +806,7 @@ struct CxxCallExpression : public CxxExpression
 struct CxxPreUnaryExpression : public CxxExpression
 {
     CxxPreUnaryExpression(const string& o, CxxExpression* e) : op(o), expr(e) { o_assert(expr); }
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr) 
-    {
-        Expression* expr = this->expr->precompileExpression(a_pPrecompiler, a_pScope);
-        return expr->precompilePreUnaryOperator(a_pPrecompiler, op);
-    }
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
     string op;
     CxxExpression* expr;
 };
@@ -723,11 +814,7 @@ struct CxxPreUnaryExpression : public CxxExpression
 struct CxxPostUnaryExpression : public CxxExpression
 {
     CxxPostUnaryExpression(const string& o, CxxExpression* e) : op(o), expr(e) { o_assert(expr); }
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr) 
-    {
-        Expression* expr = this->expr->precompileExpression(a_pPrecompiler, a_pScope);
-        return expr ? expr->precompileBinaryOperator(a_pPrecompiler, op, nullptr) : 0;
-    }
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
     string op;
     CxxExpression* expr;
 };
@@ -736,7 +823,7 @@ struct CxxInvalidExpression : CxxExpression
 {
     CxxInvalidExpression(CxxExpression* e = nullptr) : expr(e) {}
     CxxExpression* expr;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */){return nullptr;}
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0){return nullptr;}
 };
 
 struct CxxBinaryExpression : public CxxExpression 
@@ -748,7 +835,7 @@ struct CxxBinaryExpression : public CxxExpression
     string op;
     CxxExpression* left;
     CxxExpression* right;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxArrayAccessExpression : public CxxExpression
@@ -758,7 +845,7 @@ struct CxxArrayAccessExpression : public CxxExpression
     CxxExpression* expression;
     CxxExpression* index;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxCastExpression : public CxxExpression 
@@ -773,25 +860,25 @@ struct CxxCStyleCastExpression : public CxxCastExpression
 {
     CxxCStyleCastExpression(CxxExpression* t, CxxExpression* e) : CxxCastExpression(t, e) {}
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxReinterpretCastExpression : public CxxCastExpression 
 {
     CxxReinterpretCastExpression(CxxExpression* t, CxxExpression* e) : CxxCastExpression(t, e) {}
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxStaticCastExpression : public CxxCastExpression 
 {
     CxxStaticCastExpression(CxxExpression* t, CxxExpression* e) : CxxCastExpression(t, e) {}
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxConstCastExpression : public CxxCastExpression 
 {
     CxxConstCastExpression(CxxExpression* t, CxxExpression* e) : CxxCastExpression(t, e) {}
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxConversionFunction : public CxxName
@@ -802,7 +889,7 @@ struct CxxConversionFunction : public CxxName
    
     }
     CxxExpression* expr;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         return expr->precompileType(a_pPrecompiler, a_pScope);
     }
@@ -812,7 +899,7 @@ struct CxxStringLiteralExpression : public CxxExpression
 {
     CxxStringLiteralExpression(CxxStringLiteral* l) : stringLiteral(l) {}
     CxxStringLiteral* stringLiteral;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxDeclarator;
@@ -828,7 +915,7 @@ struct CxxScopedPointerExpression : public CxxExpression
     CxxDeclarator *declarator;
     CxxExpression *expr;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxSizeOfExpression : public CxxExpression
@@ -840,7 +927,7 @@ struct CxxSizeOfExpression : public CxxExpression
     }
     CxxExpression* expr;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         o_assert(a_pLHS == nullptr);
         Expression* pExpr = expr->precompileExpression(a_pPrecompiler, a_pScope);
@@ -850,12 +937,11 @@ struct CxxSizeOfExpression : public CxxExpression
 
 struct CxxVariableDeclarationExpression : public CxxExpression
 {
-    CxxVariableDeclarationExpression(CxxExpression* aTypeExpression, CxxDeclarator* aDeclarator, CxxExpression* aNameExpression)
-        : typeExpression(aTypeExpression), declarator(aDeclarator), nameExpression(aNameExpression) {}
+    CxxVariableDeclarationExpression(CxxExpression* aTypeExpression, CxxExpression* aNameExpression)
+        : typeExpression(aTypeExpression), nameExpression(aNameExpression) {}
     CxxExpression* typeExpression;
-    CxxDeclarator* declarator;
     CxxExpression* nameExpression;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxTypeIdExpression : public CxxExpression
@@ -867,7 +953,7 @@ struct CxxTypeIdExpression : public CxxExpression
     }
     CxxExpression* expr;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         o_assert(a_pLHS == nullptr);
         Expression* pExpr = expr->precompileExpression(a_pPrecompiler, a_pScope);
@@ -894,7 +980,7 @@ struct CxxType1Expression : public CxxExpression
     CxxParenthesised *parenthesis;
     CxxType1Parameters *type1Parameters;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         LanguageElement* pCall = functionName->precompileParenthesized(a_pPrecompiler, parenthesis, a_pScope, a_pLHS);
         o_assert_no_implementation();
@@ -927,7 +1013,7 @@ struct CxxCharacterLiteralExpression : public CxxExpression
     CxxCharacterLiteralExpression(CxxCharacterLiteral* c) : character(c) {}
     CxxCharacterLiteral* character;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         if(character->size == 1)
         {
@@ -950,7 +1036,7 @@ struct CxxNumberLiteralExpression : public CxxExpression
     CxxNumberLiteralExpression(CxxNumberLiteral<t_Ty>* n) : literal(n) {}
     CxxNumberLiteral<t_Ty>* literal;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         return o_new_elem(ConstantExpression)(constant<o_NESTED_TYPE CxxUnderlyingFundamental<t_Ty>::type>(literal->number));
     }
@@ -958,32 +1044,33 @@ struct CxxNumberLiteralExpression : public CxxExpression
 
 struct CxxTypedExpression : public CxxExpression 
 {
-    CxxTypedExpression(CxxName* n, CxxExpression* e) : name(n), expr(e) {}
-    CxxName* name;
+    CxxTypedExpression(CxxName* n, CxxExpression* e) : typeName(n), expr(e) {}
+    CxxName* typeName;
     CxxExpression* expr;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
-    virtual LanguageElement* precompileParenthesized(Precompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    virtual LanguageElement* precompileParenthesized(CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+};
+
+struct CxxTypedName : public CxxName 
+{
+    CxxTypedName(CxxName* n, CxxName* e) : typeName(n), name(e) {}
+    CxxName* typeName;
+    CxxName* name;
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    virtual LanguageElement* precompileParenthesized(CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    void configureDeclSpecifiers(CxxPrecompiler* a_pPrecompiler);
 };
 
 struct CxxThisExpression : public CxxExpression 
 {
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr)
-    {
-        Block* pBlock = a_pScope->asBlock();
-        if(pBlock == nullptr)
-            return nullptr;
-        LocalVariable* pLocalVariable = pBlock->getLocalVariableCascade("this");
-        if(pLocalVariable == nullptr)
-            return nullptr;
-        return pLocalVariable->createExpression();
-    }
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxThrowExpression : public CxxExpression
 {
     CxxThrowExpression(CxxExpression* anExpr) : expr(anExpr) {}
     CxxExpression* expr;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         o_assert_no_implementation();
         return nullptr;
@@ -1001,13 +1088,13 @@ struct CxxBitfieldExpression : public CxxExpression
     CxxExpression* expr;
     CxxExpression* size;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxAbstractArrayExpression : public CxxExpression 
 { 
     CxxAbstractArrayExpression(CxxExpression* anExpr) : expr(anExpr) {} 
     CxxExpression* expr; 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         return nullptr;
     }
@@ -1016,7 +1103,7 @@ struct CxxAbstractFunctionExpression : public CxxExpression
 { 
     CxxAbstractFunctionExpression(CxxParenthesised* p) : parenthesised(p) {} 
     CxxParenthesised* parenthesised; 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxWhileStatement : public CxxStatement 
@@ -1025,7 +1112,7 @@ struct CxxWhileStatement : public CxxStatement
         : testExpr(aTestExpr), statement(aStmt) {}
     CxxCondition *testExpr;
     CxxStatement *statement;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 
 };
 struct CxxForStatement : public CxxStatement 
@@ -1040,7 +1127,7 @@ struct CxxForStatement : public CxxStatement
     CxxExpression* step;
     CxxStatement* content;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxSwitchStatement : public CxxStatement 
 {
@@ -1049,21 +1136,21 @@ struct CxxSwitchStatement : public CxxStatement
     CxxCondition *testExpr;
     CxxStatement *statement;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxTryBlockStatement : public CxxStatement 
 {
     CxxTryBlockStatement(CxxFunctionBody *aTryBlock) : tryBlock(aTryBlock)    {    }
     CxxFunctionBody *tryBlock;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxCaseStatement : public CxxStatement 
 {
     CxxCaseStatement(CxxExpression *anExpr, CxxStatement *aStmt) 
         : expr(anExpr), statement(aStmt) {}
     virtual CxxCaseStatement* asCaseStatement() { return this; }
-    virtual Expression* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual Expression* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         o_assert(false, "should not be precompiled directly");
         return nullptr;
@@ -1085,7 +1172,7 @@ struct CxxUsingDeclaration : public CxxDeclaration
         : isTypename(aIsTypename), name(aName) {}
     bool isTypename;
     CxxName *name;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxSimpleDeclaration : public CxxDeclaration
@@ -1093,7 +1180,9 @@ struct CxxSimpleDeclaration : public CxxDeclaration
     CxxSimpleDeclaration(CxxExpression* e) : expr(e) {}
     CxxExpression* expr;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+
+    virtual LanguageElement* precompileTemplate(CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxNamespaceAliasDeclaration : public CxxDeclaration
@@ -1102,7 +1191,7 @@ struct CxxNamespaceAliasDeclaration : public CxxDeclaration
         : name(aName), alias(forId) {}
     CxxName *name;
     CxxName *alias;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxTemplateParameters;
@@ -1114,21 +1203,21 @@ struct CxxTemplateDeclaration : public CxxDeclaration
     CxxTemplateParameters* parameters;
     CxxDeclaration* declaration;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxUsingNamespaceDirective : public CxxDeclaration 
 {
     CxxUsingNamespaceDirective(CxxName* aName) : name(aName) {}
     CxxName* name;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxReturnStatement : public CxxStatement 
 { 
     CxxReturnStatement(CxxExpression* anExpr) 
         : expr(anExpr) {} 
     CxxExpression* expr; 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxAccessSpecifier;
@@ -1138,15 +1227,15 @@ struct CxxAccessibilitySpecifier : public CxxDeclaration
     CxxAccessibilitySpecifier(CxxAccessSpecifier* spec) : specifier(spec) {}
     CxxAccessSpecifier* specifier;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxBreakStatement : public CxxStatement 
 {
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxContinueStatement : public CxxStatement 
 {
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxStrings;
 struct CxxAsmDefinition : public CxxDeclaration 
@@ -1154,7 +1243,7 @@ struct CxxAsmDefinition : public CxxDeclaration
     CxxAsmDefinition(CxxStrings* strings) 
         : code(strings) {} 
     CxxStrings* code;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         o_assert_no_implementation();
         return nullptr;
@@ -1168,15 +1257,16 @@ struct CxxStatements : public CxxStatement
         o_assert(aStatement);
         list.push_back(aStatement); 
     }
-    vector<CxxStatement*> list;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr)
+    struct source_scope_sorter
     {
-        for(auto it = list.begin(); it != list.end(); ++it)
+        inline bool operator()(CxxStatement* s0, CxxStatement* s1) const 
         {
-            (*it)->precompile(a_pPrecompiler, a_pScope);
+            return s0->priority > s1->priority;
         }
-        return nullptr;
-    }
+    };
+
+    vector<CxxStatement*> list;
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 typedef CxxStatements CxxDeclarations;
 typedef CxxExpression CxxTreeExpression;
@@ -1187,10 +1277,10 @@ struct CxxNamespaceDefinition : public CxxName
         : name(aName), declarations(decls) {}
     CxxName *name;
     CxxDeclarations *declarations;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr )
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr )
     {
         Namespace* pParent = a_pScope->asNamespace();
-        Namespace* pNamespace = pParent->findOrCreateNamespaceCascade(name->toNamespaceQualifiedName());
+        Namespace* pNamespace = pParent->findOrCreateNamespaceCascade(name->toNamespaceQualifiedName(a_pPrecompiler));
         if(pNamespace == nullptr) return nullptr;
 
         declarations->precompile(a_pPrecompiler, pNamespace);
@@ -1203,7 +1293,7 @@ struct CxxNamespaceDeclaration : public CxxDeclaration
 {
     CxxNamespaceDeclaration(CxxNamespaceDefinition* nd) : definition(nd) {}
     CxxNamespaceDefinition* definition;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         return definition->precompile(a_pPrecompiler, a_pScope);
     }
@@ -1211,7 +1301,7 @@ struct CxxNamespaceDeclaration : public CxxDeclaration
 
 struct CxxAccessSpecifier : public CxxKeyword 
 {
-    void precompile(modifiers_t& modifiers);
+    void precompile(CxxPrecompiler* a_pPrecompiler, modifiers_t& modifiers);
 };
 struct CxxBaseSpecifier : public CxxToken 
 { 
@@ -1219,14 +1309,14 @@ struct CxxBaseSpecifier : public CxxToken
     CxxName* name;
     CxxAccessSpecifier* accessSpecifier;
     bool isVirtual;
-    Class* precompile(Precompiler* a_pPrecompiler, Class* a_pDerivedClass, modifiers_t& modifiers);
+    Class* precompile(CxxPrecompiler* a_pPrecompiler, Class* a_pDerivedClass, modifiers_t& modifiers);
 };
 struct CxxBaseSpecifiers : public CxxTokens 
 {
     void add(CxxBaseSpecifier* anElem) { list.push_back(anElem); }
     vector<CxxBaseSpecifier*> list;
 
-    void precompile(Precompiler* a_pPrecompiler, Class* a_pClass);
+    void precompile(CxxPrecompiler* a_pPrecompiler, Class* a_pClass);
 
 };
 struct CxxBrace : public CxxToken {};
@@ -1244,7 +1334,8 @@ struct CxxClass : public CxxToken
     CxxName* name;
     CxxBaseSpecifiers* baseClasses;
 
-    ClassType* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope);
+    ClassType* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, ClassType* a_pPreviousDeclaration = nullptr);
+    LanguageElement* precompileTemplate(CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope = nullptr);
 };
 
 struct CxxMemberDeclaration : public CxxStatement
@@ -1252,25 +1343,70 @@ struct CxxMemberDeclaration : public CxxStatement
     CxxMemberDeclaration(CxxStatement* decl) : declaration(decl) {}
     CxxStatement* declaration;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxMemberDeclarations : public CxxTokens
 {
     void add(CxxMemberDeclaration* anElem) { list.push_back(anElem); }
     vector<CxxMemberDeclaration*> list;
-    void precompile(Precompiler* a_pPrecompiler, ClassType* a_pClassType);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+    virtual LanguageElement* precompileTemplate( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS, modifiers_t a_Modifiers );
 };
 
 struct CxxClassMembers : public CxxName
 {
     CxxClassMembers(CxxClass *aClass, CxxMemberDeclarations *memberDeclarations) 
-        : class_(aClass), members(memberDeclarations) {}
+        : CxxName(0, 100)
+        , class_(aClass)
+        , members(memberDeclarations) {}
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 
+    virtual LanguageElement* precompileTemplate(CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
     CxxClass* class_;
     CxxMemberDeclarations* members;
+};
+
+struct CxxImportSymbolDeclaration : public CxxToken
+{
+    CxxImportSymbolDeclaration(CxxName* symbolName, CxxName* aliasName)
+        : symbol(symbolName)
+        , alias(aliasName) 
+    {
+        o_assert(symbol);
+    }
+    CxxName* symbol;
+    CxxName* alias;
+};
+
+struct CxxImportSymbolDeclarations : public CxxToken
+{
+    CxxImportSymbolDeclarations()
+    {
+
+    }
+    void add(CxxImportSymbolDeclaration* decl)
+    {
+        list.push_back(decl);
+    }
+    vector<CxxImportSymbolDeclaration*> list;
+};
+
+struct CxxImportDeclaration : public CxxStatement
+{
+    CxxImportDeclaration(CxxName* aqualifiedName, CxxImportSymbolDeclarations* asymbols) 
+        : CxxStatement(0, 50)
+        , qualifiedName(aqualifiedName)
+        , symbols(asymbols)
+    {
+        o_assert(qualifiedName);
+    }
+
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
+
+    CxxName* qualifiedName;
+    CxxImportSymbolDeclarations* symbols;
 };
 
 struct CxxDeclarator : public CxxToken 
@@ -1290,7 +1426,7 @@ struct CxxDeleteExpression : public CxxExpression
 {
     CxxDeleteExpression(CxxExpression* anExpr) : expr(anExpr) {}
     CxxExpression* expr;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         // return o_new_elem(DeleteExpression)(expr->precompileExpression(a_pPrecompiler, a_pScope, a_pLHS));
         o_assert_no_implementation();
@@ -1305,13 +1441,13 @@ struct CxxEnumerator : public CxxToken
         : name(aName), expr(anExpr) {}
     CxxName* name;
     CxxExpression* expr;
-    ConstantExpression* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope) const;
+    ConstantExpression* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope) const;
 };
 struct CxxEnumerators : public CxxTokens 
 {
     void add(CxxEnumerator* anElement) { list.push_back(anElement); }
     vector<CxxEnumerator*> list;
-    Type* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, vector<NumericConstant*>& constants);
+    Type* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, vector<NumericConstant*>& constants);
 };
 struct CxxEnumSpecifierId : public CxxName
 {
@@ -1322,7 +1458,7 @@ struct CxxEnumSpecifierId : public CxxName
     }
     CxxName* name;
     CxxEnumerators* enumerators;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS );
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0 );
 };
 struct CxxParameter;
 struct CxxExceptionDeclaration : public CxxToken 
@@ -1343,7 +1479,7 @@ struct CxxExpressions : public CxxExpression
     }
     vector<CxxExpression*> list;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxFileId : public CxxToken {};
 struct CxxFileIds : public CxxTokens {};
@@ -1355,7 +1491,7 @@ struct CxxFunctionBody : public CxxStatement
         : statement(aStatement) {}
     CxxStatement* statement;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxConstructorDefinition : public CxxExpression
@@ -1367,7 +1503,7 @@ struct CxxConstructorDefinition : public CxxExpression
     }
     CxxExpressions* exprs;
     CxxFunctionBody* functionBody;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         CxxBitfieldExpression* first = static_cast<CxxBitfieldExpression*>(exprs->list.front());
         Constructor* pConstructor = first->expr->precompileConstructor(a_pPrecompiler, a_pScope);
@@ -1415,7 +1551,7 @@ struct CxxInitializerClause : public CxxExpression
     CxxInitializerClause(CxxExpression* e) : expr(e) {}
     CxxExpression* expr;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         return expr->precompile(a_pPrecompiler, a_pScope, a_pLHS);
     }
@@ -1425,7 +1561,7 @@ struct CxxInitializerClauses : public CxxInitializerClause
     CxxInitializerClauses() : CxxInitializerClause(nullptr) {}
     vector<CxxInitializerClause*> list;
     void add(CxxInitializerClause* ic) { list.push_back(ic); }
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         o_assert(false);
         return nullptr;
@@ -1447,7 +1583,7 @@ struct CxxMemInitializers : public CxxTokens
         list.push_back(param);
     }
     vector<CxxMemInitializer*> list;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         o_assert_no_implementation();
         return nullptr;
@@ -1461,7 +1597,7 @@ struct CxxNewExpression : public CxxExpression
     CxxExpression* place;
     CxxExpression* type;
     CxxExpression* init;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         o_assert(false, "not implemented : need phantom::reflection::NewExpression class")
             return nullptr;
@@ -1470,7 +1606,7 @@ struct CxxNewExpression : public CxxExpression
 struct CxxNewParenthesisExpression : public CxxNewExpression 
 {
     CxxNewParenthesisExpression(CxxParameters *aPlace, CxxParameters *aType, CxxExpression *anInit);
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         o_assert(false, "not implemented : need phantom::reflection::NewExpression class")
             return nullptr;
@@ -1483,7 +1619,7 @@ struct CxxParameter : public CxxExpression
     CxxExpression* expr;
     CxxExpression* init;
 
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr);
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 
 struct CxxVariadicParameter : public CxxParameter
@@ -1499,7 +1635,7 @@ struct CxxParameters : public CxxExpression
         list.push_back(param);
     }
     vector<CxxParameter*> list;
-    virtual LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */)
+    virtual LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0)
     {
         o_assert(false);
         return Signature::Create();
@@ -1530,7 +1666,7 @@ struct CxxTemplateArgument : public CxxToken
         : parameter(aParameter) {}
     CxxParameter* parameter;
 
-    LanguageElement* precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope)
+    LanguageElement* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope)
     {
         return parameter->expr->precompileTemplateElement(a_pPrecompiler, a_pScope);
     }
@@ -1543,45 +1679,36 @@ struct CxxTemplateArgument : public CxxToken
 struct CxxTemplateArguments : public CxxTokens 
 {
     void add(CxxTemplateArgument* arg) { list.push_back(arg); }
-    void precompile(Precompiler* a_pPrecompiler, LanguageElement* a_pScope, vector<LanguageElement*>& out)
-    {
-        for(auto it = list.begin(); it != list.end(); ++it)
-        {
-            out.push_back((*it)->precompile(a_pPrecompiler, a_pScope));
-        }
-    }
+    void precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, vector<LanguageElement*>& out);
     vector<CxxTemplateArgument*> list;
     virtual string toString() const;
 };
 struct CxxTemplateParameter : public CxxToken 
 {
-    CxxTemplateParameter(CxxExpression* e) : expr(e) {}
+    CxxTemplateParameter(CxxExpression* e) : expr(e), init(0) {}
     CxxExpression* expr;
+    CxxExpression* init;
+    virtual TemplateParameter* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxTemplateParameters : public CxxTokens 
 {
     void add(CxxTemplateParameter* arg) { list.push_back(arg); }
     vector<CxxTemplateParameter*> list;
+    virtual TemplateSignature* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxSimpleTypeParameter : public CxxTemplateParameter 
 {
     CxxSimpleTypeParameter(CxxName* aName) : CxxTemplateParameter(aName) {} 
 };
-struct CxxClassTemplateParameter : public CxxSimpleTypeParameter 
-{
-    CxxClassTemplateParameter(CxxName *aName) : CxxSimpleTypeParameter(aName) {}
-};
 struct CxxClassTypeParameter : public CxxSimpleTypeParameter 
 {
     CxxClassTypeParameter(CxxName *aName) : CxxSimpleTypeParameter(aName) {}
+    virtual TemplateParameter* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
 };
 struct CxxTemplatedTypeParameter : public CxxTemplateParameter 
 {
-    CxxTemplatedTypeParameter(CxxTemplateParameters* aParameters, CxxName* aName)
-        : CxxTemplateParameter(aName), parameters(aParameters)
-    {
-
-    }
+    CxxTemplatedTypeParameter(CxxTemplateParameters* aParameters, CxxName* aName) : CxxTemplateParameter(aName), parameters(aParameters) { }
+    virtual TemplateParameter* precompile(CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS = nullptr, modifiers_t a_Modifiers = 0);
     CxxTemplateParameters* parameters;
 };
 struct CxxTokenStatements : public CxxTokens {};
@@ -1677,7 +1804,9 @@ union CxxTokenType
 	FOGPARSERVALUE_POINTER(CxxTreeArguments, tree_arguments)
 	FOGPARSERVALUE_POINTER(CxxTreeExpression, tree_expression)
 	FOGPARSERVALUE_POINTER(CxxType1Parameters, type1_parameters)
-	FOGPARSERVALUE_POINTER(CxxUtility, utility)
+    FOGPARSERVALUE_POINTER(CxxUtility, utility)
+    FOGPARSERVALUE_POINTER(CxxImportSymbolDeclaration, import_symbol_declaration)
+    FOGPARSERVALUE_POINTER(CxxImportSymbolDeclarations, import_symbol_declarations)
 
 	FOGPARSERVALUE_VALUE(int, bang)
 	FOGPARSERVALUE_VALUE(CxxIsTemplate, is_template)
@@ -1713,6 +1842,9 @@ public:
     CxxToken::yyToken = CxxToken::make_identifier(yyText, yyLeng); return true;
 #define LEX_KEYWORD_TOKEN(a)\
     CxxToken::yyToken = CxxToken::make_keyword(PARSE_TOKEN(a), yytext, yyleng); return true;
+#define LEX_SHAMAN_KEYWORD_TOKEN(a)\
+    if(CxxDriver::Instance()->isShaman() AND CxxDriver::Instance()->getParseType() != CxxDriver::e_ParseType_Expression) {LEX_KEYWORD_TOKEN(a)}\
+    else {LEX_IDENTIFIER_TOKEN(yytext, yyleng)}
 
 #define LEX_HEX_NUMBER_TOKEN(yyText, yyLeng)\
     CxxToken::yyToken = CxxToken::make_hex_number(yyText, yyLeng); return true;

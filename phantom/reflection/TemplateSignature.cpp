@@ -1,45 +1,22 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <phantom/reflection/TemplateSignature.h>
 #include <phantom/reflection/TemplateSignature.hxx>
+#include <phantom/reflection/Placeholder.h>
 #include <boost/algorithm/string.hpp>
 /* *********************************************** */
 o_registerN((phantom, reflection), TemplateSignature);
 
 o_namespace_begin(phantom, reflection) 
+
+o_define_meta_type(TemplateSignature);
+
+TemplateSignature::TemplateSignature()
+{
+
+}
 
 TemplateSignature::TemplateSignature(size_t a_uiParameterCount)
 {
@@ -54,7 +31,34 @@ TemplateSignature::TemplateSignature( const string& a_strTemplateTypes, const st
     vector<string> names;
     split( names, a_strTemplateParams, boost::is_any_of(","), boost::token_compress_on );
     o_assert(types.size() == names.size());
-    o_assert_no_implementation();
+    for(size_t i = 0; i<types.size(); ++i)
+    {
+        if(types[i].find("typename") != string::npos OR types[i].find("class") != string::npos)
+        {
+            boost::replace_all(types[i], " ", "");
+            if(types[i] == "typename" OR types[i] == "class")
+            {
+                addParameter(o_new(TemplateParameter)(o_new(PlaceholderType)(names[i])));
+                continue;
+            }
+            goto else_;
+        }
+        else 
+        {
+else_:
+            Type* pType = typeByName(types[i], namespaceByName("phantom"));
+            o_assert(pType AND pType->asIntegralType());
+            addParameter(o_new(TemplateParameter)(o_new(PlaceholderConstant)(pType, names[i])));
+        }
+    }
+}
+
+TemplateSignature::TemplateSignature( const vector<TemplateParameter*>& a_Parameters )
+{
+    for(auto it = a_Parameters.begin(); it != a_Parameters.end(); ++it)
+    {
+        addParameter(*it);
+    }
 }
 
 TemplateSignature::~TemplateSignature()
@@ -112,12 +116,16 @@ size_t TemplateSignature::getDefaultArgumentCount() const
 
 void TemplateSignature::addParameter( TemplateParameter* a_pTemplateParameter )
 {
-    if(getParameterIndex(a_pTemplateParameter->getName()) != ~size_t(0))
+    if(a_pTemplateParameter == nullptr OR getParameterIndex(a_pTemplateParameter->getName()) != ~size_t(0))
     {
         setInvalid();
     }
+    if(a_pTemplateParameter)
+    {
+        addElement(a_pTemplateParameter);
+    }
     m_Parameters.push_back(a_pTemplateParameter);
-    LanguageElement* pPH = a_pTemplateParameter->getPlaceholder() ? a_pTemplateParameter->getPlaceholder()->asLanguageElement() : nullptr;
+    NamedElement* pPH = (a_pTemplateParameter AND a_pTemplateParameter->getPlaceholder()) ? a_pTemplateParameter->getPlaceholder()->asNamedElement() : nullptr;
     m_Placeholders.push_back(pPH);
     if(pPH)
     {
@@ -127,30 +135,36 @@ void TemplateSignature::addParameter( TemplateParameter* a_pTemplateParameter )
 
 void TemplateSignature::addParameterAliasName( size_t a_uiIndex, const string& a_strAlias )
 {
-    o_assert(getParameterIndex(a_strAlias) == ~size_t(0));
-    m_ParameterAliasNames[a_strAlias] = a_uiIndex;
+    size_t existingIndex = getParameterIndex(a_strAlias);
+    if(existingIndex == ~size_t(0))
+    {
+        m_ParameterAliasNames[a_strAlias] = a_uiIndex;
+    }
+    else if(existingIndex != a_uiIndex)
+    {
+        o_exception(exception::reflection_runtime_exception, "parameter alias already used by another parameter");
+    }
 }
 
-bool TemplateSignature::matches( TemplateSpecialization* a_pTemplateSpecialization ) const
+bool TemplateSignature::acceptsArguments( const vector<LanguageElement*>& a_Arguments ) const
 {
-    if(getParameterCount() != a_pTemplateSpecialization->getArgumentCount()) return false;
+    if(getParameterCount() != a_Arguments.size()) return false;
     for(size_t i = 0; i<m_Parameters.size(); ++i)
     {
-        if(NOT(m_Parameters[i]->getPlaceholder()->matches(a_pTemplateSpecialization->getArgument(i))))
+        if(a_Arguments[i] == nullptr OR m_Parameters[i] == nullptr OR NOT(m_Parameters[i]->acceptsArgument(a_Arguments[i])))
             return false;
     }
     return true;
 }
 
-bool TemplateSignature::templatePartialMatch( LanguageElement* a_pElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+bool TemplateSignature::equals( TemplateSignature* a_pOther ) const
 {
-    TemplateSpecialization* pSpec = a_pElement->asTemplateSpecialization();
-    if(pSpec == nullptr) return false;
-    if(getParameterCount() != pSpec->getArgumentCount()) return false;
-    for(size_t i = 0; i<m_Parameters.size(); ++i)
+    size_t count = m_Parameters.size();
+    if(count != a_pOther->m_Parameters.size()) 
+        return false;
+    for(size_t i = 0; i<count; ++i)
     {
-        if(NOT(m_Parameters[i]->templatePartialMatch(pSpec->getArgument(i), a_Score, a_Deductions)))
-            return false;
+        if(NOT(m_Parameters[i]->equals(a_pOther->m_Parameters[i]))) return false;
     }
     return true;
 }

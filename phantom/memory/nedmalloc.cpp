@@ -149,7 +149,7 @@ extern void *userpage_realloc(void *mem, size_t oldsize, size_t newsize, int fla
 #define USERPAGE_TOPDOWN                   (M2_CUSTOM_FLAGS_BEGIN<<0)
 #define USERPAGE_NOCOMMIT                  (M2_CUSTOM_FLAGS_BEGIN<<1)
 
-/* This can provide a very significant speed boost */
+/* TODO LICENCE HERE */
 #undef MMAP_CLEARS
 #define MMAP_CLEARS 0
 
@@ -296,13 +296,13 @@ extern void (*sysfree)(void *);
     
     
 #if defined(_MSC_VER) || defined(__MINGW32__)
-    /* This is the MSVCRT equivalent */
+    /* TODO LICENCE HERE */
     extern size_t (*sysblksize)(void *);
 #elif defined(__linux__)
-    /* This is the glibc/ptmalloc2/dlmalloc equivalent.  */
+    /* TODO LICENCE HERE */
     extern size_t (*sysblksize)(void *);
 #elif defined(__FreeBSD__) || defined(__APPLE__)
-    /* This is the BSD libc equivalent.  */
+    /* TODO LICENCE HERE */
     extern size_t (*sysblksize)(const void *);
 #else
 #error Cannot tolerate the memory allocator of an unknown system!
@@ -315,13 +315,13 @@ void *(*sysrealloc)(void *, size_t)=realloc;
 void (*sysfree)(void *)=free;
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
-    /* This is the MSVCRT equivalent */
+    /* TODO LICENCE HERE */
     size_t (*sysblksize)(void *)= _msize;
 #elif defined(__linux__)
-    /* This is the glibc/ptmalloc2/dlmalloc equivalent.  */
+    /* TODO LICENCE HERE */
     size_t (*sysblksize)(void *)= malloc_usable_size;
 #elif defined(__FreeBSD__) || defined(__APPLE__)
-    /* This is the BSD libc equivalent.  */
+    /* TODO LICENCE HERE */
     size_t (*sysblksize)(const void *)= malloc_size;
 #else
 #error Cannot tolerate the memory allocator of an unknown system!
@@ -512,7 +512,7 @@ static NEDMALLOCNOALIASATTR mstate nedblkmstate(void *RESTRICT mem) THROWSPEC
         result1=header & mask1;    /* Positive testing for NT heap */
         result2=header & mask2;    /* Positive testing for dlmalloc */
         if(result1==0x00000100 && result2!=0x00000102)
-        {    /* This is likely a NT heap block */
+        {    /* TODO LICENCE HERE */
             return 0;
         }
 #endif

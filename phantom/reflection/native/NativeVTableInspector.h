@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_native_NativeVTableInspector_h__
 #define o_phantom_reflection_native_NativeVTableInspector_h__
@@ -660,20 +629,24 @@ public:
     NativeVTableInspector_hack_member_function(598)
     NativeVTableInspector_hack_member_function(599)
 
+public:
+#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
+    o_static_assert_msg(sizeof(member_function_pointer) == sizeof(void*)*4, "member function pointer size must be 16 bytes on x86 and 32 bytes on x64, ensure /vmg and /vmv are added to your C++ compiler command line options");
+#endif
+    typedef void* vptr_imspostor_t [600];
+
 protected:
-
-
-    typedef member_function_pointer     vptr_imspostor_t [600];
-
     static vptr_imspostor_t             sm_vtable_impostor;
     static size_t                       sm_inspection_result;
     static void*                        sm_vptr_impostor;
+
+    static size_t                       sizeof_vptr_imspostor_t;
 
 public:
     template<typename _FuncPtr>
     static size_t                        getIndexOf(_FuncPtr ptr)
     {
-#if o_COMPILER == o_COMPILER_GCC
+#if o_COMPILER == o_COMPILER_GCC || o_COMPILER == o_COMPILER_CLANG
         union
         {
             struct {
@@ -689,10 +662,29 @@ public:
         u.fp = ptr;
         std::cout<<u.wrap_fp.delta<<std::endl;
         return (u.wrap_fp.vtable_index-1)/sizeof(u.wrap_fp.fn);
-#else
+#elif o_COMPILER == o_COMPILER_VISUAL_STUDIO /// /vmg + /vmv must be defined
+        struct __MicrosoftUnknownMFP{
+            void* m_func_address; // 64 bits for Itanium.
+            ptrdiff_t m_delta;
+            int m_vtordisp;
+            int m_vtable_index; // or 0 if no virtual inheritance
+        };
+        union 
+        {
+            _FuncPtr                original;
+            __MicrosoftUnknownMFP   generic;
+        } un;
+        un.original = ptr;
+        if(un.generic.m_delta != 0)
+        {
+            int i = 0;
+            ++i;
+        }
+        byte* fakeInstance = (byte*)&sm_vptr_impostor;
+        fakeInstance -= un.generic.m_delta;
         NativeVTableInspector::member_function_pointer mp = *reinterpret_cast<NativeVTableInspector::member_function_pointer*>(&ptr);
         o_assert(sm_ResultIndex == ~size_t(0));
-        (reinterpret_cast<NativeVTableInspector*>(&sm_vptr_impostor)->*mp)();
+        (reinterpret_cast<NativeVTableInspector*>(fakeInstance)->*mp)();
         o_assert(sm_ResultIndex != ~size_t(0));
         size_t result = sm_ResultIndex;
         sm_ResultIndex = ~size_t(0);

@@ -20,15 +20,15 @@ namespace qt {
             bool bValue = true;
             if(pCondition != nullptr) 
             {
-                reflection::Expression* pBoolCondition = pCondition->implicitCast(typeOf<bool>());
+                reflection::Expression* pBoolCondition = pCondition->convert(typeOf<bool>());
                 if(pBoolCondition != nullptr)
                 {
-                    pBoolCondition->getValue(&bValue);
-                    phantom::deleteElement(pBoolCondition);
+                    pBoolCondition->load(&bValue);
+                    o_dynamic_delete pBoolCondition;
                 }
                 else 
                 {
-                    phantom::deleteElement(pCondition);
+                    o_dynamic_delete pCondition;
                 }
             }
             if(bValue)

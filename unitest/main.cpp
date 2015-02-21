@@ -1,54 +1,23 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #include "phantom/phantom.h"
-#include "phantom/ModuleLoader.h"
+#include "phantom/reflection/Application.h"
 #include "phantom/math/math.h"
 #include <gtest/gtest.h>
-#include <phantom/unitest/RootClass.h>
-#include <phantom/unitest/ActorPlatform.h>
-#include <phantom/unitest/Marine.h>
-#include <phantom/unitest/StateMachineTest.h>
+#include <unitest/RootClass.h>
+#include <unitest/ActorPlatform.h>
+#include <unitest/Marine.h>
+#include <unitest/StateMachineTest.h>
 #include <phantom/serialization/XmlFileTreeDataBase.h>
 #include <phantom/serialization/Node.h>
 #include <boost/property_tree_custom/xml_parser.hpp>
 #include <phantom/reflection/Expression.h>
 #include <phantom/reflection/CPlusPlus.h>
 #include <phantom/variant.h>
-#include <phantom/std/map.h>
-#include <phantom/std/string.h>
-#include <phantom/std/vector.h>
-#include <phantom/std/vector.hxx>
+#include <phantom/map.h>
+#include <phantom/string.h>
+#include <phantom/vector.h>
+#include <phantom/vector.hxx>
 #include <phantom/composition.h>
 #include <phantom/composition.hxx>
 #include <windows.h>
@@ -85,6 +54,14 @@ o_public:
 );
 
 o_registerN((test_struct), TestStruct);
+
+int blabla;
+
+o_variable(int, blabla, o_no_range);
+
+namespace bb { float bibi; }
+
+o_variableN((bb), float, bibi, o_no_range);
 
 o_namespace_begin(unitest)
 
@@ -179,34 +156,32 @@ TEST(PhantomTest, typeOf) {
   EXPECT_EQ(phantom::string("bool"),        phantom::typeOf<bool>()->getName());
 }
 
-TEST_F(ReflectionTest, InstanceDataMember_getValue) {
-    phantom::uint uiInstanceDataMember;
-    phantom::classOf(m_pMyObject)->getInstanceDataMemberCascade(o_CS("m_uiInstanceDataMember"))->getValue(m_pMyObject, &uiInstanceDataMember);
-    EXPECT_EQ(m_pMyObject->m_uiInstanceDataMember, uiInstanceDataMember);
+TEST_F(ReflectionTest, DataMember_getValue) {
+    phantom::uint uiDataMember;
+    phantom::classOf(m_pMyObject)->getDataMemberCascade(o_CS("m_uiDataMember"))->getValue(m_pMyObject, &uiDataMember);
+    EXPECT_EQ(m_pMyObject->m_uiDataMember, uiDataMember);
 }
 
 TEST_F(ReflectionTest, StaticDataMember_getValue) {
   RootClass* pStaticDataMember;
-  phantom::classOf(m_pMyObject)->getStaticDataMemberCascade(o_CS("m_pStaticDataMember"))->getValue(m_pMyObject, &pStaticDataMember);
+  phantom::classOf(m_pMyObject)->getStaticDataMemberCascade(o_CS("m_pStaticDataMember"))->getValue(&pStaticDataMember);
   EXPECT_EQ(m_pMyObject->m_pStaticDataMember, pStaticDataMember);
 }
 
-TEST_F(ReflectionTest, InstanceMemberFunction_call) {
+TEST_F(ReflectionTest, MemberFunction_call) {
     int iArg = 123;
     int iReturn;
     void* argList[] = { &iArg };
-    phantom::classOf(m_pMyObject)->getInstanceMemberFunctionCascade(o_CS("instance_member_function(int)"))->call(m_pMyObject, argList, &iReturn);
+    phantom::classOf(m_pMyObject)->getMemberFunctionCascade(o_CS("instance_member_function(int)"))->call(m_pMyObject, argList, &iReturn);
     EXPECT_EQ(123, iReturn);
 }
 
 TEST_F(ReflectionTest, phantom_elementByName)
 {
-    phantom::registerTypedef<phantom::reflection::Type*>("phantom", "TypePtr");
-
     EXPECT_NE(NULL, (int)phantom::elementByName("phantom::string::begin()"));
     EXPECT_NE(NULL, (int)phantom::elementByName("phantom::reflection::Namespace"));
     EXPECT_NE(NULL, (int)phantom::elementByName(" phantom::reflection::   Namespace:: typeAdded (  phantom::reflection:: Type  *)"));
-    EXPECT_NE(NULL, (int)phantom::elementByName("phantom::reflection::Namespace::typeAdded(phantom::TypePtr)"));
+    EXPECT_NE(NULL, (int)phantom::elementByName("phantom::reflection::Namespace::typeAdded(phantom::reflection::Type*)"));
     EXPECT_NE(NULL, (int)phantom::elementByName("typeAdded(phantom::reflection::Type*)", phantom::elementByName("phantom::reflection::Namespace")));
     EXPECT_NE(NULL, (int)phantom::elementByName("end() const", phantom::elementByName("phantom::string")));
     EXPECT_NE(NULL, (int)phantom::elementByName("phantom::string::begin() const"));
@@ -214,22 +189,26 @@ TEST_F(ReflectionTest, phantom_elementByName)
 
 TEST_F(ReflectionTest, phantom_reflection_type_conversion)
 {
-    using namespace phantom;
-    EXPECT_EQ(true, typeOf<int&>()->isConvertibleTo(typeOf<int>()));
-    EXPECT_EQ(true, typeOf<const int&>()->isConvertibleTo(typeOf<int>()));
-
-    int i = 5;
-    int& src = i;
-    int* pSrc = &src;
-    int dest = 0;
-    typeOf<int&>()->convertValueTo(typeOf<int>(), &dest, &pSrc);
-    EXPECT_EQ(dest, 5);
+     using namespace phantom;
+     reflection::conversion* conv0;
+     reflection::conversion* conv1;
+     EXPECT_NE(nullptr, conv0 = typeOf<int&>()->conversionTo(typeOf<int>()));
+     EXPECT_NE(nullptr, conv1 = typeOf<const int&>()->conversionTo(typeOf<int>()));
+ 
+     int i = 5;
+     int& src = i;
+     int* pSrc = &src;
+     int dest = 0;
+     conv0->apply(&pSrc, &dest);
+     EXPECT_EQ(dest, 5);
+     delete conv0;
+     delete conv1;
 }
 
 TEST_F(ReflectionTest, phantom_reflection_operator)
 {
     using namespace phantom;
-    EXPECT_NE(NULL, (int)typeOf<math::vector2<float>>()->getInstanceMemberFunction("operator==(const math::vector2<float>&) const"));
+    EXPECT_NE(NULL, (int)typeOf<math::vector2<float>>()->getMemberFunction("operator==(const math::vector2<float>&) const"));
 
 }
 
@@ -443,7 +422,7 @@ phantom::reflection::Type* type_without_hxx = phantom::typeOf<phantom::map<phant
 
 o_static_assert(!phantom::has_module<phantom::map<phantom::string, int>>::value);*/
 
-#include "phantom/std/map.hxx"
+#include "phantom/map.hxx"
 
 o_static_assert(phantom::has_module<phantom::map<phantom::string, int>>::value);
 
@@ -487,9 +466,11 @@ o_class(OwnerTest)
         o_data_member(phantom::composition<ComponentTest>, m_ComponentTests, o_no_range, o_public_access);
 );
 o_register(OwnerTest);
+
+#pragma message(o_PP_QUOTE(o_registerNTI((phantom), composition, (ComponentTest));))
+
 o_registerNTI((phantom), composition, (ComponentTest));
 
-o_main;
 
 o_registerNTI((phantom), vector, (int));
 o_registerNTI((phantom), map, (phantom::string, phantom::string));
@@ -516,7 +497,7 @@ int main(int argc, char **argv)
 {
     //o_assert(type_with_hxx == type_without_hxx);
 
-    phantom::Phantom app(argc, argv);
+    o_main("unitest", argc, argv);
 
     phantom::set<int> s;
 
@@ -569,6 +550,12 @@ int main(int argc, char **argv)
 
     auto composition_ADD_exp = phantom::expressionByName("static_cast<OwnerTest*>(0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+")->m_ComponentTests.add((ComponentTest*)0x"+phantom::lexical_cast<phantom::string>((void*)pComponentTestAddedViaExp)+")");
 
+    o_assert(composition_ADD_exp == nullptr);
+
+    composition_ADD_exp = phantom::expressionByName("reinterpret_cast<OwnerTest*>(0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+")->m_ComponentTests.add((ComponentTest*)0x"+phantom::lexical_cast<phantom::string>((void*)pComponentTestAddedViaExp)+")");
+
+    o_assert(composition_ADD_exp != nullptr);
+
     auto composition_ADD_exp_reeval = phantom::expressionByName(composition_ADD_exp->translate());
 
     composition_ADD_exp->eval();
@@ -589,7 +576,7 @@ int main(int argc, char **argv)
 
     ComponentTest* pSettedComponentTest = o_new(ComponentTest);
 
-    auto composition_GetSet_exp = phantom::expressionByName("(*static_cast<OwnerTest*>(0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+")).m_ComponentTests[0]");
+    auto composition_GetSet_exp = phantom::expressionByName("(*reinterpret_cast<OwnerTest*>(0x"+phantom::lexical_cast<phantom::string>((void*)pOwnerTest0)+")).m_ComponentTests[0].value");
 
     auto stringLiteral = phantom::expressionByName("\"I'm a string in\\xfE a\\u4565 \\U12345678 string\\n\\t\\r\"");
 
@@ -621,7 +608,7 @@ int main(int argc, char **argv)
     <<std::endl<<std::endl;
 
     AutoReflectedClass* pAutoReflectedClass = o_new(AutoReflectedClass);
-    phantom::classOf(pAutoReflectedClass)->getInstanceMemberFunction("member_function()");
+    phantom::classOf(pAutoReflectedClass)->getMemberFunction("member_function()");
 
     phantom::reflection::Type* pType_vector2_float = phantom::typeOf<phantom::math::vector2<float>>();
     phantom::reflection::Type* pType_vector3_double = phantom::typeByName("phantom::math::vector3d");
@@ -665,8 +652,11 @@ int main(int argc, char **argv)
 
     phantom::string ptr_hex = phantom::lexical_cast<phantom::string>((void*)vector2_float);
 
-    auto vector2_float_y = phantom::expressionByName("(*static_cast<phantom::math::vector2<float>*>(0x"+ptr_hex+")).y");
-    auto vector2_float_x = phantom::expressionByName("(*static_cast<phantom::math::vector2<float>*>(0x"+ptr_hex+")).x");
+    auto vector2_float_y = phantom::expressionByName("(*reinterpret_cast<phantom::math::vector2<float>*>(0x"+ptr_hex+")).y");
+    auto vector2_float_x = phantom::expressionByName("(*reinterpret_cast<phantom::math::vector2<float>*>(0x"+ptr_hex+")).x");
+
+    o_assert(vector2_float_y);
+    o_assert(vector2_float_x);
 
     float float_value_x = 0;
     float float_value_y = 0;
@@ -692,9 +682,11 @@ int main(int argc, char **argv)
     phantom::reflection::LanguageElement* pPhantomVector 
         = phantom::elementByName("std::vector<int, std::allocator<int> >");
 
+//     phantom::reflection::LanguageElement* pTestDot 
+//         = phantom::elementByName("std.vector<int>::begin()");
     
-    phantom::cplusplus()->compile(
-
+    phantom::reflection::Source* pSource = phantom::shaman()->precompile("unitest:unitest.CompiledClass",
+        "template<typename t_Ty, typename t_U>"
         "class CompiledClass "                                                                     "\n"
         "{"                                                                                         "\n"
 //         "   phantom::connection::slot::list    PHANTOM_CODEGEN_m_slot_list_of_signalName; "       "\n"
@@ -714,7 +706,7 @@ int main(int argc, char **argv)
 //         "   int increment(int i) const { return i++; }"                                                        "\n"
 //         "   const char* thenMethod() const { return \"then\"; }"                                               "\n"
 //         "   const char* elseMethod() const { return \"else\"; }"                                               "\n"
-        "   const char onyDeclared();"                                                                        "\n"
+        "   t_Ty onlyDeclared();"                                                                        "\n"
 //         "   void testFor() const"                                                                              "\n"
 //         "   {"                                                                                                 "\n"
 //         "       for(int i = 0; i<6; ++i)"                                                                      "\n"
@@ -730,23 +722,50 @@ int main(int argc, char **argv)
 //         "       }"                                                                                              "\n"
 //         "   }"                                                                                                 "\n"
         "};                                                                                          "       "\n"
-        , nullptr, nullptr, o_new(phantom::Module)("test_compilation"), nullptr);
+        "template<typename t_Ty>"
+        "class CompiledClass<t_Ty, t_Ty[5]> "                                                                     "\n"
+        "{"                                                                                         "\n"
+        "   static t_Ty blabla(int blabla);\n"
+        "};\n"
+        "template<>"
+        "class CompiledClass<int, int[5]> "                                                                     "\n"
+        "{"                                                                                         "\n"
+        "   static int blabla();\n"
+        "};\n"
+        "template<>"
+        "float CompiledClass<float, float[5]>.blabla(int blublu) { return (float)blublu; }"
+        "template<>"
+        "float CompiledClass<float, int[5]>.blabla(int blublu) { return (float)blublu; }"
+        "template<typename t_Ty>"
+        "t_Ty CompiledClass<float, t_Ty[5]>.blabla(int blublu) { return (t_Ty)blublu; }"
+        
+        );
 
     //phantom::reflection::Type* pType = phantom::typeOf<phantom::string>();
     phantom::reflection::Type* pStringType = phantom::typeByName("phantom::string");
     o_assert(pStringType);
-    phantom::reflection::Type* pTypeByName = phantom::typeByName("CompiledClass");
-    o_assert(pTypeByName);
+    phantom::reflection::Type* pFullySpecialized = phantom::typeByName("unitest::CompiledClass<int, int[5]>");
+    o_assert(pFullySpecialized);
+    // Instanciate template
+    phantom::reflection::Type* pNewlyInstanciated = phantom::typeByName("unitest::CompiledClass<float, float[5]>");
+    o_assert(pNewlyInstanciated);
+    // Get already instanciated template
+    phantom::reflection::Type* pOldlyInstanciated = phantom::typeByName("unitest::CompiledClass<float, float[5]>");
+    o_assert(pOldlyInstanciated == pNewlyInstanciated);
 
-    void * pNewCompiledClassInstance = pTypeByName->newInstance();
-    phantom::reflection::Subroutine* pSubroutine = pTypeByName->asClassType()->getInstanceMemberFunction("testFor() const");
-    o_assert(pSubroutine);
-    void* args[1] = { &pNewCompiledClassInstance }; 
-    pSubroutine->call(args, nullptr);
-    pTypeByName->deleteInstance(pNewCompiledClassInstance);
+    void * pNewCompiledClassInstance = pNewlyInstanciated->newInstance();
+    phantom::reflection::Subroutine* pSubroutine = pNewlyInstanciated->asClassType()->getSubroutine("static float blabla(int blabla)");
+       o_assert(pSubroutine->getBlock() != nullptr);
 
-    phantom::reflection::InstanceMemberFunction* pBeginMemberFunction = static_cast<phantom::reflection::Class*>(pStringType)->getInstanceMemberFunction("rbegin()");
-    phantom::reflection::InstanceMemberFunction* pEndMemberFunction = static_cast<phantom::reflection::Class*>(pStringType)->getInstanceMemberFunction("rend()");
+    int param = 5;
+    float blablaResult = 0.f;
+    void* args[1] = { &param }; 
+    pSubroutine->call(args, &blablaResult);
+    o_assert(blablaResult == 5.f);
+    pNewlyInstanciated->deleteInstance(pNewCompiledClassInstance);
+
+    phantom::reflection::MemberFunction* pBeginMemberFunction = static_cast<phantom::reflection::Class*>(pStringType)->getMemberFunction("rbegin()");
+    phantom::reflection::MemberFunction* pEndMemberFunction = static_cast<phantom::reflection::Class*>(pStringType)->getMemberFunction("rend()");
 
     phantom::string* pString = phantom::as<phantom::string*>(pStringType->newInstance());
     pString->append("this string is reversed");
@@ -773,13 +792,13 @@ int main(int argc, char **argv)
     phantom::constant(0.f);
 
     phantom::string pDBMarine1Hex = phantom::lexical_cast<phantom::string>((void*)pDBMarine1);
-    phantom::reflection::Expression* pDBMarine1PositionXExp = phantom::expressionByName("static_cast<sc2::Marine*>(0x"+pDBMarine1Hex+")->position");
+    phantom::reflection::Expression* pDBMarine1PositionXExp = phantom::expressionByName("reinterpret_cast<sc2::Marine*>(0x"+pDBMarine1Hex+")->position");
 
     pDBMarine1PositionXExp->set(phantom::math::vector2<float>(10.f, 20.f));
 
     o_dynamic_delete (pDBMarine1PositionXExp);
 
-    pDBMarine1PositionXExp = phantom::expressionByName("static_cast<sc2::Marine*>(0x"+pDBMarine1Hex+")->position.x");
+    pDBMarine1PositionXExp = phantom::expressionByName("reinterpret_cast<sc2::Marine*>(0x"+pDBMarine1Hex+")->position.x");
 
     int a = 0;
     int b = 12;
@@ -789,15 +808,15 @@ int main(int argc, char **argv)
     phantom::string bstr = phantom::lexical_cast<phantom::string>((void*)&b);
     phantom::string cstr = phantom::lexical_cast<phantom::string>((void*)&c);
 
-    auto pAssignmentExpression = phantom::expressionByName("*static_cast<int*>(0x"+astr+") = *static_cast<int*>(0x"+bstr+")+18+*static_cast<float*>(0x"+cstr+")");
+    auto pAssignmentExpression = phantom::expressionByName("*reinterpret_cast<int*>(0x"+astr+") = *reinterpret_cast<int*>(0x"+bstr+")+18+*reinterpret_cast<float*>(0x"+cstr+")");
 
     pAssignmentExpression->eval();
 
-    auto pPrecedenceAssignmentExpression = phantom::expressionByName("*static_cast<int*>(0x"+astr+") = (*static_cast<int*>(0x"+bstr+")=18)=*static_cast<float*>(0x"+cstr+")");
+    auto pPrecedenceAssignmentExpression = phantom::expressionByName("*reinterpret_cast<int*>(0x"+astr+") = (*reinterpret_cast<int*>(0x"+bstr+")=18)=*reinterpret_cast<float*>(0x"+cstr+")");
 
     pPrecedenceAssignmentExpression->eval();
 
-    auto pPrecedenceAssignmentExpression2 = phantom::expressionByName("*static_cast<int*>(0x"+astr+") = (*static_cast<int*>(0x"+bstr+")>>=18)=*static_cast<float*>(0x"+cstr+")");
+    auto pPrecedenceAssignmentExpression2 = phantom::expressionByName("*reinterpret_cast<int*>(0x"+astr+") = (*reinterpret_cast<int*>(0x"+bstr+")>>=18)=*reinterpret_cast<float*>(0x"+cstr+")");
 
     pPrecedenceAssignmentExpression2->eval();
 

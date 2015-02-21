@@ -8,15 +8,13 @@
 #include "phantom/qt/DataTreeView.h"
 #include "phantom/qt/UndoStackDelegate.h"
 #include "phantom/math/math.h"
-#include "phantom/std/map.h"
-#include "phantom/std/map.hxx"
-#include "phantom/std/string.h"
-#include "phantom/std/vector.h"
+#include "phantom/map.h"
+#include "phantom/map.hxx"
+#include "phantom/string.h"
+#include "phantom/vector.h"
 #include "phantom/serialization/InfoFileTreeDataBase.h"
 #include "phantom/serialization/Node.h"
-#include "phantom/MessageTree.h"
 #include "phantom/Message.h"
-#include "phantom/ModuleLoader.h"
 #include "phantom/qt/UndoStackView.h"
 #include "phantom/qt/ExpressionCommand.h"
 #include "phantom/reflection/Expression.h"
@@ -37,8 +35,8 @@
 #include "phantom/qt/UpdateComponentDataCommand.h"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include "phantom/std/vector.h"
-#include "phantom/std/vector.hxx"
+#include "phantom/vector.h"
+#include "phantom/vector.hxx"
 #include "phantom/flags.hxx"
 #include "phantom/composition.h"
 #include "phantom/composition.hxx"
@@ -58,7 +56,7 @@ enum ETestFlag
     e_TestFlag_All = e_TestFlag_Flag0|e_TestFlag_Flag1|e_TestFlag_Flag2,
 };
 
-o_enum(ETestFlag, (e_TestFlag_Flag0, e_TestFlag_Flag1, e_TestFlag_Flag2, e_TestFlag_All));
+o_enum(ETestFlag)(e_TestFlag_Flag0, e_TestFlag_Flag1, e_TestFlag_Flag2, e_TestFlag_All);
 o_register(ETestFlag);
 
 o_registerNTI((phantom), flags, (ETestFlag));
@@ -67,6 +65,7 @@ o_registerNTI((phantom), flags, (ETestFlag));
 o_declare_flags(TestFlags, ETestFlag);
 
 o_typedef(TestFlags);
+
 class Test
 {
 public:
@@ -96,10 +95,9 @@ public:
     TestFlags m_TestFlags;
 };
 
-o_class(Test, o_public)
-{
-    o_reflection 
-    {
+o_class(Test)
+(
+    
 //         o_nested_typedef(nested_vectors);
 //         o_nested_typedef(map);
 //         o_data_member(Test*, m_pOtherTest, o_no_range, o_public);
@@ -120,8 +118,7 @@ o_class(Test, o_public)
 //         o_data_member(nested_vectors, mNestedVectors, o_no_range, o_public);
 //         o_data_member(TestFlags, m_TestFlags, o_no_range, o_public);
 //         o_property(const phantom::math::transform2<float>&, transform, setTransform, getTransform, o_no_signal, o_no_range, o_public);
-    };
-};
+);
 
 o_register(Test);
 
@@ -146,14 +143,12 @@ public:
     int m_Id;
 };
 
-o_class(SubComponent, o_protected)
-{
-    o_reflection 
-    {
-        o_property(int, id, setId, getId, idChanged, o_no_range, o_protected);
-        o_data_member(int, m_Id, o_no_range, o_protected);
-    };
-};
+o_class(SubComponent, o_protected_visibility)
+(
+o_protected:
+    o_property(int, id, setId, getId, idChanged);
+    o_data_member(int, m_Id);
+);
 o_register(SubComponent);
 o_registerNTI((phantom), component, (SubComponent));
 
@@ -236,28 +231,25 @@ public:
 };
 
 
-o_classS(DerivedTestA, (Test), o_public)
-{
-    o_reflection 
-    {
-        o_data_member(int, a, o_no_range, o_public);
-        o_property(DerivedTestB*, derivedTestB, setDerivedTestB, getDerivedTestB, derivedTestBChanged, o_no_range, o_public);
-        o_property(SubComponent*, subComponent, setSubComponent, getSubComponent, subComponentChanged, o_no_range, o_public);
-        o_property(size_t, count, setCount, getCount, countChanged, o_no_range, o_public);
-    };
-};
+o_classB(DerivedTestA, (Test))
+(
+o_public:
+    o_data_member(int, a);
+    o_property(DerivedTestB*, derivedTestB, setDerivedTestB, getDerivedTestB, derivedTestBChanged);
+    o_property(SubComponent*, subComponent, setSubComponent, getSubComponent, subComponentChanged);
+    o_property(size_t, count, setCount, getCount, countChanged);
+);
 o_register(DerivedTestA);
 
-o_classS(DerivedTestB, (Test), o_public)
-{
-    o_reflection 
-    {
-        o_data_member(int, b, o_no_range, o_public);
-        o_nested_typedef(SubComponents);
-        o_data_member(SubComponents, m_SubComponents, o_no_range, o_protected);
-        o_data_member(phantom::component<SubComponent>, m_SubComponent, o_no_range, o_protected);
-    };
-};
+o_classB(DerivedTestB, (Test))
+(
+o_public:
+    o_data_member(int, b);
+    o_nested_typedef(SubComponents);
+o_protected:
+    o_data_member(SubComponents, m_SubComponents);
+    o_data_member(phantom::component<SubComponent>, m_SubComponent);
+);
 o_register(DerivedTestB);
 
 qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
@@ -361,7 +353,7 @@ qt_test::qt_test(QWidget *parent, Qt::WFlags flags)
     phantom::qt::ModuleExplorer* pModuleExplorer = o_new(phantom::qt::ModuleExplorer);
     pModuleExplorer->setUndoStack(pUndoStack);
     pModuleExplorer->setPath(".");
-    pModuleExplorer->setModuleLoader(phantom::moduleLoader());
+    pModuleExplorer->setApplication(phantom::application());
     pModuleExplorer->setMessage(pMessage);
 
     pModuleExplorer->setUndoStack(pUndoStack);

@@ -154,7 +154,7 @@ protected slots:
     void nodeLoaded();
     void nodeAboutToBeUnloaded();
     void dataAttributeValueChanged( const phantom::data& a_Data, size_t a_uiAttributeIndex, const string& a_strValue);
-    void dataModifiersChanged( const phantom::data& a_Data, bitfield a_Modifiers);
+    void dataModifiersChanged( const phantom::data& a_Data, modifiers_t a_Modifiers);
     void nodeAttributeValueChanged( phantom::serialization::Node* a_pNode, size_t a_uiAttributeIndex, const string& a_strValue);
 
 protected:
@@ -215,6 +215,7 @@ protected:
     QIcon                                                               m_NodeUnloadedIcon;
     QIcon                                                               m_NodeRootIcon;
     bool														        m_bHidePrivate;
+    bool														        m_bHideProtected;
     bool														        m_bHideComponentData;
     bool														        m_bIsChangingSelection;
     bool                                                                m_bEditorOpened;

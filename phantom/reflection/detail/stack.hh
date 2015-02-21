@@ -42,8 +42,7 @@
 
 
 namespace phantom {
-/* Line 34 of stack.hh  */
-#line 47 "stack.hh"
+
   template <class T, class S = std::deque<T> >
   class stack
   {
@@ -127,7 +126,6 @@ namespace phantom {
   };
 
 } // phantom
-/* Line 116 of stack.hh  */
-#line 132 "stack.hh"
+
 
 #endif /* !YY_PHANTOM_STACK_HH_INCLUDED  */

@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_TNativeFunction_h__
 #define o_phantom_reflection_TNativeFunction_h__
@@ -43,6 +12,16 @@
 using namespace fastdelegate;
 
 o_namespace_begin(phantom, reflection, native)
+
+class TNativeFunctionBase : public Function
+{
+protected:
+    TNativeFunctionBase( const string& a_strName, const string& a_strSignature, EABI a_eABI, modifiers_t a_Modifiers /*= 0*/ )
+        : Function(phantom::reflection::native::currentScope(), a_strName, a_strSignature, a_eABI, a_Modifiers|o_native)
+    {
+        phantom::reflection::native::currentScope()->asScope()->addFunction(this);    
+    }
+};
 
 template<int e_eConvention, typename t_Signature>
 struct native_function_pointer_type;
@@ -253,15 +232,15 @@ struct native_function_pointer_type<e_cdecl, t_ReturnType(t_Param0, t_Param1, t_
 
 
 template<int t_eConvention, typename t_ReturnType>
-class TNativeFunction0 : public Function
+class TNativeFunction0 : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction0<t_eConvention, t_ReturnType> self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType()>::type function_pointer;
     typedef o_NESTED_TYPE return_storage_type_helper<t_ReturnType>::type return_storage_type;
 
-    TNativeFunction0(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc){}
+    TNativeFunction0(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc){}
 
     void*                   getClosurePointer() const { return (void*)m_function_pointer; }
     DelegateMemento        getDelegateMemento(void* a_pObject) const
@@ -279,6 +258,12 @@ public:
         *static_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((*m_function_pointer)());
     }
 
+    virtual void placementCall(void** a_pParams, void* a_pReturnAddress) const
+    {
+        new (a_pReturnAddress) return_storage_type(return_storage_wrapper<t_ReturnType>::apply((*m_function_pointer)
+            ( )));
+    }
+
     virtual void* getAddress(void** a_pParams) const
     {
         return addressable_wrapper<t_ReturnType>::address((*m_function_pointer)());
@@ -292,15 +277,15 @@ protected:
 
 
 template<int t_eConvention>
-class TNativeFunction0<t_eConvention, void> : public Function
+class TNativeFunction0<t_eConvention, void> : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction0<t_eConvention, void>    self_type;
 
     typedef typename native_function_pointer_type<t_eConvention, void()>::type function_pointer;
 
-    TNativeFunction0(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction0(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -322,7 +307,7 @@ protected:
 
 
 template<int t_eConvention, typename t_ReturnType, typename t_Param0>
-class TNativeFunction1 : public Function
+class TNativeFunction1 : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction1<t_eConvention, t_ReturnType, t_Param0>    self_type;
@@ -331,8 +316,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
 
 
-    TNativeFunction1(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction1(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -353,6 +338,11 @@ public:
         *static_cast<return_storage_type*>(a_pReturnAddress) = return_storage_wrapper<t_ReturnType>::apply((*m_function_pointer)
             ( *static_cast<t_Param0_noref*>(a_pParams[0]) ));
     }
+    virtual void placementCall(void** a_pParams, void* a_pReturnAddress) const
+    {
+        new (a_pReturnAddress) return_storage_type(return_storage_wrapper<t_ReturnType>::apply((*m_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0]))));
+    }
 
     virtual void* getAddress(void** a_pParams) const
     {
@@ -368,15 +358,15 @@ protected:
 
 
 template<int t_eConvention, typename t_Param0>
-class TNativeFunction1<t_eConvention, void, t_Param0> : public Function
+class TNativeFunction1<t_eConvention, void, t_Param0> : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction1<t_eConvention, void, t_Param0>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, void(t_Param0)>::type function_pointer;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
 
-    TNativeFunction1(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction1(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -399,7 +389,7 @@ protected:
 
 
 template<int t_eConvention, typename t_ReturnType, typename t_Param0, typename t_Param1>
-class TNativeFunction2 : public Function
+class TNativeFunction2 : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction2<t_eConvention, t_ReturnType, t_Param0, t_Param1>    self_type;
@@ -408,8 +398,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
 
-    TNativeFunction2(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction2(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -433,6 +423,12 @@ public:
             ( *static_cast<t_Param0_noref*>(a_pParams[0])
             , *static_cast<t_Param1_noref*>(a_pParams[1]) ));
     }
+    virtual void placementCall(void** a_pParams, void* a_pReturnAddress) const
+    {
+        new (a_pReturnAddress) return_storage_type(return_storage_wrapper<t_ReturnType>::apply((*m_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1]) )));
+    }
 
     virtual void* getAddress(void** a_pParams) const
     {
@@ -449,7 +445,7 @@ protected:
 };
 
 template<int t_eConvention, typename t_Param0, typename t_Param1>
-class TNativeFunction2<t_eConvention, void, t_Param0, t_Param1> : public Function
+class TNativeFunction2<t_eConvention, void, t_Param0, t_Param1> : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction2<t_eConvention, void, t_Param0, t_Param1>    self_type;
@@ -457,8 +453,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param0>::type t_Param0_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
 
-    TNativeFunction2(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction2(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -486,7 +482,7 @@ protected:
 ///  ==================================================================================================
 
 template<int t_eConvention, typename t_ReturnType, typename t_Param0, typename t_Param1, typename t_Param2>
-class TNativeFunction3 : public Function
+class TNativeFunction3 : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction3<t_eConvention, t_ReturnType, t_Param0, t_Param1,t_Param2>    self_type;
@@ -497,8 +493,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
 
 
-    TNativeFunction3(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction3(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -524,6 +520,13 @@ public:
             , *static_cast<t_Param1_noref*>(a_pParams[1])
             , *static_cast<t_Param2_noref*>(a_pParams[2]) ));
     }
+    virtual void placementCall(void** a_pParams, void* a_pReturnAddress) const
+    {
+        new (a_pReturnAddress) return_storage_type(return_storage_wrapper<t_ReturnType>::apply((*m_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2]) )));
+    }
 
     virtual void* getAddress(void** a_pParams) const
     {
@@ -541,7 +544,7 @@ protected:
 };
 
 template<int t_eConvention, typename t_Param0, typename t_Param1, typename t_Param2>
-class TNativeFunction3<t_eConvention, void, t_Param0, t_Param1, t_Param2> : public Function
+class TNativeFunction3<t_eConvention, void, t_Param0, t_Param1, t_Param2> : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction3<t_eConvention, void, t_Param0, t_Param1, t_Param2>    self_type;
@@ -550,8 +553,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param1>::type t_Param1_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
 
-    TNativeFunction3(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction3(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -586,7 +589,7 @@ template<
     , typename t_Param1
     , typename t_Param2
     , typename t_Param3>
-class TNativeFunction4 : public Function
+class TNativeFunction4 : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction4<t_eConvention, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3>    self_type;
@@ -597,8 +600,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
 
-    TNativeFunction4(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction4(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -625,6 +628,14 @@ public:
             , *static_cast<t_Param2_noref*>(a_pParams[2])
             , *static_cast<t_Param3_noref*>(a_pParams[3])));
     }
+    virtual void placementCall(void** a_pParams, void* a_pReturnAddress) const
+    {
+        new (a_pReturnAddress) return_storage_type(return_storage_wrapper<t_ReturnType>::apply((*m_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3]) )));
+    }
 
     virtual void* getAddress(void** a_pParams) const
     {
@@ -647,7 +658,7 @@ template<int t_eConvention
     , typename t_Param1
     , typename t_Param2
     , typename t_Param3>
-class TNativeFunction4<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3> : public Function
+class TNativeFunction4<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3> : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction4<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3>    self_type;
@@ -657,8 +668,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param2>::type t_Param2_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
 
-    TNativeFunction4(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction4(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -694,7 +705,7 @@ template<
     , typename t_Param2
     , typename t_Param3
     , typename t_Param4>
-class TNativeFunction5 : public Function
+class TNativeFunction5 : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction5<t_eConvention, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4>    self_type;
@@ -706,8 +717,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
 
-    TNativeFunction5(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction5(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -736,6 +747,15 @@ public:
             , *static_cast<t_Param3_noref*>(a_pParams[3])
             , *static_cast<t_Param4_noref*>(a_pParams[4]) ));
     }
+    virtual void placementCall(void** a_pParams, void* a_pReturnAddress) const
+    {
+        new (a_pReturnAddress) return_storage_type(return_storage_wrapper<t_ReturnType>::apply((*m_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            , *static_cast<t_Param4_noref*>(a_pParams[4]) )));
+    }
 
     virtual void* getAddress(void** a_pParams) const
     {
@@ -761,7 +781,7 @@ template<
     , typename t_Param2
     , typename t_Param3
     , typename t_Param4>
-class TNativeFunction5<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4> : public Function
+class TNativeFunction5<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4> : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction5<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4>    self_type;
@@ -772,8 +792,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param3>::type t_Param3_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
 
-    TNativeFunction5(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction5(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -814,7 +834,7 @@ template<
     , typename t_Param3
     , typename t_Param4
     , typename t_Param5>
-class TNativeFunction6 : public Function
+class TNativeFunction6 : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction6<t_eConvention, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5>    self_type;
@@ -827,8 +847,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
 
-    TNativeFunction6(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction6(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -859,6 +879,16 @@ public:
             , *static_cast<t_Param4_noref*>(a_pParams[4])
             , *static_cast<t_Param5_noref*>(a_pParams[5]) ));
     }
+    virtual void placementCall(void** a_pParams, void* a_pReturnAddress) const
+    {
+        new (a_pReturnAddress) return_storage_type(return_storage_wrapper<t_ReturnType>::apply((*m_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            , *static_cast<t_Param4_noref*>(a_pParams[4])
+            , *static_cast<t_Param5_noref*>(a_pParams[5]) )));
+    }
 
     virtual void* getAddress(void** a_pParams) const
     {
@@ -886,7 +916,7 @@ template<
     , typename t_Param3
     , typename t_Param4
     , typename t_Param5>
-class TNativeFunction6<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5> : public Function
+class TNativeFunction6<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5> : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction6<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5>    self_type;
@@ -898,8 +928,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param4>::type t_Param4_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
 
-    TNativeFunction6(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction6(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -942,7 +972,7 @@ template<
     , typename t_Param4
     , typename t_Param5
     , typename t_Param6>
-class TNativeFunction7 : public Function
+class TNativeFunction7 : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction7<t_eConvention, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6>    self_type;
@@ -956,8 +986,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
 
-    TNativeFunction7(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction7(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -990,6 +1020,17 @@ public:
             , *static_cast<t_Param5_noref*>(a_pParams[5])
             , *static_cast<t_Param6_noref*>(a_pParams[6]) ));
     }
+    virtual void placementCall(void** a_pParams, void* a_pReturnAddress) const
+    {
+        new (a_pReturnAddress) return_storage_type(return_storage_wrapper<t_ReturnType>::apply((*m_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            , *static_cast<t_Param4_noref*>(a_pParams[4])
+            , *static_cast<t_Param5_noref*>(a_pParams[5])
+            , *static_cast<t_Param6_noref*>(a_pParams[6]) )));
+    }
 
     virtual void* getAddress(void** a_pParams) const
     {
@@ -1020,7 +1061,7 @@ template<
     , typename t_Param4
     , typename t_Param5
     , typename t_Param6>
-class TNativeFunction7<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6> : public Function
+class TNativeFunction7<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6> : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction7<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6>    self_type;
@@ -1033,8 +1074,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param5>::type t_Param5_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
 
-    TNativeFunction7(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction7(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -1077,7 +1118,7 @@ template<
     , typename t_Param5
     , typename t_Param6
     , typename t_Param7>
-class TNativeFunction8 : public Function
+class TNativeFunction8 : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction8<t_eConvention, t_ReturnType, t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>    self_type;
@@ -1092,8 +1133,8 @@ public:
     typedef o_NESTED_TYPE boost::remove_reference<t_Param6>::type t_Param6_noref;
     typedef o_NESTED_TYPE boost::remove_reference<t_Param7>::type t_Param7_noref;
 
-    TNativeFunction8(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction8(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -1128,6 +1169,18 @@ public:
             , *static_cast<t_Param6_noref*>(a_pParams[6])
             , *static_cast<t_Param7_noref*>(a_pParams[7]) ));
     }
+    virtual void placementCall(void** a_pParams, void* a_pReturnAddress) const
+    {
+        new (a_pReturnAddress) return_storage_type(return_storage_wrapper<t_ReturnType>::apply((*m_function_pointer)
+            ( *static_cast<t_Param0_noref*>(a_pParams[0])
+            , *static_cast<t_Param1_noref*>(a_pParams[1])
+            , *static_cast<t_Param2_noref*>(a_pParams[2])
+            , *static_cast<t_Param3_noref*>(a_pParams[3])
+            , *static_cast<t_Param4_noref*>(a_pParams[4])
+            , *static_cast<t_Param5_noref*>(a_pParams[5])
+            , *static_cast<t_Param6_noref*>(a_pParams[6])
+            , *static_cast<t_Param7_noref*>(a_pParams[7]) )));
+    }
     virtual void* getAddress(void** a_pParams) const
     {
         return addressable_wrapper<t_ReturnType>::address((*m_function_pointer)
@@ -1158,7 +1211,7 @@ template<
     , typename t_Param5
     , typename t_Param6
     , typename t_Param7>
-class TNativeFunction8<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7> : public Function
+class TNativeFunction8<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7> : public TNativeFunctionBase
 {
 public:
     typedef TNativeFunction8<t_eConvention, void, t_Param0, t_Param1, t_Param2, t_Param3, t_Param4, t_Param5, t_Param6, t_Param7>    self_type;
@@ -1174,8 +1227,8 @@ public:
 
 
 
-    TNativeFunction8(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : Function(a_strName, a_pSignature, (EABI)t_eConvention, a_Modifiers|o_native, (int)0), m_function_pointer(a_pFunc)
+    TNativeFunction8(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunctionBase(a_strName, a_strSignature, (EABI)t_eConvention, a_Modifiers|o_native), m_function_pointer(a_pFunc)
     {
 
     }
@@ -1203,8 +1256,6 @@ protected:
     function_pointer m_function_pointer;
 };
 
-
-
 template<int callConvention, typename Signature>
 class TNativeFunction;
 
@@ -1216,8 +1267,8 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType()>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType()>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        : TNativeFunction0<t_eConvention, t_ReturnType>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
+    TNativeFunction(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        : TNativeFunction0<t_eConvention, t_ReturnType>(a_strName, a_strSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
@@ -1231,8 +1282,8 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        :TNativeFunction1<t_eConvention, t_ReturnType,t_Param0>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
+    TNativeFunction(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        :TNativeFunction1<t_eConvention, t_ReturnType,t_Param0>(a_strName, a_strSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
@@ -1246,8 +1297,8 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        :TNativeFunction2<t_eConvention, t_ReturnType,t_Param0,t_Param1>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
+    TNativeFunction(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        :TNativeFunction2<t_eConvention, t_ReturnType,t_Param0,t_Param1>(a_strName, a_strSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
@@ -1266,8 +1317,8 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1, t_Param2)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1,t_Param2)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        :TNativeFunction3<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
+    TNativeFunction(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        :TNativeFunction3<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2>(a_strName, a_strSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
@@ -1288,8 +1339,8 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1,t_Param2,t_Param3)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        :TNativeFunction4<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
+    TNativeFunction(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        :TNativeFunction4<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>(a_strName, a_strSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
@@ -1310,8 +1361,8 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1,t_Param2,t_Param3,t_Param4)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        :TNativeFunction5<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
+    TNativeFunction(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        :TNativeFunction5<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(a_strName, a_strSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
@@ -1333,8 +1384,8 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        :TNativeFunction6<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
+    TNativeFunction(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        :TNativeFunction6<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(a_strName, a_strSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
@@ -1357,8 +1408,8 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        :TNativeFunction7<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
+    TNativeFunction(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        :TNativeFunction7<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(a_strName, a_strSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }
@@ -1383,8 +1434,8 @@ public:
     typedef TNativeFunction<t_eConvention, t_ReturnType(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)>    self_type;
     typedef typename native_function_pointer_type<t_eConvention, t_ReturnType(t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)>::type function_pointer;
 
-    TNativeFunction(const string& a_strName, Signature* a_pSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
-        :TNativeFunction8<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(a_strName, a_pSignature, a_pFunc , a_Modifiers|o_native)
+    TNativeFunction(const string& a_strName, const string& a_strSignature, function_pointer a_pFunc, modifiers_t a_Modifiers = 0)
+        :TNativeFunction8<t_eConvention, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(a_strName, a_strSignature, a_pFunc , a_Modifiers|o_native)
     {
 
     }

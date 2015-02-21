@@ -45,7 +45,7 @@ protected:
     string                          m_strReferenceExpression;
     uint                            m_uiGuid;
     uint                            m_uiOwnerGuid;
-    bitfield                        m_Modifiers;
+    modifiers_t                     m_Modifiers;
 
 };
 

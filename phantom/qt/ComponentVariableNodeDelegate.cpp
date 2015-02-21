@@ -38,7 +38,7 @@ UndoCommand* ComponentVariableNodeDelegate::createValueSetUndoCommand( const voi
         string tempRedoExpression;
         string redoExpression;
         string undoExpression;
-        string baseExpression = m_pVariableNode->getExpression(i)->getName();
+        string baseExpression = m_pVariableNode->getExpression(i)->translate();
         void* pOldValue = nullptr;
         pComponentClass->get(m_pVariableNode->getExpression(i)->loadEffectiveAddress(), &pOldValue);
         if(pOldValue)

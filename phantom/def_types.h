@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_typedefs_h__
 #define o_phantom_typedefs_h__
@@ -98,6 +67,8 @@ typedef unsigned __int128       double_size_t;
 #else
 typedef unsigned long long      double_size_t;
 #endif
+
+
 
 #if defined(_UNICODE)
 typedef wchar_t                 character;
@@ -659,14 +630,32 @@ class t_Hasher = std::hash<t_Kty>,
 #else
 class t_Hasher = std::tr1::hash<t_Kty>,
 #endif
-class t_Keyeq = std::equal_to<t_Kty>,
-class t_Alloc = o__t1_class__partioned_memory_allocator(o_TT(std::pair, const t_Kty, t_Ty)) >
+class t_Keyeq = std::equal_to<t_Kty> >
 class unordered_map
 
 #if o_HAS_CPP0X
-    : public std::unordered_map<t_Kty,t_Ty,t_Hasher,t_Keyeq,t_Alloc>
+    : public std::unordered_map<t_Kty,t_Ty,t_Hasher,t_Keyeq,o__t1_class__partioned_memory_allocator(o_TT(std::pair, const t_Kty, t_Ty))>
 #else
-    : public std::tr1::unordered_map<t_Kty,t_Ty,t_Hasher,t_Keyeq,t_Alloc>
+    : public std::tr1::unordered_map<t_Kty,t_Ty,t_Hasher,t_Keyeq,o__t1_class__partioned_memory_allocator(o_TT(std::pair, const t_Kty, t_Ty))>
+#endif
+{
+
+};
+
+template<class t_Kty,
+#if o_HAS_CPP0X
+class t_Hasher = std::hash<t_Kty>,
+#else
+class t_Hasher = std::tr1::hash<t_Kty>,
+#endif
+class t_Keyeq = std::equal_to<t_Kty>,
+class t_Alloc = o__t1_class__partioned_memory_allocator(t_Kty) >
+class unordered_set
+
+#if o_HAS_CPP0X
+    : public std::unordered_set<t_Kty,t_Hasher,t_Keyeq,o__t1_class__partioned_memory_allocator(t_Kty)>
+#else
+    : public std::tr1::unordered_set<t_Kty,t_Hasher,t_Keyeq,o__t1_class__partioned_memory_allocator(t_Kty)>
 #endif
 {
 
@@ -679,6 +668,11 @@ class multimap : public std::multimap<_KeyTy
     , o__t1_class__partioned_memory_allocator(std::pair<_KeyTy, _ValueTy>)>
 {};
 
+template<typename t_KeyTy, typename t_Pr = std::less<t_KeyTy> >
+class multiset : public std::multiset<t_KeyTy
+    , t_Pr
+    , o__t1_class__partioned_memory_allocator(t_KeyTy)>
+{};
 
 
 /**
@@ -703,7 +697,6 @@ typedef boost::property_tree::basic_ptree<string, string> property_tree;
 namespace property_tree_namespace = boost::property_tree;
 
 #endif
-
 
 typedef std::pair<string, string>               string_string;
 typedef std::pair<string, string_string>        string_string_string;
@@ -864,9 +857,39 @@ enum EABI
     e_cdecl,
     e_thiscall,
     e_placeholdercall,
+    e_unknowncall,
+    e_defaultcall = e_cdecl,
 };
 
 typedef fastdelegate::DelegateMemento DelegateMemento;
+
+typedef fastdelegate::FastDelegate<void(void** a_pArgs, void* a_pOutput)> operation_delegate_t;
+
+#if !o__bool__disable_runtime_compilation
+
+/// ASSERTION ON TYPE SIZES (PHANTOM IS VERY STRICT ON THAT AND RUNTIME COMPILATION CANNOT BE USED ON PLATFORMS NOT SATISFYING THIS)
+
+o_static_assert(sizeof(bool) == 1);
+o_static_assert(sizeof(char) == 1);
+o_static_assert(sizeof(signed char) == 1);
+o_static_assert(sizeof(unsigned char) == 1);
+o_static_assert(sizeof(short) == 2);
+o_static_assert(sizeof(ushort) == 2);
+o_static_assert(sizeof(int) == 4);
+o_static_assert(sizeof(uint) == 4);
+o_static_assert(sizeof(long) == 4);
+o_static_assert(sizeof(ulong) == 4);
+o_static_assert(sizeof(longlong) == 8);
+o_static_assert(sizeof(ulonglong) == 8);
+o_static_assert(sizeof(float) == 4);
+o_static_assert(sizeof(double) == 8);
+#if o_ARCHITECTURE == o_ARCHITECTURE_X64
+o_static_assert(sizeof(long double) == 16);
+#else 
+o_static_assert(sizeof(long double) == 8);
+#endif
+
+#endif // !o__bool__disable_runtime_compilation
 
 o_namespace_end(phantom)
 
@@ -879,6 +902,24 @@ namespace boost
     };
 }
 
+
+#if o_HAS_BUILT_IN_CHAR16_T
+#   define o_if_char16_t(...) __VA_ARGS__
+#else 
+#   define o_if_char16_t(...)
+#endif
+
+#if o_HAS_BUILT_IN_CHAR32_T
+#   define o_if_char32_t(...) __VA_ARGS__
+#else 
+#   define o_if_char32_t(...)
+#endif
+
+#if o_HAS_BUILT_IN_WCHAR_T
+#   define o_if_wchar_t(...) __VA_ARGS__
+#else 
+#   define o_if_wchar_t(...)
+#endif
 
 #include <phantom/flags.h>
 

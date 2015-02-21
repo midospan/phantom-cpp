@@ -1,6 +1,6 @@
 #pragma once
 
-#include "phantom/std/vector.hxx"
+#include "phantom/vector.hxx"
 #include "phantom/reflection/native/TAggregationClass.h"
 #include "phantom/reflection/native/TAggregationClass.hxx"
 
@@ -48,7 +48,7 @@ o_protected:
     o_signal(swapped, (size_t, size_t, t_Aggregate*, t_Aggregate*));
     o_signal(aboutToBeMoved, (size_t, size_t, t_Aggregate*));
     o_signal(moved, (size_t, size_t, t_Aggregate*));
-    o_data_member(vector<t_Aggregate*>, m_Aggregates, o_no_range, o_protected_access);
+    o_data_member(vector<t_Aggregate*>, m_Aggregates);
 
 o_public:
     o_member_function(replacer, operator[], (size_t));

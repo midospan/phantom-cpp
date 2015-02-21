@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_def_installer_h__
 #define o_def_installer_h__
@@ -153,7 +122,7 @@ struct rtti_data_registrer
     inline static void installRTTI(t_Ty* a_pThis, reflection::Class* a_pLayoutClass, void* a_pBase, phantom::reflection::Class* a_pBaseClass, connection::slot_pool* a_csac, dynamic_delete_func_t a_dynamic_delete_func, const rtti_data* a_pOwner, const rtti_data* a_pRTTI)
     {
         const rtti_data* pThisRtti = a_pRTTI ? a_pRTTI : addRttiData(a_pThis, rtti_data(a_pBaseClass, a_pLayoutClass, a_pBase, a_pThis, a_csac, a_dynamic_delete_func, a_pOwner));
-        a_pLayoutClass->installInstanceDataMembers(a_pThis, pThisRtti);
+        a_pLayoutClass->installDataMembers(a_pThis, pThisRtti);
         detail::rtti_data_registrer_helper_base<t_Ty, base_class_count_of<t_Ty>::value>::installRTTI(a_pThis, a_pLayoutClass, a_pBase, a_pBaseClass, a_csac, a_dynamic_delete_func, a_pOwner, pThisRtti);
     }
 
@@ -171,7 +140,7 @@ struct rtti_data_registrer
     inline static void uninstallRTTI(t_Ty* a_pThis, reflection::Class* a_pLayoutClass, size_t a_uiLevel, bool a_bRemoveRTTI)
     {
         detail::rtti_data_registrer_helper_base<t_Ty, base_class_count_of<t_Ty>::value>::uninstallRTTI(a_pThis, a_pLayoutClass, a_uiLevel);
-        a_pLayoutClass->uninstallInstanceDataMembers(a_pThis, a_uiLevel+1);
+        a_pLayoutClass->uninstallDataMembers(a_pThis, a_uiLevel+1);
         if(a_bRemoveRTTI)
         {
             removeRttiData(a_pThis, a_uiLevel);
@@ -263,7 +232,7 @@ namespace detail
         friend struct smdata_installer_of_helper_base;
 
         template<typename,int> friend struct default_installer_helper;
-        o_forceinline static void install(t_Ty* a_pThis, phantom::state::base_state_machine_data* a_pSmdataptr)
+        o_forceinline static void install(t_Ty* a_pThis, base_state_machine_data* a_pSmdataptr)
         {
             smdata_installer_of<o_NESTED_TYPE base_class_of<t_Ty,t_baseclasscount-1>::type>::install(a_pThis, a_pSmdataptr);
             smdata_installer_of_helper_base<t_Ty, t_baseclasscount-1>::install(a_pThis, a_pSmdataptr);
@@ -282,7 +251,7 @@ namespace detail
         friend struct smdata_installer_of_helper_base;
         template<typename,int>
         friend struct default_installer_helper;
-        o_forceinline static void install(t_Ty* a_pThis, phantom::state::base_state_machine_data* a_pSmdataptr) {}
+        o_forceinline static void install(t_Ty* a_pThis, base_state_machine_data* a_pSmdataptr) {}
         o_forceinline static void uninstall(t_Ty* a_pThis) {}
     };
 
@@ -292,25 +261,25 @@ namespace detail
         template<typename,int> friend struct default_installer_helper;
         template<typename t_Ty2, uint t_baseclasscount2>
         friend struct smdata_installer_of_helper_base;
-        o_forceinline static void install(t_Ty* a_pThis, phantom::state::base_state_machine_data* a_pSmdataptr)
+        o_forceinline static void install(t_Ty* a_pThis, base_state_machine_data* a_pSmdataptr)
         {
-            *((phantom::state::base_state_machine_data**)(&(a_pThis->PHANTOM_CODEGEN_m_smdataptr))) = a_pSmdataptr;
+            *((base_state_machine_data**)(&(a_pThis->PHANTOM_CODEGEN_m_smdataptr))) = a_pSmdataptr;
         }
         o_forceinline static void uninstall(t_Ty* a_pThis)
         {
-            *((phantom::state::base_state_machine_data**)(&(a_pThis->PHANTOM_CODEGEN_m_smdataptr))) = NULL;
+            *((base_state_machine_data**)(&(a_pThis->PHANTOM_CODEGEN_m_smdataptr))) = NULL;
         }
     };
 
     template<typename t_Ty>
     struct default_installer_helper<t_Ty, default_installer_static_rtti_registration_and_statechart>
     {
-        typedef phantom::state::native::state_machine_data<t_Ty> state_machine_data;
+        typedef phantom::state_machine_data<t_Ty> state_machine_data;
     public:
         inline static void        install(reflection::Class* a_pClass,  t_Ty* a_pInstance, const rtti_data* a_pOwner )
         {
             default_installer_helper<t_Ty, default_installer_static_rtti_registration>::install(a_pClass, a_pInstance, a_pOwner);
-            phantom::state::base_state_machine_data* smdataptr = new (phantom::allocator<state_machine_data>::allocate(o_memory_stat_insert_arguments)) state_machine_data(a_pInstance);
+            base_state_machine_data* smdataptr = new (phantom::allocator<state_machine_data>::allocate(o_memory_stat_insert_arguments)) state_machine_data(a_pInstance);
             smdata_installer_of<t_Ty>::install(a_pInstance, smdataptr);
         }
         inline static void        uninstall(reflection::Class* a_pClass,  t_Ty* a_pInstance, size_t a_uiLevel )

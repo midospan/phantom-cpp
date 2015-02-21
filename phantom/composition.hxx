@@ -1,6 +1,6 @@
 #pragma once
 
-#include "phantom/std/vector.hxx"
+#include "phantom/vector.hxx"
 #include "phantom/reflection/native/TCompositionClass.h"
 #include "phantom/reflection/native/TCompositionClass.hxx"
 
@@ -21,11 +21,13 @@ namespace phantom { template<typename t_Component> struct has_has_something<comp
 o_classNT((phantom), (typename), (t_Component), composition_replacer)
 (
 o_public:
-    o_member_function(t_Component*, operator t_Component*, ());
+    o_property(t_Component*, value, operator=, operator t_Component*);
 );
 
 o_classNT((phantom), (typename), (t_Component), composition_inserter)
 (
+o_public:
+    o_property(t_Component*, value, operator=, operator t_Component*);
 );
 o_classNT((phantom), (typename), (t_Component), composition, o_placement_extension)
 (
@@ -61,5 +63,5 @@ o_protected:
     o_signal(aboutToBeMoved, (size_t, size_t, t_Component*));
     o_signal(moved, (size_t, size_t, t_Component*));
 
-    o_data_member(vector<t_Component*>, m_Components, o_no_range, o_protected_access);
+    o_data_member(vector<t_Component*>, m_Components);
 );

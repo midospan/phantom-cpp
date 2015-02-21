@@ -43,6 +43,10 @@ bool Interpreter::call( Subroutine* a_pSubroutine, void** a_ppArgs, size_t a_uiC
     }
     m_pBasePointer = m_pStackPointer;
     Block* pBlock = a_pSubroutine->getBlock();
+    if(pBlock == nullptr)
+    {
+        o_exception(exception::reflection_runtime_exception, "interpreter call of an undefined subroutine");
+    }
     size_t count = pBlock->getLocalVariableCount();
     if(a_uiCount != count) 
         return false;
@@ -82,5 +86,25 @@ void Interpreter::setNextStatement( Statement* a_pStatement )
     m_StatementStack.back() = a_pStatement;
 }
 
+void Interpreter::pushDestruction( Expression* a_pRootExpression, Type* a_pType, void* a_pBuffer )
+{
+    m_DeferredDestructions[a_pRootExpression].push_back(deferred_destruction(a_pType, a_pBuffer));
+}
+
+void Interpreter::release( Expression* a_pRootExpression )
+{
+    auto it = m_DeferredDestructions.find(a_pRootExpression);
+    if(it != m_DeferredDestructions.end())
+    {
+        vector<deferred_destruction>& vec = it->second;
+        {
+            for(auto it = vec.begin(); it != vec.end(); ++it)
+            {
+                it->first->destroy(it->second);
+            }
+        }
+        m_DeferredDestructions.erase(it);
+    }
+}
 
 o_namespace_end(phantom, reflection)

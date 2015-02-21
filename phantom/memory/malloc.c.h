@@ -731,27 +731,7 @@ This lets you set a multiplier (bit 15 set) or a 1<< shift value.
 /* ------------------------ Mallinfo declarations ------------------------ */
 
 #if !NO_MALLINFO
-/*
-  This version of malloc supports the standard SVID/XPG mallinfo
-  routine that returns a struct containing usage valueMembers and
-  statistics. It should work on any system that has a
-  /usr/include/malloc.h defining struct mallinfo.  The main
-  declaration needed is the mallinfo struct that is returned (by-copy)
-  by mallinfo().  The malloinfo struct contains a bunch of fields that
-  are not even meaningful in this version of malloc.  These fields are
-  are instead filled by mallinfo() with other numbers that might be of
-  interest.
-
-  HAVE_USR_INCLUDE_MALLOC_H should be set if you have a
-  /usr/include/malloc.h file that includes a declaration of struct
-  mallinfo.  If so, it is included; else a compliant version is
-  declared below.  These must be precisely the same for mallinfo() to
-  work.  The original SVID version of this struct, defined on most
-  systems with mallinfo, declares all fields as ints. But some others
-  define as unsigned long. If your system defines the fields using a
-  type of different width than listed here, you MUST #include your
-  system version and #define HAVE_USR_INCLUDE_MALLOC_H.
-*/
+/* TODO LICENCE HERE */
 
 /* #define HAVE_USR_INCLUDE_MALLOC_H */
 
@@ -1900,7 +1880,7 @@ static FORCEINLINE void* win32direct_mremap(void **handle, void *ptr, size_t old
   return newptr;
 }
 
-/* This function supports releasing coalesed segments */
+/* TODO LICENCE HERE */
 static FORCEINLINE int win32munmap(void *handle, void* ptr, size_t size) {
   if (!handle) {
     MEMORY_BASIC_INFORMATION minfo;
@@ -4895,14 +4875,7 @@ static void** ialloc(mstate m,
                      size_t* sizes,
                      int opts,
                      void* chunks[]) {
-  /*
-    This provides common support for independent_X routines, handling
-    all of the combinations that can result.
-
-    The opts arg has:
-    bit 0 set if all elements are same size (using sizes[0])
-    bit 1 set if elements should be zeroed
-  */
+  /* TODO LICENCE HERE */
 
   size_t    element_size;   /* chunksize of each element, if all same */
   size_t    contents_size;  /* total size of elements */

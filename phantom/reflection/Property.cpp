@@ -1,42 +1,11 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <phantom/reflection/Property.h>
 #include <phantom/reflection/Property.hxx>
 #include <phantom/reflection/PropertyExpression.h>
-#include <phantom/std/vector.hxx>
+#include <phantom/vector.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), Property);
 o_registerNTI((phantom), vector, (phantom::reflection::Property*));
@@ -57,7 +26,7 @@ Property::Property()
 
 }
 
-Property::Property( Type* a_pValueType, const string& a_strName, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pSignal, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_Modifiers /*= 0*/ ) 
+Property::Property( Type* a_pValueType, const string& a_strName, MemberFunction* a_pSetMemberFunction, MemberFunction* a_pGetMemberFunction, Signal* a_pSignal, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_Modifiers /*= 0*/ ) 
     : ValueMember(a_pValueType, a_strName, a_pRange, a_uiSerializationMask, a_Modifiers) 
     , m_pSetMemberFunction(a_pSetMemberFunction)
     , m_pGetMemberFunction(a_pGetMemberFunction)
@@ -89,7 +58,7 @@ Property::Property( Type* a_pValueType, const string& a_strName, InstanceMemberF
     }
 }
 
-Property::Property( Type* a_pValueType, const string& a_strName, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pSignal, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_Modifiers, int protectedTag ) 
+Property::Property( Type* a_pValueType, const string& a_strName, MemberFunction* a_pSetMemberFunction, MemberFunction* a_pGetMemberFunction, Signal* a_pSignal, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_Modifiers, int protectedTag ) 
     : ValueMember(a_pValueType, a_strName, a_pRange, a_uiSerializationMask, a_Modifiers) 
     , m_pSetMemberFunction(a_pSetMemberFunction)
     , m_pGetMemberFunction(a_pGetMemberFunction)
@@ -137,14 +106,9 @@ void Property::referencedElementRemoved( LanguageElement* a_pElement )
         m_pSetMemberFunction = nullptr;
 }
 
-Expression* Property::createExpression( Expression* a_pLeftExpression ) const
-{
-    return o_new(PropertyExpression)(a_pLeftExpression, const_cast<Property*>(this));
-}
-
 bool Property::referencesData( const void* a_pInstance, const phantom::data& a_Data ) const
 {
-    Type* pType = m_pValueType->removeReference()->removeConst();
+    Type* pType = m_pValueType->removeReference()->removeQualifiers();
     void* pBuffer = pType->allocate();
     pType->construct(pBuffer);
     pType->initialize(pBuffer);
@@ -218,7 +182,7 @@ void Property::finalize()
     {
         o_assert(m_pSetMemberFunction == nullptr);
         LanguageElement* pElem = phantom::elementByName(*m_pSetMemberFunctionString);
-        m_pSetMemberFunction = pElem ? pElem->asInstanceMemberFunction() : nullptr;
+        m_pSetMemberFunction = pElem ? pElem->asMemberFunction() : nullptr;
         if(m_pSetMemberFunction)
         {
             addReferencedElement(m_pSetMemberFunction);
@@ -230,7 +194,7 @@ void Property::finalize()
     {
         o_assert(m_pGetMemberFunction == nullptr);
         LanguageElement* pElem = phantom::elementByName(*m_pGetMemberFunctionString);
-        m_pGetMemberFunction = pElem ? pElem->asInstanceMemberFunction() : nullptr;
+        m_pGetMemberFunction = pElem ? pElem->asMemberFunction() : nullptr;
         if(m_pGetMemberFunction)
         {
             addReferencedElement(m_pGetMemberFunction);
@@ -282,13 +246,13 @@ string Property::getGetMemberFunctionString() const
     return m_pGetMemberFunction ? m_pGetMemberFunction->getQualifiedDecoratedName() : "";
 }
 
-void Property::addInstanceDataMember( InstanceDataMember* a_pInstanceDataMember )
+void Property::addDataMember( DataMember* a_pDataMember )
 {
-    if(a_pInstanceDataMember)
+    if(a_pDataMember)
     {
-        o_assert(std::find(beginInstanceDataMembers(), endInstanceDataMembers(), a_pInstanceDataMember) == endInstanceDataMembers());
-        m_InstanceDataMembers.push_back(a_pInstanceDataMember);
-        addReferencedElement(a_pInstanceDataMember);
+        o_assert(std::find(beginDataMembers(), endDataMembers(), a_pDataMember) == endDataMembers());
+        m_DataMembers.push_back(a_pDataMember);
+        addReferencedElement(a_pDataMember);
     }
 }
 

@@ -74,8 +74,8 @@ namespace phantom { namespace qt {
             {
                 pEffectiveType->valueToLiteral(oldValueStr, value.buffer());
             }
-            phantom::reflection::Expression* pUndoExpression = pExpression->clone()->solveBinaryOperator("=", phantom::expressionByName(oldValueStr));
-            phantom::reflection::Expression* pRedoExpression = pExpression->clone()->solveBinaryOperator("=", phantom::expressionByName(newValueStr));
+            phantom::reflection::Expression* pUndoExpression = cplusplus()->solveBinaryOperator("=", pExpression->clone(), phantom::expressionByName(oldValueStr));
+            phantom::reflection::Expression* pRedoExpression = cplusplus()->solveBinaryOperator("=", pExpression->clone(), phantom::expressionByName(newValueStr));
             phantom::qt::ExpressionCommand* pCommand = o_new(phantom::qt::ExpressionCommand)(m_pVariableNode->getVariableModel()->getDataBase(), pUndoExpression, pRedoExpression);
             pCommand->setName( "In data : '"+ pDataBase->getDataAttributeValue(d, "name") + "' ("+phantom::lexical_cast<phantom::string>((void*)guid)+")");
             pGroup->pushCommand(pCommand);
@@ -192,7 +192,7 @@ namespace phantom { namespace qt {
                         {
                             auto pExp = m_pVariableNode->getExpression(i)->clone()->dereference()->address();
                             pExp->load(&addresses[i]);
-                            phantom::deleteElement(pExp);
+                            o_dynamic_delete pExp;
                         }
                         reflection::Class* pCommonClass = classOf(addresses[0]);
                         for(size_t i = 1; i<addresses.size(); ++i)

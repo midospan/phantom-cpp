@@ -186,17 +186,20 @@ inline size_t variant::size() const
 
 inline bool variant::as(reflection::Type* a_pType, void* a_pDest) const
 {
-    if(a_pType == nullptr OR m_pType == nullptr OR !m_pType->isImplicitlyConvertibleTo(a_pType))
+    if(a_pType == nullptr OR m_pType == nullptr)
     {
         return false;
     }
-    m_pType->convertValueTo(a_pType, a_pDest, _buffer());
+    reflection::conversion* conv = m_pType->conversionTo(a_pType);
+    if(conv == nullptr) return false;
+    conv->apply(_buffer(), a_pDest);
+    delete conv;
     return true;
 }
 
 inline variant variant::as(reflection::Type* a_pType) const
 {
-    if(a_pType == nullptr OR m_pType == nullptr OR !m_pType->isImplicitlyConvertibleTo(a_pType))
+    if(a_pType == nullptr OR m_pType == nullptr)
     {
         return phantom::variant();
     }
@@ -205,7 +208,11 @@ inline variant variant::as(reflection::Type* a_pType) const
         ? (result.m_Buffer.dynamicBuffer = (byte*)o__func__malloc(a_pType->getSize())) 
         : result.m_Buffer.staticBuffer;
     result.m_pType = a_pType;
-    m_pType->convertValueTo(a_pType, pBuffer, _buffer());
+
+    reflection::conversion* conv = m_pType->conversionTo(a_pType);
+    if(conv == nullptr) return phantom::variant();
+    conv->apply(_buffer(), pBuffer);
+    delete conv;
     return result;
 }
 

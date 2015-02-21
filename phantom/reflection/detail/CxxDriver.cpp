@@ -5,34 +5,36 @@
 
 namespace phantom 
 {
-    CxxDriver::CxxDriver(const string& a_strName) 
+    CxxDriver::CxxDriver(const string& a_strExpressionToParse) 
         : m_pLexer(nullptr)
         , m_pParser(nullptr)
         , m_pFileName(0)
         , m_eParseType(e_ParseType_Expression)
         , m_bExpressionParsingStarted(false)
         , m_tokens(nullptr)
-        , m_pCompilationModule(nullptr)
+        , m_pSource(nullptr)
+        , m_uiInputStreamIndex(0)
     {
         m_Result.e = nullptr;
-        m_pLexer = new CxxLexer(new istringstream("$"+a_strName+"$"));
+        m_pLexer = new CxxLexer(m_pInputStream = new istringstream("$"+a_strExpressionToParse+"$"));
         m_pParser = new CxxParser(this);
 //         m_pLexer->set_debug(true);
         m_pParser->set_debug_level(0);
         sm_pInstance = this;
     }
-    CxxDriver::CxxDriver(const string& a_strName, Module* a_pCompilationModule) 
+
+    CxxDriver::CxxDriver(reflection::Source* a_pSource) 
         : m_pLexer(nullptr)
         , m_pParser(nullptr)
         , m_pFileName(0)
         , m_eParseType(e_ParseType_TranslationUnit)
         , m_bExpressionParsingStarted(false)
         , m_tokens(nullptr)
-        , m_pCompilationModule(a_pCompilationModule)
+        , m_pSource(a_pSource)
     {
-        o_assert(a_pCompilationModule);
+        o_assert(a_pSource);
         m_Result.e = nullptr;
-        m_pLexer = new CxxLexer(new istringstream(a_strName));
+        m_pLexer = new CxxLexer(m_pInputStream = a_pSource->getInputStream());
         m_pParser = new CxxParser(this);
         //         m_pLexer->set_debug(true);
         m_pParser->set_debug_level(0);
@@ -43,11 +45,17 @@ namespace phantom
     {
         o_assert(sm_pInstance);
         sm_pInstance = nullptr;
+        delete m_pLexer;
+        delete m_pParser;
+        if(m_eParseType == e_ParseType_Expression)
+        {
+            delete m_pInputStream;
+        }
     }
 
-    void CxxDriver::increment_error_count()
+    void CxxDriver::incrementErrorCount()
     {
-        m_pLexer->increment_error_count();
+        m_pLexer->incrementErrorCount();
     }
 
     void CxxDriver::setExpressionParsingStarted()
@@ -67,6 +75,20 @@ namespace phantom
     void CxxDriver::setParserDebugLevel( int level )
     {
         m_pParser->set_debug_level(level);
+    }
+
+    int CxxDriver::handleEndOfFile()
+    {
+        if(m_pSource == nullptr) 
+            return 1;
+        m_uiInputStreamIndex++;
+        if(m_uiInputStreamIndex < m_pSource->getInputStreamCount())
+        {
+            m_pInputStream = m_pSource->getInputStream(m_uiInputStreamIndex);
+            m_pLexer->changeInput(m_pInputStream);
+            return 0;
+        }
+        return 1;
     }
 
     CxxDriver* CxxDriver::sm_pInstance = 0;

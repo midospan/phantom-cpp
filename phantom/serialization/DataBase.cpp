@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
@@ -43,7 +12,7 @@
 #include <phantom/reflection/CompositionClass.h>
 #include <phantom/reflection/AggregationClass.h>
 #include <phantom/reflection/ComponentClass.h>
-#include <phantom/ModuleLoader.h>
+#include <phantom/reflection/Application.h>
 /* *********************************************** */
 o_registerN((phantom, serialization), DataBase);
 
@@ -218,7 +187,7 @@ void DataBase::registerNode( Node* a_pNode )
         m_AttributeValues[a_pNode->getGuid()] = values;
     }
     o_connect(a_pNode, loaded(), this, slotNodeLoaded());
-    o_connect(a_pNode, aboutToBeunloaded(), this, slotNodeAboutToBeUnloaded());
+    o_connect(a_pNode, aboutToBeUnloaded(), this, slotNodeAboutToBeUnloaded());
 }
 
 void DataBase::unregisterNode( Node* a_pNode )
@@ -226,7 +195,7 @@ void DataBase::unregisterNode( Node* a_pNode )
     o_assert(a_pNode != rootNode(), "Root node cannot be unregistered");
     o_assert(isNodeRegistered(a_pNode), "Node not registered in database");
     o_disconnect(a_pNode, loaded(), this, slotNodeLoaded());
-    o_disconnect(a_pNode, aboutToBeunloaded(), this, slotNodeAboutToBeUnloaded());
+    o_disconnect(a_pNode, aboutToBeUnloaded(), this, slotNodeAboutToBeUnloaded());
     m_GuidBase.remove(a_pNode);
     size_t fieldCount = getAttributeCount();
     if(fieldCount)
@@ -858,15 +827,15 @@ void DataBase::moduleElementsAboutToBeReplaced( const vector<reflection::Languag
     }
     if(m_pCurrentRecord)
     {
-        m_pCurrentRecord->typesAboutToBeReplaced(as<Module*>(connection::sender()), typesAboutToBeReplaced);
+        m_pCurrentRecord->typesAboutToBeReplaced(as<reflection::Module*>(connection::sender()), typesAboutToBeReplaced);
     }
     else if(m_pUndoRecord)
     {
-        m_pUndoRecord->typesAboutToBeReplaced(as<Module*>(connection::sender()), typesAboutToBeReplaced);
+        m_pUndoRecord->typesAboutToBeReplaced(as<reflection::Module*>(connection::sender()), typesAboutToBeReplaced);
     }
     else if(m_pRedoRecord)
     {
-        m_pRedoRecord->typesAboutToBeReplaced(as<Module*>(connection::sender()), typesAboutToBeReplaced);
+        m_pRedoRecord->typesAboutToBeReplaced(as<reflection::Module*>(connection::sender()), typesAboutToBeReplaced);
     }
     for(auto it = typesAboutToBeReplaced.begin(); it != typesAboutToBeReplaced.end(); ++it)
     {
@@ -896,21 +865,21 @@ void DataBase::moduleElementsReplaced( const vector<reflection::LanguageElement*
     }
     if(m_pCurrentRecord)
     {
-        m_pCurrentRecord->typesReplaced(as<Module*>(connection::sender()), typesReplaced);
+        m_pCurrentRecord->typesReplaced(as<reflection::Module*>(connection::sender()), typesReplaced);
     }
     else if(m_pUndoRecord)
     {
-        m_pUndoRecord->typesReplaced(as<Module*>(connection::sender()), typesReplaced);
+        m_pUndoRecord->typesReplaced(as<reflection::Module*>(connection::sender()), typesReplaced);
     }
     else if(m_pRedoRecord)
     {
-        m_pRedoRecord->typesReplaced(as<Module*>(connection::sender()), typesReplaced);
+        m_pRedoRecord->typesReplaced(as<reflection::Module*>(connection::sender()), typesReplaced);
     }
     reloadData();
     m_ReplacementOldTypeNames.clear();
 }
 
-void DataBase::moduleLoaded( Module* a_pModule, size_t a_uiOldCount, size_t a_uiNewCount)
+void DataBase::moduleLoaded( reflection::Module* a_pModule, size_t a_uiOldCount, size_t a_uiNewCount)
 {
     if(m_bModuleSlotsBlocked) return;
     if(a_uiOldCount == 0)
@@ -919,17 +888,17 @@ void DataBase::moduleLoaded( Module* a_pModule, size_t a_uiOldCount, size_t a_ui
         o_connect(a_pModule, elementAboutToBeRemoved(reflection::LanguageElement*), this, moduleElementAboutToBeRemoved(reflection::LanguageElement*));
         o_connect(a_pModule, elementsAboutToBeReplaced(const vector<reflection::LanguageElement*>&), this, moduleElementsAboutToBeReplaced(const vector<reflection::LanguageElement*>&));
         o_connect(a_pModule, elementsReplaced(const vector<reflection::LanguageElement*>&, const vector<reflection::LanguageElement*>&), this, moduleElementsReplaced(const vector<reflection::LanguageElement*>&, const vector<reflection::LanguageElement*>&));
-
-        vector<reflection::Type*> types;
-        loadTypes(a_pModule, &types);
-        for(auto it = types.begin(); it != types.end(); ++it)
-        {
-            a_pModule->addLanguageElement(*it);
-        }
+        o_assert_no_implementation();
+//         vector<reflection::Type*> types;
+//         loadTypes(a_pModule, &types);
+//         for(auto it = types.begin(); it != types.end(); ++it)
+//         {
+//             a_pModule->addElement(*it);
+//         }
     }
 }
 
-void DataBase::moduleUnloaded( Module* a_pModule, size_t a_uiOldCount, size_t a_uiNewCount)
+void DataBase::moduleUnloaded( reflection::Module* a_pModule, size_t a_uiOldCount, size_t a_uiNewCount)
 {
     if(m_bModuleSlotsBlocked) return;
     if(a_uiNewCount == 0)
@@ -943,10 +912,11 @@ void DataBase::moduleUnloaded( Module* a_pModule, size_t a_uiOldCount, size_t a_
                 toRemove.push_back(pType);
             }
         }
-        for(auto it = toRemove.begin(); it != toRemove.end(); ++it)
-        {
-            a_pModule->removeLanguageElement(*it);
-        }
+        o_assert_no_implementation();
+//         for(auto it = toRemove.begin(); it != toRemove.end(); ++it)
+//         {
+//             a_pModule->removeElement(*it);
+//         }
         o_disconnect(a_pModule, elementAdded(reflection::LanguageElement*), this, moduleElementAdded(reflection::LanguageElement*));
         o_disconnect(a_pModule, elementAboutToBeRemoved(reflection::LanguageElement*), this, moduleElementAboutToBeRemoved(reflection::LanguageElement*));
         o_disconnect(a_pModule, elementsAboutToBeReplaced(const vector<reflection::LanguageElement*>&), this, moduleElementsAboutToBeReplaced(const vector<reflection::LanguageElement*>&));
@@ -994,14 +964,14 @@ void DataBase::connectData( const phantom::data& a_Data, bool a_bCollectComponen
         reflection::Type* pEffectiveValueType = pExpression->getValueType()->removeConstReference();
         reflection::LanguageElement* pHatchedElement = pExpression->getHatchedElement();
         reflection::Property* pProperty = pHatchedElement ? pHatchedElement->asProperty() : nullptr;
-        reflection::InstanceDataMember* pInstanceDataMember = pHatchedElement ? pHatchedElement->asInstanceDataMember() : nullptr;
+        reflection::DataMember* pDataMember = pHatchedElement ? pHatchedElement->asDataMember() : nullptr;
         reflection::CompositionClass* pCompositionClass = pEffectiveValueType->asCompositionClass();
         reflection::AggregationClass* pAggregationClass = pEffectiveValueType->asAggregationClass();
         reflection::ComponentClass* pComponentClass = pEffectiveValueType->asComponentClass();
         // We look for pointer properties with notification signals 
         if(pProperty AND pProperty->getSignal()) 
         {
-            reflection::InstanceMemberFunction* pSlot = pDataBaseClass->getSlot("propertyChanged()");
+            reflection::MemberFunction* pSlot = pDataBaseClass->getSlot("propertyChanged()");
             o_verify(phantom::connect(a_Data.address(), pProperty->getSignal(), this, pSlot), "");
                 
             variant& value = m_PropertyValues[guid][pProperty];
@@ -1021,7 +991,7 @@ void DataBase::connectData( const phantom::data& a_Data, bool a_bCollectComponen
                 }
             }
         } 
-        else if(pInstanceDataMember AND pInstanceDataMember->isSaved(m_uiSerializationFlag))
+        else if(pDataMember AND pDataMember->isSaved(m_uiSerializationFlag))
         {
             if(pCompositionClass)
                 // We look for composition/aggregation data members

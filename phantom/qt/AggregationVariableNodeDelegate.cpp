@@ -76,7 +76,7 @@ void AggregationVariableNodeDelegate::createActions( vector<Action*>& out ) cons
         size_t count = pAggregationClass->count(pAggregation);
         for(auto it = actionCommands.begin(); it != actionCommands.end(); ++it)
         {
-            string baseExpression = "(("+pLeftExpression->getName()+")("+lexical_cast<string>(count-1)+"))";
+            string baseExpression = "(("+pLeftExpression->translate()+")("+lexical_cast<string>(count-1)+"))";
             string undoExpression = baseExpression+"=(0)";
             string redoExpression = baseExpression+"=(&(@("+lexical_cast<string>(it->first)+")))";
             ExpressionCommand* pAggregationAddAggregateDataCommand = o_new(ExpressionCommand)(

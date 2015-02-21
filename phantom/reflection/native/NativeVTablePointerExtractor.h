@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_native_NativeVTablePointerExtractor_h__
 #define o_phantom_reflection_native_NativeVTablePointerExtractor_h__
@@ -58,36 +27,34 @@ union asm_leak_union_hack
 
 #if o_ARCHITECTURE == o_ARCHITECTURE_X86
 
-byte* extract_asm_jmp_address_at(byte* address)
+inline byte* extract_asm_jmp_address_at(byte* address)
 {
     byte* baseAddress = address;
     byte op = *address++;
     switch((int)op)
     {
     case 0xE9: // jmp rel 32bit
-        return baseAddress+5+*(size_t*)address;
+        return baseAddress+5+*(ptrdiff_t*)address;
     case 0xE8: // jmp rel 16bit
-        return baseAddress+5+*(size_t*)address;
+        return baseAddress+5+*(ptrdiff_t*)address;
     case 0xEA: // jmp far
         return *(byte**)address;
     case 0xff:
         return *(byte**)address;
-    default:
-        assert(false);
     }
     return 0;
 }
 
-inline void** extract_vtable_pointer_from_asm(void* codeAddress)
-{
-    size_t thunkOffset = *(size_t*)((byte*)codeAddress+1);
-    byte* realPtr = (byte*)codeAddress+thunkOffset+5;
-    byte* ctorCallInstruction = realPtr+7;
-    //byte* ctorFuncForwardAddress = extract_asm_jmp_address_at(ctorCallInstruction);
-    byte* ctorFuncAddress = extract_asm_jmp_address_at(ctorCallInstruction);
-    byte* vtableValueAddress = ctorFuncAddress+0x14;
-    return *(void***)vtableValueAddress;
-}
+o_export void** extract_vtable_pointer_from_asm(void* codeAddress);
+// {
+//     //size_t thunkOffset = *(size_t*)((byte*)codeAddress+1);
+//     byte* realPtr = (byte*)codeAddress;//+thunkOffset+5;
+//     byte* ctorCallInstruction = realPtr+0x12;//7;
+//     //byte* ctorFuncForwardAddress = extract_asm_jmp_address_at(ctorCallInstruction);
+//     byte* ctorFuncAddress = extract_asm_jmp_address_at(ctorCallInstruction);
+//     byte* vtableValueAddress = ctorFuncAddress+0x14;
+//     return *(void***)vtableValueAddress;
+// }
 
 #else // o_ARCHITECTURE
 
@@ -103,8 +70,8 @@ struct NativeVTablePointerExtractor<t_Ty()>
     static o_noinline void asmLeak()
     {
         struct Dummy : public t_Ty { o_noinline Dummy() { }  }; // will call base constructor but can still have default argument setup in asm
-        struct Dummy2 : public Dummy { o_noinline Dummy2() { }  }; // => create a second derivation to be sure fakeNew has always the same code for any class
-        Dummy2 a;
+        struct Dummy2 : public Dummy { o_noinline Dummy2() {  } virtual void PHANTOM_RESERVED_VTABLE_HACK_EXTRA_MF() {} }; // => create a second derivation to be sure fakeNew has always the same code for any class
+        static Dummy2 d;
     }
     static void** apply()
     {

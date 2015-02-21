@@ -43,8 +43,8 @@ void CompositionVariableNodeDelegate::createActions( vector<Action*>& out ) cons
             vector<reflection::Class*> derivedClasses;
             vector<reflection::Class*> usableClasses;
 
-            vector<reflection::LanguageElement*> signature;
-            reflection::Expression* pSizeExpression = pLeftExpression->clone()->solveElement("count", nullptr, &signature)->asExpression();
+            vector<reflection::Expression*> signature;
+            reflection::Expression* pSizeExpression = cplusplus()->qualifiedLookup(pLeftExpression->clone(), "count", nullptr, &signature)->asExpression();
             bool ok;
             size_t count = pSizeExpression->get().as<size_t>(&ok);
             o_assert(ok);

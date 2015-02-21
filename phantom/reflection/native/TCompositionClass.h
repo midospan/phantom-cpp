@@ -212,6 +212,7 @@ public:
     virtual Signal* getAboutToBeSwappedSignal() const  { return getSignal("aboutToBeSwapped(size_t, size_t, t_Component*, t_Component*)"); }
     virtual Signal* getSwappedSignal() const           { return getSignal("swapped(size_t, size_t, t_Component*, t_Component*)"); }
 
+protected:
 
 };
 

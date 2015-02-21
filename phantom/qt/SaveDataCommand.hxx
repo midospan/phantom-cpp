@@ -2,11 +2,5 @@
 
 #include "UndoCommand.hxx"
 
-o_classNB((phantom, qt), SaveDataCommand, (UndoCommand))
-{
-    o_reflection 
-    {
-
-    };
-};
+o_classNB((phantom, qt), SaveDataCommand, (UndoCommand))();
 

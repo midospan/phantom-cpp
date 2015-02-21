@@ -44,7 +44,7 @@ public:
         return m_pComposition->get(m_uiIndex);
     }
 
-    operator t_Component*() 
+    operator t_Component*() const
     {
         return m_pComposition->get(m_uiIndex);
     }
@@ -85,6 +85,11 @@ public:
         {
             m_pComposition->remove(m_uiIndex);
         }
+    }
+
+    operator t_Component*() const
+    {
+        return m_pComposition->get(m_uiIndex);
     }
 
 protected:

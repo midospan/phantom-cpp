@@ -1,8 +1,9 @@
 #pragma once
 
-#include "LanguageElement.hxx"
+#include "NamedElement.hxx"
+#include "Callable.hxx"
 
-o_classNB((phantom, reflection), Subroutine, (LanguageElement), o_deferred|o_abstract) 
+o_classNB((phantom, reflection), Subroutine, (NamedElement, Callable), o_deferred|o_abstract) 
 (
 o_public:
     o_member_function(void, call, (void*, void**), o_virtual);

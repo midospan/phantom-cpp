@@ -19,6 +19,12 @@ o_specialize_type_of_for_primitive_type(signed char);
 #if o_HAS_BUILT_IN_WCHAR_T
 o_specialize_type_of_for_primitive_type(wchar_t);
 #endif
+#if o_HAS_BUILT_IN_CHAR16_T
+o_specialize_type_of_for_primitive_type(char16_t);
+#endif
+#if o_HAS_BUILT_IN_CHAR32_T
+o_specialize_type_of_for_primitive_type(char32_t);
+#endif
 o_specialize_type_of_for_primitive_type(short);
 o_specialize_type_of_for_primitive_type(unsigned short);
 o_specialize_type_of_for_primitive_type(int);

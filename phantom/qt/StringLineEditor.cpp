@@ -1,6 +1,6 @@
 /* ******************* Includes ****************** */
 #include "phantom/qt/qt.h"
-#include "phantom/std/string.h"
+#include "phantom/string.h"
 #include "StringLineEditor.h"
 #include "StringLineEditor.hxx"
 #include <QtGui/QLineEdit>

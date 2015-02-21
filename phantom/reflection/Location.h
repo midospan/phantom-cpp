@@ -13,13 +13,14 @@ o_declareN(class, (phantom, reflection), CodeLocation);
 
 o_namespace_begin(phantom, reflection)
 
-class SourceFile;
+class Source;
 
 struct o_export CodePosition
 {
-    CodePosition() : sourceFile(nullptr), line(0), column(0) {}
-    CodePosition(SourceFile* a_pSourceFile) : sourceFile(a_pSourceFile), line(0), column(0) {}
-    CodePosition(SourceFile* a_pSourceFile, int l, int c) : sourceFile(a_pSourceFile), line(l), column(c) {}
+    CodePosition() : source(nullptr), line(0), column(0) {}
+    CodePosition(int l, int c) : source(0), line(l), column(c) {}
+    CodePosition(Source* a_pSourceFile) : source(a_pSourceFile), line(0), column(0) {}
+    CodePosition(Source* a_pSourceFile, int l, int c) : source(a_pSourceFile), line(l), column(c) {}
     
     bool operator==(const CodePosition& other) const 
     {
@@ -33,7 +34,7 @@ struct o_export CodePosition
 
     bool operator<(const CodePosition& other) const;
 
-    SourceFile* sourceFile;
+    Source* source;
     int         line;
     int         column;
   
@@ -46,7 +47,7 @@ public:
 	{
 
     }
-    CodeLocation(SourceFile* a_pSourceFile);
+    CodeLocation(Source* a_pSourceFile);
 	CodeLocation(const CodePosition& a_bip, const CodePosition& a_eip);
 	~CodeLocation(void) 	{}
 
@@ -72,7 +73,7 @@ public:
     void setEnd(const CodePosition& a_End) { m_End = a_End; }
     const CodePosition& getStart() const { return m_Start; }
     const CodePosition& getEnd() const { return m_End; }
-    SourceFile* getSourceFile() const { return m_Start.sourceFile == m_End.sourceFile ? m_Start.sourceFile : nullptr; }
+    Source* getSource() const { return m_Start.source == m_End.source ? m_Start.source : nullptr; }
 
     inline CodeLocation operator|(const CodeLocation& other) const // union 
     {
@@ -88,6 +89,32 @@ protected:
 	CodePosition		m_Start;
 	CodePosition		m_End;
 };
+
+// 
+// 
+// struct CodeLocationMap
+// {
+//     CodeLocationMap(const CodeLocation& location)
+//         : root(location) {}
+//     CodeLocationNode root;
+// 
+//     CodeLocationNode* insert(const CodeLocation& location)
+//     {
+//         root.location.containsCodePosition(location.begin);
+//     }
+// };
+// 
+// struct CodeLocationNode
+// {
+//     CodeLocationNode(const CodeLocation& loc) 
+//         : location(loc), element(nullptr), message(nullptr), userdata(nullptr), parent(nullptr) {}
+//     CodeLocation location;
+//     LanguageElement* element;
+//     Message* message;
+//     void* userdata;
+//     CodeLocationNode* parent;
+//     list<CodeLocationNode*> children;
+// };
 
 o_namespace_end(phantom, reflection)
 

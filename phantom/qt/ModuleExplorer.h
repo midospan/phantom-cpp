@@ -16,7 +16,6 @@ class QFileSystemWatcher;
 namespace phantom { 
 
 class Message;
-class ModuleLoader;
 
 namespace qt {
 
@@ -44,9 +43,9 @@ public:
     void setPath(const string& a_strPath);
     const string& getPath() const { return m_strPath; }
     void setMetaDataPath(const string& a_strPath);
-    void setModuleLoader(ModuleLoader* a_pModuleLoader);
+    void setApplication(reflection::Application* a_pApplication);
     LibraryItem* getItem(const QString& absolutePath) const;
-    ModuleLoader*   getModuleLoader() const { return m_pModuleLoader; }
+    reflection::Application*   getApplication() const { return m_pApplication; }
 
     Message* getMessage() const { return m_pRootMessage; }
 
@@ -61,17 +60,17 @@ protected:
     void undoableUnloadLibrary(const phantom::string& a_strPath) const;
     void libraryLoaded(const string& a_strPath);
     void libraryUnloaded(const string& a_strPath);
-    void moduleLoaded(Module* a_pModule, size_t, size_t a_uiLoadCount);
-    void moduleUnloaded(Module* a_pModule, size_t, size_t a_uiLoadCount);
+    void moduleLoaded(reflection::Module* a_pModule, size_t, size_t a_uiLoadCount);
+    void moduleUnloaded(reflection::Module* a_pModule, size_t, size_t a_uiLoadCount);
     virtual void loadLibrary(const string& a_strPath);
     virtual void unloadLibrary(const string& a_strPath);
-    void loadMetaData( Module* a_pModule );
+    void loadMetaData( reflection::Module* a_pModule );
     void loadMetaData( const string& metaDataFile);
-    void loadMetaDataDefinition( const string& a_Key, const property_tree& a_PropertyTree, reflection::LanguageElement* a_pScope );
+    void loadMetaDataDefinition( const string& a_Key, const property_tree& a_PropertyTree, reflection::NamedElement* a_pScope );
 
 protected slots:
     void slotItemDoubleClicked(QTreeWidgetItem*, int);
-    string moduleMetaDataPath(Module* a_pModule);
+    string moduleMetaDataPath(reflection::Module* a_pModule);
     void loadMetaData();
     void reloadMetaData( const QString& metaDataFile)
     {
@@ -87,7 +86,7 @@ protected:
     QIcon m_UnloadedIcon;
     Message* m_pRootMessage;
     UndoStack* m_pUndoStack;
-    ModuleLoader* m_pModuleLoader;
+    reflection::Application* m_pApplication;
     delegate_t m_LoadDelegate;
     delegate_t m_UnloadDelegate;
     pre_delegate_t m_PreUnloadLibraryDelegate;

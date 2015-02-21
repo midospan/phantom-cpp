@@ -71,10 +71,10 @@ void AggregationAggregateVariableNodeDelegate::slotRemove()
         serialization::DataBase* pDataBase = m_pVariableNode->getVariableModel()->getDataBase();
         void* pAggregate = nullptr;
         pAggregationClass->get(pLeftExpression->loadEffectiveAddress(), m_uiIndex, &pAggregate);
-        string undoExpression = "(("+pLeftExpression->getName()+")("+lexical_cast<string>(m_uiIndex)+")) = 0";
+        string undoExpression = "(("+pLeftExpression->translate()+")("+lexical_cast<string>(m_uiIndex)+")) = 0";
         uint guid = pDataBase->getGuid(pAggregate);
         o_assert(guid != 0xffffffff);
-        string redoExpression = "(("+pLeftExpression->getName()+")("+lexical_cast<string>(m_uiIndex)+")) = (&(@("+lexical_cast<string>(guid)+")))";
+        string redoExpression = "(("+pLeftExpression->translate()+")("+lexical_cast<string>(m_uiIndex)+")) = (&(@("+lexical_cast<string>(guid)+")))";
         pCommand->pushCommand(
             o_new(ExpressionCommand)(pDataBase, undoExpression, redoExpression)
             );
@@ -90,8 +90,8 @@ void AggregationAggregateVariableNodeDelegate::slotMoveUp()
     for(size_t i = 0; i<m_pVariableNode->getParentNode()->getExpressionCount(); ++i)
     {
         reflection::Expression* pLeftExpression = m_pVariableNode->getParentNode()->getExpression(i);
-        string undoExpression = "("+pLeftExpression->getName()+").move("+lexical_cast<string>(m_uiIndex-1)+", "+lexical_cast<string>(m_uiIndex)+")";
-        string redoExpression = "("+pLeftExpression->getName()+").move("+lexical_cast<string>(m_uiIndex)+", "+lexical_cast<string>(m_uiIndex-1)+")";
+        string undoExpression = "("+pLeftExpression->translate()+").move("+lexical_cast<string>(m_uiIndex-1)+", "+lexical_cast<string>(m_uiIndex)+")";
+        string redoExpression = "("+pLeftExpression->translate()+").move("+lexical_cast<string>(m_uiIndex)+", "+lexical_cast<string>(m_uiIndex-1)+")";
         pCommand->pushCommand(
             o_new(ExpressionCommand)(m_pVariableNode->getVariableModel()->getDataBase()
                 , undoExpression
@@ -114,8 +114,8 @@ void AggregationAggregateVariableNodeDelegate::slotMoveDown()
         if(m_uiIndex < count-1)
         {
             reflection::Expression* pLeftExpression = m_pVariableNode->getParentNode()->getExpression(i);
-            string undoExpression = "("+pLeftExpression->getName()+").move("+lexical_cast<string>(m_uiIndex+1)+", "+lexical_cast<string>(m_uiIndex)+")";
-            string redoExpression = "("+pLeftExpression->getName()+").move("+lexical_cast<string>(m_uiIndex)+", "+lexical_cast<string>(m_uiIndex+1)+")";
+            string undoExpression = "("+pLeftExpression->translate()+").move("+lexical_cast<string>(m_uiIndex+1)+", "+lexical_cast<string>(m_uiIndex)+")";
+            string redoExpression = "("+pLeftExpression->translate()+").move("+lexical_cast<string>(m_uiIndex)+", "+lexical_cast<string>(m_uiIndex+1)+")";
             pCommand->pushCommand(
                 o_new(ExpressionCommand)(m_pVariableNode->getVariableModel()->getDataBase()
                 , undoExpression

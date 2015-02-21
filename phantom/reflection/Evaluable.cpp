@@ -1,49 +1,56 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <phantom/reflection/Evaluable.h>
 #include <phantom/reflection/Evaluable.hxx>
+#include <phantom/reflection/Expression.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), Evaluable);
 
 o_namespace_begin(phantom, reflection) 
 
-Evaluable::Evaluable( const string& a_strName, modifiers_t modifiers ) 
-    : LanguageElement(a_strName, modifiers)
+void Evaluable::addSubExpression( Expression*& a_prExpression )
 {
+    o_assert(a_prExpression);
+    if(a_prExpression->isInvalid())
+        setInvalid();
+    if(a_prExpression->getOwner())
+    {
+        addElement(a_prExpression = a_prExpression->clone());
+    }
+    else 
+    {
+        addElement(a_prExpression);
+    }
+    if(m_pSubExpressions == nullptr)
+    {
+        m_pSubExpressions = new vector<Expression*>;
+    }
+    m_pSubExpressions->push_back(a_prExpression);
 }
 
+void Evaluable::elementRemoved( LanguageElement* a_pElement )
+{
+    if(m_pSubExpressions)
+    {
+        auto found = std::find(m_pSubExpressions->begin(), m_pSubExpressions->end(), a_pElement);
+        if(found != m_pSubExpressions->end())
+        {
+            m_pSubExpressions->erase(found);
+        }
+        if(m_pSubExpressions->empty())
+        {
+            delete m_pSubExpressions;
+            m_pSubExpressions = nullptr;
+        }
+    }
+}
+
+void Evaluable::removeSubExpression( Expression* a_pExpression )
+{
+    o_assert(m_pSubExpressions);
+    removeElement(a_pExpression);
+}
 
 o_namespace_end(phantom, reflection)

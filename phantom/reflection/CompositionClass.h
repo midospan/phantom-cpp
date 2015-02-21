@@ -18,7 +18,11 @@ class o_export CompositionClass : public Class
     o_declare_meta_type(CompositionClass);
 
 public:
-    CompositionClass(Class* a_pComponentClass, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0)
+    CompositionClass(Class* a_pComponentClass
+        , const string& a_strName
+        , ushort a_uiSize
+        , ushort a_uiAlignment
+        , modifiers_t a_Modifiers = 0)
         : Class(a_strName, a_uiSize, a_uiAlignment, a_Modifiers)
         , m_pComponentClass(a_pComponentClass) 
     {
@@ -90,8 +94,7 @@ public:
     }
 
 protected:
-    Class*   m_pComponentClass;
-
+    Class*      m_pComponentClass;
 };
 
 class o_export CompositionGetSetExpression : public Expression

@@ -42,8 +42,7 @@
 
 
 namespace phantom {
-/* Line 166 of location.cc  */
-#line 47 "location.hh"
+
 
   /// Abstract a location.
   class location
@@ -175,7 +174,6 @@ namespace phantom {
 
 
 } // phantom
-/* Line 296 of location.cc  */
-#line 180 "location.hh"
+
 
 #endif /* !YY_PHANTOM_LOCATION_HH_INCLUDED  */

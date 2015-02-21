@@ -5,7 +5,7 @@
 #include "LocalVariableExpression.h"
 #include "Expression.h"
 #include "Block.h"
-#include <phantom/std/vector.hxx>
+#include <phantom/vector.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), LocalVariable);
 o_registerNTI((phantom), vector, (phantom::reflection::LocalVariable*));
@@ -42,7 +42,12 @@ bool LocalVariable::Parse(const string& a_strCode, Type*& a_OutType, string& a_O
                     if(equalPos != string::npos)
                     {
                         Expression* pExpression = expressionByName(decl.substr(equalPos+1));
-                        if(pExpression == nullptr OR NOT(pExpression->getValueType()->isImplicitlyConvertibleTo(pType)))
+                        if(pExpression == nullptr)
+                        {
+                            return false;
+                        }
+                        pExpression = pExpression->convert(pType, e_implicit_conversion, a_pScope);
+                        if(pExpression->isInvalid())
                         {
                             return false;
                         }
@@ -76,7 +81,7 @@ bool LocalVariable::Parse(const string& a_strCode, Type*& a_OutType, string& a_O
 }
 
 LocalVariable::LocalVariable()
-    : LanguageElement()
+    : NamedElement()
     , m_iFrameOffset(e_InvalidFrameOffset)
     , m_pValueType(nullptr)
     , m_uiIndexInBlock(~size_t(0))
@@ -87,7 +92,7 @@ LocalVariable::LocalVariable()
 }
 
 LocalVariable::LocalVariable( Type* a_pValueType, const string& a_strName, Expression* a_pInitializer /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ ) 
-    : LanguageElement(a_strName, a_Modifiers)
+    : NamedElement(a_strName, a_Modifiers)
     , m_iFrameOffset(e_InvalidFrameOffset)
     , m_pValueType(a_pValueType)
     , m_uiIndexInBlock(~size_t(0))
@@ -102,12 +107,13 @@ LocalVariable::LocalVariable( Type* a_pValueType, const string& a_strName, Expre
     }
 }
 
+/*
 bool LocalVariable::isAccessibleAtCodePosition( const CodePosition& position ) const
 {
-    if(getBlock() == nullptr) 
+    if(getEnclosingBlock() == nullptr) 
         return nullptr;
-    return (position.line > getCodeLocation().getStart().line) AND (position.line <= getBlock()->getCodeLocation().getEnd().line);
-}
+    return (position.line > getCodeLocation().getStart().line) AND (position.line <= getEnclosingBlock()->getCodeLocation().getEnd().line);
+}*/
 
 Block* LocalVariable::getBlock() const
 {
@@ -140,7 +146,7 @@ void LocalVariable::referencedElementRemoved( LanguageElement* a_pElement )
     }
 }
 
-Expression* LocalVariable::createExpression() const
+LocalVariableExpression* LocalVariable::toExpression() const
 {
     return o_new(LocalVariableExpression)(const_cast<LocalVariable*>(this));
 }
@@ -171,9 +177,7 @@ void LocalVariable::setInitializationExpression( Expression* a_pInitializationEx
     }
     m_pInitializationExpression = a_pInitializationExpression;
     addElement(m_pInitializationExpression);
-    if(m_pValueType == nullptr 
-        OR m_pInitializationExpression->getValueType() == nullptr 
-        OR NOT(m_pInitializationExpression->getValueType()->isImplicitlyConvertibleTo(m_pValueType)))
+    if(NOT(m_pInitializationExpression->getValueType()->equals(m_pValueType)))
     {
         setInvalid();
     }

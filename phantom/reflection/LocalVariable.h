@@ -14,7 +14,7 @@ o_declareN(class, (phantom, reflection), LocalVariable);
 o_namespace_begin(phantom, reflection)
 
 class Block;
-class o_export LocalVariable : public LanguageElement
+class o_export LocalVariable : public NamedElement
 {
     o_language_element;
 
@@ -39,9 +39,7 @@ public:
     reflection::Type*   getValueType() const { return m_pValueType; }
     Block*              getBlock() const;
 
-    Expression*         createExpression() const;
-
-    bool isAccessibleAtCodePosition(const CodePosition& position) const;
+    LocalVariableExpression* toExpression() const;
 
     void setFrameOffset(int a_iOffset)
     {

@@ -1,13 +1,27 @@
 
 #include "phantom/phantom.h"
 
-#define NativeVTableInspector_vtableentry(_index_) \
-    &NativeVTableInspector::NativeVTableInspector_hack_member_function_##_index_
 
 o_namespace_begin(phantom, reflection, native)
 
+o_forceinline static void* extract_closure(NativeVTableInspector::member_function_pointer ptr)
+{
+    union 
+    {
+        void* closure;
+        NativeVTableInspector::member_function_pointer p;
+    } un;
+    un.p = ptr;
+    return un.closure;
+}
+
+#define NativeVTableInspector_vtableentry(_index_) \
+    extract_closure(&NativeVTableInspector::NativeVTableInspector_hack_member_function_##_index_)
+
 size_t   NativeVTableInspector::sm_inspection_result = -1;
 void*    NativeVTableInspector::sm_vptr_impostor = &NativeVTableInspector::sm_vtable_impostor;
+
+size_t NativeVTableInspector::sizeof_vptr_imspostor_t = sizeof(NativeVTableInspector::vptr_imspostor_t);
 
 NativeVTableInspector::vptr_imspostor_t 
         NativeVTableInspector::sm_vtable_impostor = {

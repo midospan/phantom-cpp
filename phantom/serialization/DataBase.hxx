@@ -32,7 +32,7 @@ o_protected:
     o_slot(void, moduleElementAdded, (reflection::LanguageElement*));
     o_slot(void, moduleElementsAboutToBeReplaced, (const vector<reflection::LanguageElement*>&));
     o_slot(void, moduleElementsReplaced, (const vector<reflection::LanguageElement*>&, const vector<reflection::LanguageElement*>&));
-    o_slot(void, moduleLoaded, (Module*, size_t, size_t));
+    o_slot(void, moduleLoaded, (reflection::Module*, size_t, size_t));
 
     o_slot(void, componentChanged, (void*, void*));
     o_slot(void, componentInserted, (size_t, void*));

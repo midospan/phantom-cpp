@@ -1,34 +1,32 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="..\..\..\unitest\Marine.cpp" />
+    <ClCompile Include="..\..\..\unitest\RootClass.cpp" />
+    <ClCompile Include="..\..\..\unitest\StateMachineTest.cpp" />
+    <ClCompile Include="..\..\..\unitest\Unit.cpp" />
+    <ClCompile Include="..\..\..\unitest\Ability.cpp" />
+    <ClCompile Include="..\..\..\unitest\ActorPlatform.cpp" />
+    <ClCompile Include="..\..\..\unitest\Bench.cpp" />
+    <ClCompile Include="..\..\..\unitest\GameEntity.cpp" />
     <ClCompile Include="..\..\..\unitest\main.cpp" />
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\GameEntity.cpp" />
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\Marine.cpp" />
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\RootClass.cpp" />
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\Unit.cpp" />
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\ActorPlatform.cpp" />
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\Ability.cpp" />
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\StateMachineTest.cpp" />
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\Bench.cpp" />
-    <ClCompile Include="..\..\..\phantom\pch.cpp" />
+    <ClCompile Include="..\..\..\unitest\pch.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\GameEntity.h" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\Marine.h" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\RootClass.h" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\Unit.h" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\ActorPlatform.h" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\Ability.h" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\StateMachineTest.h" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\Bench.h" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\RootClass.hxx" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\Marine.hxx" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\GameEntity.hxx" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\ActorPlatform.hxx" />
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\Ability.hxx" />
-    <ClInclude Include="..\..\..\phantom\variant.hxx" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\unitest\phantom\unitest\Bench.hxx" />
+    <ClInclude Include="..\..\..\unitest\Marine.h" />
+    <ClInclude Include="..\..\..\unitest\Marine.hxx" />
+    <ClInclude Include="..\..\..\unitest\RootClass.h" />
+    <ClInclude Include="..\..\..\unitest\RootClass.hxx" />
+    <ClInclude Include="..\..\..\unitest\StateMachineTest.h" />
+    <ClInclude Include="..\..\..\unitest\Unit.h" />
+    <ClInclude Include="..\..\..\unitest\Unit.hxx" />
+    <ClInclude Include="..\..\..\unitest\Ability.h" />
+    <ClInclude Include="..\..\..\unitest\Ability.hxx" />
+    <ClInclude Include="..\..\..\unitest\ActorPlatform.h" />
+    <ClInclude Include="..\..\..\unitest\ActorPlatform.hxx" />
+    <ClInclude Include="..\..\..\unitest\Bench.h" />
+    <ClInclude Include="..\..\..\unitest\Bench.hxx" />
+    <ClInclude Include="..\..\..\unitest\GameEntity.h" />
+    <ClInclude Include="..\..\..\unitest\GameEntity.hxx" />
   </ItemGroup>
 </Project>

@@ -4,7 +4,6 @@
 #include "VariableNode.hxx"
 #include "VariableModel.h"
 #include "VariableNodeDelegate.h"
-#include "phantom/std/string.h"
 #include "phantom/reflection/ConstantExpression.h"
 #include "phantom/reflection/DataExpression.h"
 /* *********************************************** */
@@ -12,6 +11,11 @@ o_registerN((phantom, qt), VariableNode);
  
 namespace phantom { 
 namespace qt {
+
+#if defined(DEBUG)
+std::set<reflection::Expression*> expression_unicity_checker;
+std::map<reflection::Expression*, string> expression_debugger;
+#endif
 
 VariableNode::VariableNode( const string& a_strName ) 
     : m_strName(a_strName)
@@ -25,7 +29,35 @@ VariableNode::VariableNode( const string& a_strName )
     m_pDelegate->m_pVariableNode = this;
 }
 
-VariableNode::VariableNode( const string& a_strName, const vector<reflection::Expression*>& a_Expressions, reflection::Range* a_pRange, bitfield a_Modifiers ) 
+VariableNode::VariableNode( reflection::Type* a_pValueType, const string& a_strName, const vector<reflection::Expression*>& a_Expressions, reflection::Range* a_pRange, modifiers_t a_Modifiers ) 
+    : m_strName(a_strName)
+    , m_pValueType(a_pValueType)
+    , m_pParentNode(nullptr)
+    , m_Expressions(a_Expressions)
+    , m_Modifiers(a_Modifiers)
+    , m_bChangeStructure(false)
+    , m_pRange(a_pRange)
+    , m_pDelegate(o_new(VariableNodeDelegate))
+{
+    m_pDelegate->m_pVariableNode = this;
+    if(a_Expressions.size())
+    {
+        modifiers_t expressionModifiers = 0xffffffff;
+        for(auto it = a_Expressions.begin(); it != a_Expressions.end(); ++it)
+        {
+            o_assert(m_pValueType->getPointerCastOffset((*it)->getValueType()->removeReference()) == 0);
+            o_assert((*it)->getOwner() == nullptr);
+            expressionModifiers &= (*it)->getModifiers();
+            o_assert(expression_unicity_checker.insert(*it).second);
+            o_debug_only(expression_debugger[*it] = (*it)->translate());
+            o_assert((*it)->getOwner() == nullptr);
+        }
+        m_Modifiers |= expressionModifiers;
+        m_ExpressionUndoStacks.resize(m_Expressions.size());
+    }
+}
+
+VariableNode::VariableNode( const string& a_strName, const vector<reflection::Expression*>& a_Expressions, reflection::Range* a_pRange, modifiers_t a_Modifiers ) 
     : m_strName(a_strName)
     , m_pValueType(nullptr)
     , m_pParentNode(nullptr)
@@ -38,11 +70,14 @@ VariableNode::VariableNode( const string& a_strName, const vector<reflection::Ex
     m_pDelegate->m_pVariableNode = this;
     if(a_Expressions.size())
     {
-        bitfield expressionModifiers = 0xffffffff;
+        modifiers_t expressionModifiers = 0xffffffff;
         for(auto it = a_Expressions.begin(); it != a_Expressions.end(); ++it)
         {
             o_assert((*it)->getOwner() == nullptr);
             expressionModifiers &= (*it)->getModifiers();
+            o_assert(expression_unicity_checker.insert(*it).second);
+            o_debug_only(expression_debugger[*it] = (*it)->translate());
+            o_assert((*it)->getOwner() == nullptr);
         }
         m_Modifiers |= expressionModifiers;
         m_ExpressionUndoStacks.resize(m_Expressions.size());
@@ -81,8 +116,9 @@ void VariableNode::destroyExpressions()
 {
     for(auto it = m_Expressions.begin(); it != m_Expressions.end(); ++it)
     {
-        (*it)->terminate();
-        (*it)->deleteNow();
+        o_debug_only(printf("%x expr : %s\n", (*it), expression_debugger[*it].c_str()));
+        o_assert(expression_unicity_checker.erase(*it));
+        o_dynamic_delete (*it);
     }
     m_Expressions.clear();
 }
@@ -293,7 +329,7 @@ void VariableNode::updateType()
         m_pValueType = m_Expressions.front()->getValueType()->removeReference();
         for(auto it = m_Expressions.begin()+1; it != m_Expressions.end(); ++it)
         {
-            o_assert(m_pValueType == (*it)->getValueType()->removeReference());
+            o_assert(m_pValueType->getPointerCastOffset((*it)->getValueType()->removeReference()) == 0);
         }
     }
 }
@@ -334,17 +370,17 @@ VariableNode* VariableNode::FromData( serialization::DataBase* a_pDataBase, cons
             {
                 dataExpressionStr = lexical_cast<string>(data.address());
                 pExpression = o_new(reflection::ConstantExpression)(constant<size_t>((size_t)data.address()));
-                pExpression = pExpression->cast(data.type()->referenceType());
+                pExpression = pExpression->convert(data.type()->lvalueReferenceType(), reflection::e_explicit_cast);
             }
             if(pType != data.type())
             {
-                pExpression = pExpression->cast(pType->referenceType());
+                pExpression = pExpression->convert(pType->lvalueReferenceType(), reflection::e_explicit_cast);
             }
             o_assert(pExpression);
-            phantom::setCurrentDataBase(a_pDataBase);
+            phantom::application()->setDataBase(a_pDataBase);
             expressions.push_back(pExpression);
         }
-        return o_new(VariableNode)("", expressions);
+        return o_new(VariableNode)(pType, "", expressions);
     }
     return nullptr;
 }

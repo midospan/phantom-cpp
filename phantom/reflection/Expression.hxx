@@ -1,10 +1,14 @@
 #pragma once
-#include "LanguageElement.hxx"
 
-o_classNB((phantom, reflection), Expression, (LanguageElement), o_deferred|o_abstract) 
+#include "Evaluable.hxx"
+
+o_classNB((phantom, reflection), Expression, (Evaluable)) 
 (
-        );
+);
 
+o_classNB((phantom, reflection), InvalidExpression, (Expression)) 
+(
+);
 
 
 

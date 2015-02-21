@@ -51,21 +51,21 @@ namespace qt {
 
 
     BitFieldEditor::BitFieldEditor()
-        : VariableWidgetEditor(new BitFieldChecker(0), SIGNAL(valueChanged(uint)), typeOf<bitfield>())
+        : VariableWidgetEditor(new BitFieldChecker(0), SIGNAL(valueChanged(uint)), typeOf<modifiers_t>())
     {
 
     }
 
     void BitFieldEditor::setValue( const void* a_pSrc ) const
     {
-        bitfield bf = *((bitfield*)a_pSrc);
+        modifiers_t bf = *((modifiers_t*)a_pSrc);
         ((BitFieldChecker*)m_pWidget)->setValue(bf);
     }
 
     void BitFieldEditor::getValue( void* a_pDest ) const
     {
         uint value = ((BitFieldChecker*)m_pWidget)->getValue();
-        *((bitfield*)a_pDest) = value;
+        *((modifiers_t*)a_pDest) = value;
     }
 
 }}

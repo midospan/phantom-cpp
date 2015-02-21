@@ -61,7 +61,7 @@ void CxxLexer::end_search(CxxToken *aToken)
 //
 //	Notch up an error and establish a good break point.
 //
-void CxxLexer::increment_error_count()
+void CxxLexer::incrementErrorCount()
 {
     error_count++;
 }
@@ -240,7 +240,7 @@ void CxxLexer::error(const char *s)
     if (!bang_depth && (tokenMarkDepth == 0))
     {
         std::cout << s << std::endl;
-        increment_error_count();
+        incrementErrorCount();
     }
     else
     {

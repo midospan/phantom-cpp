@@ -28,12 +28,12 @@ namespace qt {
                 string lit;
                 pSetContainerClass->getKeyType()->valueToLiteral(lit, pKeyBuffer);
                 reflection::Expression* pLiteralExpression = phantom::expressionByName(lit);
-                vector<reflection::LanguageElement*> operatorSignature;
+                vector<reflection::Expression*> operatorSignature;
                 operatorSignature.push_back(pLiteralExpression);
-                reflection::Expression* pFindExpression = pLeftExpression->clone()->solveElement("find", nullptr, &operatorSignature, o_const)->asExpression();
+                reflection::Expression* pFindExpression = cplusplus()->qualifiedLookup(pLeftExpression->clone(), "find", nullptr, &operatorSignature)->asExpression();
                 o_assert(pFindExpression);
                 operatorSignature.clear();
-                reflection::Expression* pDereferenceExpression = pFindExpression->solveElement("operator*", nullptr, &operatorSignature, o_const)->asExpression();
+                reflection::Expression* pDereferenceExpression = cplusplus()->qualifiedLookup(pFindExpression, "operator*", nullptr, &operatorSignature)->asExpression();
                 o_assert(pDereferenceExpression);
                 setExpressions[lit].push_back(pDereferenceExpression);
                 pIterator->advance();

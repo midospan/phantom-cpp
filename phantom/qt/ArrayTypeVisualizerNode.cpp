@@ -19,12 +19,12 @@ void ArrayTypeVisualizerNode::expand(VariableNode* a_pVariableNode, const vector
         reflection::ArrayType* pArrayType = pLeftExpression->getValueType()->removeReference()->asArrayType();
         o_assert(pArrayType);
         size_t i = 0;
-        size_t count = pArrayType->getElementCount();
+        size_t count = pArrayType->getItemCount();
         groupedVariables.resize(std::max(groupedVariables.size(), count));
         for(;i<count;++i)
         {
             reflection::Expression* pIndexExpression = o_new(reflection::ConstantExpression)(constant<size_t>(i));
-            reflection::Expression* pExpression = pLeftExpression->clone()->solveBinaryOperator("[]", pIndexExpression);
+            reflection::Expression* pExpression = cplusplus()->solveBinaryOperator("[]", pLeftExpression->clone(), pIndexExpression);
             o_assert(pExpression);
             groupedVariables[i].push_back(pExpression);
         }

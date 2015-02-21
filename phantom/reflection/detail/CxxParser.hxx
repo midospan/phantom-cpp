@@ -54,8 +54,7 @@
 
 
 namespace phantom {
-/* Line 33 of lalr1.cc  */
-#line 59 "CxxParser.hxx"
+
 
   /// A Bison parser.
   class CxxParser
@@ -162,18 +161,29 @@ namespace phantom {
      TRY = 343,
      TYPEID = 344,
      WHILE = 345,
-     CharacterLiteral = 346,
-     Identifier = 347,
-     HexLiteral = 348,
-     LongDoubleLiteral = 349,
-     DoubleLiteral = 350,
-     FloatLiteral = 351,
-     UIntLiteral = 352,
-     ULongLiteral = 353,
-     ULongLongLiteral = 354,
-     StringLiteral = 355,
-     SHIFT_THERE = 356,
-     REDUCE_HERE_MOSTLY = 357
+     __ID = 346,
+     PROPERTY = 347,
+     SIGNAL = 348,
+     IMPORT = 349,
+     ALIAS = 350,
+     SOURCE = 351,
+     STRUCTURE = 352,
+     STATEMACHINE = 353,
+     STATE = 354,
+     TRACK = 355,
+     META = 356,
+     CharacterLiteral = 357,
+     Identifier = 358,
+     HexLiteral = 359,
+     LongDoubleLiteral = 360,
+     DoubleLiteral = 361,
+     FloatLiteral = 362,
+     UIntLiteral = 363,
+     ULongLiteral = 364,
+     ULongLongLiteral = 365,
+     StringLiteral = 366,
+     SHIFT_THERE = 367,
+     REDUCE_HERE_MOSTLY = 368
    };
 
     };
@@ -350,8 +360,7 @@ namespace phantom {
   };
 
 } // phantom
-/* Line 33 of lalr1.cc  */
-#line 355 "CxxParser.hxx"
+
 
 
 

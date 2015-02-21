@@ -2,6 +2,7 @@
 #define o_math_scalar_funcs_h__
 
 #include "phantom/phantom.h"
+#include "def_math.h"
 
 o_namespace_begin(phantom, math)
 

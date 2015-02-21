@@ -1,16 +1,16 @@
 
-o_namespace_begin(phantom, state)
+o_namespace_begin(phantom)
     
 template<typename t_Ty>
 void state_machine_serializer<t_Ty>::serialize(t_Ty const* a_pInstance, byte*& a_pOutBuffer, uint a_uiSerializationMask, serialization::DataBase const * a_pDataBase)
 {
-    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
-    State*const*    current_states  = pStateMachine->getCurrentStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
+    reflection::StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
+    reflection::State*const*    current_states  = pStateMachine->getCurrentStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
     uint i = 0;
     uint count = pStateMachine->getTrackCount();
     for(;i<count;++i)
     {
-        Track*  pTrack = pStateMachine->getTrack(i);
+        reflection::Track*  pTrack = pStateMachine->getTrack(i);
         if(pTrack->isSaved(a_uiSerializationMask))
         {
             *reinterpret_cast<uint*>(a_pOutBuffer) = (*current_states++)->getIndexInTrack();
@@ -22,13 +22,13 @@ void state_machine_serializer<t_Ty>::serialize(t_Ty const* a_pInstance, byte*& a
 template<typename t_Ty>
 void state_machine_serializer<t_Ty>::deserialize(t_Ty* a_pInstance, byte const*& a_pInBuffer, uint a_uiSerializationMask, serialization::DataBase const * a_pDataBase)
 {
-    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
-    State**    transit_states = pStateMachine->getTransitStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
+    reflection::StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
+    reflection::State**    transit_states = pStateMachine->getTransitStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
     uint i = 0;
     uint count = pStateMachine->getTrackCount();
     for(;i<count;++i)
     {
-        Track*  pTrack = pStateMachine->getTrack(i);
+        reflection::Track*  pTrack = pStateMachine->getTrack(i);
         if(pTrack->isSaved(a_uiSerializationMask))
         {
             *transit_states++ = pTrack->getState(*reinterpret_cast<uint const*>(a_pInBuffer));
@@ -40,16 +40,16 @@ void state_machine_serializer<t_Ty>::deserialize(t_Ty* a_pInstance, byte const*&
 template<typename t_Ty>
 void state_machine_serializer<t_Ty>::serialize(t_Ty const* a_pInstance, property_tree& a_OutBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) 
 { 
-    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
-    State*const*    current_states = pStateMachine->getCurrentStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
+    reflection::StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
+    reflection::State*const*    current_states = pStateMachine->getCurrentStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
     uint i = 0;
     uint count = pStateMachine->getTrackCount();
     for(;i<count;++i)
     {
-        Track*  pTrack = pStateMachine->getTrack(i);
+        reflection::Track*  pTrack = pStateMachine->getTrack(i);
         if(pTrack->isSaved(a_uiSerializationMask))
         {
-            State* pState = *current_states++;
+            reflection::State* pState = *current_states++;
             a_OutBranch.put<string>(pTrack->getName(), pState?pState->getName():"");
         }
     }
@@ -58,13 +58,13 @@ void state_machine_serializer<t_Ty>::serialize(t_Ty const* a_pInstance, property
 template<typename t_Ty>
 void state_machine_serializer<t_Ty>::deserialize(t_Ty* a_pInstance, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) 
 { 
-    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
-    State**    transit_states = pStateMachine->getTransitStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
+    reflection::StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
+    reflection::State**    transit_states = pStateMachine->getTransitStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
     uint i = 0;
     uint count = pStateMachine->getTrackCount();
     for(;i<count;++i)
     {
-        Track*  pTrack = pStateMachine->getTrack(i);
+        reflection::Track*  pTrack = pStateMachine->getTrack(i);
         if(pTrack->isSaved(a_uiSerializationMask))
         {
             const boost::optional<string>& a_opt_strStateName = a_InBranch.get_optional<string>(pTrack->getName());
@@ -78,13 +78,13 @@ void state_machine_serializer<t_Ty>::deserialize(t_Ty* a_pInstance, const proper
 template<typename t_Ty>
 void state_machine_resetter<t_Ty>::remember(t_Ty const* a_pInstance, byte*& a_pOutBuffer)
 {
-    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
-    State*const*    current_states  = pStateMachine->getCurrentStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
+    reflection::StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
+    reflection::State*const*    current_states  = pStateMachine->getCurrentStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
     uint i = 0;
     uint count = pStateMachine->getTrackCount();
     for(;i<count;++i)
     {
-        Track*  pTrack = pStateMachine->getTrack(i);
+        reflection::Track*  pTrack = pStateMachine->getTrack(i);
         if(pTrack->isReset())
         {
             *reinterpret_cast<uint*>(a_pOutBuffer) = (*current_states++)->getIndexInTrack();
@@ -96,13 +96,13 @@ void state_machine_resetter<t_Ty>::remember(t_Ty const* a_pInstance, byte*& a_pO
 template<typename t_Ty>
 void state_machine_resetter<t_Ty>::reset(t_Ty* a_pInstance, byte const*& a_pInBuffer)
 {
-    StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
-    State**    transit_states = pStateMachine->getTransitStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
+    reflection::StateMachine* pStateMachine = a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getStateMachine();
+    reflection::State**    transit_states = pStateMachine->getTransitStates(a_pInstance->PHANTOM_CODEGEN_m_smdataptr->getOwner());
     uint i = 0;
     uint count = pStateMachine->getTrackCount();
     for(;i<count;++i)
     {
-        Track*  pTrack = pStateMachine->getTrack(i);
+        reflection::Track*  pTrack = pStateMachine->getTrack(i);
         if(pTrack->isReset())
         {
             *transit_states++ = pTrack->getState(*reinterpret_cast<uint const*>(a_pInBuffer));
@@ -179,4 +179,4 @@ o_forceinline void          base_state_machine_data::postEvent(const string& a_s
     }*/
 }
 
-o_namespace_end(phantom, state)
+o_namespace_end(phantom)

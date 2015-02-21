@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
@@ -38,6 +7,7 @@
 #include "DataBase.h"
 #include "Node.h"
 #include "phantom/reflection/PropertyExpression.h"
+#include "phantom/reflection/Application.h"
 #include <phantom/serialization/DataStateBase.h>
 #include <phantom/reflection/CompositionClass.h>
 /* *********************************************** */
@@ -909,7 +879,7 @@ void Record::dataReloaded( const phantom::data&, serialization::Node* )
 
 }
 
-void Record::typesAboutToBeReplaced( Module* a_pModule, const vector<reflection::Type*>& a_Types )
+void Record::typesAboutToBeReplaced( reflection::Module* a_pModule, const vector<reflection::Type*>& a_Types )
 {
     string moduleName = a_pModule ? a_pModule->getFileName() : "";
     if(m_pDataBase->m_pCurrentRecord == this)
@@ -978,7 +948,7 @@ void Record::typesAboutToBeReplaced( Module* a_pModule, const vector<reflection:
     }
 }
 
-void Record::typesReplaced( Module* a_pModule, const vector<reflection::Type*>& a_Types )
+void Record::typesReplaced( reflection::Module* a_pModule, const vector<reflection::Type*>& a_Types )
 {
     string moduleName = a_pModule ? a_pModule->getFileName() : "";
     if(m_pDataBase->m_pCurrentRecord == this)
@@ -1144,7 +1114,7 @@ void Record::beginReplaceTypes( string_vector_string& module_names )
         m_LanguageElements.push_back(pType);
     }
 
-    moduleByFileName(moduleName)->beginReplaceLanguageElements(m_LanguageElements);
+    application()->beginReplaceElements(m_LanguageElements);
 }
 
 void Record::endReplaceTypes( string_vector_string& module_names )
@@ -1163,30 +1133,32 @@ void Record::endReplaceTypes( string_vector_string& module_names )
         }
     }
     vector<reflection::Type*> types;
-    Module* pModule = moduleByFileName(moduleName);
+    reflection::Module* pModule = moduleByFileName(moduleName);
     m_pDataBase->loadTypes(pModule, &types, &module_names.second);
     vector<reflection::LanguageElement*> elements(types.begin(), types.end());
-    pModule->endReplaceLanguageElements(elements);
+    application()->endReplaceElements(elements);
 }
 
 void Record::addType( string_string& pair )
 {
-    Module* pModule = moduleByFileName(pair.second);
+    reflection::Module* pModule = moduleByFileName(pair.second);
     m_pDataBase->restoreTypeBackup(typeBackupId(), pair.first, pair.second);
     vector<string> pairs;
     pairs.push_back(pair.first);
     vector<reflection::Type*> types;
     m_pDataBase->loadTypes(pModule, &types, &pairs);
     o_assert(types.size() == 1);
-    pModule->addLanguageElement(types.back());
+    o_assert_no_implementation();
+    //pModule->addType(types.back());
 }
 
 void Record::removeType( string_string& pair )
 {
     m_pDataBase->saveTypeBackup(typeBackupId(), pair.first, pair.second);
     reflection::Type* pType = typeByName(pair.first);
-    Module* pModule = moduleByFileName(pair.second);
-    pModule->removeLanguageElement(pType);
+    reflection::Module* pModule = moduleByFileName(pair.second);
+    o_assert_no_implementation();
+    //pModule->removeElement(pType);
 }
 
 uint Record::restoreAddedComponentGuid( const string& a_ReferenceExpression )

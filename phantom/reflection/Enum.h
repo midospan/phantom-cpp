@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_Enum_h__
 #define o_phantom_reflection_Enum_h__
@@ -63,15 +32,11 @@ public:
 
     NumericConstant*        getConstant(const string& a_strKey) const;
 
-    void                addConstant(NumericConstant* a_pConstant);
-    void                removeConstant(NumericConstant* a_pConstant);
+    void                    addConstant(NumericConstant* a_pConstant);
+    void                    removeConstant(NumericConstant* a_pConstant);
 
     virtual Enum*           asEnum() const { return const_cast<Enum*>(this); }
     virtual PrimitiveType*  asIntegralType() const { return const_cast<Enum*>(this); }
-
-    virtual boolean         isConvertibleTo(Type* a_pType) const;
-    virtual boolean         isImplicitlyConvertibleTo(Type* a_pType) const;
-    virtual void            convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;
 
     virtual void            valueFromString(const string& a_strIn, void* a_pDest) const;
     virtual void            valueToString(string& a_strOut, const void* a_pSrc) const;
@@ -116,14 +81,16 @@ public:
 
     PrimitiveType* getIntType() const { return m_pIntType; }
 
-protected:
-    virtual void elementAdded(LanguageElement* a_pElement);
-    virtual void elementRemoved(LanguageElement* a_pElement);
-    Enum(const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0);
+    virtual Type*  getUnderlyingType() const { return m_pIntType; }
 
 protected:
-    value_vector                                m_Constants;
-    PrimitiveType*                           m_pIntType;
+    virtual void elementRemoved(LanguageElement* a_pElement);
+    Enum(PrimitiveType* a_pIntType, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers = 0);
+    void ancestorChanged(LanguageElement* a_pOwner);
+
+protected:
+    value_vector    m_Constants;
+    PrimitiveType*  m_pIntType;
 };
 
 o_namespace_end(phantom, reflection)

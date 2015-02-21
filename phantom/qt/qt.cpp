@@ -32,15 +32,15 @@ o_qt_export size_t getIconMetaDataIndex()
     return g_IconMetaDataIndex;
 }
 
-o_qt_export string nameOf( reflection::LanguageElement* a_pLanguageElement )
+o_qt_export string nameOf( reflection::NamedElement* a_pNamedElement )
 {
-    const string& name = a_pLanguageElement->getMetaDataValue(getNameMetaDataIndex());
-    return name.empty() ? a_pLanguageElement->getName() : name;
+    const string& name = a_pNamedElement->getMetaDataValue(getNameMetaDataIndex());
+    return name.empty() ? a_pNamedElement->getName() : name;
 }
 
-o_qt_export string iconOf( reflection::LanguageElement* a_pLanguageElement )
+o_qt_export string iconOf( reflection::NamedElement* a_pNamedElement )
 {
-    const string& name = a_pLanguageElement->getMetaDataValue(getIconMetaDataIndex());
+    const string& name = a_pNamedElement->getMetaDataValue(getIconMetaDataIndex());
     return name;
 }
 

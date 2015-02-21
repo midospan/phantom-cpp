@@ -1,43 +1,51 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-#include <phantom/reflection/DataMember.h>
-#include <phantom/reflection/DataMember.hxx>
+#include "DataMember.h"
+#include "DataMember.hxx"
+#include "DataMemberExpression.h"
+#include <phantom/vector.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), DataMember);
-o_namespace_begin(phantom, reflection)
+o_registerNTI((phantom), vector, (phantom::reflection::DataMember*));
 
+o_namespace_begin(phantom, reflection) 
+
+o_invalid_def(DataMember, Type::Invalid(), "<unknown-member>");
+
+Class* const DataMember::metaType = o_type_of(phantom::reflection::DataMember);
+
+DataMember::DataMember() 
+    : m_uiOffset(0xffffffff)
+    , m_pMemberAnonymousSection(nullptr)
+{
+
+}
+
+DataMember::DataMember( Type* a_pValueType, const string& a_strName, size_t  a_uiOffset, Range* a_pRange, uint a_uiSerializationMask, modifiers_t a_Modifiers /*= 0*/ )
+    : ValueMember(a_pValueType, a_strName, a_pRange, a_uiSerializationMask, a_Modifiers)
+    , m_uiOffset(a_uiOffset)
+    , m_pMemberAnonymousSection(nullptr)
+{
+}
+
+DataMember::DataMember( Type* a_pValueType, const string& a_strName, Range* a_pRange, uint a_uiSerializationMask /*= 0xffffffff*/, modifiers_t a_Modifiers /*= 0*/ )
+    : ValueMember(a_pValueType, a_strName, a_pRange, a_uiSerializationMask, a_Modifiers)
+    , m_uiOffset(~size_t(0))
+    , m_pMemberAnonymousSection(nullptr)
+{
+
+}
+
+void DataMember::referencedElementRemoved( LanguageElement* a_pElement )
+{
+    ValueMember::referencedElementRemoved(a_pElement);
+}
+
+bool DataMember::referencesData( const void* a_pInstance, const phantom::data& a_Data ) const
+{
+    return m_pValueType->referencesData(getAddress(a_pInstance), a_Data);
+}
 
 o_namespace_end(phantom, reflection)

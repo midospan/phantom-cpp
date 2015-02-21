@@ -672,7 +672,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>phantom/qt/qt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>../../../build/$(ProjectName)/debug/$(ProjectName).pch</PrecompiledHeaderOutputFile>
-      <AdditionalOptions>-Zm450 /MP %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm450 /MP /FC /vmg /vmv</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -694,7 +694,7 @@
       <PrecompiledHeaderOutputFile>../../../build/$(ProjectName)/release/$(ProjectName).pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>phantom/qt/qt.h</PrecompiledHeaderFile>
-      <AdditionalOptions>-Zm450 /MP %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm450 /MP /FC /vmg /vmv</AdditionalOptions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>

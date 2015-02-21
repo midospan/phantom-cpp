@@ -1,41 +1,10 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_Placeholder_h__
 #define o_phantom_reflection_Placeholder_h__
 
 /* ****************** Includes ******************* */
-
+#include "Expression.h"
 /* **************** Declarations ***************** */
 /* *********************************************** */
 
@@ -43,10 +12,8 @@ o_namespace_begin(phantom, reflection)
 
 class o_export Placeholder 
 {
-    o_declare_meta_type(Placeholder);
-
 public:
-    virtual LanguageElement*    asLanguageElement() const = 0;
+    virtual NamedElement*    asNamedElement() const = 0;
 
     virtual Placeholder*    asPlaceholder() const = 0;
 
@@ -56,13 +23,13 @@ public:
 
     virtual PlaceholderClass*    asPlaceholderClass() const { return nullptr; }
 
-    virtual PlaceholderInstanceDataMember*    asPlaceholderInstanceDataMember() const { return nullptr; }
+    virtual TemplateDependantTemplateInstance* asTemplateDependantTemplateInstance() const { return nullptr; }
 
-    virtual PlaceholderSubroutine*    asPlaceholderSubroutine() const { return nullptr; }
-
-    virtual PlaceholderTemplateInstance* asPlaceholderTemplateInstance() const { return nullptr; }
+    virtual TemplateDependantArrayType*   asTemplateDependantArrayType() const { return nullptr; }
 
     virtual PlaceholderTemplate* asPlaceholderTemplate() const { return nullptr; }
+
+    virtual bool accepts(LanguageElement* a_pLanguageElement) const { return false; }
 
 };
 
@@ -73,141 +40,129 @@ class o_export PlaceholderType : public Type, public Placeholder
     o_declare_meta_type(PlaceholderType);
 
 public:
-    PlaceholderType(const string& a_strName, TemplateParameter* a_pParameterDependency, modifiers_t a_Modifiers = 0)
-        : Type(e_placeholder, a_strName, 0, 0, a_Modifiers|o_placeholder) 
+    PlaceholderType(const string& a_strName, modifiers_t a_Modifiers = 0)
+        : Type(e_placeholder, a_strName, 0, 0, a_Modifiers|o_template_dependant) 
+        , m_pAsClass(nullptr)
+        , m_pAsClassType(nullptr)
     {
-        addTemplateParameterDependency(a_pParameterDependency);
     }
 
-    virtual LanguageElement*    asLanguageElement() const { return (PlaceholderType*)this; }
+    virtual bool                accepts(LanguageElement* a_pLanguageElement) const { return a_pLanguageElement->asType() != nullptr; }
+    virtual NamedElement*       asNamedElement() const { return (PlaceholderType*)this; }
     virtual Placeholder*        asPlaceholder() const { return (PlaceholderType*)this; }
+    virtual Class*              asClass() const;
+    virtual ClassType*          asClassType() const;
     virtual PlaceholderType*    asPlaceholderType() const { return (PlaceholderType*)this; }
+    virtual bool                equals(LanguageElement* a_pOther) const 
+    {
+        return Type::equals(a_pOther) OR (a_pOther->asType() AND a_pOther->asPlaceholder());
+    }
 
-    virtual bool                isConvertibleTo(Type* a_pType) const { return true; }
-    virtual bool                isImplicitlyConvertibleTo(Type* a_pType) const { return true; }
     virtual bool                isKindOf(Type* a_pType) const { return true; }
 
-    TemplateParameter*          getTemplateParameterDependency() const { return m_pTemplateParameterDependencies ? m_pTemplateParameterDependencies->front() : nullptr; }
+    virtual string getQualifiedDecoratedName() const { return m_strName; }
+    virtual string getDecoratedName() const { return m_strName; }
+    virtual string getQualifiedName() const { return m_strName; }
+    virtual bool            isCopyable() const { return true; }
 
-    virtual bool                templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
+protected:
+    mutable Class* m_pAsClass;
+    mutable ClassType* m_pAsClassType;
 };
 
-class o_export PlaceholderArrayType : public ArrayType, public Placeholder
+class o_export PlaceholderClassType : public ClassType, public Placeholder
 {
     o_type;
 
-    o_declare_meta_type(PlaceholderArrayType);
-
 public:
-    PlaceholderArrayType(Type* a_pType, ConstantExpression* a_pSize)
-        : ArrayType(a_pType, a_Modifiers|o_placeholder) 
-        , m_pSize(a_pSize)
+    PlaceholderClassType(PlaceholderType* a_pPlaceholderType)
+        : ClassType(e_placeholder, a_pPlaceholderType->getName(), 0, 0, a_pPlaceholderType->getModifiers()|o_template_dependant) 
     {
+        addReferencedElement(a_pPlaceholderType);
     }
 
-    virtual bool                    isConvertibleTo(Type* a_pType) const { return true; }
-    virtual bool                    isImplicitlyConvertibleTo(Type* a_pType) const { return true; }
+    virtual bool                    accepts(LanguageElement* a_pLanguageElement) const { return a_pLanguageElement->asClassType() != nullptr; }
+    virtual NamedElement*           asNamedElement() const { return (PlaceholderClassType*)this; }
+    virtual Placeholder*            asPlaceholder() const { return (PlaceholderClassType*)this; }
+    virtual PlaceholderClassType*   asPlaceholderClassType() const { return (PlaceholderClassType*)this; }
+
     virtual bool                    isKindOf(Type* a_pType) const { return true; }
+    virtual bool                    isKindOf(Class* a_pType) const { return true; }
 
-    virtual LanguageElement*        asLanguageElement() const { return (PlaceholderArrayType*)this; }
-    virtual Placeholder*            asPlaceholder() const { return (PlaceholderArrayType*)this; }
-    virtual PlaceholderArrayType*   asPlaceholderArrayType() const { return (PlaceholderArrayType*)this; }
-    TemplateParameter*              getTemplateParameterDependency() const { return m_pTemplateParameterDependencies ? m_pTemplateParameterDependencies->front() : nullptr; }
+    virtual Class*                  asClass() const { return m_pOwner->asClass(); }
 
-    virtual bool                    templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
-
-protected:
-    ConstantExpression* m_pSize;
-};
-
-class o_export PlaceholderTemplateInstance : public Type, public Placeholder
-{
-    o_type;
-
-    o_declare_meta_type(PlaceholderTemplateInstance);
-
-public:
-    PlaceholderTemplateInstance(Template* a_pTemplate, const vector<LanguageElement*>& a_Arguments)
-        : Type(a_pTemplate->getName(), a_Modifiers|o_placeholder) 
-        , m_pTemplate(a_pTemplate)
-        , m_Arguments(a_Arguments)
+    virtual bool                    equals(LanguageElement* a_pOther) const 
     {
-        addReferencedElement(a_pTemplate);
-        for(auto it = m_Arguments.begin(); it != m_Arguments.end(); ++it)
-        {
-            addReferencedElement(*it);
-        }
+        return Type::equals(a_pOther) OR (a_pOther->asType() AND a_pOther->asPlaceholder());
     }
 
-    virtual bool                    isConvertibleTo(Type* a_pType) const { return true; }
-    virtual bool                    isImplicitlyConvertibleTo(Type* a_pType) const { return true; }
-    virtual bool                    isKindOf(Type* a_pType) const { return true; }
+    virtual string getQualifiedDecoratedName() const { return m_strName; }
+    virtual string getDecoratedName() const { return m_strName; }
+    virtual string getQualifiedName() const { return m_strName; }
+    virtual bool            isCopyable() const { return true; }
 
-    virtual LanguageElement*        asLanguageElement() const { return (PlaceholderTemplateInstance*)this; }
-    virtual Placeholder*            asPlaceholder() const { return (PlaceholderTemplateInstance*)this; }
-    virtual PlaceholderTemplateInstance* asPlaceholderTemplateInstance() const { return (PlaceholderTemplateInstance*)this; }
-    virtual bool                    templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
-
-protected:
-    Template*                       m_pTemplate;
-    vector<LanguageElement*>        m_Arguments;
-};
-
-class o_export PlaceholderTemplate : public Template, public Placeholder
-{
-    o_type;
-
-    o_declare_meta_type(PlaceholderTemplate);
-
-public:
-    PlaceholderTemplate(const string& a_strName, TemplateSignature* a_pSignature)
-        : Template(a_pTemplate->getName(), a_Modifiers|o_placeholder) 
-        , m_Arguments(a_Arguments)
-    {
-        addReferencedElement(a_pTemplate);
-        for(auto it = m_Arguments.begin(); it != m_Arguments.end(); ++it)
-        {
-            addReferencedElement(*it);
-        }
-    }
-
-    virtual bool                    isConvertibleTo(Type* a_pType) const { return true; }
-    virtual bool                    isImplicitlyConvertibleTo(Type* a_pType) const { return true; }
-    virtual bool                    isKindOf(Type* a_pType) const { return true; }
-
-    virtual LanguageElement*        asLanguageElement() const { return (PlaceholderTemplate*)this; }
-    virtual Placeholder*            asPlaceholder() const { return (PlaceholderTemplate*)this; }
-    virtual PlaceholderTemplate*    asPlaceholderTemplate() const { return (PlaceholderTemplate*)this; }
-
-    virtual bool                    templatePartialMatch(LanguageElement* a_pElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
-
-protected:
-    PlaceholderConstant* m_pPlaceholderConstant;
 };
 
 class o_export PlaceholderClass : public Class, public Placeholder
 {
     o_type;
 
-    o_declare_meta_type(PlaceholderClass);
 
 public:
     PlaceholderClass(PlaceholderType* a_pPlaceholderType)
-        : Class(a_pPlaceholderType->getName(), 0, 0, a_pPlaceholderType->getModifiers()|o_placeholder) 
+        : Class(a_pPlaceholderType->getName(), 0, 0, a_pPlaceholderType->getModifiers()|o_template_dependant) 
     {
         addReferencedElement(a_pPlaceholderType);
     }
 
-    virtual bool                    isConvertibleTo(Type* a_pType) const { return true; }
-    virtual bool                    isImplicitlyConvertibleTo(Type* a_pType) const { return true; }
-    virtual bool                    isKindOf(Type* a_pType) const { return true; }
-    virtual bool                    isKindOf(Class* a_pType) const { return true; }
-
-    virtual LanguageElement*        asLanguageElement() const { return (PlaceholderClass*)this; }
+    virtual bool                    accepts(LanguageElement* a_pLanguageElement) const { return a_pLanguageElement->asClass() != nullptr; }
+    virtual NamedElement*           asNamedElement() const { return (PlaceholderClass*)this; }
     virtual Placeholder*            asPlaceholder() const { return (PlaceholderClass*)this; }
     virtual PlaceholderClass*       asPlaceholderClass() const { return (PlaceholderClass*)this; }
 
-    virtual bool                    templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
+    virtual bool                    isKindOf(Type* a_pType) const { return true; }
+    virtual bool                    isKindOf(Class* a_pType) const { return true; }
+
+    virtual bool                    equals(LanguageElement* a_pOther) const 
+    {
+        return Type::equals(a_pOther) OR (a_pOther->asType() AND a_pOther->asPlaceholder());
+    }
+
+    virtual string getQualifiedDecoratedName() const { return m_strName; }
+    virtual string getDecoratedName() const { return m_strName; }
+    virtual string getQualifiedName() const { return m_strName; }
+    virtual bool            isCopyable() const { return true; }
+
+};
+
+class o_export PlaceholderTemplate : public Template, public Placeholder
+{
+    o_language_element;
+
+public:
+    PlaceholderTemplate(const string& a_strName, TemplateSignature* a_pSignature)
+        : Template(a_pSignature, a_strName, o_template_dependant) 
+    {
+    }
+
+    virtual bool                    accepts(LanguageElement* a_pLanguageElement) const;
+    virtual bool                    isKindOf(Type* a_pType) const { return true; }
+
+    virtual NamedElement*           asNamedElement() const { return (PlaceholderTemplate*)this; }
+    virtual Placeholder*            asPlaceholder() const { return (PlaceholderTemplate*)this; }
+    virtual PlaceholderTemplate*    asPlaceholderTemplate() const { return (PlaceholderTemplate*)this; }
+
+    virtual bool                    equals(LanguageElement* a_pOther) const 
+    {
+        if(Template::equals(a_pOther)) return true;
+        Placeholder* pPH = a_pOther->asPlaceholder();
+        PlaceholderTemplate* pPHT = pPH ? pPH->asPlaceholderTemplate() : nullptr;
+        return pPHT AND pPHT->m_pTemplateSignature->equals(m_pTemplateSignature);
+    }
+
+    virtual string getQualifiedDecoratedName() const { return m_strName; }
+    virtual string getDecoratedName() const { return m_strName; }
+    virtual string getQualifiedName() const { return m_strName; }
 
 };
 
@@ -218,13 +173,14 @@ class PlaceholderConstant : public Constant, public Placeholder
     o_declare_meta_type(PlaceholderConstant);
 
 public:
-    PlaceholderConstant(Type* a_pType, const string& a_strName, TemplateParameter* a_pTemplateParameter, modifiers_t modifiers = 0)
-        : Constant(a_strName, modifiers|o_placeholder)
+    PlaceholderConstant(Type* a_pType, const string& a_strName, modifiers_t modifiers = 0)
+        : Constant(a_strName, modifiers|o_template_dependant)
         , m_pType(a_pType)
     {
-        addTemplateParameterDependency(a_pTemplateParameter);
+
     }
-    virtual LanguageElement*        asLanguageElement() const { return (PlaceholderConstant*)this; }
+    virtual bool                    accepts(LanguageElement* a_pLanguageElement) const;
+    virtual NamedElement*           asNamedElement() const { return (PlaceholderConstant*)this; }
     virtual Placeholder*            asPlaceholder() const { return (PlaceholderConstant*)this; }
     virtual PlaceholderConstant*    asPlaceholderConstant() const { return (PlaceholderConstant*)this; }
     virtual void                    getValue(void* dest) const { o_exception_no_implementation(); }
@@ -235,46 +191,191 @@ public:
     virtual void                    toString(string& out) const { o_exception_no_implementation(); }
     virtual void                    toLiteral(string& out) const { o_exception_no_implementation(); }
 
-    virtual bool                    templatePartialMatch( LanguageElement* a_pElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
-    TemplateParameter*              getTemplateParameterDependency() const { return m_pTemplateParameterDependencies->front(); }
+    virtual string getQualifiedDecoratedName() const { return m_strName; }
+    virtual string getDecoratedName() const { return m_strName; }
+    virtual string getQualifiedName() const { return m_strName; }
+
+    virtual bool                    equals(LanguageElement* a_pOther) const;
 
 protected:
     Type* m_pType;
 };
 
-class PlaceholderInstanceDataMember : public InstanceDataMember, public Placeholder
+class o_export TemplateDependantArrayType : public ArrayType
 {
-    o_language_element;
-
-    o_declare_meta_type(PlaceholderInstanceDataMember);
-
-    PlaceholderInstanceDataMember(const string& a_strName, uint a_uiSerializationMask = o_save_data, modifiers_t modifiers = 0)
-        : InstanceDataMember(nullptr, a_strName, nullptr, a_uiSerializationMask, modifiers|o_placeholder)
-    {
-
-    }
-    virtual LanguageElement*                asLanguageElement() const { return (PlaceholderInstanceDataMember*)this; }
-    virtual Placeholder*                    asPlaceholder() const { return (PlaceholderInstanceDataMember*)this; }    
-    virtual PlaceholderInstanceDataMember*  asPlaceholderInstanceDataMember() const { return (PlaceholderInstanceDataMember*)this; }
-};
-
-class PlaceholderSubroutine : public Subroutine, public Placeholder
-{
-    o_language_element;
-
-    o_declare_meta_type(PlaceholderSubroutine);
+    o_type;
 
 public:
-    PlaceholderSubroutine(const string& a_strName, modifiers_t modifiers = 0)
-        : Subroutine(a_strName, nullptr, e_placeholdercall, modifiers|o_placeholder)
+    TemplateDependantArrayType(Type* a_pType, Expression* a_pSize, PlaceholderConstant* a_pDeductibleConstant)
+        : ArrayType(a_pType, 0, o_template_dependant) 
+        , m_pItemCountExpression(a_pSize)
+        , m_pDeductibleConstant(a_pDeductibleConstant)
+    {
+        if(!a_pSize->isCompileTime())
+        {
+            setInvalid();
+        }
+    }
+
+    virtual bool                    isKindOf(Type* a_pType) const { return true; }
+    virtual 
+        TemplateDependantArrayType* asTemplateDependantArrayType() const { return (TemplateDependantArrayType*)this; }
+
+    virtual string                  getQualifiedDecoratedName() const;
+    virtual string                  getDecoratedName() const;
+    virtual string                  getQualifiedName() const { return getItemType()->getQualifiedName(); }
+
+    virtual bool                    isCopyable() const { return true; }
+
+    virtual bool                    equals(LanguageElement* a_pOther) const;
+
+    PlaceholderConstant*            getDeductibleConstant() const { return m_pDeductibleConstant; }
+
+    Expression*                     getItemCountExpression() const { return m_pItemCountExpression; }
+
+protected:
+    Expression* m_pItemCountExpression;
+    PlaceholderConstant* m_pDeductibleConstant;
+};
+
+class o_export TemplateDependantTemplateInstance : public ClassType
+{
+    o_type;
+
+public:
+    TemplateDependantTemplateInstance(TemplateSpecialization* a_pTemplateSpecialization, const map<Placeholder*, LanguageElement*>& a_Arguments);
+    TemplateDependantTemplateInstance(Template* a_pTemplate, const map<Placeholder*, LanguageElement*>& a_Arguments);
+    TemplateDependantTemplateInstance(Template* a_pTemplate, const vector<LanguageElement*>& a_Arguments);
+
+    virtual bool                    isKindOf(Type* a_pType) const { return true; }
+
+    virtual TemplateDependantTemplateInstance* asTemplateDependantTemplateInstance() const { return (TemplateDependantTemplateInstance*)this; }
+
+    Template*                       getTemplate() const { return m_pTemplate; }
+    TemplateSpecialization*         getTemplateSpecialization() const { return m_pTemplateSpecialization; }
+
+    map<Placeholder*, LanguageElement*>::const_iterator beginArguments() const { return m_Arguments.begin(); }
+    map<Placeholder*, LanguageElement*>::const_iterator endArguments() const { return m_Arguments.end(); }
+
+    LanguageElement*                getArgument(Placeholder* a_pPlaceholder) const;
+    size_t                          getArgumentCount() const { return m_Arguments.size(); }
+
+    virtual string                  getQualifiedDecoratedName() const { return m_strName; }
+    virtual string                  getDecoratedName() const { return m_strName; }
+    virtual string                  getQualifiedName() const { return m_strName; }
+
+    virtual bool                    equals(LanguageElement* a_pOther) const;
+
+protected:
+    Template*                       m_pTemplate;
+    TemplateSpecialization*         m_pTemplateSpecialization;
+    map<Placeholder*, LanguageElement*> m_Arguments;
+};
+
+class TemplateDependantElement : public NamedElement
+{
+    o_language_element;
+
+public:
+    TemplateDependantElement(LanguageElement* a_pLeft, const string& a_strName, const vector<LanguageElement*>* a_pTemplateArguments = 0, const vector<LanguageElement*>* a_pFunctionArguments = 0, modifiers_t modifiers = 0)
+        : NamedElement(a_strName, modifiers|o_template_dependant)
+        , m_pLeft(a_pLeft)
+        , m_pAsType(nullptr) 
+        , m_pTemplateArguments(a_pTemplateArguments ? new vector<LanguageElement*>(*a_pTemplateArguments) : nullptr)
+        , m_pFunctionArguments(a_pFunctionArguments ? new vector<LanguageElement*>(*a_pFunctionArguments) : nullptr)
     {
 
     }
-    virtual LanguageElement*        asLanguageElement() const { return (PlaceholderSubroutine*)this; }
-    virtual Placeholder*            asPlaceholder() const { return (PlaceholderSubroutine*)this; }
-    virtual PlaceholderSubroutine*  asPlaceholderSubroutine() const { return (PlaceholderSubroutine*)this; }
-};   
 
+    ~TemplateDependantElement() { delete m_pTemplateArguments; delete m_pFunctionArguments; }
+
+    virtual Type*               asType() const;
+    virtual Expression*         asExpression() const;
+
+    LanguageElement*            getLeft() const { return m_pLeft; }
+
+    virtual string getQualifiedDecoratedName() const { return m_strName; }
+    virtual string getDecoratedName() const { return m_strName; }
+    virtual string getQualifiedName() const { return m_strName; }
+
+    vector<LanguageElement*>* getTemplateArguments() const { return m_pTemplateArguments; }
+    vector<LanguageElement*>* getFunctionArguments() const { return m_pFunctionArguments; }
+
+protected:
+    mutable Type* m_pAsType;
+    LanguageElement* m_pLeft;
+    vector<LanguageElement*>* m_pTemplateArguments;
+    vector<LanguageElement*>* m_pFunctionArguments;
+};
+
+
+/// example : typename boost::unsigned_type<t_Ty>::type 
+class o_export TemplateDependantType : public Type
+{
+    o_type;
+
+public:
+    TemplateDependantType()
+        : Type(e_template_dependant, "", 0, 0, 0) 
+    {
+    }
+    TemplateDependantType(TemplateDependantElement* a_pElement)
+        : Type(e_template_dependant, a_pElement->getName(), 0, 0, a_pElement->getModifiers()) 
+    {
+    }
+
+    virtual bool                    isKindOf(Type* a_pType) const { return true; }
+
+    virtual TemplateDependantType*  asTemplateDependantType() const { return (TemplateDependantType*)this; }
+
+    virtual string getQualifiedDecoratedName() const { return m_strName; }
+    virtual string getDecoratedName() const { return m_strName; }
+    virtual string getQualifiedName() const { return m_strName; }
+
+};
+
+/// example : boost::is_abstract<t_Ty>::value
+class o_export TemplateDependantExpression : public Expression
+{
+    o_language_element;
+
+public:
+    TemplateDependantExpression(TemplateDependantElement* a_pElement);
+
+    virtual TemplateDependantExpression*  asTemplateDependantExpression() const { return (TemplateDependantExpression*)this; }
+    
+    virtual void internalEval(void* a_pDest) const 
+    {
+        o_exception_no_implementation();
+    }
+
+    virtual TemplateDependantExpression* clone() const { o_assert_no_implementation(); return nullptr; }
+
+protected:
+    string m_strName;
+};
+
+class o_export TemplateDependantDotExpression : public Expression
+{
+    o_language_element;
+
+public:
+    TemplateDependantDotExpression(Expression* a_pElement, const string& a_strName, const vector<LanguageElement*>* a_pTemplate = nullptr, const vector<Expression*>* a_pArguments = nullptr);
+
+    virtual TemplateDependantDotExpression*  asTemplateDependantDotExpression() const { return (TemplateDependantDotExpression*)this; }
+
+    virtual void internalEval(void* a_pDest) const 
+    {
+        o_exception_no_implementation();
+    }
+
+    virtual TemplateDependantDotExpression* clone() const { o_assert_no_implementation(); return nullptr; }
+
+protected:
+    string m_strName;
+    vector<LanguageElement*>* m_pTemplate;
+    vector<Expression*>* m_pArguments;
+};
 
 o_namespace_end(phantom, reflection)
 

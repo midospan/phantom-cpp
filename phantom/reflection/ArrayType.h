@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_ArrayType_h__
 #define o_phantom_reflection_ArrayType_h__
@@ -37,7 +6,6 @@
 
 
 /* ****************** Includes ******************* */
-#include "Type.h"
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
@@ -135,12 +103,6 @@ public:
         return m_pItemType->copy(getItemAddress(a_pArrayAddress, a_uiIndex), a_pSrc); 
     }
     
-    virtual boolean     isConvertibleTo(Type* a_pType) const;
-
-    virtual boolean     isImplicitlyConvertibleTo( Type* a_pType ) const;
-
-    virtual void        convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;
-
     virtual void        valueFromString(const string& a_str, void* dest) const;
 
     virtual void        valueToString(string& a_str, const void* src) const;
@@ -226,9 +188,19 @@ public:
         }
     }
 
+    virtual Type*           addConst() const { return m_pItemType->addConst()->addArray(m_uiCount); }
+
+    virtual Type*           addVolatile() const { return m_pItemType->addVolatile()->addArray(m_uiCount); }
+
+    virtual Type*           addConstVolatile() const { return m_pItemType->addConstVolatile()->addArray(m_uiCount); }
 
     virtual Type*           removeArray() const { return m_pItemType; }
 
+    virtual Type*           removeAllConst() const { return m_pItemType->removeAllConst()->arrayType(m_uiCount); }
+
+    virtual Type*           removeAllQualifiers() const { return m_pItemType->removeAllQualifiers()->arrayType(m_uiCount); }
+
+    virtual string          getQualifiedName() const;
     virtual string          getDecoratedName() const;
     virtual string          getQualifiedDecoratedName() const;
 
@@ -237,11 +209,20 @@ public:
 
     virtual Type*           asPOD() const { return m_pItemType->asPOD() ? (Type*)this : nullptr; }
 
-    virtual bool            templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const;
+    virtual bool            partialAccepts(Type* a_pType, size_t& a_Score, map<Placeholder*, LanguageElement*>& a_Deductions ) const;
+
+    virtual bool            equals(LanguageElement* a_pOther) const 
+    {
+        return Type::equals(a_pOther) OR (a_pOther->asArrayType() AND m_pItemType->equals(static_cast<ArrayType*>(a_pOther)->m_pItemType) AND m_uiCount == static_cast<ArrayType*>(a_pOther)->m_uiCount);
+    }
+
+    virtual Type*           getUnderlyingType() const { return m_pItemType; }
 
 protected:
     size_t                  getElementCount() const { return m_uiCount; } // just to check compile error, must be removed !!
     virtual void            referencedElementRemoved(LanguageElement* a_pItem);
+    virtual ConstType*      createConstType() const { return nullptr; }
+    virtual DataPointerType*createDataPointerType() const { return nullptr; }
 
 protected:
     Type*       m_pItemType;

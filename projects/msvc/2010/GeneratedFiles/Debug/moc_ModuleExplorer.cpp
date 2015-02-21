@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'ModuleExplorer.h'
 **
-** Created: Sat 8. Nov 18:07:33 2014
+** Created: Fri 20. Feb 12:36:39 2015
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -34,8 +34,8 @@ static const uint qt_meta_data_phantom__qt__ModuleExplorer[] = {
  // slots: signature, parameters, type, tag, flags
       31,   29,   28,   28, 0x09,
       92,   82,   75,   28, 0x09,
-     120,   28,   28,   28, 0x09,
-     148,  135,   28,   28, 0x09,
+     132,   28,   28,   28, 0x09,
+     160,  147,   28,   28, 0x09,
 
        0        // eod
 };
@@ -43,7 +43,8 @@ static const uint qt_meta_data_phantom__qt__ModuleExplorer[] = {
 static const char qt_meta_stringdata_phantom__qt__ModuleExplorer[] = {
     "phantom::qt::ModuleExplorer\0\0,\0"
     "slotItemDoubleClicked(QTreeWidgetItem*,int)\0"
-    "string\0a_pModule\0moduleMetaDataPath(Module*)\0"
+    "string\0a_pModule\0"
+    "moduleMetaDataPath(reflection::Module*)\0"
     "loadMetaData()\0metaDataFile\0"
     "reloadMetaData(QString)\0"
 };
@@ -55,7 +56,7 @@ void phantom::qt::ModuleExplorer::qt_static_metacall(QObject *_o, QMetaObject::C
         ModuleExplorer *_t = static_cast<ModuleExplorer *>(_o);
         switch (_id) {
         case 0: _t->slotItemDoubleClicked((*reinterpret_cast< QTreeWidgetItem*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
-        case 1: { string _r = _t->moduleMetaDataPath((*reinterpret_cast< Module*(*)>(_a[1])));
+        case 1: { string _r = _t->moduleMetaDataPath((*reinterpret_cast< reflection::Module*(*)>(_a[1])));
             if (_a[0]) *reinterpret_cast< string*>(_a[0]) = _r; }  break;
         case 2: _t->loadMetaData(); break;
         case 3: _t->reloadMetaData((*reinterpret_cast< const QString(*)>(_a[1]))); break;

@@ -1,6 +1,6 @@
 #pragma once
-#include "LanguageElement.hxx"
-o_classNB((phantom, reflection), TemplateSpecialization, (LanguageElement), o_deferred|0) (
+#include "NamedElement.hxx"
+o_classNB((phantom, reflection), TemplateSpecialization, (NamedElement), o_deferred|0) (
         );
 
 

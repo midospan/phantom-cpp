@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_config_h__
 #define o_phantom_config_h__
@@ -281,12 +250,14 @@
 #   define o_STD_TYPE_TRAIT_DEFINED_IS_DEFAULT_CONSTRUCTIBLE 0
 #   if o_COMPILER_VISUAL_STUDIO_VERSION >= o_COMPILER_VISUAL_STUDIO_MAJOR_VERSION_2010
 #       define o_HAS_CPP0X 1
+#       define o_HAS_RVALUE_REFERENCES 1
 #       if o_COMPILER_VISUAL_STUDIO_VERSION >= o_COMPILER_VISUAL_STUDIO_MAJOR_VERSION_2012
 #           define o_HAS_CPP11 1
 #       else
 #           define o_HAS_CPP11 0
 #       endif
 #   else
+#       define o_HAS_RVALUE_REFERENCES 0
 #       define o_HAS_CPP0X 0
 #       define o_HAS_CPP11 0
 #   endif
@@ -299,28 +270,30 @@
 #       define o_HAS_BUILT_IN_WCHAR_T 0
 #   endif
 
-#elif o_COMPILER == o_COMPILER_CLANG
+#   if _HAS_CHAR16_T_LANGUAGE_SUPPORT
+#       define o_HAS_BUILT_IN_CHAR16_T 1
+#       define o_HAS_BUILT_IN_CHAR32_T 1
 
-#   define o_HAS_CPP0X __GXX_EXPERIMENTAL_CXX0X__
-#   if o_HAS_CPP0X
-#          define o_STD_TYPE_TRAIT_DEFINED_IS_DEFAULT_CONSTRUCTIBLE 1
-#   else
-#          define o_STD_TYPE_TRAIT_DEFINED_IS_DEFAULT_CONSTRUCTIBLE 0
+#   else /* _HAS_CHAR16_T_LANGUAGE_SUPPORT */
+#       define o_HAS_BUILT_IN_CHAR16_T 0
+#       define o_HAS_BUILT_IN_CHAR32_T 0
 #   endif
 
-#   if defined(__WCHAR_TYPE__)
-#       define o_HAS_BUILT_IN_WCHAR_T 1
-#   else
-#       define o_HAS_BUILT_IN_WCHAR_T 0
-#   endif
-
-#   if __has_feature(cxx_rtti)
-#       define o_HAS_COMPILE_TIME_TYPEID 1
-#   else
-#       define o_HAS_COMPILE_TIME_TYPEID 0
-#   endif
+#if defined(_CHAR_UNSIGNED)
+#       define o_HAS_DEFAULT_UNSIGNED_CHAR 1
+#else 
+#       define o_HAS_DEFAULT_UNSIGNED_CHAR 0
+#endif
 
 #elif  o_COMPILER == o_COMPILER_GCC
+
+#if __cplusplus >= 201103L
+#   define o_HAS_CPP11 1
+#else 
+#   define o_HAS_CPP11 0
+#endif
+
+#define o_HAS_RVALUE_REFERENCES o_HAS_CPP11
 
 #   define o_HAS_CPP0X __GXX_EXPERIMENTAL_CXX0X__
 #   if o_COMPILER_GCC_VERSION > 40601
@@ -336,6 +309,35 @@
 #   endif
 
 #   if defined(__GXX_RTTI)
+#       define o_HAS_COMPILE_TIME_TYPEID 1
+#   else
+#       define o_HAS_COMPILE_TIME_TYPEID 0
+#   endif
+
+#elif o_COMPILER == o_COMPILER_CLANG
+
+#if __cplusplus >= 201103L
+#   define o_HAS_CPP11 1
+#else 
+#   define o_HAS_CPP11 0
+#endif
+
+#define o_HAS_RVALUE_REFERENCES o_HAS_CPP11
+
+#   define o_HAS_CPP0X __GXX_EXPERIMENTAL_CXX0X__
+#   if o_HAS_CPP0X
+#       define o_STD_TYPE_TRAIT_DEFINED_IS_DEFAULT_CONSTRUCTIBLE 1
+#   else
+#       define o_STD_TYPE_TRAIT_DEFINED_IS_DEFAULT_CONSTRUCTIBLE 0
+#   endif
+
+#   if defined(__WCHAR_TYPE__)
+#       define o_HAS_BUILT_IN_WCHAR_T 1
+#   else
+#       define o_HAS_BUILT_IN_WCHAR_T 0
+#   endif
+
+#   if __has_feature(cxx_rtti)
 #       define o_HAS_COMPILE_TIME_TYPEID 1
 #   else
 #       define o_HAS_COMPILE_TIME_TYPEID 0

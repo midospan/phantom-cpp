@@ -1,8 +1,8 @@
 #pragma once
 
-#include "LanguageElement.hxx"
+#include "NamedElement.hxx"
 
-o_classNB((phantom, reflection), Type, (LanguageElement), o_deferred|o_abstract)
+o_classNB((phantom, reflection), Type, (NamedElement), o_deferred)
 (
 o_public:
     o_member_function(void*, newInstance, ());

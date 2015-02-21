@@ -6,15 +6,19 @@ namespace phantom
     class CxxParser;
     class CxxLexer;
     struct CxxToken;
+    struct CxxTokenizer;
     class CxxSearchContext;
-    struct CxxPrecompiler;
+    namespace reflection 
+    {
+        class CxxPrecompiler;
+    }
     struct CxxStatements;
     typedef CxxStatements CxxDeclarations;
     struct CxxExpression;
 
     class CxxDriver
     {        
-        friend struct CxxPrecompiler;
+        friend struct CxxTokenizer;
 
     public:
         enum EParseType
@@ -27,8 +31,8 @@ namespace phantom
         static CxxDriver*   Instance() { return sm_pInstance; }
 
     public:
-        CxxDriver(const string& a_strName);
-        CxxDriver(const string& a_strName, Module* a_pCompilationModule);
+        CxxDriver(const string& a_strExpressionToParse);
+        CxxDriver(reflection::Source* a_pSource);
         ~CxxDriver();
         CxxLexer* getLexer() const { return m_pLexer; }
         CxxParser* getParser() const { return m_pParser; }
@@ -39,7 +43,9 @@ namespace phantom
             m_tokens->push_back(a_pToken);
         }
 
-        void increment_error_count();
+        bool isShaman() const { return true; }
+
+        void incrementErrorCount();
 
         bool waitForExpressionParsingStart() const { return m_eParseType == e_ParseType_Expression AND !m_bExpressionParsingStarted; }
 
@@ -55,7 +61,9 @@ namespace phantom
 
         void setParserDebugLevel(int level);
 
-        Module* getCompilationModule() const { return m_pCompilationModule; }
+        reflection::Source* getSource() const { return m_pSource; }
+
+        int     handleEndOfFile();
 
     protected:
         CxxParser* m_pParser;
@@ -65,7 +73,9 @@ namespace phantom
         EParseType m_eParseType;
         bool m_bExpressionParsingStarted;
         vector<CxxToken*>* m_tokens;
-        Module* m_pCompilationModule;
+        reflection::Source* m_pSource;
+        istream* m_pInputStream;
+        size_t m_uiInputStreamIndex;
         union 
         {
             CxxDeclarations* d;

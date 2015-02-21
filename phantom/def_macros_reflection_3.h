@@ -5,7 +5,7 @@
         friend class enclosed_reflection;\
         o_PP_CAT(attribute,__LINE__)()\
         {\
-            phantom::reflection::Types::currentInstalledClass->addAttribute(_name_, _variant_);\
+            phantom::reflection::native::currentClassType()->addAttribute(_name_, _variant_);\
         }\
     } o_PP_CAT(o_PP_CAT(attribute,__LINE__), _instance);
 
@@ -19,24 +19,23 @@ class o_PP_CAT(_name_,__LINE__) \
         {\
         auto pGetMemberFunction = phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,((_modifiers_&o_public_access)==o_public_access)?o_public_access:o_protected_access,_type_ ()>::CreateMemberFunction( \
         o_PP_QUOTE(_get_member_function_) \
-        , phantom::reflection::native::TNativeSignatureProvider<_type_ ()>::CreateSignature(o_PP_QUOTE(_type_) "()", phantom::reflection::Types::currentInstalledTemplateSpecialization, phantom::reflection::Types::currentInstalledClass) \
+        , phantom::reflection::native::TNativeSignatureProvider<_type_ ()>::CreateSignature(o_PP_QUOTE(_type_) "()", phantom::reflection::native::currentClassType()) \
         , &phantom_proxy_generator_reflection_proxy_type::_get_member_function_ \
-        ,((_modifiers_&o_public_access)==o_public_access)?o_public_access:o_protected_access);\
-        pGetMemberFunction->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-        phantom::reflection::Types::currentInstalledClass->addMemberFunction(pGetMemberFunction);\
+        ,((_modifiers_&o_protected_access)==o_protected_access)?o_protected_access:o_public_access);\
+        pGetMemberFunction->asLanguageElement()->addCodeLocation(phantom::nativeSource(__FILE__));\
+        phantom::reflection::native::currentClassType()->addMemberFunction(pGetMemberFunction);\
         auto pSetMemberFunction = phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value|o_slot_member_function,void (_type_)>::CreateMemberFunction( \
         o_PP_QUOTE(_set_member_function_) \
-        , phantom::reflection::native::TNativeSignatureProvider<void (_type_)>::CreateSignature("void" o_PP_QUOTE((_type_)), phantom::reflection::Types::currentInstalledTemplateSpecialization, phantom::reflection::Types::currentInstalledClass) \
+        , phantom::reflection::native::TNativeSignatureProvider<void (_type_)>::CreateSignature("void" o_PP_QUOTE((_type_)), phantom::reflection::native::currentClassType()) \
         , &phantom_proxy_generator_reflection_proxy_type::_set_member_function_ \
-        ,(((_modifiers_&o_public_access)==o_public_access)?o_public_access:o_protected_access)|o_slot_member_function);\
-        pSetMemberFunction->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-        phantom::reflection::Types::currentInstalledClass->addMemberFunction(pSetMemberFunction);\
+        ,(((_modifiers_&o_protected_access)==o_protected_access)?o_protected_access:o_public_access)|o_slot_member_function);\
+        pSetMemberFunction->asLanguageElement()->addCodeLocation(phantom::nativeSource(__FILE__));\
+        phantom::reflection::native::currentClassType()->addMemberFunction(pSetMemberFunction);\
         phantom::reflection::Type* pType = phantom::reflection::type_of<_type_>::object();\
         phantom::reflection::Signal* pSignal = phantom::reflection::native::TNativePropertySignalProvider<phantom_proxy_generator_reflection_self_type, _type_>::CreateSignal(\
         o_PP_QUOTE(_signal_)\
         , o_PP_QUOTE(_type_)\
-        , phantom::reflection::Types::currentInstalledTemplateSpecialization\
-        , phantom::reflection::Types::currentInstalledClass\
+        , phantom::reflection::native::currentClassType()\
         , &phantom_proxy_generator_reflection_proxy_type::_signal_\
         , &phantom_proxy_generator_reflection_proxy_type::PHANTOM_CODEGEN_m_slot_list_of_##_signal_\
         );\
@@ -45,8 +44,8 @@ class o_PP_CAT(_name_,__LINE__) \
         phantom_proxy_generator_reflection_self_type, _type_>) \
         ( pType\
         , o_PP_QUOTE(_name_)\
-        , pSetMemberFunction->asInstanceMemberFunction()\
-        , pGetMemberFunction->asInstanceMemberFunction()\
+        , pSetMemberFunction->asMemberFunction()\
+        , pGetMemberFunction->asMemberFunction()\
         , pSignal\
         , o_range _range_\
         , &phantom_proxy_generator_reflection_proxy_type::_set_member_function_\
@@ -54,8 +53,8 @@ class o_PP_CAT(_name_,__LINE__) \
         , _serialization_mask_\
         , _modifiers_\
         );\
-        pValueMember->addCodeLocation(phantom::sourceFile(__FILE__));\
-        phantom::reflection::Types::currentInstalledClass->addValueMember(pValueMember);\
+        pValueMember->addCodeLocation(phantom::nativeSource(__FILE__));\
+        phantom::reflection::native::currentClassType()->addValueMember(pValueMember);\
         }\
     } o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
 
@@ -72,16 +71,15 @@ class o_PP_CAT(_name_,__LINE__) \
             ( o_PP_QUOTE(_name_)\
             , phantom::reflection::native::TNativeSignatureProvider<phantom::signal_t _parameterslist_ >::CreateSignature(\
             "phantom::signal_t" o_PP_QUOTE(_parameterslist_)\
-            , phantom::reflection::Types::currentInstalledTemplateSpecialization\
-            , phantom::reflection::Types::currentInstalledClass\
+            , phantom::reflection::native::currentClassType()\
             )\
             , &phantom_proxy_generator_reflection_proxy_type::_name_\
             , &phantom_proxy_generator_reflection_proxy_type::PHANTOM_CODEGEN_m_slot_list_of_##_name_\
             , phantom::detail::int_embedder< __VA_ARGS__ >::value\
             );\
-            pSignal->addCodeLocation(phantom::sourceFile(__FILE__));\
-            o_assert(phantom::reflection::Types::currentInstalledClass->asClass(), "Cannot add signal to pod class");\
-            phantom::reflection::Types::currentInstalledClass->asClass()->addSignal(pSignal);\
+            pSignal->addCodeLocation(phantom::nativeSource(__FILE__));\
+            o_assert(phantom::reflection::native::currentClassType()->asClass(), "Cannot add signal to pod class");\
+            phantom::reflection::native::currentClassType()->asClass()->addSignal(pSignal);\
             }\
         } o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
 
@@ -98,10 +96,10 @@ class o_PP_CAT(_name_,__LINE__)\
             o_exception(phantom::exception::t_unknown_reflection_type_exception<_type_> \
             , "dataMember type "#_type_" (or its pointed type if it's a pointer type) must be declared previously with the macro o_declare provided by phantom so that it can be considered as a phantom type"); \
             }\
-            pDataMemberType->addReferenceCodeLocation(phantom::sourceFile(__FILE__));\
+            pDataMemberType->addReferenceCodeLocation(phantom::nativeSource(__FILE__));\
             auto pDataMember = phantom::reflection::native::TNativeDataMemberProvider< phantom_proxy_generator_reflection_self_type, _modifiers_, _type_ >::CreateDataMember(o_PP_QUOTE(_name_), pDataMemberType, &phantom_proxy_generator_reflection_proxy_type::_name_, o_range _range_, _serialization_mask_, _modifiers_);\
-            pDataMember->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::reflection::Types::currentInstalledClass->addDataMember(pDataMember);\
+            pDataMember->asLanguageElement()->addCodeLocation(phantom::nativeSource(__FILE__));\
+            phantom::reflection::native::currentClassType()->addDataMember(pDataMember);\
             }\
         } o_PP_CAT(o_PP_CAT(_name_,__LINE__),_instance);
 
@@ -114,11 +112,11 @@ class o_PP_CAT(member_function,__LINE__) \
             {\
             auto pMemberFunction = phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value,_returntype_ _parameterslist_>::CreateMemberFunction( \
             o_PP_QUOTE(_name_) \
-            , phantom::reflection::native::TNativeSignatureProvider<_returntype_ _parameterslist_>::CreateSignature(o_PP_QUOTE(_returntype_) "" o_PP_QUOTE(_parameterslist_), phantom::reflection::Types::currentInstalledTemplateSpecialization, phantom::reflection::Types::currentInstalledClass) \
+            , phantom::reflection::native::TNativeSignatureProvider<_returntype_ _parameterslist_>::CreateSignature(o_PP_QUOTE(_returntype_) "" o_PP_QUOTE(_parameterslist_), phantom::reflection::native::currentClassType()) \
             , &phantom_proxy_generator_reflection_proxy_type::_name_ \
             ,phantom::detail::int_embedder<__VA_ARGS__>::value);\
-            pMemberFunction->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::reflection::Types::currentInstalledClass->addMemberFunction(pMemberFunction);\
+            pMemberFunction->asLanguageElement()->addCodeLocation(phantom::nativeSource(__FILE__));\
+            phantom::reflection::native::currentClassType()->addMemberFunction(pMemberFunction);\
             }\
         } o_PP_CAT(member_function,__LINE__);
 
@@ -131,11 +129,11 @@ class o_PP_CAT(slot,__LINE__) \
             {\
             auto pMemberFunction = phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value|o_slot_member_function,_returntype_ _parameterslist_>::CreateMemberFunction( \
             o_PP_QUOTE(_name_) \
-            , phantom::reflection::native::TNativeSignatureProvider<_returntype_ _parameterslist_>::CreateSignature(o_PP_QUOTE(_returntype_) "" o_PP_QUOTE(_parameterslist_), phantom::reflection::Types::currentInstalledTemplateSpecialization, phantom::reflection::Types::currentInstalledClass) \
+            , phantom::reflection::native::TNativeSignatureProvider<_returntype_ _parameterslist_>::CreateSignature(o_PP_QUOTE(_returntype_) "" o_PP_QUOTE(_parameterslist_), phantom::reflection::native::currentClassType()) \
             , &phantom_proxy_generator_reflection_proxy_type::_name_ \
             ,phantom::detail::int_embedder<__VA_ARGS__>::value|o_slot_member_function);\
-            pMemberFunction->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::reflection::Types::currentInstalledClass->addMemberFunction(pMemberFunction);\
+            pMemberFunction->asLanguageElement()->addCodeLocation(phantom::nativeSource(__FILE__));\
+            phantom::reflection::native::currentClassType()->addMemberFunction(pMemberFunction);\
             }\
         } o_PP_CAT(slot,__LINE__);
 
@@ -145,9 +143,9 @@ class o_PP_CAT(o_global_value_Type,__LINE__) \
         friend class enclosed_reflection;\
         o_PP_CAT(o_global_value_Type,__LINE__)() \
             {\
-            auto pConstructor = o_new(phantom::reflection::native::TNativeConstructor<phantom_proxy_generator_reflection_self_type _parameterslist_>)(o_PP_QUOTE(o_local_value_ShortType), o_new(phantom::reflection::Signature)("_" o_PP_QUOTE(_parameterslist_), phantom::reflection::Types::currentInstalledTemplateSpecialization),phantom::detail::int_embedder<__VA_ARGS__>::value);\
-            pConstructor->addCodeLocation(phantom::sourceFile(__FILE__));\
-            phantom::reflection::Types::currentInstalledClass->addConstructor(pConstructor);\
+            auto pConstructor = o_new(phantom::reflection::native::TNativeConstructor<phantom_proxy_generator_reflection_self_type _parameterslist_>)(o_PP_QUOTE(o_local_value_ShortType), o_new(phantom::reflection::Signature)("_" o_PP_QUOTE(_parameterslist_)),phantom::detail::int_embedder<__VA_ARGS__>::value);\
+            pConstructor->addCodeLocation(phantom::nativeSource(__FILE__));\
+            phantom::reflection::native::currentClassType()->addConstructor(pConstructor);\
             }\
         } o_PP_CAT(o_PP_CAT(o_global_value_Type,__LINE__),_instance);
 

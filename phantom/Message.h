@@ -74,8 +74,6 @@ public:
 	virtual void			addChild(Message* a_pChild);
 	virtual void			removeChild(Message* a_pChild);
 
-    void                    removeAndDestroyAllChildCascade();
-
     Message*                clone() const;
 
     Message*                error(const variant& a_Data, const char* a_str, ...);
@@ -94,6 +92,8 @@ public:
     messages_def            messages() { return messages_def(this); }
     
     void                    copyChildrenTo(Message* a_pMessage) const;
+
+    void                    clear();
 
 protected:
 

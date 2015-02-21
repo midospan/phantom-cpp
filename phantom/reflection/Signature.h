@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_Signature_h__
 #define o_phantom_reflection_Signature_h__
@@ -42,16 +11,18 @@
 
 o_namespace_begin(phantom, reflection)
 
-class o_export Signature : public LanguageElement
+class o_export Signature : public NamedElement
 {
     o_language_element;
+
+    o_invalid_decl(Signature);
 
     friend class Subroutine;
 
 public:
     static Signature* Create( modifiers_t modifiers = 0 );
-    static Signature* Create( Type* a_pType, modifiers_t modifiers = 0 );
-    static Signature* Create( const char* a_pText, TemplateSpecialization* a_pTemplateSpecialization, LanguageElement* a_pScope, modifiers_t modifiers = 0 );
+    static Signature* Create( Type* a_pReturnType, modifiers_t modifiers = 0 );
+    static Signature* Create( Type* a_pReturnType, Type* a_pSingleParameterType, modifiers_t modifiers = 0 );
     
     enum EState
     {
@@ -88,23 +59,34 @@ public:
 
     Signature( modifiers_t modifiers = 0 );
     Signature( Type* a_pType, modifiers_t modifiers = 0 );
+    Signature( Type* a_pReturnType, Type* a_pSingleParameterType, modifiers_t modifiers = 0);
     Signature( Type* a_pType, const vector<Parameter*>& a_Parameters, modifiers_t modifiers = 0 );
-    Signature( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization = NULL, LanguageElement* a_pScope = (LanguageElement*)phantom::globalNamespace(), modifiers_t modifiers = 0 );
+    Signature( Type* a_pType, const vector<Type*>& a_Types, modifiers_t modifiers = 0 );
     o_destructor ~Signature(void);
 
     virtual Signature* asSignature() const { return (Signature*)this; }
 
-    virtual bool         equals(LanguageElement* a_pOther) const;
+    virtual bool        equals(LanguageElement* a_pOther) const;
+
+    bool                equals(Signature* a_pOther) const;
+
+    bool                matches(const vector<Type*>& parameterTypes, modifiers_t a_Modifiers) const;
+
+    bool                matches(const vector<Expression*>& arguments, modifiers_t a_Modifiers) const;
+
+    bool                matches(Signature* a_pOther) const { return matches(a_pOther->getParameterTypes(), a_pOther->getModifiers()); }
 
     virtual Signature*  clone() const;
 
-    void            parse( const string& a_strSignature, TemplateSpecialization* a_pTemplateSpecialization = NULL, LanguageElement* a_pScope = (LanguageElement*)phantom::globalNamespace() );
+    void            parse( const string& a_strSignature, LanguageElement* a_pFutureScope = nullptr );
 
     size_t          getParameterCount() const;
+    size_t          getMinimumNeededParameterCount() const;
     Parameter*      getParameter(size_t i) const { return m_Parameters[i]; }
     void            addParameter(Type* a_pParameterType, const string& a_strName = "", Expression* a_pDefaultValueExpression = nullptr);
     void            addParameter(Parameter* a_pParameter);
     Type*           getParameterType(size_t a_uiParamIndex) const;
+    vector<Type*>   getParameterTypes() const;
     const string&   getParameterName(size_t a_uiParamIndex) const;
     Expression*     getParameterDefaultValue(size_t a_uiParamIndex) const;
     void            setReturnType(Type* a_pType);
@@ -115,18 +97,27 @@ public:
     virtual string  getDecoratedName() const;
     virtual string  getQualifiedDecoratedName() const;
 
-    bool            matches(const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes = nullptr) const;
-    bool            matches(const vector<Expression*>& a_Arguments, vector<size_t>* a_pPartialMatchesIndexes = nullptr) const;
-    bool            matches( Signature* a_pOther ) const;
+    size_t          getRequiredArgumentCount() const;
+
+    void            implicitConversions(Language* a_pLanguage, const vector<Type*>& a_ArgumentTypes, LanguageElement* a_pContextScope, conversions& a_ImplicitConversions) const;
+    void            implicitConversions(Language* a_pLanguage, const vector<Expression*>& a_Arguments, LanguageElement* a_pContextScope, conversions& a_ImplicitConversions) const;
+
+    void            implicitConversions(const vector<Type*>& a_ArgumentTypes, LanguageElement* a_pContextScope, conversions& a_ImplicitConversions) const;
+    void            implicitConversions(const vector<Expression*>& a_Arguments, LanguageElement* a_pContextScope, conversions& a_ImplicitConversions) const;
+
+    bool            hasEllipsis() const;
 
     vector<Parameter*>::const_iterator beginParameters() const { return m_Parameters.begin(); }
     vector<Parameter*>::const_iterator endParameters() const { return m_Parameters.end(); }
 
+    Subroutine*     getOwnerSubroutine() const { return m_pOwner ? m_pOwner->asSubroutine() : nullptr; }
+
 protected:
-    static bool SeparateParameters(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<string>& a_OutParameters, LanguageElement* a_pScope);
-    static bool ParseParameterTypeList(const string& a_strText, TemplateSpecialization* a_pTemplateSpecialization, vector<Type*>& a_OutParameterTypes, vector<string>& a_OutParameterNames, vector<Expression*>& a_OutParameterExps, LanguageElement* a_pScope);
+    bool separateParameters(const string& a_strText, vector<string>& a_OutParameters);
+    bool parseParameterTypeList(const string& a_strText, vector<Type*>& a_OutParameterTypes, vector<string>& a_OutParameterNames, vector<Expression*>& a_OutParameterExps);
 
     void referencedElementRemoved(LanguageElement* a_pElement);
+    void elementRemoved(LanguageElement* a_pElement);
 
     void setReturnTypeName(string name);
 
@@ -135,8 +126,6 @@ protected:
     vector<Parameter*> getParameters() const { return m_Parameters; }
 
     void setParameters(vector<Parameter*> parameters) { m_Parameters = parameters; } 
-
-    virtual void finalize();
 
 protected:
     Type*               m_pReturnType;

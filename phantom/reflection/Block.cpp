@@ -20,18 +20,21 @@ o_registerN((phantom, reflection), Block);
 o_namespace_begin(phantom, reflection) 
 
 Block::Block()
+: Scope(this)
 {
 
 }
 
 Block::Block(Block* a_pBlock, const string& a_strName)
-    : Statement(a_strName)
+    : Scope(this)
+    , m_strName(a_strName)
 {
     o_assert(a_pBlock);
     a_pBlock->addStatement(this);
 }
 
 Block::Block( Subroutine* a_pSubroutine, LocalVariable* a_pThis )
+    : Scope(this)
 {
     a_pSubroutine->setBlock(this);
     if(a_pThis)
@@ -68,12 +71,12 @@ void Block::addLocalVariable( LocalVariable* a_pVariable )
         Class* pClass = a_pVariable->getValueType() ? a_pVariable->getValueType()->asClass() : nullptr;
         if(pClass)
         {
-            addRAIIDestructionExpressionStatement(o_new(CallExpression)(pClass->getDestructor(), a_pVariable->createExpression()->address()));
+            addRAIIDestructionExpressionStatement(o_new(CallExpression)(pClass->getDestructor(), a_pVariable->toExpression()->address()));
         }
     }
     if(a_pVariable->asParameter() == nullptr) // parameters are owned by signature
     {
-        addElement(a_pVariable);
+        addNamedElement(a_pVariable);
     }
     else 
     {
@@ -91,8 +94,8 @@ LocalVariable* Block::getLocalVariableCascade( const string& a_strName ) const
 	LocalVariable* pResult = getLocalVariable(a_strName);
 	return pResult 
             ? pResult 
-            : getBlock() 
-                ? getBlock()->getLocalVariableCascade(a_strName) 
+            : getEnclosingBlock() 
+                ? getEnclosingBlock()->getLocalVariableCascade(a_strName) 
                 : nullptr;
 }
 
@@ -110,39 +113,42 @@ LocalVariable* Block::getLocalVariable( const string& a_strName ) const
 
 void Block::getAccessibleLocalVariables( vector<LocalVariable*>& out, const CodePosition& position ) const
 {
-    if(getBlock()) getBlock()->getAccessibleLocalVariables(out, position);
-    for(auto it = m_LocalVariables.begin(); it != m_LocalVariables.end(); ++it)
-    {
-        LocalVariable* pLocalVariable = *it;
-        if(pLocalVariable->isAccessibleAtCodePosition(position))
-        {
-            out.push_back(pLocalVariable);
-        }
-    }
+    /// TODO : CODE POSITION
+//     if(getEnclosingBlock()) getEnclosingBlock()->getAccessibleLocalVariables(out, position);
+//     for(auto it = m_LocalVariables.begin(); it != m_LocalVariables.end(); ++it)
+//     {
+//         LocalVariable* pLocalVariable = *it;
+//         if(pLocalVariable->isAccessibleAtCodePosition(position))
+//         {
+//             out.push_back(pLocalVariable);
+//         }
+//     }
 }
 
 LocalVariable* Block::getAccessibleLocalVariable( const string& a_strName, const CodePosition& a_Position ) const
 {
-    LocalVariable* pLocalVariable = getLocalVariable(a_strName);
-    if(pLocalVariable && pLocalVariable->isAccessibleAtCodePosition(a_Position)) return pLocalVariable;
-    return getBlock() ? getBlock()->getAccessibleLocalVariable(a_strName, a_Position) : nullptr;
+    /// TODO : CODE POSITION
+//     LocalVariable* pLocalVariable = getLocalVariable(a_strName);
+//     if(pLocalVariable && pLocalVariable->isAccessibleAtCodePosition(a_Position)) return pLocalVariable;
+    return /*getEnclosingBlock() ? getEnclosingBlock()->getAccessibleLocalVariable(a_strName, a_Position) :*/ nullptr;
 }
 
 Block* Block::findBlockAtCodePosition( const CodePosition& a_Position ) const
 {
-    if(containsCodePosition(a_Position))
-    {
-        for(auto it = m_Statements.begin(); it != m_Statements.end(); ++it)
-        {
-            Block* pChildBlock = (*it)->asBlock();
-            if(pChildBlock)
-            {
-                Block* pBlock = pChildBlock->findBlockAtCodePosition(a_Position);
-                if(pBlock) return pBlock;
-            }
-        }
-        return const_cast<Block*>(this);
-    }
+    /// TODO : CODE POSITION
+//     if(containsCodePosition(a_Position))
+//     {
+//         for(auto it = m_Statements.begin(); it != m_Statements.end(); ++it)
+//         {
+//             Block* pChildBlock = (*it)->asBlock();
+//             if(pChildBlock)
+//             {
+//                 Block* pBlock = pChildBlock->findBlockAtCodePosition(a_Position);
+//                 if(pBlock) return pBlock;
+//             }
+//         }
+//         return const_cast<Block*>(this);
+//     }
     return nullptr;
 }
 
@@ -167,7 +173,9 @@ Subroutine* Block::getSubroutine() const
 
 bool Block::containsLine( int line ) const
 {
-    return getCodeLocation().containsLine(line);
+    /// TODO : CODE POSITION
+    return false;
+    // return getCodeLocation().containsLine(line);
 }
 
 void Block::getAccessibleElementsAt( const CodePosition& a_Position, vector<LanguageElement*>& a_Elements ) const
@@ -242,7 +250,7 @@ void Block::addExpressionStatement( Expression* a_pExpression )
 
 void Block::addExpressionStatement( const string& a_strExpression )
 {
-    addExpressionStatement(expressionByName(a_strExpression));
+    addExpressionStatement(expressionByName(a_strExpression, this));
 }
 
 void Block::setLocalVariables(vector<LocalVariable*> list)
@@ -462,12 +470,12 @@ void Block::addWhileStatement( const string& a_strTest, Block** a_ppBlock )
     addWhileStatement(pLocalVariable, pTestExpression, a_ppBlock);
 }
 
-void Block::addWhileStatement( Type* a_pInitType, const string& a_strName, Expression* a_pTextExpression, Block** a_ppBlock )
+void Block::addWhileStatement( Type* a_pInitType, const string& a_strName, Expression* a_pTestExpression, Block** a_ppBlock )
 {
-    addWhileStatement(o_new(LocalVariable)(a_pInitType, a_strName), a_pTextExpression, a_ppBlock);
+    addWhileStatement(o_new(LocalVariable)(a_pInitType, a_strName), a_pTestExpression, a_ppBlock);
 }
 
-void Block::addWhileStatement( LocalVariable* a_pLocalVariable, Expression* a_pTextExpression, Block** a_ppBlock )
+void Block::addWhileStatement( LocalVariable* a_pLocalVariable, Expression* a_pTestExpression, Block** a_ppBlock )
 {
     Block* pWhileStatement = o_new(Block)(this, "while");
     addStatement(pWhileStatement);
@@ -476,23 +484,7 @@ void Block::addWhileStatement( LocalVariable* a_pLocalVariable, Expression* a_pT
         pWhileStatement->addLocalVariable(a_pLocalVariable);
     }
 
-    Expression* pCondition = a_pTextExpression;
-
-    if(pCondition)
-    {
-        if(NOT(pCondition->getValueType()->isConvertibleTo(typeOf<bool>())))
-        {
-            pWhileStatement->setInvalid();
-            // error(node_location(ws.m_condition), "Cannot convert from '%s' to 'bool' in while condition", pCondition->getValueType()->getQualifiedDecoratedName().c_str());
-        }
-    }
-    else 
-    {
-        pWhileStatement->setInvalid();
-        // error(node_location(ws.m_condition), "Invalid while condition");
-    }
-
-    Expression* pConditionClone = pCondition ? pCondition->clone() : nullptr;
+    Expression* pCondition = a_pTestExpression->convert(typeOf<bool>(), e_implicit_conversion, this);
 
     LabelStatement*     pBreakLabelStatement = o_new(LabelStatement)("break");
     LabelStatement*     pContinueLabelStatement = o_new(LabelStatement)("continue");
@@ -501,7 +493,7 @@ void Block::addWhileStatement( LocalVariable* a_pLocalVariable, Expression* a_pT
     BranchIfNotStatement* pBranchIfNotStatement = o_new(BranchIfNotStatement)(pCondition);
     pBranchIfNotStatement->setLabelStatement(pBreakLabelStatement);
 
-    BranchIfStatement* pBranchIfStatement = o_new(BranchIfStatement)(pConditionClone);
+    BranchIfStatement* pBranchIfStatement = o_new(BranchIfStatement)(pCondition);
     pBranchIfStatement->setLabelStatement(pCodeStartLabelStatement);
     
     // Branch to break if test fails
@@ -550,12 +542,12 @@ void Block::addIfStatement( const string& a_strTest, Block** a_ppThen, Block** a
     addIfStatement(pLocalVariable, pTestExpression, a_ppThen, a_ppElse);
 }
 
-void Block::addIfStatement( Type* a_pInitType, const string& a_strName, Expression* a_pTextExpression, Block** a_ppThen, Block** a_ppElse )
+void Block::addIfStatement( Type* a_pInitType, const string& a_strName, Expression* a_pTestExpression, Block** a_ppThen, Block** a_ppElse )
 {
-    addIfStatement(o_new(LocalVariable)(a_pInitType, a_strName), a_pTextExpression, a_ppThen, a_ppElse);
+    addIfStatement(o_new(LocalVariable)(a_pInitType, a_strName), a_pTestExpression, a_ppThen, a_ppElse);
 }
 
-void Block::addIfStatement( LocalVariable* a_pLocalVariable, Expression* a_pTextExpression, Block** a_ppThen, Block** a_ppElse )
+void Block::addIfStatement( LocalVariable* a_pLocalVariable, Expression* a_pTestExpression, Block** a_ppThen, Block** a_ppElse )
 {
     Block* pIfStatement = o_new(Block)(this, "if");
     addStatement(pIfStatement);
@@ -563,7 +555,7 @@ void Block::addIfStatement( LocalVariable* a_pLocalVariable, Expression* a_pText
     {
         pIfStatement->addLocalVariable(a_pLocalVariable);
     }
-    Expression* pCondition = a_pTextExpression;
+    Expression* pCondition = a_pTestExpression;
     if(pCondition == nullptr)
     {
         pIfStatement->setInvalid();
@@ -602,9 +594,9 @@ void Block::addRAIIDestructionExpressionStatement( Expression* a_pExpression )
 void Block::getRAIIDestructionStatementsCascade( vector<Statement*>& out ) const
 {
     out.insert(out.end(), m_RAIIDestructionStatements.begin(), m_RAIIDestructionStatements.end());
-    if(getBlock())
+    if(getParentBlock())
     {
-        getBlock()->getRAIIDestructionStatementsCascade(out);
+        getParentBlock()->getRAIIDestructionStatementsCascade(out);
     }
 }
 
@@ -614,6 +606,21 @@ void Block::referencedElementRemoved( LanguageElement* a_pElement )
     {
         m_LocalVariables.erase(std::find(m_LocalVariables.begin(), m_LocalVariables.end(), a_pElement->asParameter()));
     }
+}
+
+void Block::insertStatementAfter( Statement* a_pAfterMe, Statement* a_pStatement )
+{
+    for(auto it = m_Statements.begin(); it != m_Statements.end(); ++it)
+    {
+        if(*it == a_pAfterMe)
+        {
+            ++it;
+            m_Statements.insert(it, a_pStatement);
+            addElement(a_pStatement);
+            return;
+        }
+    }
+    o_assert(false);
 }
 
 o_namespace_end(phantom, reflection)

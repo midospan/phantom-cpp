@@ -9,7 +9,7 @@ o_registerN((phantom, reflection), DataMemberPointerExpression);
 o_namespace_begin(phantom, reflection)
     
 DataMemberPointerExpression::DataMemberPointerExpression( DataMemberPointerType* a_pDataMemberPointerType, Expression* a_pObjectExpression, Expression* a_pMemberExpression ) 
-    : Expression(a_pDataMemberPointerType->getValueType()->referenceType())
+    : Expression(a_pDataMemberPointerType->getValueType()->lvalueReferenceType())
     , m_pDataMemberPointerType(a_pDataMemberPointerType)
     , m_pObjectExpression(a_pObjectExpression)
     , m_pMemberExpression(a_pMemberExpression)

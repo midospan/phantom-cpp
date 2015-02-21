@@ -2,8 +2,10 @@
 #include "phantom/phantom.h"
 #include "Selection.h"
 #include "Selection.hxx"
+#include "phantom/vector.hxx"
 /* *********************************************** */
 o_registerN((phantom), Selection);
+o_registerNTI((phantom), vector, (phantom::data));
 
 o_namespace_begin(phantom)
 

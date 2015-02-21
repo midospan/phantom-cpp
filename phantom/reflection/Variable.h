@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_Variable_h__
 #define o_phantom_reflection_Variable_h__
@@ -38,35 +7,66 @@
 
 /* ****************** Includes ******************* */
 
-
 /* **************** Declarations ***************** */
+
 /* *********************************************** */
 
 o_namespace_begin(phantom, reflection)
 
-class o_export Variable : public LanguageElement
+class o_export Variable : public NamedElement
 {
+    o_language_element;
+
+    o_declare_meta_type(Variable);
+
+    friend class AnonymousSection;
+
 public:
     Variable();
-    Variable(const string& a_strName, modifiers_t a_Modifiers = 0);
-    Variable(const string& a_strName, Range* a_pRange, modifiers_t a_Modifiers = 0);
+    Variable(Type* a_pValueType, const string& a_strName, modifiers_t a_Modifiers = 0);
+    Variable(Type* a_pValueType, const string& a_strName, Range* a_pRange = nullptr, modifiers_t a_Modifiers = 0);
+    Variable(void* a_pAddress, Range* a_pRange = nullptr, modifiers_t a_Modifiers = 0);
+    Variable(void* a_pAddress, Type* a_pValueType, Range* a_pRange = nullptr, modifiers_t a_Modifiers = 0);
+    Variable(void* a_pAddress, Type* a_pValueType, const string& a_strName, Range* a_pRange = nullptr, modifiers_t a_Modifiers = 0);
 
-    virtual void            getValue(void* a_pDest) const = 0;
+public:
+    o_destructor ~Variable(void);
+    
+    virtual Variable*           asVariable() const  { return (Variable*)this; }
+    virtual StaticDataMember*   asStaticDataMember() const  { return (m_pOwner == nullptr OR m_pOwner->asClassType()) ? (StaticDataMember*)this : nullptr; }
 
-    virtual void            setValue(void const* a_pSrc) const = 0;
+    void*           getAddress() const { return m_pAddress; }
+    Type*           getValueType() const { return m_pValueType; }
+    Range*          getRange() const { return m_pRange; }
+    void            setRange(Range* a_pRange);
 
-    Range*                  getRange() const { return m_pRange; }
+    void            setValue(void const* a_pSrc) const 
+    {
+        m_pValueType->copy(m_pAddress, a_pSrc);
+    }
 
-    virtual Variable*       asVariable() const  { return (Variable*)this; }
+    void            getValue(void* a_pDest) const 
+    {
+        m_pValueType->copy(a_pDest, m_pAddress);
+    }
 
-    virtual Variable*       clone() const = 0;
+    virtual Expression* toExpression(Expression* a_pLeftExpression) const;
 
 protected:
-    connection::slot::list        PHANTOM_CODEGEN_m_slot_list_of_valueChanged;
-    phantom::signal_t valueChanged();
+    void            setAddress(void* a_pAddress) { m_pAddress = a_pAddress; }
 
 protected:
-    Range* m_pRange;
+    virtual void    referencedElementRemoved(LanguageElement* a_pElement);
+    void            setValueTypeName(string str);
+    string          getValueTypeName() const;
+    virtual void    finalize();
+
+protected:
+    Type*       m_pValueType;
+    Range*      m_pRange;
+    void*       m_pAddress;
+    string*     m_pValueTypeName;
+    AnonymousSection* m_pAnonymousSection;
 };
 
 o_namespace_end(phantom, reflection)

@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_Subroutine_h__
 #define o_phantom_reflection_Subroutine_h__
@@ -37,7 +6,7 @@
 
 
 /* ****************** Includes ******************* */
-#include <phantom/reflection/LanguageElement.h>
+
 /* **************** Declarations ***************** */
 
 /* *********************************************** */
@@ -109,7 +78,7 @@ public:
     int getOpCode() const { return m_iOpcode; }
     const CodeLocation&     getCodeLocation() const { return m_CodeLocation; }
     const MemoryLocation&   getMemoryLocation() const { return m_MemoryLocation; }
-    SourceFile* getSourceFile() const { return m_CodeLocation.getSourceFile(); }
+    Source* getSource() const { return m_CodeLocation.getSource(); }
 
     byte* getMemoryStart() const { return m_MemoryLocation.getStart(); }
     byte* getMemoryEnd() const { return m_MemoryLocation.getEnd(); }
@@ -132,9 +101,20 @@ protected:
     mutable void*   m_pUserData;
 };
 
-class o_export Subroutine : public LanguageElement
+enum ESignatureRelation
+{
+    e_SignatureRelation_None = 0,
+    e_SignatureRelation_Equal,
+    e_SignatureRelation_Covariant,
+    e_SignatureRelation_Contravariant,
+    e_SignatureRelation_Forbidden,
+};
+
+class o_export Subroutine : public NamedElement, public Callable
 {
     o_language_element;
+
+    o_invalid_decl(Subroutine);
 
     friend class Block;
     friend class LabelStatement;
@@ -143,36 +123,53 @@ class o_export Subroutine : public LanguageElement
 
 public:
     Subroutine();
-    Subroutine(EABI a_eABI);
+    Subroutine(const string& a_strName, EABI a_eABI, modifiers_t a_Modifiers = 0);
     Subroutine(const string& a_strName, Signature* a_pSignature, EABI a_eABI, modifiers_t a_Modifiers = 0);
+    Subroutine(LanguageElement* a_pScope, const string& a_strName, const string& a_strSignature, EABI a_eABI, modifiers_t a_Modifiers = 0);
     o_destructor ~Subroutine();
 
     o_terminate();
 
     EABI                getABI() const { return m_eABI; }
 
+
+    virtual LanguageElement* asLanguageElement() const { return const_cast<Subroutine*>(this); }
+    virtual Callable*   asCallable() const { return const_cast<Subroutine*>(this); }
     virtual Subroutine* asSubroutine() const { return const_cast<Subroutine*>(this); }
 
     inline Signature*   getSignature() const { return m_pSignature; }
     void                setSignature(Signature* a_pSignature) { m_pSignature = a_pSignature; }
 
+    ESignatureRelation  getSignatureRelationWith( const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers ) const;
+    ESignatureRelation  getSignatureRelationWith( Subroutine* a_pSubroutine ) const;
+    ESignatureRelation  getSignatureRelationWith( Type* a_pReturnType, const string& a_strName, const vector<Type*>& a_Types, modifiers_t a_Modifiers ) const;
+
     virtual string      getDecoratedName() const;
     virtual string      getQualifiedName() const;
     virtual string      getQualifiedDecoratedName() const;
 
-    Type*               getParameterType(uint i) const { return m_pSignature ? m_pSignature->getParameterType(i) : nullptr; }
-    uint                getParameterCount() const { return m_pSignature ?m_pSignature->getParameterCount() : 0; }
+    virtual vector<Type*> getParameterTypes() const { return m_pSignature->getParameterTypes(); }
+    virtual Type*         getParameterType(size_t i) const { return m_pSignature ? m_pSignature->getParameterType(i) : nullptr; }
+    virtual Parameter*    getParameter(size_t i) const { return m_pSignature ? m_pSignature->getParameter(i) : nullptr; }
+    virtual size_t        getParameterCount() const { return m_pSignature ? m_pSignature->getParameterCount() : 0; }
+    virtual size_t        getMinimumNeededParameterCount() const { return m_pSignature ?m_pSignature->getMinimumNeededParameterCount() : 0; }
 
-    Type*               getReturnType() const    {        return m_pSignature ? m_pSignature->getReturnType() : nullptr;    }
-    
-    bool                matches( const string& a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatches, modifiers_t a_Modifiers /*= 0*/ ) const;
+    virtual bool        matches(const vector<Type*>& parameterTypes, modifiers_t a_Modifiers) const;
+    virtual bool        matches(const vector<LanguageElement*>& templateArguments, const vector<Type*>& parameterTypes, modifiers_t a_Modifiers) const;
+    bool                matches(const string& a_strName, const vector<Type*>& a_FunctionSignature, modifiers_t a_Qualifiers = 0 ) const;
+
+    Type*               getReturnType() const    { return m_pSignature ? m_pSignature->getReturnType() : nullptr; }
 
     virtual void        call( void* a_pCallerAddress, void** a_pArgs ) const;
     virtual void        call( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const;
+    virtual void        placementCall( void* a_pCallerAddress, void** a_pArgs, void* a_pReturnAddress ) const;
+
     virtual void        call( void** a_pArgs ) const;
     virtual void        call( void** a_pArgs, void* a_pReturnAddress ) const;
-    
+    virtual void        placementCall( void** a_pArgs, void* a_pReturnAddress ) const;
+
     void                call( void** a_pArgs, size_t a_uiCount, void* a_pReturnAddress ) const;
+    void                placementCall( void** a_pArgs, size_t a_uiCount, void* a_pReturnAddress ) const;
 
     void                setMemoryLocation(const MemoryLocation& a_MemoryLocation ) { m_MemoryLocation = a_MemoryLocation; }
     const MemoryLocation& getMemoryLocation() const { return m_MemoryLocation; }
@@ -208,6 +205,8 @@ public:
 
     virtual Block*      createBlock() { return createBlock(nullptr); }
 
+    virtual Expression* createCallExpression(const vector<Expression*>& arguments) const;
+
     bool                containsMemoryAddress(const byte* a_pAddress);
 
     virtual void*       getAddress(void* a_pObject, void** a_pParams) const
@@ -220,7 +219,7 @@ public:
         return nullptr;
     }
 
-    virtual bool        isAddressable() const { return getReturnType() ? getReturnType()->removeConst()->asReferenceType() != nullptr : false; }
+    virtual bool        isAddressable() const { return getReturnType() ? getReturnType()->removeConst()->asLValueReferenceType() != nullptr : false; }
 
     virtual void*       getClosure() const { return m_pClosure; }
 
@@ -235,12 +234,12 @@ public:
     LabelStatement*     getLabelStatement(size_t a_uiIndex) const { return m_pLabelStatements ? (*m_pLabelStatements)[a_uiIndex] : nullptr; }
 
 protected:
+    Subroutine(EABI a_eABI, modifiers_t a_Modifiers = 0);
     virtual void        referencedElementRemoved(LanguageElement* a_pElement);
     void                registerLabelStatement(LabelStatement* a_pLabelStatement);
     void                unregisterLabelStatement(LabelStatement* a_pLabelStatement);
     virtual void        finalize();
     Block*              createBlock(LocalVariable* a_pThis);
-
 protected:
     Signature*                      m_pSignature;
     EABI                            m_eABI;

@@ -2,9 +2,4 @@
 
 #include "DataBaseCommand.hxx"
 
-o_classNB((phantom, qt), ExpressionCommand, (DataBaseCommand))
-{
-	o_reflection
-	{
-	};
-};
+o_classNB((phantom, qt), ExpressionCommand, (DataBaseCommand))()

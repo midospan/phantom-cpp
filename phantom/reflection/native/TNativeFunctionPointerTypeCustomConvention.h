@@ -12,8 +12,13 @@ public:
     typedef TNativeFunctionPointerType<t_ReturnType (o_convention_keyword *)()>    self_type;
     typedef typename native_function_pointer_type<o_convention_id, t_ReturnType (o_convention_keyword *)()>::type function_pointer_t;
 
-    TNativeFunctionPointerType()
+    TNativeFunctionPointerType(modifiers_t a_Modifiers = 0)
         : TNativeFunctionPointerType0<o_convention_id, t_ReturnType>(TNativeSignatureProvider<t_ReturnType()>::CreateSignature(), a_Modifiers|o_native)
+    {
+
+    }
+    TNativeFunctionPointerType(Signature* a_pSignature, modifiers_t a_Modifiers = 0)
+        :TNativeFunctionPointerType0<o_convention_id, t_ReturnType>(a_pSignature, a_Modifiers|o_native)
     {
 
     }
@@ -27,8 +32,13 @@ public:
     typedef TNativeFunctionPointerType<t_ReturnType (o_convention_keyword *)(t_Param0)>    self_type;
     typedef typename native_function_pointer_type<o_convention_id, t_ReturnType (o_convention_keyword *)(t_Param0)>::type function_pointer_t;
 
-    TNativeFunctionPointerType()
+    TNativeFunctionPointerType(modifiers_t a_Modifiers = 0)
         :TNativeFunctionPointerType1<o_convention_id, t_ReturnType,t_Param0>(TNativeSignatureProvider<t_ReturnType(t_Param0)>::CreateSignature(), a_Modifiers|o_native)
+    {
+
+    }
+    TNativeFunctionPointerType(Signature* a_pSignature, modifiers_t a_Modifiers = 0)
+        :TNativeFunctionPointerType1<o_convention_id, t_ReturnType, t_Param0>(a_pSignature, a_Modifiers|o_native)
     {
 
     }
@@ -42,8 +52,13 @@ public:
     typedef TNativeFunctionPointerType<t_ReturnType (o_convention_keyword *)(t_Param0, t_Param1)>    self_type;
     typedef typename native_function_pointer_type<o_convention_id, t_ReturnType (o_convention_keyword *)(t_Param0, t_Param1)>::type function_pointer_t;
 
-    TNativeFunctionPointerType()
+    TNativeFunctionPointerType(modifiers_t a_Modifiers = 0)
         :TNativeFunctionPointerType2<o_convention_id, t_ReturnType,t_Param0,t_Param1>(TNativeSignatureProvider<t_ReturnType(t_Param0,t_Param1)>::CreateSignature(), a_Modifiers|o_native)
+    {
+
+    }
+    TNativeFunctionPointerType(Signature* a_pSignature, modifiers_t a_Modifiers = 0)
+        :TNativeFunctionPointerType2<o_convention_id, t_ReturnType, t_Param0, t_Param1>(a_pSignature, a_Modifiers|o_native)
     {
 
     }
@@ -62,8 +77,13 @@ public:
     typedef TNativeFunctionPointerType<t_ReturnType (o_convention_keyword *)(t_Param0, t_Param1, t_Param2)>    self_type;
     typedef typename native_function_pointer_type<o_convention_id, t_ReturnType (o_convention_keyword *)(t_Param0, t_Param1,t_Param2)>::type function_pointer_t;
 
-    TNativeFunctionPointerType()
+    TNativeFunctionPointerType(modifiers_t a_Modifiers = 0)
         :TNativeFunctionPointerType3<o_convention_id, t_ReturnType, t_Param0, t_Param1, t_Param2>(TNativeSignatureProvider<t_ReturnType(t_Param0,t_Param1,t_Param2)>::CreateSignature(), a_Modifiers|o_native)
+    {
+
+    }
+    TNativeFunctionPointerType(Signature* a_pSignature, modifiers_t a_Modifiers = 0)
+        :TNativeFunctionPointerType3<o_convention_id, t_ReturnType, t_Param0, t_Param1, t_Param2>(a_pSignature, a_Modifiers|o_native)
     {
 
     }
@@ -84,8 +104,13 @@ public:
     typedef TNativeFunctionPointerType<t_ReturnType (o_convention_keyword *)(t_Param0, t_Param1, t_Param2,t_Param3)>    self_type;
     typedef typename native_function_pointer_type<o_convention_id, t_ReturnType (o_convention_keyword *)(t_Param0, t_Param1,t_Param2,t_Param3)>::type function_pointer_t;
 
-    TNativeFunctionPointerType()
+    TNativeFunctionPointerType(modifiers_t a_Modifiers = 0)
         :TNativeFunctionPointerType4<o_convention_id, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>(TNativeSignatureProvider<t_ReturnType(t_Param0, t_Param1, t_Param2, t_Param3)>::CreateSignature(), a_Modifiers|o_native)
+    {
+
+    }
+    TNativeFunctionPointerType(Signature* a_pSignature, modifiers_t a_Modifiers = 0)
+        :TNativeFunctionPointerType4<o_convention_id, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3>(a_pSignature, a_Modifiers|o_native)
     {
 
     }
@@ -106,8 +131,13 @@ public:
     typedef TNativeFunctionPointerType<t_ReturnType (o_convention_keyword *)(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4)>    self_type;
     typedef typename native_function_pointer_type<o_convention_id, t_ReturnType (o_convention_keyword *)(t_Param0, t_Param1,t_Param2,t_Param3,t_Param4)>::type function_pointer_t;
 
-    TNativeFunctionPointerType()
+    TNativeFunctionPointerType(modifiers_t a_Modifiers = 0)
         :TNativeFunctionPointerType5<o_convention_id, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(TNativeSignatureProvider<t_ReturnType(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4)>::CreateSignature(), a_Modifiers|o_native)
+    {
+
+    }
+    TNativeFunctionPointerType(Signature* a_pSignature, modifiers_t a_Modifiers = 0)
+        :TNativeFunctionPointerType5<o_convention_id, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4>(a_pSignature, a_Modifiers|o_native)
     {
 
     }
@@ -129,8 +159,13 @@ public:
     typedef TNativeFunctionPointerType<t_ReturnType (o_convention_keyword *)(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5)>    self_type;
     typedef typename native_function_pointer_type<o_convention_id, t_ReturnType (o_convention_keyword *)(t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5)>::type function_pointer_t;
 
-    TNativeFunctionPointerType()
+    TNativeFunctionPointerType(modifiers_t a_Modifiers = 0)
         :TNativeFunctionPointerType6<o_convention_id, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(TNativeSignatureProvider<t_ReturnType(t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5)>::CreateSignature(), a_Modifiers|o_native)
+    {
+
+    }
+    TNativeFunctionPointerType(Signature* a_pSignature, modifiers_t a_Modifiers = 0)
+        :TNativeFunctionPointerType6<o_convention_id, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5>(a_pSignature, a_Modifiers|o_native)
     {
 
     }
@@ -153,8 +188,13 @@ public:
     typedef TNativeFunctionPointerType<t_ReturnType (o_convention_keyword *)(t_Param0, t_Param1, t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)>    self_type;
     typedef typename native_function_pointer_type<o_convention_id, t_ReturnType (o_convention_keyword *)(t_Param0, t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)>::type function_pointer_t;
 
-    TNativeFunctionPointerType()
+    TNativeFunctionPointerType(modifiers_t a_Modifiers = 0)
         :TNativeFunctionPointerType7<o_convention_id, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(TNativeSignatureProvider<t_ReturnType(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6)>::CreateSignature(), a_Modifiers|o_native)
+    {
+
+    }
+    TNativeFunctionPointerType(Signature* a_pSignature, modifiers_t a_Modifiers = 0)
+        :TNativeFunctionPointerType7<o_convention_id, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6>(a_pSignature, a_Modifiers|o_native)
     {
 
     }
@@ -181,6 +221,11 @@ public:
 
     TNativeFunctionPointerType()
         :TNativeFunctionPointerType8<o_convention_id, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(TNativeSignatureProvider<t_ReturnType(t_Param0,t_Param1,t_Param2,t_Param3,t_Param4,t_Param5,t_Param6,t_Param7)>::CreateSignature(), a_Modifiers|o_native)
+    {
+
+    }
+    TNativeFunctionPointerType(Signature* a_pSignature, modifiers_t a_Modifiers = 0)
+        :TNativeFunctionPointerType8<o_convention_id, t_ReturnType, t_Param0, t_Param1, t_Param2, t_Param3,t_Param4,t_Param5,t_Param6,t_Param7>(a_pSignature, a_Modifiers|o_native)
     {
 
     }

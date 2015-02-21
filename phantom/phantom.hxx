@@ -1,7 +1,3 @@
-#ifndef WIN32
-	#define __stdcall
-#endif
-
 o_classN((phantom, memory), malloc_free_allocator_for_boost)
 (
         );
@@ -25,4 +21,4 @@ o_public:
 );
 
 #include "phantom/util/Comparator.hxx"
-#include "phantom/Module.hxx"
+#include "phantom/reflection/Module.hxx"

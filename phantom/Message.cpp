@@ -23,7 +23,7 @@ Message::Message(EMessageType a_eType, const string& a_strText)
 
 Message::~Message()
 {
-	removeAndDestroyAllChildCascade();
+	clear();
 }
 
 
@@ -152,12 +152,12 @@ void Message::removeChild(Message* a_pChild)
     m_Children.erase(it);
 }
 
-void Message::removeAndDestroyAllChildCascade()
+void Message::clear()
 {
     MessageVector::iterator it = m_Children.begin();
     for(; it != m_Children.end(); ++it)
     {
-        (*it)->removeAndDestroyAllChildCascade();
+        (*it)->clear();
         o_emit childRemoved(*it);
         o_delete(Message)(*it);
     }

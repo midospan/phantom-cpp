@@ -14,9 +14,9 @@ struct reflection_installer_helper<t_Ty, true>
     reflection_installer_helper()
     {
         auto pType = typeOf<t_Ty>();
-        o_assert(phantom::currentModule(), "no module pushed for the current registered type") ;
-        o_assert(pType->getModule() == nullptr);
-        phantom::currentModule()->addLanguageElement(pType);
+//         o_assert(phantom::currentModule(), "no module pushed for the current registered type") ;
+//         o_assert(pType->getModule() == nullptr);
+//         phantom::currentModule()->addElement(pType);
     } // ensure type is registered even if no members is added
 };
 
@@ -38,7 +38,7 @@ struct statechart_installer_helper<t_Ty, true>
 {
     statechart_installer_helper()
     {
-        typeOf<t_Ty>()->setStateMachine(phantom::state::native::TNativeStateMachine<t_Ty>::Instance());
+        typeOf<t_Ty>()->setStateMachine(phantom::reflection::native::TNativeStateMachine<t_Ty>::Instance());
     }
 };
 
@@ -58,35 +58,32 @@ struct module_installer_helper<t_Ty, true, true>
 {
     static void apply(phantom::reflection::Type* a_pType, uint step)
     {
-        reflection::ClassType* saved_class = reflection::Types::currentInstalledClass;
-        modifiers_t saved_modifiers = reflection::Types::currentModifiers;
-        reflection::TemplateSpecialization* saved_template_specialization = reflection::Types::currentInstalledTemplateSpecialization;
-        reflection::Types::currentInstalledClass = a_pType->asClassType();
-        reflection::Types::currentModifiers = is_structure<t_Ty>::value * o_public_access;
-        reflection::Types::currentInstalledTemplateSpecialization = reflection::Types::currentInstalledClass ? reflection::Types::currentInstalledClass->getTemplateSpecialization() : nullptr;
+        reflection::native::pushScope(a_pType);
+        reflection::native::pushModifiers((!is_structure<t_Ty>::value) * o_private_access);
         switch(step)
         {
         case o_global_value_SetupStepIndex_TemplateSignature:
             {
-                reflection::template_specialization_adder<t_Ty>::apply(reflection::Types::currentInstalledClass);
+                reflection::template_specialization_adder<t_Ty>::apply(a_pType->asClassType());
             }
             break;
 
         case o_global_value_SetupStepIndex_VTable:
             {
-                reflection::vtable_adder<t_Ty>::apply(reflection::Types::currentInstalledClass->asClass());
+                reflection::vtable_adder<t_Ty>::apply(a_pType->asClass());
             }
             break;
 
         case o_global_value_SetupStepIndex_Inheritance:
             {
-                reflection::base_classes_adder<t_Ty>::apply(reflection::Types::currentInstalledClass->asClass());
+                reflection::base_classes_adder<t_Ty>::apply(a_pType->asClass());
             }
             break;
         case o_global_value_SetupStepIndex_Reflection:
             {
                 reflection_installer<t_Ty> m_reflection_module_installer;
                 (void)m_reflection_module_installer;
+                a_pType->setFinalized();
             }
             break;
         case o_global_value_SetupStepIndex_StateChart:
@@ -96,9 +93,8 @@ struct module_installer_helper<t_Ty, true, true>
             }
             break;
         }
-        reflection::Types::currentInstalledClass = saved_class;
-        reflection::Types::currentModifiers = saved_modifiers;
-        reflection::Types::currentInstalledTemplateSpecialization = saved_template_specialization;
+        reflection::native::popScope();
+        reflection::native::popModifiers();
     }
 };
 
@@ -107,29 +103,25 @@ struct module_installer_helper<t_Ty, false, true>
 {
     static void apply(phantom::reflection::Type* a_pType, uint step)
     {
-        reflection::ClassType* saved_class = reflection::Types::currentInstalledClass;
-        modifiers_t saved_modifiers = reflection::Types::currentModifiers;
-        reflection::TemplateSpecialization* saved_template_specialization = reflection::Types::currentInstalledTemplateSpecialization;
-        reflection::Types::currentInstalledClass = a_pType->asClassType();
-        reflection::Types::currentModifiers = is_structure<t_Ty>::value * o_public_access;
-        reflection::Types::currentInstalledTemplateSpecialization = reflection::Types::currentInstalledClass ? reflection::Types::currentInstalledClass->getTemplateSpecialization() : nullptr;
+        reflection::native::pushScope(a_pType);
+        reflection::native::pushModifiers((!is_structure<t_Ty>::value) * o_private_access);
         switch(step)
         {
         case o_global_value_SetupStepIndex_TemplateSignature:
             {
-                reflection::template_specialization_adder<t_Ty>::apply(reflection::Types::currentInstalledClass);
+                reflection::template_specialization_adder<t_Ty>::apply(a_pType->asClassType());
             }
             break;
 
         case o_global_value_SetupStepIndex_VTable:
             {
-                reflection::vtable_adder<t_Ty>::apply(reflection::Types::currentInstalledClass->asClass());
+                reflection::vtable_adder<t_Ty>::apply(a_pType->asClass());
             }
             break;
 
         case o_global_value_SetupStepIndex_Inheritance:
             {
-                reflection::base_classes_adder<t_Ty>::apply(reflection::Types::currentInstalledClass->asClass());
+                reflection::base_classes_adder<t_Ty>::apply(a_pType->asClass());
             }
             break;
         case o_global_value_SetupStepIndex_StateChart:
@@ -139,9 +131,8 @@ struct module_installer_helper<t_Ty, false, true>
             }
             break;
         }
-        reflection::Types::currentInstalledClass = saved_class;
-        reflection::Types::currentModifiers = saved_modifiers;
-        reflection::Types::currentInstalledTemplateSpecialization = saved_template_specialization;
+        reflection::native::popScope();
+        reflection::native::popModifiers();
     }
 };
 
@@ -150,41 +141,37 @@ struct module_installer_helper<t_Ty, true, false>
 {
     static void apply(phantom::reflection::Type* a_pType, uint step)
     {
-        modifiers_t saved_modifiers = reflection::Types::currentModifiers;
-        reflection::ClassType* saved_class = reflection::Types::currentInstalledClass;
-        reflection::TemplateSpecialization* saved_template_specialization = reflection::Types::currentInstalledTemplateSpecialization;
-        reflection::Types::currentInstalledClass = a_pType->asClassType();
-        reflection::Types::currentModifiers = is_structure<t_Ty>::value * o_public_access;
-        reflection::Types::currentInstalledTemplateSpecialization = reflection::Types::currentInstalledClass ? reflection::Types::currentInstalledClass->getTemplateSpecialization() : nullptr;
+        reflection::native::pushScope(a_pType);
+        reflection::native::pushModifiers((!is_structure<t_Ty>::value) * o_private_access);
         switch(step)
         {
         case o_global_value_SetupStepIndex_TemplateSignature:
             {
-                reflection::template_specialization_adder<t_Ty>::apply(reflection::Types::currentInstalledClass);
+                reflection::template_specialization_adder<t_Ty>::apply(a_pType->asClassType());
             }
             break;
 
         case o_global_value_SetupStepIndex_VTable:
             {
-                reflection::vtable_adder<t_Ty>::apply(reflection::Types::currentInstalledClass->asClass());
+                reflection::vtable_adder<t_Ty>::apply(a_pType->asClass());
             }
             break;
 
         case o_global_value_SetupStepIndex_Inheritance:
             {
-                reflection::base_classes_adder<t_Ty>::apply(reflection::Types::currentInstalledClass->asClass());
+                reflection::base_classes_adder<t_Ty>::apply(a_pType->asClass());
             }
             break;
         case o_global_value_SetupStepIndex_Reflection:
             {
                 reflection_installer<t_Ty> m_reflection_module_installer;
                 (void)m_reflection_module_installer;
+                a_pType->setFinalized();
             }
             break;
         }
-        reflection::Types::currentInstalledClass = saved_class;
-        reflection::Types::currentModifiers = saved_modifiers;
-        reflection::Types::currentInstalledTemplateSpecialization = saved_template_specialization;
+        reflection::native::popScope();
+        reflection::native::popModifiers();
     }
 };
 
@@ -197,14 +184,16 @@ struct module_installer
 template<typename t_Ty, bool is_deferred>
 struct dynamic_initializer_module_installer_registrer_helper
 {
-    dynamic_initializer_module_installer_registrer_helper()
+    dynamic_initializer_module_installer_registrer_helper(const char* a_strFile)
     {
         dynamic_initializer()->setActive(true);
         // Ensure the creation of the meta type
         dynamic_initializer()->setAutoRegistrationLocked(true);
         //o_assert(phantom::typeByName(type_name_of<t_Ty>::qualifiedDecoratedName()) == nullptr, "Type with same qualified decorated name already registered");
 
+        dynamic_initializer()->pushFile(a_strFile);
         auto pType = phantom::reflection::type_of<t_Ty>::object();
+        dynamic_initializer()->popFile(a_strFile);
         o_assert(pType, "Type reflection not defined with 'o_classX' or 'o_enumX' in this compilation unit");
         o_assert(pType->getModule() == nullptr, "Type already registered in another module");
 
@@ -218,7 +207,7 @@ struct dynamic_initializer_module_installer_registrer_helper
 template<typename t_Ty>
 struct dynamic_initializer_module_installer_registrer_helper<t_Ty, true>
 {
-    dynamic_initializer_module_installer_registrer_helper()
+    dynamic_initializer_module_installer_registrer_helper(const char* a_strFile)
     {
         dynamic_initializer()->setActive(true);
         // Ensure the creation of the meta type
@@ -226,7 +215,9 @@ struct dynamic_initializer_module_installer_registrer_helper<t_Ty, true>
         auto pType = phantom::reflection::type_of<t_Ty>::object();
         o_assert(pType, "Type reflection not declared in this registration compilation unit");
         o_assert(pType->getModule() == nullptr, "Type already registered in another module");
+        dynamic_initializer()->pushFile(a_strFile);
         dynamic_initializer()->registerModule(pType, &phantom::detail::module_installer<t_Ty>::apply, setup_steps_mask_of<t_Ty>::value);
+        dynamic_initializer()->popFile(a_strFile);
         dynamic_initializer()->setAutoRegistrationLocked(false);
         /// If you get an error : 'apply' : is not a member of 'phantom::detail::module_installer'
         /// It's probably because you didn't declare a reflection scope (internal or external) for the given t_Ty class
@@ -238,6 +229,8 @@ template<typename t_Ty>
 struct dynamic_initializer_module_installer_registrer
     : public dynamic_initializer_module_installer_registrer_helper<t_Ty, (phantom::meta_specifiers<t_Ty>::value & o_deferred) == o_deferred>
 {
+    dynamic_initializer_module_installer_registrer(const char* a_strFile)
+        : dynamic_initializer_module_installer_registrer_helper<t_Ty, (phantom::meta_specifiers<t_Ty>::value & o_deferred) == o_deferred>(a_strFile) {}
 };
 
 template<typename t_Ty, bool is_deferred>
@@ -266,7 +259,7 @@ struct module_installer_registrer
 
 struct o_export dynamic_initializer_template_registrer
 {
-    dynamic_initializer_template_registrer(const string& a_strNamespace, const string& a_strTemplateTypes, const string& a_strTemplateParams, const string& a_strName);
+    dynamic_initializer_template_registrer(const string& a_strNamespace, const string& a_strTemplateTypes, const string& a_strTemplateParams, const string& a_strName, const char* a_strFile);
 };
 
 o_namespace_end(phantom, detail)

@@ -47,10 +47,7 @@ void AggregationClass::fetchExpressions( Expression* a_pInstanceExpression, vect
 }
 
 AggregationGetSetExpression::AggregationGetSetExpression( Expression* a_pLeftExpression, Expression* a_pIndexExpression, AggregationClass* a_pAggregationClass ) 
-    : Expression(a_pLeftExpression->isConstExpression() 
-                    ? a_pAggregationClass->getAggregateClass()->pointerType()->constType()->referenceType()
-                    : a_pAggregationClass->getAggregateClass()->pointerType()->referenceType()
-    , a_pLeftExpression->getModifiers())
+    : Expression(a_pLeftExpression->getValueType()->replicate(a_pAggregationClass->getAggregateClass()->pointerType()))
     , m_pLeftExpression(a_pLeftExpression)
     , m_pIndexExpression(a_pIndexExpression)
     , m_pAggregationClass(a_pAggregationClass)
@@ -91,12 +88,8 @@ void AggregationGetSetExpression::setValue( void const* a_pSrc ) const
     m_pAggregationClass->get(pCaller, uiIndex, &m_pBufferedPointer); // store the value back in the buffer
 }
 
-
 AggregationInsertRemoveExpression::AggregationInsertRemoveExpression( Expression* a_pLeftExpression, Expression* a_pIndexExpression, AggregationClass* a_pAggregationClass ) 
-    : Expression(a_pLeftExpression->isConstExpression() 
-    ? a_pAggregationClass->getAggregateClass()->pointerType()->constType()->referenceType()
-    : a_pAggregationClass->getAggregateClass()->pointerType()->referenceType()
-    , a_pLeftExpression->getModifiers())
+    : Expression(a_pLeftExpression->getValueType()->replicate(a_pAggregationClass->getAggregateClass()->pointerType()))
     , m_pLeftExpression(a_pLeftExpression)
     , m_pIndexExpression(a_pIndexExpression)
     , m_pAggregationClass(a_pAggregationClass)

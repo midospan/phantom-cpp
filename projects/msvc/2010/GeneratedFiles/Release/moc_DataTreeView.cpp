@@ -92,7 +92,7 @@ static const char qt_meta_stringdata_phantom__qt__DataTreeView[] = {
     "a_Data,a_uiAttributeIndex,a_strValue\0"
     "dataAttributeValueChanged(phantom::data,size_t,string)\0"
     "a_Data,a_Modifiers\0"
-    "dataModifiersChanged(phantom::data,bitfield)\0"
+    "dataModifiersChanged(phantom::data,modifiers_t)\0"
     "a_pNode,a_uiAttributeIndex,a_strValue\0"
     "nodeAttributeValueChanged(phantom::serialization::Node*,size_t,string)\0"
     "a_pMenu,a_Data,a_pCollection,a_pComponentDataClass\0"
@@ -128,7 +128,7 @@ void phantom::qt::DataTreeView::qt_static_metacall(QObject *_o, QMetaObject::Cal
         case 19: _t->nodeLoaded(); break;
         case 20: _t->nodeAboutToBeUnloaded(); break;
         case 21: _t->dataAttributeValueChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
-        case 22: _t->dataModifiersChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< bitfield(*)>(_a[2]))); break;
+        case 22: _t->dataModifiersChanged((*reinterpret_cast< const phantom::data(*)>(_a[1])),(*reinterpret_cast< modifiers_t(*)>(_a[2]))); break;
         case 23: _t->nodeAttributeValueChanged((*reinterpret_cast< phantom::serialization::Node*(*)>(_a[1])),(*reinterpret_cast< size_t(*)>(_a[2])),(*reinterpret_cast< const string(*)>(_a[3]))); break;
         case 24: _t->addClassComponentDataActionCascade((*reinterpret_cast< QMenu*(*)>(_a[1])),(*reinterpret_cast< const phantom::data(*)>(_a[2])),(*reinterpret_cast< phantom::reflection::Collection*(*)>(_a[3])),(*reinterpret_cast< phantom::reflection::Class*(*)>(_a[4]))); break;
         default: ;

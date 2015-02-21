@@ -1,9 +1,10 @@
 #pragma once
 
-#include "LanguageElement.hxx"
+#include "NamedElement.hxx"
 
-o_classNB((phantom, reflection), LocalVariable, (LanguageElement), o_deferred)
+o_classNB((phantom, reflection), LocalVariable, (NamedElement), o_deferred)
 (
-        o_data_member(int, m_iFrameOffset, o_no_range, o_protected_access);
-        o_property(string, valueTypeName, setValueTypeName, getValueTypeName, o_no_signal, o_no_range, o_protected_access);
+o_protected:
+    o_data_member(int, m_iFrameOffset);
+    o_property(string, valueTypeName, setValueTypeName, getValueTypeName);
 );

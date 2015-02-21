@@ -18,10 +18,14 @@ namespace qt {
         {
             reflection::Expression* pLeftExpression = *it;
             if(NOT(pLeftExpression->hasEffectiveAddress())) continue;
-            reflection::Enum* pEnum = pLeftExpression->getValueType()->removeReference()->removeConst()->getTemplateSpecialization()->getArgumentElement("Enum")->asLanguageElement()->asEnum();
+            reflection::Enum* pEnum = pLeftExpression->getValueType()->removeReference()->removeConst()->getOwner()->asTemplateSpecialization()->getArgument("Enum")->asEnum();
             for(size_t i = 0; i<pEnum->getConstantCount(); ++i)
             {
-                flagsExpressions[pEnum->getConstant(i)].push_back(pLeftExpression->clone()->solveBinaryOperator("[]", o_new(reflection::ConstantExpression)(pEnum->getConstant(i)))->solveElement("value", nullptr, nullptr, 0)->asExpression());
+                flagsExpressions[pEnum->getConstant(i)].push_back(
+                    cplusplus()->qualifiedLookup(
+                        cplusplus()->solveBinaryOperator("[]", pLeftExpression->clone(), o_new(reflection::ConstantExpression)(pEnum->getConstant(i)))
+                    , "value", nullptr, nullptr, 0)->asExpression()
+                );
             }
         }
         for(auto it = flagsExpressions.begin(); it != flagsExpressions.end(); ++it)

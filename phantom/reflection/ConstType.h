@@ -1,41 +1,9 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_ConstType_h__
 #define o_phantom_reflection_ConstType_h__
 
 /* ****************** Includes ******************* */
-#include "Type.h"
 /* **************** Declarations ***************** */
 /* *********************************************** */
 
@@ -55,9 +23,20 @@ public:
 
     Type*                   getConstedType() const { return m_pConstedType; }
 
+    virtual Type*           addConst() const;
+    virtual Type*           addVolatile() const;
+    virtual Type*           addConstVolatile() const;
+
+    virtual Type*           removeConstVolatile() const { return m_pConstedType; }
     virtual Type*           removeConst() const { return m_pConstedType; }
+    virtual Type*           removeAllConst() const { return m_pConstedType->removeAllConst(); }
+    virtual Type*           removeQualifiers() const { return m_pConstedType->removeQualifiers(); }
+    virtual Type*           removeAllQualifiers() const { return m_pConstedType->removeAllQualifiers(); }
+
+    virtual Type*           replicate(Type* a_pSource) const { return m_pConstedType->replicate(a_pSource->removeConst())->addConst(); }
 
     virtual ConstType*      asConstType() const { return const_cast<ConstType*>(this); }
+    virtual ConstType*      asConstClass() const { return (m_pConstedType AND m_pConstedType->asClass()) ? const_cast<ConstType*>(this) : nullptr; }
 
     virtual string          getQualifiedName() const;
     virtual string          getDecoratedName() const;
@@ -126,7 +105,6 @@ public:
     virtual ERelation       getRelationWith(Type* a_pType) const { return m_pConstedType->getRelationWith(a_pType); }
 
     /// Value and Conversion
-    virtual void            convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const { m_pConstedType->convertValueTo(a_pDestType, a_pDestValue, a_pSrcValue); }
     virtual boolean         areValueEqual(void const* a_pSrc0, void const* a_pSrc1) const { return m_pConstedType->areValueEqual(a_pSrc0, a_pSrc1); }
 
     virtual void            valueFromString(const string& a_str, void* dest) const { m_pConstedType->valueFromString(a_str, dest); }
@@ -139,12 +117,9 @@ public:
 
     virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
     virtual void            fetchExpressions(Expression* a_pInstanceExpression, vector<Expression*>& out, filter a_Filter, uint a_uiSerializationMask) const;
-    virtual ConstType*      createConstType() const { return nullptr; }
-
+    
     // Traits
     virtual bool            isDefined() const { return m_pConstedType->isDefined(); }
-    virtual bool            isConvertibleTo(Type* a_pType) const;
-    virtual bool            isImplicitlyConvertibleTo(Type* a_pType) const;
     virtual bool            isCopyable() const { return m_pConstedType->isCopyable(); }
     virtual bool            hasCopyDisabled() const { return m_pConstedType->hasCopyDisabled(); }
     virtual bool            hasBitAnd() const { return m_pConstedType->hasBitAnd(); }
@@ -190,10 +165,25 @@ public:
     virtual bool            hasRightShift() const { return m_pConstedType->hasRightShift(); }
     virtual bool            hasRightShiftAssign() const { return m_pConstedType->hasRightShiftAssign(); }
 
-    virtual bool            templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions) const;
+    virtual bool            partialAccepts(Type* a_pType, size_t& a_Score, map<Placeholder*, LanguageElement*>& a_Deductions) const;
+
+    virtual bool            equals(LanguageElement* a_pOther) const 
+    {
+        return Type::equals(a_pOther) OR (a_pOther->asConstType() AND m_pConstedType->equals(static_cast<ConstType*>(a_pOther)->m_pConstedType));
+    }
+
+    virtual bool            isConstConvertibleTo(Type* a_pType) const 
+    {
+        return equals(a_pType);
+    }
+
+    virtual Type*           getUnderlyingType() const { return m_pConstedType; }
 
 protected:
     virtual void            referencedElementRemoved(LanguageElement* a_pElement);
+    virtual ConstVolatileType*  createConstVolatileType() const { return nullptr; }
+    virtual ConstType*          createConstType() const { return nullptr; }
+    virtual VolatileType*       createVolatileType() const { return nullptr; }
 
 protected:
     Type* m_pConstedType;

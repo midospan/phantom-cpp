@@ -37,7 +37,7 @@ void ClassTypeVisualizerNode::expand( VariableNode* a_pParentNode, const vector<
             for(auto it = a_LeftExpressions.begin(); it != a_LeftExpressions.end(); ++it)
             {
                 reflection::Expression* pLeftExpression = *it;
-                expressions.push_back(pLeftExpression->clone()->solveElement(pValueMember->getName(), nullptr, nullptr, 0)->asExpression());
+                expressions.push_back(cplusplus()->qualifiedLookup(pLeftExpression->clone(), pValueMember->getName(), nullptr, nullptr, 0)->asExpression());
             }
             VariableNode* pVariableNode = o_new(VariableNode)(nameOf(pValueMember), expressions);
             pVariableNode->setIcon(QIcon(iconOf(pValueMember).c_str()));

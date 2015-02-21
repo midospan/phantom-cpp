@@ -1,58 +1,34 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <phantom/reflection/Expression.h>
 #include <phantom/reflection/Expression.hxx>
-#include <phantom/reflection/DereferenceExpression.h>
-#include <phantom/reflection/AddressExpression.h>
-#include <phantom/reflection/ReferenceExpression.h>
-#include <phantom/reflection/CastExpression.h>
+#include <phantom/reflection/Statement.h>
+#include <phantom/reflection/Application.h>
+#include <phantom/reflection/Interpreter.h>
+#include <phantom/reflection/CallExpression.h>
+#include <phantom/reflection/ConstantExpression.h>
+#include <phantom/reflection/BuiltInOperatorExpression.h>
+#include <phantom/reflection/BuiltInConversionExpression.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), Expression);
+o_registerN((phantom, reflection), InvalidExpression);
 
 o_namespace_begin(phantom, reflection) 
 
-Expression::Expression( Type* a_pType, modifiers_t a_Modifiers /*= 0*/) 
-    : Evaluable("", a_Modifiers)
-    , m_pValueType(a_pType)
-    , m_pSubExpressions(nullptr)
+o_invalid_custom_def(Expression, InvalidExpression);
+
+Expression::Expression( Type* a_pType ) 
+    : m_pValueType(a_pType)
     , m_bSignalsBlocked(false)
 {
     if(m_pValueType)
     {
-        addReferencedElement(m_pValueType);
+        if(m_pValueType->getOwner())
+            addReferencedElement(m_pValueType);
+        else 
+            addElement(m_pValueType);
     }
     else setInvalid();
 }
@@ -67,11 +43,12 @@ void Expression::load( void* a_pDest ) const
     {
         o_exception(exception::reflection_runtime_exception, "non-copyable expression value cannot be loaded");
     }
-    if(m_pValueType->asReferenceType())
+    ReferenceType* pReferenceType = m_pValueType->asReferenceType();
+    if(pReferenceType)
     {
         void* pBuffer;
         internalEval(&pBuffer);
-        m_pValueType->asReferenceType()->getReferencedType()->copy(a_pDest, pBuffer);
+        pReferenceType->getReferencedType()->copy(a_pDest, pBuffer);
     }
     else internalEval(a_pDest);
 }
@@ -87,15 +64,16 @@ void Expression::store( void const* a_pSrc ) const
     {
         o_exception(exception::reflection_runtime_exception, "Invalid expression cannot be evaluated");
     }
-    if(isConstExpression())
+    if(m_pValueType->asConstReferenceType())
     {
         o_exception(exception::reflection_runtime_exception, "Expression is const and cannot be modified");
     }
-    if(m_pValueType->asReferenceType())
+    ReferenceType* pReferenceType = m_pValueType->asReferenceType();
+    if(pReferenceType)
     {
         void* pBuffer;
         internalEval(&pBuffer);
-        m_pValueType->asReferenceType()->getReferencedType()->copy(pBuffer, a_pSrc);
+        pReferenceType->getReferencedType()->copy(pBuffer, a_pSrc);
     }
     else setValue(a_pSrc);
     flush();
@@ -115,7 +93,7 @@ void* Expression::loadEffectiveAddress() const
     }
     else if(hasValueStorage())
     {
-        return getValueStorageAddress();
+        return evalStorage();
     }
     else
     {
@@ -123,65 +101,14 @@ void* Expression::loadEffectiveAddress() const
     }
 }
 
-Expression* Expression::implicitCast( Type* a_pTargetType ) const
-{
-    if(m_pValueType == a_pTargetType->removeConst()) 
-        return const_cast<Expression*>(this);
-    if(m_pValueType->isImplicitlyConvertibleTo(a_pTargetType) && m_pValueType->isCopyable())
-    {
-        return o_new(CastExpression)(a_pTargetType, const_cast<Expression*>(this), e_implicit_cast);
-    }
-    return nullptr;
-}
-
-Expression* Expression::cast( Type* a_pTargetType ) const
-{
-    if(m_pValueType == a_pTargetType) 
-        return const_cast<Expression*>(this);
-    if(m_pValueType->isConvertibleTo(a_pTargetType) && m_pValueType->isCopyable())
-        return o_new(CastExpression)(a_pTargetType, const_cast<Expression*>(this), e_cstyle_cast);
-    return nullptr;
-}
-
-Expression* Expression::reference() const
-{
-    if(m_pValueType->asReferenceType())
-    {
-        return const_cast<Expression*>(this);
-    }
-    if(hasEffectiveAddress())
-    {
-        return o_new(ReferenceExpression)(const_cast<Expression*>(this));
-    }
-    return nullptr;
-}
-
-Expression* Expression::address() const
-{
-    if(isAddressable())
-    {
-        return o_new(AddressExpression)(const_cast<Expression*>(this));
-    }
-    return nullptr;
-}
-
-Expression* Expression::dereference() const
-{
-    if(isDereferenceable())
-    {
-        return o_new(DereferenceExpression)(const_cast<Expression*>(this));
-    }
-    return nullptr;
-}
-
 Type* Expression::storageType(Type* a_pType) const
 {
     Type* pStorageType = a_pType;
     if(pStorageType == typeOf<void>()) return nullptr;
     if(pStorageType == typeOf<signal_t>()) return nullptr;
-    if(pStorageType->asReferenceType())
+    if(pStorageType->asLValueReferenceType())
     {
-        pStorageType = pStorageType->asReferenceType()->getReferencedType()->pointerType();
+        pStorageType = pStorageType->asLValueReferenceType()->getReferencedType()->pointerType();
     }
     return pStorageType;
 }
@@ -189,7 +116,7 @@ Type* Expression::storageType(Type* a_pType) const
 variant Expression::get() const
 {
     variant v;
-    v.setType(m_pValueType->removeReference()->removeConst());
+    v.setType(m_pValueType->removeReference()->removeQualifiers());
     load((void*)v.buffer());
     return v;
 }
@@ -211,14 +138,9 @@ void Expression::set( const variant& v )
     }
 }
 
-bool Expression::isConstExpression() const
-{
-    return m_pValueType->removeReference()->asConstType() != nullptr;
-}
-
 bool Expression::isDereferenceable() const
 {
-    return m_pValueType->removeReference()->removeConst()->asDataPointerType() != nullptr;
+    return m_pValueType->removeReference()->removeQualifiers()->asDataPointerType() != nullptr;
 }
 
 void Expression::referencedElementRemoved( LanguageElement* a_pElement )
@@ -230,39 +152,11 @@ void Expression::referencedElementRemoved( LanguageElement* a_pElement )
     Evaluable::referencedElementRemoved(a_pElement);
 }
 
-void Expression::addSubExpression( Expression*& a_prExpression )
-{
-    if(a_prExpression->isInvalid())
-        setInvalid();
-    if(a_prExpression->getOwner())
-    {
-        addElement(a_prExpression = a_prExpression->clone());
-    }
-    else 
-    {
-        addElement(a_prExpression);
-    }
-    if(m_pSubExpressions == nullptr)
-    {
-        m_pSubExpressions = new vector<Expression*>;
-    }
-    m_pSubExpressions->push_back(a_prExpression);
-}
-
 void Expression::elementRemoved( LanguageElement* a_pElement )
 {
-    if(m_pSubExpressions)
+    if(a_pElement == m_pValueType) // Type destroyed => expression cannot exist anymore
     {
-        auto found = std::find(m_pSubExpressions->begin(), m_pSubExpressions->end(), a_pElement);
-        if(found != m_pSubExpressions->end())
-        {
-            m_pSubExpressions->erase(found);
-        }
-        if(m_pSubExpressions->empty())
-        {
-            delete m_pSubExpressions;
-            m_pSubExpressions = nullptr;
-        }
+        m_pValueType = nullptr;
     }
 }
 
@@ -312,12 +206,6 @@ bool Expression::hasValueStorageCascade() const
     return false;
 }
 
-void Expression::removeSubExpression( Expression* a_pExpression )
-{
-    o_assert(m_pSubExpressions);
-    removeElement(a_pExpression);
-}
-
 void Expression::detach()
 {
     if(m_pOwner)
@@ -326,4 +214,155 @@ void Expression::detach()
     }
 }
 
+void Expression::ancestorChanged( LanguageElement* a_pLanguageElement )
+{
+    if(getEnclosingBlock())
+    {
+        Class* pClass = getValueType()->removeRValueReference()->asClass();
+        if(pClass)
+        {
+            void* pStorageAddress = evalStorage();
+            o_assert(pStorageAddress);
+            Expression* pThis = (o_new(ConstantExpression)(phantom::constant<void*>(pStorageAddress)))->convert(getValueType()->pointerType())->dereference();
+            Statement* pLifeTimeStatement = evaluateLifeTime();
+            o_assert(pLifeTimeStatement);
+            CallExpression* pDestructionExpression = o_new(CallExpression)(getValueType()->asClass()->getDestructor(), pThis);
+            pLifeTimeStatement->addTemporaryObjectDestruction(pDestructionExpression);
+        }
+    }
+}
+
+Expression* Expression::convert( Type* a_pOutputType, int conversionType /*= e_implicit_conversion*/, LanguageElement* a_pContextScope ) const
+{
+    if(a_pOutputType->removeQualifiers()->equals(m_pValueType->removeQualifiers()) && conversionType == e_implicit_conversion)
+        return const_cast<Expression*>(this);
+    conversion* conv = getValueType()->conversionTo(a_pOutputType, conversionType, a_pContextScope);
+    if(conv == nullptr) return o_new(BuiltInConversionExpression)(const_cast<Expression*>(this), nullptr, conversionType);
+    Expression* pConversion = conv->convert(const_cast<Expression*>(this));
+    o_assert(pConversion);
+    delete conv;
+    return pConversion;
+}
+
+Statement* Expression::evaluateLifeTime() const
+{
+    if(m_pOwner)
+    {
+        Evaluable* pOwnerEvaluable = m_pOwner ? m_pOwner->asEvaluable() : nullptr;
+        if(pOwnerEvaluable) 
+        {
+            return pOwnerEvaluable->evaluateExpressionLifeTime(const_cast<Expression*>(this));
+        }
+    }
+    return nullptr;
+}
+
+void Expression::evaluateArguments( const vector<Expression*>& a_Arguments, vector<void*> &addresses ) const
+{
+    addresses.resize(a_Arguments.size());
+    size_t i = a_Arguments.size();
+    while(i--) // evaluate arguments from right to left
+    {
+        Expression* pArgument = a_Arguments[i];
+        addresses[i] = pArgument->loadEffectiveAddress();
+    }
+}
+
+Expression* Expression::dereference() const
+{
+    DataPointerType* pPointerType = m_pValueType->asDataPointerType();
+    Expression* args[2] = { (Expression*)this, 0 };
+    if(pPointerType == nullptr) 
+        return o_new(BuiltInOperatorExpression)( application()->getBuiltInOperator(e_Operator_Dereference), Type::Invalid(), args, operation_delegate_t()); 
+    return o_new(BuiltInOperatorExpression)(application()->getBuiltInOperator(e_Operator_Dereference), pPointerType->removePointer()->addLValueReference(), args, operation_delegate_t(pPointerType, &DataPointerType::dereference));
+}
+
+Expression* Expression::address() const
+{
+    ReferenceType* pReferenceType = m_pValueType->asReferenceType();
+    Expression* args[2] = { (Expression*)this, 0 };
+    if(pReferenceType == nullptr) 
+        return o_new(BuiltInOperatorExpression)(application()->getBuiltInOperator(e_Operator_Address), Type::Invalid(), args, operation_delegate_t()); 
+    return o_new(BuiltInOperatorExpression)(application()->getBuiltInOperator(e_Operator_Address), pReferenceType->removeReference()->addPointer(), args, operation_delegate_t(pReferenceType, &ReferenceType::address));
+}
+
+Expression* Expression::arrayAccess( Expression* a_pIndexExpression )
+{
+    ReferenceType* pReferenceType = m_pValueType->asReferenceType();
+    Expression* args[2] = { (Expression*)this, a_pIndexExpression };
+    if(pReferenceType == nullptr 
+        OR pReferenceType->getReferencedType()->asArrayType() == nullptr 
+        OR pReferenceType->getReferencedType()->asDataPointerType() == nullptr) 
+        return o_new(BuiltInOperatorExpression)(application()->getBuiltInOperator(e_Operator_Bracket), Type::Invalid(), args, operation_delegate_t()); 
+    Type* pElementType = pReferenceType->getReferencedType()->getUnderlyingType();
+    Type* pResultType = pReferenceType->asRValueReferenceType() ? (Type*)pElementType->rvalueReferenceType() : pElementType->lvalueReferenceType();
+    return o_new(BuiltInOperatorExpression)(application()->getBuiltInOperator(e_Operator_Bracket), pResultType, args, operation_delegate_t(pElementType->pointerType(), &DataPointerType::bracket));
+}
+
+Expression* Expression::arrayAccess( size_t a_uiIndex )
+{
+    return arrayAccess(o_new(ConstantExpression)(constant<size_t>(a_uiIndex)));
+}
+
+Expression* Expression::store( Expression* a_pRightExpression )
+{
+    ReferenceType* pReferenceType = m_pValueType->asReferenceType();
+    Expression* args[2] = { (Expression*)this, a_pRightExpression };
+    if(pReferenceType == nullptr 
+        OR pReferenceType->getReferencedType()->asClassType() 
+        OR pReferenceType->getReferencedType()->isConst()
+        OR NOT(a_pRightExpression->getValueType()->equals(pReferenceType->getReferencedType()))) 
+        return o_new(BuiltInOperatorExpression)(application()->getBuiltInOperator(e_Operator_Assignment), Type::Invalid(), args, operation_delegate_t()); 
+    Type* pElementType = pReferenceType->getReferencedType()->getUnderlyingType();
+    Type* pResultType = pReferenceType->asRValueReferenceType() ? (Type*)pElementType->rvalueReferenceType() : pElementType->lvalueReferenceType();
+    return o_new(BuiltInOperatorExpression)(application()->getBuiltInOperator(e_Operator_Assignment), pResultType, args, operation_delegate_t(pReferenceType, &ReferenceType::memcpyStoreDelegate));
+}
+
+void Expression::eval( void* a_pDest ) const
+{
+    if(isInvalid())
+    {
+        o_exception(exception::reflection_runtime_exception, "Invalid expression cannot be evaluated");
+    }
+    internalEval(a_pDest);
+    if(m_pOwner == nullptr)
+    {
+        interpreter()->release(const_cast<Expression*>(this));
+    }
+}
+
+void Expression::pushDestruction( Type* a_pType, void* a_pBuffer ) const
+{
+    if(m_pOwner)
+    {
+        o_assert(m_pOwner->asExpression());
+        m_pOwner->asExpression()->pushDestruction(a_pType, a_pBuffer);
+    }
+    else 
+    {
+        phantom::interpreter()->pushDestruction(const_cast<Expression*>(this), a_pType, a_pBuffer);
+    }
+}
+
+bool Expression::isCompileTime() const
+{
+    return asConstantExpression() != nullptr;
+}
+
+InvalidExpression::InvalidExpression() : Expression(Type::Invalid())
+{
+    setInvalid();
+}
+
+InvalidExpression::InvalidExpression( Type* a_pType ) : Expression(a_pType)
+{
+    setInvalid();
+}
+
+InvalidExpression* InvalidExpression::clone() const
+{
+    return o_new(InvalidExpression)(m_pValueType);
+}
+
 o_namespace_end(phantom, reflection)
+

@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_Property_h__
 #define o_phantom_reflection_Property_h__
@@ -61,8 +30,8 @@ public:
     Property();
     Property(Type* a_pValueType
         , const string& a_strName
-        , InstanceMemberFunction* a_pSetMemberFunction
-        , InstanceMemberFunction* a_pGetMemberFunction
+        , MemberFunction* a_pSetMemberFunction
+        , MemberFunction* a_pGetMemberFunction
         , Signal* a_pSignal
         , Range* a_pRange
     , uint a_uiSerializationMask
@@ -71,8 +40,8 @@ public:
 protected:
     Property(Type* a_pValueType
         , const string& a_strName
-        , InstanceMemberFunction* a_pSetMemberFunction
-        , InstanceMemberFunction* a_pGetMemberFunction
+        , MemberFunction* a_pSetMemberFunction
+        , MemberFunction* a_pGetMemberFunction
         , Signal* a_pSignal
         , Range* a_pRange
         , uint a_uiSerializationMask
@@ -88,20 +57,18 @@ public:
     Type*                   getEffectiveValueType() const { return m_pValueType ? m_pValueType->removeConstReference() : nullptr; }
     virtual Property*       asProperty() const { return const_cast<Property*>(this); }
         
-    InstanceMemberFunction* getSetMemberFunction() const { return m_pSetMemberFunction; }
-    InstanceMemberFunction* getGetMemberFunction() const { return m_pGetMemberFunction; }
+    MemberFunction*         getSetMemberFunction() const { return m_pSetMemberFunction; }
+    MemberFunction*         getGetMemberFunction() const { return m_pGetMemberFunction; }
     Signal*                 getSignal() const { return m_pSignal; }
-
-    virtual Expression*     createExpression(Expression* a_pLeftExpression) const;
 
     virtual bool            referencesData(const void* a_pInstance, const phantom::data& a_Data) const;
 
-    void                    addInstanceDataMember(InstanceDataMember* a_pInstanceDataMember);
+    void                    addDataMember(DataMember* a_pDataMember);
 
-    vector<InstanceDataMember*>::const_iterator beginInstanceDataMembers() const { return m_InstanceDataMembers.begin(); }
-    vector<InstanceDataMember*>::const_iterator endInstanceDataMembers() const { return m_InstanceDataMembers.end(); }
+    vector<DataMember*>::const_iterator beginDataMembers() const { return m_DataMembers.begin(); }
+    vector<DataMember*>::const_iterator endDataMembers() const { return m_DataMembers.end(); }
 
-    size_t                  getInstanceDataMemberCount() const { return m_InstanceDataMembers.size(); }
+    size_t                  getDataMemberCount() const { return m_DataMembers.size(); }
 
 protected:
     virtual void            referencedElementRemoved(LanguageElement* a_pElement);
@@ -116,10 +83,10 @@ protected:
     virtual void finalize();
 
 protected:
-    vector<InstanceDataMember*> m_InstanceDataMembers;
+    vector<DataMember*> m_DataMembers;
     Signal* m_pSignal;
-    InstanceMemberFunction* m_pSetMemberFunction;
-    InstanceMemberFunction* m_pGetMemberFunction;
+    MemberFunction* m_pSetMemberFunction;
+    MemberFunction* m_pGetMemberFunction;
     string* m_pSignalString;
     string* m_pSetMemberFunctionString;
     string* m_pGetMemberFunctionString;

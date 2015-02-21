@@ -1,6 +1,6 @@
 #pragma once
-#include "Variable.hxx"
-o_classNB((phantom, reflection), PropertyBinding, (Variable)) (
+#include "NamedElement.hxx"
+o_classNB((phantom, reflection), PropertyBinding, (NamedElement)) (
         );
 
 

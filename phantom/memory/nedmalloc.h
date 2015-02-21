@@ -1309,8 +1309,7 @@ public:
 #ifdef HAVE_CPP0XRVALUEREFS
     nedallocator(nedallocator &&o) : Base(std::move(o)) { }
 #endif
-    /* This templated constructor and rebind() are used by MSVC's secure iterator checker.
-    I think it's best to not copy state even though it may break policies which store data. */
+    /* TODO LICENCE HERE */
     template<typename U> nedallocator(const nedallocator<U,
 #ifdef HAVE_CPP0XVARIADICTEMPLATES
         policies...

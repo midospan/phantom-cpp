@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\plugin.cpp" />
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\main_plugin.cpp" />
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\Plugin.cpp" />
+    <ClCompile Include="..\..\..\unitest\module\Plugin.cpp" />
+    <ClCompile Include="..\..\..\unitest\module\main_plugin.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\Plugin.h" />
+    <ClInclude Include="..\..\..\unitest\module\Plugin.h" />
   </ItemGroup>
 </Project>

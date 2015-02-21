@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
@@ -38,66 +7,121 @@
 /* *********************************************** */
 o_registerN((phantom, reflection), TemplateSpecialization);
 
-
 o_namespace_begin(phantom, reflection) 
 
-TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate, const vector<LanguageElement*>& arguments, TemplateSignature* a_pSignature /*= nullptr*/ )
-    : m_pTemplate(a_pTemplate)
+o_define_meta_type(TemplateSpecialization);
+
+/// Full specialization constructor
+TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate, TemplateSignature* a_pSignature, const vector<LanguageElement*>& arguments, NamedElement* a_pBody )
+    : NamedElement("", a_pTemplate->getModifiers()|o_private_visibility)
+    , m_pTemplate(a_pTemplate)
     , m_pTemplateSignature(a_pSignature)
+    , m_pBody(a_pBody)
+    , m_pDefaultArguments(nullptr)
 {
-    o_assert(m_pTemplate->getTemplateParameterCount() == arguments.size());
-    m_Arguments.resize(a_pTemplate->getTemplateParameterCount());
+    if(a_pBody->getQualifiedDecoratedName() == "std::allocator< char >")
+    {
+        int i=0;
+        ++i;
+    }
+    if(m_pBody)
+    {
+        if(m_pBody->isDefined())
+            setDefined();
+        addElement(m_pBody);
+    }
+    else setInvalid();
+    if(m_pTemplateSignature)
+    {
+        addElement(m_pTemplateSignature);
+    }
+    else setInvalid();
+    if(m_pTemplate)
+    {
+        if(m_pTemplate->isInvalid() OR !m_pTemplate->getTemplateSignature()->acceptsArguments(arguments))
+        {
+            setInvalid();
+        }
+        addReferencedElement(m_pTemplate);
+        m_pTemplate->addSpecialization(this);
+    }
+    else setInvalid();
+    m_Arguments.resize(arguments.size());
+    for(size_t i=0; i<arguments.size();++i)
+    {
+        setArgument(i, arguments[i]);
+    }
+}
+
+/// Partial specialization constructor
+TemplateSpecialization::TemplateSpecialization( Template* a_pTemplate, TemplateSignature* a_pSignature, const vector<LanguageElement*>& arguments )
+    : NamedElement("", a_pTemplate->getModifiers()|o_private_visibility)
+    , m_pTemplateSignature(a_pSignature)
+    , m_pTemplate(a_pTemplate)
+    , m_pBody(nullptr)
+    , m_pDefaultArguments(nullptr)
+{
+    if(m_pTemplateSignature)
+    {
+        addElement(m_pTemplateSignature);
+    }
+    else setInvalid();
+    if(m_pTemplate)
+    {
+        if(!m_pTemplate->getTemplateSignature()->acceptsArguments(arguments))
+        {
+            setInvalid();
+        }
+        addReferencedElement(m_pTemplate);
+        m_pTemplate->addSpecialization(this);
+    }
+    else setInvalid();
+    m_Arguments.resize(arguments.size());
+    for(size_t i=0; i<arguments.size();++i)
+    {
+        setArgument(i, arguments[i]);
+    }
 }
 
 TemplateSpecialization::~TemplateSpecialization()
 {
 }
 
-phantom::string TemplateSpecialization::getQualifiedName() const
+string TemplateSpecialization::getDecoration() const 
 {
-    string strQualifiedName = o_CS("< ");
+    string decoration = "< ";
     uint i = 0;
     uint count = m_Arguments.size();
     for(;i<count;++i)
     {
         LanguageElement*  pElement = m_Arguments[i];
         LanguageElement*  pLanguageElement = pElement->asLanguageElement();
-        if(i != 0) strQualifiedName += o_CS(", ");
-        if(pLanguageElement->asNumericConstant())
-        {
-            strQualifiedName += pLanguageElement->getQualifiedName();
-        }
-        else strQualifiedName += pLanguageElement->getQualifiedName();
+        if(i != 0) decoration += ", ";
+        decoration += pLanguageElement->getQualifiedDecoratedName();
     }
-    strQualifiedName += o_CS(" >");
-    return strQualifiedName;
+    decoration += " >";
+    return decoration;
+}
+
+phantom::string TemplateSpecialization::getDecoratedName() const
+{
+    return getName()+getDecoration();
+}
+
+phantom::string TemplateSpecialization::getQualifiedName() const
+{
+    return m_pTemplate->getQualifiedName();
 }
 
 phantom::string TemplateSpecialization::getQualifiedDecoratedName() const
 {
-    string strQualifiedName = o_CS("< ");
-    uint i = 0;
-    uint count = m_Arguments.size();
-    for(;i<count;++i)
-    {
-        LanguageElement*  pElement = m_Arguments[i];
-        LanguageElement*  pLanguageElement = pElement->asLanguageElement();
-        if(i != 0) strQualifiedName += o_CS(", ");
-        if(pLanguageElement->asNumericConstant())
-        {
-            strQualifiedName += pLanguageElement->getQualifiedDecoratedName();
-        }
-        else strQualifiedName += pLanguageElement->getQualifiedDecoratedName();
-    }
-    strQualifiedName += o_CS(" >");
-    return strQualifiedName;
+    return getQualifiedName()+getDecoration();
 }
 
 LanguageElement* TemplateSpecialization::getArgument( const string& a_strParameterName ) const
 {
     size_t index = m_pTemplate->getTemplateParameterIndex(a_strParameterName);
-    o_assert(index != ~size_t(0));
-    return m_Arguments[index];
+    return (index != ~size_t(0)) ? m_Arguments[index] : nullptr;
 }
 
 Type* TemplateSpecialization::getType(const string& a_strParameterName) const
@@ -105,31 +129,6 @@ Type* TemplateSpecialization::getType(const string& a_strParameterName) const
     LanguageElement* pTemplateElement = getArgument(a_strParameterName);
     if(pTemplateElement) return pTemplateElement->asType();
     return nullptr;
-}
-
-void TemplateSpecialization::setArgument( size_t a_uiIndex, const string& a_strParameterAlias, LanguageElement* a_pElement )
-{
-    size_t index = a_uiIndex;
-    o_assert(index != ~size_t(0));
-    if(a_pElement == nullptr) setInvalid();
-    o_assert(getArgument(a_strParameterAlias) == nullptr);
-    m_Arguments[index] = a_pElement;
-    if(a_pElement)
-    {
-        if(a_pElement->getOwner())
-            addReferencedElement(a_pElement);
-        else 
-            addElement(a_pElement);
-    }
-    size_t paramIndex = m_pTemplate->getTemplateParameterIndex(a_strParameterAlias);
-    if(paramIndex != ~size_t(0))
-    {
-        if(paramIndex != a_uiIndex)
-        {
-            o_exception(exception::base_exception, "template parameter name reused for different template parameter");
-        }
-    }
-    else m_pTemplate->addTemplateParameterAliasName(a_uiIndex, a_strParameterAlias);
 }
 
 void TemplateSpecialization::setArgument( size_t a_uiIndex, LanguageElement* a_pElement )
@@ -141,16 +140,53 @@ void TemplateSpecialization::setArgument( size_t a_uiIndex, LanguageElement* a_p
     m_Arguments[index] = a_pElement;
     if(a_pElement)
     {
-        if(a_pElement->getOwner())
-            addReferencedElement(a_pElement);
-        else 
+        if( (a_pElement->asPlaceholder() OR NOT(a_pElement->asType())) AND a_pElement->getOwner() == nullptr)
             addElement(a_pElement);
+        else 
+            addReferencedElement(a_pElement);
     }
+}
+
+void TemplateSpecialization::setDefaultArgument( const string& a_strParameterName, LanguageElement* a_pElement )
+{
+    size_t index = m_pTemplate->getTemplateParameterIndex(a_strParameterName);
+    o_assert(index != ~size_t(0), "no parameter found matching given name");
+    setDefaultArgument(index, a_pElement);
+}
+
+void TemplateSpecialization::setDefaultArgument( size_t index, LanguageElement* a_pElement )
+{
+    o_assert(index < getArgumentCount());
+    o_assert(isFull() AND isNative(), "can only set default arguments for native full specializations");
+    if(a_pElement == nullptr)
+        setInvalid();
+    o_assert(a_pElement == nullptr OR getDefaultArgument(index) == nullptr, "default argument already defined");
+    if(m_pDefaultArguments == nullptr) 
+    {
+        m_pDefaultArguments = new vector<LanguageElement*>;
+        m_pDefaultArguments->resize(m_pTemplate->getTemplateParameterCount(), nullptr);
+    }
+    (*m_pDefaultArguments)[index] = a_pElement;
+    if(a_pElement)
+    {
+        if( (a_pElement->asPlaceholder() OR NOT(a_pElement->asType())) AND a_pElement->getOwner() == nullptr)
+            addElement(a_pElement);
+        else 
+            addReferencedElement(a_pElement);
+    }
+}
+
+LanguageElement* TemplateSpecialization::getDefaultArgument( const string& a_strParameterName ) const
+{
+    if(m_pDefaultArguments == nullptr) return nullptr;
+    size_t index = m_pTemplate->getTemplateParameterIndex(a_strParameterName);
+    if(index == ~size_t(0)) return nullptr;
+    return (*m_pDefaultArguments)[index];
 }
 
 void TemplateSpecialization::removeArgument( LanguageElement* a_pElement )
 {
-    if(a_pElement->getOwner())
+    if(a_pElement->getOwner() != this)
         removeReferencedElement(a_pElement);
     else 
         removeElement(a_pElement);
@@ -172,24 +208,18 @@ void TemplateSpecialization::referencedElementRemoved(LanguageElement* a_pElemen
     }
 }
 
-boolean TemplateSpecialization::matches( const vector<LanguageElement*>& a_TemplateSpecialization ) const
+boolean TemplateSpecialization::matches( const vector<LanguageElement*>& a_Arguments ) const
 {
-    size_t s0 = a_TemplateSpecialization.size();
-    if((s0 < m_Arguments.size()-m_pTemplate->getDefaultArgumentCount()) || (s0 > m_Arguments.size())) 
+    size_t count = a_Arguments.size();
+    if(count != m_Arguments.size()) 
         return false;
     size_t i = 0;
-    for(;i<m_Arguments.size();++i)
+    for(;i<count;++i)
     {
-        if(i<s0)
-        {
-            if((a_TemplateSpecialization)[i] == nullptr) return false;
-            if(NOT( (a_TemplateSpecialization)[i]->equals(m_Arguments[i]) )) return false;
-        }
-        else 
-        {
-            if(m_Arguments[i] != m_pTemplate->getDefaultArgument(i)) // default argument doesn't match current specialization argument
-                return false;
-        }
+        if(a_Arguments[i] == nullptr 
+            OR m_Arguments[i] == nullptr 
+            OR NOT(a_Arguments[i]->equals(m_Arguments[i]))) 
+            return false;
     }
     return true;
 }
@@ -213,11 +243,6 @@ size_t TemplateSpecialization::getArgumentIndex( const string& a_strParameterNam
     return m_pTemplate->getTemplateParameterIndex(a_strParameterName);
 }
 
-void TemplateSpecialization::elementAdded( LanguageElement* a_pElement )
-{
-    LanguageElement::elementAdded(a_pElement);
-}
-
 void TemplateSpecialization::elementRemoved( LanguageElement* a_pElement )
 {
     for(auto it = m_Arguments.begin(); it != m_Arguments.end(); )
@@ -235,14 +260,14 @@ bool TemplateSpecialization::isEmpty() const
 {
     for(auto it = m_Arguments.begin(); it != m_Arguments.end(); ++it)
     {
-        if((*it)->asPlaceholder() != nullptr) return false; // we found a placeholder => still template dependant
+        if(NOT((*it)->asPlaceholder())) return false; // not a placeholder => partial or full specialization
     }
     return true;
 }
 
 bool TemplateSpecialization::isPartial() const
 {
-    return m_pTemplateSignature != nullptr;
+    return m_pTemplateSignature AND m_pTemplateSignature->getParameterCount() != 0;
 }
 
 bool TemplateSpecialization::isSpecializingParameter( TemplateParameter* a_pParameter ) const
@@ -250,25 +275,25 @@ bool TemplateSpecialization::isSpecializingParameter( TemplateParameter* a_pPara
     size_t i = m_pTemplate->getTemplateParameterIndex(a_pParameter);
     return (i != ~size_t(0)) AND (m_Arguments[i] != nullptr);
 }
-
-bool TemplateSpecialization::isSpecializing( LanguageElement* a_pLanguageElement )
-{
-    if(a_pLanguageElement->m_pTemplateParameterDependencies == nullptr) return false;
-    for(auto it = a_pLanguageElement->m_pTemplateParameterDependencies->begin(); it != a_pLanguageElement->m_pTemplateParameterDependencies->end(); ++it)
-    {
-        TemplateParameter* pDependency = *it;
-        if(isSpecializingParameter(pDependency)) return true;
-        for(auto it = a_pLanguageElement->beginElements(); it != a_pLanguageElement->endElements(); ++it)
-        {
-            if(isSpecializing(*it)) return true;
-        }
-        for(auto it = a_pLanguageElement->beginReferencedElements(); it != a_pLanguageElement->endReferencedElements(); ++it)
-        {
-            if(isSpecializing(*it)) return true;
-        }
-    }
-    return false;
-}
+// 
+// bool TemplateSpecialization::isSpecializing( LanguageElement* a_pLanguageElement )
+// {
+//     if(a_pLanguageElement->m_pTemplateParameterDependencies == nullptr) return false;
+//     for(auto it = a_pLanguageElement->m_pTemplateParameterDependencies->begin(); it != a_pLanguageElement->m_pTemplateParameterDependencies->end(); ++it)
+//     {
+//         TemplateParameter* pDependency = *it;
+//         if(isSpecializingParameter(pDependency)) return true;
+//         for(auto it = a_pLanguageElement->beginElements(); it != a_pLanguageElement->endElements(); ++it)
+//         {
+//             if(isSpecializing(*it)) return true;
+//         }
+//         for(auto it = a_pLanguageElement->beginReferencedElements(); it != a_pLanguageElement->endReferencedElements(); ++it)
+//         {
+//             if(isSpecializing(*it)) return true;
+//         }
+//     }
+//     return false;
+// }
 
 bool TemplateSpecialization::equals( TemplateSpecialization* a_pTemplateSpecialization ) const
 {
@@ -276,9 +301,51 @@ bool TemplateSpecialization::equals( TemplateSpecialization* a_pTemplateSpeciali
         AND matches(a_pTemplateSpecialization->getArguments());
 }
 
-int TemplateSpecialization::score( const vector<LanguageElement*>& a_TemplateSpecialization ) const
+void TemplateSpecialization::setBody( NamedElement* a_pBody )
 {
+    o_assert(a_pBody);
+    o_assert(NOT(isNative()) OR m_pBody == nullptr);
+    if(m_pBody)
+    {
+        setInvalid();
+    }
+    else m_pBody = a_pBody;
+    addElement(m_pBody);
+}
 
+bool TemplateSpecialization::isFull() const
+{
+    return !isPartial() AND !isEmpty();
+}
+
+bool TemplateSpecialization::partialAccepts( const vector<LanguageElement*>& a_Arguments, size_t& a_Score, map<Placeholder*, LanguageElement*>& a_Deductions ) const
+{
+    size_t score = 0;
+    /// add default arguments
+    size_t i = a_Arguments.size();
+    size_t count = m_pTemplate->getTemplateParameterCount();
+    if(m_pTemplate->getDefaultArgumentCount() < (count-i))
+    {
+        return false;
+    }
+    for(size_t i = 0; i<a_Arguments.size(); ++i)
+    {
+        size_t subScore = 0;
+        if(NOT(m_Arguments[i]->partialAccepts(a_Arguments[i], subScore, a_Deductions)))
+            return false;
+        score += subScore;
+    }
+    a_Score = score;
+    return true;
+}
+
+void TemplateSpecialization::finalize()
+{
+    o_assert(getBody());
+    if(isFull())
+    {
+        getBody()->setFinalized();
+    }
 }
 
 o_namespace_end(phantom, reflection)

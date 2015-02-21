@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_def_resetter_h__
 #define o_def_resetter_h__
@@ -134,22 +103,22 @@ namespace detail
         o_forceinline static void remember(reflection::ClassType* a_pType, t_Ty const* a_pInstance, byte*& a_pOutBuffer)
         {
             default_resetter_helper<t_Ty, default_resetter_class>::remember(a_pType, a_pInstance, a_pOutBuffer);
-            state::state_machine_resetter<t_Ty>::remember(a_pInstance, a_pOutBuffer);
+            state_machine_resetter<t_Ty>::remember(a_pInstance, a_pOutBuffer);
         }
         o_forceinline static void reset(reflection::ClassType* a_pType, t_Ty* a_pInstance, byte const*& a_pInBuffer)
         {
             default_resetter_helper<t_Ty, default_resetter_class>::reset(a_pType, a_pInstance, a_pInBuffer);
-            state::state_machine_resetter<t_Ty>::reset(a_pInstance, a_pInBuffer);
+            state_machine_resetter<t_Ty>::reset(a_pInstance, a_pInBuffer);
         }
         o_forceinline static void remember(reflection::ClassType* a_pType, t_Ty const* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte*& a_pOutBuffer)
         {
             default_resetter_helper<t_Ty, default_resetter_class>::remember(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
-            state::state_machine_resetter<t_Ty>::remember(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
+            state_machine_resetter<t_Ty>::remember(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pOutBuffer);
         }
         o_forceinline static void reset(reflection::ClassType* a_pType, t_Ty* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer)
         {
             default_resetter_helper<t_Ty, default_resetter_class>::reset(a_pType, a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
-            state::state_machine_resetter<t_Ty>::reset(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
+            state_machine_resetter<t_Ty>::reset(a_pChunk, a_uiCount, a_uiChunkSectionSize, a_pInBuffer);
         }
     };
 

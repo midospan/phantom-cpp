@@ -2,10 +2,4 @@
 
 #include "VariableWidgetEditor.hxx"
 
-o_classNB((phantom, qt), BitFieldEditor, (VariableWidgetEditor), o_no_copy)
-{
-    o_reflection
-    {
-
-    };
-};
+o_classNB((phantom, qt), BitFieldEditor, (VariableWidgetEditor), o_no_copy)();

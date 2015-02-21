@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_native_TNativeProperty_h__
 #define o_phantom_reflection_native_TNativeProperty_h__
@@ -65,7 +34,7 @@ class TNativeProperty : public Property
     template<typename t_CTy>
     struct value_getter
     {
-        typedef o_NESTED_TYPE boost::remove_const<t_CTy>::type no_const;
+        typedef o_NESTED_TYPE boost::remove_cv<t_CTy>::type no_const;
         static void apply(void* dest, t_CTy& src)
         {
             *reinterpret_cast<no_const*>(dest) = src;
@@ -75,7 +44,7 @@ class TNativeProperty : public Property
     template<typename t_CTy, size_t t_size>
     struct value_getter<t_CTy[t_size]>
     {
-        typedef o_NESTED_TYPE boost::remove_const<t_CTy>::type no_const;
+        typedef o_NESTED_TYPE boost::remove_cv<t_CTy>::type no_const;
         static void apply(void* dest, t_CTy src[t_size])
         {
             size_t i = 0;
@@ -88,7 +57,7 @@ class TNativeProperty : public Property
     template<typename t_CTy>
     struct value_setter
     {
-        typedef o_NESTED_TYPE boost::remove_const<t_CTy>::type no_const;
+        typedef o_NESTED_TYPE boost::remove_cv<t_CTy>::type no_const;
         static void apply(void const* src, t_CTy& dest)
         {
             dest = *const_cast<no_const*>(reinterpret_cast<t_CTy const*>(src));
@@ -98,7 +67,7 @@ class TNativeProperty : public Property
     template<typename t_CTy, size_t t_size>
     struct value_setter<t_CTy[t_size]>
     {
-        typedef o_NESTED_TYPE boost::remove_const<t_CTy>::type no_const;
+        typedef o_NESTED_TYPE boost::remove_cv<t_CTy>::type no_const;
         static void apply(void const* src, t_CTy dest[t_size])
         {
             size_t i = 0;
@@ -110,7 +79,7 @@ class TNativeProperty : public Property
     };
 
     typedef o_NESTED_TYPE boost::remove_reference<t_ValueType>::type      t_ValueTypeNoRef;
-    typedef o_NESTED_TYPE boost::remove_const<t_ValueTypeNoRef>::type     t_ValueTypeNoConstNoRef;
+    typedef o_NESTED_TYPE boost::remove_cv<t_ValueTypeNoRef>::type     t_ValueTypeNoConstNoRef;
     typedef o_NESTED_TYPE canonical_meta_class_type_of<t_ValueTypeNoConstNoRef>::type meta_value_type;
     
 public:
@@ -119,7 +88,7 @@ public:
     typedef void (t_Ty::*setter)(t_ValueType);
     
 public:
-    TNativeProperty(Type* a_pValueType, const string& a_strName, InstanceMemberFunction* a_pSetMemberFunction, InstanceMemberFunction* a_pGetMemberFunction, Signal* a_pSignal, Range* a_pRange, setter a_setter, getter a_getter, uint a_uiSerializationMask, modifiers_t a_uiModifiers = 0)
+    TNativeProperty(Type* a_pValueType, const string& a_strName, MemberFunction* a_pSetMemberFunction, MemberFunction* a_pGetMemberFunction, Signal* a_pSignal, Range* a_pRange, setter a_setter, getter a_getter, uint a_uiSerializationMask, modifiers_t a_uiModifiers = 0)
      : Property(a_pValueType, a_strName, a_pSetMemberFunction, a_pGetMemberFunction, a_pSignal, a_pRange, a_uiSerializationMask, a_uiModifiers|o_native, 0)
      , m_setter(a_setter)
      , m_getter(a_getter)
@@ -193,7 +162,7 @@ public:
     {
         t_ValueType contentType = (reinterpret_cast<t_Ty const*>(a_pInstance)->*m_getter)();
         property_tree value_tree;
-        m_pValueType->removeReference()->removeConst()->serialize(
+        m_pValueType->removeReference()->removeQualifiers()->serialize(
             (t_ValueTypeNoConstNoRef*)&contentType
             , value_tree
             , a_uiSerializationMask, a_pDataBase);
@@ -208,7 +177,7 @@ public:
             // TODO : correct this
             t_ValueType contentType = (reinterpret_cast<t_Ty const*>(pChunk)->*m_getter)();
             property_tree value_tree;
-            m_pValueType->removeReference()->removeConst()->serialize(
+            m_pValueType->removeReference()->removeQualifiers()->serialize(
                 (t_ValueTypeNoConstNoRef*)&contentType
                 , value_tree
                 , a_uiSerializationMask, a_pDataBase);
@@ -223,7 +192,7 @@ public:
         boost::optional<const property_tree&> value_tree_opt = a_InBranch.get_child_optional(m_strName);
         if(value_tree_opt.is_initialized())
         {
-            m_pValueType->removeReference()->removeConst()->deserialize(
+            m_pValueType->removeReference()->removeQualifiers()->deserialize(
                 &contentType
                 , *value_tree_opt
                 , a_uiSerializationMask, a_pDataBase);
@@ -241,7 +210,7 @@ public:
             boost::optional<const property_tree&> value_tree_opt = a_InBranch.get_child_optional(m_strName);
             if(value_tree_opt.is_initialized())
             {
-                m_pValueType->removeReference()->removeConst()->deserialize(
+                m_pValueType->removeReference()->removeQualifiers()->deserialize(
                     &contentType
                     , *value_tree_opt
                     , a_uiSerializationMask, a_pDataBase);

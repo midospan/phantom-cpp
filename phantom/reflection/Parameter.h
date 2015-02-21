@@ -24,8 +24,10 @@ class o_export Parameter : public LocalVariable
 
 public:
     Parameter();
-    Parameter(Type* a_pType, const string& a_strName, Expression* a_pInitializer = nullptr, modifiers_t modifiers = 0);
+    Parameter(Type* a_pType, const string& a_strName = "", Expression* a_pInitializer = nullptr, modifiers_t modifiers = 0);
 	~Parameter(void) 	{}
+
+    void setDefinitionName(const string& a_strName);
 
     virtual Parameter*  asParameter() const { return (Parameter*)this; }
 

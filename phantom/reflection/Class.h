@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_Class_h__
 #define o_phantom_reflection_Class_h__
@@ -54,10 +23,10 @@ public:
     friend class phantom::reflection::Namespace;
 
     template<typename t_Ty>
-    friend class phantom::state::native::TNativeStateMachine;
+    friend class phantom::reflection::native::TNativeStateMachine;
 
     template<typename t_Ty, bool t_value>
-    friend class phantom::state::native::TNativeStateMachineHelper;
+    friend class phantom::reflection::native::TNativeStateMachineHelper;
 
     template<typename t_Ty, typename t_STy> friend struct detail::base_class_adder;
 
@@ -99,9 +68,10 @@ protected:
     struct base_class_data
     {
         base_class_data() {}
-        base_class_data(Class* s, size_t o) : m_pClass(s), m_uiOffset(o) {}
-        Class*    m_pClass;
-        size_t    m_uiOffset;
+        base_class_data(Class* s, size_t o, modifiers_t m = o_public_access) : m_pClass(s), m_uiOffset(o), m_Access(m) {}
+        modifiers_t m_Access;
+        Class*      m_pClass;
+        size_t      m_uiOffset;
         operator Class* () const
         {
             return m_pClass;
@@ -125,8 +95,7 @@ public:
             eResultType_ContravariantMatch,
             eResultType_PerfectMatch,
         };
-        typedef phantom::list<MemberFunction*>                    member_functionList;
-        typedef phantom::map<EResultType, member_functionList>    result_map;
+        typedef phantom::map<EResultType, vector<Subroutine*>>    result_map;
 
         member_function_search_data(void) : m_pMemberFunctionSignature(NULL)
         {
@@ -140,13 +109,13 @@ public:
         }
 
 
-        member_functionList::iterator getResultBegin(EResultType a_eResultType)
+        vector<Subroutine*>::const_iterator getResultBegin(EResultType a_eResultType) const
         {
-            return m_ResultMap[a_eResultType].begin();
+            return m_ResultMap.find(a_eResultType)->second.begin();
         }
-        member_functionList::iterator getResultEnd(EResultType a_eResultType)
+        vector<Subroutine*>::const_iterator getResultEnd(EResultType a_eResultType) const
         {
-            return m_ResultMap[a_eResultType].end();
+            return m_ResultMap.find(a_eResultType)->second.end();
         }
 
         Signature* getMemberFunctionSignature() const { return m_pMemberFunctionSignature; }
@@ -154,7 +123,7 @@ public:
 
         o_destructor ~member_function_search_data(void)     {}
 
-        boolean containsResult() const {return NOT(m_ResultMap.empty()); }
+        bool containsResult() const {return NOT(m_ResultMap.empty()); }
 
         uint countResults(EResultType a_eResultType)
         {
@@ -162,7 +131,7 @@ public:
             return it != m_ResultMap.end()?it->second.size():0;
         }
 
-        boolean isFound(EResultType a_eResultType)
+        bool isFound(EResultType a_eResultType)
         {
             result_map::iterator it = m_ResultMap.find(a_eResultType);
             return it != m_ResultMap.end() AND NOT(it->second.empty());
@@ -172,7 +141,7 @@ public:
             m_ResultMap.clear();
         }
 
-        void populateWithResult(EResultType a_eResult, MemberFunction* a_pMemberFunction)
+        void populateWithResult(EResultType a_eResult, Subroutine* a_pMemberFunction)
         {
             m_ResultMap[a_eResult].push_back(a_pMemberFunction);
         }
@@ -223,7 +192,7 @@ public:
      * \param [in,out]  a_pOutList If non-null, vector passed is filetered to keep only to abstract member_functions that haven't been overloaded, recursively through all the base classes.
      */
 
-    void                filtersNonOverloadedPureVirtualMemberFunctionsCascade(instance_member_function_vector& a_Result) const;
+    void                filtersNonOverloadedPureVirtualMemberFunctionsCascade(vector<MemberFunction*>& a_Result) const;
 
     /**
      * \fn void Class::findPureVirtualMemberFunctions(instance_member_function_vector* a_pOutList) const;
@@ -233,10 +202,10 @@ public:
      * \param [out]  a_pOutList If non-null, vector filtered.
      */
 
-    void                findPureVirtualMemberFunctions(instance_member_function_vector& a_Result) const;
+    void                findPureVirtualMemberFunctions(vector<MemberFunction*>& a_Result) const;
 
     /**
-     * \fn MemberFunction* Class::getMemberFunctionCascade(const string& a_strIdentifierString) const;
+     * \fn Subroutine* Class::getMemberFunctionCascade(const string& a_strIdentifierString) const;
      *
      * \brief Gets a member_function (static or instance one) recursively through all the base classes.
      *
@@ -245,38 +214,9 @@ public:
      * \return NULL if it fails, else the member_function.
      */
 
-    MemberFunction*             getMemberFunctionCascade(const string& a_strIdentifierString) const;
+    Subroutine*             getSubroutineCascade(const string& a_strIdentifierString) const;
 
-    MemberFunction*             getMemberFunctionCascade(const string& a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes, modifiers_t a_Modifiers = 0) const;
-
-    /**
-     * \fn  InstanceMemberFunction* Class::getInstanceMemberFunctionCascade(const string& a_strName,
-     *      type_vector* a_pParameterTypes) const;
-     *
-     * \brief Gets an instance member_function recursively through all the base classes.
-     *
-     * \param   a_strName                 The member_function name.
-     * \param [in,out]  a_pParameterTypes If non-null, list of the parameters' types.
-     *
-     * \return null if it fails, else the instance member_function.
-     */
-
-    InstanceMemberFunction*     getInstanceMemberFunctionCascade(const string& a_strName, type_vector* a_pParameterTypes) const;
-
-    /**
-     * \fn  virtual void Class::getInvokableMemberFunctionsCascade(const string& a_strName,
-     *      MemberFunction** a_pOutPerfectMatchMemberFunction, member_function_vector* a_pResultMemberFunctions,
-     *      type_vector* a_pArgumentTypeList);
-     *
-     * \brief Gets a compatible member_functions cascade.
-     *
-     * \param   a_strName                                   The instance member_function name.
-     * \param [in,out]  a_pParameterTypeList                If non-null, list of the parameters' types.
-     * \param [in,out]  a_pPerfectlyCompatibleMatchMemberFunction   If non-null, this parameter receives, if it exists, the member_function that matches perfectly the request.
-     * \param [in,out]  a_pCompatibleMemberFunctions                If non-null, a vector which receives all the member_functions compatible with the request.
-     */
-
-    virtual void        getInvokableMemberFunctionsCascade(const string& a_strName, const vector<Type*>& a_ParameterTypeList, MemberFunction** a_pPerfectlyCompatibleMatchMemberFunction, member_function_vector* a_pCompatibleMemberFunctions);
+    Subroutine*             getSubroutineCascade(const string& a_strName, const vector<Type*>& a_FunctionSignature, modifiers_t a_Modifiers = 0) const;
 
     /**
      * \fn void Class::getAllMemberCascade(vector<LanguageElement*>&) const;
@@ -298,7 +238,7 @@ public:
     void                getValueMembersCascade(vector<ValueMember*>& out) const;
     
     /**
-     * \fn InstanceMemberFunction* Class::findOverriddenMemberFunctions(InstanceMemberFunction* a_pOverloadMemberFunction, vector<InstanceMemberFunction*>& a_Result);
+     * \fn MemberFunction* Class::findOverriddenMemberFunctions(MemberFunction* a_pOverloadMemberFunction, vector<MemberFunction*>& a_Result);
      *
      * \brief Gets a base instance member_function.
      *
@@ -307,10 +247,10 @@ public:
      *
      */
 
-    void     findOverriddenMemberFunctions( InstanceMemberFunction* a_pOverloadedMemberFunction, vector<InstanceMemberFunction*>& a_Result );
+    void     findOverriddenMemberFunctions( MemberFunction* a_pOverloadedMemberFunction, vector<MemberFunction*>& a_Result );
 
     /**
-     * \fn InstanceMemberFunction* Class::getInstanceMemberFunctionCascade(const string& a_strIdentifierString) const;
+     * \fn MemberFunction* Class::getMemberFunctionCascade(const string& a_strIdentifierString) const;
      *
      * \brief Gets an instance member_function recursively through all the base classes.
      *
@@ -319,10 +259,10 @@ public:
      * \return null if it fails, else the instance member_function cascade.
      */
 
-    InstanceMemberFunction*     getInstanceMemberFunctionCascade(const string& a_strIdentifierString) const;
+    MemberFunction*     getMemberFunctionCascade(const string& a_strIdentifierString) const;
 
     /**
-     * \fn  InstanceMemberFunction* Class::getInstanceMemberFunctionCascade(const char* a_strName,
+     * \fn  MemberFunction* Class::getMemberFunctionCascade(const char* a_strName,
      *      LanguageElement** a_pParameterTypes, size_t a_uiParameterCount,
      *      modifiers_t a_Modifiers = 0) const;
      *
@@ -336,7 +276,7 @@ public:
      * \return null if it fails, else the instance member_function cascade.
      */
 
-    InstanceMemberFunction*     getInstanceMemberFunctionCascade(const char* a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes, modifiers_t a_Modifiers = 0) const;
+    MemberFunction*     getMemberFunctionCascade(const char* a_strName, const vector<Type*>& a_FunctionSignature, modifiers_t a_Modifiers = 0) const;
 
     /**
      * \fn ValueMember* Class::getValueMemberCascade(const string& a_strValueMemberName) const;
@@ -363,38 +303,26 @@ public:
     /**
      * \fn DataMember* Class::getDataMemberCascade(const string& a_strName) const;
      *
-     * \brief Gets an dataMember recursively through all the base classes.
-     *
-     * \param   a_strDataMemberName The dataMember name.
-     *
-     * \return null if it fails, else the dataMember.
-     */
-
-    DataMember*          getDataMemberCascade(const string& a_strDataMemberName) const;
-
-    /**
-     * \fn InstanceDataMember* Class::getInstanceDataMemberCascade(const string& a_strName) const;
-     *
      * \brief Gets an instance dataMember recursively through all the base classes.
      *
-     * \param   a_strInstanceDataMemberName The instance dataMember name.
+     * \param   a_strDataMemberName The instance dataMember name.
      *
      * \return null if it fails, else the instance dataMember.
      */
 
-    InstanceDataMember*  getInstanceDataMemberCascade(const string& a_strInstanceDataMemberName) const;
+    DataMember*  getDataMemberCascade(const string& a_strDataMemberName) const;
 
     /**
-     * \fn InstanceDataMember* Class::getInstanceDataMemberCascade(const string& a_strName) const;
+     * \fn DataMember* Class::getDataMemberCascade(const string& a_strName) const;
      *
      * \brief Gets an instance dataMember recursively through all the base classes.
      *
-     * \param   a_strInstanceDataMemberName The instance dataMember name.
+     * \param   a_strDataMemberName The instance dataMember name.
      *
      * \return null if it fails, else the instance dataMember.
      */
 
-    virtual InstanceDataMember*  getInstanceDataMemberByOffset(size_t a_uiOffset) const;
+    virtual DataMember*  getDataMemberByOffset(size_t a_uiOffset) const;
     
     /**
      * \fn Property* Class::getPropertyCascade(const string& a_strPropertyName) const;
@@ -423,7 +351,7 @@ public:
      * \return null if it fails, else the instance member_function cascade.²
      */
 
-    StaticMemberFunction*     getStaticMemberFunctionCascade(const char* a_strName, const vector<Type*>& a_FunctionSignature, vector<size_t>* a_pPartialMatchesIndexes, modifiers_t a_Modifiers = 0) const;
+    StaticMemberFunction*     getStaticMemberFunctionCascade(const string& a_strName, const vector<Type*>& a_FunctionSignature) const;
     /**
      * \fn StaticDataMember* Class::getStaticDataMemberCascade(const string& a_strName) const;
      *
@@ -449,7 +377,7 @@ public:
     StaticMemberFunction*       getStaticMemberFunctionCascade( const string& a_strIdentifierString ) const;
 
     /**
-     * \fn virtual boolean Class::asClass() const
+     * \fn virtual bool Class::asClass() const
      *
      * \brief Reimplemented
      */
@@ -491,22 +419,30 @@ public:
     size_t                      getVirtualMemberFunctionTableSize(size_t a_uiIndex) const    { return getVirtualMemberFunctionTable(a_uiIndex)->getMemberFunctionCount();    }
 
     /**
-     * \fn InstanceMemberFunction** Class::getVirtualMemberFunctionTableData(uint a_uiIndex) const
+     * \fn MemberFunction** Class::getVirtualMemberFunctionTableData(uint a_uiIndex) const
      *
-     * \brief Gets the data (an array of InstanceMemberFunction) of the virtual member_function table data.
+     * \brief Gets the data (an array of MemberFunction) of the virtual member_function table data.
      *
      * \param   a_uiIndex Zero-based index.
      *
-     * \return the virtual member_function table data as an InstanceMemberFunction* array.
+     * \return the virtual member_function table data as an MemberFunction* array.
      */
 
-    virtual boolean     acceptMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_vector* a_pOutConflictingMemberFunctions = NULL) const;
-    virtual boolean     acceptsOverloadedMemberFunction(const string& a_strName, Signature* a_pSignature, member_function_vector* a_pOutConflictingMemberFunctions) const;
+    virtual bool                acceptsSubroutine(Type* a_pReturnType, const string& a_strName, const vector<Type*>& a_Types, modifiers_t a_Modifiers, vector<Subroutine*>* a_pOutConflictingMemberFunctions = NULL) const;
+    virtual bool                acceptsOverrideMemberFunction(Type* a_pReturnType, const string& a_strName, const vector<Type*>& a_Types, modifiers_t a_Modifiers, vector<Subroutine*>* a_pOutConflictingMemberFunctions) const;
 
-    inline Class*       getBaseClass(size_t index) const    { return m_BaseClasses[index];    }
+    inline Class*               getBaseClass(size_t index) const    { return m_BaseClasses[index];    }
 
-    inline void*        baseClassCast(void* a_pInstance, size_t index) const { return (((byte*)a_pInstance)+m_BaseClasses[index].m_uiOffset); }
-    inline const void*  baseClassCast(const void* a_pInstance, size_t index) const { return (((const byte*)a_pInstance)+m_BaseClasses[index].m_uiOffset); }
+    inline void*                baseClassCast(void* a_pInstance, size_t index) const { return (((byte*)a_pInstance)+m_BaseClasses[index].m_uiOffset); }
+    inline const void*          baseClassCast(const void* a_pInstance, size_t index) const { return (((const byte*)a_pInstance)+m_BaseClasses[index].m_uiOffset); }
+
+    size_t                      getInheritanceLevel(size_t i) const;
+
+    size_t                      getInheritanceLevelFromBase(Class* a_pClass) const;
+
+    virtual bool                hasPublicMember(NamedElement* a_pLanguageElement) const;
+    virtual bool                hasProtectedMember(NamedElement* a_pLanguageElement) const;
+    virtual bool                hasPrivateMember(NamedElement* a_pLanguageElement) const;
 
     base_class_table::const_iterator beginBaseClasses() const { return m_BaseClasses.begin(); }
     base_class_table::const_iterator endBaseClasses() const { return m_BaseClasses.end(); } 
@@ -521,18 +457,23 @@ public:
 
     const 
     base_class_table&   getBaseClasses() const { return m_BaseClasses; }
+    modifiers_t         getBaseClassAccess(Class* a_pClass) const;
+    modifiers_t         getBaseClassAccessCascade( Class* a_pClass ) const;
     uint                getBaseClassCount(void) const { return m_BaseClasses.size(); }
-    bool                hasBaseClass( Class* a_pClass ) const;
+    bool                hasBaseClass( Class* a_pClass, modifiers_t* a_pInheritanceAccess = 0 ) const;
     bool                hasBaseClassCascade( Class* a_pClass ) const;
 
     Class*              getDerivedClass(uint a_uiIndex) const { return m_DerivedClasses[a_uiIndex]; }
     uint                getDerivedClassCount(void) const { return m_DerivedClasses.size(); }
     void                getDerivedClasses(vector<Class*>& out) const;
     void                getDerivedClassesCascade(vector<Class*>& out) const;
-    boolean             hasDerivedClass( Class* a_pClass ) const;
+    bool                hasDerivedClass( Class* a_pClass, modifiers_t* a_pDerivedAccess = 0 ) const;
+    bool                hasDerivedClassCascade(Class* a_pClass, modifiers_t* a_pDerivedAccess = 0 ) const;
+
+    bool                hasAccessTo( NamedElement* a_pOther, NamedElement* a_pAccessContext = nullptr ) const;
 
     void                homonymousMemberFunctionSearch( member_function_search_data* a_pMemberFunctionRequest );
-    void                sortBaseAndRootMemberFunctions( VirtualMemberFunctionTable* a_pBaseVMT, instance_member_function_list* a_OutBaseMemberFunctions, instance_member_function_list* a_OutRootMemberFunctions ) const;
+    void                sortBaseAndRootMemberFunctions( VirtualMemberFunctionTable* a_pBaseVMT, vector<MemberFunction*>* a_OutBaseMemberFunctions, vector<MemberFunction*>* a_OutRootMemberFunctions ) const;
 
     o_forceinline int   getBaseClassOffset(size_t a_uiClassIndex) const
     {
@@ -540,41 +481,43 @@ public:
     }
     inline size_t       getBaseClassOffset(Class* a_pBaseType) const;
     inline size_t       getBaseClassOffsetCascade(Class* a_pBaseType) const;
-    boolean             isRootClass() const { return m_BaseClasses.empty(); }
+    virtual int         getPointerCastOffset(Type* a_pType) const;
+    int                 getPointerCastOffset(Class* a_pClass) const;
+    bool                isRootClass() const { return m_BaseClasses.empty(); }
 
-    virtual boolean     isKindOf( Class* a_pType ) const;
-    virtual boolean     isKindOf( Type* a_pType ) const { return a_pType->asClass() ? isKindOf(static_cast<Class*>(a_pType)) : false; }
+    virtual bool        isKindOf( Class* a_pType ) const;
+    virtual bool        isKindOf( Type* a_pType ) const { return a_pType->asClass() ? isKindOf(static_cast<Class*>(a_pType)) : false; }
     virtual ERelation   getRelationWith(Type* a_pType) const;
-    boolean             doesInstanceDependOn(void* a_pInstance, void* a_pOther) const;
+    bool                doesInstanceDependOn(void* a_pInstance, void* a_pOther) const;
     
     virtual void        setClass(void* a_pInstance, void* a_pClass) const    { throw exception::unsupported_member_function_exception("this member_function must be overloaded in specialized subclasses which support it"); }
     virtual void        setStateMachineData(void* a_pInstance, void* a_pSmdataptr) const { throw exception::unsupported_member_function_exception("this member_function must be overloaded in specialized subclasses which support it"); }
   
-    virtual void        addInstanceMemberFunction(InstanceMemberFunction* a_pInstanceMemberFunction);
+    virtual void        addMemberFunction(MemberFunction* a_pMemberFunction);
 
     virtual void        addSignal(Signal* a_pSignal);
     virtual void        removeSignal( Signal* a_pSignal );
     Signal*             getSignal(const string& a_strIdentifierString) const;
     Signal*             getSignalCascade(const string& a_strIdentifierString) const;
-    InstanceMemberFunction* getSlot(const string& a_strIdentifierString) const;
-    InstanceMemberFunction* getSlotCascade(const string& a_strIdentifierString) const;
+    MemberFunction*     getSlot(const string& a_strIdentifierString) const;
+    MemberFunction*     getSlotCascade(const string& a_strIdentifierString) const;
 
-    state::StateMachine*getStateMachine() const;
-    state::StateMachine*getStateMachineCascade() const;
+    StateMachine*       getStateMachine() const;
+    StateMachine*       getStateMachineCascade() const;
 
     virtual bool        isPolymorphic() const;
 
-    void                initializeInstanceDataMembers(void* a_pInstance) const;
-    void                initializeInstanceDataMembersCascade(void* a_pInstance) const;
-    void                terminateInstanceDataMembers(void* a_pInstance) const;
-    void                terminateInstanceDataMembersCascade(void* a_pInstance) const;
-    restore_state       restoreInstanceDataMembers( void* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass ) const;
-    restore_state       restoreInstanceDataMembersCascade( void* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass ) const;
+    void                initializeDataMembers(void* a_pInstance) const;
+    void                initializeDataMembersCascade(void* a_pInstance) const;
+    void                terminateDataMembers(void* a_pInstance) const;
+    void                terminateDataMembersCascade(void* a_pInstance) const;
+    restore_state       restoreDataMembers( void* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass ) const;
+    restore_state       restoreDataMembersCascade( void* a_pInstance, uint a_uiSerializationFlag, restore_pass a_uiPass ) const;
 
-    void                installInstanceDataMembers(void* a_pInstance, const rtti_data* a_pOwner) const;
-    void                uninstallInstanceDataMembers(void* a_pInstance, size_t a_uiLevel) const;
-    void                installInstanceDataMembersCascade(void* a_pInstance, const rtti_data* a_pOwner) const;
-    void                uninstallInstanceDataMembersCascade(void* a_pInstance, size_t a_uiLevel) const;
+    void                installDataMembers(void* a_pInstance, const rtti_data* a_pOwner) const;
+    void                uninstallDataMembers(void* a_pInstance, size_t a_uiLevel) const;
+    void                installDataMembersCascade(void* a_pInstance, const rtti_data* a_pOwner) const;
+    void                uninstallDataMembersCascade(void* a_pInstance, size_t a_uiLevel) const;
 
     // Construct               
 
@@ -610,9 +553,9 @@ public:
     virtual void        reset(void* a_pInstance, size_t a_uiCount, size_t a_uiChunkSectionSize, byte const*& a_pInBuffer) const { o_exception(exception::unsupported_member_function_exception, "not implemented"); }
 
     // TODO : COMPILER
-    /*InstanceMemberFunction* addRestoreMemberFunction();
-    InstanceMemberFunction* addInitializeMemberFunction();
-    InstanceMemberFunction* addTerminateMemberFunction();*/
+    /*MemberFunction* addRestoreMemberFunction();
+    MemberFunction* addInitializeMemberFunction();
+    MemberFunction* addTerminateMemberFunction();*/
 
     // Build               
     virtual void        build(void* a_pInstance, const rtti_data* a_pOwner = 0) const { construct(a_pInstance); install(a_pInstance, a_pOwner); }
@@ -675,7 +618,7 @@ public:
     size_t              getInstanceCount() const { return m_Instances.size(); }
     size_t              getKindCount() const;
 
-    void                setStateMachine(phantom::state::StateMachine* a_pStateMachine);
+    void                setStateMachine(StateMachine* a_pStateMachine);
 
     const variant&      getAttributeCascade(const string& a_strName) const;
 
@@ -719,18 +662,19 @@ protected:
     void                registerRttiImpl(void* a_pThis, void* a_pBase, Class* a_pObjectClass, connection::slot_pool* a_pSlotPool, dynamic_delete_func_t a_dynamic_delete_func, const rtti_data* a_pOwner);
     void                unregisterRttiImpl(void* a_pThis, size_t a_uiLevel);
 
-    void registerInstance(void* a_pInstance);
+    void                registerInstance(void* a_pInstance);
 
-    void unregisterInstance(void* a_pInstance);
+    void                unregisterInstance(void* a_pInstance);
 
-    void elementAdded(LanguageElement* a_pElement);
-    void elementRemoved(LanguageElement* a_pElement);
-    bool canBeDestroyed() const;
+    void                elementRemoved(LanguageElement* a_pElement);
+    bool                canBeDestroyed() const;
+    bool                getBaseClassAccess( Class* a_pClass, modifiers_t* a_pInheritanceAccess ) const;
+    bool                getBaseClassAccessCascade( Class* a_pClass, modifiers_t* a_pInheritanceAccess ) const;
 
 protected:
     vector<string> getBaseClasseNames() const;
     virtual void setBaseClasseNames(vector<string> table);
-    virtual void setInstanceMemberFunctions(vector<InstanceMemberFunction*> list);
+    virtual void setMemberFunctions(vector<MemberFunction*> list);
 
 protected:
     base_class_table   m_BaseClasses;
@@ -738,7 +682,7 @@ protected:
     vector<void*>       m_Instances;
     mutable vmt_vector  m_VirtualMemberFunctionTables;
     mutable vector<vtable_info> m_VirtualTableInfos;
-    state::StateMachine*m_pStateMachine;
+    StateMachine*m_pStateMachine;
     vector<Signal*>*    m_pSignals;
     size_t              m_uiInstanceCount;
     void*               m_pSingleton;

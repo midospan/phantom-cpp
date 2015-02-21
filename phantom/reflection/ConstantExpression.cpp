@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
@@ -41,7 +10,7 @@ o_registerN((phantom, reflection), ConstantExpression);
 o_namespace_begin(phantom, reflection) 
 
 ConstantExpression::ConstantExpression(Constant* a_pConstant, Expression* a_pChildExpression /*= nullptr*/)
-    : Expression(a_pConstant->getValueType(), 0)
+    : Expression(a_pConstant->getValueType())
     , m_pConstant(a_pConstant)
 {
     if(a_pChildExpression)
@@ -57,6 +26,13 @@ ConstantExpression::ConstantExpression(Constant* a_pConstant, Expression* a_pChi
     {
         setInvalid();
     }
+    m_pTempValue = m_pValueType->allocate();
+    m_pConstant->getValue(m_pTempValue);
+}
+
+ConstantExpression::~ConstantExpression( void )
+{
+    if(m_pValueType) m_pValueType->deallocate(m_pTempValue);
 }
 
 void ConstantExpression::setValue( void const* a_pSrc ) const
@@ -103,11 +79,19 @@ void ConstantExpression::elementRemoved( LanguageElement* a_pElement )
 
 void ConstantExpression::referencedElementRemoved( LanguageElement* a_pElement )
 {
-    Expression::referencedElementRemoved(a_pElement);
     if(a_pElement == m_pConstant)
     {
         m_pConstant = nullptr;
     }
+    else if(a_pElement == m_pValueType)
+    {
+        if(m_pTempValue)
+        {
+            m_pValueType->deallocate(m_pTempValue);
+            m_pTempValue = nullptr;
+        }
+    }
+    Expression::referencedElementRemoved(a_pElement);
 }
 
 bool ConstantExpression::isPersistent() const

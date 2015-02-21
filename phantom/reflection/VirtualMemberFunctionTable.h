@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_VirtualMemberFunctionTable_h__
 #define o_phantom_reflection_VirtualMemberFunctionTable_h__
@@ -44,7 +13,7 @@
 
 o_namespace_begin(phantom, reflection)
 
-class o_export VirtualMemberFunctionTable : public LanguageElement
+class o_export VirtualMemberFunctionTable : public NamedElement
 {
     o_declare_meta_type(VirtualMemberFunctionTable);
 
@@ -58,12 +27,12 @@ public:
 
     size_t getMemberFunctionCount() const { return m_pMemberFunctions->size(); }
     
-    size_t getIndexOf(InstanceMemberFunction* a_pMemberFunction) const;
+    size_t getIndexOf(MemberFunction* a_pMemberFunction) const;
 
-    vector<InstanceMemberFunction*>::const_iterator beginMemberFunctions() const { return m_pMemberFunctions->begin(); }
-    vector<InstanceMemberFunction*>::const_iterator endMemberFunctions() const { return m_pMemberFunctions->end(); }
+    vector<MemberFunction*>::const_iterator beginMemberFunctions() const { return m_pMemberFunctions->begin(); }
+    vector<MemberFunction*>::const_iterator endMemberFunctions() const { return m_pMemberFunctions->end(); }
 
-    InstanceMemberFunction*     getMemberFunction(size_t a_uiIndex) const 
+    MemberFunction*     getMemberFunction(size_t a_uiIndex) const 
     {
         return (*m_pMemberFunctions)[a_uiIndex];
     }
@@ -83,8 +52,8 @@ public:
 
     VirtualMemberFunctionTable* getRootTable() const { return m_pBaseTable ? m_pBaseTable->getRootTable() : const_cast<VirtualMemberFunctionTable*>(this); }
 
-    InstanceMemberFunction*     getRootMemberFunction(size_t a_uiIndex) const;
-    InstanceMemberFunction*     getRootMemberFunction( InstanceMemberFunction* a_pInstanceMemberFunction ) const;
+    MemberFunction*     getRootMemberFunction(size_t a_uiIndex) const;
+    MemberFunction*     getRootMemberFunction( MemberFunction* a_pMemberFunction ) const;
 
     VirtualMemberFunctionTable* asVirtualMemberFunctionTable() const { return const_cast<VirtualMemberFunctionTable*>(this); }
 
@@ -93,11 +62,11 @@ private: // Derivation constructors
     VirtualMemberFunctionTable(VirtualMemberFunctionTable* a_pBaseTable, size_t a_uiSize);
 
 private:
-    void                        addMemberFunction(InstanceMemberFunction* a_pMemberFunction);
+    void                        addMemberFunction(MemberFunction* a_pMemberFunction);
 
-    void                        setMemberFunction(size_t a_uiIndex, InstanceMemberFunction* a_pMemberFunction);
+    void                        setMemberFunction(size_t a_uiIndex, MemberFunction* a_pMemberFunction);
 
-    void                        insertMemberFunction(InstanceMemberFunction* a_pMemberFunction);
+    void                        insertMemberFunction(MemberFunction* a_pMemberFunction);
 
     bool                        sharesMemberFunctions() const { return m_pBaseTable && m_pBaseTable->m_pMemberFunctions == m_pMemberFunctions; }
 
@@ -106,7 +75,7 @@ private:
     virtual bool                canBeDestroyed() const;
 
 private:
-    vector<InstanceMemberFunction*>* m_pMemberFunctions;
+    vector<MemberFunction*>* m_pMemberFunctions;
     VirtualMemberFunctionTable* m_pBaseTable;
     vector<VirtualMemberFunctionTable*> m_DerivedTables;
     void**                      m_ppClosures;

@@ -10,13 +10,20 @@
 #include "CxxDriver.h"
 #include "CxxLexer.h"
 #include "CxxParser.h"
+#include "CxxPrecompiler.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 #if o_COMPILER != o_COMPILER_VISUAL_STUDIO
 #include <inttypes.h>
 #else
 #define SCNu64 "llu"
 #endif
 
-#include "CxxPrecompiler.hxx"
+#include "CxxTokenizer.h"
+
+#define o_semantic_error(a)  do { if(a_pPrecompiler->hasFlag(CxxPrecompiler::e_Flag_PrintErrors)) std::cout << "error : semantic : " << a << std::endl;  a_pPrecompiler->incrementErrorCount(); } while (0)
+#define o_semantic_suberror(a)  do { if(a_pPrecompiler->hasFlag(CxxPrecompiler::e_Flag_PrintErrors)) std::cout << "    " << a << std::endl; } while (0)
+
 
 namespace phantom
 {
@@ -342,12 +349,12 @@ namespace phantom
         o_assert(CxxDriver::Instance() == nullptr);
     }
 
-    LanguageElement* CxxExpression::precompileParenthesized( Precompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/ )
+    LanguageElement* CxxExpression::precompileParenthesized( CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
     {
-        Expression* pExpression = precompileExpression(a_pPrecompiler, a_pScope, a_pLHS);
+        Expression* pExpression = precompileExpression(a_pPrecompiler, a_pScope, a_pLHS, a_Modifiers);
         if(pExpression == nullptr)
         {
-            o_semantic_error("invalid expression on left hand side of () operator");
+            o_semantic_error("invalid expression on left hand side of '()' operator");
             return o_new(CallExpression)(nullptr, nullptr, nullptr);
         }
         vector<Expression*> exprs;
@@ -358,39 +365,62 @@ namespace phantom
                 exprs.push_back((*it)->expr->precompileExpression(a_pPrecompiler, a_pScope));
             }
         }
-        return pExpression->precompileOperator(a_pPrecompiler, "()", exprs);
+        return a_pPrecompiler->getLanguage()->qualifiedLookup(pExpression, "operator()", nullptr, &exprs, a_pScope, nullptr);
     }
 
-    LanguageElement* CxxScopedPointerExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxExpression::precompileTemplateParenthesized( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        o_assert_no_implementation();
+        return nullptr; //a_pPrecompiler->getLanguage()->qualifiedLookup(pExpression, "operator()", nullptr, &exprs, a_pScope, nullptr);
+    }
+
+    LanguageElement* CxxScopedPointerExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         o_warning(false, __FUNCTION__ "not implemented");
         return nullptr;
     }
 
-    LanguageElement* CxxCStyleCastExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxCStyleCastExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
-        Type* pCastType = type->precompileType(a_pPrecompiler, a_pScope);
-        if(pCastType == nullptr) return nullptr;
-        Expression* pExpr = expr->precompileExpression(a_pPrecompiler, a_pScope);
-        if(pExpr == nullptr) return nullptr;
-        return pExpr->cast(pCastType);
+        LanguageElement* pElement = type->precompile(a_pPrecompiler, a_pScope, nullptr, a_Modifiers);
+        Type* pType = pElement->asType();
+        if(pType == nullptr)
+        {
+            pType = Type::Invalid();
+        }
+        Expression* pExpr = expr->precompileExpression(a_pPrecompiler, a_pScope, nullptr, a_Modifiers);
+        return a_pPrecompiler->getLanguage()->convert(pExpr, pType, reflection::e_explicit_cast, a_pScope);
     }
 
-    LanguageElement* CxxName::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxName::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         if(words.empty())
         {
-            o_semantic_error("rmpty name");
+            o_semantic_error("empty name");
             return nullptr;
         }
         if(!isTemplate)
         {
+            if(a_pScope->asTemplateSignature())
+            {
+                if(classKey)
+                {
+                    const string& id = classKey->asIdentifier();
+                    o_assert(id.size());
+                    if(id == "class" OR id == "typename")
+                    {
+                        string wordId = asIdentifier();
+                        return o_new(TemplateParameter)(o_new(PlaceholderType)(wordId));
+                    }
+                }
+            }
+
             LanguageElement* pScope = a_pScope;
-            bool cascadeSearch = true;
+            bool bUnqualified = true;
             if(a_pLHS)
             {
                 pScope = a_pLHS;
-                cascadeSearch = false;
+                bUnqualified = false;
             }
             for(auto it = words.begin(); it != words.end(); ++it)
             {
@@ -405,26 +435,37 @@ namespace phantom
                 }
                 else 
                 {
+                    bool namespaceMode = a_pPrecompiler->hasFlag(CxxPrecompiler::e_Flag_NamespaceMode);
                     LanguageElement* pChildScope = nullptr;
+
                     if(it->templateArgs != nullptr)
                     {
                         vector<LanguageElement*> templateElements;
                         it->templateArgs->precompile(a_pPrecompiler, a_pScope, templateElements);
-                        pChildScope = cascadeSearch // if we don't have a left-hand side, we look recursively through all scope hierarchy
-                                        ? pScope->precompileScopeCascade(a_pPrecompiler, it->id, &templateElements, nullptr, 0) 
-                                        : pScope->precompileScope(a_pPrecompiler, it->id, &templateElements, nullptr, 0);
+                        pChildScope = bUnqualified // if we don't have a left-hand side, we look recursively through all scope hierarchy
+                                        ? a_pPrecompiler->getLanguage()->unqualifiedLookup(it->id, &templateElements, nullptr, a_pScope, nullptr) 
+                                        : a_pPrecompiler->getLanguage()->qualifiedLookup(pScope, it->id, &templateElements, nullptr, a_pScope, nullptr);
                     }
                     else 
                     {
-                        pChildScope = cascadeSearch // if we don't have a left-hand side, we look recursively through all scope hierarchy
-                                        ? pScope->precompileScopeCascade(a_pPrecompiler, it->id, nullptr, nullptr, 0)
-                                        : pScope->precompileScope(a_pPrecompiler, it->id, nullptr, nullptr, 0);
+                        pChildScope = bUnqualified // if we don't have a left-hand side, we look recursively through all scope hierarchy
+                            ? a_pPrecompiler->getLanguage()->unqualifiedLookup(it->id, nullptr, nullptr, a_pScope, nullptr) 
+                            : a_pPrecompiler->getLanguage()->qualifiedLookup(pScope, it->id, nullptr, nullptr, a_pScope, nullptr);
                     }
                     if(pChildScope == nullptr)
                     {
-                        o_semantic_error("undefined symbol '"<<it->id<<"' in scope '"<<pScope->getQualifiedDecoratedName()<<"'");
+                        o_semantic_error("unknown symbol '"<<it->id<<"'");
                         return nullptr;
                     }
+                    Source* pSource = a_pScope->getSource();
+                    o_assert( namespaceMode
+                            OR pSource 
+                            OR a_pScope->asNamespace(), "scope must have a source");
+//                     if(pSource)
+//                     {
+//                         o_semantic_error("inaccessible symbol '"<<it->id<<"' requires import in scope '"<<(a_pScope->asTemplateSignature() ? a_pScope->getOwner()->asNamedElement()->getQualifiedDecoratedName() : pScope->asNamedElement()->getQualifiedDecoratedName())<<"'");
+//                     }
+                    bUnqualified = false;
                     pScope = pChildScope;
                 }
             }
@@ -432,7 +473,7 @@ namespace phantom
             if(pType)
             {
                 if(declSpecifier)
-                    return declSpecifier->specify(pType);
+                    return declSpecifier->specify(a_pPrecompiler, pType);
                 return pType;
             }
             else if(declSpecifier)
@@ -449,7 +490,7 @@ namespace phantom
         }
     }
 
-    LanguageElement* CxxName::precompileParenthesized( Precompiler* a_pPrecompiler, CxxParenthesised* aParenthesised, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxName::precompileParenthesized( CxxPrecompiler* a_pPrecompiler, CxxParenthesised* aParenthesised, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         if(words.empty())
         {
@@ -459,11 +500,11 @@ namespace phantom
         if(!isTemplate)
         {
             LanguageElement* pScope = a_pScope;
-            bool cascadeSearch = true;
+            bool bUnqualified = true;
             if(a_pLHS)
             {
                 pScope = a_pLHS;
-                cascadeSearch = false;
+                bUnqualified = false;
             }
             auto end = words.end();
             auto last = --end;
@@ -480,168 +521,369 @@ namespace phantom
                 }
                 else 
                 {
+                    bool namespaceMode = a_pPrecompiler->hasFlag(CxxPrecompiler::e_Flag_NamespaceMode);
                     LanguageElement* pChildScope = nullptr;
                     if(it->templateArgs != nullptr)
                     {
                         vector<LanguageElement*> templateElements;
                         it->templateArgs->precompile(a_pPrecompiler, a_pScope, templateElements);
-                        pChildScope = cascadeSearch // if we don't have a left-hand side, we look recursively through all scope hierarchy
-                            ? pScope->precompileScopeCascade(a_pPrecompiler, it->id, &templateElements, nullptr, 0) 
-                            : pScope->precompileScope(a_pPrecompiler, it->id, &templateElements, nullptr, 0);
+                        pChildScope = bUnqualified // if we don't have a left-hand side, we look recursively through all scope hierarchy
+                            ? a_pPrecompiler->getLanguage()->unqualifiedLookup(it->id, &templateElements, nullptr, a_pScope, nullptr) 
+                            : a_pPrecompiler->getLanguage()->qualifiedLookup(pScope, it->id, &templateElements, nullptr, a_pScope, nullptr);
                     }
                     else 
                     {
-                        pChildScope = cascadeSearch // if we don't have a left-hand side, we look recursively through all scope hierarchy
-                            ? pScope->precompileScopeCascade(a_pPrecompiler, it->id, nullptr, nullptr, 0)
-                            : pScope->precompileScope(a_pPrecompiler, it->id, nullptr, nullptr, 0);
+                        pChildScope = bUnqualified // if we don't have a left-hand side, we look recursively through all scope hierarchy
+                            ? a_pPrecompiler->getLanguage()->unqualifiedLookup(it->id, nullptr, nullptr, a_pScope, nullptr) 
+                            : a_pPrecompiler->getLanguage()->qualifiedLookup(pScope, it->id, nullptr, nullptr, a_pScope, nullptr);
                     }
                     if(pChildScope == nullptr)
                     {
-                        o_semantic_error("undefined symbol '"<<it->id<<"' in scope '"<<pScope->getQualifiedDecoratedName()<<"'");
+                        o_semantic_error("undefined symbol '"<<it->id<<"' in scope '"<<pScope->asNamedElement()->getQualifiedDecoratedName()<<"'");
                         return nullptr;
                     }
+                    Source* pSource = a_pScope->getSource();
+                    o_assert(namespaceMode OR pSource, "scope must have a source");
+//                     if(NOT(pSource->isAccessible(pChildScope)))
+//                     {
+//                         o_semantic_error("inaccessible symbol '"<<it->id<<"' requires import in scope '"<<(a_pScope->asTemplateSignature() ? a_pScope->getOwner()->asNamedElement()->getQualifiedDecoratedName() : pScope->asNamedElement()->getQualifiedDecoratedName())<<"'");
+//                     }
                     pScope = pChildScope;
                 }
-                cascadeSearch = false;
+                bUnqualified = false;
             }
-            vector<LanguageElement*> argumentsOrParameters;
-            modifiers_t modifiers = 0;
-            aParenthesised->precompile(a_pPrecompiler, pScope, argumentsOrParameters, &modifiers);
-            LanguageElement* pPrecompiled = nullptr;
-            if(last->templateArgs)
-            {
-                vector<LanguageElement*> templateElements;
-                last->templateArgs->precompile(a_pPrecompiler, a_pScope, templateElements);
 
-                pPrecompiled = cascadeSearch // if we don't have a left-hand side, we look recursively through all scope hierarchy
-                                    ? pScope->precompileScopeCascade(a_pPrecompiler, last->id, &templateElements, &argumentsOrParameters, modifiers)
-                                    : pScope->precompileScope(a_pPrecompiler, last->id, &templateElements, &argumentsOrParameters, modifiers);
-                                    ;
-            }
-            else 
+            bool namespaceMode = a_pPrecompiler->hasFlag(CxxPrecompiler::e_Flag_NamespaceMode);
+
+            vector<LanguageElement*> argumentsOrParameters;
+            aParenthesised->precompile(a_pPrecompiler, pScope, argumentsOrParameters, &a_Modifiers);
+
+            vector<Expression*> functionArguments;
+            vector<Type*> functionTypes;
+            vector<LanguageElement*> templateArguments;
+            vector<Expression*>* pFunctionArguments = nullptr;
+            vector<Type*>* pFunctionTypes = nullptr;
+            vector<LanguageElement*>* pTemplateArguments = nullptr;
+            bool bExpressions = true;
+            bool bTypes = NOT(pScope->asExpression()); /// we don't expect signature with a left hand side being an evaluable expression
+            if(argumentsOrParameters.empty())
             {
-                pPrecompiled = cascadeSearch // if we don't have a left-hand side, we look recursively through all scope hierarchy
-                                    ? pScope->precompileScopeCascade(a_pPrecompiler, last->id, nullptr, &argumentsOrParameters, modifiers)
-                                    : pScope->precompileScope(a_pPrecompiler, last->id, nullptr, &argumentsOrParameters, modifiers);
+                pFunctionTypes = &functionTypes;
             }
-            return pPrecompiled;
+            else for(auto it = argumentsOrParameters.begin(); it != argumentsOrParameters.end(); ++it)
+            {
+                LanguageElement* pElement = *it;
+                if(pElement->asExpression() AND bExpressions)
+                {
+                    bTypes = false;
+                    functionArguments.push_back(pElement->asExpression());
+                    pFunctionArguments = &functionArguments;
+                }
+                else if(pElement->asType() AND bTypes)
+                {
+                    bExpressions = false;
+                    functionTypes.push_back(pElement->asType());
+                    pFunctionTypes = &functionTypes;
+                }
+                else 
+                {
+                    o_semantic_error("invalid expression in parenthesized expression");
+                }
+            }
+
+            if(pFunctionTypes)
+            {
+                if(last->templateArgs != nullptr)
+                {
+                    vector<LanguageElement*> templateElements;
+                    last->templateArgs->precompile(a_pPrecompiler, a_pScope, templateElements);
+                    pScope = bUnqualified // if we don't have a left-hand side, we look recursively through all scope hierarchy
+                        ? a_pPrecompiler->getLanguage()->solveSubroutineCascade(pScope, last->id, &templateElements, *pFunctionTypes, a_Modifiers, a_pScope) 
+                        : a_pPrecompiler->getLanguage()->solveSubroutine(pScope, last->id, &templateElements, *pFunctionTypes, a_Modifiers, a_pScope);
+                }
+                else 
+                {
+                    pScope = bUnqualified // if we don't have a left-hand side, we look recursively through all scope hierarchy
+                        ? a_pPrecompiler->getLanguage()->solveSubroutineCascade(pScope, last->id, nullptr, *pFunctionTypes, a_Modifiers, a_pScope) 
+                        : a_pPrecompiler->getLanguage()->solveSubroutine(pScope, last->id, nullptr, *pFunctionTypes, a_Modifiers, a_pScope);
+                }
+            }
+            else if(pFunctionArguments)
+            {
+                LanguageElement* pPrecompiled = nullptr;
+                if(last->templateArgs != nullptr)
+                {
+                    vector<LanguageElement*> templateElements;
+                    last->templateArgs->precompile(a_pPrecompiler, a_pScope, templateElements);
+                    pScope = bUnqualified // if we don't have a left-hand side, we look recursively through all scope hierarchy
+                        ? a_pPrecompiler->getLanguage()->unqualifiedLookup(last->id, &templateElements, pFunctionArguments, a_pScope, nullptr) 
+                        : a_pPrecompiler->getLanguage()->qualifiedLookup(pScope, last->id, &templateElements, pFunctionArguments, a_pScope, nullptr);
+                }
+                else 
+                {
+                    pScope = bUnqualified // if we don't have a left-hand side, we look recursively through all scope hierarchy
+                        ? a_pPrecompiler->getLanguage()->unqualifiedLookup(last->id, nullptr, pFunctionArguments, a_pScope, nullptr) 
+                        : a_pPrecompiler->getLanguage()->qualifiedLookup(pScope, last->id, nullptr, pFunctionArguments, a_pScope, nullptr);
+                }
+            }
+            return pScope;
         }
         else 
         {
-            o_assert(false, "template instanciation not supported by compilation yet");
+            o_assert(false, "template explicit instanciation not supported by compilation yet");
             return nullptr;
         }
     }
 
-    LanguageElement* CxxName::precompileTypedParenthesized( Precompiler* a_pPrecompiler, Type* a_pType, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/ )
+    LanguageElement* CxxName::precompileTemplateParenthesized( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, CxxParenthesised* aParenthesised, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        a_pScope->addScopedElement(a_pTemplateSignature);
+        LanguageElement* pElement = precompileParenthesized(a_pPrecompiler, aParenthesised, a_pTemplateSignature, a_pLHS, a_Modifiers);
+        a_pScope->removeScopedElement(a_pTemplateSignature);
+        return pElement;
+    }
+
+    LanguageElement* CxxName::precompileTypedParenthesized( CxxPrecompiler* a_pPrecompiler, Type* a_pType, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers )
     {
         const string& id = asIdentifier();
         if(id.empty())
         {
             o_semantic_error("illformed function identifier");
         }
+
         modifiers_t modifiers = 0;
-        declSpecifier->specify(a_pType, &modifiers);
-        Signature* pSignature = o_new(Signature)(pType, parameters, (modifiers&o_const) ? o_const : 0);
+        if(declSpecifier)
+            declSpecifier->specify(a_pPrecompiler, a_pType, &modifiers);
 
-        bool isMemberFunctionInternalDefinition = a_pScope->asClassType();
-        bool isMemberFunctionExternalDefinition = (a_pScope->asNamespace() AND a_pLHS AND a_pLHS->asClassType());
-        if(isMemberFunctionInternalDefinition OR isMemberFunctionExternalDefinition) // member function
+        if(a_pPrecompiler->hasFlag(CxxPrecompiler::e_Flag_ExpressionMode))
         {
-            // Member function
-            vector<LanguageElement*> argumentsOrParameters;
-            vector<Parameter*> parameters;
-            aParenthesised->precompile(a_pPrecompiler, a_pScope, argumentsOrParameters, &modifiers);
-
-            MemberFunction* pMemberFunction = nullptr;
-
-            if(isMemberFunctionExternalDefinition)
+            // In expression mode, we just look for a perfect matching subroutine
+            Scope* pScope = a_pLHS ? a_pLHS->asScope() : a_pScope->asScope();
+            if(pScope == nullptr) return nullptr;
+            vector<LanguageElement*> types;
+            a_pParen->precompile(a_pPrecompiler, a_pScope, types, &modifiers);
+            for(auto it = types.begin(); it != types.end(); ++it)
             {
-                if(modifiers & ~o_const)
-                {
-                    o_semantic_error("illegal specifiers on member function outscoped definition");
-                }
-                // if external definition we must already have created the member function
-                CxxTemplateArguments* pLastTemplateArgs = getLastTemplateArguments();
-                vector<LanguageElement*> templateArgs;
-                pLastTemplateArgs->precompile(a_pPrecompiler, a_pScope, templateArgs);
-                LanguageElement* pDeclaredElement = a_pLHS->precompileScope(id, templateArgs, &argumentsOrParameters, (modifiers&o_const) ? o_const : o_noconst);
-                MemberFunction* pMemberFunction = nullptr;
-                if(pDeclaredElement == nullptr OR (pMemberFunction = pDeclaredElement->asMemberFunction()))
-                {
-                    o_semantic_error("member function declaration not found for the current definition");
-                }
+                o_assert((*it) == nullptr OR (*it)->asType());
             }
-            for(auto it = argumentsOrParameters.begin(); it != argumentsOrParameters.end(); ++it)
+            Subroutine* pSubroutine = pScope->getSubroutine(a_pType, id, (const vector<Type*>&)types, (modifiers&o_member_function_qualifiers_mask));
+            if(pSubroutine AND (pSubroutine->isStatic() == ((modifiers&o_static) == o_static)))
             {
-                LanguageElement* pElem = *it;
-                if(pElem->asParameter())
-                {
-                    parameters.push_back(pElem->asParameter());
-                    if(isMemberFunctionExternalDefinition AND pElem->asParameter()->getInitializationExpression())
-                    {
-                        o_semantic_error("redefining default parameter value");
-                    }
-                }
-                else if(pElem->asType())
-                {
-                    parameters.push_back(o_new(Parameter)(pElem->asType()));
-                }
-                else 
-                {
-                    parameters.push_back(nullptr);
-                    o_semantic_error("unexpected expression in signature, expecting type or parameter declaration");
-                }
+                return pSubroutine;
             }
-            if(pMemberFunction AND NOT(pSignature->matches(pMemberFunction->asSubroutine()->getSignature())))
-            {
-                o_semantic_error("member function definition only differs by return type from its declaration");
-                pMemberFunction->asSubroutine()->setInvalid();
-            }
-            if(isMemberFunctionInternalDefinition)
-            {
-                if(modifiers & o_static)
-                {
-                    pMemberFunction = o_new(StaticMemberFunction)(id, pSignature, modifiers);
-                    if(modifiers & o_virtual)
-                    {
-                        o_semantic_error("incompatible 'static' and 'virtual' specifiers");
-                        pMemberFunction->asSubroutine()->setInvalid();
-                    }
-                    if(modifiers & o_const)
-                    {
-                        o_semantic_error("incompatible 'static' and 'const' specifiers");
-                        pMemberFunction->asSubroutine()->setInvalid();
-                    }
-                }
-                else 
-                {
-                    pMemberFunction = o_new(InstanceMemberFunction)(id, pSignature, modifiers);
-                }
-            }
-            return pMemberFunction->asLanguageElement();
+            return nullptr;
         }
         else 
         {
-            if(modifiers & o_const)
+            ClassType* pClassType = nullptr;
+            Namespace* pNamespace = nullptr;
+            bool isDefinition = (a_Modifiers&o_defined) == o_defined;
+            bool isMemberFunction = (pClassType=a_pScope->asClassType()) != nullptr OR (a_pLHS AND (pClassType = a_pLHS->asClassType()));
+            bool isExternal = a_pLHS != nullptr;
+            bool isFunction = a_pLHS == nullptr AND !isMemberFunction;
+
+            Signature* pSignature = o_new(Signature)(a_pType, (modifiers&o_member_function_qualifiers_mask));
+            a_pScope->addScopedElement(pSignature);
+            vector<LanguageElement*> argumentsOrParameters;
+            vector<Parameter*> parameters;
+            vector<Type*> types;
+            a_pParen->precompile(a_pPrecompiler, pSignature, argumentsOrParameters, &modifiers);
+            a_pScope->removeScopedElement(pSignature);
+            for(auto it = argumentsOrParameters.begin(); it != argumentsOrParameters.end(); ++it)
             {
-                o_semantic_error("illegal 'const' specifier on function declaration, only member functions can be const");
+                LanguageElement* pElem = *it;
+                Parameter* pParam = pElem->asParameter();
+                Type* pType;
+                if(pParam)
+                {
+                    pSignature->addParameter(pParam);
+                    types.push_back(pParam->getValueType());
+                }
+                else if(pType = pElem->asType())
+                {
+                    types.push_back(pType);
+                    pSignature->addParameter(o_new(Parameter)(pType));
+                }
+                else 
+                {
+                    types.push_back(nullptr);
+                    pSignature->addParameter((Parameter*)nullptr);
+                    o_semantic_error("unexpected expression in signature, expecting type or parameter declaration");
+                }
+            }
+
+            if(isMemberFunction) // member function
+            {
+                Subroutine* pMemberFunction = nullptr;
+
+                if(isExternal)
+                {
+                    bool bSourceIncompatibility = a_pLHS->getSource() != a_pPrecompiler->getSource();
+                    if(bSourceIncompatibility)
+                    {
+                        o_semantic_error("out-of-class member function must be defined in the same source as its owner class");
+                    }
+                    if(modifiers & ~(o_member_function_qualifiers_mask|o_inline))
+                    {
+                        o_semantic_error("illegal specifiers on out of scope member function definition");
+                    }
+                    // if external definition we must already have created the member function
+                    CxxTemplateArguments* pLastTemplateArgs = getLastTemplateArguments();
+                    vector<LanguageElement*> templateArgs;
+                    if(pLastTemplateArgs)
+                    {
+                        pLastTemplateArgs->precompile(a_pPrecompiler, a_pScope, templateArgs);
+                    }
+                    Subroutine* pMemberFunction = a_pPrecompiler->getLanguage()->solveSubroutine(a_pLHS, id, pLastTemplateArgs ? &templateArgs : nullptr, types, modifiers, a_pScope);
+                    if(pMemberFunction->isInvalid())
+                    {
+                        o_semantic_error("member function declaration not found in class type '"<<a_pLHS->asNamedElement()->getQualifiedDecoratedName()<<"'");
+                        if(pMemberFunction == Subroutine::Invalid())
+                        {
+                            if(bSourceIncompatibility)
+                            {
+                                Function* pFunction = o_new(Function)(id, pSignature, modifiers|o_invalid);
+                                a_pPrecompiler->getSource()->addFunction(pFunction);
+                                return pFunction;
+                            }
+                            else 
+                            {
+                                MemberFunction* pMemberFunction = o_new(MemberFunction)(id, pSignature, modifiers|o_invalid);
+                                pClassType->addMemberFunction(pMemberFunction);
+                                return pMemberFunction;
+                            }
+                        }
+                    }
+                    else 
+                    {
+                        if(pMemberFunction AND NOT(pSignature->matches(pMemberFunction->getSignature())))
+                        {
+                            o_semantic_error("member function definition only differs by return type from its declaration");
+                            pMemberFunction->setInvalid();
+                        }
+                        else if(isDefinition) 
+                        {
+                            for(size_t i = 0; i<pSignature->getParameterCount(); ++i)
+                            {
+                                pMemberFunction->getSignature()->getParameter(i)->setDefinitionName(pSignature->getParameter(i)->getName());
+                            }
+                        }
+                    }
+                    o_delete(Signature) pSignature;
+                    return pMemberFunction;
+                }
+                else 
+                {
+                    // internal
+                    o_assert(pClassType);
+                    vector<Subroutine*> conflicting;
+                    string conflictingMessage;
+                    if(NOT(pClassType->acceptsSubroutine(a_pType, id, types, modifiers, &conflicting)))
+                    {
+                        bool inSameClass = false;
+                        bool isConflictingFunction = false;
+                        for(auto it = conflicting.begin(); it != conflicting.end(); ++it)
+                        {
+                            Subroutine* pConflicting = *it;
+                            if(pConflicting->getOwner() == pClassType)
+                            {
+                                inSameClass = true;
+                                if(pConflicting->asFunction())
+                                    isConflictingFunction = true;
+                            }
+                            conflictingMessage += "\t"+pConflicting->getReturnType()->getQualifiedDecoratedName()+" "+pConflicting->getQualifiedDecoratedName()+"\n";
+                        }
+                        if(inSameClass)
+                        {
+                            if(isFunction)
+                            {
+                                o_semantic_error("function with same parameters already defined in current class :\n"<<conflictingMessage);
+                            }
+                            else 
+                            {
+                                o_semantic_error("member function with same parameters already defined in current class :\n"<<conflictingMessage);
+                            }
+                        }
+                        else 
+                        {
+                            o_semantic_error("overridding member function return type not covariant :\n"<<conflictingMessage);
+                        }
+                    }
+
+                    if(modifiers & o_static)
+                    {
+                        pMemberFunction = o_new(Function)(id, pSignature, modifiers);
+                        pClassType->addFunction(pMemberFunction->asFunction());
+                        if(modifiers & o_virtual)
+                        {
+                            o_semantic_error("incompatible 'static' and 'virtual' specifiers");
+                            pMemberFunction->setInvalid();
+                        }
+                        if(modifiers & o_member_function_qualifiers_mask)
+                        {
+                            o_semantic_error("incompatible 'static' and 'member function qualifier(s)' specifiers");
+                            pMemberFunction->setInvalid();
+                        }
+                        return pMemberFunction;
+                    }
+                    else 
+                    {
+                        pMemberFunction = o_new(MemberFunction)(id, pSignature, modifiers);
+                        pClassType->addMemberFunction(pMemberFunction->asMemberFunction());
+                        return pMemberFunction;
+                    }
+                }
+            }
+            else 
+            {
+                if(modifiers & o_member_function_qualifiers_mask)
+                {
+                    o_semantic_error("illegal member function qualifier(s) on global function declaration");
+                }
                 // if external definition we must already have created the member function
                 CxxTemplateArguments* pLastTemplateArgs = getLastTemplateArguments();
                 vector<LanguageElement*> templateArgs;
-                pLastTemplateArgs->precompile(a_pPrecompiler, a_pScope, templateArgs);
-                LanguageElement* pDeclaredElement = a_pLHS->precompileScope(id, templateArgs, &argumentsOrParameters, (modifiers&o_const) ? o_const : o_noconst);
-                MemberFunction* pMemberFunction = nullptr;
-                if(pDeclaredElement == nullptr OR (pMemberFunction = pDeclaredElement->asMemberFunction()))
+                vector<LanguageElement*>* pTemplateArgs = nullptr;
+                if(pLastTemplateArgs)
                 {
-                    o_semantic_error("member function declaration not found for the current definition");
+                    pLastTemplateArgs->precompile(a_pPrecompiler, a_pScope, templateArgs);
+                    pTemplateArgs = &templateArgs;
                 }
-                return o_new(Function)(id, pSignature, modifiers);
+                Subroutine* pDeclaredSubroutine = a_pPrecompiler->getLanguage()->solveSubroutine(a_pScope, id, pTemplateArgs, types, (modifiers&o_member_function_qualifiers_mask), a_pScope);
+                Function* pFunction = nullptr;
+                if(pDeclaredSubroutine->isInvalid())
+                {
+                    if(isExternal)
+                    {
+                        o_semantic_error("no function declared matching this definition");
+                    }
+                    // No previous declaration
+                    pFunction = o_new(Function)(id, pSignature, e_defaultcall, modifiers|o_invalid);
+                    a_pPrecompiler->getSource()->getPackage()->getCounterpartNamespace()->addFunction(pFunction);
+                    a_pPrecompiler->getSource()->addFunction(pFunction);
+                    return pFunction;
+                }
+                else
+                {
+                    pFunction = pDeclaredSubroutine->asFunction();
+                    if(pFunction AND NOT(pSignature->matches(pFunction->asSubroutine()->getSignature())))
+                    {
+                        o_semantic_error("function definition only differs by return type from its declaration");
+                        pFunction->setInvalid();
+                    }
+                    return pFunction;
+                }
             }
         }
     }
 
-    Type* CxxName::specify( Type* a_pType, modifiers_t* modifiers )
+    Type* CxxName::specify( CxxPrecompiler* a_pPrecompiler, Type* a_pType, modifiers_t* modifiers )
+    {
+        Type* specified = trySpecify(a_pPrecompiler, a_pType, modifiers);
+        return specified ? specified : Type::Invalid();
+    }
+
+    Type* CxxName::trySpecify( CxxPrecompiler* a_pPrecompiler, Type* a_pType, modifiers_t* modifiers )
     {
         if(words.empty()) return nullptr;
         bool typeStarted = false;
@@ -650,29 +892,33 @@ namespace phantom
             if(*it == "volatile")
             {
                 typeStarted = true;
-                o_assert_no_implementation(); // add volatile
-                a_pType = a_pType; // a_pType->constType();
+                a_pType = a_pType->addVolatile(); // a_pType->constType();
             }
             else if(*it == "const")
             {
                 typeStarted = true;
-                a_pType = a_pType->constType();
+                a_pType = a_pType->addConst();
             }
             else if(*it == "*")
             {
                 typeStarted = true;
-                a_pType = a_pType->pointerType();
+                a_pType = a_pType->addPointer();
             }
             else if(*it == "&")
             {
                 typeStarted = true;
-                a_pType = a_pType->referenceType();
+                a_pType = a_pType->addLValueReference();
+            }
+            else if(*it == "&&")
+            {
+                typeStarted = true;
+                a_pType = a_pType->addRValueReference();
             }
             else if(modifiers)
             {
                 if(typeStarted)
                 {
-                    o_semantic_error("illegal type specifier '"<<*it<<"'");
+                    o_semantic_error("illegal type specifier '"<<it->toString()<<"'");
                     return nullptr;
                 }
                 if(*it == "static")
@@ -700,10 +946,11 @@ namespace phantom
                     *modifiers |= o_virtual;
                 }
             }
+            else return nullptr;
         }
         return a_pType;
     }
-    string CxxName::toNamespaceQualifiedName() const
+    string CxxName::toNamespaceQualifiedName(CxxPrecompiler* a_pPrecompiler) const
     {
         string result;
         for(auto it = words.begin(); it != words.end(); ++it)
@@ -727,168 +974,66 @@ namespace phantom
         {
             if(it != words.begin())
                 result+="::";
-            result += it->id;
-            if(it->templateArgs)
-            {
-                result+=it->templateArgs->toString();
-            }
+            result += it->toString();
         }
         return result;
     }
 
-    LanguageElement* CxxReinterpretCastExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxReinterpretCastExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Type* pType = type->precompileType(a_pPrecompiler, a_pScope);
         Expression* pExpr = expr->precompileExpression(a_pPrecompiler, a_pScope);
-        if(pExpr)
-        {
-            return pExpr->cast(pType);
-        }
-        return nullptr;
+        return a_pPrecompiler->getLanguage()->convert(pExpr, pType, reflection::e_reinterpret_cast, a_pScope);
     }
 
-
-    LanguageElement* CxxStaticCastExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxStaticCastExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Type* pType = type->precompileType(a_pPrecompiler, a_pScope);
         Expression* pExpr = expr->precompileExpression(a_pPrecompiler, a_pScope);
-        if(pExpr)
-        {
-            return pExpr->cast(pType);
-        }
-        return nullptr;
+        return a_pPrecompiler->getLanguage()->convert(pExpr, pType, reflection::e_static_cast, a_pScope);
     }
 
-
-    LanguageElement* CxxConstCastExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxConstCastExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Type* pType = type->precompileType(a_pPrecompiler, a_pScope);
         Expression* pExpr = expr->precompileExpression(a_pPrecompiler, a_pScope);
-        if(pExpr)
-        {
-            return pExpr->cast(pType);
-        }
-        return nullptr;
+        return a_pPrecompiler->getLanguage()->convert(pExpr, pType, reflection::e_const_cast, a_pScope);
     }
 
-    LanguageElement* CxxExpressions::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxExpressions::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         LocalVariable* pLocalVariable = a_pScope->asLocalVariable();
         if(pLocalVariable AND pLocalVariable->getName() == "this")
         {
             Block* pBlock = pLocalVariable->getBlock();
-            vector<Expression*> explicitInitializations;
+            vector<DataMemberInitializationStatement*> explicitInitializations;
             // scope is the 'this' variable => precompile as member initializer list
             for(auto it = list.begin(); it != list.end(); ++it)
             {
-                explicitInitializations.push_back((*it)->precompileExpression(a_pPrecompiler, a_pScope));
+                LanguageElement* pElement = (*it)->precompile(a_pPrecompiler, a_pScope);
+                if(pElement->asStatement() == nullptr)
+                {
+                    o_semantic_error("ill-formed data member initializer");
+                }
+                explicitInitializations.push_back(static_cast<DataMemberInitializationStatement*>(pElement));
             }
             // Check initializations validity and fetch initialized members
-            vector<InstanceDataMember*> instanceDataMembers;
+            vector<DataMember*> explicitelyInitializedInstanceDataMembers;
             for(auto it = explicitInitializations.begin(); it != explicitInitializations.end(); ++it)
             {
-                PlacementConstructionExpression* pPlacementConstructionExpression = (*it)->asPlacementConstructionExpression();
-                if(pPlacementConstructionExpression)
-                {
-                    Expression* pPlaceExpression = pPlacementConstructionExpression->getPlaceExpression();
-                    if(pPlaceExpression == nullptr)
-                    {
-                        o_semantic_error("invalid constructor member initialization list (1)");
-                        return nullptr;
-                    }
-                    AddressExpression* pAddressExpression = pPlaceExpression->asAddressExpression();
-                    if(pAddressExpression == nullptr)
-                    {
-                        o_semantic_error("invalid constructor member initialization list (2)");
-                        return nullptr;
-                    }
-                    Expression* pAddressedExpression = pAddressExpression->getAddressedExpression();
-                    if(pAddressedExpression == nullptr)
-                    {
-                        o_semantic_error("invalid constructor member initialization list (3)");
-                        return nullptr;
-                    }
-                    InstanceDataMemberExpression* pInstanceDataMemberExpression = pAddressedExpression->asInstanceDataMemberExpression();
-                    if(pInstanceDataMemberExpression == nullptr)
-                    {
-                        o_semantic_error("invalid constructor member initialization list (4)");
-                        return nullptr;
-                    }
-                    InstanceDataMember* pInstanceDataMember = pInstanceDataMemberExpression->getInstanceDataMember();
-                    if(pInstanceDataMember == nullptr)
-                    {
-                        o_semantic_error("invalid constructor member initialization list (5)");
-                        return nullptr;
-                    }
-                    instanceDataMembers.push_back(pInstanceDataMember);
-                }
-                else 
-                {
-                    AssignmentExpression* pAssignmentExpression = (*it)->asAssignmentExpression();
-                    if(pAssignmentExpression)
-                    {
-                        if(pAssignmentExpression->getLeftExpression() == nullptr)
-                        {
-                            o_semantic_error("invalid constructor member initialization list (6)");
-                            return nullptr;
-                        }
-                        InstanceDataMemberExpression* pInstanceDataMemberExpression = pAssignmentExpression->getLeftExpression()->asInstanceDataMemberExpression();
-                        if(pInstanceDataMemberExpression == nullptr)
-                        {
-                            o_semantic_error("invalid constructor member initialization list (7)");
-                            return nullptr;
-                        }
-                        InstanceDataMember* pInstanceDataMember = pInstanceDataMemberExpression->getInstanceDataMember();
-                        if(pInstanceDataMember == nullptr)
-                        {
-                            o_semantic_error("invalid constructor member initialization list (8)");
-                            return nullptr;
-                        }
-                        instanceDataMembers.push_back(pInstanceDataMember);
-                    }
-                    else 
-                    {
-                        CallExpression* pCallExpression = (*it)->asCallExpression();
-                        if(pCallExpression)
-                        {
-                            if(pCallExpression->getArgumentCount() == 0)
-                            {
-                                o_semantic_error("invalid constructor member initialization list (9)");
-                                return nullptr;
-                            }
-                            Expression* pArgument = pCallExpression->getArgument(0);
-                            if(pArgument == nullptr)
-                            {
-                                o_semantic_error("invalid constructor member initialization list (10)");
-                                return nullptr;
-                            }
-                            InstanceDataMemberExpression* pInstanceDataMemberExpression = pArgument->asInstanceDataMemberExpression();
-                            if(pInstanceDataMemberExpression == nullptr)
-                            {
-                                o_semantic_error("invalid constructor member initialization list (7)");
-                                return nullptr;
-                            }
-                            InstanceDataMember* pInstanceDataMember = pInstanceDataMemberExpression->getInstanceDataMember();
-                            if(pInstanceDataMember == nullptr)
-                            {
-                                o_semantic_error("invalid constructor member initialization list (8)");
-                                return nullptr;
-                            }
-                            instanceDataMembers.push_back(pInstanceDataMember);
-                        }
-                    }
-                }
+                DataMember* pDataMember = (*it)->getDataMember();
+                explicitelyInitializedInstanceDataMembers.push_back(pDataMember);
             }
-            o_assert(explicitInitializations.size() == instanceDataMembers.size());
-            vector<Expression*> initializations;
+            o_assert(explicitInitializations.size() == explicitelyInitializedInstanceDataMembers.size());
+            vector<DataMemberInitializationStatement*> initializations;
             // One initializations gathered, we need to sort them in the member declaration order
             ClassType* pClassType = pBlock->getSubroutine()->getOwner()->asClassType();
-            for(auto it = pClassType->beginInstanceDataMembers(); it != pClassType->endInstanceDataMembers(); ++it)
+            for(auto it = pClassType->beginDataMembers(); it != pClassType->endDataMembers(); ++it)
             {
                 bool initialized = false;
                 for(size_t i = 0; i<explicitInitializations.size(); ++i)
                 {
-                    if(instanceDataMembers[i] == *it)
+                    if(explicitelyInitializedInstanceDataMembers[i] == *it)
                     {
                         initializations.push_back(explicitInitializations[i]);
                         initialized = true;
@@ -899,25 +1044,27 @@ namespace phantom
                 {
                     if((*it)->getValueType()->asReferenceType())
                     {
-                        pBlock->addStatement(nullptr);
-                        o_semantic_error((*it)->getName()<<" : reference members must be explicitely initialized");
+                        o_semantic_error((*it)->getName()<<" : reference data members must be explicitely initialized");
                     }
                     else if((*it)->getValueType()->asClassType())
                     {
                         if(NOT((*it)->getValueType()->asClassType()->isDefaultConstructible()))
                         {
-                            pBlock->addStatement(nullptr);
                             o_semantic_error("class type '"<< (*it)->getValueType()->getQualifiedDecoratedName() << "' does not have default constructor");
                         }
                         else if((*it)->getValueType()->asClassType()->isAbstract())
                         {
-                            pBlock->addStatement(nullptr);
                             o_semantic_error("class type '"<< (*it)->getValueType()->getQualifiedDecoratedName() << "' is abstract and cannot be used as member");
                         }
                         else 
                         {
-                            Expression* pMemberExpr = (*it)->createExpression(pLocalVariable->createExpression()->dereference()); // (*this).member
-                            pBlock->addExpressionStatement(o_new_elem(PlacementConstructionExpression)((*it)->getValueType()->asClassType()->getDefaultConstructor(), pMemberExpr->address(), pMemberExpr));
+                            pBlock->addStatement(
+                                o_new_elem(DataMemberInitializationStatement)(
+                                    pLocalVariable->toExpression()->dereference()
+                                    , *it
+                                    , o_new(ConstructorCallExpression)((*it)->getValueType()->asClassType()->getDefaultConstructor())
+                                )
+                            );
                         }
                     }
                 }
@@ -933,7 +1080,7 @@ namespace phantom
                 Expression* pExpr = (*it)->precompileExpression(a_pPrecompiler, a_pScope);
                 if(pPrev)
                 {
-                    pPrev = pPrev ? pPrev->precompileBinaryOperator(a_pPrecompiler, ",", pExpr) : nullptr;
+                    pPrev = pPrev ? a_pPrecompiler->getLanguage()->solveBinaryOperator(",", pPrev, pExpr, a_pScope) : nullptr;
                 }
                 else 
                 {
@@ -944,7 +1091,7 @@ namespace phantom
         }
     }
 
-    LanguageElement* CxxBitfieldExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxBitfieldExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         LocalVariable* pLocalVariable = a_pScope->asLocalVariable();
         if(pLocalVariable AND pLocalVariable->getName() == "this")
@@ -1293,23 +1440,41 @@ namespace phantom
         }
     }
 
-    void CxxParenthesised::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, vector<LanguageElement*>& out, modifiers_t* modifiers )
+    void CxxParenthesised::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, vector<LanguageElement*>& out, modifiers_t* modifiers )
     {
         if(parameters)
         {
             for(auto it = parameters->list.begin(); it != parameters->list.end(); ++it)
             {
                 LanguageElement* pElem = (*it)->precompile(a_pPrecompiler, a_pScope);
-                out.push_back(pElem);
                 if(pElem == nullptr)
                 {
                     o_semantic_error("invalid type, parameter or argument in parenthesized expression");
+                    out.push_back(a_pScope->asBlock() ? (LanguageElement*)Expression::Invalid() : Type::Invalid());
+                }
+                else 
+                {
+                    out.push_back(pElem);
                 }
             }
         }
         if(modifiers)
         {
-            *modifiers = cvs ? o_const * (cvs->asIdentifier() == "const") : 0;
+            *modifiers |= cvs ? o_const * (cvs->asIdentifier() == "const") : 0;
+            if(refQualifier)
+            {
+                o_assert(refQualifier->size() == 1);
+                if(refQualifier->words.back().id.size() == 1)
+                {
+                    o_assert(refQualifier->words.back().id == "&");
+                    *modifiers |= o_lvalue_ref;
+                }
+                else 
+                {
+                    o_assert(refQualifier->words.back().id == "&&");
+                    *modifiers |= o_rvalue_ref;
+                }
+            }
         }
     }
 
@@ -1319,127 +1484,195 @@ namespace phantom
     }
 
 
-    LanguageElement* CxxCondition::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxCondition::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         return parameters->precompileExpression(a_pPrecompiler, a_pScope, a_pLHS);
     }
 
-
-    LanguageElement* CxxDotExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxDotExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         return CxxDotExpression::precompileParenthesized(a_pPrecompiler, nullptr, a_pScope, a_pLHS);
     }
 
-    LanguageElement* CxxDotExpression::precompileParenthesized( Precompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxDotExpression::precompileParenthesized( CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
-        Expression* pLeft = left->precompileExpression(a_pPrecompiler, a_pScope, a_pLHS);
-        vector<Expression*> args;
-        args.push_back(pLeft ? pLeft->dereference() : nullptr);
-        if(pLeft == nullptr OR pLeft->isInvalid()) 
-        {
-            o_semantic_error("Invalid left hand side of '.' expression");
-            if(a_pParams)
-                return o_new_elem(CallExpression)(nullptr, args);
-            else
-                return o_new_elem(InstanceDataMemberExpression)(pLeft ? pLeft->dereference() : nullptr, nullptr);
-        }
+        LanguageElement* pLeft = left->precompile(a_pPrecompiler, a_pScope, a_pLHS);
+        Expression* pLeftExpression = pLeft->asExpression();
+        NamedElement* pLeftUnderlyingScope = pLeftExpression ? pLeftExpression->getValueType() : pLeft->asNamedElement();
         const string& id = member->asIdentifier();
         if(id.empty())
         {
-            o_semantic_error("Illformed identifier on right hand side of '.' expression");
+            o_semantic_error("Illformed identifier on right hand side of '.'");
             if(a_pParams)
-                return o_new_elem(CallExpression)(nullptr, args);
+            {
+                if(pLeftExpression)
+                {
+                    vector<Expression*> emptyArgs;
+                    emptyArgs.push_back(pLeftExpression->dereference());
+                    return o_new_elem(CallExpression)(Subroutine::Invalid(), emptyArgs);
+                }
+                else return Subroutine::Invalid();
+            }
             else
-                return o_new_elem(InstanceDataMemberExpression)(pLeft ? pLeft->dereference() : nullptr, nullptr);
+            {
+                return o_new_elem(DataMemberExpression)(pLeftExpression ? pLeftExpression->dereference() : Expression::Invalid(), DataMember::Invalid());
+            }
         }
         Expression* pAccessExpression = nullptr;
         if(a_pParams)
         {
-            vector<LanguageElement*> params;
-            a_pParams->precompile(a_pPrecompiler, a_pScope, params);
-            LanguageElement* pElem = pLeft->precompileScope(a_pPrecompiler, id, nullptr, &params, 0);
-            if(pElem == nullptr)
+            vector<LanguageElement*> argumentsOrParameters;
+            modifiers_t qualifiers = 0;
+            a_pParams->precompile(a_pPrecompiler, a_pScope, argumentsOrParameters, &qualifiers);
+            vector<Expression*> functionArguments;
+            vector<Type*> functionTypes;
+            vector<Expression*>* pFunctionArguments = nullptr;
+            vector<Type*>* pFunctionTypes = nullptr;
+            bool bExpressions = true;
+            bool bTypes = NOT(pLeftExpression); /// we don't expect signature with a left hand side being an evaluable expression
+            for(auto it = argumentsOrParameters.begin(); it != argumentsOrParameters.end(); ++it)
             {
-                vector<Expression*> emptyArgs;
-                emptyArgs.push_back(pLeft->dereference());
-                o_semantic_error("No member function '"<<id<<"' found in type '"<<pLeft->getValueType()->getQualifiedDecoratedName()<<"' matching given arguments");
-                return o_new_elem(CallExpression)(nullptr, emptyArgs);
+                LanguageElement* pElement = *it;
+                if(pElement->asExpression() AND bExpressions)
+                {
+                    bTypes = false;
+                    functionArguments.push_back(pElement->asExpression());
+                    pFunctionArguments = &functionArguments;
+                }
+                else if(pElement->asType() AND bTypes)
+                {
+                    bExpressions = false;
+                    functionTypes.push_back(pElement->asType());
+                    pFunctionTypes = &functionTypes;
+                }
+                else 
+                {
+                    o_semantic_error("invalid term in parenthesized expression");
+                }
             }
-            if(pElem->asExpression() == nullptr)
+            LanguageElement* pElem = bExpressions 
+                                        ? (LanguageElement*)a_pPrecompiler->getLanguage()->qualifiedLookup(pLeft, id, nullptr, pFunctionArguments, a_pScope, nullptr)
+                                        : a_pPrecompiler->getLanguage()->solveSubroutine(pLeft, id, nullptr, *pFunctionTypes, qualifiers, a_pScope);
+            if(pElem->isInvalid())
             {
-                o_semantic_error("Illformed call expression");
-                vector<Expression*> emptyArgs;
-                emptyArgs.push_back(pLeft->dereference());
-                return o_new_elem(CallExpression)(nullptr, emptyArgs);
+                if(bExpressions)
+                {
+                    o_semantic_error("No member function '"<<id<<"' found '"<<pLeftUnderlyingScope->getQualifiedDecoratedName()<<"' matching given arguments");
+                    vector<Expression*> emptyArgs;
+                    if(pLeftExpression)
+                    {
+                        emptyArgs.push_back(pLeftExpression->dereference());
+                    }
+                    return o_new_elem(CallExpression)(Subroutine::Invalid(), emptyArgs);
+                }
+                else 
+                {
+                    o_semantic_error("No function '"<<id<<"' found in '"<<pLeftUnderlyingScope->getQualifiedDecoratedName()<<"' matching given qualifiers and parameter types");
+                    return Subroutine::Invalid();
+                }
             }
-            return pElem->asExpression();
+            return pElem;
         }
         else 
         {
-            LanguageElement* pElem = pLeft->precompileScope(a_pPrecompiler, id, nullptr, nullptr, 0);
-            if(pElem == nullptr)
+            LanguageElement* pElem = a_pPrecompiler->getLanguage()->qualifiedLookup(pLeft, id, nullptr, nullptr, a_pScope, 0);
+            if(pElem->isInvalid())
             {
-                o_semantic_error("No data member '"<<id<<"' found in type '"<<pLeft->getValueType()->getQualifiedDecoratedName()<<"'");
-                return o_new_elem(InstanceDataMemberExpression)(pLeft, nullptr);
+                o_semantic_error("No member '"<<id<<"' found in '"<<pLeftUnderlyingScope->getQualifiedDecoratedName()<<"'");
+                return o_new_elem(DataMemberExpression)(pLeftExpression ? pLeftExpression : Expression::Invalid(), DataMember::Invalid());
             }
-            if(pElem->asExpression() == nullptr)
-            {
-                o_semantic_error("Illformed call expression");
-                return o_new_elem(InstanceDataMemberExpression)(pLeft, nullptr);
-            }
-            return pElem->asExpression();
+            return pElem;
         }
     }
 
-    LanguageElement* CxxArrowExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+
+    LanguageElement* CxxDotExpression::precompileTemplateParenthesized( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        a_pScope->addScopedElement(a_pTemplateSignature);
+        LanguageElement* pElement = precompileParenthesized(a_pPrecompiler, a_pParams, a_pTemplateSignature, a_pLHS, a_Modifiers);
+        a_pScope->removeScopedElement(a_pTemplateSignature);
+        return pElement;
+    }
+    LanguageElement* CxxArrowExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         return CxxArrowExpression::precompileParenthesized(a_pPrecompiler, nullptr, a_pScope, a_pLHS);
     }
 
-    LanguageElement* CxxArrowExpression::precompileParenthesized( Precompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxArrowExpression::precompileParenthesized( CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Expression* pLeft = left->precompileExpression(a_pPrecompiler, a_pScope, a_pLHS);
         vector<Expression*> args;
         args.push_back(pLeft ? pLeft->dereference() : nullptr);
-        if(pLeft == nullptr OR pLeft->isInvalid()) 
+        if(pLeft->isInvalid()) 
         {
             o_semantic_error("Invalid left hand side of '->' expression");
             if(a_pParams)
-                return o_new_elem(CallExpression)(nullptr, args);
+                return o_new_elem(CallExpression)(Subroutine::Invalid(), args);
             else
-                return o_new_elem(InstanceDataMemberExpression)(pLeft ? pLeft->dereference() : nullptr, nullptr);
+                return o_new_elem(DataMemberExpression)(pLeft ? pLeft->dereference() : Expression::Invalid(), DataMember::Invalid());
         }
         while(pLeft->getValueType()->removeConstReference()->asDataPointerType() == nullptr) // left is not a pointer type
         {
-            Expression* pArrowedExpression = pLeft->precompileUnaryOperator(a_pPrecompiler, "->");
-            if(pArrowedExpression == nullptr OR pArrowedExpression->isInvalid()) 
+            Expression* pArrowedExpression = a_pPrecompiler->getLanguage()->solveUnaryPostOperator("->", pLeft, a_pScope);
+            if(pArrowedExpression->isInvalid()) 
             {
-                o_semantic_error("no operator '->' found for type '"<<pLeft->getValueType()->getQualifiedDecoratedName()<<"'");
+                o_semantic_error("no operator '->' found in type '"<<pLeft->getValueType()->getQualifiedDecoratedName()<<"'");
                 if(a_pParams)
-                    return o_new_elem(CallExpression)(nullptr, args);
+                    return o_new_elem(CallExpression)(Subroutine::Invalid(), args);
                 else
-                    return o_new_elem(InstanceDataMemberExpression)(pLeft, nullptr);
+                    return o_new_elem(DataMemberExpression)(pLeft, DataMember::Invalid());
             }
             pLeft = pArrowedExpression;
         }
         o_assert(pLeft->getValueType()->removeConstReference()->asDataPointerType());
         pLeft = pLeft->dereference(); // dereference pointer
+        o_assert(pLeft);
+        string id;
+        if(member->size() > 1)
+        {
+             CxxName* pBack = member->takeBack();
+             id = pBack->asIdentifier();
+             o_assert(id.size());
+             pLeft = member->precompileExpression(a_pPrecompiler, a_pScope, pLeft);
+        }
+        else id = member->asIdentifier();
 
-        const string& id = member->asIdentifier();
         if(id.empty())
         {
             o_semantic_error("Illformed identifier on right hand side of '->' expression");
             if(a_pParams)
-                return o_new_elem(CallExpression)(nullptr, args);
+                return o_new_elem(CallExpression)(Subroutine::Invalid(), args);
             else
-                return o_new_elem(InstanceDataMemberExpression)(pLeft, nullptr);
+                return o_new_elem(DataMemberExpression)(pLeft, nullptr);
         }
         if(a_pParams)
         {
-            vector<LanguageElement*> params;
-            a_pParams->precompile(a_pPrecompiler, a_pScope, params);
-            LanguageElement* pElem = pLeft->precompileScope(a_pPrecompiler, id, nullptr, &params, 0);
-            if(pElem == nullptr)
+            vector<LanguageElement*> argumentsOrParameters;
+            a_pParams->precompile(a_pPrecompiler, a_pScope, argumentsOrParameters);
+            vector<Expression*> functionArguments;
+            vector<Expression*>* pFunctionArguments = nullptr;
+            bool bExpressions = true;
+            bool bTypes = false; /// we don't expect signature with a left hand side being an evaluable expression
+            for(auto it = argumentsOrParameters.begin(); it != argumentsOrParameters.end(); ++it)
+            {
+                LanguageElement* pElement = *it;
+                if(pElement->asExpression() AND bExpressions)
+                {
+                    bTypes = false;
+                    functionArguments.push_back(pElement->asExpression());
+                    pFunctionArguments = &functionArguments;
+                }
+                else if(pElement->asType() AND bTypes)
+                {
+                    bExpressions = false;
+                }
+                else 
+                {
+                    o_semantic_error("invalid term in parenthesized expression");
+                }
+            }
+            LanguageElement* pElem = a_pPrecompiler->getLanguage()->qualifiedLookup(pLeft, id, nullptr, pFunctionArguments, a_pScope, 0);
+            if(pElem->isInvalid())
             {
                 o_semantic_error("No member function '"<<id<<"' found in type '"<<pLeft->getValueType()->getQualifiedDecoratedName()<<"' matching the given arguments");
                 return o_new_elem(CallExpression)(nullptr, args);
@@ -1454,28 +1687,23 @@ namespace phantom
         }
         else
         {
-            LanguageElement* pElem = pLeft->precompileScope(a_pPrecompiler, id, nullptr, nullptr, 0);
-            if(pElem == nullptr)
-            {
-                o_semantic_error("No data member '"<<id<<"' found in type '"<<pLeft->getValueType()->getQualifiedDecoratedName()<<"'");
-                return o_new_elem(InstanceDataMemberExpression)(pLeft, nullptr);
-            }
+            LanguageElement* pElem = a_pPrecompiler->getLanguage()->qualifiedLookup(pLeft, id, nullptr, nullptr, a_pScope, 0);
             Expression* pAccessExpression = pElem->asExpression();
-            if(pAccessExpression == nullptr OR pAccessExpression->isInvalid())
+            if(pAccessExpression == nullptr)
             {
                 o_semantic_error("Illformed data member access");
-                return pAccessExpression ? pAccessExpression : o_new_elem(InstanceDataMemberExpression)(pLeft, nullptr);
+                return o_new_elem(DataMemberExpression)(pLeft, DataMember::Invalid());
             }
             return pAccessExpression;
         }
     }
 
-    LanguageElement* CxxArrowStarExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxArrowStarExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         return CxxArrowStarExpression::precompileParenthesized(a_pPrecompiler, nullptr, a_pScope, a_pLHS);
     }
 
-    LanguageElement* CxxArrowStarExpression::precompileParenthesized( Precompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxArrowStarExpression::precompileParenthesized( CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         vector<Expression*> args;
         Expression* pLeft = left->precompileExpression(a_pPrecompiler, a_pScope, a_pLHS);
@@ -1489,7 +1717,7 @@ namespace phantom
         }
         if(pLeft->getValueType()->removeConstReference()->asDataPointerType() == nullptr) // left is not a pointer type
         {
-            Expression* pArrowStaredExpression = pLeft->precompileBinaryOperator(a_pPrecompiler, "->*", member->precompileExpression(a_pPrecompiler, a_pScope));
+            Expression* pArrowStaredExpression = a_pPrecompiler->getLanguage()->solveBinaryOperator("->*", pLeft, member->precompileExpression(a_pPrecompiler, a_pScope), a_pScope);
             if(pArrowStaredExpression == nullptr OR pArrowStaredExpression->isInvalid()) 
             {
                 o_semantic_error("no operator '->*' found for type '"<<pLeft->getValueType()->getQualifiedDecoratedName()<<"'");
@@ -1541,12 +1769,14 @@ namespace phantom
                 Expression* pArg = (*it)->asExpression();
                 if(pArg == nullptr)
                 {
-                    o_semantic_error((*it)->getQualifiedDecoratedName()<<" is not an expression");
+                    o_semantic_error((*it)->translate()<<" is not an expression");
                 }
                 args.push_back(pArg);
             }
-            vector<size_t> partialMatchIndexes;
-            if(NOT(pMemberFunctionPointerType->matches(args, &partialMatchIndexes)))
+            conversions convs;
+            pMemberFunctionPointerType->implicitConversions(cplusplus(), args, a_pScope, convs);
+            for(size_t i = 0; i<args.size(); ++i)
+            if(convs.hasNull())
             {
                 o_semantic_error("arguments don't match member function pointer type signature");
                 return o_new_elem(MemberFunctionPointerCallExpression)(pMemberFunctionPointerType, pLeft, pMemberExpression, args);
@@ -1559,7 +1789,7 @@ namespace phantom
             if(pDataMemberPointerType == nullptr)
             {
                 o_semantic_error("expression on right hand side of '->*' is not a data member pointer type");
-                return o_new_elem(DataMemberPointerExpression)(pDataMemberPointerType, pLeft, pMemberExpression);
+                return o_new_elem(DataMemberPointerExpression)(DataMemberPointerType::Invalid(), pLeft, pMemberExpression);
             }
 
             ClassType* pClassType = pDataMemberPointerType->getObjectType();
@@ -1577,46 +1807,46 @@ namespace phantom
         }
     }
 
-    LanguageElement* CxxDotStarExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxDotStarExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         return CxxDotStarExpression::precompileParenthesized(a_pPrecompiler, nullptr, a_pScope, a_pLHS);
     }
 
-    LanguageElement* CxxDotStarExpression::precompileParenthesized( Precompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxDotStarExpression::precompileParenthesized( CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParams, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         vector<Expression*> args;
         Expression* pLeft = left->precompileExpression(a_pPrecompiler, a_pScope, a_pLHS);
-        if(pLeft == nullptr OR pLeft->isInvalid()) 
+        if(pLeft->isInvalid()) 
         {
             o_semantic_error("invalid left hand side of '.*' expression");
             if(a_pParams)
-                return o_new_elem(MemberFunctionPointerCallExpression)(nullptr, pLeft, nullptr, args);
+                return o_new_elem(MemberFunctionPointerCallExpression)(MemberFunctionPointerType::Invalid(), pLeft, member->precompileExpression(a_pPrecompiler, a_pScope), args);
             else 
-                return o_new_elem(DataMemberPointerExpression)(nullptr, pLeft, nullptr);
+                return o_new_elem(DataMemberPointerExpression)(DataMemberPointerType::Invalid(), pLeft, member->precompileExpression(a_pPrecompiler, a_pScope));
         }
         if(NOT(pLeft->hasEffectiveAddress()))
         {
             o_semantic_error("invalid r-value on left hand side of '.*' expression");
             if(a_pParams)
-                return o_new_elem(MemberFunctionPointerCallExpression)(nullptr, pLeft, nullptr, args);
+                return o_new_elem(MemberFunctionPointerCallExpression)(MemberFunctionPointerType::Invalid(), pLeft, member->precompileExpression(a_pPrecompiler, a_pScope), args);
             else 
-                return o_new_elem(DataMemberPointerExpression)(nullptr, pLeft, nullptr);
+                return o_new_elem(DataMemberPointerExpression)(DataMemberPointerType::Invalid(), pLeft, member->precompileExpression(a_pPrecompiler, a_pScope));
         }
         Expression* pMemberExpression = member->precompileExpression(a_pPrecompiler, a_pScope);
-        if(pMemberExpression == nullptr OR pMemberExpression->isInvalid())
+        if(pMemberExpression->isInvalid())
         {
             o_semantic_error("invalid expression on right hand side of '.*'");
             if(a_pParams)
-                return o_new_elem(MemberFunctionPointerCallExpression)(nullptr, pLeft, pMemberExpression, args);
+                return o_new_elem(MemberFunctionPointerCallExpression)(MemberFunctionPointerType::Invalid(), pLeft, pMemberExpression, args);
             else 
-                return o_new_elem(DataMemberPointerExpression)(nullptr, pLeft, pMemberExpression);
+                return o_new_elem(DataMemberPointerExpression)(DataMemberPointerType::Invalid(), pLeft, pMemberExpression);
         }
 
         if(a_pParams)
         {
             vector<Expression*> args;
             MemberFunctionPointerType* pMemberFunctionPointerType = pMemberExpression->getValueType()->removeConstReference()->asMemberFunctionPointerType();
-            if(pMemberFunctionPointerType == nullptr)
+            if(pMemberFunctionPointerType->isInvalid())
             {
                 o_semantic_error("expression on right hand side of '.*' is not a member function pointer type");
                 return o_new_elem(MemberFunctionPointerCallExpression)(pMemberFunctionPointerType, pLeft, pMemberExpression, args);
@@ -1639,17 +1869,13 @@ namespace phantom
             for(auto it = elems.begin(); it != elems.end(); ++it)
             {
                 Expression* pArg = (*it)->asExpression();
-                if(pArg == nullptr)
-                {
-                    o_semantic_error((*it)->getQualifiedDecoratedName()<<" is not an expression");
-                }
                 args.push_back(pArg);
             }
-            vector<size_t> partialMatchIndexes;
-            if(NOT(pMemberFunctionPointerType->matches(args, &partialMatchIndexes)))
+            conversions convs;
+            pMemberFunctionPointerType->implicitConversions(cplusplus(), args, a_pScope, convs);
+            if(convs.hasNull())
             {
                 o_semantic_error("arguments don't match member function pointer type signature");
-                return o_new_elem(MemberFunctionPointerCallExpression)(pMemberFunctionPointerType, pLeft, pMemberExpression, args);
             }
             return o_new(MemberFunctionPointerCallExpression)(pMemberFunctionPointerType, pLeft, pMemberExpression, args);
         }
@@ -1671,13 +1897,12 @@ namespace phantom
                     <<"' is not a derived class of '"
                     <<pClassType->getQualifiedDecoratedName()
                     <<"'");
-                return o_new_elem(DataMemberPointerExpression)(pDataMemberPointerType, pLeft, pMemberExpression);
             }
             return o_new_elem(DataMemberPointerExpression)(pDataMemberPointerType, pLeft, pMemberExpression);
         }
     }
 
-    LanguageElement* CxxEnumSpecifierId::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS )
+    LanguageElement* CxxEnumSpecifierId::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         vector<NumericConstant*> constants;
         Type* pType = enumerators->precompile(a_pPrecompiler, a_pScope, constants);
@@ -1693,7 +1918,7 @@ namespace phantom
         return pEnum;
     }
 
-    Type* CxxEnumerators::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, vector<NumericConstant*>& constants )
+    Type* CxxEnumerators::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, vector<NumericConstant*>& constants )
     {
         ulonglong startValue = 0;
         reflection::ETypeId biggestTypeId = reflection::e_uint;
@@ -1744,7 +1969,7 @@ namespace phantom
         return nullptr;
     }
 
-    ConstantExpression* CxxEnumerator::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope ) const
+    ConstantExpression* CxxEnumerator::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope ) const
     {
         if(expr == nullptr) return nullptr;
         Expression* pExpr = expr->precompileExpression(a_pPrecompiler, a_pScope);
@@ -1768,7 +1993,7 @@ namespace phantom
     }
 
 
-    LanguageElement* CxxAccessibilitySpecifier::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/ )
+    LanguageElement* CxxAccessibilitySpecifier::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
     {
         ClassType* pScope = a_pScope->asClassType();
         if(pScope == nullptr)
@@ -1791,7 +2016,7 @@ namespace phantom
     }
 
 
-    LanguageElement* CxxBreakStatement::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxBreakStatement::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Block* pBlock = a_pScope->asBlock();
         if(pBlock == nullptr)
@@ -1801,7 +2026,7 @@ namespace phantom
             pBranchStatement->setInvalid();
             return pBranchStatement;
         }
-        LabelStatement* pBreakLabel = CxxPrecompiler::topBreakLabel();
+        LabelStatement* pBreakLabel = a_pPrecompiler->topBreakLabel();
         if(pBreakLabel == nullptr)
         {
             o_semantic_error("'break' outside breakable statement (while/for/do/switch)");
@@ -1810,7 +2035,7 @@ namespace phantom
     }
 
 
-    LanguageElement* CxxContinueStatement::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxContinueStatement::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Block* pBlock = a_pScope->asBlock();
         if(pBlock == nullptr)
@@ -1820,7 +2045,7 @@ namespace phantom
             pBranchStatement->setInvalid();
             return pBranchStatement;
         }
-        LabelStatement* pContinueLabel = CxxPrecompiler::topContinueLabel();
+        LabelStatement* pContinueLabel = a_pPrecompiler->topContinueLabel();
         if(pContinueLabel == nullptr)
         {
             o_semantic_error("'continue' outside continuable statement (while/for/do)");
@@ -1828,7 +2053,7 @@ namespace phantom
         return o_new_elem(BranchStatement)(pContinueLabel);
     }
 
-    LanguageElement* CxxSwitchStatement::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxSwitchStatement::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Block* pBlock = a_pScope->asBlock();
 
@@ -1853,7 +2078,7 @@ namespace phantom
 
         Block* pInnerBlock = o_new(Block)(pSwitchStatement);
 
-        LabelStatement* pBreakLabel = CxxPrecompiler::pushBreakLabel();
+        LabelStatement* pBreakLabel = a_pPrecompiler->pushBreakLabel();
 
         vector<Statement*> branchIfs;
         BranchStatement* pDefaultBranch = nullptr;
@@ -1882,7 +2107,7 @@ namespace phantom
                     {
                         o_semantic_error("invalid 'case' value expression, must be an integral constant expression "<< pTestValue->getValueType()->getQualifiedDecoratedName());
                     }
-                    Expression* pTest = pTestValue->precompileBinaryOperator(a_pPrecompiler, "==", pConstantExpression, 0);
+                    Expression* pTest = a_pPrecompiler->getLanguage()->solveBinaryOperator("==", pTestValue, pConstantExpression, 0);
                     if(pTest == nullptr)
                     {
                         o_semantic_error("invalid 'case' value expression, must be an integral constant expression "<< pTestValue->getValueType()->getQualifiedDecoratedName());
@@ -1910,11 +2135,11 @@ namespace phantom
             branchIfs.push_back(pDefaultBranch);
         pInnerBlock->prependStatements(branchIfs);
         pInnerBlock->addStatement(pBreakLabel);
-        CxxPrecompiler::popBreakLabel(pBreakLabel);
+        a_pPrecompiler->popBreakLabel(pBreakLabel);
         return nullptr;
     }
 
-    LanguageElement* CxxWhileStatement::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxWhileStatement::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Block* pBlock = a_pScope->asBlock();
 
@@ -1924,24 +2149,15 @@ namespace phantom
 
         Expression* pCondition = CxxWhileStatement::testExpr->precompileExpression(a_pPrecompiler, pWhileStatement);
 
-        if(pCondition)
+        if(NOT(pCondition->isInvalid()))
         {
-            if(NOT(pCondition->getValueType()->isConvertibleTo(typeOf<bool>())))
-            {
-                pWhileStatement->setInvalid();
-                o_semantic_error("cannot convert from '"<<pCondition->getValueType()->getQualifiedDecoratedName()<<"' to 'bool' in while condition");
-            }
-        }
-        else
-        {
-            pWhileStatement->setInvalid();
-            o_semantic_error("invalid while condition");
+            pCondition = a_pPrecompiler->getLanguage()->convert(pCondition, typeOf<bool>(), reflection::e_implicit_conversion, a_pScope);
         }
 
         Expression* pConditionClone = pCondition->clone();
 
-        LabelStatement* pBreakLabelStatement = CxxPrecompiler::pushBreakLabel();
-        LabelStatement* pContinueLabelStatement = CxxPrecompiler::pushContinueLabel();
+        LabelStatement* pBreakLabelStatement = a_pPrecompiler->pushBreakLabel();
+        LabelStatement* pContinueLabelStatement = a_pPrecompiler->pushContinueLabel();
         LabelStatement* pCodeStartLabelStatement = o_new(LabelStatement)("while");
 
         BranchIfNotStatement* pBranchIfNotStatement = o_new(BranchIfNotStatement)(pCondition);
@@ -1971,14 +2187,14 @@ namespace phantom
         // 'break' goes here
         pWhileStatement->addStatement(pBreakLabelStatement);
 
-        CxxPrecompiler::popBreakLabel(pBreakLabelStatement);
+        a_pPrecompiler->popBreakLabel(pBreakLabelStatement);
 
-        CxxPrecompiler::popContinueLabel(pContinueLabelStatement);
+        a_pPrecompiler->popContinueLabel(pContinueLabelStatement);
 
         return nullptr;
     }
 
-    LanguageElement* CxxDoWhileStatement::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxDoWhileStatement::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Block* pBlock = a_pScope->asBlock();
         
@@ -1988,18 +2204,9 @@ namespace phantom
 
         Expression* pCondition = testExpr->precompileExpression(a_pPrecompiler, pDoWhileStatement);
 
-        if(pCondition)
+        if(NOT(pCondition->isInvalid()))
         {
-            if(NOT(pCondition->getValueType()->isConvertibleTo(typeOf<bool>())))
-            {
-                pDoWhileStatement->setInvalid();
-                o_semantic_error("cannot convert from '"<<pCondition->getValueType()->getQualifiedDecoratedName()<<"' to 'bool' in do while condition");
-            }
-        }
-        else
-        {
-            pDoWhileStatement->setInvalid();
-            o_semantic_error("invalid do while condition");
+            pCondition = a_pPrecompiler->getLanguage()->convert(pCondition, typeOf<bool>(), reflection::e_implicit_conversion, a_pScope);
         }
 
         LabelStatement*     pCodeStartLabelStatement = o_new(LabelStatement)("do");
@@ -2007,8 +2214,8 @@ namespace phantom
         pDoWhileStatement->addStatement(pCodeStartLabelStatement);
 
 
-        LabelStatement*     pBreakLabelStatement = CxxPrecompiler::pushBreakLabel();
-        LabelStatement*     pContinueLabelStatement = CxxPrecompiler::pushContinueLabel();
+        LabelStatement*     pBreakLabelStatement = a_pPrecompiler->pushBreakLabel();
+        LabelStatement*     pContinueLabelStatement = a_pPrecompiler->pushContinueLabel();
 
         // do
         if(statement)
@@ -2026,15 +2233,15 @@ namespace phantom
         // 'break' goes here
         pDoWhileStatement->addStatement(pBreakLabelStatement);
 
-        CxxPrecompiler::popBreakLabel(pBreakLabelStatement);
+        a_pPrecompiler->popBreakLabel(pBreakLabelStatement);
 
-        CxxPrecompiler::popContinueLabel(pContinueLabelStatement);
+        a_pPrecompiler->popContinueLabel(pContinueLabelStatement);
 
         return nullptr;
     }
 
 
-    LanguageElement* CxxForStatement::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxForStatement::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Block* pBlock = a_pScope->asBlock();
 
@@ -2042,8 +2249,8 @@ namespace phantom
 
         Block* pForStatement = o_new(Block)(pBlock, "for");
 
-        LabelStatement*     pBreakLabelStatement = CxxPrecompiler::pushBreakLabel();
-        LabelStatement*     pContinueLabelStatement = CxxPrecompiler::pushContinueLabel();
+        LabelStatement*     pBreakLabelStatement = a_pPrecompiler->pushBreakLabel();
+        LabelStatement*     pContinueLabelStatement = a_pPrecompiler->pushContinueLabel();
         LabelStatement*     pCodeStartLabelStatement = o_new(LabelStatement)("for");
 
         // Init
@@ -2117,14 +2324,14 @@ namespace phantom
         // 'break' goes here
         pForStatement->addStatement(pBreakLabelStatement);
 
-        CxxPrecompiler::popBreakLabel(pBreakLabelStatement);
+        a_pPrecompiler->popBreakLabel(pBreakLabelStatement);
 
-        CxxPrecompiler::popContinueLabel(pContinueLabelStatement);
+        a_pPrecompiler->popContinueLabel(pContinueLabelStatement);
 
         return nullptr;
     }
 
-    LanguageElement* CxxGotoStatement::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxGotoStatement::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         const string& id = label->asIdentifier();
         if(id.empty())
@@ -2138,7 +2345,7 @@ namespace phantom
 
         o_assert(pBlock);
         o_assert(pBlock->getSubroutine());
-        LabelStatement* pLabelStatement = CxxPrecompiler::findOrCreateLabel(pBlock->getSubroutine(), id);
+        LabelStatement* pLabelStatement = a_pPrecompiler->findOrCreateLabel(pBlock->getSubroutine(), id);
 
         pBlock->addStatement(o_new(BranchStatement)(pLabelStatement));
 
@@ -2146,7 +2353,7 @@ namespace phantom
     }
 
 
-    LanguageElement* CxxBlock::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxBlock::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Block* pBlock = a_pScope->asBlock();
 
@@ -2159,7 +2366,7 @@ namespace phantom
     }
 
 
-    LanguageElement* CxxIfStatement::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxIfStatement::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Block* pBlock = a_pScope->asBlock();
 
@@ -2198,7 +2405,7 @@ namespace phantom
     }
 
 
-    LanguageElement* CxxNamespaceAliasDeclaration::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxNamespaceAliasDeclaration::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Namespace* pNamespaceScope = a_pScope->asNamespace();
         if(pNamespaceScope == nullptr)
@@ -2238,7 +2445,15 @@ namespace phantom
         return result;
     }
 
-    LanguageElement* CxxReturnStatement::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    void CxxTemplateArguments::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, vector<LanguageElement*>& out )
+    {
+        for(auto it = list.begin(); it != list.end(); ++it)
+        {
+            out.push_back((*it)->precompile(a_pPrecompiler, a_pScope));
+        }
+    }
+
+    LanguageElement* CxxReturnStatement::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Block* pBlock = a_pScope->asBlock();
         o_assert(pBlock->getSubroutine());
@@ -2258,96 +2473,108 @@ namespace phantom
         else if(expr)
         {
             Expression* pExpression = expr->precompileExpression(a_pPrecompiler, pBlock);
-            if(pExpression == nullptr)
-            {
-                pReturnStatement->setInvalid();
-                o_semantic_error("invalid return value");
-            }
-            else if(NOT(pExpression->getValueType()->isImplicitlyConvertibleTo(pReturnType)))
-            {
-                pReturnStatement->setInvalid();
-                o_semantic_error("cannot convert return value from '"<<pExpression->getValueType()->getQualifiedDecoratedName()<<"' to '"<<pReturnType->getQualifiedDecoratedName()<<"'");
-            }
-            pReturnStatement->setExpression(pExpression);
+            pReturnStatement->setExpression(a_pPrecompiler->getLanguage()->convert(pExpression, pReturnType, reflection::e_implicit_conversion, pBlock));
         }
         return pReturnStatement;
     }
 
-    LanguageElement* CxxSimpleDeclaration::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxSimpleDeclaration::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         return expr->precompile(a_pPrecompiler, a_pScope, a_pLHS);
     }
 
-    LanguageElement* CxxTemplateDeclaration::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxSimpleDeclaration::precompileTemplate( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ ) 
+    {
+        return expr->precompileTemplate(a_pPrecompiler, a_pTemplateSignature, a_pScope, a_pLHS);
+    }
+
+    LanguageElement* CxxTemplateDeclaration::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        TemplateSignature* pSignature = parameters->precompile(a_pPrecompiler, a_pScope, a_pLHS);
+        if(pSignature == nullptr)
+        {
+            o_semantic_error("invalid template signature");
+        }
+        return declaration->precompileTemplate(a_pPrecompiler, pSignature, a_pScope, a_pLHS);
+    }
+
+    LanguageElement* CxxTryBlockStatement::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         o_assert_no_implementation();
         return nullptr;
     }
 
-    LanguageElement* CxxTryBlockStatement::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxUsingDeclaration::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         o_assert_no_implementation();
+//         if(a_pScope->asScope() == nullptr)
+//         {
+//             o_semantic_error("illegal using directive");
+//             return nullptr;
+//         }
+//         if(isTypename)
+//         {
+//             Type* pType = name->precompileType(a_pPrecompiler, a_pScope, a_pLHS);
+//             if(pType == nullptr)
+//             {
+//                 o_semantic_error("unknown type '"<<name->toString()<<"'");
+//             }
+//             else a_pScope->asScope()->addAlias(pType, pType->getName());
+//         }
+//         else if(a_pScope->asNamespace())
+//         {
+//             LanguageElement* pLanguageElement = name->precompile(a_pPrecompiler, a_pScope, a_pLHS);
+//             if(pLanguageElement == nullptr)
+//             {
+//                 o_semantic_error("unknown function or type '"<<name->toString()<<"'");
+//             }
+//             else a_pScope->asNamespace()->addUsing(pLanguageElement);
+//         }
+//         else if(a_pScope->asClassType())
+//         {
+//             LanguageElement* pLanguageElement = name->precompile(a_pPrecompiler, a_pScope, a_pLHS);
+//             if(pLanguageElement == nullptr)
+//             {
+//                 o_semantic_error("unknown member '"<<name->toString()<<"'");
+//             }
+//             if(pLanguageElement->asMember() == nullptr)
+//             {
+//                 o_semantic_error("only member allowed in class type using declarations");
+//             }
+//             else a_pScope->asClassType()->addUsing(pLanguageElement);
+//         }
+//         else 
+//         {
+//             LanguageElement* pLanguageElement = name->precompile(a_pPrecompiler, a_pScope, a_pLHS);
+//             if(pLanguageElement == nullptr)
+//             {
+//                 o_semantic_error("unknown function or type '"<<name->toString()<<"'");
+//             }
+//             else a_pScope->asScope()->addUsing(pLanguageElement);
+//         }
         return nullptr;
     }
 
-    LanguageElement* CxxUsingDeclaration::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxUsingNamespaceDirective::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
-        if(isTypename)
-        {
-            Type* pType = name->precompileType(a_pPrecompiler, a_pScope, a_pLHS);
-            if(pType == nullptr)
-            {
-                o_semantic_error("unknown type '"<<name->toString()<<"'");
-            }
-            else a_pScope->addUsing(pType);
-        }
-        else if(a_pScope->asNamespace())
-        {
-            LanguageElement* pLanguageElement = name->precompile(a_pPrecompiler, a_pScope, a_pLHS);
-            if(pLanguageElement == nullptr)
-            {
-                o_semantic_error("unknown function or type '"<<name->toString()<<"'");
-            }
-            else a_pScope->addUsing(pLanguageElement);
-        }
-        else if(a_pScope->asType())
-        {
-            LanguageElement* pLanguageElement = name->precompile(a_pPrecompiler, a_pScope, a_pLHS);
-            if(pLanguageElement == nullptr)
-            {
-                o_semantic_error("unknown member '"<<name->toString()<<"'");
-            }
-            if(pLanguageElement->asMember() == nullptr)
-            {
-                o_semantic_error("only member allowed in class type using declarations");
-            }
-            else a_pScope->addUsing(pLanguageElement);
-        }
-        else 
-        {
-            LanguageElement* pLanguageElement = name->precompile(a_pPrecompiler, a_pScope, a_pLHS);
-            if(pLanguageElement == nullptr)
-            {
-                o_semantic_error("unknown function or type '"<<name->toString()<<"'");
-            }
-            else a_pScope->addUsing(pLanguageElement);
-        }
+//         if(a_pScope->asNamespace() == nullptr)
+//         {
+//             o_semantic_error("using namespace directive can only be declared in a namespace scope");
+//             return nullptr;
+//         }
+//         else
+//         {
+//             Namespace* pNamespace = name->precompileNamespace(a_pPrecompiler, a_pScope, a_pLHS);
+//             if(pNamespace == nullptr)
+//             {
+//                 o_semantic_error("unknown namespace '"<<name->toString()<<"'");
+//             }
+//             return a_pScope->asNamespace()->addUsing(pNamespace);
+//         }
         return nullptr;
     }
 
-    LanguageElement* CxxUsingNamespaceDirective::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
-    {
-        Namespace* pNamespace = name->precompileNamespace(a_pPrecompiler, a_pScope, a_pLHS);
-        if(pNamespace == nullptr)
-        {
-            o_semantic_error("unknown namespace '"<<name->toString()<<"'");
-        }
-        else a_pScope->addUsing(pNamespace);
-        return nullptr;
-    }
-
-
-    LanguageElement* CxxLabelStatement::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/ )
+    LanguageElement* CxxLabelStatement::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
     {
         Block* pBlock = a_pScope->asBlock();
         o_assert(pBlock AND pBlock->getSubroutine());
@@ -2356,25 +2583,58 @@ namespace phantom
         {
             o_semantic_error("illformed label name '"<<label->toString()<<"'");
         }
-        pBlock->addStatement(CxxPrecompiler::findOrCreateLabel(pBlock->getSubroutine(), id));
+        pBlock->addStatement(a_pPrecompiler->findOrCreateLabel(pBlock->getSubroutine(), id));
         statement->precompile(a_pPrecompiler, a_pScope, a_pLHS);
         return nullptr;
     }
 
-    LanguageElement* CxxCallExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxCallExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
-        return expr->precompileParenthesized(a_pPrecompiler, parenthesised, a_pScope, a_pLHS);
+        if(declSpecifier)
+        {
+            if(expr->declSpecifier == nullptr)
+            {
+                expr->declSpecifier = declSpecifier;
+            }
+            else 
+            {
+                declSpecifier->swallow(expr->declSpecifier);
+                expr->declSpecifier = declSpecifier;
+            }
+            declSpecifier = nullptr;
+        }
+        return expr->precompileParenthesized(a_pPrecompiler, parenthesised, a_pScope, a_pLHS, a_Modifiers);
     }
 
-    LanguageElement* CxxVariableDeclarationExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxCallExpression::precompileTemplate( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        if(declSpecifier)
+        {
+            if(expr->declSpecifier == nullptr)
+            {
+                expr->declSpecifier = declSpecifier;
+            }
+            else 
+            {
+                declSpecifier->swallow(expr->declSpecifier);
+                expr->declSpecifier = declSpecifier;
+            }
+            declSpecifier = nullptr;
+        }
+        return expr->precompileTemplateParenthesized(a_pPrecompiler, a_pTemplateSignature, parenthesised, a_pScope, a_pLHS, a_Modifiers);
+    }
+
+    LanguageElement* CxxVariableDeclarationExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         Type* pType = typeExpression->precompileType(a_pPrecompiler, a_pScope, a_pLHS);
-        pType = declarator->name->declSpecifier->specify(pType);
-        o_assert(pType);
+        if(pType == nullptr)
+        {
+            o_semantic_error("undefined variable type");
+        }
         CxxName* name = nameExpression->asName();
         if(name)
         {
-            Type* pTestSpecified = name->specify(pType);
+            Type* pTestSpecified = name->trySpecify(a_pPrecompiler, pType);
             if(pTestSpecified)
             {
                 return pTestSpecified;
@@ -2392,37 +2652,32 @@ namespace phantom
         return nullptr;
     }
 
-    LanguageElement* CxxBinaryExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/ )
+    LanguageElement* CxxBinaryExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
     {
         LanguageElement* pLeft = nullptr;
         LanguageElement* pRight = nullptr;
         if(op == "*" OR op == "&")
         {
             pLeft = left->precompile(a_pPrecompiler, a_pScope);
-            if(pLeft == nullptr)
-            {
-                o_semantic_error("invalid operand or type on left-hand side of "<<op);
-                return o_new(BinaryOperationExpression)(nullptr, op, nullptr, right->precompileExpression(a_pPrecompiler, a_pScope));
-            }
             Type* pType = pLeft->asType();
             if(pType)
             {
                 if(declSpecifier)
-                    pType = declSpecifier->specify(pType);
-                if(pType == nullptr)
+                    pType = declSpecifier->specify(a_pPrecompiler, pType);
+                if(pType->isInvalid())
                 {
                     o_semantic_error("invalid type declaration specifier");
                 }
                 auto* decl = new CxxDeclSpecifierId(op);
-                pType = decl->specify(pType);
-                if(pType == nullptr)
+                pType = decl->specify(a_pPrecompiler, pType);
+                if(pType->isInvalid())
                 {
-                    o_semantic_error("invalid type declaration specifier");
+                    o_semantic_error("invalid type qualifier");
                 }
                 CxxName* name = right->asName();
                 if(name)
                 {
-                    Type* pTestSpecified = name->specify(pType);
+                    Type* pTestSpecified = name->trySpecify(a_pPrecompiler, pType);
                     if(pTestSpecified) 
                         return pTestSpecified;
                     const string& id = name->asIdentifier();
@@ -2430,7 +2685,7 @@ namespace phantom
                     {
                         o_semantic_error("illformed parameter or variable identifier "<<name->toString());
                     }
-                    if(CxxPrecompiler::Top()->hasFlag(CxxPrecompiler::e_Flag_ExpressionMode))
+                    if(a_pPrecompiler->hasFlag(CxxPrecompiler::e_Flag_ExpressionMode))
                     {
                         /// if in expression mode we do not provide local variables or parameters, which will not be usable, but only the corresponding type
                         return pType;
@@ -2455,84 +2710,49 @@ namespace phantom
         if(pLeft)
         {
             pLeftExpression = pLeft->asExpression();
+            if(pLeftExpression == nullptr) pLeftExpression = Expression::Invalid();
         }
         else 
         {
-            pLeftExpression = precompileExpression(a_pPrecompiler, a_pScope);
-        }
-        if(pLeftExpression == nullptr)
-        {
-            o_semantic_error("invalid operand or type on left-hand side of "<<op);
-            return o_new(BinaryOperationExpression)(nullptr, op, nullptr, right->precompileExpression(a_pPrecompiler, a_pScope));
+            pLeftExpression = left->precompileExpression(a_pPrecompiler, a_pScope);
         }
         Expression* pRightExpression = right->precompileExpression(a_pPrecompiler, a_pScope);
-        if(pRightExpression == nullptr)
-        {
-            o_semantic_error("invalid operand or type on right-hand side of "<<op);
-            return o_new(BinaryOperationExpression)(nullptr, op, pLeftExpression, nullptr);
-        }
-        return pLeftExpression->precompileBinaryOperator(a_pPrecompiler, op, pRightExpression);
+        
+        return a_pPrecompiler->getLanguage()->solveBinaryOperator(op, pLeftExpression, pRightExpression, a_pScope);
     }
 
-    LanguageElement* CxxArrayAccessExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS )
+    LanguageElement* CxxArrayAccessExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         LanguageElement* pElement = expression->precompile(a_pPrecompiler, a_pScope, a_pLHS);
+        o_assert(pElement);
         Expression* pIndex = index->precompileExpression(a_pPrecompiler, a_pScope);
-        if(pIndex == nullptr)
-        {
-            o_semantic_error("invalid array index expression");
-            return o_new(ArrayExpression)(nullptr, nullptr);
-        }
-        if(pElement == nullptr OR pElement->isInvalid())
-        {
-            o_semantic_error("invalid array expression");
-            return o_new(ArrayExpression)(pElement ? pElement->asExpression() : nullptr, pIndex);
-        }
-        if(pElement->asExpression())
-        {
-            Expression* pExpression = pElement->asExpression();
-            if(pExpression->getValueType()->removeConstReference()->asArrayType())
-            {
-                return o_new_elem(ArrayExpression)(pElement->asExpression(), pIndex);
-            }
-            else 
-            {
-                return pExpression->precompileBinaryOperator(a_pPrecompiler, "[]", pIndex);
-            }
-        }
-        else if(pElement->asType())
+        Expression* pExpression = pElement->asExpression();
+        if(pElement->asType())
         {
             ConstantExpression* pConstantIndex = pIndex->asConstantExpression();
-            if(pConstantIndex == nullptr OR pConstantIndex->isInvalid())
-            {
-                o_semantic_error("array size specifier must be an integral constant");
-                return o_new_elem(ArrayExpression)(nullptr, pIndex);
-            }
-            if(pConstantIndex->getValueType()->asIntegralType() == nullptr)
-            {
-                o_semantic_error("array size specifier must be an integral constant");
-                return o_new_elem(ArrayExpression)(nullptr, pIndex);
-            }
             size_t size = 0;
-            pIndex = pIndex->implicitCast(typeOf<size_t>());
-            o_assert(pIndex);
+            pIndex = a_pPrecompiler->getLanguage()->convert(pIndex, typeOf<size_t>(), reflection::e_implicit_conversion, a_pScope);
+            if(pIndex->isInvalid()) 
+                return Type::Invalid();
             pIndex->load(&size);
             if(size == 0)
             {
-                o_semantic_error("illegal array with '0' size");
-                return o_new_elem(ArrayExpression)(nullptr, pIndex);
+                o_semantic_error("illegal array type with '0' size");
+                return Type::Invalid();
             }
             return pElement->asType()->arrayType(size);
         }
+        else if(pExpression)
+        {
+            return a_pPrecompiler->getLanguage()->solveBinaryOperator("[]", pExpression, pIndex, a_pScope);
+        }
         else 
         {
-            o_semantic_error("illformed array expression");
-            return o_new_elem(ArrayExpression)(nullptr, nullptr);
+            return a_pPrecompiler->getLanguage()->solveBinaryOperator("[]", Expression::Invalid(), pIndex, a_pScope);
         }
     }
 
-
-    LanguageElement* CxxAbstractFunctionExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxAbstractFunctionExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         vector<LanguageElement*> elements;
         vector<Expression*> expressions;
@@ -2572,7 +2792,7 @@ namespace phantom
                 Expression* pExpr = (*it);
                 if(pPrev)
                 {
-                    pPrev = pPrev ? pPrev->precompileBinaryOperator(a_pPrecompiler, ",", pExpr) : nullptr;
+                    pPrev = pPrev ? a_pPrecompiler->getLanguage()->solveBinaryOperator(",", pPrev, pExpr, a_pScope) : nullptr;
                 }
                 else 
                 {
@@ -2585,7 +2805,7 @@ namespace phantom
     }
 
 
-    LanguageElement* CxxStringLiteralExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxStringLiteralExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         if(stringLiteral->wide)
         {
@@ -2597,8 +2817,7 @@ namespace phantom
         }
     }
 
-
-    LanguageElement* CxxParameter::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/ )
+    LanguageElement* CxxParameter::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
     {
         LanguageElement* pElement = expr->precompile(a_pPrecompiler, a_pScope, a_pLHS);
         if(pElement == nullptr) return nullptr;
@@ -2611,10 +2830,6 @@ namespace phantom
                 if(init) 
                 {
                     Expression* pExpression = init->precompileExpression(a_pPrecompiler, a_pScope);
-                    if(pExpression == nullptr)
-                    {
-                        o_semantic_error("illformed parameter default value expression");
-                    }
                     pLocalVariable->setInitializationExpression(pExpression);
                 }
                 return pLocalVariable;
@@ -2632,8 +2847,7 @@ namespace phantom
         return pType;
     }
 
-
-    void CxxAccessSpecifier::precompile( modifiers_t& modifiers )
+    void CxxAccessSpecifier::precompile( CxxPrecompiler* a_pPrecompiler, modifiers_t& modifiers )
     {
         const string& id = asIdentifier();
         if(id.empty())
@@ -2647,14 +2861,14 @@ namespace phantom
     }
 
 
-    Class* CxxBaseSpecifier::precompile( Precompiler* a_pPrecompiler, Class* a_pDerivedClass, modifiers_t& modifiers )
+    Class* CxxBaseSpecifier::precompile( CxxPrecompiler* a_pPrecompiler, Class* a_pDerivedClass, modifiers_t& modifiers )
     {
-        accessSpecifier->precompile(modifiers);
+        accessSpecifier->precompile(a_pPrecompiler, modifiers);
         modifiers |= (isVirtual * o_virtual);
         LanguageElement* pElement = name->precompile(a_pPrecompiler, a_pDerivedClass, nullptr);
-        if(pElement == nullptr)
+        if(pElement->isInvalid())
         {
-            o_semantic_error("unknown symbol as base class '"<<name->toString()<<"'");
+            o_semantic_error("undeclared base class '"<<name->toString()<<"'");
         }
         Class* pBaseClass = pElement->asClass();
         if(pBaseClass == nullptr)
@@ -2665,22 +2879,25 @@ namespace phantom
         {
             if(pBaseClass == a_pDerivedClass)
             {
-                o_semantic_error("a class cannot inherit from itself");
+                o_semantic_error("class cannot inherits from itself");
             }
             if(pBaseClass->isKindOf(a_pDerivedClass))
             {
-                o_semantic_error("illegal given base class derives itself from the current class");
+                o_semantic_error("illegal cyclic inheritance, given base class derives itself from the current class");
             }
             if(a_pDerivedClass->isKindOf(pBaseClass))
             {
-                o_semantic_error("class already derives from the given base class");
+                o_semantic_error("base class redefinition");
+            }
+            if(NOT(pBaseClass->isFinalized()))
+            {
+                o_semantic_error("use of incomplete class '"<<pBaseClass->getQualifiedDecoratedName()<<"'");
             }
         }
         return pBaseClass;
     }
 
-
-    void CxxBaseSpecifiers::precompile( Precompiler* a_pPrecompiler, Class* a_pClass )
+    void CxxBaseSpecifiers::precompile( CxxPrecompiler* a_pPrecompiler, Class* a_pClass )
     {
         for(auto it = list.begin(); it != list.end(); ++it)
         {
@@ -2690,22 +2907,53 @@ namespace phantom
         }
     }
 
-    ClassType* CxxClass::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope )
+    ClassType* CxxClass::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, ClassType* a_pPreviousDeclaration )
     {
         const string& keyid = key->asIdentifier();
         o_assert(keyid.size());
-        const string& nameid = name->asIdentifier();
-        if(nameid.empty())
-        {
-            o_semantic_error("illformed "<<keyid<<" name '"<<nameid<<"'");
-        }
+        string nameid = name->asIdentifier();
+        o_assert(a_pPreviousDeclaration == nullptr OR (a_pPreviousDeclaration->getName() == nameid AND a_pPreviousDeclaration->isPureDeclaration()));
         ClassType* pClassType = nullptr;
         Class* pClass = nullptr;
+        if(nameid.empty())
+        {
+            if(name->size() > 1)
+            {
+                o_semantic_error("illegal scoped name "<<name->toString()<<" in template "<<keyid<<" declaration");
+            }
+            else 
+            {
+                if(a_pScope->asTemplateSpecialization() == nullptr)
+                {
+                    o_semantic_error("illegal template arguments on non-template declaration");
+                }
+                nameid = name->front().id;
+            }
+        }
         if(keyid == "class" OR keyid == "struct")
         {
-            pClassType = pClass = o_new(Class)(nameid);
-            if(keyid[0] == 's')
-                pClassType->setDefaultAccess(o_public_access);
+            if(a_pPreviousDeclaration)
+            {
+                if(a_pPreviousDeclaration->asStructure())
+                {
+                    o_semantic_error("incoherent type declaration previously seen as structure, and now as class");
+                }
+                else if(a_pPreviousDeclaration->getDefaultAccess() == o_public_access AND keyid == "class")
+                {
+                    o_semantic_error("incoherent type declaration previously seen as struct, and now as class");
+                }
+                else if(a_pPreviousDeclaration->getDefaultAccess() == o_private_access AND keyid == "struct")
+                {
+                    o_semantic_error("incoherent type declaration previously seen as class, and now as struct");
+                }
+                pClassType = a_pPreviousDeclaration;
+            }
+            else
+            {
+                pClassType = pClass = o_new(Class)(nameid);
+                if(keyid[0] == 's')
+                    pClassType->setDefaultAccess(o_public_access);
+            }
             if(baseClasses)
             {
                 baseClasses->precompile(a_pPrecompiler, pClass);
@@ -2713,45 +2961,259 @@ namespace phantom
         }
         else if(keyid == "structure")
         {
+            if(a_pPreviousDeclaration)
+            {
+                if(a_pPreviousDeclaration->asClass())
+                {
+                    o_semantic_error("incoherent type declaration previously seen as class, and now as structure");
+                }
+                pClassType = a_pPreviousDeclaration;
+            }
+            else pClassType = o_new(Structure)(nameid);
             if(baseClasses)
             {
                 o_semantic_error("structure cannot have base classes");
             }
-            pClassType = o_new(Structure)(nameid);
         }
         o_assert(pClassType);
-        CxxDriver::Instance()->getCompilationModule()->addLanguageElement(pClassType);
         return pClassType;
     }
 
-    LanguageElement* CxxClassMembers::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxClass::precompileTemplate( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope )
     {
-        ClassType* pClassType = class_->precompile(a_pPrecompiler, a_pScope)->asClassType();
-        o_assert(CxxDriver::Instance()->getCompilationModule());
-        members->precompile(a_pPrecompiler, pClassType);
-        return pClassType;
-    }
-
-
-    void CxxMemberDeclarations::precompile( Precompiler* a_pPrecompiler, ClassType* a_pClassType )
-    {
-        for(auto it = list.begin(); it != list.end(); ++it)
+        Template* pTemplate = nullptr;
+        const string& nameid = name->asIdentifier();
+        CxxTemplateArguments* specialization = nullptr;
+        Scope* pScope = a_pScope->asScope();
+        o_assert(pScope);
+        if(name->size() == 1)
         {
-            (*it)->precompile(a_pPrecompiler, a_pClassType);
+            specialization = name->front().templateArgs;
+            if(pScope)
+            {
+                // Look for an existing template in current source scope
+                pTemplate = pScope->getTemplate(name->front().id);
+                if(pTemplate == nullptr)
+                {
+                    o_semantic_error("symbol '"<<name->front().id<<"' does not refer to a template name");
+                }
+            }
+        }
+
+        if(pTemplate == nullptr)
+        {
+            pTemplate = o_new(Template)(a_pTemplateSignature, nameid);
+            if(pScope == a_pPrecompiler->getSource()) /// current scope is the source
+            {
+                a_pPrecompiler->getSource()->getPackage()->getCounterpartNamespace()->addTemplate(pTemplate);
+            }
+            if(specialization)
+            {
+                /// specialization signature => trying to specialize a non existing template
+                pTemplate->setInvalid();
+                o_semantic_error("no template with name '"<<nameid<<"' found in current scope");
+            }
+            /// add template to current scope
+            pScope->addTemplate(pTemplate);
+            NamedElement* pPrevBody = pTemplate->getEmptyTemplateSpecialization()->getBody();
+            pTemplate->getEmptyTemplateSpecialization()->setBody(
+                    CxxClass::precompile(a_pPrecompiler, pTemplate->getEmptyTemplateSpecialization(), pPrevBody ? pPrevBody->asClassType() : nullptr)
+                );
+            return pTemplate->getEmptyTemplateSpecialization();
+        }
+        /// Template already defined => must be a specialization
+        else if(pTemplate AND NOT(pTemplate->getEmptyTemplateSpecialization()->isPureDeclaration()))
+        {
+            /// But not a specialization => redefinition of this template => error
+            if(!specialization)
+            {
+                o_semantic_error("template with name '"<<nameid<<"' already defined in scope '"<<static_cast<NamedElement*>(a_pScope)->getQualifiedDecoratedName()<<"'");
+                TemplateSpecialization* pInvalidNewEmptySpec = o_new(TemplateSpecialization)(pTemplate, a_pTemplateSignature, vector<LanguageElement*>(), CxxClass::precompile(a_pPrecompiler, pTemplate));
+                pScope->addTemplateSpecialization(pInvalidNewEmptySpec);
+                return pInvalidNewEmptySpec;
+            }
+            /// Specialization of this template
+            else 
+            {
+                TemplateSpecialization* pSpec = nullptr;
+                if(a_pTemplateSignature->getParameterCount() == 0)
+                {
+                    /// Empty template signature => full specialization
+                    vector<LanguageElement*> arguments;
+                    specialization->precompile(a_pPrecompiler, a_pScope, arguments);
+                    if(NOT(pTemplate->getTemplateSignature()->acceptsArguments(arguments)))
+                    {
+                        o_semantic_error("template arguments does not match template signature");
+                    }
+                    if(pTemplate->getTemplateSpecialization(arguments))
+                    {
+                        o_semantic_error("template already instanciated and cannot be explicitely specialized");
+                    }
+                    pSpec = o_new(TemplateSpecialization)(pTemplate, a_pTemplateSignature, arguments);
+                    o_assert(pSpec->getBody() == nullptr);
+                    pScope->addTemplateSpecialization(pSpec);
+                    pSpec->setBody(CxxClass::precompile(a_pPrecompiler, pSpec, nullptr));
+                    o_assert(pSpec->isInvalid() OR pSpec->isFull());
+                }
+                else 
+                {
+                    /// partial specialization
+
+                    /// first solve template specialization partial/full arguments
+                    a_pScope->addScopedElement(a_pTemplateSignature);
+                    vector<LanguageElement*> arguments;
+                    specialization->precompile(a_pPrecompiler, a_pTemplateSignature, arguments);
+                    a_pScope->removeScopedElement(a_pTemplateSignature);
+
+                    if(NOT(pTemplate->getTemplateSignature()->acceptsArguments(arguments)))
+                    {
+                        o_semantic_error("partial template specialization arguments do not match template signature");
+                    }
+                    if(pTemplate->getTemplateSpecialization(arguments))
+                    {
+                        o_semantic_error("template specialization already defined");
+                    }
+                    pSpec = o_new(TemplateSpecialization)(pTemplate, a_pTemplateSignature, arguments);
+                    pScope->addTemplateSpecialization(pSpec);
+                    pSpec->setBody(CxxClass::precompile(a_pPrecompiler, pSpec, nullptr));
+                    for(auto it = a_pTemplateSignature->beginParameters(); it != a_pTemplateSignature->endParameters(); ++it)
+                    {
+                        TemplateParameter* pParam = *it;
+                        if(NOT(pParam->getPlaceholder() AND pParam->getPlaceholder()->asNamedElement()->getReferencingElementCount()))
+                        {
+                            o_semantic_error("template parameter '"<<pParam->getName()<<"' never used in template specialization arguments");
+                            pSpec->setInvalid();
+                        }
+                    }
+                }
+                return pSpec;
+            } 
+        }
+        else 
+        {
+            pTemplate = o_new(Template)(a_pTemplateSignature, nameid);
+            a_pPrecompiler->getSource()->addTemplate(pTemplate);
+            a_pPrecompiler->getSource()->addTemplateSpecialization(pTemplate->getEmptyTemplateSpecialization());
+            NamedElement* pPrevBody = pTemplate->getEmptyTemplateSpecialization()->getBody();
+            ClassType* pClassType = CxxClass::precompile(a_pPrecompiler, pTemplate->getEmptyTemplateSpecialization(), pPrevBody ? pPrevBody->asClassType() : nullptr);
+            if(pPrevBody == nullptr)
+            {
+                pTemplate->getEmptyTemplateSpecialization()->setBody(pClassType);
+            }
+            return pTemplate->getEmptyTemplateSpecialization();
         }
     }
 
-
-    LanguageElement* CxxMemberDeclaration::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/ )
+    LanguageElement* CxxClassMembers::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
-        o_assert(a_pScope->asClassType());
-        o_assert_no_implementation();
-        return nullptr;
-        //return declaration->precompile(a_pPrecompiler, a_pScope, a_pLHS);
+        ClassType* pClassType = class_->precompile(a_pPrecompiler, a_pScope)->asClassType();
+        o_assert(a_pPrecompiler->getSource());
+        if(pClassType->isDefined())
+        {
+            o_semantic_error(class_->key->asIdentifier()<<" already defined");
+        }
+        pClassType->setDefined();
+        if(a_pScope == a_pPrecompiler->getSource())
+        {
+            a_pPrecompiler->getSource()->getPackage()->getCounterpartNamespace()->addType(pClassType);
+            a_pPrecompiler->getSource()->addType(pClassType);
+        }
+        else 
+        {
+            Scope* pScope = a_pScope->asScope();
+            if(pScope == nullptr)
+            {
+                o_semantic_error(class_->key->asIdentifier()<<" definition outside legal scope");
+                pClassType->setInvalid();
+            }
+            else 
+            {
+                pScope->addType(pClassType);
+            }
+            if(pClassType->getOwner() == nullptr)
+            {
+                a_pPrecompiler->getSource()->addType(pClassType);
+            }
+        }
+        if(a_pPrecompiler->getPass() < CxxPrecompiler::e_Pass_Members)
+        {
+            a_pPrecompiler->queue(CxxPrecompiler::e_Pass_Members, pClassType, nullptr, members, nullptr, nullptr, nullptr);
+        }
+        else 
+        {
+            members->precompile(a_pPrecompiler, pClassType);
+        }
+        return pClassType;
     }
 
+    LanguageElement* CxxClassMembers::precompileTemplate( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        TemplateSpecialization* pTemplateSpecialization = class_->precompileTemplate(a_pPrecompiler, a_pTemplateSignature, a_pScope)->asTemplateSpecialization();
+        o_assert(a_pPrecompiler->getSource());
+        o_assert(pTemplateSpecialization->getBody());
+        if(pTemplateSpecialization->isDefined())
+        {
+            o_assert(pTemplateSpecialization->getBody()->isDefined());
+            o_semantic_error("template "<<class_->key->asIdentifier()<<" specialization already defined");
+        }
+        pTemplateSpecialization->setDefined();
+        o_assert(pTemplateSpecialization->getBody());
+        pTemplateSpecialization->getBody()->setDefined();
+        Scope* pScope = a_pScope->asScope();
+        o_assert(pScope AND a_pScope->asNamespace() == nullptr, "scope must be type, source or block, nothing else");
+        if(a_pPrecompiler->getPass() < CxxPrecompiler::e_Pass_Members)
+        {
+            a_pPrecompiler->queue(CxxPrecompiler::e_Pass_Members, pTemplateSpecialization->getBody(), nullptr, members, nullptr, nullptr, a_pTemplateSignature);
+        }
+        else 
+        {
+            members->precompileTemplate(a_pPrecompiler, a_pTemplateSignature, pTemplateSpecialization->getBody(), nullptr, 0);
+        }
+        return pTemplateSpecialization;
+    }
 
-    LanguageElement* CxxFunctionBody::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxMemberDeclarations::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS, modifiers_t a_Modifiers )
+    {
+        ClassType* pClassType = a_pScope->asClassType();
+        o_assert(pClassType);
+        if(a_pPrecompiler->getPass() == CxxPrecompiler::e_Pass_Members)
+        {
+            //a_pPrecompiler->queue(CxxPrecompiler::e_Pass_Blocks, a_pScope, nullptr, this);
+            for(auto it = list.begin(); it != list.end(); ++it)
+            {
+                (*it)->precompile(a_pPrecompiler, pClassType);
+            }
+        }
+//         else 
+//         {
+//             o_assert(a_pPrecompiler->getPass() == CxxPrecompiler::e_Pass_Blocks);
+//             pClassType->setFinalized();
+//         }
+        return nullptr;
+    }
+
+    LanguageElement* CxxMemberDeclarations::precompileTemplate( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS, modifiers_t a_Modifiers )
+    {
+        ClassType* pClassType = a_pScope->asClassType();
+        o_assert(pClassType);
+        TemplateSpecialization* pSpec = pClassType->getOwner()->asTemplateSpecialization();
+        o_assert(pSpec);
+        if(a_pPrecompiler->getPass() == CxxPrecompiler::e_Pass_Members)
+        {
+            for(auto it = list.begin(); it != list.end(); ++it)
+            {
+                (*it)->precompile(a_pPrecompiler, pClassType);
+            }
+        }
+        return nullptr;
+    }
+    LanguageElement* CxxMemberDeclaration::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        o_assert(a_pScope->asClassType());
+        return declaration->precompile(a_pPrecompiler, a_pScope, a_pLHS);
+    }
+
+    LanguageElement* CxxFunctionBody::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
         // If we precompile a function body, we suppose having at worst root block from Subroutine::createBlock
         Block* pBlock = a_pScope->asBlock();
@@ -2764,14 +3226,13 @@ namespace phantom
         return nullptr;
     }
 
-
-    LanguageElement* CxxTypedExpression::precompile( Precompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxTypedExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
-        Type* pType = name->precompileType(a_pPrecompiler, a_pScope, a_pLHS);
+        Type* pType = typeName->precompileType(a_pPrecompiler, a_pScope, a_pLHS);
         CxxName* name = expr->asName();
         if(name)
         {
-            Type* pTestSpecified = name->specify(pType);
+            Type* pTestSpecified = name->trySpecify(a_pPrecompiler, pType);
             if(pTestSpecified)
                 return pTestSpecified;
         }
@@ -2779,51 +3240,490 @@ namespace phantom
         return nullptr;
     }
 
-    LanguageElement* CxxTypedExpression::precompileParenthesized( Precompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */ )
+    LanguageElement* CxxTypedExpression::precompileParenthesized( CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
     {
-        Type* pType = name->precompileType(a_pPrecompiler, a_pScope, a_pLHS);
         CxxName* name = expr->asName();
         if(name)
         {
-            Type* pTestSpecified = name->specify(pType);
-            if(pTestSpecified)
-                return pTestSpecified;
-            // scoped name (probably function definition)
-            CxxName* back = name->takeBack(); // split last word to obtain LHS scope
-            LanguageElement* pLHS = nullptr;
-            if(name->size())
-            {
-                if(a_pScope->asNamespace() == nullptr)
-                {
-                    o_semantic_error("member function must be defined in a namespace");
-                }
-                pLHS = name->precompile(a_pPrecompiler, a_pScope);
-                if(pLHS == nullptr)
-                {
-                    o_semantic_error("invalid member function scope name");
-                }
-                if(pLHS->asType()==nullptr OR pLHS->asNamespace()==nullptr)
-                {
-                    o_semantic_error("member function scope must be a class/union/struct or namespace");
-                }
-            }
-            if(name->declSpecifier)
-            {
-                if(back->declSpecifier)
-                {
-                    name->declSpecifier->swallow(back->declSpecifier);
-                    back->declSpecifier = name->declSpecifier;
-                    name->declSpecifier = nullptr;
-                }
-                else back->declSpecifier = name->declSpecifier;
-            }
-            LanguageElement* pElement = back->precompileTypedParenthesized(a_pPrecompiler, pType, a_pParen, a_pScope, pLHS);
-            if(pElement == nullptr)
-            {
-                o_semantic_error("invalid function declaration");
-            }
-            name->swallow(back); // restore initial name 
+            return (new CxxTypedName(typeName, name))->precompileParenthesized(a_pPrecompiler, a_pParen, a_pScope, a_pLHS, a_Modifiers);
         }
+        o_assert_no_implementation();
+        return nullptr;
+    }
+
+    LanguageElement* CxxTypedName::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        const string& id = typeName->asIdentifier();
+        configureDeclSpecifiers(a_pPrecompiler);
+        Type* pType = nullptr;
+        if(id == "unsigned")
+        {
+            Type* pTypeToUnsign = name->precompileType(a_pPrecompiler, a_pScope, a_pLHS);
+            if(pTypeToUnsign == nullptr)
+            {
+                pType = typeOf<unsigned>();
+            }
+            else switch(pTypeToUnsign->getTypeId())
+            {
+            case reflection::e_char:
+                return typeName->declSpecifier ? typeName->declSpecifier->specify(a_pPrecompiler, typeOf<uchar>()) : typeOf<uchar>();
+            case reflection::e_short:
+                return typeName->declSpecifier ? typeName->declSpecifier->specify(a_pPrecompiler, typeOf<ushort>()) : typeOf<ushort>();
+            case reflection::e_int:
+                return typeName->declSpecifier ? typeName->declSpecifier->specify(a_pPrecompiler, typeOf<uint>()) : typeOf<uint>();
+            case reflection::e_long:
+                return typeName->declSpecifier ? typeName->declSpecifier->specify(a_pPrecompiler, typeOf<ulong>()) : typeOf<ulong>();
+            case reflection::e_longlong:
+                return typeName->declSpecifier ? typeName->declSpecifier->specify(a_pPrecompiler, typeOf<ulonglong>()) : typeOf<ulonglong>();
+            default:
+                o_semantic_error("invalid fundamental type '"<<pTypeToUnsign->getName()<<"' after 'unsigned' promoter");
+            }
+        }
+        else if(id == "long")
+        {
+            Type* pTypeToPromote = name->precompileType(a_pPrecompiler, a_pScope, a_pLHS);
+            if(pTypeToPromote == nullptr)
+            {
+                pType = typeOf<long>();
+            }
+            else switch(pTypeToPromote->getTypeId())
+            {
+            case reflection::e_int:
+                return typeName->declSpecifier ? typeName->declSpecifier->specify(a_pPrecompiler, typeOf<long>()) : typeOf<long>();
+            case reflection::e_long:
+                return typeName->declSpecifier ? typeName->declSpecifier->specify(a_pPrecompiler, typeOf<long long>()) : typeOf<long long>();
+            case reflection::e_double:
+                return typeName->declSpecifier ? typeName->declSpecifier->specify(a_pPrecompiler, typeOf<long double>()) : typeOf<long double>();
+            default:
+                o_semantic_error("invalid fundamental type '"<<pTypeToPromote->getName()<<"' after 'long' promoter");
+            }
+        }
+        if(pType == nullptr)
+            pType = typeName->precompileType(a_pPrecompiler, a_pScope, a_pLHS);
+        if(pType == nullptr)
+        {
+            o_semantic_error("unknown type '"<<typeName->toString()+"'");
+        }
+        if(typeName->declSpecifier)
+        {
+            pType = typeName->declSpecifier->specify(a_pPrecompiler, pType);
+            if(pType->isInvalid())
+            {
+                o_semantic_error("illegal type specifiers for type '"<<typeName->toString()+"'");
+            }
+        }
+        Type* pTestSpecified = name->trySpecify(a_pPrecompiler, pType);
+        if(pTestSpecified)
+            return pTestSpecified;
+
+        /// If in expression mode, we don't need parameters, but only types
+        if(a_pPrecompiler->hasFlag(CxxPrecompiler::e_Flag_ExpressionMode))
+            return pType;
+
+        // We have a variable declaration of format "TYPE variable"
+        if(a_pScope->asSignature() OR a_pScope->asSubroutine())
+        {
+            const string& id = name->asIdentifier();
+            if(id.empty())
+            {
+                o_semantic_error("illformed parameter name "<<name->toString());
+            }
+            return o_new(Parameter)(pType, id);
+        }
+        else if(a_pScope->asBlock())
+        {
+            const string& id = name->asIdentifier();
+            if(id.empty())
+            {
+                o_semantic_error("illformed local variable name "<<name->toString());
+            }
+            return o_new(LocalVariable)(pType, id);
+        }
+        else if(a_pScope->asNamespace())
+        {
+            const string& id = name->asIdentifier();
+            if(id.empty())
+            {
+                o_semantic_error("illformed global variable name "<<name->toString());
+            }
+            return o_new(Variable)(pType, id, nullptr);
+        }
+        return nullptr;
+    }
+
+    void CxxTypedName::configureDeclSpecifiers(CxxPrecompiler* a_pPrecompiler)
+    {
+        if(declSpecifier)
+        {
+            if(typeName->declSpecifier == nullptr)
+            {
+                typeName->declSpecifier = declSpecifier;
+            }
+            else 
+            {
+                declSpecifier->swallow(typeName->declSpecifier);
+                typeName->declSpecifier = declSpecifier;
+            }
+            declSpecifier = nullptr;
+        }
+        if(typeName->declSpecifier)
+        {
+            o_assert(name->declSpecifier == nullptr);
+            CxxName* pStatic = typeName->declSpecifier->extract("static");
+            if(pStatic)
+            {
+                if(pStatic->size() != 1)
+                {
+                    o_semantic_error("illegal duplicate of 'static' specifier");
+                }
+                if(typeName->declSpecifier->size() == 0)
+                    typeName->declSpecifier = nullptr;
+                pStatic->resize(1);
+                if(name->declSpecifier)
+                    pStatic->swallow(name->declSpecifier);
+                name->declSpecifier = pStatic;
+            }
+        }
+    }
+
+    LanguageElement* CxxTypedName::precompileParenthesized( CxxPrecompiler* a_pPrecompiler, CxxParenthesised* a_pParen, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        configureDeclSpecifiers(a_pPrecompiler);
+        Type* pType = typeName->precompileType(a_pPrecompiler, a_pScope, a_pLHS);
+        o_assert(pType);
+        Type* pTestSpecified = name->trySpecify(a_pPrecompiler, pType);
+        if(pTestSpecified)
+            return pTestSpecified;
+        CxxName* back = name->takeBack(); // split last word to obtain LHS scope
+        LanguageElement* pLHS = nullptr;
+        if(name->declSpecifier)
+        {
+            if(back->declSpecifier)
+            {
+                name->declSpecifier->swallow(back->declSpecifier);
+                back->declSpecifier = name->declSpecifier;
+                name->declSpecifier = nullptr;
+            }
+            else back->declSpecifier = name->declSpecifier;
+        }
+        if(name->size())
+        {
+            pLHS = name->precompile(a_pPrecompiler, a_pScope);
+            if(pLHS == nullptr)
+            {
+                o_semantic_error("invalid member function scope name");
+            }
+            else if(pLHS->asClassType() == nullptr)
+            {
+                o_semantic_error("undefined member function class or struct scope");
+            }
+            else if(pLHS->getSource() != a_pPrecompiler->getSource())
+            {
+                o_semantic_error("out-of-class member function definition must stay in the same source as the owner class");
+            }
+        }
+        LanguageElement* pElement = back->precompileTypedParenthesized(a_pPrecompiler, pType, a_pParen, a_pScope, pLHS, a_Modifiers);
+        if(pElement == nullptr)
+        {
+            o_semantic_error("invalid function declaration");
+        }
+        return pElement;
+    }
+
+
+    string CxxName::word::toString() const
+    {
+        string result = id;
+        if(templateArgs)
+        {
+            result+=templateArgs->toString();
+        }
+        return result;
+    }
+
+
+    TemplateSignature* CxxTemplateParameters::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        TemplateSignature* pSignature = o_new(TemplateSignature);
+        a_pScope->addScopedElement(pSignature);
+        vector<TemplateParameter*> templateParameters;
+        for(auto it = list.begin(); it != list.end(); ++it)
+        {
+            TemplateParameter* pParameter = (*it)->precompile(a_pPrecompiler, pSignature, a_pLHS);
+            if(pParameter == nullptr)
+            {
+                o_semantic_error("invalid template parameter");
+            }
+            pSignature->addParameter(pParameter);
+        }
+        a_pScope->removeScopedElement(pSignature);
+        return pSignature;
+    }
+
+
+    TemplateParameter* CxxTemplateParameter::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        return expr->precompileTemplateParameter(a_pPrecompiler, a_pScope, a_pLHS);
+    }
+
+
+    TemplateParameter* CxxClassTypeParameter::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        return o_new(TemplateParameter)(o_new(PlaceholderType)(expr ? expr->asName()->asIdentifier() : ""));
+    }
+
+
+    TemplateParameter* CxxTemplatedTypeParameter::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        return o_new(TemplateParameter)(o_new(PlaceholderTemplate)(expr ? expr->asName()->asIdentifier() : "", parameters->precompile(a_pPrecompiler, a_pScope, a_pLHS)));
+    }
+
+
+    LanguageElement* CxxFunctionDefinition::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /* = nullptr */, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        if(a_pPrecompiler->getPass() < CxxPrecompiler::e_Pass_Members)
+        {
+            TemplateSignature* pTS = a_pScope->asTemplateSignature();
+            a_pPrecompiler->queue(CxxPrecompiler::e_Pass_Members, pTS ? pTS->getOwner() : a_pScope, a_pLHS, this, nullptr, nullptr, pTS);
+            return nullptr;
+        }
+        else 
+        {
+            LanguageElement* pElement = header->precompile(a_pPrecompiler, a_pScope, a_pLHS, o_defined);
+            o_assert(pElement AND pElement->asSubroutine());
+            Subroutine* pSubroutine = pElement->asSubroutine();
+            if(pSubroutine->getOwner() == nullptr) // function definition
+            {
+                a_pScope->asScope()->addSubroutine(pSubroutine);
+            }
+            Block* pBlock = pSubroutine->createBlock();
+            if(a_pPrecompiler->getPass() < CxxPrecompiler::e_Pass_Blocks)
+            {
+                a_pPrecompiler->queue(CxxPrecompiler::e_Pass_Blocks, pBlock, nullptr, body, nullptr, nullptr, nullptr);
+            }
+            else 
+            {
+                body->precompile(a_pPrecompiler, pBlock);
+            }
+            return nullptr;
+        }
+    }
+
+    LanguageElement* CxxFunctionDefinition::precompileTemplate( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ ) 
+    {
+        if(a_pPrecompiler->getPass() < CxxPrecompiler::e_Pass_Members)
+        {
+            a_pPrecompiler->queue(CxxPrecompiler::e_Pass_Members, a_pScope, a_pLHS, this, nullptr, nullptr, a_pTemplateSignature);
+            return nullptr;
+        }
+        else 
+        {
+            LanguageElement* pElement = header->precompileTemplate(a_pPrecompiler, a_pTemplateSignature, a_pScope, a_pLHS, o_defined);
+            o_assert(pElement AND pElement->asSubroutine());
+            Subroutine* pSubroutine = pElement->asSubroutine();
+            if(pSubroutine->getOwner() == nullptr) // function definition
+            {
+                a_pScope->asScope()->addSubroutine(pSubroutine);
+            }
+            Block* pBlock = pSubroutine->createBlock();
+            if(a_pPrecompiler->getPass() < CxxPrecompiler::e_Pass_Blocks)
+            {
+                a_pPrecompiler->queue(CxxPrecompiler::e_Pass_Blocks, pBlock, nullptr, body, nullptr, nullptr, nullptr);
+            }
+            else 
+            {
+                body->precompile(a_pPrecompiler, pBlock);
+            }
+            return nullptr;
+        }
+    }
+
+    LanguageElement* CxxStatement::precompileTemplate( CxxPrecompiler* a_pPrecompiler, TemplateSignature* a_pTemplateSignature, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ ) 
+    {
+        o_assert_no_implementation();
+        a_pScope->addScopedElement(a_pTemplateSignature);
+        LanguageElement* pElement = precompile(a_pPrecompiler, a_pTemplateSignature, a_pLHS, a_Modifiers);
+        a_pScope->removeScopedElement(a_pTemplateSignature);
+        return pElement;
+    }
+
+    LanguageElement* CxxDataExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0 */ )
+    {
+        serialization::DataBase* pDataBase = phantom::application()->getDataBase();
+        if(pDataBase == nullptr)
+        {
+            o_semantic_error("no data base defined, cannot use the '@' operator for this module");
+        }
+        return o_new(DataExpression)(pDataBase, o_new_elem(ConstantExpression)(constant<o_NESTED_TYPE CxxUnderlyingFundamental<hex_t>::type>(hex->number)));
+    }
+
+    LanguageElement* CxxStatements::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        if(a_pPrecompiler->getPass() == CxxPrecompiler::e_Pass_SourceMembersLocal) // source pass
+        {
+            std::sort(list.begin(), list.end(), source_scope_sorter());
+        }
+        for(auto it = list.begin(); it != list.end(); ++it)
+        {
+            (*it)->precompile(a_pPrecompiler, a_pScope);
+        }
+        return nullptr;
+    }
+
+    LanguageElement* CxxImportDeclaration::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        int pass = a_pPrecompiler->getPass();
+
+        bool bStatic = false;
+        bool bPublic = false; 
+
+        if(declSpecifier != nullptr)
+        {
+            for(auto it = declSpecifier->begin(); it != declSpecifier->end(); ++it)
+            {
+                if(it->id == "public") bPublic = true;
+                else if(it->id == "static") bStatic = true;
+            }
+        }
+
+        string qualified = qualifiedName->asIdentifier();
+        o_assert(qualified.size());
+
+        size_t pos = qualified.find_last_of(".");
+        string packageName = pos != string::npos ? qualified.substr(0, pos) : ""; 
+        string sourceName = pos != string::npos ? qualified.substr(pos+1) : qualified;     
+
+        Package* pPackage = nullptr;
+        if(packageName.empty())
+        {
+            pPackage = a_pPrecompiler->getSource()->getPackage();
+        }
+        else 
+        {
+            string currentPackageName = a_pPrecompiler->getSource()->getPackage()->getName();
+            pPackage = phantom::package(currentPackageName.size() ? (currentPackageName+'.'+packageName) : packageName);
+        }
+        Source* pSource = Source::Invalid();
+        if(pPackage == nullptr)
+        {
+            o_semantic_error("package '"<<packageName<<"' not found");
+            pSource = Source::Invalid();
+            pPackage = Package::Invalid();
+        }
+        else
+        {
+            pSource = pPackage->getSource(sourceName);
+            if(pSource == nullptr)
+            {
+                o_semantic_error("source '"<<sourceName<<"' not found in package '"<<packageName<<"'");
+                pSource = Source::Invalid();
+            }
+            if(pSource == a_pPrecompiler->getSource())
+            {
+                o_semantic_error("source '"<<sourceName<<"' cannot import itself");
+                pSource = Source::Invalid();
+            }
+        }
+
+        if(bStatic)
+        {
+            Alias* pStaticImport = o_new(Alias)(bPublic ? 0 : o_private_visibility);
+            a_pScope->asScope()->addAlias(pStaticImport);
+            /// STATIC IMPORT
+            if(symbols AND symbols->list.size())
+            {
+                o_semantic_error("static imports cannot be used with selective symbol imports");
+            }
+            vector<string> importWords;
+            split( importWords, qualified, boost::is_any_of("."), boost::token_compress_on ); // SplitVec == { "hello abc","ABC","aBc goodbye" }
+            importWords.erase( std::remove_if( importWords.begin(), importWords.end(), 
+                boost::bind( &string::empty, _1 ) ), importWords.end() );
+
+            auto it = importWords.begin();
+
+            NamedElement* pElement = a_pScope->getUniqueElement(*it);
+            Alias* pImportAlias = nullptr;
+            if(pElement)
+            {
+                Alias* pAlias = pElement->asAlias();
+                if(pAlias)
+                {
+                    if(pAlias->getAliasedElement() == nullptr)
+                    {
+                        pImportAlias = pAlias;
+                    }
+                    else 
+                    {
+                        o_semantic_error("static import package '"<<*it<<"' conflicts with alias '"<<pAlias->getName()<<"'");
+                    }
+                }
+                else 
+                {
+                    o_semantic_error("static import package '"<<*it<<"' conflicts with symbol '"<<pElement->getQualifiedDecoratedName()<<"'");
+                }
+            }
+            if(pImportAlias == nullptr)
+            {
+                pImportAlias = o_new(Alias)(*it);
+                pStaticImport->addAlias(pImportAlias);
+            }
+
+            for(; it != importWords.end(); ++it)
+            {
+                Alias* pChildAlias = pImportAlias->getAlias(*it);
+                if(pChildAlias == nullptr)
+                {
+                    pChildAlias = o_new(Alias)(*it);
+                    pImportAlias->addAlias(pChildAlias);
+                }
+                pImportAlias = pChildAlias;
+            }
+            pImportAlias->addAlias(o_new(Alias)(pSource));
+        }
+        else 
+        {
+            if(symbols AND symbols->list.size())
+            {
+                /// SELECTIVE IMPORTS
+                for(auto it = symbols->list.begin(); it != symbols->list.end(); ++it)
+                {
+                    CxxImportSymbolDeclaration* importedSymbol = (*it);
+                    const string& symbolName = importedSymbol->symbol->asIdentifier();
+                    const string& alias = importedSymbol->alias ? importedSymbol->alias->asIdentifier() : symbolName;
+                    a_pScope->asSource()->addAlias(o_new(Alias)(o_new(Import)(pSource, symbolName), alias));
+                }
+            }
+            else 
+            {
+                /// STANDARD IMPORT
+                a_pScope->asScope()->addAlias(o_new(Alias)(pSource));
+            }
+        }
+        return nullptr;
+    }
+
+
+    LanguageElement* CxxPreUnaryExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        Expression* pExpr = expr->precompileExpression(a_pPrecompiler, a_pScope);
+        return a_pPrecompiler->getLanguage()->solveUnaryPreOperator(op, pExpr, a_pScope);
+    }
+
+    LanguageElement* CxxPostUnaryExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        Expression* pExpr = expr->precompileExpression(a_pPrecompiler, a_pScope);
+        return a_pPrecompiler->getLanguage()->solveUnaryPostOperator(op, pExpr, a_pScope);
+    }
+
+    LanguageElement* CxxThisExpression::precompile( CxxPrecompiler* a_pPrecompiler, LanguageElement* a_pScope, LanguageElement* a_pLHS /*= nullptr*/, modifiers_t a_Modifiers /*= 0*/ )
+    {
+        Block* pBlock = a_pScope->asBlock();
+        if(pBlock == nullptr)
+            return nullptr;
+        LocalVariable* pLocalVariable = pBlock->getLocalVariableCascade("this");
+        if(pLocalVariable == nullptr)
+            return nullptr;
+        return pLocalVariable->toExpression();
     }
 
 }

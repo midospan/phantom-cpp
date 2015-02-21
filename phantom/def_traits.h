@@ -1160,7 +1160,7 @@ struct base_class_count_of_helper<t_Ty o_traits_base_helper_base_class_list_##_c
     enum { value = _count_ }; \
 };
 
-#define o_traits_specialize_base_statechart_helper_0() public virtual phantom::state::native::root_statechart<t_DTy>
+#define o_traits_specialize_base_statechart_helper_0() public virtual phantom::root_statechart<t_DTy>
 #define o_traits_specialize_base_statechart_helper_1()                                             public virtual phantom::statechart<t_S0, t_DTy>
 #define o_traits_specialize_base_statechart_helper_2() o_traits_specialize_base_statechart_helper_1() , public virtual phantom::statechart<t_S1, t_DTy>
 #define o_traits_specialize_base_statechart_helper_3() o_traits_specialize_base_statechart_helper_2() , public virtual phantom::statechart<t_S2, t_DTy>
@@ -2755,17 +2755,48 @@ struct is_copyable : public detail::is_copyable_helper<t_Ty, has_copy_disabled_c
 
 };
 
+template<typename t_Ty>
+struct reference_to_pointer
+{
+    typedef t_Ty type;
+};
+
+template<typename t_Ty>
+struct reference_to_pointer<t_Ty&>
+{
+    typedef t_Ty* type;
+}; 
+
+template<typename T0, typename T1, bool one> 
+struct choose_type
+{
+    typedef T1 type;
+}; 
+
+template<typename T0, typename T1> 
+struct choose_type<T0, T1, false>
+{
+    typedef T0 type;
+};
+
 o_namespace_end(phantom)
 
 #if o_HAS_BUILT_IN_WCHAR_T
-
-#define o_traits_specialize_primitive_if_wchar_t(_trait_, _name_, _value_) \
-    o_traits_specialize_primitive(_trait_, _name_, _value_)
-
+#define o_traits_specialize_primitive_if_wchar_t(_trait_, _name_, _value_)  o_traits_specialize_primitive(_trait_, _name_, _value_)
 #else
-
 #define o_traits_specialize_primitive_if_wchar_t(_trait_, _name_, _value_)
+#endif
 
+#if o_HAS_BUILT_IN_CHAR16_T
+#define o_traits_specialize_primitive_if_char16_t(_trait_, _name_, _value_)  o_traits_specialize_primitive(_trait_, _name_, _value_)
+#else
+#define o_traits_specialize_primitive_if_char16_t(_trait_, _name_, _value_)
+#endif
+
+#if o_HAS_BUILT_IN_CHAR32_T
+#define o_traits_specialize_primitive_if_char32_t(_trait_, _name_, _value_)  o_traits_specialize_primitive(_trait_, _name_, _value_)
+#else
+#define o_traits_specialize_primitive_if_char32_t(_trait_, _name_, _value_)
 #endif
 
 # define o_traits_specialize_for_primitives(_trait_, _value_) \
@@ -2773,6 +2804,8 @@ o_namespace_end(phantom)
     o_traits_specialize_primitive(_trait_,uchar,_value_)\
     o_traits_specialize_primitive(_trait_,schar,_value_)\
     o_traits_specialize_primitive_if_wchar_t(_trait_,wchar_t, _value_)\
+    o_traits_specialize_primitive_if_char16_t(_trait_,char16_t, _value_)\
+    o_traits_specialize_primitive_if_char32_t(_trait_,char32_t, _value_)\
     o_traits_specialize_primitive(_trait_,short, _value_)\
     o_traits_specialize_primitive(_trait_,ushort, _value_)\
     o_traits_specialize_primitive(_trait_,int, _value_)\

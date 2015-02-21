@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'CompositionVariableNodeDelegate.h'
 **
-** Created: Wed 29. Oct 19:57:10 2014
+** Created: Fri 20. Feb 12:36:37 2015
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!

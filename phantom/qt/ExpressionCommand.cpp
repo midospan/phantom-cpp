@@ -21,8 +21,8 @@ ExpressionCommand::ExpressionCommand( serialization::DataBase* a_pDataBase, cons
 
 ExpressionCommand::ExpressionCommand( serialization::DataBase* a_pDataBase, reflection::Expression* a_pUndoExpression, reflection::Expression* a_pRedoExpression )
     : DataBaseCommand(a_pDataBase)
-    , m_strUndoExpression(a_pUndoExpression->getName())
-    , m_strRedoExpression(a_pRedoExpression->getName())
+    , m_strUndoExpression(a_pUndoExpression->translate())
+    , m_strRedoExpression(a_pRedoExpression->translate())
     , m_pPersistentUndoExpression(a_pUndoExpression->isPersistent() ? a_pUndoExpression : nullptr)
     , m_pPersistentRedoExpression(a_pRedoExpression->isPersistent() ? a_pRedoExpression : nullptr)
 {

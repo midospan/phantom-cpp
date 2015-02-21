@@ -4,7 +4,7 @@
 #include "Parameter.hxx"
 #include "Expression.h"
 #include "Block.h"
-#include <phantom/std/vector.hxx>
+#include <phantom/vector.hxx>
 /* *********************************************** */
 o_registerN((phantom, reflection), Parameter);
 o_registerNTI((phantom), vector, (phantom::reflection::Parameter*));
@@ -26,6 +26,13 @@ Parameter::Parameter( Type* a_pValueType, const string& a_strName, Expression* a
 Parameter* Parameter::clone() const
 {
     return o_new(Parameter)(m_pValueType, m_strName, m_pInitializationExpression, m_Modifiers);
+}
+
+void Parameter::setDefinitionName( const string& a_strName )
+{
+    o_assert(!isDefined());
+    setDefined();
+    m_strName = a_strName;
 }
 
 o_namespace_end(phantom, reflection)

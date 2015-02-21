@@ -9,7 +9,7 @@ o_namespace_begin(phantom, reflection)
 
 bool CodeLocation::containsCodePosition( const CodePosition& pos ) const
 {
-    if(m_Start.sourceFile != m_End.sourceFile)
+    if(m_Start.source != m_End.source)
     {
         if(pos.line >= m_Start.line || pos.line <= m_End.line)
         {
@@ -28,7 +28,7 @@ bool CodeLocation::containsCodePosition( const CodePosition& pos ) const
 
 bool CodeLocation::containsLine( int a_iLine ) const
 {
-    if(m_Start.sourceFile != m_End.sourceFile)
+    if(m_Start.source != m_End.source)
     {
         return a_iLine >= m_Start.line || a_iLine <= m_End.line;
     }
@@ -38,22 +38,22 @@ bool CodeLocation::containsLine( int a_iLine ) const
     }
 }
 
-CodeLocation::CodeLocation( SourceFile* a_pSourceFile ) : m_Start(a_pSourceFile)
+CodeLocation::CodeLocation( Source* a_pSourceFile ) : m_Start(a_pSourceFile)
     , m_End(a_pSourceFile)
 {
-    o_assert(m_Start.sourceFile == m_End.sourceFile);
+    o_assert(m_Start.source == m_End.source);
 }
 
 CodeLocation::CodeLocation( const CodePosition& a_bip, const CodePosition& a_eip ) : m_Start(a_bip)
     , m_End(a_eip)
 {
-    o_assert(m_Start.sourceFile == m_End.sourceFile);
+    o_assert(m_Start.source == m_End.source);
 }
 
 bool CodePosition::operator<( const CodePosition& other ) const
 {
-    return (sourceFile AND other.sourceFile AND (sourceFile->getAbsoluteName() < other.sourceFile->getAbsoluteName()))
-        OR ( ( sourceFile AND other.sourceFile AND (sourceFile->getAbsoluteName() == other.sourceFile->getAbsoluteName())) 
+    return (source AND other.source AND (source < other.source))
+        OR ( ( source AND other.source AND (source == other.source)) 
         AND ((line < other.line) 
         OR ((line == other.line)
         AND column < other.column)

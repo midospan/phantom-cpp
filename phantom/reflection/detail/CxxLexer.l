@@ -103,6 +103,18 @@ ulonglong_number                {digit}+U?LL
 {string_lit}					{ ERRMSG("End of line assumed to terminate string.");
 								  LEX_STRING_TOKEN(yytext, yyleng); };
 
+"__id"                          { LEX_SHAMAN_KEYWORD_TOKEN(__ID); }
+"property"                      { LEX_SHAMAN_KEYWORD_TOKEN(PROPERTY); }
+"import"                        { LEX_SHAMAN_KEYWORD_TOKEN(IMPORT); }
+"alias"                         { LEX_SHAMAN_KEYWORD_TOKEN(ALIAS); }
+"source"                        { LEX_SHAMAN_KEYWORD_TOKEN(SOURCE); }
+"signal"                        { LEX_SHAMAN_KEYWORD_TOKEN(SIGNAL); }
+"structure"                     { LEX_SHAMAN_KEYWORD_TOKEN(STRUCTURE); }
+"statemachine"                  { LEX_SHAMAN_KEYWORD_TOKEN(STATEMACHINE); }
+"state"                         { LEX_SHAMAN_KEYWORD_TOKEN(STATE); }
+"track"                         { LEX_SHAMAN_KEYWORD_TOKEN(TRACK); }
+"meta"                          { LEX_SHAMAN_KEYWORD_TOKEN(META); }
+
 "asm"							{ LEX_KEYWORD_TOKEN(ASM); }
 "auto"							{ LEX_KEYWORD_TOKEN(AUTO); }
 "bool"							{ LEX_KEYWORD_TOKEN(BOOL); }
@@ -211,8 +223,10 @@ ulonglong_number                {digit}+U?LL
 {escape_sequence}				|
 {universal_character_name}		{ LEX_ESCAPED_TOKEN(yytext, yyleng); }
 
-\n								|
-{ws}+							{ /* Throw away whitespace */ }
+\n {
+    yylloc->lines(yyleng); yylloc->step();
+}
+{ws}+							{ yylloc->step(); }
 .								{ LEX_ASCII_TOKEN(yytext[0]); }
 
 %%
@@ -274,5 +288,5 @@ int CxxFlexLexer::yylex()
 
 int CxxFlexLexer::yywrap()
 {
-    return 1;
+    return phantom::CxxDriver::Instance()->handleEndOfFile();
 }

@@ -41,21 +41,21 @@ protected:
 class StateTrackItem : public StateMachineTreeWidgetItem
 {
 public:
-    StateTrackItem(phantom::state::Track* a_pTrack) 
+    StateTrackItem(phantom::reflection::Track* a_pTrack) 
         : StateMachineTreeWidgetItem(e_Type_Track, a_pTrack)
         , m_pTrack(a_pTrack) 
     {
         setText(0, a_pTrack->getName().c_str());
     }
 
-    phantom::state::Track*  getTrack() const { return m_pTrack; }
+    phantom::reflection::Track*  getTrack() const { return m_pTrack; }
     virtual void start(const vector<void*>& a_Addresses) 
     {
 
     }
     virtual void update(const vector<void*>& a_Addresses) 
     {
-        phantom::state::State* pState = m_pTrack->getCurrentState(a_Addresses.front());
+        phantom::reflection::State* pState = m_pTrack->getCurrentState(a_Addresses.front());
         bool multipleValues = false;
         for(auto it = a_Addresses.begin()+1; it != a_Addresses.end(); ++it)
         {
@@ -83,14 +83,14 @@ public:
     }
 
 protected:
-    phantom::state::Track* m_pTrack;
+    phantom::reflection::Track* m_pTrack;
 };
 
 class StateEventPostAction : public QAction
 {
     Q_OBJECT
 public:
-    StateEventPostAction(StateMachineInspector* a_pInspector, phantom::state::StateMachine* a_pStateMachine, uint a_uiEventId, const vector<void*>& a_Addresses)
+    StateEventPostAction(StateMachineInspector* a_pInspector, phantom::reflection::StateMachine* a_pStateMachine, uint a_uiEventId, const vector<void*>& a_Addresses)
         : QAction(QIcon("resources/icons/famfamfam/time_go.png"), "post", nullptr)
         , m_pInspector(a_pInspector)
         , m_pStateMachine(a_pStateMachine)
@@ -105,7 +105,7 @@ protected slots:
 
 protected:
     StateMachineInspector* m_pInspector;
-    phantom::state::StateMachine* m_pStateMachine;
+    phantom::reflection::StateMachine* m_pStateMachine;
     uint            m_uiEventId;
     vector<void*>   m_Addresses;
 };
@@ -113,7 +113,7 @@ protected:
 class StateEventItem : public StateMachineTreeWidgetItem
 {
 public:
-    StateEventItem(StateMachineInspector* a_pInspector, phantom::state::StateMachine* a_pStateMachine, uint a_uiEvent) 
+    StateEventItem(StateMachineInspector* a_pInspector, phantom::reflection::StateMachine* a_pStateMachine, uint a_uiEvent) 
         : StateMachineTreeWidgetItem(e_Type_Event, nullptr)
         , m_pStateMachine(a_pStateMachine)
         , m_uiEventId(a_uiEvent) 
@@ -137,7 +137,7 @@ public:
     }
 
 protected:
-    phantom::state::StateMachine*    m_pStateMachine;
+    phantom::reflection::StateMachine*    m_pStateMachine;
     StateMachineInspector*  m_pInspector;
     StateEventPostAction*   m_pPostAction;        
     uint                    m_uiEventId;
@@ -172,7 +172,7 @@ public slots:
     void stop();
 
 signals:
-    void eventPosted(phantom::state::StateMachine* a_pStateMachine, void* a_pInstance, uint a_uiEventId);
+    void eventPosted(phantom::reflection::StateMachine* a_pStateMachine, void* a_pInstance, uint a_uiEventId);
 
 protected:
     void dataAboutToBeUnloaded(const phantom::data& a_Data, phantom::serialization::Node*);
@@ -183,7 +183,7 @@ protected:
 
     vector<phantom::data>           m_EditedData;
     vector<phantom::data>           m_ReloadedData;
-    phantom::state::StateMachine*   m_pStateMachine;
+    phantom::reflection::StateMachine*   m_pStateMachine;
     QTreeWidget*            m_pStateMachineTreeWidget;
     serialization::DataBase*m_pDataBase;
 };

@@ -40,7 +40,8 @@ public:
     };
 
     VariableNode(const string& a_strName);
-    VariableNode(const string& a_strName, const vector<reflection::Expression*>& a_Expressions, reflection::Range* a_pRange = nullptr, bitfield a_Modifiers = 0);
+    VariableNode(const string& a_strName, const vector<reflection::Expression*>& a_Expressions, reflection::Range* a_pRange = nullptr, modifiers_t a_Modifiers = 0);
+    VariableNode(reflection::Type* a_pValueType, const string& a_strName, const vector<reflection::Expression*>& a_Expressions, reflection::Range* a_pRange = nullptr, modifiers_t a_Modifiers = 0);
     ~VariableNode();
 
     o_initialize();
@@ -61,11 +62,11 @@ public:
 
     virtual UndoCommand* createValueSetUndoCommand(const void* a_pValue) const;
 
-    bool hasModifier(bitfield a_Modifier) const { return m_Modifiers.matchesMask(a_Modifier); }
+    bool hasModifier(modifiers_t a_Modifier) const { return (m_Modifiers & a_Modifier) == a_Modifier; }
 
-    void setModifiers(bitfield a_Modifiers) { m_Modifiers = a_Modifiers; }
+    void setModifiers(modifiers_t a_Modifiers) { m_Modifiers = a_Modifiers; }
 
-    bitfield getModifiers() const { return m_Modifiers; }
+    modifiers_t getModifiers() const { return m_Modifiers; }
 
     bool hasMultipleValues() const;
 
@@ -191,7 +192,7 @@ protected:
     vector<VariableNode*>           m_ChildNodes;
     vector<VariableAction*>         m_VariableActions;
     EClassDisplayPolicy             m_eClassDisplayPolicy;
-    bitfield                        m_Modifiers;
+    modifiers_t                        m_Modifiers;
     bool                            m_bChangeStructure;
 };
 

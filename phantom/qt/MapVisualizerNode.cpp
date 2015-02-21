@@ -30,9 +30,7 @@ namespace qt {
                 string lit;
                 pMapContainerClass->getKeyType()->valueToLiteral(lit, pKeyBuffer);
                 reflection::Expression* pLiteralExpression = phantom::expressionByName(lit);
-                vector<reflection::Expression*> operatorSignature;
-                operatorSignature.push_back(pLiteralExpression);
-                reflection::Expression* pMapAccessExpression = pLeftExpression->clone()->solveOperator("[]", operatorSignature);
+                reflection::Expression* pMapAccessExpression = cplusplus()->solveBinaryOperator("[]", pLeftExpression->clone(), pLiteralExpression);
                 o_assert(pMapAccessExpression);
                 mapExpressions[lit].push_back(pMapAccessExpression);
                 pIterator->advance();
@@ -44,11 +42,11 @@ namespace qt {
         {
             reflection::Expression* pLiteralExpression = phantom::expressionByName(it->first);
             reflection::LanguageElement* pElement = pLiteralExpression->hatch();
-            VariableNode* pNode = o_new(VariableNode)(nameOf(pElement), it->second);
-            pNode->setIcon(QIcon(iconOf(pElement).c_str()));
+            VariableNode* pNode = o_new(VariableNode)(nameOf(pElement->asNamedElement()), it->second);
+            pNode->setIcon(QIcon(iconOf(pElement->asNamedElement()).c_str()));
             a_pParent->addChildNode(pNode);
             if(pElement == pLiteralExpression)
-                phantom::deleteElement(pElement);
+                o_dynamic_delete pElement;
         }
     }
 

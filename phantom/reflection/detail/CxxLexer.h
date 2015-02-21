@@ -65,6 +65,8 @@ public:
 
     void error(const char* );
 
+    void changeInput(std::istream* arg_yyin) { yyin = arg_yyin; }
+
     /** Enable debug output (via arg_yyout) if compiled into the scanner. */
     void set_debug(bool b);
 
@@ -105,7 +107,7 @@ public:
     void unmark(const CxxToken *aToken = 0);
     void unnest(size_t aNest) {}
     void token_put(CxxToken *aToken);
-    void increment_error_count();
+    void incrementErrorCount();
 
 protected:
     CxxDriver* m_pDriver; 

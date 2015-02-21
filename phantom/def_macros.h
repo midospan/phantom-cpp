@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_def_macros_h__
 #define o_def_macros_h__
@@ -930,74 +899,82 @@
 // REFLECTION SPECIFIERS
 
 #define o_public\
-    class\
-    {\
-        struct reg\
-        {\
-            reg() { phantom::reflection::Types::currentModifiers = o_public_access; }\
-        } regi;\
-    } o_PP_CAT(public, __COUNTER__);\
-    private
+    o_access_bis(public, __COUNTER__)
 
 #define o_protected\
-    class\
-    {\
-        struct reg\
-        {\
-            reg() { phantom::reflection::Types::currentModifiers = o_protected_access; }\
-        } regi;\
-    } o_PP_CAT(protected, __COUNTER__);\
-    private
+    o_access_bis(protected, __COUNTER__)
 
 #define o_private\
+    o_access_bis(private, __COUNTER__)
+
+#define o_access_bis(a, counter)\
+     o_access_bis_bis(a, counter)
+
+#define o_access_bis_bis(a, counter)\
     class\
     {\
         struct reg\
         {\
-            reg() { phantom::reflection::Types::currentModifiers = o_private_access; }\
+        reg() { phantom::reflection::native::currentModifiers() = o_##a##_access; }\
         } regi;\
-    } o_PP_CAT(private, __COUNTER__);\
+    } o_PP_CAT(a, counter);\
     private
 
-#define o_virtual                   0x00000001ULL
-#define o_abstract                  0x00000002ULL
-#define o_pure_virtual              0x00000004ULL
-#define o_static                    0x00000008ULL
-#define o_no_default_constructor    0x00000010ULL
-#define o_transient                 0x00000020ULL
-#define o_no_copy                   0x00000040ULL
-#define o_readonly                  0x00000080ULL
-#define o_placement_extension       0x00000100ULL // auto installation and initialization on data members
-#define o_no_placement_extension    0x00000200ULL // force no auto installation and initialization on data member if type has placement extension
-#define o_protected_access          0x00000400ULL
-#define o_public_access             0x00000800ULL
-#define o_private_access            0x00000000ULL // private is by default if nothing set
-#define o_native                    0x00001000ULL
-#define o_overloaded                0x00002000ULL
-#define o_singleton                 0x00004000ULL
-#define o_shared                    0x00008000ULL
-#define o_template                  0x00010000ULL
-#define o_reset                     0x00020000ULL
-#define o_const                     0x00040000ULL
-#define o_noconst                   0x00080000ULL
-#define o_always_valid              0x00100000ULL
-#define o_inherits_allocator        0x00200000ULL
-#define o_slot_member_function      0x00400000ULL
-#define o_mutable                   0x00800000ULL
-#define o_owner                     0x01000000ULL
-#define o_fixed_size                0x02000000ULL
-#define o_deferred                  0x04000000ULL
-#define o_invalid                   0x08000000ULL
-#define o_mandatory                 0x10000000ULL
+
+#define o_virtual                   0x0000000000000001ULL
+#define o_abstract                  0x0000000000000002ULL
+#define o_pure_virtual              0x0000000000000004ULL
+#define o_static                    0x0000000000000008ULL
+#define o_no_default_constructor    0x0000000000000010ULL
+#define o_transient                 0x0000000000000020ULL
+#define o_no_copy                   0x0000000000000040ULL
+#define o_readonly                  0x0000000000000080ULL
+#define o_placement_extension       0x0000000000000100ULL // auto installation and initialization on data members
+#define o_no_placement_extension    0x0000000000000200ULL // force no auto installation and initialization on data member if type has placement extension
+#define o_public_access             0x0000000000000000ULL
+#define o_protected_access          0x0000000000000400ULL
+#define o_private_access            0x0000000000000800ULL // private is by default if nothing set
+#define o_invalid_access            (o_private_access|o_protected_access) // private is by default if nothing set
+#define o_native                    (0x0000000000001000ULL|o_defined|o_always_valid)
+#define o_override                  0x0000000000002000ULL
+#define o_singleton                 0x0000000000004000ULL
+#define o_shared                    0x0000000000008000ULL
+#define o_template                  0x0000000000010000ULL
+#define o_reset                     0x0000000000020000ULL
+#define o_const                     0x0000000000040000ULL
+#define o_noconst                   0x0000000000080000ULL
+#define o_always_valid              0x0000000000100000ULL
+#define o_inherits_allocator        0x0000000000200000ULL
+#define o_slot_member_function      0x0000000000400000ULL
+#define o_mutable                   0x0000000000800000ULL
+#define o_owner                     0x0000000001000000ULL
+#define o_fixed_size                0x0000000002000000ULL
+#define o_deferred                  0x0000000004000000ULL
+#define o_invalid                   0x0000000008000000ULL
+#define o_mandatory                 0x0000000010000000ULL
 #define o_stdcall                   o_readonly  // reuse non-colliding modifiers (o_readonly cannot be combined with o_stdcall)
 #define o_fastcall                  o_singleton //
-#define o_inline                    0x20000000ULL
-#define o_placeholder               0x40000000ULL
-#define o_novirtual                 0x80000000ULL
+#define o_inline                    0x0000000020000000ULL
+#define o_template_dependant        0x0000000040000000ULL
+#define o_novirtual                 0x0000000080000000ULL
+#define o_defined                   0x0000000100000000ULL
+#define o_finalized                 0x0000000200000000ULL
+#define o_terminated                0x0000000400000000ULL
+#define o_importable                0x0000000800000000ULL
+#define o_explicit                  0x0000001000000000ULL
+#define o_lvalue_ref                0x0000002000000000ULL // cpp11 signature lvalue ref-qualifiers
+#define o_rvalue_ref                0x0000004000000000ULL // cpp11 signature rvalue ref-qualifiers
+#define o_volatile                  0x0000008000000000ULL // cpp11 signature rvalue ref-qualifiers
+#define o_public_visibility         0x0000000000000000ULL /// default visibility /!\ visibility is not access ! use <o_public_access> for accessibility
+#define o_protected_visibility      0x0000010000000000ULL /// allows you to hide elements from underlying scopes (anonymous elements) in scope resolution
+#define o_private_visibility        0x0000020000000000ULL /// allows you to hide elements from scope resolution
+
+#define o_ref_qualifiers_mask       (o_lvalue_ref|o_rvalue_ref)
+#define o_member_function_qualifiers_mask       (o_const|o_ref_qualifiers_mask)
 
 // CONSTANTS
 #define o_invalid_guid (~(uint)0)
-
+#define o_invalid_offset INT_MAX
 // HELPERS
 #define o_component(type) phantom::component<type>
 #define o_composition(type) phantom::composition<type>
@@ -1520,7 +1497,7 @@ struct o_PP_CAT(static_warning,__LINE__) { \
 
 // Reflection system
 
-// Typedef
+// Alias
 #define o_MemberFunction o_member_function
 #define o_MEMBER_FUNCTION o_member_function
 #define o_Method o_member_function
@@ -1572,10 +1549,10 @@ struct o_PP_CAT(static_warning,__LINE__) { \
 
 
 #if o__int__reflection_template_use_level == 0
-#define o_enum_module_access_type(name) static_cast<phantom::reflection::Enum*>(phantom::typeByName(#name))
-#define o_enum_module_access_typeN(namespaces, name) static_cast<phantom::reflection::Enum*>(phantom::typeByName(o_PP_QUOTE o_PP_LEFT_PAREN o_PP_CREATE_QUALIFIED_NAME(namespaces, name) o_PP_RIGHT_PAREN ))
-#define o_enum_module_access_typeNC(namespaces, classes, name) static_cast<phantom::reflection::Enum*>(phantom::typeByName(o_PP_QUOTE o_PP_LEFT_PAREN o_PP_CREATE_QUALIFIED_NAME_2(namespaces, classes, name) o_PP_RIGHT_PAREN))
-#define o_enum_module_access_typeC(classes, name) static_cast<phantom::reflection::Enum*>(phantom::typeByName(o_PP_QUOTE o_PP_LEFT_PAREN o_PP_CREATE_QUALIFIED_NAME(classes, name) o_PP_RIGHT_PAREN))
+#define o_enum_module_access_type(name) static_cast<phantom::reflection::Enum*>(phantom::typeByName(#name, globalNamespace(), o_native))
+#define o_enum_module_access_typeN(namespaces, name) static_cast<phantom::reflection::Enum*>(phantom::typeByName(o_PP_QUOTE o_PP_LEFT_PAREN o_PP_CREATE_QUALIFIED_NAME(namespaces, name) o_PP_RIGHT_PAREN, globalNamespace(), o_native ))
+#define o_enum_module_access_typeNC(namespaces, classes, name) static_cast<phantom::reflection::Enum*>(phantom::typeByName(o_PP_QUOTE o_PP_LEFT_PAREN o_PP_CREATE_QUALIFIED_NAME_2(namespaces, classes, name) o_PP_RIGHT_PAREN, globalNamespace(), o_native))
+#define o_enum_module_access_typeC(classes, name) static_cast<phantom::reflection::Enum*>(phantom::typeByName(o_PP_QUOTE o_PP_LEFT_PAREN o_PP_CREATE_QUALIFIED_NAME(classes, name) o_PP_RIGHT_PAREN, globalNamespace(), o_native))
 #else
 #define o_enum_module_access_type(name) phantom::typeOf<phantom_proxy_generator_reflection_self_type>()
 #define o_enum_module_access_typeN(namespaces, name) phantom::typeOf<phantom_proxy_generator_reflection_self_type>()
@@ -1927,21 +1904,21 @@ struct reg \
 #define o_unionT(_template_types_,_template_params_,_name_,...) \
     o_union_meta_specifier_static_asserts(_name_,##__VA_ARGS__)\
     o_type_specialize_traitsT(_template_types_,_template_params_,_name_) \
-    o_traits_specializeT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _template_types_,_template_params_, _name_)\
+    o_traits_specializeT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value|o_template};), _template_types_,_template_params_, _name_)\
     o_union_moduleT(_template_types_,_template_params_,_name_)\
     o_members_list
 
 #define o_unionNT(_namespaces_,_template_types_,_template_params_,_name_,...) \
     o_union_meta_specifier_static_asserts(_name_,##__VA_ARGS__)\
     o_type_specialize_traitsNT(_namespaces_,_template_types_,_template_params_,_name_) \
-    o_traits_specializeNT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _template_types_,_template_params_, _name_)\
+    o_traits_specializeNT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value|o_template};), _namespaces_, _template_types_,_template_params_, _name_)\
     o_union_moduleNT(_namespaces_,_template_types_,_template_params_,_name_)\
     o_members_list
 
 #define o_unionNCT(_namespaces_,_classes_,_template_types_,_template_params_,_name_,...) \
     o_union_meta_specifier_static_asserts(_name_,##__VA_ARGS__)\
     o_type_specialize_traitsNCT(_namespaces_,_classes_,_template_types_,_template_params_,_name_) \
-    o_traits_specializeNCT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_,_classes_, _template_types_,_template_params_, _name_)\
+    o_traits_specializeNCT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value|o_template};), _namespaces_,_classes_, _template_types_,_template_params_, _name_)\
     o_union_moduleNCT(_namespaces_,_classes_,_template_types_,_template_params_,_name_)\
     o_members_list
 
@@ -1986,7 +1963,7 @@ struct reg \
     o_structure_meta_specifier_static_asserts(_name_,##__VA_ARGS__)\
     o_type_specialize_traitsT(_template_types_,_template_params_,_name_) \
     o_traits_specializeT(is_structure, (static const bool value = true;), _template_types_,_template_params_,_name_)\
-    o_traits_specializeT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _template_types_,_template_params_, _name_)\
+    o_traits_specializeT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value|o_template};), _template_types_,_template_params_, _name_)\
     o_class_moduleT(_template_types_,_template_params_,_name_)\
     o_members_list
 
@@ -1994,7 +1971,7 @@ struct reg \
     o_structure_meta_specifier_static_asserts(_name_,##__VA_ARGS__)\
     o_type_specialize_traitsNT(_namespaces_,_template_types_,_template_params_,_name_) \
     o_traits_specializeNT(is_structure, (static const bool value = true;), _namespaces_,_template_types_,_template_params_,_name_)\
-    o_traits_specializeNT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _template_types_,_template_params_, _name_)\
+    o_traits_specializeNT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value|o_template};), _namespaces_, _template_types_,_template_params_, _name_)\
     o_class_moduleNT(_namespaces_,_template_types_,_template_params_,_name_)\
     o_members_list
 
@@ -2002,7 +1979,7 @@ struct reg \
     o_structure_meta_specifier_static_asserts(_name_,##__VA_ARGS__)\
     o_type_specialize_traitsNCT(_namespaces_,_classes_,_template_types_,_template_params_,_name_) \
     o_traits_specializeNCT(is_structure, (static const bool value = true;), _namespaces_,_classes_,_template_types_,_template_params_,_name_)\
-    o_traits_specializeNCT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_,_classes_, _template_types_,_template_params_, _name_)\
+    o_traits_specializeNCT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value|o_template};), _namespaces_,_classes_, _template_types_,_template_params_, _name_)\
     o_class_moduleNCT(_namespaces_,_classes_,_template_types_,_template_params_,_name_)\
     o_members_list
 
@@ -2037,13 +2014,13 @@ struct reg \
 
 #define o_classT(_template_types_,_template_params_,_name_,...) \
     o_type_specialize_traitsT(_template_types_,_template_params_,_name_) \
-    o_traits_specializeT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _template_types_,_template_params_, _name_)\
+    o_traits_specializeT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value|o_template};), _template_types_,_template_params_, _name_)\
     o_class_moduleT(_template_types_,_template_params_,_name_)\
     o_members_list
 
 #define o_classNT(_namespaces_,_template_types_,_template_params_,_name_,...) \
     o_type_specialize_traitsNT(_namespaces_,_template_types_,_template_params_,_name_) \
-    o_traits_specializeNT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _template_types_,_template_params_, _name_)\
+    o_traits_specializeNT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value|o_template};), _namespaces_, _template_types_,_template_params_, _name_)\
     o_class_moduleNT(_namespaces_,_template_types_,_template_params_,_name_)\
     o_members_list
 
@@ -2055,13 +2032,13 @@ struct reg \
 
 #define o_classTB(_template_types_,_template_params_,_name_,_bases_,...) \
     o_type_specialize_traitsTB(_template_types_,_template_params_,_name_,_bases_) \
-    o_traits_specialize(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _template_types_,_template_params_, _name_)\
+    o_traits_specialize(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value|o_template};), _template_types_,_template_params_, _name_)\
     o_class_moduleT(_template_types_,_template_params_,_name_)\
     o_members_list
 
 #define o_classNTB(_namespaces_,_template_types_,_template_params_,_name_,_bases_,...) \
     o_type_specialize_traitsNTB(_namespaces_,_template_types_,_template_params_,_name_,_bases_) \
-    o_traits_specializeNT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _template_types_,_template_params_, _name_)\
+    o_traits_specializeNT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value|o_template};), _namespaces_, _template_types_,_template_params_, _name_)\
     o_class_moduleNT(_namespaces_,_template_types_,_template_params_,_name_)\
     o_members_list
 
@@ -2073,13 +2050,13 @@ struct reg \
 
 #define o_classNCT(_namespaces_,_classes_,_template_types_,_template_params_,_name_,_bases_,...) \
     o_type_specialize_traitsNCT(_namespaces_,_classes_,_template_types_,_template_params_,_name_) \
-    o_traits_specializeNCT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _classes_,_template_types_,_template_params_, _name_)\
+    o_traits_specializeNCT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value|o_template};), _namespaces_, _classes_,_template_types_,_template_params_, _name_)\
     o_class_moduleNCT(_namespaces_,_classes_,_template_types_,_template_params_,_name_)\
     o_members_list
 
 #define o_classNCTB(_namespaces_,_classes_,_template_types_,_template_params_,_name_,_bases_,...) \
     o_type_specialize_traitsNCTB(_namespaces_,_classes_,_template_types_,_template_params_,_name_,_bases_) \
-    o_traits_specializeNCT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value};), _namespaces_, _classes_,_template_types_,_template_params_, _name_)\
+    o_traits_specializeNCT(meta_specifiers, (enum {value = phantom::detail::int_embedder<__VA_ARGS__>::value|o_template};), _namespaces_, _classes_,_template_types_,_template_params_, _name_)\
     o_class_moduleNCT(_namespaces_,_classes_,_template_types_,_template_params_,_name_)\
     o_members_list
 
@@ -2113,7 +2090,7 @@ struct reg \
 
 #define o_register_common(...)\
     o_static_assert_msg(phantom::has_reflection<__VA_ARGS__>::value, o_PP_QUOTE(__VA_ARGS__)" : undeclared reflection (ensure you included the corresponding .hxx)");\
-    static phantom::detail::dynamic_initializer_module_installer_registrer< __VA_ARGS__> o_PP_CAT(g_register_module_, __COUNTER__) ;
+    static phantom::detail::dynamic_initializer_module_installer_registrer< __VA_ARGS__> o_PP_CAT(g_register_module_, __COUNTER__)(__FILE__) ;
 
 #define o_register(_name_)\
     o_reflection_specialize_typeInfosOf(_name_)\
@@ -2163,29 +2140,26 @@ struct reg \
 
 #define o_registerNTI_3(_namespaces_, _name_, _template_args_)\
     o_reflection_specialize_typeInfosOfNTI_3(_namespaces_,_template_args_,_name_)\
-    o_namespace _namespaces_ \
     o_register_common(o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)<o_PP_IDENTITY _template_args_>);
 
 #define o_registerNTI_4(_namespaces_, _name_, _template_types_, _template_args_)\
     o_reflection_specialize_typeInfosOfNTI_4(_namespaces_,_template_types_,_template_args_,_name_)\
-    o_namespace _namespaces_ \
     o_register_common(o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)<o_PP_IDENTITY _template_args_>);
 
 #define o_registerNCTI_4(_namespaces_, _classes_, _name_,  _template_args_)\
     o_reflection_specialize_typeInfosOfNCTI_4(_namespaces_,_classes_,_template_args_,_name_)\
-    o_namespace _namespaces_ \
     o_register_common(o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_)<o_PP_IDENTITY _template_args_>);
 
 #define o_registerNCTI_5(_namespaces_, _classes_, _name_, _template_types_, _template_args_)\
     o_reflection_specialize_typeInfosOfNCTI_5(_namespaces_,_classes_,_template_types_,_template_args_,_name_)\
-    o_namespace _namespaces_ \
     o_register_common(o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_classes_,_name_)<o_PP_IDENTITY _template_args_>);
 
 #define o_registerT(_template_types_, _template_params_, _name_)\
-    static phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) ("", #_template_types_, #_template_params_, #_name_) ;
+    static phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) ("", o_PP_QUOTE _template_types_, o_PP_QUOTE _template_params_, #_name_, __FILE__) ;
 
 #define o_registerNT(_namespaces_, _template_types_, _template_params_, _name_, ...)\
-    static phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) (o_PP_QUOTE(o_PP_CREATE_SCOPE _namespaces_), #_template_types_, #_template_params_, #_name_) ;
+    o_namespace _namespaces_\
+    static phantom::detail::dynamic_initializer_template_registrer o_PP_CAT(g_register_template_, o_PP_CAT(_name_, __COUNTER__)) (o_PP_QUOTE(o_PP_CREATE_SCOPE _namespaces_), o_PP_QUOTE _template_types_, o_PP_QUOTE _template_params_, #_name_, __FILE__) ;
 
 #if o_OPERATING_SYSTEM == o_OPERATING_SYSTEM_WINDOWS
 #define o_module(name)\
@@ -2197,7 +2171,7 @@ struct reg \
     {\
         char moduleName[512];\
         GetModuleFileName(_HDllHandle, moduleName, 512);\
-        phantom::installReflection(name, moduleName, (size_t)_HDllHandle);\
+        phantom::installReflection(name, moduleName, (size_t)_HDllHandle, __FILE__);\
         }\
     break;\
     case DLL_PROCESS_DETACH:\
@@ -2232,7 +2206,7 @@ struct reg \
 /// Phantom strongly typed "new" / "delete" "operators" (note the quotes ... for more about that, just check the code bellow)
 
 #define o_full_dynamic_new(...) \
-    phantom::dynamic_new_helper(phantom::backupType(phantom::typeByName(#__VA_ARGS__))) >> new (phantom::backupType()->allocate()) __VA_ARGS__
+    phantom::dynamic_new_helper(phantom::backupType(phantom::typeByName(#__VA_ARGS__, globalNamespace(), o_native))) >> new (phantom::backupType()->allocate()) __VA_ARGS__
 
 #define o_static_new(...) \
     phantom::new_helper() >> new (o_allocate(__VA_ARGS__)) __VA_ARGS__
@@ -2280,10 +2254,10 @@ struct reg \
 #elif o__int__reflection_template_use_level == 2 || o__int__reflection_template_use_level == 1
 
 #define o_new(...) \
-    phantom::dynamic_new_helper(phantom::backupType()) >> new (phantom::backupType(o_type_of(__VA_ARGS__))->allocate()) __VA_ARGS__
+    phantom::dynamic_new_helper(o_type_of(__VA_ARGS__)) >> new (phantom::allocator<__VA_ARGS__>::allocate(o_memory_stat_insert_arguments)) __VA_ARGS__
 
 #define o_new_n(n, ...) \
-    phantom::dynamic_new_n_helper(phantom::backupType(), n) >> (__VA_ARGS__*)phantom::backupType(o_type_of(__VA_ARGS__))->allocate(n)
+    phantom::dynamic_new_n_helper(o_type_of(__VA_ARGS__), n) >> phantom::allocator<__VA_ARGS__>::allocate(n o_memory_stat_append_arguments)
 
 #define o_delete(...) \
     phantom::dynamic_delete_helper<__VA_ARGS__>(o_type_of(__VA_ARGS__) o_memory_stat_append_arguments) >>
@@ -2298,25 +2272,25 @@ struct reg \
 #else // if o__int__reflection_template_use_level == 0
 
 #define o_new(...) \
-    phantom::new_helper(phantom::backupType(phantom::typeByName(#__VA_ARGS__))) >> new (phantom::backupType()->allocate()) __VA_ARGS__
+    phantom::new_helper(phantom::backupType(phantom::typeByName(#__VA_ARGS__, globalNamespace(), o_native))) >> new (phantom::backupType()->allocate()) __VA_ARGS__
 
 #define o_force_static_new(...)\
     phantom::force_static_new_helper() >> new (o_allocate(__VA_ARGS__)) __VA_ARGS__
 
 #define o_new_n(n, ...) \
-    phantom::new_n_helper(phantom::backupType(phantom::typeByName(#__VA_ARGS__)), n) >> phantom::backupType()->allocate(n)
+    phantom::new_n_helper(phantom::backupType(phantom::typeByName(#__VA_ARGS__, globalNamespace(), o_native)), n) >> phantom::backupType()->allocate(n)
 
 #define o_new_alloc_and_construct_part(...) \
-    new (phantom::typeByName(#__VA_ARGS__))->allocate()) __VA_ARGS__
+    new (phantom::typeByName(#__VA_ARGS__, globalNamespace(), o_native))->allocate()) __VA_ARGS__
 
 #define o_delete(...) \
-    phantom::delete_helper<__VA_ARGS__>(phantom::typeByName(#__VA_ARGS__) o_memory_stat_append_arguments) >>
+    phantom::delete_helper<__VA_ARGS__>(phantom::typeByName(#__VA_ARGS__, globalNamespace(), o_native) o_memory_stat_append_arguments) >>
 
 #define o_force_static_delete(...) \
     phantom::force_static_delete_helper<__VA_ARGS__>(o_memory_stat_insert_arguments) >>
 
 #define o_delete_n(n, ...) \
-    phantom::delete_n_helper<__VA_ARGS__>(phantom::typeByName(#__VA_ARGS__), n o_memory_stat_append_arguments) >>
+    phantom::delete_n_helper<__VA_ARGS__>(phantom::typeByName(#__VA_ARGS__, globalNamespace(), o_native), n o_memory_stat_append_arguments) >>
 
 #define o_new_alloc_and_construct_part(...) o_static_new_alloc_and_construct_part(__VA_ARGS__)
 

@@ -4,6 +4,7 @@
 #include "SequentialContainerVisualizerNode.hxx"
 #include "VariableNode.h"
 #include "phantom/reflection/Expression.h"
+#include "phantom/reflection/ConstantExpression.h"
 /* *********************************************** */
 o_registerN((phantom, qt), SequentialContainerVisualizerNode);
  
@@ -16,8 +17,8 @@ namespace qt {
         for(auto it = a_LeftExpressions.begin(); it != a_LeftExpressions.end(); ++it)
         {
             reflection::Expression* pLeftExpression = *it;
-            vector<reflection::LanguageElement*> emptySignature;
-            reflection::Expression* pSizeExpression = pLeftExpression->clone()->solveElement("size", nullptr, &emptySignature, 0)->asExpression();
+            vector<reflection::Expression*> emptySignature;
+            reflection::Expression* pSizeExpression = cplusplus()->qualifiedLookup(pLeftExpression->clone(), "size", nullptr, &emptySignature, 0)->asExpression();
             o_assert(pSizeExpression);
             bool ok;
             size_t count = pSizeExpression->get().as<size_t>(&ok);
@@ -26,15 +27,13 @@ namespace qt {
                 expressions.resize(std::max(expressions.size(), count));
                 for(size_t i = 0; i<count; ++i)
                 {
-                    reflection::Expression* pIndexExpression = phantom::expressionByName(lexical_cast<string>(i));
-                    vector<reflection::Expression*> signature;
-                    signature.push_back(pIndexExpression);
-                    reflection::Expression* pExpression = pLeftExpression->clone()->solveOperator("[]", signature);
+                    reflection::Expression* pIndexExpression = o_new(reflection::ConstantExpression)(constant<size_t>(i));
+                    reflection::Expression* pExpression = cplusplus()->solveBinaryOperator("[]", pLeftExpression->clone(), pIndexExpression);
                     o_assert(pExpression);
                     expressions[i].push_back(pExpression);
                 }
             }
-            phantom::deleteElement(pSizeExpression);
+            o_dynamic_delete pSizeExpression;
         }
         size_t i = 0;
         for(;i<expressions.size(); ++i)

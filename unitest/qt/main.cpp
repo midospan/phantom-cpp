@@ -4,7 +4,7 @@
 
 int main(int argc, char *argv[])
 {
-    phantom::Phantom p(argc,argv);
+    o_main("unitest.qt", argc, argv);
     QApplication a(argc, argv);
     qt_test w;
     w.show();

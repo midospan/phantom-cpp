@@ -49,7 +49,7 @@ void PlacementConstructionExpression::internalEval( void* a_pDest ) const
     void* pPlace;
     m_pPlaceExpression->load(&pPlace);
     vector<void*> addresses;
-    evaluateArguments(addresses);
+    evaluateArguments(m_Arguments, addresses);
     m_pSubroutine->call(pPlace, addresses.data());
     *((void**)a_pDest) = pPlace;
 }
@@ -59,7 +59,7 @@ void PlacementConstructionExpression::internalEval() const
     void* pPlace;
     m_pPlaceExpression->load(&pPlace);
     vector<void*> addresses;
-    evaluateArguments(addresses);
+    evaluateArguments(m_Arguments, addresses);
     m_pSubroutine->call(pPlace, addresses.data());
     flush();
 }

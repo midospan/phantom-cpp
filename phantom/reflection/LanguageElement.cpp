@@ -1,42 +1,13 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <phantom/reflection/LanguageElement.h>
 #include <phantom/reflection/LanguageElement.hxx>
-#include <phantom/std/string.h>
-#include <phantom/std/vector.hxx>
+#include "phantom/Message.h"
+#include <phantom/string.h>
+#include <phantom/vector.hxx>
+#include <stdarg.h>
 /* ** The Class Header must be the last #include * */
 /* *********************************************** */
 o_registerN((phantom, reflection), LanguageElement);
@@ -45,77 +16,32 @@ o_registerNTI((phantom), vector, (phantom::reflection::LanguageElement*));
 
 o_namespace_begin(phantom, reflection)
 
-static vector<LanguageElement*> empty_elements;
+o_invalid_def(LanguageElement);
+
+static vector<LanguageElement*>* empty_elements;
 
 LanguageElement::LanguageElement()
-    : m_uiGuid(0)
-    , m_pMetaData(nullptr)
-    , m_CodeLocations(nullptr)
-    , m_DeclarationCodeLocations(nullptr)
-    , m_ReferenceCodeLocations(nullptr)
-    , m_pElements(nullptr)
+    : m_pElements(nullptr)
     , m_pReferencedElements(nullptr)
     , m_pReferencingElements(nullptr)
     , m_pOwner(nullptr)
-    , m_Modifiers(0)
-    , m_pModule(nullptr)
-    , m_pTemplateSpecialization(nullptr)
-    , m_pExtension(nullptr)
-    , m_pLanguage(cplusplus())
-    , m_pUsings(nullptr)
-    , m_pFriends(nullptr)
-    , m_pTemplateParameterDependencies(nullptr)
+    , m_pStatusMessage(nullptr)
 {
-	Register(this);
-}
-
-LanguageElement::LanguageElement( const string& a_strName, modifiers_t a_Modifiers /*= 0*/ )
-    : m_strName(a_strName)
-    , m_uiGuid(0)
-    , m_pMetaData(nullptr)
-    , m_CodeLocations(nullptr)
-    , m_DeclarationCodeLocations(nullptr)
-    , m_ReferenceCodeLocations(nullptr)
-    , m_pElements(nullptr)
-    , m_pReferencedElements(nullptr)
-    , m_pReferencingElements(nullptr)
-    , m_pOwner(nullptr)
-    , m_Modifiers(a_Modifiers)
-    , m_pModule(nullptr)
-    , m_pTemplateSpecialization(nullptr)
-    , m_pExtension(nullptr)
-    , m_pLanguage(cplusplus())
-    , m_pUsings(nullptr)
-    , m_pFriends(nullptr)
-    , m_pTemplateParameterDependencies(nullptr)
-{
-    o_assert(NOT(isPublic() AND isProtected()), "o_public_access and o_protected_access cannot co-exist");
+    if(empty_elements == 0)
+    {
+        empty_elements = new vector<LanguageElement*>;
+    }
 	Register(this);
 }
 
 LanguageElement::~LanguageElement()
 {
-    o_assert(m_uiGuid == o_invalid_guid, "probably you haven't called terminate before calling delete");
 }
 
 o_terminate_cpp(LanguageElement)
 {
     setInvalid();
-    if(m_pModule)
-    {
-        m_pModule->removeLanguageElement(this);
-    }
-    if(m_pExtension)
-    {
-        o_dynamic_delete m_pExtension;
-    }
     o_assert(canBeDestroyed());
-    if(m_pMetaData != nullptr)
-    {
-        size_t count = phantom::metaDataCount();
-        o_delete_n(count, string) m_pMetaData;
-        m_pMetaData = nullptr;
-    }
     if(m_pOwner)
     {
         m_pOwner->setInvalid(); // it is not a user removal, we mark the owner as invalid
@@ -134,182 +60,40 @@ o_terminate_cpp(LanguageElement)
     {
         o_dynamic_delete m_pElements->back();
     }
-    while(m_CodeLocations && m_CodeLocations->size())
-    {
-        removeCodeLocation(m_CodeLocations->back());
-    }
-    while(m_ReferenceCodeLocations && m_ReferenceCodeLocations->size())
-    {
-        removeReferenceCodeLocation(m_ReferenceCodeLocations->back());
-    }
-    while(m_DeclarationCodeLocations && m_DeclarationCodeLocations->size())
-    {
-        removeDeclarationCodeLocation(m_DeclarationCodeLocations->back());
-    }
+    if(m_pStatusMessage)
+        o_dynamic_delete m_pStatusMessage;
+
     Unregister(this);
-    m_uiGuid = o_invalid_guid;
 }
 
 vector<LanguageElement*>::const_iterator LanguageElement::beginElements() const
 {
-    return m_pElements ? m_pElements->begin() : empty_elements.begin();
+    return m_pElements ? m_pElements->begin() : empty_elements->begin();
 }
 
 vector<LanguageElement*>::const_iterator LanguageElement::endElements() const
 {
-    return m_pElements ? m_pElements->end() : empty_elements.end();
+    return m_pElements ? m_pElements->end() : empty_elements->end();
 }
 
 vector<LanguageElement*>::const_iterator LanguageElement::beginReferencedElements() const
 {
-    return m_pReferencedElements ? m_pReferencedElements->begin() : empty_elements.begin();
+    return m_pReferencedElements ? m_pReferencedElements->begin() : empty_elements->begin();
 }
 
 vector<LanguageElement*>::const_iterator LanguageElement::endReferencedElements() const
 {
-    return m_pReferencedElements ? m_pReferencedElements->end() : empty_elements.end();
+    return m_pReferencedElements ? m_pReferencedElements->end() : empty_elements->end();
 }
 
-phantom::string LanguageElement::getQualifiedName() const
+vector<LanguageElement*>::const_iterator LanguageElement::beginReferencingElements() const
 {
-    string ownerName = m_pOwner ? m_pOwner->getQualifiedName() : "";
-    return ownerName.empty() ? m_strName : ownerName + o_CS("::") + m_strName;
+    return m_pReferencedElements ? m_pReferencedElements->begin() : empty_elements->begin();
 }
 
-phantom::string LanguageElement::getDecoratedName() const
+vector<LanguageElement*>::const_iterator LanguageElement::endReferencingElements() const
 {
-    return m_pTemplateSpecialization?getName()+m_pTemplateSpecialization->getDecoratedName():getName();
-}
-
-phantom::string LanguageElement::getQualifiedDecoratedName() const
-{
-    return m_pTemplateSpecialization?getQualifiedName()+m_pTemplateSpecialization->getQualifiedDecoratedName():getQualifiedName();
-}
-
-void LanguageElement::addCodeLocation( const CodeLocation& location )
-{
-    if(m_CodeLocations == nullptr)
-    {
-        m_CodeLocations = new vector<CodeLocation>();
-    }
-    m_CodeLocations->push_back(location);
-    if(location.getSourceFile() && location != CodeLocation(location.getSourceFile()))
-    {
-        location.getSourceFile()->addElement(location, this);
-    }
-}
-
-void LanguageElement::setGuid(uint a_uiGuid)
-{
-	m_uiGuid = a_uiGuid;
-}
-
-void LanguageElement::removeCodeLocation( const CodeLocation& location )
-{
-    o_assert(m_CodeLocations);
-    if(location.getSourceFile() && location != CodeLocation(location.getSourceFile()))
-    {
-        location.getSourceFile()->removeElement(location, this);
-    }
-    m_CodeLocations->erase(std::find(m_CodeLocations->begin(), m_CodeLocations->end(), location));
-    if(m_CodeLocations->empty())
-    {
-        delete m_CodeLocations;
-        m_CodeLocations = nullptr;
-    }
-}
-
-void LanguageElement::addDeclarationCodeLocation( const CodeLocation& location )
-{
-    if(m_DeclarationCodeLocations == nullptr)
-    {
-        m_DeclarationCodeLocations = new vector<CodeLocation>();
-    }
-    m_DeclarationCodeLocations->push_back(location);
-    if(location.getSourceFile() && location != CodeLocation(location.getSourceFile()))
-    {
-        location.getSourceFile()->addElementDeclaration(location, this);
-    }
-}
-
-void LanguageElement::addReferenceCodeLocation( const CodeLocation& location )
-{
-    if(m_ReferenceCodeLocations == nullptr)
-    {
-        m_ReferenceCodeLocations = new vector<CodeLocation>();
-    }
-    m_ReferenceCodeLocations->push_back(location);
-    if(location.getSourceFile() && location != CodeLocation(location.getSourceFile()))
-    {
-        location.getSourceFile()->addElementReference(location, this);
-    }
-}
-
-void LanguageElement::removeReferenceCodeLocation( const CodeLocation& location )
-{
-    o_assert(m_ReferenceCodeLocations);
-    if(location.getSourceFile() && location != CodeLocation(location.getSourceFile()))
-    {
-        location.getSourceFile()->removeElementReference(location, this);
-    }
-    m_ReferenceCodeLocations->erase(std::find(m_ReferenceCodeLocations->begin(), m_ReferenceCodeLocations->end(), location));
-    if(m_ReferenceCodeLocations->empty())
-    {
-        delete m_ReferenceCodeLocations;
-        m_ReferenceCodeLocations = nullptr;
-    }
-}
-
-void LanguageElement::removeDeclarationCodeLocation( const CodeLocation& location )
-{
-    o_assert(m_DeclarationCodeLocations);
-    if(location.getSourceFile() && location != CodeLocation(location.getSourceFile()))
-    {
-        location.getSourceFile()->removeElementDeclaration(location, this);
-    }
-    m_DeclarationCodeLocations->erase(std::find(m_DeclarationCodeLocations->begin(), m_DeclarationCodeLocations->end(), location));
-    if(m_DeclarationCodeLocations->empty())
-    {
-        delete m_DeclarationCodeLocations;
-        m_DeclarationCodeLocations = nullptr;
-    }
-}
-
-LanguageElement* LanguageElement::getLeafElementAt( const CodePosition& a_Position ) const
-{
-    if(m_pElements)
-    {
-        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
-        {
-            LanguageElement* pElement = (*it)->getLeafElementAt(a_Position);
-            if(pElement) return pElement;
-        }
-    }
-    if(containsCodePosition(a_Position)) return const_cast<LanguageElement*>(this);
-    return nullptr;
-}
-
-void LanguageElement::setTemplateSpecialization( TemplateSpecialization* a_pTemplateSpecialization )
-{
-    o_assert(m_pTemplateSpecialization == nullptr);
-    o_assert(a_pTemplateSpecialization == nullptr OR a_pTemplateSpecialization->m_pOwner == nullptr);
-    if(a_pTemplateSpecialization)
-    {
-        addReferencedElement(a_pTemplateSpecialization);
-    }
-}
-
-Template* LanguageElement::getTemplate() const
-{
-    return m_pTemplateSpecialization ? m_pTemplateSpecialization->getTemplate() : nullptr;
-}
-
-void LanguageElement::getAccessibleElementsAt( const CodePosition& a_Position, vector<LanguageElement*>& a_Elements ) const
-{
-    if(m_pElements)
-    {
-        a_Elements.insert(a_Elements.end(), m_pElements->begin(), m_pElements->end());
-    }
+    return m_pReferencingElements ? m_pReferencingElements->end() : empty_elements->end();
 }
 
 void LanguageElement::getElements( vector<LanguageElement*>& out, Class* a_pClass /*= nullptr*/ ) const
@@ -349,7 +133,7 @@ void LanguageElement::addElement( LanguageElement* a_pElement )
     }
     m_pElements->push_back(a_pElement);
     a_pElement->setOwner(this);
-    elementAdded(a_pElement);
+    // ownedElementAdded(a_pElement);
     if(a_pElement->isInvalid())
     {
         setInvalid();
@@ -384,6 +168,7 @@ void LanguageElement::addReferencedElement( LanguageElement* a_pElement )
         a_pElement->registerReferencingElement(this);
         referencedElementAdded(a_pElement);
     }
+    if(a_pElement->isInvalid()) setInvalid();
 }
 
 void LanguageElement::removeReferencedElement( LanguageElement* a_pElement )
@@ -397,6 +182,7 @@ void LanguageElement::removeReferencedElement( LanguageElement* a_pElement )
     a_pElement->unregisterReferencingElement(this);
     referencedElementRemoved(a_pElement);
 }
+
 void LanguageElement::referencedElementAdded( LanguageElement* a_pElement )
 {
 
@@ -404,33 +190,6 @@ void LanguageElement::referencedElementAdded( LanguageElement* a_pElement )
 
 void LanguageElement::referencedElementRemoved( LanguageElement* a_pElement )
 {
-    if(m_pFriends)
-    {
-        auto friendFound = std::find(m_pFriends->begin(), m_pFriends->end(), a_pElement);
-        if(friendFound != m_pFriends->end())
-        {
-            m_pFriends->erase(friendFound);
-            if(m_pFriends->empty())
-            {
-                delete m_pFriends;
-                m_pFriends = nullptr;
-            }
-        }
-    }
-    if(m_pUsings)
-    {
-        auto usingFound = m_pUsings->find(a_pElement->getName());
-        if(usingFound != m_pUsings->end())
-        {
-            o_assert(a_pElement == usingFound->second);
-            m_pUsings->erase(usingFound);
-            if(m_pUsings->empty())
-            {
-                delete m_pUsings;
-                m_pUsings = nullptr;
-            }
-        }
-    }
 }
 
 void LanguageElement::registerReferencingElement( LanguageElement* a_pElement )
@@ -452,114 +211,8 @@ void LanguageElement::unregisterReferencingElement( LanguageElement* a_pElement 
     }
 }
 
-void LanguageElement::teardownMetaDataCascade( size_t count )
-{
-    if(m_pMetaData != nullptr)
-    {
-        o_delete_n(count, string) m_pMetaData;
-        m_pMetaData = nullptr;
-    }
-    if(m_pElements)
-    for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
-    {
-        (*it)->teardownMetaDataCascade(count);
-    }
-}
-
-void LanguageElement::setupMetaData( size_t count )
-{
-    o_assert(m_pMetaData == nullptr);
-}
-
-const string& LanguageElement::getMetaDataValue( size_t index ) const
-{
-    static string null_string;
-    o_assert(index == eInvalidMetaDataIndex || index < phantom::metaDataCount());
-    return m_pMetaData == nullptr ? null_string : (index != eInvalidMetaDataIndex) ? m_pMetaData[index] : null_string;
-}
-
-void LanguageElement::setMetaDataValue( size_t index, const string& value )
-{
-    o_assert(index < phantom::metaDataCount());
-    if(m_pMetaData == nullptr)
-    {
-        m_pMetaData = o_new_n(phantom::metaDataCount(), string);
-    }
-    m_pMetaData[index] = value;
-}
-
-bool LanguageElement::containsCodePosition( const CodePosition& position ) const
-{
-    if(m_CodeLocations)
-    {
-        for(auto it = m_CodeLocations->begin(); it != m_CodeLocations->end(); ++it)
-        {
-            if(it->containsCodePosition(position)) return true;
-        }
-    }
-    return false;
-}
-
-const CodeLocation& LanguageElement::getCodeLocation( size_t index ) const
-{
-    static CodeLocation defaultLocation;
-    if(m_CodeLocations) return (*m_CodeLocations)[index];
-    return defaultLocation;
-}
-
-void LanguageElement::setModifiers( modifiers_t a_Modifiers )
-{
-    m_Modifiers = a_Modifiers;
-    o_assert(NOT(isPublic() AND isProtected()), "o_public_access and o_protected_access cannot co-exist");
-}
-
-bool LanguageElement::matches( const string& a_strName, const vector<LanguageElement*>* a_TemplateSpecialization /*= NULL*/, modifiers_t a_Modifiers /*= 0*/ ) const
-{
-    if(m_strName != a_strName)
-        return false;
-    bool ts_empty = a_TemplateSpecialization == NULL OR a_TemplateSpecialization->empty() ;
-    if(ts_empty AND m_pTemplateSpecialization == NULL)
-        return true;
-    if(!ts_empty AND m_pTemplateSpecialization != NULL)
-    {
-        return m_pTemplateSpecialization->matches(*a_TemplateSpecialization);
-    }
-    return false;
-}
-
-bool LanguageElement::matches( const vector<LanguageElement*>& a_Elements ) const
-{
-    return m_pTemplateSpecialization AND m_pTemplateSpecialization->matches(a_Elements);
-}
-
-void LanguageElement::setModule( Module* a_pModule )
-{
-    m_pModule = a_pModule;
-    moduleChanged(a_pModule);
-}
-
-void LanguageElement::moduleChanged( Module* a_pModule )
-{
-    // TODO : use polymorphism
-    if(asNamespace()) return;
-    if(a_pModule)
-    {
-        if(m_pElements)
-        {
-            for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
-            {
-                if((*it)->getModule() == nullptr AND ((*it)->asType() == nullptr))
-                {
-                    a_pModule->addLanguageElement(*it);
-                }
-            }
-        }
-    }
-}
-
 bool LanguageElement::canBeDestroyed() const
 {
-    if(m_pTemplateSpecialization) return m_pTemplateSpecialization->canBeDestroyed() ;
     if(m_pElements)
     {
         for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
@@ -572,33 +225,10 @@ bool LanguageElement::canBeDestroyed() const
 
 void LanguageElement::checkCompleteness() const
 {
-    if(m_pTemplateSpecialization)
-        m_pTemplateSpecialization->checkCompleteness();
-}
-
-void LanguageElement::elementAdded( LanguageElement* a_pElement )
-{
-    TemplateSpecialization* pTemplateSpecialization = a_pElement->asTemplateSpecialization();
-    if(pTemplateSpecialization)
-    {
-        o_assert(m_pTemplateSpecialization == nullptr);
-        m_pTemplateSpecialization = pTemplateSpecialization;
-    }
 }
 
 void LanguageElement::elementRemoved( LanguageElement* a_pElement )
 {
-    TemplateSpecialization* pTemplateSpecialization = a_pElement->asTemplateSpecialization();
-    if(pTemplateSpecialization)
-    {
-        o_assert(m_pTemplateSpecialization == pTemplateSpecialization);
-        m_pTemplateSpecialization = nullptr;
-    }
-}
-
-bool LanguageElement::isInvalid() const
-{
-    return (m_Modifiers & o_invalid) != 0;
 }
 
 void LanguageElement::referencedElementInvalidated( LanguageElement* a_pElement )
@@ -606,16 +236,35 @@ void LanguageElement::referencedElementInvalidated( LanguageElement* a_pElement 
 
 }
 
-Block* LanguageElement::getBlock() const
+Block* LanguageElement::getEnclosingBlock() const
 {
-    return m_pOwner ? (m_pOwner->asBlock() ? m_pOwner->asBlock() : m_pOwner->getBlock()) : nullptr ;
+    Block* pBlock;
+    return m_pOwner ? ((pBlock = m_pOwner->asBlock()) ? m_pOwner->asBlock() : m_pOwner->getEnclosingBlock()) : nullptr ;
+}
+
+Scope* LanguageElement::getEnclosingScope() const
+{
+    Scope* pScope;
+    return m_pOwner ? ((pScope = m_pOwner->asScope()) ? pScope : m_pOwner->getEnclosingScope()) : nullptr ;
+}
+
+Namespace* LanguageElement::getEnclosingNamespace() const
+{
+    Namespace* pNamespace;
+    return m_pOwner ? ((pNamespace = m_pOwner->asNamespace()) ? pNamespace : m_pOwner->getEnclosingNamespace()) : nullptr ;
+}
+
+Statement* LanguageElement::getEnclosingStatement() const
+{
+    return m_pOwner ? (m_pOwner->asStatement() ? m_pOwner->asStatement() : m_pOwner->getEnclosingStatement()) : nullptr ;
 }
 
 void LanguageElement::internalAncestorChanged( LanguageElement* a_pOwner )
 {
     if(m_pElements)
     {
-        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        vector<LanguageElement*> elementsCopy(m_pElements->begin(), m_pElements->end()); /// copy to allow element adding during recursive deep call
+        for(auto it = elementsCopy.begin(); it != elementsCopy.end(); ++it)
         {
             (*it)->internalAncestorChanged(a_pOwner);
         }
@@ -637,7 +286,7 @@ void LanguageElement::ancestorChanged( LanguageElement* a_pOwner )
 
 boolean LanguageElement::isNative() const
 {
-    return (m_Modifiers & o_native) != 0;
+    return m_pOwner ? m_pOwner->isNative() : false;
 }
 
 LanguageElement* LanguageElement::getHatchedElement() const
@@ -654,26 +303,20 @@ LanguageElement* LanguageElement::hatch()
     return pLanguageElement;
 }
 
-void LanguageElement::setOwnerByQualifiedDecoratedName( string a_Owner )
+bool LanguageElement::isInvalid() const
 {
-
-}
-
-string LanguageElement::getOwnerQualifiedDecoratedName() const
-{
-    return m_pOwner ? m_pOwner->getQualifiedDecoratedName() : "";
-}
-
-void LanguageElement::setPlaceholder()
-{
-    m_Modifiers |= o_placeholder;
+    return m_pStatusMessage AND m_pStatusMessage->getType() == e_MessageType_Error;
 }
 
 void LanguageElement::setInvalid()
 {
-    if((m_Modifiers & o_invalid) != 0 OR (m_Modifiers & o_always_valid) != 0 OR isPlaceholder())
+    if(isInvalid() OR isAlwaysValid())
         return;
-    m_Modifiers |= o_invalid;
+    o_assert(!isNative());
+    if(m_pStatusMessage == nullptr) 
+        m_pStatusMessage = o_new(Message)(e_MessageType_Error, "undefined error");
+    else 
+        m_pStatusMessage->setType(e_MessageType_Error);
     /// When an element becomes invalid, the following becomes invalid too :
     /// - the elements who have reference to it
     /// - its owner element
@@ -708,43 +351,6 @@ void LanguageElement::elementInvalidated( LanguageElement* a_pElement )
 
 }
 
-void LanguageElement::addUsing( LanguageElement* a_pLanguageElement )
-{
-    if(m_pUsings == nullptr)
-    {
-        m_pUsings = new map<string, LanguageElement*>;
-    }
-    else if(m_pUsings->find(a_pLanguageElement->getName()) != m_pUsings->end())
-    {
-        o_exception(exception::reflection_runtime_exception, "Conflict with another using directive");
-    }
-    (*m_pUsings)[a_pLanguageElement->getName()] = a_pLanguageElement;
-    addReferencedElement(a_pLanguageElement);
-}
-
-LanguageElement* LanguageElement::getUsing( const string& a_strName ) const
-{
-    if(m_pUsings == nullptr) return nullptr;
-    auto found = m_pUsings->find(a_strName);
-    return found == m_pUsings->end() ? nullptr : found->second;
-}
-
-void LanguageElement::addFriend( LanguageElement* a_pFriend )
-{
-    if(m_pFriends == nullptr)
-    {
-        m_pFriends = new vector<LanguageElement*>;
-    }
-    o_assert(!hasFriend(a_pFriend));
-    m_pFriends->push_back(a_pFriend);
-    addReferencedElement(a_pFriend);
-}
-
-bool LanguageElement::hasFriend( LanguageElement* a_pFriend ) const
-{
-    return std::find(m_pFriends->begin(), m_pFriends->end(), a_pFriend) != m_pFriends->end();
-}
-
 ReferenceType* LanguageElement::asConstReferenceType() const
 {
     ReferenceType* pReferenceType = asReferenceType(); 
@@ -753,12 +359,7 @@ ReferenceType* LanguageElement::asConstReferenceType() const
         : nullptr;
 }
 
-LanguageElement* LanguageElement::precompileScopeCascade( Precompiler* a_pPrecompiler, const string& a_strName , const vector<LanguageElement*>* a_pTemplateArguments , const vector<LanguageElement*>* a_pFunctionArgumentsOrParameters , modifiers_t a_Modifiers /*= 0*/ ) 
-{
-    LanguageElement* pElement = precompileScope(a_pPrecompiler, a_strName, a_pTemplateArguments, a_pFunctionArgumentsOrParameters, a_Modifiers);
-    if(pElement) return pElement;
-    return m_pOwner ? m_pOwner->precompileScopeCascade(a_pPrecompiler, a_strName, a_pTemplateArguments, a_pFunctionArgumentsOrParameters, a_Modifiers) : nullptr;
-}
+/*
 
 bool LanguageElement::hasTemplateDependantElement() const
 {
@@ -782,19 +383,247 @@ bool LanguageElement::hasTemplateDependantReferencedElement() const
         }
     }
     return false;
+}*/
+
+bool LanguageElement::partialAccepts( LanguageElement* a_pLanguageElement, size_t& a_Score, map<Placeholder*, LanguageElement*>& a_Deductions ) const
+{
+    if(a_pLanguageElement == this) 
+    {
+        a_Score = ~size_t(0);
+        return true;
+    }
+    return false;
 }
 
-void LanguageElement::addTemplateParameterDependency( TemplateParameter* a_pParameter )
+bool LanguageElement::equals( LanguageElement* a_pOther ) const
 {
-    o_assert(a_pParameter);
-    if(m_pTemplateParameterDependencies == nullptr) m_pTemplateParameterDependencies = new vector<TemplateParameter*>;
-    m_pTemplateParameterDependencies->push_back(a_pParameter);
-    addReferencedElement(a_pParameter);
+    return (this == a_pOther);
 }
 
-bool LanguageElement::isSpecializedBy( TemplateSpecialization* a_pSpec ) const
+void LanguageElement::elementDefined( LanguageElement* a_pElement )
 {
-    return a_pSpec->isSpecializing((LanguageElement*)this);
+
+}
+
+Module* LanguageElement::getModule() const
+{
+    return m_pOwner ? m_pOwner->getModule() : nullptr;
+}
+
+void LanguageElement::addScopedElement( LanguageElement* a_pElement )
+{
+    o_assert(a_pElement->m_pOwner == nullptr); 
+    a_pElement->m_pOwner = this; 
+    addReferencedElement(a_pElement);
+}
+
+void LanguageElement::removeScopedElement( LanguageElement* a_pElement )
+{
+    o_assert(a_pElement->m_pOwner == this); 
+    a_pElement->m_pOwner = nullptr; 
+    removeReferencedElement(a_pElement);
+}
+
+void LanguageElement::replaceElement( LanguageElement* a_pOldElement, LanguageElement* a_pNewElement )
+{
+    *std::find(m_pElements->begin(), m_pElements->end(), a_pOldElement) = a_pNewElement;
+}
+
+void LanguageElement::fetchReferencedModules( set<Module*>& a_Modules ) const
+{
+    if(m_pReferencedElements)
+    {
+        for(auto it = m_pReferencedElements->begin(); it != m_pReferencedElements->end(); ++it)
+        {
+            a_Modules.insert((*it)->getModule());
+        }
+    }
+}
+
+void LanguageElement::fetchReferencingModules( set<Module*>& a_Modules ) const
+{
+    if(m_pReferencingElements)
+    {
+        for(auto it = m_pReferencingElements->begin(); it != m_pReferencingElements->end(); ++it)
+        {
+            a_Modules.insert((*it)->getModule());
+        }
+    }
+}
+
+void LanguageElement::fetchReferencedModulesCascade( set<Module*>& a_Modules ) const
+{
+    fetchReferencedModules(a_Modules);
+    if(m_pElements)
+    {
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            (*it)->fetchReferencedModulesCascade(a_Modules);
+        }
+    }
+}
+
+void LanguageElement::fetchReferencingModulesCascade( set<Module*>& a_Modules ) const
+{
+    fetchReferencingModules(a_Modules);
+    if(m_pElements)
+    {
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            (*it)->fetchReferencingModulesCascade(a_Modules);
+        }
+    }
+}
+
+void LanguageElement::fetchElements( vector<LanguageElement*>& a_Elements ) const
+{
+    if(m_pElements)
+    {
+        a_Elements.insert(a_Elements.end(), m_pElements->begin(), m_pElements->end());
+    }
+}
+
+void LanguageElement::fetchElementsCascade( vector<LanguageElement*>& a_Elements ) const
+{
+    fetchElements(a_Elements);
+    if(m_pElements)
+    {
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            (*it)->fetchElementsCascade(a_Elements);
+        }
+    }
+}
+
+bool LanguageElement::hasReferencedElement( LanguageElement* a_pLanguageElement ) const
+{
+    if(m_pReferencedElements)
+    {
+        for(auto it = m_pReferencedElements->begin(); it != m_pReferencedElements->end(); ++it)
+        {
+            if(*it == a_pLanguageElement) return true;
+        }
+    }
+    return false;
+}
+
+bool LanguageElement::hasReferencingElement( LanguageElement* a_pLanguageElement ) const
+{
+    if(m_pReferencingElements)
+    {
+        for(auto it = m_pReferencingElements->begin(); it != m_pReferencingElements->end(); ++it)
+        {
+            if(*it == a_pLanguageElement) return true;
+        }
+    }
+    return false;
+}
+
+void LanguageElement::dumpElementList( ostream& out ) const
+{
+    if(m_pElements)
+    {
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            out << (*it)->getUniqueDecoratedName() << std::endl;
+        }
+    }
+}
+
+void LanguageElement::dumpElementListCascade( ostream& out ) const
+{
+    if(m_pElements)
+    {
+        dumpElementList(out);
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            (*it)->dumpElementListCascade(out);
+        }
+    }
+}
+
+Language* LanguageElement::getLanguage() const
+{
+    Source* pSource = getSource();
+    return pSource ? pSource->getLanguage() : phantom::application()->getDefaultLanguage();
+}
+
+bool LanguageElement::hasAccessTo( NamedElement* a_pElement, NamedElement* a_pAccessElementOwner /*= nullptr*/ ) const
+{
+    return static_cast<LanguageElement const*>(a_pElement)->equals(const_cast<LanguageElement*>(this))
+        OR hasElement(a_pElement)
+        OR (m_pOwner AND m_pOwner->hasAccessTo(a_pElement))
+        OR (a_pAccessElementOwner AND (a_pAccessElementOwner->hasPublicMember(a_pElement) OR a_pAccessElementOwner->hasFriend(const_cast<LanguageElement*>(this))))
+        OR (!a_pAccessElementOwner AND (a_pElement->isPublic() OR ((a_pElement->m_pOwner AND a_pElement->m_pOwner->hasFriend(const_cast<LanguageElement*>(this))))));
+}
+
+Message* LanguageElement::error( const char* a_Format, ... )
+{
+    setInvalid();
+    va_list args;
+    va_start(args, a_Format);
+    m_pStatusMessage->format(a_Format, args);
+    va_end(args);
+    return m_pStatusMessage;
+}
+
+Message* LanguageElement::subError( const char* a_Format, ... )
+{
+    o_assert(m_pStatusMessage)
+    va_list args;
+    va_start(args, a_Format);
+    Message* pSubMessage = m_pStatusMessage->error(this, a_Format, args);
+    va_end(args);
+    return pSubMessage;
+}
+
+void LanguageElement::addNamedElement( NamedElement* a_pElement )
+{
+    if(isNative())
+    {
+        /// If native => check doubles only in debug version and assert if needed
+        o_debug_only(
+            if(a_pElement->getName().size() AND m_pElements) /// we accept anonymous doubles
+                for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+                {
+                    NamedElement* pNamedElement = (*it)->asNamedElement();
+                    o_assert(pNamedElement == nullptr OR pNamedElement->getDecoratedName() != a_pElement->getDecoratedName(), "equal element already added : be careful not having duplicate member declarations in your class, or check not registering not two type with same name in the same source");
+                }
+                );
+    }
+    else 
+    {
+        /// If not native => check doubles and invalidate if needed
+        if(a_pElement->getName().size() AND m_pElements)
+            for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+            {
+                NamedElement* pNamedElement = (*it)->asNamedElement();
+                if(pNamedElement AND pNamedElement->getDecoratedName() == a_pElement->getDecoratedName())
+                {
+                    setInvalid();
+                    break;
+                }
+            }
+    }
+    addElement(a_pElement);
+}
+
+bool LanguageElement::isTemplateElement() const
+{
+    TemplateSpecialization* pSpec = getAscendantTemplateSpecialization();
+    return pSpec AND (NOT(pSpec->isFull()) OR pSpec->isTemplateElement());
+}
+
+bool LanguageElement::isTemplateDependant() const
+{
+    if(m_pElements)
+    {
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            if((*it)->isTemplateDependant()) return true;
+        }
+    }
+    return false;
 }
 
 vector<LanguageElement*> LanguageElement::sm_Elements;// TODO remove
@@ -838,4 +667,46 @@ vector<LanguageElement*> LanguageElement::sm_Elements;// TODO remove
 //     }
 // }
 
+NamedElement* LanguageElement::getUniqueElement( const string& name, modifiers_t modifiers ) const
+{
+    NamedElement* pElement = nullptr;
+    if(m_pElements)
+    {
+        for(auto it = m_pElements->begin(); it != m_pElements->end(); ++it)
+        {
+            NamedElement* pNamedElement = (*it)->asNamedElement();
+            if(pNamedElement AND pNamedElement->getName() == name AND pNamedElement->testModifiers(modifiers))
+            {
+                if(pElement) return nullptr;
+                else pElement = pNamedElement;
+            }
+        }
+    }
+    return pElement;
+}
+
+Expression* LanguageElement::toExpression( Expression* a_pOptExpression ) const
+{
+    return getLanguage()->toExpression(const_cast<LanguageElement*>(this), a_pOptExpression);
+}
+
+bool LanguageElement::hasNamingScopeCascade( Scope* a_pScope ) const
+{
+    Scope* pScope = getNamingScope();
+    return (pScope != nullptr) AND ((pScope == a_pScope) OR pScope->asLanguageElement()->hasNamingScopeCascade(a_pScope));
+}
+
+string LanguageElement::translate( int a_TranslationType /*= e_translation_qualified_decorated_name*/, LanguageElement* a_pScope /*= globalNamespace()*/ ) const
+{
+    string result; 
+    getLanguage()->translate(const_cast<LanguageElement*>(this), result, a_TranslationType, a_pScope); 
+    return result;
+}
+
+void LanguageElement::translate( string& out, int a_TranslationType /*= e_translation_qualified_decorated_name*/, LanguageElement* a_pScope /*= globalNamespace()*/ ) const
+{
+    getLanguage()->translate(const_cast<LanguageElement*>(this), out, a_TranslationType, a_pScope);
+}
+
 o_namespace_end(phantom, reflection)
+

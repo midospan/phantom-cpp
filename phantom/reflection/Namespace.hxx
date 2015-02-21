@@ -1,15 +1,16 @@
 #pragma once
-#include "LanguageElement.hxx"
-o_classNB((phantom, reflection), Namespace, (LanguageElement), o_deferred|o_no_default_constructor) 
+
+#include "NamedElement.hxx"
+#include "Scope.hxx"
+
+o_classNB((phantom, reflection), Namespace, (NamedElement, Scope), o_deferred|o_no_default_constructor) 
 (
-        o_signal(typeAdded, (Type*))
-        o_signal(typeRemoved, (Type*))
-        o_signal(templateAdded, (Template*))
-        o_signal(templateRemoved, (Template*))
-        o_signal(namespaceAdded, (Namespace*))
-        o_signal(namespaceRemoved, (Namespace*))
-        o_signal(functionAdded, (Function*))
-        o_signal(functionRemoved, (Function*))
+    o_signal(namespaceAdded, (Namespace*))
+    o_signal(namespaceRemoved, (Namespace*))
+    o_signal(namespaceAliasAdded, (Alias*))
+    o_signal(namespaceAliasRemoved, (Alias*))
+    o_signal(anonymousSectionAdded, (AnonymousSection*))
+    o_signal(anonymousSectionRemoved, (AnonymousSection*))
 );
 
 

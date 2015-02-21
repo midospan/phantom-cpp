@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
@@ -40,8 +9,6 @@
 #include "LocalVariable.h"
 #include "LocalVariableExpression.h"
 #include "ConstantExpression.h"
-#include "ArrayExpression.h"
-#include "AssignmentExpression.h"
 #include "BranchIfNotStatement.h"
 #include "BranchIfStatement.h"
 #include "ReturnStatement.h"
@@ -63,11 +30,11 @@ Signal::Signal()
 
 }
 
-Signal::Signal( InstanceDataMember* a_pInstanceDataMember, const string& a_strName, Signature* a_pSignature, modifiers_t a_uiModifiers )
-    : InstanceMemberFunction(a_strName, a_pSignature, a_uiModifiers|o_slot_member_function, (int)0)
+Signal::Signal( ClassType* a_pClassType, DataMember* a_pDataMember, const string& a_strName, const string& a_strSignature, modifiers_t a_uiModifiers )
+    : MemberFunction(a_pClassType, a_strName, a_strSignature, a_uiModifiers|o_slot_member_function)
     , m_uiNodeDestructionGuardLevel(0)
     , m_uiConnectionCount(0)
-    , m_pSlotListDataMember(a_pInstanceDataMember)
+    , m_pSlotListDataMember(a_pDataMember)
     , m_pProperty(nullptr)
 {
     if(testModifiers(o_virtual))
@@ -81,7 +48,7 @@ Signal::Signal( InstanceDataMember* a_pInstanceDataMember, const string& a_strNa
 }
 
 Signal::Signal( const string& a_strName, Signature* a_pSignature, modifiers_t a_Modifiers )
-    : InstanceMemberFunction(a_strName, a_pSignature, a_Modifiers|o_slot_member_function)
+    : MemberFunction(a_strName, a_pSignature, a_Modifiers|o_slot_member_function)
     , m_uiNodeDestructionGuardLevel(0)
     , m_uiConnectionCount(0)
     , m_pProperty(nullptr)
@@ -102,15 +69,15 @@ Signal::Signal( const string& a_strName, Signature* a_pSignature, modifiers_t a_
     }
 }
 
-connection::slot::list* Signal::getSlotList( void* a_pCaller ) const
+connection::slot::list* Signal::getSlotList( void* a_pThis ) const
 {
     o_assert( getSlotListDataMemberOffset() != 0xffffffff);
-    return reinterpret_cast<connection::slot::list*>( ((byte*)a_pCaller) + getSlotListDataMemberOffset() );
+    return reinterpret_cast<connection::slot::list*>( ((byte*)a_pThis) + getSlotListDataMemberOffset() );
 }
 
 void Signal::finalize()
 {
-    InstanceMemberFunction::finalize();
+    MemberFunction::finalize();
     if(testModifiers(o_virtual))
     {
         o_exception(exception::reflection_runtime_exception, "Signal cannot be virtual");
@@ -128,15 +95,15 @@ void Signal::ancestorChanged( LanguageElement* a_pLanguageElement )
     {
         if(m_pSlotListDataMember == nullptr )
         {
-            m_pSlotListDataMember = m_pOwner->asClass()->getInstanceDataMember("PHANTOM_CODEGEN_m_slot_list_of_"+m_strName);
+            m_pSlotListDataMember = m_pOwner->asClass()->getDataMember("PHANTOM_CODEGEN_m_slot_list_of_"+m_strName);
             if(m_pSlotListDataMember == nullptr )
             {
-                m_pSlotListDataMember = o_new(InstanceDataMember)(typeOf<connection::slot::list>(), "PHANTOM_CODEGEN_m_slot_list_of_"+m_strName, o_protected_access);
+                m_pSlotListDataMember = o_new(DataMember)(typeOf<connection::slot::list>(), "PHANTOM_CODEGEN_m_slot_list_of_"+m_strName, o_private_access);
             }
         }
         if(m_pSlotListDataMember->getOwner() == nullptr)
         {
-            getOwnerClass()->addInstanceDataMember(m_pSlotListDataMember);
+            getOwnerClass()->addDataMember(m_pSlotListDataMember);
         }
         else
         {
@@ -167,10 +134,10 @@ void Signal::generateCode()
         LocalVariable* pParameter = pMainBlock->getLocalVariable("a_"+lexical_cast<string>(i));
         parameters.push_back(pParameter);
     }
-    Expression* pSlotListAccess = m_pSlotListDataMember->createExpression(pThisAccess->dereference());
+    Expression* pSlotListAccess = m_pSlotListDataMember->toExpression(pThisAccess->dereference());
     ///     if(PHANTOM_CODEGEN_m_slot_list_of_##_signal_name_.unblocked())
     ///     {
-    InstanceMemberFunction* pFunc_unblocked = typeOf<connection::slot::list>()->getInstanceMemberFunction("unblocked()");
+    MemberFunction* pFunc_unblocked = typeOf<connection::slot::list>()->getMemberFunction("unblocked()");
     Expression* pCall_unblocked = o_new(CallExpression)(pFunc_unblocked, pSlotListAccess);
     Block* pBlock_if_unblocked = o_new(Block)(pBlock, "if");
     BranchIfNotStatement* pIfBranch = o_new(BranchIfNotStatement)(pCall_unblocked);
@@ -182,9 +149,9 @@ void Signal::generateCode()
     LocalVariable* pSlot = o_new(LocalVariable)(typeOf<connection::slot>()->pointerType(), "pSlot");
     pBlock_if_unblocked->addLocalVariable(pSlot);
     Expression* pSlotAccess = o_new(LocalVariableExpression)(pSlot);
-    InstanceMemberFunction* pFunc_head = typeOf<connection::slot::list>()->getInstanceMemberFunction("head()");
+    MemberFunction* pFunc_head = typeOf<connection::slot::list>()->getMemberFunction("head()");
     Expression* pCall_head = o_new(CallExpression)(pFunc_head, pSlotListAccess);
-    Expression* pSlotAssignment = o_new(AssignmentExpression)(pSlotAccess, pCall_head);
+    Expression* pSlotAssignment = pSlotAccess->store(pCall_head);
     pBlock_if_unblocked->addExpressionStatement(pSlotAssignment);
 
     ///         while(pSlot )
@@ -213,9 +180,9 @@ void Signal::generateCode()
     args.push_back(pSlotAccess);
     CallExpression* pCall_push = o_new(CallExpression)(pFunc_push, args);
     pBlock_while_pSlot->addExpressionStatement(pCall_push);
-    Expression* pCall_slot_subroutine = o_new(CallExpression)(typeOf<connection::slot>()->getInstanceMemberFunction("subroutine()"), pSlotAccess->dereference());
-    Expression* pCall_slot_receiver = o_new(CallExpression)(typeOf<connection::slot>()->getInstanceMemberFunction("receiver()"), pSlotAccess->dereference());
-    Expression* pCall_slot_next = o_new(CallExpression)(typeOf<connection::slot>()->getInstanceMemberFunction("next()"), pSlotAccess->clone()->dereference());
+    Expression* pCall_slot_subroutine = o_new(CallExpression)(typeOf<connection::slot>()->getMemberFunction("subroutine()"), pSlotAccess->dereference());
+    Expression* pCall_slot_receiver = o_new(CallExpression)(typeOf<connection::slot>()->getMemberFunction("receiver()"), pSlotAccess->dereference());
+    Expression* pCall_slot_next = o_new(CallExpression)(typeOf<connection::slot>()->getMemberFunction("next()"), pSlotAccess->clone()->dereference());
     if(paramCount)
     {
     ///             void* args[?] = { (void*)(&a_0), (void*)(&a_1), ... };
@@ -225,9 +192,9 @@ void Signal::generateCode()
         LocalVariableExpression* pArgsAccess = o_new(LocalVariableExpression)(pArgs);
         for(size_t i = 0; i<paramCount; ++i)
         {
-            ArrayExpression* pElementAccess = o_new(ArrayExpression)(pArrayType, pArgsAccess, o_new(ConstantExpression)(constant<size_t>(i)));
+            Expression* pElementAccess = pArgsAccess->arrayAccess(i);
             Expression* pParameterAccess = o_new(LocalVariableExpression)(parameters[i]);
-            Expression* pElementAssignment = o_new(AssignmentExpression)(pElementAccess, pParameterAccess->address()->cast(typeOf<void*>()));
+            Expression* pElementAssignment = pElementAccess->store(pParameterAccess->address()->convert(typeOf<void*>(), e_explicit_cast));
             pBlock_while_pSlot->addExpressionStatement(pElementAssignment);
         }
     ///             pSlot->subroutine()->call( pSlot->receiver(), args );
@@ -236,7 +203,7 @@ void Signal::generateCode()
         args.push_back(pCall_slot_subroutine->dereference());
         args.push_back(pCall_slot_receiver);
         args.push_back(pArgsAccess->clone());
-        Expression* pCall_slot_subroutine_call = o_new(CallExpression)(typeOf<reflection::Subroutine>()->getInstanceMemberFunction("call(void*, void**)"), args);
+        Expression* pCall_slot_subroutine_call = o_new(CallExpression)(typeOf<reflection::Subroutine>()->getMemberFunction("call(void*, void**)"), args);
         pBlock_while_pSlot->addExpressionStatement(pCall_slot_subroutine_call);
     }
     else
@@ -246,11 +213,11 @@ void Signal::generateCode()
         args.push_back(pCall_slot_subroutine->dereference());
         args.push_back(pCall_slot_receiver);
         args.push_back(o_new(ConstantExpression)(constant<void*>(0)));
-        Expression* pCall_slot_subroutine_call = o_new(CallExpression)(typeOf<reflection::Subroutine>()->getInstanceMemberFunction("call(void*, void**)"), args);
+        Expression* pCall_slot_subroutine_call = o_new(CallExpression)(typeOf<reflection::Subroutine>()->getMemberFunction("call(void*, void**)"), args);
         pBlock_while_pSlot->addExpressionStatement(pCall_slot_subroutine_call);
     }
     ///             pSlot = pSlot->next();
-    Expression* pSlotAssignNextExpression = o_new(AssignmentExpression)(pSlotAccess->clone(), pCall_slot_next);
+    Expression* pSlotAssignNextExpression = pSlotAccess->clone()->store(pCall_slot_next);
     pBlock_while_pSlot->addExpressionStatement(pSlotAssignNextExpression);
 
     ///             phantom::connection::pair::pop();

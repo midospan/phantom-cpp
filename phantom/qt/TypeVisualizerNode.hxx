@@ -1,6 +1,3 @@
 #pragma once
 
-o_classN((phantom, qt), TypeVisualizerNode)
-{
-    o_reflection {};
-};
+o_classN((phantom, qt), TypeVisualizerNode)()

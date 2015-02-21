@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_ReferenceType_h__
 #define o_phantom_reflection_ReferenceType_h__
@@ -52,12 +21,17 @@ public:
     friend class Type;
 
 protected:
-    ReferenceType(Type* a_pType);
-
-    virtual ReferenceType* asReferenceType() const { return (ReferenceType*)this; }
+    ReferenceType(Type* a_pType, const string& a_strName);
 
 public:
     o_destructor ~ReferenceType(void) ;
+
+    virtual Type*           asAddressType() const { return const_cast<ReferenceType*>(this); }
+    virtual ReferenceType*  asReferenceType() const { return const_cast<ReferenceType*>(this); }
+    virtual Type*           asClassAddressType() const { return (m_pReferencedType AND m_pReferencedType->asClass()) ? const_cast<ReferenceType*>(this) : nullptr; }
+    virtual ReferenceType*  asClassReferenceType() const { return (m_pReferencedType AND m_pReferencedType->asClass()) ? const_cast<ReferenceType*>(this) : nullptr; }
+    virtual Type*           asConstClassAddressType() const { return (m_pReferencedType AND m_pReferencedType->asConstClass()) ? const_cast<ReferenceType*>(this) : nullptr; }
+    virtual ReferenceType*  asConstClassReferenceType() const { return (m_pReferencedType AND m_pReferencedType->asConstClass()) ? const_cast<ReferenceType*>(this) : nullptr; }
 
     virtual void*   allocate() const;
     virtual void    deallocate(void* a_pInstance) const;
@@ -79,10 +53,6 @@ public:
 
     Type*               getReferencedType() const { return m_pReferencedType; }
 
-    virtual boolean     isConvertibleTo(Type* a_pType) const;
-    virtual boolean     isImplicitlyConvertibleTo( Type* a_pType ) const;
-    virtual void        convertValueTo(Type* a_pDestType, void* a_pDestValue, const void* a_pSrcValue) const;
-    
     virtual void        valueFromString(const string& a_str, void* dest) const
     {
         m_pReferencedType->valueFromString(a_str, dest);
@@ -152,15 +122,45 @@ public:
 
     virtual Type*   removeReference() const { return m_pReferencedType; }
 
-    virtual string  getDecoratedName() const { return m_pReferencedType->getDecoratedName()+'&'; }
-    virtual string  getQualifiedDecoratedName() const { return m_pReferencedType->getQualifiedDecoratedName()+'&'; }
+    virtual Type*   addLValueReference() const = 0;
+
+    virtual Type*   addRValueReference() const = 0;
+
+    virtual Type*   removeAllConst() const = 0;
+
+    virtual Type*   removeAllQualifiers() const = 0;
+
+    virtual Type*   replicate(Type* a_pSource) const  = 0;
+
+    virtual string  getDecoratedName() const = 0;
+    virtual string  getQualifiedDecoratedName() const = 0;
 
     virtual bool    isCopyable() const { return true; }
 
-    virtual bool    templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_DeducedConstants) const;
+    virtual void    copy(void* a_pDest, void const* a_pSrc) const { *(void**)a_pDest = *(void*const*)a_pSrc; }
+
+    virtual bool    partialAccepts(Type* a_pType, size_t& a_Score, map<Placeholder*, LanguageElement*>& a_DeducedConstants) const = 0;
+
+    virtual bool    equals(LanguageElement* a_pOther) const = 0;
+
+    void address(void** a_pArgs, void* a_pOutput)
+    {
+        *(void**)a_pOutput = a_pArgs[0];
+    }
+
+    virtual Type*           getUnderlyingType() const { return m_pReferencedType; }
+
+    void                    memcpyStoreDelegate(void** a_pArgs, void* a_pOutput) 
+    { 
+        memcpy( a_pArgs[0], a_pArgs[1], m_pReferencedType->getSize());
+        *(void**)a_pOutput = (void*)a_pArgs[0];
+    }
 
 protected:
-    virtual DataPointerType* createDataPointerType() const { return nullptr; } // cannot create reference pointers
+    virtual ConstType* createConstType() const { return nullptr; } // cannot create reference const
+    virtual DataPointerType* createDataPointerType() const { return nullptr; } // cannot create pointers on reference 
+    virtual ReferenceType* createReferenceType() const { return nullptr; } // cannot create reference of reference
+    virtual RValueReferenceType* createRValueReferenceType() const { return nullptr; } // cannot create rvalue reference of reference
 
 protected:
     virtual void referencedElementRemoved(LanguageElement* a_pElement);
@@ -171,6 +171,4 @@ protected:
 
 o_namespace_end(phantom, reflection)
 
-
-
-#endif
+#endif // o_phantom_reflection_ReferenceType_h__

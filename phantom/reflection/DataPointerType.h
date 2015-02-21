@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_phantom_reflection_DataPointerType_h__
 #define o_phantom_reflection_DataPointerType_h__
@@ -65,12 +34,18 @@ public:
     Type*               getPointedType() const { return m_pPointedType; }
 
 
+    virtual Type*       asAddressType() const { return const_cast<DataPointerType*>(this); }
     virtual 
     DataPointerType*    asDataPointerType() const { return const_cast<DataPointerType*>(this); }
-
-    virtual boolean     isConvertibleTo(Type* a_pType) const;
-    virtual void        convertValueTo(Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue) const;
-
+    virtual 
+    Type*               asClassAddressType() const { return (m_pPointedType AND m_pPointedType->asClass()) ? const_cast<DataPointerType*>(this) : nullptr; }
+    virtual 
+    DataPointerType*    asClassDataPointerType() const { return (m_pPointedType AND m_pPointedType->asClass()) ? const_cast<DataPointerType*>(this) : nullptr; }
+    virtual 
+    Type*               asConstClassAddressType() const { return (m_pPointedType AND m_pPointedType->asConstClass()) ? const_cast<DataPointerType*>(this) : nullptr; }
+    virtual 
+    DataPointerType*    asConstClassDataPointerType() const { return (m_pPointedType AND m_pPointedType->asConstClass()) ? const_cast<DataPointerType*>(this) : nullptr; }
+    
     virtual void        copy(void* a_pDest, void const* a_pSrc) const;
     
     virtual void        valueFromString(const string& a_str, void* dest) const;
@@ -95,8 +70,6 @@ public:
 
     virtual void        deserialize(void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const property_tree& a_InBranch, uint a_uiSerializationMask, serialization::DataBase const* a_pDataBase) const;
 
-    virtual boolean     isImplicitlyConvertibleTo(Type* a_pType) const;
-
     virtual uint        getDataPointerLevel() const { return m_pPointedType->getDataPointerLevel() + 1; }
 
     virtual void        remember(void const* a_pInstance, byte*& a_pOutBuffer) const;
@@ -109,6 +82,11 @@ public:
 
     virtual Type*       removePointer() const { return m_pPointedType; }
 
+    virtual Type*       removeAllConst() const { return m_pPointedType->removeAllConst()->pointerType(); }
+
+    virtual Type*       removeAllQualifiers() const { return m_pPointedType->removeAllQualifiers()->pointerType(); }
+
+    virtual string      getQualifiedName() const { return m_pPointedType->getQualifiedName()+'*'; }
     virtual string      getDecoratedName() const { return m_pPointedType->getDecoratedName()+'*'; }
     virtual string      getQualifiedDecoratedName() const { return m_pPointedType->getQualifiedDecoratedName()+'*'; }
 
@@ -116,7 +94,63 @@ public:
 
     virtual bool        isCopyable() const { return true; }
 
-    virtual bool        templatePartialMatch(Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_DeducedConstants) const;
+    virtual bool        partialAccepts(Type* a_pType, size_t& a_Score, map<Placeholder*, LanguageElement*>& a_DeducedConstants) const;
+
+    virtual bool        equals(LanguageElement* a_pOther) const 
+    {
+        return Type::equals(a_pOther) OR (a_pOther->asDataPointerType() AND m_pPointedType->equals(static_cast<DataPointerType*>(a_pOther)->m_pPointedType));
+    }
+
+    virtual Type*       getUnderlyingType() const { return m_pPointedType; }
+
+    /// Built-in Delegates
+    // 
+    /// 13.6.5
+    /// T *VQ & operator++(T *VQ &);
+    /// T *VQ & operator--(T *VQ &);
+    /// T * operator++(T *VQ &, int);
+    /// T * operator--(T *VQ &, int);
+    void                preIncrement(void** a_pArgs, void* a_pOutput);
+    void                postIncrement(void** a_pArgs, void* a_pOutput);
+    void                preDecrement(void** a_pArgs, void* a_pOutput);
+    void                postDecrement(void** a_pArgs, void* a_pOutput);
+
+    /// 13.6.6
+    /// T & operator*(T *);
+    /// ---------------------- 
+    void                dereference(void** a_pArgs, void* a_pOutput);
+
+    /// 13.6.7
+    /// T & operator+(T *);
+    /// ---------------------- 
+    void                plus(void** a_pArgs, void* a_pOutput);
+    
+
+    /// 13.6.13
+    /// T * operator+(T *, std::ptrdiff_t);
+    /// T & operator[](T *, std::ptrdiff_t);
+    /// T * operator-(T *, std::ptrdiff_t);
+    /// T * operator+(std::ptrdiff_t, T *);
+    /// T & operator[](std::ptrdiff_t, T *);
+    void                add(void** a_pArgs, void* a_pOutput);
+    void                addRev(void** a_pArgs, void* a_pOutput);
+    void                bracket(void** a_pArgs, void* a_pOutput);
+    void                bracketRev(void** a_pArgs, void* a_pOutput);
+    void                subtract(void** a_pArgs, void* a_pOutput);
+    
+
+    /// 13.6.14
+    /// ---------------------- 
+    /// std::ptrdiff_t operator-(T , T );
+    void                subtractPointer(void** a_pArgs, void* a_pOutput);
+    // 
+
+    /// 13.6.21
+    /// ---------------------- 
+    /// T *VQ & operator+=(T *VQ &, std::ptrdiff_t);
+    /// T *VQ & operator-=(T *VQ &, std::ptrdiff_t);
+    void                assignmentAdd(void** a_pArgs, void* a_pOutput);
+    void                assignmentSubtract(void** a_pArgs, void* a_pOutput);
 
 protected:
     virtual void        referencedElementRemoved(LanguageElement* a_pElement);

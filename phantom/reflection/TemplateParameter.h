@@ -13,7 +13,7 @@ o_declareN(class, (phantom, reflection), TemplateParameter);
 
 o_namespace_begin(phantom, reflection)
 
-class o_export TemplateParameter : public LanguageElement
+class o_export TemplateParameter : public NamedElement
 {
     o_language_element;
 
@@ -26,6 +26,8 @@ public:
 
     virtual TemplateParameter*  asTemplateParameter() const { return (TemplateParameter*)this; }
 
+    size_t getIndex() const;
+
     virtual TemplateParameter* clone() const;
 
     Template* getTemplate() const { return m_pOwner ? m_pOwner->asTemplate() : nullptr; }
@@ -36,7 +38,21 @@ public:
 
     Placeholder* getPlaceholder() const { return m_pPlaceholder; }
 
-    virtual bool            templatePartialMatch(LanguageElement* a_pLanguageElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions) const;
+    virtual bool            partialAccepts(LanguageElement* a_pLanguageElement, size_t& a_Score, map<Placeholder*, LanguageElement*>& a_Deductions) const;
+
+    bool acceptsArgument(LanguageElement* a_pLanguageElement) const;
+
+    virtual string getQualifiedDecoratedName() const { return m_strName; }
+    virtual string getDecoratedName() const { return m_strName; }
+    virtual string getQualifiedName() const { return m_strName; }
+
+    virtual bool        equals(LanguageElement* a_pLanguageElement) const 
+    {
+        TemplateParameter* pTP = a_pLanguageElement->asTemplateParameter();
+        return pTP AND equals(pTP);
+    }
+
+    bool                equals(TemplateParameter* a_pOther) const;
 
 protected:
     void elementRemoved( LanguageElement* a_pElement );

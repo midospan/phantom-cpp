@@ -3,6 +3,7 @@
 #include "DataTreeView.h"
 #include "DataTreeView.hxx"
 #include "phantom/serialization/Node.h"
+#include "phantom/reflection/Package.h"
 #include "phantom/Message.h"
 #include <QHeaderView>
 #include <QDragEnterEvent>
@@ -74,6 +75,7 @@ DataTreeView::DataTreeView( Message* a_pRootMessage )
     : m_pDataBase(NULL)
     , m_pMessage(a_pRootMessage)
     , m_bHidePrivate(true)
+    , m_bHideProtected(true)
     , m_bHideComponentData(false)
 	, m_bIsChangingSelection(false)
     , m_AddDataActionDelegate(this, &DataTreeView::defaultAddDataActionDelegate)
@@ -205,26 +207,35 @@ void DataTreeView::showPopup(const QPoint & pos)
                     addMenu.addSeparator();
                     for(auto it = phantom::beginModules(); it != phantom::endModules(); ++it)
                     {
-                        Module* pModule = it->second;
-                        QMenu* moduleMenu = new QMenu;
-                        for(auto it = pModule->beginLanguageElements(); it != pModule->endLanguageElements(); ++it)
+                        reflection::Module* pModule = it->second;
+                        for(auto it = pModule->beginPackages(); it != pModule->endPackages(); ++it)
                         {
-                            moduleMenu->setTitle(pModule->getName().c_str());
-                            reflection::Class* pClass = (*it)->asClass();
-                            if(pClass 
-                                AND pClass->isPublic() 
-                                AND NOT(pClass->isAbstract())
-                                AND pClass->isDefaultConstructible()
-                                AND pClass->getSingleton() == nullptr)
+                            QMenu* packageMenu = new QMenu;
+                            reflection::Package* pPackage = *it;
+                            for(auto it = pPackage->beginSources(); it != pPackage->endSources(); ++it)
                             {
-                                Action* pAction = o_new(AddDataAction)(this, pNode, pClass, m_AddDataActionDelegate, moduleMenu);
-                                moduleMenu->addAction(pAction);
-                                actions.push_back(pAction);
+                                reflection::Source* pSource = *it;
+                                for(auto it = pSource->beginElements(); it != pSource->endElements(); ++it)
+                                {
+                                    packageMenu->setTitle(pPackage->getName().c_str());
+                                    reflection::Class* pClass = (*it)->asClass();
+                                    if(pClass 
+                                        AND pClass->isPublic()
+                                        AND NOT(pClass->testModifiers(o_private_visibility)) 
+                                        AND NOT(pClass->isAbstract())
+                                        AND pClass->isDefaultConstructible()
+                                        AND pClass->getSingleton() == nullptr)
+                                    {
+                                        Action* pAction = o_new(AddDataAction)(this, pNode, pClass, m_AddDataActionDelegate, packageMenu);
+                                        packageMenu->addAction(pAction);
+                                        actions.push_back(pAction);
+                                    }
+                                }
                             }
-                        }
-                        if(!moduleMenu->isEmpty())
-                        {
-                            addMenu.addMenu(moduleMenu);
+                            if(!packageMenu->isEmpty())
+                            {
+                                addMenu.addMenu(packageMenu);
+                            }
                         }
                     }
                     menu.addSeparator();
@@ -314,9 +325,9 @@ void DataTreeView::nodeAboutToBeRemoved( serialization::Node* a_pNode,serializat
     removeNodeItem(a_pNode);
 }
 
-void DataTreeView::dataModifiersChanged( const phantom::data& a_Data, bitfield a_Modifiers )
+void DataTreeView::dataModifiersChanged( const phantom::data& a_Data, modifiers_t a_Modifiers )
 {
-    bitfield modifiers = a_Modifiers | a_Data.type()->getModifiers();
+    modifiers_t modifiers = a_Modifiers | a_Data.type()->getModifiers();
     DataTreeViewItem* pItem = getItem(a_Data);
     if(pItem != nullptr)
     {
@@ -324,16 +335,20 @@ void DataTreeView::dataModifiersChanged( const phantom::data& a_Data, bitfield a
 //         {
 //             pItem->setHidden(m_bHideComponentData); 
 //         }
-        if( !modifiers.matchesMask(o_public) AND !modifiers.matchesMask(o_protected) )
+        if( ((modifiers&o_private_visibility) == o_private_visibility))
         {
             pItem->setHidden(m_bHidePrivate); 
         } 
+        if( ((modifiers&o_protected_visibility) == o_protected_visibility) )
+        {
+            pItem->setHidden(m_bHideProtected); 
+        }
         Qt::ItemFlags flags = Qt::ItemIsSelectable|Qt::ItemIsDragEnabled|Qt::ItemIsDropEnabled;
-        if( !modifiers.matchesMask(o_readonly) )
+        if( (modifiers & o_readonly) != o_readonly )
         {
             flags |= (Qt::ItemIsEnabled|Qt::ItemIsEditable);
         }
-        if( modifiers.matchesMask(o_singleton) )
+        if( (modifiers & o_singleton) == o_singleton )
         {
             QBrush b (Qt::darkGray);
             pItem->setForeground( 0 , b );
@@ -980,7 +995,7 @@ void DataTreeView::setDataBase( serialization::DataBase* a_pDataBase, size_t a_u
         o_disconnect(m_pDataBase, dataAboutToBeRemoved(const phantom::data&,serialization::Node*), this, dataAboutToBeRemoved(const phantom::data&,serialization::Node*));
         o_disconnect(m_pDataBase, nodeAdded(serialization::Node*,serialization::Node*), this, nodeAdded(serialization::Node*,serialization::Node*));
         o_disconnect(m_pDataBase, nodeAboutToBeRemoved(serialization::Node*,serialization::Node*), this, nodeAboutToBeRemoved(serialization::Node*,serialization::Node*));
-        o_disconnect(m_pDataBase, dataModifiersChanged( const phantom::data&, bitfield), this, dataModifiersChanged( const phantom::data&, bitfield));
+        o_disconnect(m_pDataBase, dataModifiersChanged( const phantom::data&, modifiers_t), this, dataModifiersChanged( const phantom::data&, modifiers_t));
         o_disconnect(m_pDataBase, dataAttributeValueChanged( const phantom::data&, size_t, const string&), this, dataAttributeValueChanged( const phantom::data&, size_t, const string&));
         o_disconnect(m_pDataBase, nodeAttributeValueChanged( serialization::Node*, size_t, const string&), this, nodeAttributeValueChanged( serialization::Node*, size_t, const string&));
         setColumnCount(0);
@@ -1010,7 +1025,7 @@ void DataTreeView::setDataBase( serialization::DataBase* a_pDataBase, size_t a_u
         o_connect(m_pDataBase, dataAboutToBeRemoved(const phantom::data&,serialization::Node*), this, dataAboutToBeRemoved(const phantom::data&,serialization::Node*));
         o_connect(m_pDataBase, nodeAdded(serialization::Node*,serialization::Node*), this, nodeAdded(serialization::Node*,serialization::Node*));
         o_connect(m_pDataBase, nodeAboutToBeRemoved(serialization::Node*,serialization::Node*), this, nodeAboutToBeRemoved(serialization::Node*,serialization::Node*));
-        o_connect(m_pDataBase, dataModifiersChanged( const phantom::data&, bitfield), this, dataModifiersChanged( const phantom::data&, bitfield));
+        o_connect(m_pDataBase, dataModifiersChanged( const phantom::data&, modifiers_t), this, dataModifiersChanged( const phantom::data&, modifiers_t));
         o_connect(m_pDataBase, dataAttributeValueChanged( const phantom::data&, size_t, const string&), this, dataAttributeValueChanged( const phantom::data&, size_t, const string&));
         o_connect(m_pDataBase, nodeAttributeValueChanged( serialization::Node*, size_t, const string&), this, nodeAttributeValueChanged( serialization::Node*, size_t, const string&));
     }

@@ -37,7 +37,7 @@ o_terminate_cpp(MemberFunctionPointerCallExpression)
 void MemberFunctionPointerCallExpression::internalEval( void* a_pDest ) const
 {
     vector<void*> addresses;
-    evaluateArguments(addresses);
+    evaluateArguments(m_Arguments, addresses);
     void* pMemberBuffer = m_pMemberFunctionPointerType->newInstance();
     m_pMemberExpression->load(pMemberBuffer);
     if(m_pReturnStorage)
@@ -55,7 +55,7 @@ void MemberFunctionPointerCallExpression::internalEval( void* a_pDest ) const
 void MemberFunctionPointerCallExpression::internalEval() const
 {
     vector<void*> addresses;
-    evaluateArguments(addresses);
+    evaluateArguments(m_Arguments, addresses);
     void* pMemberBuffer = m_pMemberFunctionPointerType->newInstance();
     m_pMemberExpression->load(pMemberBuffer);
     m_pMemberFunctionPointerType->call(pMemberBuffer, m_pObjectExpression->loadEffectiveAddress(), addresses.data());

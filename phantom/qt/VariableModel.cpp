@@ -16,7 +16,6 @@
 #include "CharLineEditor.h"
 #include "BitFieldEditor.h"
 #include "UndoStack.h"
-#include "phantom/std/string.h"
 #include "phantom/reflection/CompositionClass.h"
 #include "phantom/reflection/AggregationClass.h"
 #include "phantom/reflection/ComponentClass.h"
@@ -62,7 +61,7 @@ VariableModel::VariableModel()
     registerVariableTypeEditorClass(typeOf<float>(), typeOf<TNumberLineEditor<float>>());
     registerVariableTypeEditorClass(typeOf<double>(), typeOf<TNumberLineEditor<double>>());
     registerVariableTypeEditorClass(typeOf<string>(), typeOf<StringLineEditor>());
-    registerVariableTypeEditorClass(typeOf<bitfield>(), typeOf<BitFieldEditor>());
+    registerVariableTypeEditorClass(typeOf<modifiers_t>(), typeOf<BitFieldEditor>());
 }
 
 VariableModel::~VariableModel( void )

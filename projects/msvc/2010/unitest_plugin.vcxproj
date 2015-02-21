@@ -15,11 +15,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\main_plugin.cpp" />
-    <ClCompile Include="..\..\..\unitest\phantom\unitest\Plugin.cpp" />
+    <ClCompile Include="..\..\..\unitest\module\main_plugin.cpp" />
+    <ClCompile Include="..\..\..\unitest\module\Plugin.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\unitest\phantom\unitest\Plugin.h" />
+    <ClInclude Include="..\..\..\unitest\module\Plugin.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3C022047-8698-49BE-89FA-B9996AF20471}</ProjectGuid>
@@ -77,7 +77,7 @@
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <ShowIncludes>false</ShowIncludes>
-      <AdditionalOptions>/MP -Zm500 /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MP -Zm500 /bigobj /FC  /vmg /vmv %(AdditionalOptions)</AdditionalOptions>
       <MinimalRebuild>false</MinimalRebuild>
       <PrecompiledHeaderOutputFile>..\..\..\build\pch\unitestD.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -103,7 +103,7 @@
       <AdditionalIncludeDirectories>..\..\..\unitest;..\..\..;$(GTEST_INC_PATH);$(BOOST_ROOT);</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalOptions>/MP -Zm500 /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MP -Zm500 /bigobj  /FC  /vmg /vmv %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>phantom/phantom.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>..\..\..\build\pch\unitest.pch</PrecompiledHeaderOutputFile>

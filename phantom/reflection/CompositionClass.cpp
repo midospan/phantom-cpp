@@ -48,10 +48,7 @@ void CompositionClass::fetchExpressions( Expression* a_pInstanceExpression, vect
 }
 
 CompositionGetSetExpression::CompositionGetSetExpression( Expression* a_pLeftExpression, Expression* a_pIndexExpression, CompositionClass* a_pCompositionClass ) 
-    : Expression(a_pLeftExpression->isConstExpression() 
-                    ? a_pCompositionClass->getComponentClass()->pointerType()->constType()->referenceType()
-                    : a_pCompositionClass->getComponentClass()->pointerType()->referenceType()
-    , a_pLeftExpression->getModifiers())
+    : Expression(a_pLeftExpression->getValueType()->replicate(a_pCompositionClass->getComponentClass()->pointerType()))
     , m_pLeftExpression(a_pLeftExpression)
     , m_pIndexExpression(a_pIndexExpression)
     , m_pCompositionClass(a_pCompositionClass)
@@ -116,10 +113,7 @@ string CompositionClass_InsertRemoveExpression_formatIndexString(string a_Input,
 }
 
 CompositionInsertRemoveExpression::CompositionInsertRemoveExpression( Expression* a_pLeftExpression, Expression* a_pIndexExpression, CompositionClass* a_pCompositionClass ) 
-    : Expression(a_pLeftExpression->isConstExpression() 
-    ? a_pCompositionClass->getComponentClass()->pointerType()->constType()->referenceType()
-    : a_pCompositionClass->getComponentClass()->pointerType()->referenceType()
-    , a_pLeftExpression->getModifiers())
+    : Expression(a_pLeftExpression->getValueType()->replicate(a_pCompositionClass->getComponentClass()->pointerType()))
     , m_pLeftExpression(a_pLeftExpression)
     , m_pIndexExpression(a_pIndexExpression)
     , m_pCompositionClass(a_pCompositionClass)

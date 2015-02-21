@@ -6,7 +6,7 @@
         {\
             reg() \
             {\
-                phantom::reflection::Types::currentInstalledClass->addAttribute(_name_, _variant_);\
+                phantom::reflection::native::currentClassType()->addAttribute(_name_, _variant_);\
             }\
         } regi;\
     } o_PP_CAT(attribute,__COUNTER__);
@@ -30,49 +30,42 @@
             {\
                 int m_PHANTOM_RESERVED_no_signal;\
                 int PHANTOM_CODEGEN_m_slot_list_of_m_PHANTOM_RESERVED_no_signal;\
-                o_forceinline static phantom::reflection::InstanceMemberFunction* get_()\
+                o_forceinline static phantom::reflection::MemberFunction* get_()\
                 {\
                     return phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,((_modifiers_&o_public_access)==o_public_access)?o_public_access:o_protected_access,_type_ ()>::CreateMemberFunction( \
                         o_PP_QUOTE(_get_member_function_) \
-                        , phantom::reflection::Signature::Create(o_PP_QUOTE(_type_)"()", phantom::reflection::Types::currentInstalledTemplateSpecialization, phantom::reflection::Types::currentInstalledClass) \
-                        , &protected_breaker::_get_member_function_ \
-                        ,((((_modifiers_)|phantom::reflection::Types::currentModifiers)&o_public_access)==o_public_access)?o_public_access:o_protected_access)->asInstanceMemberFunction();\
+                        , o_PP_QUOTE(_type_)"()"\
+                        , &phantom_proxy_generator_reflection_proxy_type::phantom_proxy_generator_reflection_self_type::_get_member_function_ \
+                        ,((((_modifiers_)|phantom::reflection::native::currentModifiers())&o_public_access)==o_public_access)?o_public_access:o_protected_access)->asMemberFunction();\
                 }\
-                o_forceinline static phantom::reflection::InstanceMemberFunction*  set_()\
+                o_forceinline static phantom::reflection::MemberFunction*  set_()\
                 {\
                     return phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<_modifiers_>::value|o_slot_member_function,void (_type_)>::CreateMemberFunction( \
                         o_PP_QUOTE(_set_member_function_) \
-                        , phantom::reflection::Signature::Create("void" o_PP_QUOTE((_type_)), phantom::reflection::Types::currentInstalledTemplateSpecialization, phantom::reflection::Types::currentInstalledClass) \
-                        , &protected_breaker::_set_member_function_ \
-                        ,(((((_modifiers_)|phantom::reflection::Types::currentModifiers)&o_public_access)==o_public_access)?o_public_access:o_protected_access)|o_slot_member_function)->asInstanceMemberFunction();\
+                        , "void" o_PP_QUOTE((_type_)) \
+                        , &phantom_proxy_generator_reflection_proxy_type::phantom_proxy_generator_reflection_self_type::_set_member_function_ \
+                        ,(((((_modifiers_)|phantom::reflection::native::currentModifiers())&o_public_access)==o_public_access)?o_public_access:o_protected_access)|o_slot_member_function)->asMemberFunction();\
                 }\
                 o_forceinline static phantom::reflection::Signal*  signal_()\
                 {\
                 return phantom::reflection::native::DynamicNativePropertySignalProvider<phantom_proxy_generator_reflection_self_type, _type_>::CreateSignal(\
                         o_PP_QUOTE(_signal_)\
                         , o_PP_QUOTE(_type_)\
-                        , phantom::reflection::Types::currentInstalledTemplateSpecialization\
-                        , phantom::reflection::Types::currentInstalledClass\
                         , &protected_breaker::_signal_\
                         , &protected_breaker::PHANTOM_CODEGEN_m_slot_list_of_##_signal_);\
                 }\
                 o_forceinline static phantom::reflection::Property*  property_()\
                 {\
-                    phantom::reflection::InstanceMemberFunction* pGetMemberFunction = get_();\
+                    phantom::reflection::MemberFunction* pGetMemberFunction = get_();\
                     if(pGetMemberFunction == nullptr) o_exception(phantom::exception::reflection_runtime_exception, "invalid property get member function");\
-                    pGetMemberFunction->addCodeLocation(phantom::sourceFile(__FILE__));\
-                    phantom::reflection::Types::currentInstalledClass->addMemberFunction(pGetMemberFunction);\
-                    phantom::reflection::InstanceMemberFunction* pSetMemberFunction = set_();\
+                    phantom::reflection::MemberFunction* pSetMemberFunction = set_();\
                     if(pSetMemberFunction == nullptr) o_exception(phantom::exception::reflection_runtime_exception, "invalid property set member function");\
-                    pSetMemberFunction->addCodeLocation(phantom::sourceFile(__FILE__));\
-                    phantom::reflection::Types::currentInstalledClass->addMemberFunction(pSetMemberFunction);\
-                    phantom::reflection::Type* pType = phantom::typeByName(o_PP_QUOTE(_type_), phantom::reflection::Types::currentInstalledClass);\
+                    phantom::reflection::Type* pType = phantom::typeByName(o_PP_QUOTE(_type_), phantom::reflection::native::currentClassType(), o_native);\
                     o_assert(pType, o_PP_QUOTE(_type_)" type not registered");\
                     phantom::reflection::Signal* pSignal = signal_();\
                     if(pSignal) \
                     {\
-                        o_assert(phantom::reflection::Types::currentInstalledClass->asClass(), "Signals only allowed in non-pod classes");\
-                        phantom::reflection::Types::currentInstalledClass->asClass()->addSignal(pSignal);\
+                        o_assert(phantom::reflection::native::currentClassType()->asClass(), "Signals only allowed in non-pod classes");\
                     }\
                     return o_dynamic_proxy_new(phantom::reflection::native::TNativeProperty<\
                                     phantom_proxy_generator_reflection_self_type, _type_>) \
@@ -83,18 +76,17 @@
                                         , pGetMemberFunction\
                                         , pSignal\
                                         , o_range _range_\
-                                        , &protected_breaker::_set_member_function_\
-                                        , &protected_breaker::_get_member_function_\
+                                        , &phantom_proxy_generator_reflection_proxy_type::phantom_proxy_generator_reflection_self_type::_set_member_function_\
+                                        , &phantom_proxy_generator_reflection_proxy_type::phantom_proxy_generator_reflection_self_type::_get_member_function_\
                                         , _serialization_mask_\
-                                        , (_modifiers_)|phantom::reflection::Types::currentModifiers\
+                                        , (_modifiers_)|phantom::reflection::native::currentModifiers()\
                                     );\
                 }\
             };\
             reg() \
             {\
                 phantom::reflection::Property* pProperty = protected_breaker::property_();\
-                pProperty->addCodeLocation(phantom::sourceFile(__FILE__));\
-                phantom::reflection::Types::currentInstalledClass->addValueMember(pProperty);\
+                phantom::reflection::native::currentClassType()->addValueMember(pProperty);\
             }\
         } regi;\
     } o_PP_CAT(property, __COUNTER__);
@@ -119,11 +111,7 @@
                             phantom_proxy_generator_reflection_self_type\
                             , phantom::signal_t _parameterslist_>) \
                             ( o_PP_QUOTE(_name_)\
-                                , phantom::reflection::Signature::Create(\
-                                "phantom::signal_t" o_PP_QUOTE(_parameterslist_)\
-                                , phantom::reflection::Types::currentInstalledTemplateSpecialization\
-                                , phantom::reflection::Types::currentInstalledClass\
-                                )\
+                                , "phantom::signal_t" o_PP_QUOTE(_parameterslist_)\
                                 , &protected_breaker::_name_\
                                 , un.hacked\
                                 , phantom::detail::int_embedder< __VA_ARGS__ >::value\
@@ -133,9 +121,7 @@
                 reg() \
                 {\
                     phantom::reflection::Signal* pSignal = protected_breaker::signal_();\
-                    pSignal->addCodeLocation(phantom::sourceFile(__FILE__));\
-                    o_assert(phantom::reflection::Types::currentInstalledClass->asClass(), "Cannot add signal to pod class");\
-                    phantom::reflection::Types::currentInstalledClass->asClass()->addSignal(pSignal);\
+                    o_assert(phantom::reflection::native::currentClassType()->asClass(), "Cannot add signal to pod class");\
                 }\
             } regi;\
         } o_PP_CAT(signal, __COUNTER__);
@@ -149,7 +135,7 @@
             {\
                 struct protected_breaker : public phantom_proxy_generator_protected_breaker_base\
                 {\
-                    inline static phantom::reflection::DataMember* get()\
+                    inline static phantom::reflection::LanguageElement* get()\
                     {\
                         typedef o_NESTED_TYPE phantom::select_type_if_union<phantom_proxy_generator_reflection_self_type, phantom_proxy_generator_reflection_self_type, protected_breaker>::type member_getter;\
                         union { \
@@ -159,26 +145,33 @@
                         } un;\
                         typedef o_NESTED_TYPE phantom::member_access_value_type<decltype(&member_getter::_name_)>::type member_value_type;\
                         phantom::reflection::detail::data_member_unambiguitor<member_value_type, phantom_proxy_generator_reflection_self_type>::set_union_value(un, &member_getter::_name_);\
-                        phantom::reflection::Type* pType = phantom::typeByName(o_PP_QUOTE(_type_),phantom::reflection::Types::currentInstalledClass);\
+                        phantom::reflection::Type* pType = phantom::typeByName(o_PP_QUOTE(_type_),phantom::reflection::native::currentClassType(), o_native);\
                         o_assert(pType, o_PP_QUOTE(_type_)" type not registered");\
                         if(pType == nullptr) { \
                         o_exception(phantom::exception::t_unknown_reflection_type_exception<_type_> \
                         , o_PP_QUOTE(_type_)" type not registered"); \
                         }\
-                        pType->addReferenceCodeLocation(phantom::sourceFile(__FILE__));\
-                        return phantom::reflection::native::TNativeDataMemberProvider< phantom_proxy_generator_reflection_self_type, _modifiers_, t_TTTTTy >::CreateDataMember(o_PP_QUOTE(_name_), pType, phantom::reflection::detail::data_member_unambiguitor<member_value_type, phantom_proxy_generator_reflection_self_type>::get_union_value(un, &member_getter::_name_), o_range _range_, _serialization_mask_, (_modifiers_)|phantom::reflection::Types::currentModifiers);\
+                        return phantom::reflection::native::TNativeDataMemberProvider< phantom_proxy_generator_reflection_self_type, _modifiers_, t_TTTTTy >::CreateDataMember(o_PP_QUOTE(_name_), pType, phantom::reflection::detail::data_member_unambiguitor<member_value_type, phantom_proxy_generator_reflection_self_type>::get_union_value(un, &member_getter::_name_), o_range _range_, _serialization_mask_, (_modifiers_)|phantom::reflection::native::currentModifiers());\
                     }\
                 };\
                 reg() \
                 {\
-                    auto pDataMember = protected_breaker::get();\
-                    pDataMember->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-                    phantom::reflection::Types::currentInstalledClass->addDataMember(pDataMember);\
-                    if(phantom::reflection::Types::currentInstalledAnonymousSection)\
+                    auto pMember = protected_breaker::get();\
+                    o_assert(pMember);\
+                    o_assert(phantom::reflection::native::currentClassType());\
+                    if(pMember->asDataMember())\
                     {\
-                        phantom::reflection::InstanceDataMember* pInstanceDataMember = pDataMember->asInstanceDataMember();\
-                        if(pInstanceDataMember == nullptr) { o_exception(phantom::exception::reflection_runtime_exception, "static data members cannot be added to anonymous union or anonymous struct"); }\
-                        phantom::reflection::Types::currentInstalledAnonymousSection->addInstanceDataMember(pInstanceDataMember);\
+                        phantom::reflection::native::currentClassType()->addDataMember(pMember->asDataMember());\
+                    }\
+                    else\
+                    {\
+                        phantom::reflection::native::currentClassType()->addVariable(pMember->asVariable());\
+                    }\
+                    if(phantom::reflection::native::currentMemberAnonymousSection())\
+                    {\
+                        phantom::reflection::DataMember* pDataMember = pMember->asDataMember();\
+                        if(pDataMember == nullptr) { o_exception(phantom::exception::reflection_runtime_exception, "static data members cannot be added to anonymous union or anonymous struct"); }\
+                        phantom::reflection::native::currentMemberAnonymousSection()->addDataMember(pDataMember);\
                     }\
                 }\
             } ;\
@@ -186,26 +179,18 @@
         } o_PP_CAT(data_member, __COUNTER__);
 
 #define o_anonymous_struct(...)\
-    class \
-    {\
-        struct sub_reg\
-        {\
-            __VA_ARGS__\
-        };\
-        struct reg\
-        {\
-            reg() \
-            {\
-                phantom::reflection::AnonymousSection* pPrevAnonymousSection = phantom::reflection::Types::currentInstalledAnonymousSection;\
-                phantom::reflection::Types::currentInstalledAnonymousSection = o_new(phantom::reflection::AnonymousStruct);\
-                sub_reg sub_regi;\
-                phantom::reflection::Types::currentInstalledClass->addAnonymousSection(phantom::reflection::Types::currentInstalledAnonymousSection);\
-                phantom::reflection::Types::currentInstalledAnonymousSection = pPrevAnonymousSection;\
-            }\
-        } regi;\
-    } o_PP_CAT(anonymous_struct,__COUNTER__);
+    o_anonymous_section(struct, __VA_ARGS__)
 
 #define o_anonymous_union(...)\
+    o_anonymous_section(union, __VA_ARGS__)
+
+#define o_anonymous_structG(...)\
+    static o_anonymous_struct(__VA_ARGS__)
+
+#define o_anonymous_unionG(...)\
+    static o_anonymous_union(__VA_ARGS__)
+
+#define o_anonymous_section(keyword, ...)\
     class \
     {\
         struct sub_reg\
@@ -214,18 +199,49 @@
         };\
         struct reg\
         {\
+            typedef phantom::reflection::AnonymousStruct Anonymousstruct;             \
+            typedef phantom::reflection::AnonymousUnion Anonymousunion;               \
+            typedef phantom::reflection::MemberAnonymousStruct MemberAnonymousstruct; \
+            typedef phantom::reflection::MemberAnonymousUnion MemberAnonymousunion;   \
             reg() \
             {\
-                phantom::reflection::AnonymousSection* pPrevAnonymousSection = phantom::reflection::Types::currentInstalledAnonymousSection;\
-                phantom::reflection::Types::currentInstalledAnonymousSection = o_new(phantom::reflection::AnonymousUnion);\
-                sub_reg sub_regi;\
-                phantom::reflection::Types::currentInstalledClass->addAnonymousSection(phantom::reflection::Types::currentInstalledAnonymousSection);\
-                phantom::reflection::Types::currentInstalledAnonymousSection = pPrevAnonymousSection;\
+                if(phantom::reflection::native::currentAnonymousSection())\
+                {\
+                    auto pAS = o_new(Anonymous##keyword);\
+                    phantom::reflection::native::currentAnonymousSection()->addAnonymousSection(pAS);\
+                    phantom::reflection::native::pushAnonymousSection(pAS);\
+                    sub_reg sub_regi;\
+                    phantom::reflection::native::popAnonymousSection();\
+                }\
+                else if(phantom::reflection::native::currentScope()->asLanguageElement()->asNamespace())\
+                {\
+                    auto pAS = o_new(Anonymous##keyword);\
+                    phantom::reflection::native::currentScope()->asLanguageElement()->asNamespace()->addAnonymousSection(pAS);\
+                    phantom::reflection::native::pushAnonymousSection(pAS);\
+                    sub_reg sub_regi;\
+                    phantom::reflection::native::popAnonymousSection();\
+                }\
+                else if(phantom::reflection::native::currentMemberAnonymousSection())\
+                {\
+                    auto pAS = o_new(MemberAnonymous##keyword);\
+                    phantom::reflection::native::currentMemberAnonymousSection()->addMemberAnonymousSection(pAS);\
+                    phantom::reflection::native::pushMemberAnonymousSection(pAS);\
+                    sub_reg sub_regi;\
+                    phantom::reflection::native::popMemberAnonymousSection();\
+                }\
+                else if(phantom::reflection::native::currentScope()->asLanguageElement()->asClassType())\
+                {\
+                    auto pAS = o_new(MemberAnonymous##keyword);\
+                    phantom::reflection::native::currentScope()->asLanguageElement()->asClassType()->addMemberAnonymousSection(pAS);\
+                    phantom::reflection::native::pushMemberAnonymousSection(pAS);\
+                    sub_reg sub_regi;\
+                    phantom::reflection::native::popMemberAnonymousSection();\
+                }\
+                else \
+                o_exception(phantom::exception::reflection_runtime_exception, "anonymous "#keyword" declared outside legal scope");\
             }\
         } regi;\
-    } o_PP_CAT(anonymous_union,__COUNTER__);
-
-
+    } o_PP_CAT(anonymous_##keyword,__COUNTER__);
 
 #define o_anonymous(...)\
     class \
@@ -234,7 +250,7 @@
         {\
             reg() \
             {\
-                phantom::reflection::AnonymousSection* pSection = phantom::reflection::Types::currentInstalledClass->addAnonymousSection(#__VA_ARGS__, o_native);\
+                phantom::reflection::AnonymousSection* pSection = phantom::reflection::native::currentClassType()->addAnonymousSection(#__VA_ARGS__, o_native);\
                 if(pSection == nullptr)\
                 {\
                     o_exception(exception::reflection_runtime_exception, "Error in anonymous section declaration, forgot union or struct ? have you declared every data member ?");\
@@ -251,41 +267,44 @@
             {\
                 struct protected_breaker : public phantom_proxy_generator_protected_breaker_base\
                 {\
-                    o_forceinline static phantom::reflection::MemberFunction* get()\
+                    o_forceinline static void add()\
                     {\
-                        return phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value,_returntype_ _parameterslist_>::CreateMemberFunction( \
+                        auto pMemberFunction = phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value,_returntype_ _parameterslist_>::CreateMemberFunction( \
                         o_PP_QUOTE(_name_) \
-                        , phantom::reflection::Signature::Create(o_PP_QUOTE(_returntype_) "" o_PP_QUOTE(_parameterslist_), phantom::reflection::Types::currentInstalledTemplateSpecialization, phantom::reflection::Types::currentInstalledClass) \
+                        , o_PP_QUOTE(_returntype_) "" o_PP_QUOTE(_parameterslist_)\
                         , &phantom_proxy_generator_reflection_proxy_type::phantom_proxy_generator_reflection_self_type::_name_ \
-                        ,phantom::detail::int_embedder<__VA_ARGS__>::value|phantom::reflection::Types::currentModifiers);\
+                        ,phantom::detail::int_embedder<__VA_ARGS__>::value|phantom::reflection::native::currentModifiers());\
                     }\
                 };\
                 reg() \
                 {\
-                    auto pMemberFunction = protected_breaker::get();\
-                    pMemberFunction->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-                    phantom::reflection::Types::currentInstalledClass->addMemberFunction(pMemberFunction);\
+                    protected_breaker::add();\
                 }\
             } regi;\
         } o_PP_CAT(member_function, __COUNTER__);
 
 #    define o_slot(_returntype_, _name_, _parameterslist_, ...) \
-    class \
-    {\
-        struct reg\
+        class\
         {\
-            reg() \
+            struct reg\
             {\
-                auto pMemberFunction = phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value|o_slot_member_function,_returntype_ _parameterslist_>::CreateMemberFunction( \
-                o_PP_QUOTE(_name_) \
-                , phantom::reflection::Signature::Create(o_PP_QUOTE(_returntype_) "" o_PP_QUOTE(_parameterslist_), phantom::reflection::Types::currentInstalledTemplateSpecialization, phantom::reflection::Types::currentInstalledClass) \
-                , &phantom_proxy_generator_reflection_proxy_type::_name_ \
-                ,phantom::detail::int_embedder<__VA_ARGS__>::value|o_slot_member_function|phantom::reflection::Types::currentModifiers);\
-                pMemberFunction->asLanguageElement()->addCodeLocation(phantom::sourceFile(__FILE__));\
-                phantom::reflection::Types::currentInstalledClass->addMemberFunction(pMemberFunction);\
-            }\
-        } regi;\
-    } o_PP_CAT(slot,__COUNTER__);
+                struct protected_breaker : public phantom_proxy_generator_protected_breaker_base\
+                {\
+                    o_forceinline static void add()\
+                    {\
+                        auto pMemberFunction = phantom::reflection::native::TNativeMemberFunctionProvider<phantom_proxy_generator_reflection_self_type,phantom::detail::int_embedder<__VA_ARGS__>::value,_returntype_ _parameterslist_>::CreateMemberFunction( \
+                        o_PP_QUOTE(_name_) \
+                        , o_PP_QUOTE(_returntype_) "" o_PP_QUOTE(_parameterslist_)\
+                        , &phantom_proxy_generator_reflection_proxy_type::phantom_proxy_generator_reflection_self_type::_name_ \
+                        ,phantom::detail::int_embedder<__VA_ARGS__>::value|o_slot_member_function|phantom::reflection::native::currentModifiers());\
+                    }\
+                };\
+                reg() \
+                {\
+                    protected_breaker::add();\
+                }\
+            } regi;\
+        } o_PP_CAT(slot, __COUNTER__);
 
 #    define o_constructor(_parameterslist_, ...) \
     class \
@@ -294,9 +313,7 @@
         {\
             reg() \
             {\
-                auto pConstructor = o_dynamic_proxy_new(phantom::reflection::native::TNativeConstructor<phantom_proxy_generator_reflection_self_type _parameterslist_>)(phantom::reflection::Types::currentInstalledClass->getName(), phantom::reflection::Signature::Create("void" o_PP_QUOTE(_parameterslist_), phantom::reflection::Types::currentInstalledTemplateSpecialization, phantom::reflection::Types::currentInstalledClass),phantom::detail::int_embedder<__VA_ARGS__>::value|phantom::reflection::Types::currentModifiers);\
-                pConstructor->addCodeLocation(phantom::sourceFile(__FILE__));\
-                phantom::reflection::Types::currentInstalledClass->addConstructor(pConstructor);\
+                auto pConstructor = o_dynamic_proxy_new(phantom::reflection::native::TNativeConstructor<phantom_proxy_generator_reflection_self_type _parameterslist_>)(phantom::reflection::native::currentClassType()->getName(), "void" o_PP_QUOTE(_parameterslist_), phantom::detail::int_embedder<__VA_ARGS__>::value|phantom::reflection::native::currentModifiers());\
             }\
         } regi;\
     } o_PP_CAT(constructor,__COUNTER__);
@@ -313,14 +330,14 @@
 #define o_nested_typedef_1(name)\
     class \
     {\
-        template<typename wedontcare>\
-        struct protected_breaker : public wedontcare {};\
-        template<typename wereallydontcare>\
+        template<typename t_TTTy>\
+        struct protected_breaker : public t_TTTy {};\
+        template<typename t_TTTy>\
         struct reg\
         {\
             reg() \
             {\
-                phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::reflection::type_of<o_NESTED_TYPE protected_breaker<wereallydontcare>::name>::object());\
+                phantom::reflection::native::currentClassType()->addAlias(phantom::reflection::type_of<o_NESTED_TYPE protected_breaker<t_TTTy>::name>::object(), #name, o_native);\
             }\
         };\
         reg<phantom_proxy_generator_protected_breaker_base> regi;\
@@ -334,7 +351,7 @@
         {\
             reg() \
             {\
-                phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0, phantom::reflection::Types::currentInstalledClass));\
+                phantom::reflection::native::currentClassType()->addAlias(phantom::typeByName(#part0, phantom::reflection::native::currentClassType()), #name, o_native);\
             }\
         } regi;\
     } o_PP_CAT(typedef,__COUNTER__);\
@@ -347,7 +364,7 @@
         {\
             reg() \
             {\
-                phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0 #part1, phantom::reflection::Types::currentInstalledClass));\
+                phantom::reflection::native::currentClassType()->addAlias(phantom::typeByName(#part0 #part1, phantom::reflection::native::currentClassType()), #name, o_native);\
             }\
         } regi;\
     } o_PP_CAT(typedef,__COUNTER__);\
@@ -360,7 +377,7 @@
         {\
             reg() \
             {\
-                phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0 #part1 #part2, phantom::reflection::Types::currentInstalledClass));\
+                phantom::reflection::native::currentClassType()->addAlias(phantom::typeByName(#part0 #part1 #part2, phantom::reflection::native::currentClassType()), #name, o_native);\
             }\
         } regi;\
     } o_PP_CAT(typedef,__COUNTER__);\
@@ -373,7 +390,7 @@
         {\
             reg() \
             {\
-                phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0 #part1 #part2 #part3, phantom::reflection::Types::currentInstalledClass));\
+                phantom::reflection::native::currentClassType()->addAlias(phantom::typeByName(#part0 #part1 #part2 #part3, phantom::reflection::native::currentClassType()), #name, o_native);\
             }\
         } regi;\
     } o_PP_CAT(typedef,__COUNTER__);\
@@ -386,7 +403,7 @@
         {\
             reg() \
             {\
-                phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0 #part1 #part2 #part3 #part4, phantom::reflection::Types::currentInstalledClass));\
+                phantom::reflection::native::currentClassType()->addAlias(phantom::typeByName(#part0 #part1 #part2 #part3 #part4, phantom::reflection::native::currentClassType()), #name, o_native);\
             }\
         } regi;\
     } o_PP_CAT(typedef,__COUNTER__);\
@@ -399,116 +416,7 @@
         {\
             reg() \
             {\
-                phantom::reflection::Types::currentInstalledTemplateSpecialization->getTemplate()->getTemplateSignature()->setDefaultArgument(#parameter, phantom::reflection::type_of<__VA_ARGS__>::object());\
+                phantom::reflection::native::currentClassType()->getTemplateSpecialization()->setDefaultArgument(#parameter, phantom::reflection::type_of<__VA_ARGS__>::object());\
             }\
         } regi;\
     } o_PP_CAT(default_template_argument_type,__COUNTER__);
-/*
-
-#define o_nested_typedef_2(part0, name)\
-class o_PP_CAT(name,__LINE__) \
-        {\
-        friend class enclosed_reflection;\
-        o_PP_CAT(name,__LINE__)() \
-            {\
-            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0, phantom::reflection::Types::currentInstalledClass));\
-            }\
-        } o_PP_CAT(name,__LINE__);
-
-#define o_nested_typedef_3(part0, part1, name)\
-class o_PP_CAT(name,__LINE__) \
-        {\
-        friend class enclosed_reflection;\
-        o_PP_CAT(name,__LINE__)() \
-            {\
-            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0","#part1, phantom::reflection::Types::currentInstalledClass));\
-            }\
-        } o_PP_CAT(name,__LINE__);
-
-#define o_nested_typedef_4(part0, part1, part2, name)\
-class o_PP_CAT(name,__LINE__) \
-        {\
-        friend class enclosed_reflection;\
-        o_PP_CAT(name,__LINE__)() \
-            {\
-            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0","#part1","#part2, phantom::reflection::Types::currentInstalledClass));\
-            }\
-        } o_PP_CAT(name,__LINE__);
-
-#define o_nested_typedef_5(part0, part1, part2, part3, name)\
-class o_PP_CAT(name,__LINE__) \
-        {\
-        friend class enclosed_reflection;\
-        o_PP_CAT(name,__LINE__)() \
-            {\
-            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0","#part1","#part2","#part3, phantom::reflection::Types::currentInstalledClass));\
-            }\
-        } o_PP_CAT(name,__LINE__);
-
-#define o_nested_typedef_6(part0, part1, part2, part3, part4, name)\
-class o_PP_CAT(name,__LINE__) \
-        {\
-        friend class enclosed_reflection;\
-        o_PP_CAT(name,__LINE__)() \
-            {\
-            phantom::reflection::Types::currentInstalledClass->addNestedTypedef(#name, phantom::typeByName(#part0","#part1","#part2","#part3","#part4, phantom::reflection::Types::currentInstalledClass));\
-            }\
-        } o_PP_CAT(name,__LINE__);
-
-#define o_default_template_argument_type(parameter, ...)\
-class o_PP_CAT(parameter,__LINE__) \
-        {\
-        friend class enclosed_reflection;\
-        o_PP_CAT(parameter,__LINE__)() \
-            {\
-            phantom::reflection::Types::currentInstalledTemplateSpecialization->setDefaultArgument(#parameter, phantom::typeByName(#__VA_ARGS__, phantom::reflection::Types::currentInstalledClass));\
-            }\
-        } o_PP_CAT(parameter,__LINE__);
-        */
-
-#define o_function(_returntype_, _name_, _parameters_, ...) \
-    static struct o_PP_CAT(g_reflection_function_registration_##_name_, __COUNTER__)\
-    {\
-        virtual void registerElement()\
-        {\
-            phantom::reflection::Namespace* pNamespace = phantom::globalNamespace();\
-            pNamespace->addFunction(\
-                phantom::reflection::native::TNativeFunctionProvider<_returntype_ _parameters_>::CreateFunction(#_name_, phantom::reflection::Signature::Create(o_PP_QUOTE(_returntype_)o_PP_QUOTE(_parameters_), nullptr, pNamespace), _name_,##__VA_ARGS__)\
-            );\
-        }\
-    } o_PP_CAT(g_reflection_function_registration_##_name_, __COUNTER__);\
-
-#define o_functionN(_namespace_, _returntype_, _name_, _parameters_, ...)\
-    o_namespace _namespace_\
-    static struct o_PP_CAT(g_reflection_function_registration_##_name_, __LINE__) : public phantom::dynamic_initializer_handle::deferred_registrer_base\
-    {\
-        virtual void registerElement()\
-        {\
-            phantom::reflection::Namespace* pNamespace = phantom::namespaceByName(o_PP_QUOTE_SCOPE(_namespace_));\
-            pNamespace->addFunction(\
-                phantom::reflection::native::TNativeFunctionProvider<_returntype_ _parameters_>::CreateFunction(#_name_, phantom::reflection::Signature::Create(o_PP_QUOTE(_returntype_)o_PP_QUOTE(_parameters_), nullptr, pNamespace), o_PP_CREATE_SCOPE _namespace_ :: _name_,##__VA_ARGS__)\
-            );\
-        }\
-    } o_PP_CAT(g_reflection_function_registration_##_name_, __LINE__);\
-
-#define o_variable(_type_, _name_, _range_, ...) \
-    static struct o_PP_CAT(g_reflection_variable_registration_##_name_, __LINE__) : public phantom::dynamic_initializer_handle::deferred_registrer_base\
-    {\
-        virtual void registerElement()\
-        {\
-            phantom::reflection::Namespace* pNamespace = phantom::globalNamespace();\
-            pNamespace->addVariable(o_dynamic_proxy_new(phantom::reflection::native::TNativeVariable<_type_>)(phantom::typeOf<_type_>(), #_name_, &_name_, o_range _range_,##__VA_ARGS__));\
-        }\
-    } o_PP_CAT(g_reflection_variable_registration_##_name_, __LINE__);
-
-#define o_variableN(_namespace_, _type_, _name_, _range_, ...) \
-    o_namespace _namespace_\
-    static struct o_PP_CAT(g_reflection_variable_registration_##_name_, __LINE__) : public phantom::dynamic_initializer_handle::deferred_registrer_base\
-    {\
-        virtual void registerElement()\
-        {\
-            phantom::reflection::Namespace* pNamespace = phantom::namespaceByName(o_PP_QUOTE_SCOPE(_namespace_));\
-            pNamespace->addVariable(o_dynamic_proxy_new(phantom::reflection::native::TNativeVariable<_type_>)(phantom::typeOf<_type_>(), #_name_, &o_PP_CREATE_SCOPE _namespace_ :: _name_, o_range _range_,##__VA_ARGS__));\
-        }\
-    } o_PP_CAT(g_reflection_variable_registration_##_name_, __LINE__);
-

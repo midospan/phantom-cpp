@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
@@ -44,7 +13,7 @@ o_define_meta_type(VirtualMemberFunctionTable);
 
 VirtualMemberFunctionTable::VirtualMemberFunctionTable() 
     : m_pBaseTable(NULL)
-    , m_pMemberFunctions(new vector<InstanceMemberFunction*>)
+    , m_pMemberFunctions(new vector<MemberFunction*>)
     , m_ppClosures(nullptr)
     , m_bClosuresExtracted(false)
 {
@@ -52,7 +21,7 @@ VirtualMemberFunctionTable::VirtualMemberFunctionTable()
 }
 VirtualMemberFunctionTable::VirtualMemberFunctionTable(size_t a_uiSize) 
     : m_pBaseTable(NULL)
-    , m_pMemberFunctions(new vector<InstanceMemberFunction*>(a_uiSize))
+    , m_pMemberFunctions(new vector<MemberFunction*>(a_uiSize))
     , m_ppClosures(nullptr)
     , m_bClosuresExtracted(false)
 {
@@ -70,7 +39,7 @@ VirtualMemberFunctionTable::VirtualMemberFunctionTable( VirtualMemberFunctionTab
 
 VirtualMemberFunctionTable::VirtualMemberFunctionTable( VirtualMemberFunctionTable* a_pBaseTable, size_t a_uiSize )
     : m_pBaseTable(a_pBaseTable)
-    , m_pMemberFunctions(new vector<InstanceMemberFunction*>(a_uiSize))
+    , m_pMemberFunctions(new vector<MemberFunction*>(a_uiSize))
     , m_ppClosures(nullptr)
     , m_bClosuresExtracted(false)
 {
@@ -83,7 +52,7 @@ VirtualMemberFunctionTable::VirtualMemberFunctionTable( VirtualMemberFunctionTab
 
 VirtualMemberFunctionTable::VirtualMemberFunctionTable( void** a_ppClosures, size_t a_uiSize )
     : m_pBaseTable(NULL)
-    , m_pMemberFunctions(new vector<InstanceMemberFunction*>(a_uiSize))
+    , m_pMemberFunctions(new vector<MemberFunction*>(a_uiSize))
     , m_ppClosures(a_ppClosures)
     , m_bClosuresExtracted(false)
 {
@@ -100,7 +69,7 @@ o_destructor VirtualMemberFunctionTable::~VirtualMemberFunctionTable( void )
         o_free(m_ppClosures);
 }
 
-size_t VirtualMemberFunctionTable::getIndexOf( InstanceMemberFunction* a_pMemberFunction ) const
+size_t VirtualMemberFunctionTable::getIndexOf( MemberFunction* a_pMemberFunction ) const
 {
     size_t i = 0;
     for(;i<m_pMemberFunctions->size(); ++i )
@@ -128,16 +97,14 @@ size_t VirtualMemberFunctionTable::getOffset() const
         : 0;
 }
 
-void VirtualMemberFunctionTable::addMemberFunction( InstanceMemberFunction* a_pMemberFunction )
+void VirtualMemberFunctionTable::addMemberFunction( MemberFunction* a_pMemberFunction )
 {
-    o_assert(m_pOwner == a_pMemberFunction->getOwner());
     a_pMemberFunction->setVirtualTableIndex(getMemberFunctionCount());
     setMemberFunction(getMemberFunctionCount(), a_pMemberFunction);
 }
 
-void VirtualMemberFunctionTable::setMemberFunction( size_t a_uiIndex, InstanceMemberFunction* a_pMemberFunction )
+void VirtualMemberFunctionTable::setMemberFunction( size_t a_uiIndex, MemberFunction* a_pMemberFunction )
 {
-    o_assert(m_pOwner == a_pMemberFunction->getOwner());
     o_assert(a_pMemberFunction->getVirtualTableIndex() == a_uiIndex);
     if(sharesMemberFunctions())
         copyOnWrite();
@@ -145,9 +112,8 @@ void VirtualMemberFunctionTable::setMemberFunction( size_t a_uiIndex, InstanceMe
     (*m_pMemberFunctions)[a_uiIndex] = a_pMemberFunction;
 }
 
-void VirtualMemberFunctionTable::insertMemberFunction( InstanceMemberFunction* a_pMemberFunction )
+void VirtualMemberFunctionTable::insertMemberFunction( MemberFunction* a_pMemberFunction )
 {
-    o_assert(m_pOwner == a_pMemberFunction->getOwner());
     for(auto it = m_pMemberFunctions->begin(); it != m_pMemberFunctions->end(); ++it)
     {
         if(*it)
@@ -221,27 +187,27 @@ void VirtualMemberFunctionTable::construct( void* a_pInstance )
     }
 }
 
-InstanceMemberFunction* VirtualMemberFunctionTable::getRootMemberFunction( size_t a_uiIndex ) const
+MemberFunction* VirtualMemberFunctionTable::getRootMemberFunction( size_t a_uiIndex ) const
 {
     if(a_uiIndex >= m_pMemberFunctions->size()) 
         return nullptr;
     if(m_pBaseTable)
     {
-        InstanceMemberFunction* pBase = m_pBaseTable->getRootMemberFunction(a_uiIndex);
+        MemberFunction* pBase = m_pBaseTable->getRootMemberFunction(a_uiIndex);
         if(pBase) return pBase;
     }
     return (*m_pMemberFunctions)[a_uiIndex];
 }
 
-InstanceMemberFunction* VirtualMemberFunctionTable::getRootMemberFunction( InstanceMemberFunction* a_pInstanceMemberFunction ) const
+MemberFunction* VirtualMemberFunctionTable::getRootMemberFunction( MemberFunction* a_pMemberFunction ) const
 {
-    if(getOwnerClass() != a_pInstanceMemberFunction->getOwnerClass()) 
+    if(getOwnerClass() != a_pMemberFunction->getOwnerClass()) 
         return m_pBaseTable 
-                ? m_pBaseTable->getRootMemberFunction(a_pInstanceMemberFunction) 
+                ? m_pBaseTable->getRootMemberFunction(a_pMemberFunction) 
                 : nullptr;
     for(size_t i = 0; i<m_pMemberFunctions->size(); ++i)
     {
-        if((*m_pMemberFunctions)[i] == a_pInstanceMemberFunction)
+        if((*m_pMemberFunctions)[i] == a_pMemberFunction)
             return getRootMemberFunction(i);
     }
     return nullptr;
@@ -255,7 +221,7 @@ bool VirtualMemberFunctionTable::canBeDestroyed() const
 void VirtualMemberFunctionTable::copyOnWrite()
 {
     o_assert(sharesMemberFunctions());
-    m_pMemberFunctions = new vector<InstanceMemberFunction*>;
+    m_pMemberFunctions = new vector<MemberFunction*>;
     *m_pMemberFunctions = *(m_pBaseTable->m_pMemberFunctions);
 }
 

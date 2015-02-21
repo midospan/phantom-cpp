@@ -1,45 +1,17 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
-#include <phantom/reflection/Type.h>
-#include <phantom/reflection/Type.hxx>
-#include <phantom/reflection/Expression.h>
-#include <phantom/reflection/DataPointerType.hxx>
-#include <phantom/reflection/ArrayType.hxx>
-#include <phantom/reflection/ReferenceType.hxx>
-#include <phantom/reflection/ConstType.hxx>
+#include "Type.h"
+#include "Type.hxx"
+#include "Expression.h"
+#include "Application.h"
+#include "DataPointerType.hxx"
+#include "ArrayType.hxx"
+#include "LValueReferenceType.hxx"
+#include "ConstType.hxx"
+#include "VolatileType.hxx"
+#include "ConstVolatileType.hxx"
 /* *********************************************** */
 o_registerN((phantom, reflection), Type);
 o_enumNC((phantom,reflection), (Type), ERelation) (
@@ -55,49 +27,42 @@ o_registerNC((phantom,reflection),(Type),ERelation)
 
 o_namespace_begin(phantom, reflection) 
 
+o_invalid_def(Type, e_other, "<unknown-type>", 0, 0, o_invalid);
+
 o_define_meta_type(Type);
 
-Type::Type( ETypeId a_eTypeId ) 
-    : LanguageElement()
+Type::Type( ETypeId a_eTypeId, modifiers_t a_Modifiers ) 
+    : NamedElement(a_Modifiers)
     , m_eTypeId(a_eTypeId)
     , m_uiSize(0)
     , m_uiSerializedSize(0)
     , m_uiResetSize(0)
     , m_uiAlignment(0)
-    , m_pNestedTypes(nullptr)
-    , m_pNestedTypedefs(nullptr)
     , m_pExtendedTypes(nullptr)
-    , m_pTypedefs(nullptr)
 {
     m_uiBuildOrder = NextBuildOrderValue();
 }
 
 Type::Type( ETypeId a_eTypeId, const string& a_strName, modifiers_t a_Modifiers /*= 0*/ ) 
-    : LanguageElement(a_strName, a_Modifiers)
+    : NamedElement(a_strName, a_Modifiers)
     , m_eTypeId(a_eTypeId)
 , m_uiSize(0)
 , m_uiSerializedSize(0)
 , m_uiResetSize(0)
 , m_uiAlignment(0)
-, m_pNestedTypes(nullptr)
-, m_pNestedTypedefs(nullptr)
 , m_pExtendedTypes(nullptr)
-, m_pTypedefs(nullptr)
 {
     m_uiBuildOrder = NextBuildOrderValue();
 }
 
 Type::Type( ETypeId a_eTypeId, const string& a_strName, ushort a_uiSize, ushort a_uiAlignment, modifiers_t a_Modifiers /*= 0*/ ) 
-    : LanguageElement(a_strName, a_Modifiers)
+    : NamedElement(a_strName, a_Modifiers)
     , m_eTypeId(a_eTypeId)
     , m_uiSize(a_uiSize)
     , m_uiAlignment(a_uiAlignment)
     , m_uiSerializedSize(a_uiSize)
     , m_uiResetSize(a_uiSize)
-    , m_pNestedTypes(nullptr)
-    , m_pNestedTypedefs(nullptr)
     , m_pExtendedTypes(nullptr)
-    , m_pTypedefs(nullptr)
 {
     m_uiBuildOrder = NextBuildOrderValue();
 }
@@ -126,10 +91,10 @@ boolean Type::areValueEqual( void const* a_pSrc0, void const* a_pSrc1 ) const
     return memcmp(a_pSrc0, a_pSrc1, m_uiSize) == 0;
 }
 
-void Type::removeFromNamespace()
+void Type::removeFromScope()
 {
     o_assert(m_pOwner);
-    getNamespace()->removeType(this);
+    getScope()->removeType(this);
 }
 
 DataPointerType* Type::createDataPointerType() const
@@ -142,9 +107,14 @@ ArrayType* Type::createArrayType(size_t a_uiCount) const
     return o_new(ArrayType)(const_cast<Type*>(this), a_uiCount);
 }
 
-ReferenceType* Type::createReferenceType() const 
+LValueReferenceType* Type::createLValueReferenceType() const 
 {
-    return o_new(ReferenceType)(const_cast<Type*>(this));
+    return o_new(LValueReferenceType)(const_cast<Type*>(this));
+}
+
+RValueReferenceType* Type::createRValueReferenceType() const 
+{
+    return o_new(RValueReferenceType)(const_cast<Type*>(this));
 }
 
 void* Type::allocate() const
@@ -187,9 +157,9 @@ void Type::deleteInstance(void* a_pInstance) const
     deallocate(a_pInstance); 
 }
 
-Namespace* Type::getNamespace() const
+Scope* Type::getScope() const
 {
-    return m_pOwner ? m_pOwner->asNamespace() : nullptr;
+    return m_pOwner ? m_pOwner->asScope() : nullptr;
 }
 
 Type* Type::getOwnerType() const
@@ -197,77 +167,19 @@ Type* Type::getOwnerType() const
     return m_pOwner ? m_pOwner->asType() : nullptr;
 }
 
-void Type::addNestedTypedef( const string& a_strTypedef, Type* a_pType )
-{
-    if(m_pNestedTypedefs == nullptr)
-    {
-        m_pNestedTypedefs = new nested_typedef_map;
-    }
-    o_assert(m_pNestedTypedefs->find(a_strTypedef) == m_pNestedTypedefs->end(), "Typedef already registered");
-    (*m_pNestedTypedefs)[a_strTypedef] = a_pType;
-}
-
-void Type::removeNestedTypedef( const string& a_strTypedef, Type* a_pType )
-{
-    o_assert(m_pNestedTypedefs);
-    auto found = m_pNestedTypedefs->find(a_strTypedef);
-    o_assert( found != m_pNestedTypedefs->end(), "Typedef not found");
-    m_pNestedTypedefs->erase(found);
-    if(m_pNestedTypedefs->empty()) 
-    {
-        delete m_pNestedTypedefs;
-        m_pNestedTypedefs = nullptr;
-    }
-}
-
-inline Type* Type::getNestedTypedef( const string& a_strTypedef ) const
-{
-    if(m_pNestedTypedefs == nullptr) return nullptr;
-    auto found = m_pNestedTypedefs->find(a_strTypedef);
-    if( found != m_pNestedTypedefs->end() ) return found->second;
-    return nullptr;
-}
-
-void Type::addNestedType( Type* a_pType )
-{
-    addElement(a_pType);
-}
-
-void Type::removeNestedType( Type* a_pType )
-{
-    removeElement(a_pType);
-}
-
-void Type::elementAdded(LanguageElement* a_pElement)
-{
-    LanguageElement::elementAdded(a_pElement);
-    Type* pType = a_pElement->asType();
-    if(pType)
-    {
-        if(m_pNestedTypes == NULL)
-        {
-            m_pNestedTypes = new vector<Type*>;
-        }
-        o_assert(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), pType) == m_pNestedTypes->end(), "Type already added");
-        m_pNestedTypes->push_back(pType);
-    }
-}
-
 void Type::elementRemoved(LanguageElement* a_pElement)
 {
     LanguageElement::elementRemoved(a_pElement);
-    Type* pType = a_pElement->asType();
-    if(pType)
+    if(m_pExtendedTypes)
     {
-        o_assert(m_pNestedTypes);
-        o_assert(pType->m_pOwner == this, "Type doesn't belong to this type");
-        if(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), pType) != m_pNestedTypes->end())
+        auto found = std::find(m_pExtendedTypes->begin(), m_pExtendedTypes->end(), a_pElement);
+        if(found != m_pExtendedTypes->end())
         {
-            m_pNestedTypes->erase(std::find(m_pNestedTypes->begin(), m_pNestedTypes->end(), pType));
-            if(m_pNestedTypes->size() == 0)
+            m_pExtendedTypes->erase(found);
+            if(m_pExtendedTypes->empty())
             {
-                delete m_pNestedTypes;
-                m_pNestedTypes = nullptr;
+                delete m_pExtendedTypes;
+                m_pExtendedTypes = nullptr;
             }
         }
     }
@@ -323,45 +235,6 @@ phantom::signal_t Type::kindDestroyed(void* a_pInstance)
     return phantom::signal_t();
 }
 #endif
-
-void Type::convertValueTo( Type* a_pDestType, void* a_pDestValue, void const* a_pSrcValue ) const
-{
-    if(a_pDestType->removeConst() == this)
-    {
-        copy(a_pDestValue, a_pSrcValue);
-    }
-    // By default just copy
-    else 
-    {
-        ClassType* pClassType = a_pDestType->asClassType();
-        o_assert(pClassType);
-        Constructor* pConstructor = pClassType->getConstructor(const_cast<Type*>(this), nullptr, 0);
-        o_assert(pConstructor);
-        void* pBuffer = a_pDestType->allocate();
-        void* args[1] = {(void*)a_pSrcValue};
-        pConstructor->call(pBuffer, args); // construct the temp buffer
-        a_pDestType->copy(a_pDestValue, pBuffer);
-        a_pDestType->destroy(pBuffer); // destroy the temp buffer
-        a_pDestType->deallocate(pBuffer);
-    }
-}
-
-boolean Type::isConvertibleTo( Type* a_pType ) const
-{
-    return a_pType->removeConst() == this OR isImplicitlyConvertibleTo(a_pType);
-}
-
-boolean Type::isImplicitlyConvertibleTo( Type* a_pType ) const
-{
-    if (a_pType == this OR a_pType->isPlaceholder()) return true;
-    
-    // if a_pType is a const reference, it is possible to convert to it via a temporary constructed buffer
-    a_pType = (a_pType->asConstReferenceType()) ? a_pType->removeConstReference() : a_pType;
-    if (a_pType == this) return true;
-    
-    return (a_pType->asClassType() != nullptr) 
-                AND (a_pType->asClassType()->getConstructor(const_cast<Type*>(this), nullptr, 0) != nullptr);
-}
 
 void Type::aligner::construct( Type* a_pType )
 {
@@ -484,13 +357,6 @@ size_t Type::alignment::computer::compute()
 void Type::getElements( vector<LanguageElement*>& out, Class* a_pClass ) const
 {
     LanguageElement::getElements(out, a_pClass);
-    if(m_pNestedTypes AND (a_pClass == nullptr OR typeOf<Type>()->isKindOf(a_pClass)))
-    {
-        for(auto it = m_pNestedTypes->begin(); it != m_pNestedTypes->end(); ++it)
-        {
-            out.push_back(*it);
-        }
-    }
 }
 
 void Type::smartCopy( reflection::Type* a_pDestType, void* a_pDest, void const* a_pSource ) const
@@ -557,18 +423,6 @@ Type* Type::getCommonAncestor( Type* a_pType ) const
     return pCommonType;
 }
 
-void Type::moduleChanged( Module* a_pModule )
-{
-    if(m_pExtendedTypes && a_pModule) 
-    {
-        for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
-        {
-            a_pModule->addLanguageElement(*it);
-        }
-    }
-    LanguageElement::moduleChanged(a_pModule);
-}
-
 DataPointerType* Type::getDataPointerType() const
 {
     if(m_pExtendedTypes == nullptr) return nullptr;
@@ -580,13 +434,24 @@ DataPointerType* Type::getDataPointerType() const
     return nullptr;
 }
 
-ReferenceType* Type::getReferenceType() const
+LValueReferenceType* Type::getLValueReferenceType() const
 {
     if(m_pExtendedTypes == nullptr) return nullptr;
     for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
     {
-        ReferenceType* pDataPointerType = (*it)->asReferenceType();
+        LValueReferenceType* pDataPointerType = (*it)->asLValueReferenceType();
         if(pDataPointerType) return pDataPointerType;
+    }
+    return nullptr;
+}
+
+RValueReferenceType* Type::getRValueReferenceType() const
+{
+    if(m_pExtendedTypes == nullptr) return nullptr;
+    for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
+    {
+        RValueReferenceType* pRValueRT = (*it)->asRValueReferenceType();
+        if(pRValueRT) return pRValueRT;
     }
     return nullptr;
 }
@@ -613,12 +478,34 @@ ConstType* Type::getConstType() const
     return nullptr;
 }
 
+VolatileType* Type::getVolatileType() const
+{
+    if(m_pExtendedTypes == nullptr) return nullptr;
+    for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
+    {
+        VolatileType* pVolatileType = (*it)->asVolatileType();
+        if(pVolatileType) return pVolatileType;
+    }
+    return nullptr;
+}
+
+ConstVolatileType* Type::getConstVolatileType() const
+{
+    if(m_pExtendedTypes == nullptr) return nullptr;
+    for(auto it = m_pExtendedTypes->begin(); it != m_pExtendedTypes->end(); ++it)
+    {
+        ConstVolatileType* pConstVolatileType = (*it)->asConstVolatileType();
+        if(pConstVolatileType) return pConstVolatileType;
+    }
+    return nullptr;
+}
+
 DataPointerType* Type::pointerType() const
 {
     if(this == nullptr) return nullptr;
     if(m_pExtendedTypes == nullptr)
     {
-        m_pExtendedTypes = new type_container;
+        m_pExtendedTypes = new vector<Type*>;
     }
     DataPointerType* pType = getDataPointerType();
     if(pType == nullptr)
@@ -626,47 +513,43 @@ DataPointerType* Type::pointerType() const
         pType = createDataPointerType();
         if(pType == nullptr) return nullptr;
         m_pExtendedTypes->push_back(pType);
-        if(m_pModule)
-        {
-            m_pModule->addLanguageElement(pType);
-        }
-        if(getNamespace())
-        {
-            getNamespace()->addType(pType);
-        }
-        else if(m_pOwner && m_pOwner->asType())
-        {
-            m_pOwner->asType()->addNestedType(pType);
-        }
+        const_cast<Type*>(this)->addElement(pType);
     }
     return pType;
 }
 
-ReferenceType* Type::referenceType() const
+LValueReferenceType* Type::lvalueReferenceType() const
 {
     if(this == nullptr) return nullptr;
     if(m_pExtendedTypes == nullptr)
     {
-        m_pExtendedTypes = new type_container;
+        m_pExtendedTypes = new vector<Type*>;
     }
-    ReferenceType* pType = getReferenceType();
+    LValueReferenceType* pType = getLValueReferenceType();
     if(pType == nullptr)
     {
-        pType = createReferenceType();
+        pType = createLValueReferenceType();
         if(pType == nullptr) return nullptr;
         m_pExtendedTypes->push_back(pType);
-        if(m_pModule)
-        {
-            m_pModule->addLanguageElement(pType);
-        }
-        if(getNamespace())
-        {
-            getNamespace()->addType(pType);
-        }
-        else if(m_pOwner && m_pOwner->asType())
-        {
-            m_pOwner->asType()->addNestedType(pType);
-        }
+        const_cast<Type*>(this)->addElement(pType);
+    }
+    return pType;
+}
+
+RValueReferenceType* Type::rvalueReferenceType() const
+{
+    if(this == nullptr) return nullptr;
+    if(m_pExtendedTypes == nullptr)
+    {
+        m_pExtendedTypes = new vector<Type*>;
+    }
+    RValueReferenceType* pType = getRValueReferenceType();
+    if(pType == nullptr)
+    {
+        pType = createRValueReferenceType();
+        if(pType == nullptr) return nullptr;
+        m_pExtendedTypes->push_back(pType);
+        const_cast<Type*>(this)->addElement(pType);
     }
     return pType;
 }
@@ -676,7 +559,7 @@ ArrayType* Type::arrayType( size_t a_uiCount ) const
     if(this == nullptr) return nullptr;
     if(m_pExtendedTypes == nullptr)
     {
-        m_pExtendedTypes = new type_container;
+        m_pExtendedTypes = new vector<Type*>;
     }
     ArrayType* pType = getArrayType(a_uiCount);
     if(pType == nullptr)
@@ -684,18 +567,7 @@ ArrayType* Type::arrayType( size_t a_uiCount ) const
         pType = createArrayType(a_uiCount);
         if(pType == nullptr) return nullptr;
         m_pExtendedTypes->push_back(pType);
-        if(m_pModule)
-        {
-            m_pModule->addLanguageElement(pType);
-        }
-        if(getNamespace())
-        {
-            getNamespace()->addType(pType);
-        }
-        else if(m_pOwner && m_pOwner->asType())
-        {
-            m_pOwner->asType()->addNestedType(pType);
-        }
+        const_cast<Type*>(this)->addElement(pType);
     }
     return pType;
 }
@@ -705,7 +577,7 @@ ConstType* Type::constType() const
     if(this == nullptr) return nullptr;
     if(m_pExtendedTypes == nullptr)
     {
-        m_pExtendedTypes = new type_container;
+        m_pExtendedTypes = new vector<Type*>;
     }
     ConstType* pType = getConstType();
     if(pType == nullptr)
@@ -713,18 +585,43 @@ ConstType* Type::constType() const
         pType = createConstType();
         if(pType == nullptr) return nullptr;
         m_pExtendedTypes->push_back(pType);
-        if(m_pModule)
-        {
-            m_pModule->addLanguageElement(pType);
-        }
-        if(getNamespace())
-        {
-            getNamespace()->addType(pType);
-        }
-        else if(m_pOwner && m_pOwner->asType())
-        {
-            m_pOwner->asType()->addNestedType(pType);
-        }
+        const_cast<Type*>(this)->addElement(pType);
+    }
+    return pType;
+}
+
+VolatileType* Type::volatileType() const
+{
+    if(this == nullptr) return nullptr;
+    if(m_pExtendedTypes == nullptr)
+    {
+        m_pExtendedTypes = new vector<Type*>;
+    }
+    VolatileType* pType = getVolatileType();
+    if(pType == nullptr)
+    {
+        pType = createVolatileType();
+        if(pType == nullptr) return nullptr;
+        m_pExtendedTypes->push_back(pType);
+        const_cast<Type*>(this)->addElement(pType);
+    }
+    return pType;
+}
+
+ConstVolatileType* Type::constVolatileType() const
+{
+    if(this == nullptr) return nullptr;
+    if(m_pExtendedTypes == nullptr)
+    {
+        m_pExtendedTypes = new vector<Type*>;
+    }
+    ConstVolatileType* pType = getConstVolatileType();
+    if(pType == nullptr)
+    {
+        pType = createConstVolatileType();
+        if(pType == nullptr) return nullptr;
+        m_pExtendedTypes->push_back(pType);
+        const_cast<Type*>(this)->addElement(pType);
     }
     return pType;
 }
@@ -735,43 +632,8 @@ Type* Type::pointerType( size_t a_uiPointerLevel ) const
     return pointerType()->pointerType(a_uiPointerLevel-1);
 }
 
-void Type::registerTypedef( Namespace* a_pNamespace, const string& a_strTypedefName )
-{
-    if(m_pTypedefs == nullptr)
-    {
-        m_pTypedefs = new typedef_namespace_map;
-    }
-    (*m_pTypedefs)[a_pNamespace].push_back(a_strTypedefName);
-}
-
-void Type::unregisterTypedef( Namespace* a_pNamespace, const string& a_strTypedefName )
-{
-    auto& vec = (*m_pTypedefs)[a_pNamespace];
-    vec.erase(std::find(vec.begin(), vec.end(), a_strTypedefName));
-    if(vec.empty())
-        m_pTypedefs->erase(a_pNamespace);
-    if(m_pTypedefs->empty())
-    {
-        delete m_pTypedefs;
-        m_pTypedefs = nullptr;
-    }
-}
-
 void Type::referencedElementRemoved( LanguageElement* a_pElement )
 {
-    if(m_pExtendedTypes)
-    {
-        auto found = std::find(m_pExtendedTypes->begin(), m_pExtendedTypes->end(), a_pElement);
-        if(found != m_pExtendedTypes->end())
-        {
-            m_pExtendedTypes->erase(found);
-            if(m_pExtendedTypes->empty())
-            {
-                delete m_pExtendedTypes;
-                m_pExtendedTypes = nullptr;
-            }
-        }
-    }
     LanguageElement::referencedElementRemoved(a_pElement);
 }
 
@@ -798,6 +660,16 @@ void Type::destroy( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSiz
 ConstType* Type::createConstType() const
 {
     return o_new(ConstType)(const_cast<Type*>(this));
+}
+
+VolatileType* Type::createVolatileType() const
+{
+    return o_new(VolatileType)(const_cast<Type*>(this));
+}
+
+ConstVolatileType* Type::createConstVolatileType() const
+{
+    return o_new(ConstVolatileType)(const_cast<Type*>(this));
 }
 
 void Type::install( void* a_pChunk, size_t a_uiCount, size_t a_uiChunkSectionSize, const rtti_data* a_pOwner /*= 0 */ ) const
@@ -850,16 +722,9 @@ void Type::setOwnerByQualifiedDecoratedName( string a_Owner )
     if(a_Owner.empty()) 
         return;
     LanguageElement* pElement = phantom::elementByName(a_Owner);
-    if(pElement)
+    if(pElement AND pElement->asScope())
     {
-        if(pElement->asType())
-        {
-           pElement->asType()->addNestedType(this);
-        }
-        else if(pElement->asNamespace())
-        {
-            pElement->asNamespace()->addType(this);
-        }
+        pElement->asScope()->addType(this);
     }
     else 
     {
@@ -887,26 +752,17 @@ bool Type::referencesData(const void* a_pInstance, const phantom::data& a_Data) 
     return false; 
 }
 
-bool Type::matches( const string& a_strName, const vector<LanguageElement*>* a_pTemplateSignature, modifiers_t modifiers /*= 0*/ ) const
-{
-    if((a_pTemplateSignature AND m_pTemplateSpecialization == nullptr)
-        OR (a_pTemplateSignature == nullptr AND m_pTemplateSpecialization)
-        OR (m_strName != a_strName)
-        OR (m_Modifiers&modifiers) != modifiers) return false;
-    return a_pTemplateSignature ? m_pTemplateSpecialization->matches(*a_pTemplateSignature) : true;
-}
-
-bool Type::templatePartialMatch( LanguageElement* a_pLanguageElement, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+bool Type::partialAccepts( LanguageElement* a_pLanguageElement, size_t& a_Score, map<Placeholder*, LanguageElement*>& a_Deductions ) const
 {
     Type* pType = a_pLanguageElement->asType();
     if(pType) 
     { 
-        return templatePartialMatch(pType, a_Score, a_Deductions); 
+        return partialAccepts(pType, a_Score, a_Deductions); 
     } 
     return false;
 }
 
-bool Type::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplateParameter*, LanguageElement*>& a_Deductions ) const
+bool Type::partialAccepts( Type* a_pType, size_t& a_Score, map<Placeholder*, LanguageElement*>& a_Deductions ) const
 {
     if(a_pType == this) 
     { 
@@ -914,6 +770,94 @@ bool Type::templatePartialMatch( Type* a_pType, size_t& a_Score, map<TemplatePar
         return true; 
     } 
     return false;
+}
+
+int Type::ConversionRank( ETypeId id )
+{
+    switch(id)
+    {
+    case e_bool: return 1;
+
+    case e_char: return 2;
+    case e_uchar: return 2;
+    case e_schar: return 2;
+
+    case e_short: return 3;
+    case e_ushort: return 3;
+    o_if_wchar_t(case e_wchar_t: return 3;)
+    o_if_char16_t(case e_char16_t: return 3;)
+
+    o_if_char32_t(case e_char16_t: return 4;)
+    case e_int: return 4;
+    case e_uint: return 4;
+
+    case e_long: return 5;
+    case e_ulong: return 5;
+
+    case e_longlong: return 6;
+    case e_ulonglong: return 6;
+    }
+    return 0;
+}
+
+phantom::reflection::conversion* Type::conversionTo( Type* a_pOutput, int a_iConversionType /*= 0*/, LanguageElement* a_pContextScope /*= nullptr*/, int a_iUserDefinedConversionsAllowed /*= true*/ )
+{
+    return getLanguage()->typeConversion((Type*)this, a_pOutput, a_iConversionType, a_pContextScope, a_iUserDefinedConversionsAllowed);;
+}
+
+Type* Type::addConst() const
+{
+    return constType();
+}
+
+Type* Type::addVolatile() const
+{
+    return volatileType();
+}
+
+Type* Type::addConstLValueReference() const
+{
+    return addConst()->addLValueReference();
+}
+
+Type* Type::addConstRValueReference() const
+{
+    return addConst()->addRValueReference();
+}
+
+Type* Type::addConstVolatile() const
+{
+    return constVolatileType();
+}
+
+Type* Type::addArray( size_t a_uiCount ) const
+{
+    return arrayType(a_uiCount);
+}
+
+Type* Type::addLValueReference() const
+{
+    return lvalueReferenceType();
+}
+
+Type* Type::addRValueReference() const
+{
+    return rvalueReferenceType();
+}
+
+Type* Type::addPointer() const
+{
+    return pointerType();
+}
+
+Type* Type::addCustom( int id ) const
+{
+    return const_cast<Type*>(this);
+}
+
+Template* Type::getTemplate() const
+{
+    TemplateSpecialization* pSpec = getTemplateSpecialization(); return pSpec ? pSpec->getTemplate() : nullptr;
 }
 
 o_namespace_end(phantom, reflection)

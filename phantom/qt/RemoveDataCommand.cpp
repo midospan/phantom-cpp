@@ -84,7 +84,7 @@ void RemoveDataCommand::undoReplayed()
             reflection::Expression* pExpression = phantom::expressionByName("("+foundRef->second+")=static_cast<"+pType->getQualifiedDecoratedName()+"*>(0x"+lexical_cast<string>(pData)+")");
             o_assert(pExpression);
             pExpression->eval();
-            deleteElement(pExpression);
+            o_dynamic_delete pExpression;
         }
         else 
         {

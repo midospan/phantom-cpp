@@ -1,6 +1,8 @@
 #pragma once
-#include "Subroutine.hxx"
-o_classNB((phantom, reflection), Constructor, (Subroutine), o_deferred|o_abstract) (
+
+#include "MemberFunction.hxx"
+
+o_classNB((phantom, reflection), Constructor, (MemberFunction), o_deferred|o_abstract) (
         );
 
 

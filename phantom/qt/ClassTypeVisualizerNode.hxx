@@ -2,7 +2,4 @@
 
 #include "TypeVisualizerNode.hxx"
 
-o_classNB((phantom, qt), ClassTypeVisualizerNode, (TypeVisualizerNode))
-{
-    o_reflection {};
-};
+o_classNB((phantom, qt), ClassTypeVisualizerNode, (TypeVisualizerNode))();

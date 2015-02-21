@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Expression.hxx"
+#include "LValueExpression.hxx"
 
-o_classNB((phantom, reflection), LocalVariableExpression, (Expression)) (
+o_classNB((phantom, reflection), LocalVariableExpression, (LValueExpression)) (
         );
 
 

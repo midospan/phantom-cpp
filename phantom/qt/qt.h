@@ -29,10 +29,10 @@ o_qt_export void setIconMetaDataIndex(size_t index);
 o_qt_export size_t getNameMetaDataIndex();
 o_qt_export size_t getIconMetaDataIndex();
 
-o_qt_export string  nameOf(reflection::LanguageElement* a_pLanguageElement);
-o_qt_export string  iconOf(reflection::LanguageElement* a_pLanguageElement);
+o_qt_export string  nameOf(reflection::NamedElement* a_pNamedElement);
+o_qt_export string  iconOf(reflection::NamedElement* a_pNamedElement);
 
-o_qt_export reflection::Expression* expressionByName(const string& a_strName, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(rootNamespace()));
+o_qt_export reflection::Expression* expressionByName(const string& a_strName, phantom::reflection::LanguageElement* a_pScope = reinterpret_cast<phantom::reflection::LanguageElement*>(globalNamespace()));
 
 enum EEvalPolicy
 {

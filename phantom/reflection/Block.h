@@ -10,10 +10,10 @@ o_declareN(class, (phantom, reflection), Block);
 o_namespace_begin(phantom, reflection)
 
 class LocalVariable;
-class MemberFunction;
+class Subroutine;
 class ReturnStatement;
 
-class o_export Block : public Statement
+class o_export Block : public Statement, public Scope
 {
     o_language_element;
 
@@ -26,11 +26,13 @@ public:
     Block(Subroutine* a_pSubroutine, LocalVariable* a_pThis = nullptr); // used to create root block in a subroutine
     ~Block();
 
+    virtual Scope* asScope() const  { return (Block*)this; }
     virtual Block* asBlock() const  { return (Block*)this; }
 
     void addLocalVariable(Type* a_pType, const string& a_strName, Expression* a_pInit = nullptr, modifiers_t a_Modifiers = 0);
 	void addLocalVariable(LocalVariable* a_pVariable);
     void addStatement(Statement* a_pStatement);
+    void insertStatementAfter(Statement* a_pAfterMe, Statement* a_pStatement);
     
     void addExpressionStatement(Expression* a_pExpression);
     void addExpressionStatement(const string& a_strExpression);
@@ -97,11 +99,14 @@ public:
     void addRAIIDestructionExpressionStatement(Expression* a_pExpression);
 
     Block*  getRootBlock() const { return (m_pOwner && m_pOwner->asBlock()) ? m_pOwner->asBlock()->getRootBlock() : const_cast<Block*>(this); }
-    
+    Block*  getParentBlock() const { return m_pOwner ? m_pOwner->asBlock() : nullptr; }
+
 protected:
     virtual void restore();
     virtual void elementRemoved( LanguageElement* a_pElement );
     virtual void referencedElementRemoved( LanguageElement* a_pElement );
+    virtual void addScopeElement(NamedElement* a_pElement) { addNamedElement(a_pElement); }
+    virtual void removeScopeElement(NamedElement* a_pElement) { removeElement(a_pElement); }
 
 protected:
     vector<LocalVariable*>  getLocalVariables() const { return m_LocalVariables; }
@@ -116,6 +121,7 @@ protected:
     Block(); // used for serialization
 
 protected:
+    string                  m_strName;
     vector<LocalVariable*>  m_LocalVariables;
     vector<Statement*>      m_Statements;
     vector<Statement*>      m_RAIIDestructionStatements;

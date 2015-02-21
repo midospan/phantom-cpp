@@ -1,106 +1,44 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
-#include <phantom/reflection/Namespace.h>
-#include <phantom/reflection/Namespace.hxx>
-#include <phantom/reflection/Expression.h>
-#include <phantom/reflection/ConstructorCallExpression.h>
-#include <phantom/reflection/Template.hxx>
-#include <phantom/ModuleLoader.h>
+#include "Namespace.h"
+#include "Namespace.hxx"
+#include "Expression.h"
+#include "ConstructorCallExpression.h"
+#include "Template.hxx"
+#include "Application.h"
+#include "Package.h"
 /* *********************************************** */
 o_registerN((phantom, reflection), Namespace);
 
 o_namespace_begin(phantom, reflection) 
 
-Namespace::Namespace( void ) 
+o_invalid_def(Namespace, "<unknown-namespace>", o_invalid);
+
+static vector<AnonymousSection*>    m_EmptyAnonymousSections;
+
+Namespace::Namespace(modifiers_t a_Modifiers /*= 0*/) 
+    : NamedElement("", (a_Modifiers&o_invalid) ? (a_Modifiers|o_public_access) : (o_always_valid|o_public_access|a_Modifiers))
+    , Scope(this)
+    , m_pAnonymousSections(nullptr)
+    , m_pFunctionPointerTypes(nullptr)
 {
 }
 
-Namespace::Namespace( const string& a_strName ) 
-    : LanguageElement(a_strName, modifiers_t(o_always_valid))
+Namespace::Namespace( const string& a_strName, modifiers_t a_Modifiers /*= 0*/ ) 
+    : NamedElement(a_strName, (a_Modifiers&o_invalid) ? (a_Modifiers|o_public_access) : (o_always_valid|o_public_access|a_Modifiers))
+    , Scope(this)
+    , m_pAnonymousSections(nullptr)
+    , m_pFunctionPointerTypes(nullptr)
 {
 }
 
 Namespace::~Namespace( void )
 {
-    destroyAllNamespaceCascade();
-}
 
-void Namespace::getHierarchicalName( string* a_OutString )
-{
-    if(getParentNamespace()) 
-    {
-        getParentNamespace()->getHierarchicalName(a_OutString);
-        *a_OutString += o_CC('.');
-    }
-    *a_OutString += getName();
-}
-
-Type* Namespace::getType( const string& a_strName ) const
-{
-    vector<Type*>::const_iterator it = m_Types.begin();
-    vector<Type*>::const_iterator end = m_Types.end();
-    for(;it != end; ++it)
-    {
-        if((*it)->getName() == a_strName) return *it;
-    }
-    return false;
-}
-
-Type* Namespace::getTypeByGuid( uint a_uiGuid ) const
-{
-	vector<Type*>::const_iterator it = m_Types.begin();
-	vector<Type*>::const_iterator end = m_Types.end();
-	for(;it != end; ++it)
-	{
-		if((*it)->getGuid() == a_uiGuid) return *it;
-	}
-	return false;
-}
-
-Template* Namespace::getTemplate( const string& a_strName ) const
-{
-    vector<Template*>::const_iterator it = m_Templates.begin();
-    vector<Template*>::const_iterator end = m_Templates.end();
-    for(;it != end; ++it)
-    {
-        if((*it)->getName() == a_strName) return *it;
-    }
-    return false;
 }
 
 Namespace* Namespace::getNamespaceCascade( list<string>* a_HierarchyWords ) const
@@ -130,11 +68,11 @@ Namespace*        Namespace::findOrCreateNamespaceCascade(list<string>* a_Hierar
     {
         pChildNamespace = o_static_new_alloc_and_construct_part(Namespace)(str);
         m_Namespaces.push_back(pChildNamespace); 
-        addElement(pChildNamespace);
+        addNamedElement(pChildNamespace);
         o_static_new_install_and_initialize_part(pChildNamespace);
         /*typeOf<Namespace>()->install(pChildNamespace, 0);
         typeOf<Namespace>()->initialize(pChildNamespace);*/
-        if(moduleLoader()->getLoadedModuleCount())
+        if(application()->getLoadedModuleCount())
         {
             o_emit namespaceAdded(pChildNamespace);
         }
@@ -150,10 +88,10 @@ Namespace*        Namespace::findOrCreateNamespaceCascade(list<string>* a_Hierar
     return NULL;
 }
 
-Namespace* Namespace::findOrCreateNamespaceCascade( const string& a_strNamespaceName )
+Namespace* Namespace::findOrCreateNamespaceCascade( const string& a_strNamespaceName, const char* separatorPattern )
 {
     list<string> words;
-    split( words, a_strNamespaceName, boost::is_any_of(":. "), boost::token_compress_on ); // SplitVec == { "hello abc","ABC","aBc goodbye" }
+    split( words, a_strNamespaceName, boost::is_any_of(separatorPattern), boost::token_compress_on ); // SplitVec == { "hello abc","ABC","aBc goodbye" }
     words.erase( std::remove_if( words.begin(), words.end(), 
         boost::bind( &string::empty, _1 ) ), words.end() );
     return findOrCreateNamespaceCascade(&words);
@@ -168,40 +106,18 @@ Namespace* Namespace::getNamespace( const string& a_strName ) const
     return NULL;
 }
 
-void Namespace::destroyAllNamespaceCascade()
+Alias* Namespace::getNamespaceAlias( const string& a_strName ) const
 {
-    o_foreach(Namespace* pNamespace, m_Namespaces)
+    o_foreach(Alias* pNamespaceAlias, m_NamespaceAliases)
     {
-        o_dynamic_delete_clean(pNamespace);
+        if(pNamespaceAlias->getName() == a_strName) return pNamespaceAlias;
     }
-}
-
-void Namespace::destroyAllCascade()
-{
-    {
-        o_foreach(Type* pType, m_Types)
-        {
-            o_dynamic_delete_clean(pType);
-        }
-        m_Types.clear();
-    }
-    {
-        o_foreach(Namespace* pNamespace, m_Namespaces)
-        {
-            pNamespace->destroyAllCascade();
-            o_dynamic_delete_clean(pNamespace);
-        }
-        m_Namespaces.clear();
-    }
+    return nullptr;
 }
 
 void Namespace::release(vector<Type*>& out_types)
 {
-    while(!m_Types.empty())
-    {
-        out_types.push_back(m_Types.back());
-        removeType(m_Types.back());
-    }
+    Scope::release(out_types);
     while(!m_Namespaces.empty())
     {
         Namespace* pNamespace = m_Namespaces.back();
@@ -209,199 +125,14 @@ void Namespace::release(vector<Type*>& out_types)
         removeNamespace(pNamespace);
         o_dynamic_delete_clean(pNamespace);
     }
-
-}
-
-boolean Namespace::searchAndDestroy( Type* a_pType )
-{
-    vector<Type*>::iterator found = std::find(m_Types.begin(), m_Types.end(), a_pType);
-    if(found != m_Types.end()) 
-    {
-        m_Types.erase(found);
-        o_dynamic_delete_clean(a_pType);
-        return true;
-    }
-    return false;
-}
-
-
-boolean                Namespace::searchAndRemove(Type* a_pType)
-{
-    vector<Type*>::iterator found = std::find(m_Types.begin(), m_Types.end(), a_pType);
-    if(found != m_Types.end()) 
-    {
-        m_Types.erase(found);
-        return true;
-    }
-    return false;
-}
-
-boolean                Namespace::searchAndRemoveCascade(Type* a_pType)
-{
-    if(searchAndRemove(a_pType))
-        return true;
-    o_foreach(Namespace* pNamespace, m_Namespaces)
-    {
-        if(pNamespace->searchAndRemoveCascade(a_pType))
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-boolean Namespace::searchAndDestroy( Namespace* a_pNamespace )
-{
-    vector<Namespace*>::iterator found = std::find(m_Namespaces.begin(), m_Namespaces.end(), a_pNamespace);
-    if(found != m_Namespaces.end()) 
-    {
-        o_dynamic_delete_clean(a_pNamespace);
-        m_Namespaces.erase(found);
-        return true;
-    }
-    return false;
-}
-
-boolean Namespace::searchAndDestroyCascade( Type* a_pType )
-{
-    if(searchAndDestroy(a_pType))
-        return true;
-
-    o_foreach(Namespace* pNamespace, m_Namespaces)
-    {
-        if(pNamespace->searchAndDestroyCascade(a_pType))
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-boolean Namespace::searchAndDestroyCascade( Namespace* a_pNamespace )
-{
-    if(searchAndDestroy(a_pNamespace))
-        return true;
-
-    o_foreach(Namespace* pNamespace, m_Namespaces)
-    {
-        if(pNamespace->searchAndDestroyCascade(a_pNamespace))
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-void Namespace::addType( Type* a_pType )
-{
-    o_assert(a_pType->m_pOwner == NULL, "Type has already been attached to a Namespace");
-    o_assert(getTypedef(a_pType->getName()) == NULL, "A typedef has already been registered with this type's name");
-    o_assert(getNamespaceAlias(a_pType->getName()) == NULL, "A namespace alias has already been registered with this type's name");
-    o_assert(std::find(m_Types.begin(), m_Types.end(), a_pType) == m_Types.end(), "Type already attached to this Namespace");
-    m_Types.push_back(a_pType);
-    addElement(a_pType);
-    if(moduleLoader()->getLoadedModuleCount())
-    {
-        o_emit typeAdded(a_pType);
-    }
-}
-
-void Namespace::addFunction( Function* a_pFunction )
-{
-    o_assert(a_pFunction->getOwner() == NULL, "Function has already been attached to a Namespace");
-    o_assert(phantom::elementByName(a_pFunction->getQualifiedDecoratedName(), this) == nullptr, "Function with same signature found in current namespace");
-    m_Functions.push_back(a_pFunction);
-    addElement(a_pFunction);
-    if(moduleLoader()->getLoadedModuleCount())
-    {
-        o_emit functionAdded(a_pFunction);
-    }
-}
-
-void Namespace::addVariable( StaticVariable* a_pVariable )
-{
-    o_assert(a_pVariable->getOwner() == NULL, "Variable has already been attached to a Namespace");
-    o_assert(phantom::elementByName(a_pVariable->getQualifiedDecoratedName(), this) == nullptr, "Variable with same signature found in current namespace");
-    m_Variables.push_back(a_pVariable);
-    addElement(a_pVariable);
-    if(moduleLoader()->getLoadedModuleCount())
-    {
-        o_emit variableAdded(a_pVariable);
-    }
-}
-
-void Namespace::addTemplate( Template* a_pTemplate )
-{
-    o_assert(a_pTemplate->m_pOwner == NULL, "Type has already been attached to a Namespace");
-    o_assert(getTypedef(a_pTemplate->getName()) == NULL, "A typedef has already been registered with this type's name");
-    o_assert(getNamespaceAlias(a_pTemplate->getName()) == NULL, "A namespace alias has already been registered with this type's name");
-    o_assert(std::find(m_Templates.begin(), m_Templates.end(), a_pTemplate) == m_Templates.end(), "Template already attached to this Namespace");
-    m_Templates.push_back(a_pTemplate);
-    addElement(a_pTemplate);
-    if(moduleLoader()->getLoadedModuleCount())
-    {
-        o_emit templateAdded(a_pTemplate);
-    }
-}
-
-void Namespace::removeType( Type* a_pType )
-{
-    o_assert(a_pType->m_pOwner == this, "This type is attached to another Namespace");
-    vector<Type*>::iterator found = std::find(m_Types.begin(), m_Types.end(), a_pType);
-    o_assert(found != m_Types.end(), "Type not found");
-    m_Types.erase(found);
-    removeElement(a_pType);
-    if(moduleLoader()->getLoadedModuleCount())
-    {
-        o_emit typeRemoved(a_pType);
-    }
-}
-
-void Namespace::removeFunction( Function* a_pFunction )
-{
-    o_assert(a_pFunction->getOwner() == this, "This function is attached to another Namespace");
-    vector<Function*>::iterator found = std::find(m_Functions.begin(), m_Functions.end(), a_pFunction);
-    o_assert(found != m_Functions.end(), "Function not found");
-    m_Functions.erase(found);
-    removeElement(a_pFunction);
-    if(moduleLoader()->getLoadedModuleCount())
-    {
-        o_emit functionRemoved(a_pFunction);
-    }
-}
-
-void Namespace::removeVariable( StaticVariable* a_pVariable )
-{
-    o_assert(a_pVariable->getOwner() == this, "This function is attached to another Namespace");
-    vector<StaticVariable*>::iterator found = std::find(m_Variables.begin(), m_Variables.end(), a_pVariable);
-    o_assert(found != m_Variables.end(), "Variable not found");
-    m_Variables.erase(found);
-    removeElement(a_pVariable);
-    if(moduleLoader()->getLoadedModuleCount())
-    {
-        o_emit variableRemoved(a_pVariable);
-    }
-}
-
-void Namespace::removeTemplate( Template* a_pTemplate )
-{
-    o_assert(a_pTemplate->m_pOwner == this, "This type is attached to another Namespace");
-    auto found = std::find(m_Templates.begin(), m_Templates.end(), a_pTemplate);
-    o_assert(found != m_Templates.end(), "Template not found");
-    m_Templates.erase(found);
-    removeElement(a_pTemplate);
-    if(moduleLoader()->getLoadedModuleCount())
-    {
-        o_emit templateRemoved(a_pTemplate);
-    }
 }
 
 void Namespace::addNamespace( Namespace* a_pNamespace )
 {
     o_assert_not(getNamespace(a_pNamespace->getName()));
     m_Namespaces.push_back(a_pNamespace); 
-    addElement(a_pNamespace);
-    if(moduleLoader()->getLoadedModuleCount())
+    addNamedElement(a_pNamespace);
+    if(application()->getLoadedModuleCount())
     {
         o_emit namespaceAdded(a_pNamespace);
     }
@@ -409,47 +140,7 @@ void Namespace::addNamespace( Namespace* a_pNamespace )
 
 void Namespace::removeNamespace( Namespace* a_pNamespace )
 {
-    o_assert(a_pNamespace->getParentNamespace() == this, "This namespace is attached to another Namespace");
-    vector<Namespace*>::iterator found = std::find(m_Namespaces.begin(), m_Namespaces.end(), a_pNamespace);
-    o_assert(found != m_Namespaces.end(), "Namespace not found");
-    m_Namespaces.erase(found);
     removeElement(a_pNamespace);
-    if(moduleLoader()->getLoadedModuleCount())
-    {
-        o_emit namespaceRemoved(a_pNamespace);
-    }
-}
-
-Namespace* Namespace::findTypeNamespace( Type* a_pType ) const
-{
-    {
-        o_foreach(Type* pType, m_Types)
-        {
-            if(pType == a_pType)
-                return const_cast<Namespace*>(this);
-        }
-    }
-    {
-        o_foreach(Namespace* pNamespace, m_Namespaces)
-        {
-            Namespace* pFoundNamespace = pNamespace->findTypeNamespace(a_pType);
-            if(pFoundNamespace != NULL)
-            {
-                return pFoundNamespace;
-            }
-        }
-    }
-    return NULL;
-}
-
-
-void Namespace::removeAllTypeCascade()
-{
-    m_Types.clear();
-    o_foreach(Namespace* pNamespace, m_Namespaces)
-    {
-        pNamespace->removeAllTypeCascade();
-    }    
 }
 
 Namespace* Namespace::getRootNamespace() const
@@ -459,200 +150,359 @@ Namespace* Namespace::getRootNamespace() const
     return getParentNamespace()->getRootNamespace();
 }
 
-void Namespace::getHierarchicalNameNoRoot( string* a_OutString )
+#define o_assert_simple_name_collision(elem) \
+    o_assert(!hasElementWithName(elem->getName()), "An element has already been registered with name %s in scope %s", elem->getName().c_str(), m_pThisElement->getQualifiedDecoratedName().c_str());
+
+Alias* Namespace::addNamespaceAlias( const string& a_strAlias, Namespace* a_pNamespace )
 {
-    if(getParentNamespace()) 
-    {
-        if(getParentNamespace()->getParentNamespace())
-        {
-            getParentNamespace()->getHierarchicalNameNoRoot(a_OutString);
-            *a_OutString += o_CC('.');
-        }
-        *a_OutString += getName();
-    }
-    
+    Alias* pAlias = o_new(Alias)(a_pNamespace, a_strAlias);
+    addAlias(pAlias);
+    m_NamespaceAliases.push_back(pAlias);
+    return pAlias;
 }
 
-PrimitiveType* Namespace::getPrimitiveType( const string& a_strName ) const
+void Namespace::removeNamespaceAlias( const string& a_strAlias )
 {
-    Type* pType = getType(a_strName);
-    return pType ? pType->asPrimitiveType() : nullptr;
-}
-
-Class* Namespace::getClass( size_t index ) const
-{
-    size_t i = 0;
-    o_foreach(Type* pType, m_Types)
+    for(auto it = m_NamespaceAliases.begin(); it != m_NamespaceAliases.end(); ++it)
     {
-        if(pType->asClass())
+        if((*it)->getName() == a_strAlias)
         {
-            if(i == index) return static_cast<Class*>(pType);
-            ++i;
+            removeElement(*it);
+            return;
         }
     }
-    return nullptr;
+    o_assert(false, "namespace alias not found");
 }
 
-Class* Namespace::getClass( const string& a_strName ) const
-{
-    Type* pType = getType(a_strName);
-    return pType ? pType->asClass() : nullptr;
-}
-
-size_t Namespace::getClassCount() const
-{
-    size_t i = 0;
-    o_foreach(Type* pType, m_Types)
-    {
-        if(pType->asClass())
-        {
-            ++i;
-        }
-    }
-    return i;
-}
-
-void    Namespace::getAllTypesCascade( const string& a_strName, vector<Type*>& a_Out ) const
-{
-    Type* pType = getType(a_strName);
-    if(pType != NULL) a_Out.push_back(pType);
-    o_foreach(Namespace* pNamespace, m_Namespaces)
-    {
-        pNamespace->getAllTypesCascade(a_strName, a_Out);
-    }
-}
-
-Type* Namespace::getTypeByGuidCascade( uint a_uiGuid ) const
-{
-	Type* pType = getTypeByGuid(a_uiGuid);
-	if(pType != NULL) return pType;
-	o_foreach(Namespace* pNamespace, m_Namespaces)
-	{
-		pType = pNamespace->getTypeByGuidCascade(a_uiGuid);
-		if(pType != NULL) return pType;
-	}
-	return NULL;
-}
-
-void Namespace::addTypedef( const string& a_strTypedef, Type* a_pType )
-{
-    o_assert(getNamespaceAlias(a_pType->getName()) == NULL, "A namespace alias has already been registered with this typedef's name");
-    o_assert(getType(a_strTypedef) == NULL, "A type has already been registered with this typedef's name");
-    o_assert(m_Typedefs.find(a_strTypedef) == m_Typedefs.end(), "Typedef already registered");
-    m_Typedefs[a_strTypedef] = a_pType;
-    a_pType->registerTypedef(this, a_strTypedef);
-    addReferencedElement(a_pType);
-}
-
-void Namespace::removeTypedef( const string& a_strTypedef, Type* a_pType )
-{
-    auto found = m_Typedefs.find(a_strTypedef);
-    o_assert( found != m_Typedefs.end(), "Typedef not found");
-    a_pType->unregisterTypedef(this, a_strTypedef);
-    m_Typedefs.erase(found);
-    removeReferencedElement(a_pType);
-}
-
-void Namespace::addNamespaceAlias( const string& a_strAlias, Namespace* a_pNamespace )
-{
-    o_assert(getTypedef(a_strAlias) == NULL, "A typedef has already been registered with this namespace alias' name");
-    o_assert(getType(a_strAlias) == NULL, "A type has already been registered with this namespace alias' name");
-    o_assert(m_NamespaceAliases.find(a_strAlias) == m_NamespaceAliases.end(), "Namespace alias already registered");
-    m_NamespaceAliases[a_strAlias] = a_pNamespace;
-}
-
-void Namespace::removeNamespaceAlias( const string& a_strAlias, Namespace* a_pNamespace )
-{
-    auto found = m_NamespaceAliases.find(a_strAlias);
-    o_assert( found != m_NamespaceAliases.end(), "Namespace alias not found");
-    m_NamespaceAliases.erase(found);
-}
-
-void Namespace::getElements( vector<LanguageElement*>& out, Class* a_pClass /*= nullptr*/ ) const
-{
-    if(a_pClass == nullptr OR typeOf<Namespace>()->isKindOf(a_pClass))
-    {
-        for(auto it = m_Namespaces.begin(); it != m_Namespaces.end(); ++it)
-        {
-            out.push_back(*it);
-        }
-    }
-
-    if(a_pClass == nullptr OR typeOf<Type>()->isKindOf(a_pClass))
-    {
-        for(auto it = m_Types.begin(); it != m_Types.end(); ++it)
-        {
-            out.push_back(*it);
-        }
-    }
-}
-
-Namespace* Namespace::getNamespaceCascade( const string& a_strQualifiedName ) const
+Namespace* Namespace::getNamespaceCascade( const string& a_strQualifiedName, const char* a_SeparatorList ) const
 {
     list<string> words;
-    split( words, a_strQualifiedName, boost::is_any_of(":. "), boost::token_compress_on ); // SplitVec == { "hello abc","ABC","aBc goodbye" }
+    split( words, a_strQualifiedName, boost::is_any_of(a_SeparatorList), boost::token_compress_on ); // SplitVec == { "hello abc","ABC","aBc goodbye" }
     words.erase( std::remove_if( words.begin(), words.end(), 
         boost::bind( &string::empty, _1 ) ), words.end() );
     return getNamespaceCascade(&words);
 }
 
-Template* Namespace::findOrCreateTemplate( const string& a_strName, const string& a_strTypes, const string& a_strNames )
+void Namespace::elementRemoved(LanguageElement* a_pElement)
 {
-    Template* pTemplate = getTemplate(a_strName);
-    if(pTemplate == nullptr)
+    LanguageElement::elementRemoved(a_pElement);
+    if(a_pElement->asNamespace())
     {
-        pTemplate = o_new(Template)(a_strName, a_strTypes, a_strNames);
-        addTemplate(pTemplate);
+        Namespace* pNamespace = static_cast<Namespace*>(a_pElement);
+        o_assert(pNamespace->getParentNamespace() == this, "This namespace is attached to another Namespace");
+        vector<Namespace*>::iterator found = std::find(m_Namespaces.begin(), m_Namespaces.end(), pNamespace);
+        o_assert(found != m_Namespaces.end(), "Namespace not found");
+        m_Namespaces.erase(found);
+        if(application()->getLoadedModuleCount())
+        {
+            o_emit namespaceRemoved(pNamespace);
+        }
     }
-    return pTemplate;
+}
+
+vector<AnonymousSection*>::const_iterator Namespace::beginAnonymousSections() const
+{
+    return m_pAnonymousSections ? m_pAnonymousSections->begin() : m_EmptyAnonymousSections.begin();
+}
+
+vector<AnonymousSection*>::const_iterator Namespace::endAnonymousSections() const
+{
+    return m_pAnonymousSections ? m_pAnonymousSections->end() : m_EmptyAnonymousSections.end();
+}
+
+AnonymousSection* Namespace::getAnonymousSection( size_t a_uiIndex ) const
+{
+    o_assert(m_pAnonymousSections);
+    return (*m_pAnonymousSections)[a_uiIndex];
+}
+
+void Namespace::addAnonymousSection( AnonymousSection* a_pAnonymousSection )
+{
+    o_assert(a_pAnonymousSection->getOwner());
+    if(m_pAnonymousSections == nullptr)
+    {
+        m_pAnonymousSections = new vector<AnonymousSection*>;
+    }
+    m_pAnonymousSections->push_back(a_pAnonymousSection);
+    addScopedElement(a_pAnonymousSection);
+    if(application()->getLoadedModuleCount())
+    {
+        o_emit anonymousSectionAdded(a_pAnonymousSection);
+    }
+}
+
+void Namespace::removeAnonymousSection( AnonymousSection* a_pAnonymousSection)
+{
+    removeElement(a_pAnonymousSection);
+}
+
+size_t Namespace::getAnonymousSectionCount() const
+{
+    return m_pAnonymousSections ? m_pAnonymousSections->size() : 0;
+}
+
+// ex: union(m, struct(x, y, union(z, w)))
+AnonymousSection* Namespace::addAnonymousSection( const string& a_strCode, modifiers_t a_Modifiers )
+{
+    Scope* pOwner = this;
+    string str = a_strCode;
+    str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+    str.erase(std::remove(str.begin(), str.end(), '\t'), str.end());
+    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+    enum state 
+    {
+        state_union_or_struct,
+        state_list,
+        state_ended,
+    };
+    state s = state_union_or_struct;
+    string word;
+    vector<AnonymousSection*> sections;
+    AnonymousSection* pSection = nullptr;
+    for(auto it = str.begin(); it != str.end(); ++it)
+    {
+        char c = *it;
+        switch(s)
+        {
+        case state_union_or_struct:
+            if(o_char_is_identifier(c))
+            {
+                word += c;
+            }
+            else if(c == '(')
+            {
+                if(word == "union")
+                {
+                    sections.push_back(o_new(AnonymousUnion));
+                }
+                else if(word == "struct")
+                {
+                    sections.push_back(o_new(AnonymousStruct));
+                }
+                else 
+                {
+                    o_dynamic_delete (sections.front());
+                    return nullptr;
+                }
+                s = state_list;
+                word.clear();
+            }
+            else 
+            {
+                o_dynamic_delete (sections.front());
+                return nullptr;
+            }
+            break;
+
+        case state_list:
+            if(o_char_is_identifier(c))
+            {
+                word += c;
+            }
+            else if(c == '(')
+            {
+                if(word == "union")
+                {
+                    sections.push_back(o_new(AnonymousUnion));
+                }
+                else if(word == "struct")
+                {
+                    sections.push_back(o_new(AnonymousStruct));
+                }
+                else 
+                {
+                    if(sections.size())
+                    {
+                        o_dynamic_delete (sections.front());
+                    }
+                    return nullptr;
+                }
+                word.clear();
+            }
+            else if(c == ',')
+            {
+                if(word.size())
+                {
+                    if(sections.empty())
+                        return nullptr;
+                    Variable* pElement = getVariable(word);
+                    if(pElement == nullptr)
+                    {
+                        if(sections.size())
+                        {
+                            o_dynamic_delete (sections.front());
+                        }
+                        return nullptr;
+                    }
+                    sections.back()->addVariable(pElement);
+                }
+                // data member
+                word.clear();
+            }
+            else if(c == ')')
+            {
+                if(sections.empty())
+                    return nullptr;
+                pSection = sections.back();
+                sections.pop_back();
+                if(sections.empty())
+                {
+                    addAnonymousSection(pSection);
+                    s = state_ended;
+                }
+                else 
+                {
+                    sections.back()->addAnonymousSection(pSection);
+                    s = state_list;
+                }
+            }
+            else 
+            {
+                if(sections.size())
+                {
+                    o_dynamic_delete (sections.front());
+                }
+                return nullptr;
+            }
+            break;
+
+        case state_ended:
+            if(sections.size())
+            {
+                o_dynamic_delete (sections.front());
+            }
+            return nullptr;
+        }
+    }
+    return pSection;
+}
+
+vector<Alias*>::const_iterator Namespace::beginNamespaceAliases() const
+{
+    return m_NamespaceAliases.begin();
+}
+
+vector<Alias*>::const_iterator Namespace::endNamespaceAliases() const
+{
+    return m_NamespaceAliases.end();
 }
 
 void Namespace::referencedElementRemoved( LanguageElement* a_pElement )
 {
-    bool bFound = true;
-    while(bFound)
-    {
-        bFound = false;
-        for(auto it = m_Typedefs.begin(); it != m_Typedefs.end(); ++it)
+    Scope::scopedElementRemoved(a_pElement);
+    LanguageElement::referencedElementRemoved(a_pElement);
+    if(a_pElement->asNamespace())
+        for(auto it = m_Namespaces.begin(); it != m_Namespaces.end(); ++it)
         {
-            if(it->second == a_pElement)
+            if(*it == a_pElement)
             {
-                m_Typedefs.erase(it);
-                bFound = true;
-                break;
+                m_Namespaces.erase(it);
+                if(application()->getLoadedModuleCount())
+                {
+                    o_emit namespaceRemoved(*it);
+                }
+                return;
             }
         }
-    }
-
+    else if(a_pElement->asAlias())
+        for(auto it = m_NamespaceAliases.begin(); it != m_NamespaceAliases.end(); ++it)
+        {
+            if(*it == a_pElement)
+            {
+                m_NamespaceAliases.erase(it);
+                if(application()->getLoadedModuleCount())
+                {
+                    o_emit namespaceAliasRemoved(*it);
+                }
+                return;
+            }
+        }
+    else if(m_pAnonymousSections AND a_pElement->asAnonymousSection())
+        for(auto it = m_pAnonymousSections->begin(); it != m_pAnonymousSections->end(); ++it)
+        {
+            if(*it == a_pElement)
+            {
+                if(application()->getLoadedModuleCount())
+                {
+                    o_emit anonymousSectionRemoved(*it);
+                }
+                m_pAnonymousSections->erase(it);
+                if(m_pAnonymousSections->empty())
+                {
+                    delete m_pAnonymousSections;
+                    m_pAnonymousSections = nullptr;
+                }
+                return;
+            }
+        }
 }
 
-
-void Namespace::elementRemoved(LanguageElement* a_pElement)
+Namespace* Namespace::getNamespaceAliased( const string& a_strAlias ) const
 {
-    for(auto it = m_Types.begin(); it != m_Types.end(); ++it)
+    Alias* pAlias = getNamespaceAlias(a_strAlias);
+    return pAlias ? static_cast<Namespace*>(pAlias->getAliasedElement()) : nullptr;
+}
+
+FunctionPointerType* Namespace::functionPointerType( Type* a_pReturnType, EABI a_eABI, const vector<Type*>& a_ParameterTypes )
+{
+    if(m_pFunctionPointerTypes) 
     {
-        if(*it == a_pElement)
+        for(auto it = m_pFunctionPointerTypes->begin(); it != m_pFunctionPointerTypes->end(); ++it)
         {
-            m_Types.erase(it);
-            break;
+            if((*it)->getABI() == a_eABI 
+                AND (*it)->getSignature()->getReturnType()->equals(a_pReturnType) 
+                AND (*it)->getSignature()->matches(a_ParameterTypes, 0))
+            {
+                return *it;
+            }
         }
-    }
-    for(auto it = m_Namespaces.begin(); it != m_Namespaces.end(); ++it)
+    }    
+    else m_pFunctionPointerTypes = new vector<FunctionPointerType*>;
+    FunctionPointerType* pPointer = o_new(FunctionPointerType)(o_new(Signature)(a_pReturnType, a_ParameterTypes), a_eABI, 0);
+    m_pFunctionPointerTypes->push_back(pPointer);
+    addNamedElement(pPointer);
+    return pPointer;
+}
+
+string Namespace::asPath(char separator) const
+{
+    Namespace* pParent = m_pOwner ? m_pOwner->asNamespace() : nullptr;
+    string prefix = pParent ? pParent->asPath(separator) : "";
+    return prefix.empty() ? m_strName : prefix+separator+m_strName;
+}
+
+void Namespace::addScopeElement( NamedElement* a_pElement )
+{
+    o_assert(a_pElement->m_pNamespace == nullptr);
+    if(a_pElement->isNative())
+        m_Modifiers |= o_native; // a namespace become native once any native element is added to iterencedElements)
+    a_pElement->m_pNamespace = this;
+    addReferencedElement(a_pElement);
+}
+
+void Namespace::removeScopeElement( NamedElement* a_pElement )
+{
+    o_assert(a_pElement->m_pNamespace == this);
+    removeReferencedElement(a_pElement);
+    a_pElement->m_pNamespace = nullptr;
+}
+
+void Namespace::getElementDoubles( NamedElement* a_pElement, vector<NamedElement*>& out ) const
+{
+    if(m_pReferencedElements)
+    for(auto it = m_pReferencedElements->begin(); it != m_pReferencedElements->end(); ++it)
     {
-        if(*it == a_pElement)
+        // Browse namespace elements to find doubles of given element
+        if(*it == a_pElement) continue;
+        NamedElement* pNamedElement = a_pElement->asNamedElement();
+        if(pNamedElement AND a_pElement->getDecoratedName() == pNamedElement->getDecoratedName())
         {
-            m_Namespaces.erase(it);
-            break;
-        }
-    }
-    for(auto it = m_Templates.begin(); it != m_Templates.end(); ++it)
-    {
-        if(*it == a_pElement)
-        {
-            m_Templates.erase(it);
-            break;
+            o_assert(a_pElement->getModule() != pNamedElement->getModule());
+            out.push_back(pNamedElement);
         }
     }
 }
 
 o_namespace_end(phantom, reflection)
+

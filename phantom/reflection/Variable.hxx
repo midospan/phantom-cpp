@@ -1,12 +1,13 @@
 #pragma once
 
-#include "LanguageElement.hxx"
+#include "NamedElement.hxx"
 
-o_classNB((phantom, reflection), Variable, (LanguageElement), o_deferred|o_abstract) 
+o_classNB((phantom, reflection), Variable, (NamedElement), o_deferred|o_no_default_constructor) 
 (
-        o_signal(valueChanged, (), o_protected_access);
+o_protected:
+    o_property(string, valueTypeName, setValueTypeName, getValueTypeName);
+    o_property(Range*, range, setRange, getRange);
 );
-
 
 
 

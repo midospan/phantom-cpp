@@ -1,61 +1,37 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
 #include <phantom/reflection/Template.h>
 #include <phantom/reflection/Template.hxx>
+#include <phantom/reflection/Placeholder.h>
 /* *********************************************** */
 o_registerN((phantom, reflection), Template);
 
 o_namespace_begin(phantom, reflection) 
 
-Template::Template(const string& a_strName, TemplateSignature* a_pSignature, modifiers_t a_Modifiers /*= 0*/)
-    : LanguageElement(a_strName, a_Modifiers)
-    , m_pTemplateSignature(a_pSignature)
+    o_define_meta_type(Template);
+
+Template::Template(modifiers_t a_Modifiers /*= 0*/)
+    : NamedElement("", a_Modifiers|o_always_valid) /// templates are considered always valid because if any error is found in their declaration, 
+    , m_pTemplateSignature(nullptr)                /// it's of interest of their empty specialization (it avoids contaminate every specialization if one happens to be invalid)
 {
-    if(m_pTemplateSignature)
-        addElement(m_pTemplateSignature);
-    else setInvalid();
-    createEmptySpecialization();
+
 }
 
-Template::Template(const string& a_strName, const string& a_strTemplateTypes, const string& a_strTemplateParam, modifiers_t a_Modifiers /*= 0*/)
-    : LanguageElement(a_strName, a_Modifiers)
+Template::Template( TemplateSignature* a_pSignature, const string& a_strName, modifiers_t a_Modifiers /*= 0*/ )
+    : NamedElement(a_strName, a_Modifiers|o_always_valid)
+    , m_pTemplateSignature(a_pSignature)
+{
+    createEmptyTemplateSpecialization();
+}
+
+Template::Template(const string& a_strTemplateTypes, const string& a_strTemplateParam, const string& a_strName, modifiers_t a_Modifiers /*= 0*/)
+    : NamedElement(a_strName, a_Modifiers|o_always_valid)
     , m_pTemplateSignature(o_new(TemplateSignature)(a_strTemplateTypes, a_strTemplateParam))
 {
-    addElement(m_pTemplateSignature);
-    createEmptySpecialization();
+    o_assert(isNative());
+    createEmptyTemplateSpecialization();
 }
 
 Template::~Template()
@@ -118,33 +94,106 @@ vector<TemplateParameter*>::const_iterator Template::endTemplateParameters() con
     return m_pTemplateSignature->endParameters();
 }
 
-void Template::createEmptySpecialization()
+void Template::createEmptyTemplateSpecialization()
 {
-    registerSpecialization(o_new(TemplateSpecialization)(this, m_pTemplateSignature->getPlaceholders(), m_pTemplateSignature));
+    o_new(TemplateSpecialization)(this, m_pTemplateSignature, m_pTemplateSignature->getPlaceholders());
 }
 
-void Template::registerSpecialization( TemplateSpecialization* a_pTemplateSpecialization )
+TemplateSpecialization* Template::createEmptyTemplateSpecialization( NamedElement* a_pBody )
 {
-#ifndef NDEBUG
-    for(auto it = m_Specializations.begin(); it != m_Specializations.end(); ++it)
-    {
-        o_assert(!(*it)->equals(a_pTemplateSpecialization));
-    }
-#endif
-    m_Specializations.push_back(a_pTemplateSpecialization);
-}
-
-TemplateSpecialization*  Template::createSpecialization( const vector<LanguageElement*>& arguments, TemplateSignature* a_pTemplateSignature )
-{
-    TemplateSpecialization* pSpec = o_new(TemplateSpecialization)(this, arguments, a_pTemplateSignature);
-    registerSpecialization(pSpec);
+    o_assert(a_pBody AND !isNative());
+    TemplateSpecialization* pSpec = o_new(TemplateSpecialization)(this, m_pTemplateSignature, m_pTemplateSignature->getPlaceholders(), a_pBody);
     return pSpec;
 }
 
-ClassType* Template::instanciate( const vector<LanguageElement*>& arguments )
+TemplateSpecialization* Template::getTemplateSpecialization(TemplateSpecialization* a_pTemplateSpecialization ) const 
 {
-    o_assert_no_implementation();
+    for(auto it = m_TemplateSpecializations.begin(); it != m_TemplateSpecializations.end(); ++it)
+    {
+        if((*it)->equals(a_pTemplateSpecialization)) return *it;
+    }
     return nullptr;
+}
+
+TemplateSpecialization* Template::getTemplateSpecialization( const vector<LanguageElement*>& arguments ) const
+{
+    for(auto it = m_TemplateSpecializations.begin(); it != m_TemplateSpecializations.end(); ++it)
+    {
+        if((*it)->matches(arguments)) return *it;
+    }
+    return nullptr;
+}
+
+TemplateSpecialization* Template::getTemplateSpecialization( const map<Placeholder*, LanguageElement*>& arguments ) const
+{
+    vector<LanguageElement*> contiguous;
+    contiguous.resize(arguments.size());
+    for(auto it = arguments.begin(); it != arguments.end(); ++it)
+    {
+        contiguous[static_cast<TemplateParameter*>(it->first->asNamedElement()->getOwner())->getIndex()] = it->second;
+    }
+    return getTemplateSpecialization(contiguous);
+}
+
+void Template::addSpecialization( TemplateSpecialization* a_pTemplateSpecialization )
+{
+    o_assert(a_pTemplateSpecialization AND a_pTemplateSpecialization->getTemplate() == this);
+//  if(getTemplateSpecialization(a_pTemplateSpecialization))
+//  {
+//      a_pTemplateSpecialization->setInvalid();
+//  }
+    if(getTemplateSpecialization(a_pTemplateSpecialization->getArguments()))
+    {
+        a_pTemplateSpecialization->setInvalid();
+    }
+    if(m_pNamespace) /// template specialization belongs so same namespace as their template (even if they can belong to different owners)
+    {
+        o_assert(a_pTemplateSpecialization->getNamespace() == nullptr);
+        m_pNamespace->addTemplateSpecialization(a_pTemplateSpecialization);
+    }
+    m_TemplateSpecializations.push_back(a_pTemplateSpecialization);
+    addReferencedElement(a_pTemplateSpecialization);
+}
+
+TemplateSpecialization*  Template::createTemplateSpecialization( const vector<LanguageElement*>& arguments, ClassType* a_pTemplated, TemplateSignature* a_pTemplateSignature )
+{
+    TemplateSpecialization* pSpec = o_new(TemplateSpecialization)(this, a_pTemplateSignature, arguments, a_pTemplated);
+    return pSpec;
+}
+
+void Template::ancestorChanged( LanguageElement* a_pOwner )
+{
+    if(a_pOwner == m_pOwner)
+    {
+        if(m_TemplateSpecializations.size())
+        {
+            if(m_pNamespace) m_pNamespace->addTemplateSpecialization(m_TemplateSpecializations[0]);
+            m_pOwner->asScope()->addTemplateSpecialization(m_TemplateSpecializations[0]);
+        }
+    }
+}
+
+bool Template::acceptsArguments( const vector<LanguageElement*>& a_Arguments ) const
+{
+    return m_pTemplateSignature->acceptsArguments(a_Arguments);
+}
+
+bool Template::mapArguments( const vector<LanguageElement*>& a_Arguments, map<Placeholder*, LanguageElement*>& a_Out ) const
+{
+    size_t i = 0;
+    size_t count = m_pTemplateSignature->getParameterCount();
+    for(;i<count; ++i)
+    {
+        if(i<a_Arguments.size())
+        {
+            a_Out[m_pTemplateSignature->getParameter(i)->getPlaceholder()] = a_Arguments[i];
+        }
+        else 
+        { 
+            a_Out[m_pTemplateSignature->getParameter(i)->getPlaceholder()] = getDefaultArgument(i);
+        }
+    }
+    return true;
 }
 
 o_namespace_end(phantom, reflection)

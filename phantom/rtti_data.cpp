@@ -1,6 +1,8 @@
 #include <phantom/phantom.h>
 #include "phantom/reflection/DataExpression.h"
 #include "phantom/reflection/ConstantExpression.h"
+#include "phantom/reflection/LValueExpression.h"
+#include "phantom/reflection/Application.h"
 
 o_namespace_begin(phantom)
 
@@ -9,10 +11,10 @@ reflection::Expression* rtti_data::createReferenceExpression(serialization::Data
     if(owner) // rtti_data has ascendant(s)
     {
         reflection::Expression* pOwnerExpression = owner->createReferenceExpression();
-        reflection::InstanceDataMember* pInstanceDataMember = owner->object_class->getInstanceDataMemberAtAddress(owner->base, base);
-        if(pInstanceDataMember)
+        reflection::DataMember* pDataMember = owner->object_class->getDataMemberAtAddress(owner->base, base);
+        if(pDataMember)
         {
-            return pInstanceDataMember->createExpression(pOwnerExpression);
+            return pDataMember->toExpression(pOwnerExpression);
         }
         else 
         {
@@ -27,13 +29,18 @@ reflection::Expression* rtti_data::createReferenceExpression(serialization::Data
             uint guid = a_pDataBase->getGuid(data());
             if(guid != o_invalid_guid)
             {
-                return o_new(reflection::DataExpression)(getCurrentDataBase(), o_new(reflection::ConstantExpression)(constant<uint>(guid)));
+                return o_new(reflection::DataExpression)(a_pDataBase, o_new(reflection::ConstantExpression)(constant<uint>(guid)));
             }
         }
         auto pConstantExp = o_new(reflection::ConstantExpression)(constant<size_t>((size_t)base));
-        return pConstantExp->cast(object_class->pointerType())->dereference();
+        return pConstantExp->convert(object_class->pointerType(), reflection::e_explicit_cast)->dereference();
     }
     return nullptr;
+}
+
+reflection::Expression* rtti_data::createReferenceExpression() const
+{
+    return createReferenceExpression(application()->getDataBase());
 }
 
 string rtti_data::referenceExpressionString(serialization::DataBase* a_pDataBase) const
@@ -41,10 +48,10 @@ string rtti_data::referenceExpressionString(serialization::DataBase* a_pDataBase
     if(owner) // rtti_data has ascendant(s)
     {
         string ownerExpressionString = owner->referenceExpressionString();
-        reflection::InstanceDataMember* pInstanceDataMember = owner->object_class->getInstanceDataMemberAtAddress(owner->base, base);
-        if(pInstanceDataMember)
+        reflection::DataMember* pDataMember = owner->object_class->getDataMemberAtAddress(owner->base, base);
+        if(pDataMember)
         {
-            return ownerExpressionString+"."+pInstanceDataMember->getName();
+            return ownerExpressionString+"."+pDataMember->getName();
         }
     }
     else
@@ -60,6 +67,11 @@ string rtti_data::referenceExpressionString(serialization::DataBase* a_pDataBase
         return "(*("+object_class->pointerType()->getQualifiedDecoratedName()+")0x"+lexical_cast<string>(base)+')';
     }
     return string();
+}
+
+string rtti_data::referenceExpressionString() const
+{
+    return referenceExpressionString(application()->getDataBase());
 }
 
 o_namespace_end(phantom)

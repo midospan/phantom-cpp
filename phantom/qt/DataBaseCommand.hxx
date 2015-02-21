@@ -2,10 +2,5 @@
 
 #include "UndoCommand.hxx"
 
-o_classNB((phantom, qt), DataBaseCommand, (UndoCommand))
-{
-    o_reflection 
-    {
-    };
-};
+o_classNB((phantom, qt), DataBaseCommand, (UndoCommand))();
 

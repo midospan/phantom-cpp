@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed
-         H igh-level
-         A llocator
-         N ested state-machines and
-         T emplate
-         O riented
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 /* ******************* Includes ****************** */
 #include "phantom/phantom.h"
@@ -51,13 +20,16 @@
 #   include "phantom/phantom.hxx"
 #endif
 
-#include "phantom/ModuleLoader.h"
-#include "phantom/ModuleLoader.hxx"
+#include "phantom/reflection/Package.h"
+#include "phantom/reflection/Package.hxx"
+#include "phantom/reflection/Source.h"
+#include "phantom/reflection/Source.hxx"
+#include "phantom/reflection/Module.h"
+#include "phantom/reflection/Module.hxx"
+#include "phantom/reflection/Application.h"
 #include "phantom/reflection/CPlusPlus.h"
-#include "phantom/reflection/CPlusPlus.hxx"
+#include "phantom/reflection/Shaman.h"
 #include "phantom/reflection/Interpreter.h"
-#include "phantom/reflection/Interpreter.hxx"
-#include "phantom/reflection/Interpreter.hxx"
 #include "phantom/Message.h"
 #if o__bool__use_custom_stl_partioned_allocator OR o__bool__use_custom_stl_contiguous_allocator
 #include <boost/property_tree_custom/info_parser.hpp>
@@ -68,26 +40,51 @@
 o_registerN((phantom, memory), malloc_free_allocator_for_boost)
 o_registerNT((phantom, memory), (typename, typename), (T, UserAllocator), malloc_free_allocator)
 
-o_declareN(class, (phantom), Module)
-o_declareN(class, (phantom, reflection), SourceFile)
+o_declareN(class, (phantom), reflection::Module)
+o_declareN(class, (phantom, reflection), Source)
 o_declareN(class, (phantom, reflection), Signature)
 
 o_functionN((phantom), phantom::reflection::Namespace*, globalNamespace, ());
-o_functionN((phantom), phantom::reflection::Type*, typeByName, (const phantom::string&, phantom::reflection::LanguageElement*));
-o_functionN((phantom), phantom::reflection::Expression*, expressionByName, (const phantom::string&, phantom::reflection::LanguageElement*));
-
-int blabla;
-
-o_variable(int, blabla, o_no_range);
-
-namespace bb { float bibi; }
-
-o_variableN((bb), float, bibi, o_no_range);
+o_functionN((phantom), phantom::reflection::Type*, typeByName, (const phantom::string&, phantom::reflection::LanguageElement*, phantom::modifiers_t));
+o_functionN((phantom), phantom::reflection::Expression*, expressionByName, (const phantom::string&, phantom::reflection::LanguageElement*, phantom::modifiers_t));
 
 o_typedefN((phantom), modifiers_t);
 
 o_namespace_begin(phantom)
 
+o_forceinline bool dynamic_initializer_handle::dynamic_initializer_module_installation_func::operator<( const dynamic_initializer_module_installation_func& other ) const
+{
+    reflection::Class* pThisClass = type->asClass();
+    reflection::Class* pOtherClass = other.type->asClass();
+
+    if(pThisClass)
+    {
+        if(pOtherClass)
+        {
+            if(pThisClass->isKindOf(pOtherClass)) return false;
+            if(pOtherClass->isKindOf(pThisClass)) return true;
+            
+            size_t i = 0;
+            size_t thisLevel = 0;
+            size_t otherLevel = 0;
+            size_t baseCount = std::max(pThisClass->getBaseClassCount(), pOtherClass->getBaseClassCount());
+            while(i<baseCount AND (thisLevel = pThisClass->getInheritanceLevel(i)) == (otherLevel = pOtherClass->getInheritanceLevel(i)))
+                ++i;
+            return thisLevel == otherLevel 
+                ? pThisClass < pOtherClass 
+                : thisLevel < otherLevel;
+        }
+        else 
+        {
+            return false;
+        }
+    }
+    else if(pOtherClass)
+    {
+        return true;
+    }
+    return type < other.type;
+}
 
 typedef boost::pool<phantom::memory::malloc_free_allocator_for_boost> dynamic_pool_type ;
 typedef phantom::map<size_t, dynamic_pool_type*>                        dynamic_pool_type_map;
@@ -98,7 +95,7 @@ typedef phantom::vector<phantom::reflection::LanguageElement*>		element_containe
 typedef phantom::vector<string>										meta_data_container;
 
 
-enum
+static enum
 {
     eState_NotInstalled,
     eState_DynamicInitializerDone_StartingInitialization,
@@ -109,40 +106,42 @@ enum
     eState_Installed,
     eState_Uninstalling,
     eState_Uninstalled
-}                                               g_eState;
+}                                                       g_eState;
 
-phantom::Phantom*                               g_instance = nullptr;
-uint                                            g_uiSetupStep;
-
-phantom::reflection::Type*                      g_type_of_string = nullptr;
-
-
-phantom::vector<reflection::LanguageElement*>*  g_elements = nullptr;
-phantom::vector<phantom::Module*>*              g_auto_loaded_modules;
-phantom::message_report_func                    g_assert_func = default_assert;
-phantom::message_report_func                    g_warning_func = default_warning;
-phantom::message_report_func                    g_error_func = default_error;
-phantom::log_func                               g_log_func = default_log;
-phantom::map<string, Message*>                  g_Messages;
-phantom::reflection::Namespace*                 g_root_namespace;
-phantom::reflection::CPlusPlus*                 g_cplusplus;
-phantom::reflection::Interpreter*               g_interpreter;
-void*                                           g_typeOf_cycling_address_workaround_ptr;
-phantom::rtti_data_map*                         g_rtti_data_map = nullptr;
-phantom::Module*		                        g_module = nullptr;
-phantom::ModuleLoader*		                    g_module_loader = nullptr;
-phantom::serialization::DataBase*		        g_current_data_base = nullptr;
-phantom::map<phantom::string, phantom::Module*> g_modules;
-phantom::dynamic_pool_type_map                  g_DynamicPoolAllocators;
-phantom::vector<phantom::reflection::Constant*> g_Constants;
-phantom::vector<phantom::string>*               g_meta_data_names;
-phantom::map<string, reflection::SourceFile*>   g_source_files;
+static phantom::Phantom*                                g_instance;
+static uint                                             g_uiSetupStep;
+static phantom::reflection::Type*                       g_type_of_string;
+static std::stack<reflection::NamedElement*>*           g_pScopes;
+static std::stack<reflection::AnonymousSection*>*       g_pAnonymousSections;
+static std::stack<reflection::MemberAnonymousSection*>* g_pMemberAnonymousSections;
+static std::stack<modifiers_t>*                         g_pModifiers;
+static phantom::vector<reflection::LanguageElement*>*   g_elements;
+static phantom::vector<phantom::reflection::Module*>*               g_auto_loaded_modules;
+static phantom::message_report_func                     g_assert_func;
+static phantom::message_report_func                     g_warning_func;
+static phantom::message_report_func                     g_error_func;
+static phantom::log_func                                g_log_func;
+static phantom::map<string, Message*>                   g_Messages;
+static phantom::reflection::Namespace*                  g_pGlobalNamespace;
+static map<string, reflection::Package*>*               g_pPackages;
+static phantom::reflection::CPlusPlus*                  g_cplusplus;
+static phantom::reflection::Shaman*                     g_shaman;
+static phantom::reflection::Interpreter*                g_interpreter;
+static void*                                            g_typeOf_cycling_address_workaround_ptr;
+static phantom::rtti_data_map*                          g_rtti_data_map;
+static phantom::reflection::Module*		                g_module;
+static phantom::reflection::Application*		        g_application;
+static phantom::map<phantom::string, phantom::reflection::Module*>  g_modules;
+static phantom::dynamic_pool_type_map                   g_DynamicPoolAllocators;
+static phantom::vector<phantom::reflection::Constant*>  g_Constants;
+static phantom::vector<phantom::string>*                g_meta_data_names;
+static phantom::map<string, reflection::Source*>    g_source_files;
 
 
 
 struct PIMPL
 {
-    static bool internalAreConnected( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction )
+    static bool internalAreConnected( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::MemberFunction* a_pMemberFunction )
     {
         connection::slot::list* pSlotList = a_pSignal->getSlotList(a_Sender.cast(static_cast<reflection::Class*>(a_pSignal->getOwner())));
         connection::slot* pSlot = pSlotList->m_head;
@@ -158,7 +157,7 @@ struct PIMPL
         return false;
     }
 
-    static connection::slot const* internalConnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction )
+    static connection::slot const* internalConnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::MemberFunction* a_pMemberFunction )
     {
         connection::slot::list* pSlotList = a_pSignal->getSlotList(a_Sender.cast(static_cast<reflection::Class*>(a_pSignal->getOwner())));
         connection::slot* pFirstSlot = pSlotList->m_head;
@@ -200,7 +199,7 @@ struct PIMPL
         return pSlot;
     }
 
-    static connection::slot const* internalDisconnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction )
+    static connection::slot const* internalDisconnect( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::MemberFunction* a_pMemberFunction )
     {
         connection::slot::list* pSlotList = a_pSignal->getSlotList(a_Sender.cast(static_cast<reflection::Class*>(a_pSignal->getOwner())));
         connection::slot* pSlot = pSlotList->m_head;
@@ -240,9 +239,26 @@ dynamic_initializer_handle::dynamic_initializer_handle()
     : m_bActive(false)
     , m_bAutoRegistrationLocked(false)
     , m_iCurrentInstallationStep(-1)
+    , m_file(0)
 {
     g_instance = nullptr;
 
+    g_assert_func = default_assert;
+    g_warning_func = default_warning;
+    g_error_func = default_error;
+    g_log_func = default_log;
+
+    g_type_of_string = nullptr;
+    g_module = nullptr;
+    g_pPackages = nullptr;
+
+    g_pScopes = new std::stack<reflection::NamedElement*>;
+    g_pAnonymousSections = new std::stack<reflection::AnonymousSection*>;
+    g_pAnonymousSections->push(nullptr);
+    g_pMemberAnonymousSections = new std::stack<reflection::MemberAnonymousSection*>;
+    g_pMemberAnonymousSections->push(nullptr);
+    g_pModifiers = new std::stack<modifiers_t>;
+    g_pModifiers->push(0);
     memory::Statistics::m_Allocations = new std::map<void*, memory::Statistics::allocation_info>;
     memory::Statistics::m_AllocationCount = 0 ;
     memory::Statistics::m_TotalAllocationCount = 0 ;
@@ -250,19 +266,21 @@ dynamic_initializer_handle::dynamic_initializer_handle()
     memory::Statistics::m_TotalAllocatedByteCount = 0 ;
     memory::Statistics::m_Locked = false;
 
-    g_module_loader = o_allocate(ModuleLoader);
-    new (g_module_loader) ModuleLoader;
+    g_elements = o_allocate(vector<reflection::LanguageElement*>);
+    new (g_elements) vector<reflection::LanguageElement*>;
 
-    g_auto_loaded_modules = new vector<Module*>;
+    g_pGlobalNamespace = o_static_new_alloc_and_construct_part(reflection::Namespace)(o_CS(o_root_namespace_name));
+
+    g_application = o_allocate(reflection::Application);
+    new (g_application) reflection::Application;
+
+    g_auto_loaded_modules = new vector<reflection::Module*>;
 
     g_rtti_data_map = o_allocate(rtti_data_map);
     new (g_rtti_data_map) rtti_data_map;
 
     g_meta_data_names = o_allocate(vector<string>);
     new (g_meta_data_names) vector<string>;
-
-    g_elements = o_allocate(vector<reflection::LanguageElement*>);
-    new (g_elements) vector<reflection::LanguageElement*>;
 
     connection::slot_pool::m_allocation_controller_map= o_allocate(connection::slot_pool::allocation_controller_map);
     new (connection::slot_pool::m_allocation_controller_map) connection::slot_pool::allocation_controller_map;
@@ -271,18 +289,18 @@ dynamic_initializer_handle::dynamic_initializer_handle()
     g_typeOf_cycling_address_workaround_ptr = &g_typeOf_cycling_address_workaround_ptr;
 
     g_cplusplus = o_static_new_alloc_and_construct_part(reflection::CPlusPlus);
+    g_shaman = o_static_new_alloc_and_construct_part(reflection::Shaman);
+
+    g_application->setDefaultLanguage(g_cplusplus);
     //o_static_new_install_and_initialize_part(g_cplusplus);
 
     g_interpreter = o_static_new_alloc_and_construct_part(reflection::Interpreter);
 
-    g_root_namespace = o_static_new_alloc_and_construct_part(reflection::Namespace)(o_CS(o_root_namespace_name));
+    g_pScopes->push(g_pGlobalNamespace);
     reflection::Namespace* phantom_namespace = o_static_new_alloc_and_construct_part(reflection::Namespace)("phantom");
-    g_root_namespace->addNamespace(phantom_namespace);
+    g_pGlobalNamespace->addNamespace(phantom_namespace);
     reflection::Namespace* reflection_namespace = o_static_new_alloc_and_construct_part(reflection::Namespace)("reflection");
     phantom_namespace->addNamespace(reflection_namespace);
-    o_static_new_install_and_initialize_part(g_root_namespace);
-    o_static_new_install_and_initialize_part(phantom_namespace);
-    o_static_new_install_and_initialize_part(reflection_namespace);
 
     // Reserve space for registration steps infos
     size_t i = 0;
@@ -292,14 +310,26 @@ dynamic_initializer_handle::dynamic_initializer_handle()
     }
 
     reflection::initializeSystem();
+
+    o_static_new_install_and_initialize_part(g_pGlobalNamespace);
+    o_static_new_install_and_initialize_part(phantom_namespace);
+    o_static_new_install_and_initialize_part(reflection_namespace);
+
+    g_application->installFundamentalBuiltInOperators(true);
 }
 
 dynamic_initializer_handle::~dynamic_initializer_handle()
 {
+    g_application->installFundamentalBuiltInOperators(false);
+    delete g_pAnonymousSections;
+    delete g_pMemberAnonymousSections;
+    delete g_pScopes;
+    delete g_pModifiers;
     delete g_auto_loaded_modules;
-    g_module_loader->~ModuleLoader();
-    o_deallocate(g_module_loader, ModuleLoader) ;
+    g_application->~Application();
+    o_deallocate(g_application, reflection::Application) ;
     o_delete(reflection::CPlusPlus) g_cplusplus;
+    o_delete(reflection::Shaman) g_shaman;
 
     typedef vector<string> vector_string;
 #ifdef WIN32
@@ -311,34 +341,34 @@ dynamic_initializer_handle::~dynamic_initializer_handle()
     new (connection::slot_pool::m_allocation_controller_map) connection::slot_pool::allocation_controller_map;
 }
 
-phantom::reflection::Type* typeByName( const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope )
+phantom::reflection::Type* typeByName( const string& a_strName, phantom::reflection::LanguageElement* a_pRootScope, modifiers_t a_Modifiers )
 {
     const string & rootScopeName = a_pRootScope->getQualifiedDecoratedName();
-    phantom::reflection::Type* pType = dynamic_initializer()->registeredTypeByName(rootScopeName.empty() ? a_strName : rootScopeName+"::"+a_strName);
+    phantom::reflection::Type* pType = ((a_Modifiers & o_native) == o_native) ? dynamic_initializer()->registeredTypeByName(rootScopeName.empty() ? a_strName : rootScopeName+"::"+a_strName) : nullptr;
     if(pType) return pType;
-    reflection::LanguageElement* pElement = elementByName(a_strName, a_pRootScope);
+    reflection::LanguageElement* pElement = elementByName(a_strName, a_pRootScope, a_Modifiers);
     return pElement ? pElement->asType() : nullptr;
 }
 
-phantom::reflection::Type* typeByNameCascade( const string& a_strName, phantom::reflection::LanguageElement* a_pScope )
+phantom::reflection::Type* typeByNameCascade( const string& a_strName, phantom::reflection::LanguageElement* a_pScope, modifiers_t a_Modifiers )
 {
-    reflection::LanguageElement* pElement = elementByNameCascade(a_strName, static_cast<phantom::reflection::Namespace*>(a_pScope));
+    reflection::LanguageElement* pElement = elementByNameCascade(a_strName, static_cast<phantom::reflection::Namespace*>(a_pScope), a_Modifiers);
     return pElement ? pElement->asType() : nullptr;
 }
 
-phantom::reflection::Expression* expressionByName( const string& a_strName, phantom::reflection::LanguageElement* a_pScope )
+phantom::reflection::Expression* expressionByName( const string& a_strName, phantom::reflection::LanguageElement* a_pScope, modifiers_t a_Modifiers )
 {
-    return g_cplusplus->expressionByName(a_strName, a_pScope);
+    return application()->getDefaultLanguage()->expressionByName(a_strName, a_pScope, a_Modifiers);
 }
 
-phantom::reflection::LanguageElement* elementByName( const string& a_strName, phantom::reflection::LanguageElement* a_pScope )
+phantom::reflection::LanguageElement* elementByName( const string& a_strName, phantom::reflection::LanguageElement* a_pScope, modifiers_t a_Modifiers )
 {
-    return g_cplusplus->elementByName(a_strName, a_pScope);
+    return application()->getDefaultLanguage()->elementByName(a_strName, a_pScope, a_Modifiers);
 }
 
-phantom::reflection::Function* functionByName( const string& a_strName, phantom::reflection::Namespace* a_pScope )
+phantom::reflection::Function* functionByName( const string& a_strName, phantom::reflection::Namespace* a_pScope, modifiers_t a_Modifiers )
 {
-    reflection::LanguageElement* pElement = g_cplusplus->elementByName(a_strName, a_pScope);
+    reflection::LanguageElement* pElement = application()->getDefaultLanguage()->elementByName(a_strName, a_pScope, a_Modifiers);
     return pElement ? pElement->asFunction() : nullptr;
 }
 
@@ -351,9 +381,9 @@ void elementsByClass(reflection::Class* a_pClass, vector<reflection::LanguageEle
     a_pScope->getElementsCascade(out, a_pClass);
 }
 
-phantom::reflection::LanguageElement* elementByNameCascade( const string& a_strName, phantom::reflection::Namespace* a_pNamespace )
+phantom::reflection::LanguageElement* elementByNameCascade( const string& a_strName, phantom::reflection::Namespace* a_pNamespace, modifiers_t a_Modifiers )
 {
-	phantom::reflection::LanguageElement* pElement = elementByName(a_strName, reinterpret_cast<phantom::reflection::LanguageElement*>(a_pNamespace));
+	phantom::reflection::LanguageElement* pElement = elementByName(a_strName, reinterpret_cast<phantom::reflection::LanguageElement*>(a_pNamespace), a_Modifiers);
 	if(pElement != NULL)
 	{
 		return pElement;
@@ -362,7 +392,7 @@ phantom::reflection::LanguageElement* elementByNameCascade( const string& a_strN
 	uint uiNamespaceCount = a_pNamespace->getNamespaceCount();
 	for (uint i = 0; i < uiNamespaceCount; i++)
 	{
-		pElement = elementByNameCascade(a_strName, a_pNamespace->getNamespace(i));
+		pElement = elementByNameCascade(a_strName, a_pNamespace->getNamespace(i), a_Modifiers);
 		if (pElement != NULL)
 		{
 			return pElement;
@@ -374,7 +404,9 @@ phantom::reflection::LanguageElement* elementByNameCascade( const string& a_strN
 
 phantom::reflection::Type*                    typeByGuid(uint guid)
 {
-    return globalNamespace()->getTypeByGuidCascade(guid);
+    o_assert_no_implementation();
+    return nullptr;
+    //return globalNamespace()->getTypeByGuidCascade(guid);
 }
 
 phantom::reflection::LanguageElement*         elementByGuid(uint guid)
@@ -392,65 +424,31 @@ void dynamic_initializer_handle::registerType( const string& a_strQualifiedDecor
 
 void dynamic_initializer_handle::registerType( const string& a_strQualifiedDecoratedName, const string& a_strScope, phantom::reflection::Type* a_pType )
 {
-    o_assert(registeredTypeByName(a_strQualifiedDecoratedName) == nullptr, "type already registered, shouldn't happen, test is in type_of to avoid that");
+    bool isTemplateInstance = a_pType->testModifiers(o_template);
+    o_assert(registeredTypeByName(a_strQualifiedDecoratedName) == nullptr, "type already registered in same module, shouldn't happen, test is in type_of to avoid that");
     m_RegisteredTypes[a_strQualifiedDecoratedName] = a_pType;
-    phantom::reflection::LanguageElement* pScope = a_strScope.empty() ? nullptr : elementByName(a_strScope);
-
-    // Needed while boost::spirit used (TODO replace boost::spirit...), 
-    // because it initialized too late for elementByName to work on C++ dynamic initialization
-
-    if(pScope == nullptr)
+    if(!isTemplateInstance)
     {
-        list<string> words;
-        split( words, a_strScope, boost::is_any_of(":. "), boost::token_compress_on ); // SplitVec == { "hello abc","ABC","aBc goodbye" }
-        words.erase( std::remove_if( words.begin(), words.end(), 
-            boost::bind( &string::empty, _1 ) ), words.end() );
-
-        reflection::Namespace* pNamespace = globalNamespace();
-        reflection::Type* pNestingType = nullptr;
-
-        while(words.size() AND (pNamespace OR pNestingType))
+        phantom::reflection::LanguageElement* pNamingScope = a_strScope.empty() ? globalNamespace() : elementByName(a_strScope);
+        if(pNamingScope == nullptr)
         {
-            const string& word = words.front();
-            if(pNestingType)
-            {
-                size_t i = 0;
-                size_t count = pNestingType->getNestedTypeCount();
-                for(;i<count; ++i)
-                {
-                    if(pNestingType->getNestedType(i)->getDecoratedName() == word)
-                    {
-                        pNestingType = pNestingType->getNestedType(i);
-                        break;
-                    }
-                }
-                if(i == count)
-                {
-                    break;
-                }
-            }
-            else 
-            {
-                pNestingType = pNamespace->getType(word);
-                if(pNestingType == nullptr) pNamespace = pNamespace->getNamespace(word);
-            }
-            words.pop_front();
+            o_exception(exception::reflection_runtime_exception, "scope has not been registered => check your type's nesting class")
         }
-        pScope = pNestingType ? (reflection::LanguageElement*)pNestingType : (reflection::LanguageElement*)pNamespace;
+        o_assert(pNamingScope->asScope());
+
+   
+        /// Only add type if it's not a template instance
+        pNamingScope->asScope()->addType(a_pType);
     }
-    if(pScope == nullptr)
+    else 
     {
-        o_exception(exception::reflection_runtime_exception, "Type scope has not been registered => check your type's nesting class")
+        int i=0;
+        ++i;
     }
-    if(pScope->asNamespace())
-    {
-        pScope->asNamespace()->addType(a_pType);
-    }
-    else
-    {
-        o_assert(pScope->asType());
-        pScope->asType()->addNestedType(a_pType);
-    }
+//     else 
+//     {
+//         pNamingScope->asScope()->templateInstance()
+//     }
 }
 
 phantom::reflection::Namespace* dynamic_initializer_handle::parseNamespace( const string& a_strNamespace ) const
@@ -458,9 +456,14 @@ phantom::reflection::Namespace* dynamic_initializer_handle::parseNamespace( cons
     return globalNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
 }
 
-void dynamic_initializer_handle::registerTemplate( reflection::Template* a_pTemplate )
+void dynamic_initializer_handle::registerTemplate( reflection::Template* a_pTemplate, const char* a_strFile )
 {
-    m_DeferredTemplates.push_back(a_pTemplate);
+    m_DeferredTemplates.push_back(std::pair<reflection::Template*, const char*>(a_pTemplate, a_strFile));
+}
+
+void dynamic_initializer_handle::registerNamespace( reflection::Namespace* a_pNamespace, const char* a_strFile )
+{
+    m_DeferredNamespaces.push_back(std::pair<reflection::Namespace*, const char*>(a_pNamespace, a_strFile));
 }
 
 void dynamic_initializer_handle::registerModule( phantom::reflection::Type* a_pType, module_installation_func setupFunc, uint a_uiSetupStepMask )
@@ -486,13 +489,13 @@ void dynamic_initializer_handle::registerModule( phantom::reflection::Type* a_pT
             }
             if(NOT(alreadyRegistered))
             {
-                if((isAutoRegistrationLocked() || (moduleLoader()->getLoadedModuleCount() == 0)) && m_iCurrentInstallationStep < i )
+                if((isAutoRegistrationLocked() || (application()->getLoadedModuleCount() == 0)) && m_iCurrentInstallationStep < i )
                 {
-                    m_DeferredSetupInfos[i].push_back(dynamic_initializer_module_installation_func(a_pType, setupFunc));
+                    m_DeferredSetupInfos[i].push_back(dynamic_initializer_module_installation_func(a_pType, setupFunc, m_file));
                 }
                 else
                 {
-                    setupFunc(a_pType, i);
+                    dynamic_initializer_module_installation_func(a_pType, setupFunc, m_file).exec(i);
                 }
             }
         }
@@ -517,17 +520,73 @@ phantom::reflection::Namespace*            namespaceByList( list<string>* a_pNam
 }
 
 
-void dynamic_initializer_handle::installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle)
+void dynamic_initializer_handle::installReflection(const string& a_strQualifiedName, const string& a_strDynamicLibraryFileName, size_t a_PlatformHandle, const char* a_strDeclarationFile)
 {
-    o_assert(phantom::moduleByName(a_strName) == nullptr, "module with same name already registered");
+    o_assert(phantom::moduleByName(a_strQualifiedName) == nullptr, "module with same qualified name already registered");
 
-    boost::filesystem::path p (a_strFileName.c_str());
-    Module* pModule = o_new(Module)(a_strName, p.generic_string().c_str(), a_PlatformHandle);
-    g_modules[a_strName] = pModule;
+    /// (1) split module qualified name (ex : 'phantom.reflection.jit' gives 'phantom', 'reflection' and 'jit')
+    vector<string> packageWords;
+    boost::split( packageWords, a_strQualifiedName, boost::is_any_of("."), boost::token_compress_on ); // SplitVec == { "hello abc","ABC","aBc goodbye" }
+    packageWords.erase( std::remove_if( packageWords.begin(), packageWords.end(), 
+        boost::bind( &string::empty, _1 ) ), packageWords.end() );
+    
+    /// (2) split module declaration file path (ex : 'd:/phantom/phantom/phantom.h' gives 'd:', 'phantom', 'phantom', 'phantom.h'
+    vector<string> pathWords;
+    boost::split( pathWords, a_strDeclarationFile, boost::is_any_of("/\\"), boost::token_compress_on ); // SplitVec == { "hello abc","ABC","aBc goodbye" }
+    pathWords.erase( std::remove_if( pathWords.begin(), pathWords.end(), 
+        boost::bind( &string::empty, _1 ) ), pathWords.end() );
+    pathWords.pop_back(); // remove file name
+
+    /// (3) Compare the two split word list starting from the end to ensure path contains qualified name and then deduce the module source path
+    /// ex1 : d:/phantom/phantom/phantom.cpp holds o_module("phantom") and is in a directory 'phantom' => OK => source path = d:/phantom
+    /// ex2 : d:/phantom/phantom/reflection/jit/jit.cpp holds o_module("phantom.reflection.jit") and is in a directory 'phantom/reflection/jit' => OK => source path = d:/phantom
+    // 
+    o_error(pathWords.size(), "module declaration cpp file cannot be at HD root directory");
+
+    size_t packageCount = packageWords.size();
+    size_t pathCount = pathWords.size();
+
+    string pathName;
+    for(size_t i = 0; i<pathCount; ++i)
+    {
+        if(!i)
+            pathName+='/';
+        pathName+=pathWords[i];
+    }
+
+    o_error(pathCount>=packageCount, "module qualified name %s does not match module root package path name %s extracted from o_module() declaration file %s", a_strQualifiedName.c_str(), pathName.c_str(), a_strDeclarationFile);
+    
+    while(packageCount--)
+    {
+        o_error(packageWords[packageCount] == pathWords[--pathCount], "module qualified name %s does not match module root package path name %s extracted from o_module() declaration file %s", a_strQualifiedName.c_str(), pathName.c_str(), a_strDeclarationFile);
+    }
+
+    pathWords.resize(pathWords.size() - packageWords.size());
+    string sourcePath;
+    for(size_t i = 0; i<pathWords.size(); ++i)
+    {
+        if(i OR pathWords[i].find_first_of(":") == string::npos) // on windows c:, d:, must not have a starting '/', but on unix system we must
+            sourcePath+='/';
+        sourcePath+=pathWords[i];
+    }
+    
+    boost::filesystem::path p (a_strDynamicLibraryFileName.c_str());
+    reflection::Module* pModule = new (phantom::allocator<reflection::Module>::allocate(o_memory_stat_insert_arguments)) reflection::Module(a_strQualifiedName, sourcePath, p.generic_string().c_str(), a_PlatformHandle);
+    typeOf<reflection::Module>()->install(pModule, 0);
+    pModule->PHANTOM_CODEGEN_initialize(); /// use manual initialization because module is instanciated before its meta type is complete
+    o_assert(!rttiDataOf(pModule, typeOf<reflection::Module>()).isNull());
+    g_modules[a_strQualifiedName] = pModule;
     phantom::pushModule(pModule);
+    for(auto it = m_DeferredNamespaces.begin(); it != m_DeferredNamespaces.end(); ++it)
+    {
+        package(pModule, it->first->asPath('.')); // create packages
+        nativeSource(it->second)->addReferencedElement(it->first); // add reference to the namespace in source
+    }
+    m_DeferredNamespaces.clear();
     for(auto it = m_DeferredTemplates.begin(); it != m_DeferredTemplates.end(); ++it)
     {
-        pModule->addLanguageElement(*it);
+        o_assert(it->second);
+        nativeSource(pModule, it->second)->addTemplate(it->first);
     }
     m_DeferredTemplates.clear();
     for(auto it = m_DeferredElements.begin(); it != m_DeferredElements.end(); ++it)
@@ -549,13 +608,24 @@ void dynamic_initializer_handle::installReflection(const string& a_strName, cons
         infos.clear();
     }
 
-    if(a_strName.empty())
+    for(auto it = pModule->beginPackages(); it != pModule->endPackages(); ++it)
+    {
+        reflection::Package* pPackage = *it;
+        o_static_new_install_and_initialize_part(pPackage);
+        for(auto it = pPackage->beginSources(); it != pPackage->endSources(); ++it)
+        {
+            reflection::Source* pSource = *it;
+            o_static_new_install_and_initialize_part(pSource);
+        }
+    }
+
+    if(a_strQualifiedName.empty())
     {
         g_eState = eState_Installed;
     }
     if(g_instance == nullptr) // Phantom not initialized yet by user
     {
-        g_auto_loaded_modules->push_back(pModule); // Module needs auto loading
+        g_auto_loaded_modules->push_back(pModule); // reflection::Module needs auto loading
     }
 //     boost::filesystem::path p(pModule->getFileName().c_str());
 //     string metaDataFile(string(p.parent_path().generic_string().c_str())+"/"+p.stem().generic_string().c_str()+".cfg");
@@ -563,6 +633,8 @@ void dynamic_initializer_handle::installReflection(const string& a_strName, cons
 //     {
 //         loadMetaData(metaDataFile, pModule);
 //     }
+//     
+// o_debug_only(pModule->dumpElementListCascade(std::cout));
     phantom::popModule();
     m_RegisteredTypes.clear();
     pModule->checkCompleteness();
@@ -578,13 +650,14 @@ void dynamic_initializer_handle::uninstallReflection(const string& a_strName)
     o_assert(a_strName != "" OR g_modules.size() == 1);
     auto found = g_modules.find(a_strName);
     o_assert(found != g_modules.end());
-    o_delete(Module) found->second;
+    o_emit application()->moduleAboutToBeDestroyed(found->second);
+    o_delete(reflection::Module) found->second;
     g_modules.erase(found);
 }
 
-phantom::reflection::Class* classByName( const string& a_strQualifiedName, phantom::reflection::LanguageElement* a_pRootScope  )
+phantom::reflection::Class* classByName( const string& a_strQualifiedName, phantom::reflection::LanguageElement* a_pRootScope, modifiers_t a_Modifiers  )
 {
-    reflection::LanguageElement* pElement = phantom::elementByName(a_strQualifiedName, a_pRootScope);
+    reflection::LanguageElement* pElement = phantom::elementByName(a_strQualifiedName, a_pRootScope, a_Modifiers);
     return pElement ? pElement->asClass() : nullptr;
 }
 
@@ -612,9 +685,9 @@ void default_assert( const char* expression, const char* file, uint line, const 
     int r = vsnprintf(message, 511, format, args);
 
     std::cout<<console::push
-        <<console::fg_red<<"ASSERT("<<shortenFile<<"|"<<line<<")"<<std::endl
-        <<console::fg_red<<"["<<std::endl
-        <<'\t'<<console::fg_blue<< message
+        <<console::fg_red<<"ASSERT("<<shortenFile<<"|"<<line<<")"
+        <<console::fg_red<<"["
+        <<console::fg_red<< message
         <<console::fg_white<<" is false" <<std::endl
         <<'\t'<<message<<std::endl
         <<console::fg_red<<"]"<<console::pop<<std::endl;
@@ -767,12 +840,12 @@ void popMessage(const string& a_strCategory)
     o_assert(pTopMessage);
 }
 
-bool areConnected( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::InstanceMemberFunction* a_pMemberFunction )
+bool areConnected( const rtti_data& a_Sender, reflection::Signal* a_pSignal, const rtti_data& a_Receiver, reflection::MemberFunction* a_pMemberFunction )
 {
     return PIMPL::internalAreConnected(a_Sender, a_pSignal, a_Receiver, a_pMemberFunction);
 }
 
-boolean canConnect( reflection::Signal* a_pSignal, reflection::InstanceMemberFunction* a_pSlot )
+boolean canConnect( reflection::Signal* a_pSignal, reflection::MemberFunction* a_pSlot )
 {
     reflection::Signature* pSlotSignature = a_pSlot->getSignature();
     reflection::Signature* pSignalSignature = a_pSignal->getSignature();
@@ -788,8 +861,8 @@ boolean canConnect( reflection::Signal* a_pSignal, reflection::InstanceMemberFun
         {
             reflection::Type* pSlotParamType = pSlotSignature->getParameterType(i);
             reflection::Type* pSignalParamType = pSignalSignature->getParameterType(i);
-            reflection::ReferenceType* pRefType = pSlotParamType->asReferenceType();
-            if(pRefType AND pRefType->getReferencedType()->asConstType() AND pSignalParamType->asReferenceType() == nullptr)
+            reflection::LValueReferenceType* pRefType = pSlotParamType->asLValueReferenceType();
+            if(pRefType AND pRefType->getReferencedType()->asConstType() AND pSignalParamType->asLValueReferenceType() == nullptr)
             {
                 pSlotParamType = pSlotParamType->removeReference()->removeConst();
             }
@@ -854,25 +927,25 @@ connection::slot const* connect( const rtti_data& a_Sender, const character* a_p
     {
         o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
     }
-    reflection::InstanceMemberFunction* pInstanceMemberFunction = a_Receiver.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
-    if(pInstanceMemberFunction == NULL)
+    reflection::MemberFunction* pMemberFunction = a_Receiver.object_class->getMemberFunctionCascade(a_pMemberFunction);
+    if(pMemberFunction == NULL)
     {
         o_warning(false, (string(file)+ " " + lexical_cast<string>(line)+ " : unknown slot : " + a_Receiver.object_class->getQualifiedDecoratedName()+"::"+a_pMemberFunction).c_str());
         return nullptr;
     }
-    if(pInstanceMemberFunction->asSlot() == nullptr)
+    if(pMemberFunction->asSlot() == nullptr)
     {
         o_warning(false, (string(file)+ " " + lexical_cast<string>(line)+ " : connecting to a member_function which is not a slot").c_str());
     }
-    if(NOT(canConnect(pSignal, pInstanceMemberFunction)))
+    if(NOT(canConnect(pSignal, pMemberFunction)))
     {
         o_warning(false, "connection impossible due to signature incompatibility");
         return nullptr;
     }
-    return PIMPL::internalConnect(a_Sender, pSignal, a_Receiver, pInstanceMemberFunction);
+    return PIMPL::internalConnect(a_Sender, pSignal, a_Receiver, pMemberFunction);
 }
 
-connection::slot const* connect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction, const char* file /*= __FILE__*/, long line /*= __LINE__*/ )
+connection::slot const* connect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::MemberFunction* a_pMemberFunction, const char* file /*= __FILE__*/, long line /*= __LINE__*/ )
 {
     o_assert(a_pSignal != NULL AND a_pMemberFunction != NULL);
     // EMISSION
@@ -924,20 +997,20 @@ connection::slot const* tryConnect( const rtti_data& a_Sender, const character* 
     {
         o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
     }
-    reflection::InstanceMemberFunction* pInstanceMemberFunction = a_Receiver.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
-    if(pInstanceMemberFunction == NULL)
+    reflection::MemberFunction* pMemberFunction = a_Receiver.object_class->getMemberFunctionCascade(a_pMemberFunction);
+    if(pMemberFunction == NULL)
     {
         return nullptr;
     }
-    if(pInstanceMemberFunction->asSlot() == nullptr)
+    if(pMemberFunction->asSlot() == nullptr)
     {
         o_warning(false, (string(file)+ " " + lexical_cast<string>(line)+ " : connecting to a member_function which is not a slot").c_str());
     }
-    if(NOT(canConnect(pSignal, pInstanceMemberFunction)))
+    if(NOT(canConnect(pSignal, pMemberFunction)))
     {
         return nullptr;
     }
-    return PIMPL::internalConnect(a_Sender, pSignal, a_Receiver, pInstanceMemberFunction);
+    return PIMPL::internalConnect(a_Sender, pSignal, a_Receiver, pMemberFunction);
 }
 
 connection::slot const* disconnect( const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction, const char* file /*= __FILE__*/, long line /*= __LINE__*/ )
@@ -959,21 +1032,21 @@ connection::slot const* disconnect( const rtti_data& a_Sender, const character* 
     {
         o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
     }
-    reflection::InstanceMemberFunction* pInstanceMemberFunction = a_Receiver.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
-    if(pInstanceMemberFunction == NULL)
+    reflection::MemberFunction* pMemberFunction = a_Receiver.object_class->getMemberFunctionCascade(a_pMemberFunction);
+    if(pMemberFunction == NULL)
     {
         o_warning(false, (string("unknown slot : ")+a_pSignal).c_str());
         return nullptr;
     }
-    if(NOT(canConnect(pSignal, pInstanceMemberFunction)))
+    if(NOT(canConnect(pSignal, pMemberFunction)))
     {
         o_warning(false, "connection impossible due to signature incompatibility");
         return nullptr;
     }
-    return PIMPL::internalDisconnect(a_Sender, pSignal, a_Receiver, pInstanceMemberFunction);
+    return PIMPL::internalDisconnect(a_Sender, pSignal, a_Receiver, pMemberFunction);
 }
 
-connection::slot const* disconnect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::InstanceMemberFunction* a_pMemberFunction, const char* file /*= __FILE__*/, long line /*= __LINE__*/ )
+connection::slot const* disconnect( const rtti_data& a_Sender, phantom::reflection::Signal* a_pSignal, const rtti_data& a_Receiver, phantom::reflection::MemberFunction* a_pMemberFunction, const char* file /*= __FILE__*/, long line /*= __LINE__*/ )
 {
     o_assert(a_pSignal != NULL AND a_pMemberFunction != NULL);
     // EMISSION
@@ -1012,16 +1085,16 @@ connection::slot const* tryDisconnect( const rtti_data& a_Sender, const characte
     {
         o_exception(exception::reflection_runtime_exception, "the address passed as signal receiver doesn't point to a phantom object");
     }
-    reflection::InstanceMemberFunction* pInstanceMemberFunction = a_Receiver.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
-    if(pInstanceMemberFunction == NULL)
+    reflection::MemberFunction* pMemberFunction = a_Receiver.object_class->getMemberFunctionCascade(a_pMemberFunction);
+    if(pMemberFunction == NULL)
     {
         return nullptr;
     }
-    if(NOT(canConnect(pSignal, pInstanceMemberFunction)))
+    if(NOT(canConnect(pSignal, pMemberFunction)))
     {
         return nullptr;
     }
-    return PIMPL::internalDisconnect(a_Sender, pSignal, a_Receiver, pInstanceMemberFunction);
+    return PIMPL::internalDisconnect(a_Sender, pSignal, a_Receiver, pMemberFunction);
 }
 
 bool areConnected( const rtti_data& a_Sender, const character* a_pSignal, const rtti_data& a_Receiver, const character* a_pMemberFunction )
@@ -1039,12 +1112,12 @@ bool areConnected( const rtti_data& a_Sender, const character* a_pSignal, const 
     }
 
     // RECEPTION
-    reflection::InstanceMemberFunction* pInstanceMemberFunction = a_Receiver.object_class->getInstanceMemberFunctionCascade(a_pMemberFunction);
-    if(pInstanceMemberFunction == NULL)
+    reflection::MemberFunction* pMemberFunction = a_Receiver.object_class->getMemberFunctionCascade(a_pMemberFunction);
+    if(pMemberFunction == NULL)
     {
         return false;
     }
-    return areConnected(a_Sender, pSignal, a_Receiver, pInstanceMemberFunction);
+    return areConnected(a_Sender, pSignal, a_Receiver, pMemberFunction);
 }
 
 dynamic_initializer_handle* dynamic_initializer()
@@ -1058,37 +1131,28 @@ dynamic_initializer_handle* dynamic_initializer()
     return s_Singleton;
 }
 
-phantom::reflection::SourceFile* sourceFile( const string& absoluteName )
+o_export void        assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const char* e, const char* file, uint line, const char* format, ...)
 {
-    boost::filesystem::path p(absoluteName.c_str());
-    boost::filesystem::path ap = boost::filesystem::absolute(p);
-    string key = ap.generic_string().c_str();
-    auto found = g_source_files.find(key);
-    if(found != g_source_files.end()) return found->second;
-    return (g_source_files[key] = o_new(phantom::reflection::SourceFile)(key));
+    va_list args;
+    va_start(args, format);
+    (*g_assert_func)(e, file,line,format,args);
+    va_end(args);
 }
 
-void discardSourceFile( phantom::reflection::SourceFile* a_pSourceFile )
+o_export void        warning BOOST_PREVENT_MACRO_SUBSTITUTION (const char* e, const char* file, uint line, const char* format, ...)
 {
-    auto found = g_source_files.find(a_pSourceFile->getAbsoluteName());
-    o_assert(found != g_source_files.end());
-    g_source_files.erase(found);
-    o_delete(phantom::reflection::SourceFile) a_pSourceFile;
+    va_list args;
+    va_start(args, format);
+    (*g_warning_func)(e, file,line,format,args);
+    va_end(args);
 }
 
-o_export void        assertion BOOST_PREVENT_MACRO_SUBSTITUTION ( const char* e, const char* file, uint line, const char* message, va_list arglist)
+o_export void        error BOOST_PREVENT_MACRO_SUBSTITUTION (const char* e, const char* file, uint line, const char* format, ...)
 {
-    (*g_assert_func)(e, file,line,message,arglist);
-}
-
-o_export void        warning BOOST_PREVENT_MACRO_SUBSTITUTION (const char* e, const char* file, uint line, const char* message, va_list arglist)
-{
-    (*g_warning_func)(e, file,line,message,arglist);
-}
-
-o_export void        error BOOST_PREVENT_MACRO_SUBSTITUTION (const char* e, const char* file, uint line, const char* message, va_list arglist)
-{
-    (*g_error_func)(e,file,line,message,arglist);
+    va_list args;
+    va_start(args, format);
+    (*g_error_func)(e,file,line,format,args);
+    va_end(args);
 }
 
 o_export void        log BOOST_PREVENT_MACRO_SUBSTITUTION (int level, const char* file, uint line, const char* format, ...)
@@ -1116,9 +1180,9 @@ boolean is( reflection::Class* a_pTestedClass, void* in )
 o_export void setMetaDataValue( const string& elementName, size_t index, const string& value )
 {
     reflection::LanguageElement* pElement = elementByName(elementName);
-    o_assert(pElement);
+    o_assert(pElement AND pElement->asNamedElement());
     o_assert(index != eInvalidMetaDataIndex, "Meta data not declared, pass the metadata name list as third argument of the Phantom constructor");
-    pElement->setMetaDataValue(index, value);
+    pElement->asNamedElement()->setMetaDataValue(index, value);
 }
 
 o_export  void setMetaDataValue( const string& elementName, const string& metaDataName, const string& value )
@@ -1129,9 +1193,9 @@ o_export  void setMetaDataValue( const string& elementName, const string& metaDa
 o_export  const string& metaDataValue( const string& elementName, size_t index )
 {
     reflection::LanguageElement* pElement = elementByName(elementName);
-    o_assert(pElement);
+    o_assert(pElement AND pElement->asNamedElement());
     o_assert(index != eInvalidMetaDataIndex, "Meta data not declared, pass the metadata name list as third argument of the Phantom constructor");
-    return pElement->getMetaDataValue(index);
+    return pElement->asNamedElement()->getMetaDataValue(index);
 }
 
 o_export  const string& metaDataValue( const string& elementName, const string& metaDataName )
@@ -1220,10 +1284,10 @@ o_export void yieldCurrentThread()
 #endif
 }
 
-o_export void                                          installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle)
+o_export void                                          installReflection(const string& a_strName, const string& a_strFileName, size_t a_PlatformHandle, const char* a_strFile)
 {
     dynamic_initializer()->setActive(true);
-    dynamic_initializer()->installReflection(a_strName, a_strFileName, a_PlatformHandle);
+    dynamic_initializer()->installReflection(a_strName, a_strFileName, a_PlatformHandle, a_strFile);
     dynamic_initializer()->setActive(false);
 }
 o_export void                                          uninstallReflection(const string& a_strName)
@@ -1233,84 +1297,80 @@ o_export void                                          uninstallReflection(const
     dynamic_initializer()->setActive(false);
 }
 
-o_export void pushModule( Module* a_pModule )
+o_export void pushModule( reflection::Module* a_pModule )
 {
-    if(g_module)
-    {
-        a_pModule->setParentModule(g_module);
-    }
+    o_assert(g_module == nullptr);
     g_module = a_pModule;
 }
 
-o_export Module* popModule()
+o_export reflection::Module* popModule()
 {
     o_assert(g_module);
-    Module* pModule = g_module;
-    g_module = g_module->getParentModule();
+    reflection::Module* pModule = g_module;
+    g_module = nullptr;
     return pModule;
 }
 
-o_export Module*                           currentModule()
+o_export reflection::Module*                           currentModule()
 {
     return g_module;
 }
 
 
-o_export ModuleLoader*                                 moduleLoader()
+o_export reflection::Application*                                 application()
 {
-    return g_module_loader;
+    return g_application;
 }
 
-o_export Module*                           moduleByName(const string& a_strName)
+o_export reflection::Module*                           moduleByName(const string& a_strName)
 {
     auto found = g_modules.find(a_strName);
     if(found == g_modules.end()) return nullptr;
     return found->second;
 }
 
-o_export Module*                           moduleByFilePath(const string& a_strFilePath)
+o_export reflection::Module*                           moduleByFilePath(const string& a_strFilePath)
 {
 
     for(auto it = g_modules.begin(); it != g_modules.end(); ++it)
     {
-        Module* pModule = it->second;
+        reflection::Module* pModule = it->second;
         if(boost::filesystem::equivalent(boost::filesystem::absolute(a_strFilePath.c_str()), boost::filesystem::absolute(pModule->getFilePath().c_str())))
             return pModule;
     }
     return nullptr;
 }
 
-o_export Module*                           moduleByFileName(const string& a_strFileName)
+o_export reflection::Module*                           moduleByFileName(const string& a_strFileName)
 {
     for(auto it = g_modules.begin(); it != g_modules.end(); ++it)
     {
-        Module* pModule = it->second;
+        reflection::Module* pModule = it->second;
         if(a_strFileName == pModule->getFileName())
             return pModule;
     }
     return nullptr;
 }
 
-o_export map<string, Module*>::const_iterator          beginModules()
+o_export map<string, reflection::Module*>::const_iterator          beginModules()
 {
     return g_modules.begin();
 }
 
-o_export map<string, Module*>::const_iterator          endModules()
+o_export map<string, reflection::Module*>::const_iterator          endModules()
 {
     return g_modules.end();
 }
 
-detail::dynamic_initializer_template_registrer::dynamic_initializer_template_registrer( const string& a_strNamespace, const string& a_strTemplateTypes, const string& a_strTemplateParams, const string& a_strName )
+detail::dynamic_initializer_template_registrer::dynamic_initializer_template_registrer( const string& a_strNamespace, const string& a_strTemplateTypes, const string& a_strTemplateParams, const string& a_strName, const char* a_strFile )
 {
     dynamic_initializer()->setActive(true);
 
     // Ensure the creation of the meta type
     reflection::Namespace* pNamespace = globalNamespace()->findOrCreateNamespaceCascade(a_strNamespace);
-    /// If you get an error : 'apply' : is not a member of 'phantom::detail::module_installer'
-    /// It's probably because you didn't declare a reflection scope (internal or external) for the given t_Ty class
-    reflection::Template* pTemplate = pNamespace->findOrCreateTemplate(a_strName, a_strTemplateTypes, a_strTemplateParams);
-    dynamic_initializer()->registerTemplate(pTemplate);
+    reflection::Template* pTemplate = o_new(reflection::Template)(a_strTemplateTypes, a_strTemplateParams, a_strName, o_native);
+    pNamespace->addTemplate(pTemplate);
+    dynamic_initializer()->registerTemplate(pTemplate, a_strFile);
     dynamic_initializer()->setActive(false);
 }
 
@@ -1402,19 +1462,14 @@ o_export void dynamicPoolDeallocate( size_t s, void* a_pAddress, size_t count o_
     new_pool->ordered_free(a_pAddress, count);
 }
 
-o_export void setCurrentDataBase( serialization::DataBase* a_pDataBase )
-{
-    g_current_data_base = a_pDataBase;
-}
-
-o_export serialization::DataBase* getCurrentDataBase()
-{
-    return g_current_data_base;
-}
-
-o_export phantom::reflection::Language* cplusplus()
+o_export phantom::reflection::CPlusPlus* cplusplus()
 {
     return g_cplusplus;
+}
+
+o_export phantom::reflection::Shaman* shaman()
+{
+    return g_shaman;
 }
 
 o_export phantom::reflection::Interpreter* interpreter()
@@ -1422,7 +1477,7 @@ o_export phantom::reflection::Interpreter* interpreter()
     return g_interpreter;
 }
 
-o_export Module* instanceModuleOf( void const* a_pInstance )
+o_export reflection::Module* instanceModuleOf( void const* a_pInstance )
 {
     reflection::Class* pClass = classOf(a_pInstance);
     if(pClass) return pClass->getModule();
@@ -1614,7 +1669,117 @@ o_export  size_t metaDataIndex( const string& elementName )
 
 o_export  phantom::reflection::Namespace* globalNamespace()
 {
-    return g_root_namespace;
+    return g_pGlobalNamespace;
+}
+
+o_export phantom::reflection::Package* package(reflection::Module* a_pModule, const string& a_strName)
+{
+    if(g_pPackages == nullptr) g_pPackages = new map<string, reflection::Package*>; 
+    auto found = g_pPackages->find(a_strName);
+    if(found == g_pPackages->end())
+    {
+        if(a_pModule)
+        {
+            reflection::Package* pPackage = o_static_new_alloc_and_construct_part(reflection::Package)(a_pModule, a_strName);
+            return (*g_pPackages)[a_strName] = pPackage;
+        }
+        return nullptr;
+    }
+    else if(a_pModule AND a_pModule != found->second->getModule())
+    {
+        o_error(false, "package '%s' already defined in module '%s'", a_strName.c_str(), found->second->getModule()->getName().c_str());
+    }
+    return found->second;
+}
+
+o_export void sourceQualifiedNames( const string& a_strFilePath, vector<string>& words, reflection::Module* a_pModule )
+{
+    o_assert(a_strFilePath.size());
+
+    vector<string> moduleSourcePathWords;
+    boost::split( moduleSourcePathWords, a_pModule->getSourcePath(), boost::is_any_of("\\/"), boost::token_compress_on ); // SplitVec == { "hello abc","ABC","aBc goodbye" }
+    moduleSourcePathWords.erase( std::remove_if( moduleSourcePathWords.begin(), moduleSourcePathWords.end(), 
+        boost::bind( &string::empty, _1 ) ), moduleSourcePathWords.end() );
+
+    boost::split( words, a_strFilePath, boost::is_any_of("\\/"), boost::token_compress_on ); // SplitVec == { "hello abc","ABC","aBc goodbye" }
+    words.erase( std::remove_if( words.begin(), words.end(), 
+        boost::bind( &string::empty, _1 ) ), words.end() );
+    words.back() = words.back().substr(0, words.back().find_first_of(".")); // remove file name
+
+    if(moduleSourcePathWords.size() > words.size())
+    {
+        o_exception(exception::reflection_runtime_exception, "source cannot be found in module source path sub directories");
+    }
+
+    size_t c = 0;
+    for(size_t i = 0; i<words.size(); ++i)
+    {
+        if(i<moduleSourcePathWords.size())
+        {
+            if(moduleSourcePathWords[i] != words[i])
+            {
+                o_exception(exception::reflection_runtime_exception, "source cannot be found in module source path sub directories");
+            }
+        }
+        else 
+        {
+            words[c++] = words[i];
+        }
+    }
+    words.resize(words.size()-moduleSourcePathWords.size());
+}
+
+phantom::reflection::Source* nativeSource( reflection::Module* a_pModule, const string& a_strFilePath )
+{
+    o_error(a_pModule, "no module provided");
+    vector<string> words;
+#if 0//o_COMPILER == o_COMPILER_VISUAL_STUDIO && (o_COMPILER_VERSION <= o_COMPILER_VISUAL_STUDIO_MAJOR_VERSION_2010)
+    boost::filesystem::path p(a_strFilePath);
+    string fileName = p.filename().generic_string();
+    for(auto it = fileName.begin(); it != fileName.end(); ++it)
+        *it = tolower(*it);
+    boost::filesystem::directory_iterator dirit(p.parent_path());
+    boost::filesystem::directory_iterator dirend;
+    for(;dirit!=dirend; ++dirit)
+    {
+        string dfileName = dirit->path().filename().generic_string();
+        for(auto it = dfileName.begin(); it != dfileName.end(); ++it)
+            *it = tolower(*it);
+        if(dfileName == fileName)
+        {
+            sourceQualifiedNames(dirit->path().generic_string(), words, a_pModule);
+            break;
+        }
+    }
+#else
+    sourceQualifiedNames(a_strFilePath, words, a_pModule);
+#endif
+    string packageName;
+    auto end = words.end();
+    end--;
+    for(auto it = words.begin(); it != end; ++it)
+    {
+        if(it != words.begin())
+            packageName+='.';
+        packageName+=*it;
+    }
+    o_assert(packageName.size());
+    reflection::Package* pPackage = package(a_pModule, packageName);
+    const string& sourceName = words.back().substr(0, words.back().find_last_of("."));
+    reflection::Source* pSource = pPackage->getSource(sourceName);
+    if(pSource == nullptr)
+    {
+        return o_static_new_alloc_and_construct_part(reflection::Source)(pPackage, cplusplus(), sourceName, o_native|o_finalized);
+    }
+    return pSource;
+}
+
+void discardSourceFile( phantom::reflection::Source* a_pSourceFile )
+{
+    auto found = g_source_files.find(a_pSourceFile->getQualifiedName());
+    o_assert(found != g_source_files.end());
+    g_source_files.erase(found);
+    o_delete(phantom::reflection::Source) a_pSourceFile;
 }
 
 o_export  reflection::Type* stringType()
@@ -1642,25 +1807,26 @@ void reflection::LanguageElement::Unregister(phantom::reflection::LanguageElemen
     g_elements->erase(std::find(g_elements->begin(), g_elements->end(), pElement));
 }
 
-Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
+Phantom::Phantom( const char* a_strMainModuleName, const char* a_strFile, int argc, char* argv[], int metadatasize, char* metadata[] )
 {
     o_assert(g_instance == NULL, "Only one instance allowed and initialized once, the best is to use your main function scope and RAII");
     g_instance = this;
 
     //o_assert(m_eState == eState_NotInstalled, "Phantom has already been installed and can only be installed once per application");
-    typeByName("phantom::reflection::Namespace")->install(g_root_namespace);
-    typeByName("phantom::reflection::CPlusPlus")->install(g_cplusplus);
-    typeByName("phantom::reflection::Interpreter")->install(g_interpreter);
+    typeByName("phantom::reflection::Namespace", globalNamespace(), o_native)->install(g_pGlobalNamespace);
+    typeByName("phantom::reflection::CPlusPlus", globalNamespace(), o_native)->install(g_cplusplus);
+    typeByName("phantom::reflection::Shaman", globalNamespace(), o_native)->install(g_shaman); /// the funny thing in this line is that typeByName uses shaman...
+    typeByName("phantom::reflection::Interpreter", globalNamespace(), o_native)->install(g_interpreter);
 
-    typeOf<ModuleLoader>()->install(g_module_loader);
-    typeOf<ModuleLoader>()->initialize(g_module_loader);
+    typeOf<reflection::Application>()->install(g_application);
+    typeOf<reflection::Application>()->initialize(g_application);
 
-    moduleLoader()->m_OperationCounter++;
+    application()->m_OperationCounter++;
     for(auto it = g_auto_loaded_modules->begin(); it != g_auto_loaded_modules->end(); ++it)
     {
-        moduleLoader()->moduleInstanciated(*it);
+        application()->moduleInstanciated(*it);
     }
-    moduleLoader()->m_OperationCounter--;
+    application()->m_OperationCounter--;
 
 #if o_OPERATING_SYSTEM != o_OPERATING_SYSTEM_WINDOWS
     /* TODO LINUX
@@ -1673,7 +1839,7 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
     setState(eState_Installed);*/
 #endif
 
-    g_type_of_string = typeByName("phantom::string");
+    g_type_of_string = typeByName("phantom::string", globalNamespace(), o_native);
 
     int i = 0;
     for(;i<metadatasize;++i)
@@ -1681,22 +1847,22 @@ Phantom::Phantom( int argc, char* argv[], int metadatasize, char* metadata[] )
         g_meta_data_names->push_back(metadata[i]);
     }
 
-    moduleLoader()->loadMain(argv[0]);
+    application()->loadMain(a_strMainModuleName, argv[0], a_strFile);
 }
 
 Phantom::~Phantom()
 {
-    moduleLoader()->unloadMain();
+    application()->unloadMain();
 
-    moduleLoader()->m_OperationCounter++;
+    application()->m_OperationCounter++;
     for(auto it = g_auto_loaded_modules->rbegin(); it != g_auto_loaded_modules->rend(); ++it)
     {
-        moduleLoader()->moduleDeleted(*it);
+        application()->moduleDeleted(*it);
     }
-    moduleLoader()->m_OperationCounter--;
+    application()->m_OperationCounter--;
 
-    typeOf<ModuleLoader>()->terminate(g_module_loader);
-    typeOf<ModuleLoader>()->uninstall(g_module_loader);
+    typeOf<reflection::Application>()->terminate(g_application);
+    typeOf<reflection::Application>()->uninstall(g_application);
 
     // delete SourceFiles
     for(auto it = g_source_files.begin(); it != g_source_files.end(); ++it)
@@ -1745,6 +1911,7 @@ o_export void release()
 
 o_export void reflection::detail::cpp_typeid_name_to_phantom_qualifiedDecoratedName( string& a_typeid_name )
 {
+    // TODO optimize
     if(a_typeid_name.find("class ") == 0)
         a_typeid_name = a_typeid_name.substr(6);
     else if(a_typeid_name.find("enum ") == 0)
@@ -1785,7 +1952,149 @@ o_export void reflection::detail::qualifiedDecoratedName_to_type_infos( string& 
     }
 }
 
+dynamic_initializer_handle::deferred_registrer_base::deferred_registrer_base(const char* a_srtFile, byte a_Priority)
+    : file(a_srtFile)
+    , priority(a_Priority)
+{
+    if(phantom::reflection::native::currentClassType() == nullptr)
+        dynamic_initializer()->deferRegistration(this);
+}
 
+void dynamic_initializer_handle::dynamic_initializer_module_installation_func::exec( uint step )
+{
+    if(type->getQualifiedDecoratedName() == "std::allocator< char >")
+    {
+        int i=0;
+        ++i;
+    }
+    if((step > o_global_value_SetupStepBit_TemplateSignature) AND file AND type->getOwner() == nullptr) 
+    {
+        reflection::ClassType* pClassType = type->asClassType();
+        if(pClassType AND pClassType->getTemplateSpecialization())
+        {
+            nativeSource(file)->addTemplateSpecialization(pClassType->getTemplateSpecialization());
+        }
+        else nativeSource(file)->addType(type);
+    }
+    (*setupFunc)(type, step);
+}
+
+namespace reflection { namespace native {
+
+#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
+
+o_export void** extract_vtable_pointer_from_asm(void* codeAddress)
+{
+#if 0
+    //size_t thunkOffset = *(size_t*)((byte*)codeAddress+1);
+    byte* realPtr = extract_asm_jmp_address_at((byte*)codeAddress);
+    if(realPtr == nullptr) 
+    {
+        realPtr = (byte*)codeAddress;
+    }
+    else 
+    {
+        int i = 0;
+        ++i;
+    }
+    byte* ctorCallInstruction = realPtr+0x47;//7;
+    //byte* ctorFuncForwardAddress = extract_asm_jmp_address_at(ctorCallInstruction);
+    byte* ctorFuncAddress = extract_asm_jmp_address_at(ctorCallInstruction);
+    o_assert(ctorFuncAddress);
+//     ctorCallInstruction = ctorFuncAddress+0xA;
+//     ctorFuncAddress = extract_asm_jmp_address_at(ctorCallInstruction);
+//     o_assert(ctorFuncAddress);
+    o_assert(*(ctorFuncAddress+0x12) == (byte)0xC7);
+    o_assert(*(ctorFuncAddress+0x13) == (byte)0x00);
+    byte* vtableValueAddress = ctorFuncAddress+0x14;
+    return *(void***)vtableValueAddress;
+#else
+    return nullptr;
+#endif
+}
+
+#endif
+
+o_export void pushScope( NamedElement* a_pScope )
+{
+    o_assert(a_pScope);
+    g_pScopes->push(a_pScope);
+}
+
+o_export void popScope()
+{
+    g_pScopes->pop();
+}
+
+o_export ClassType* currentClassType()
+{
+    return currentScope()->asLanguageElement()->asClassType();
+}
+
+o_export Class* currentClass()
+{
+    return currentScope()->asLanguageElement()->asClass();
+}
+
+o_export NamedElement* currentScope()
+{
+    return g_pScopes->top();
+}
+
+o_export void pushAnonymousSection( AnonymousSection* a_pAnonymousSection )
+{
+    o_assert(a_pAnonymousSection);
+    g_pAnonymousSections->push(a_pAnonymousSection);
+}
+
+o_export void popAnonymousSection()
+{
+    g_pAnonymousSections->pop();
+}
+
+o_export AnonymousSection* currentAnonymousSection()
+{
+    return g_pAnonymousSections->top();
+}
+
+o_export void pushMemberAnonymousSection( MemberAnonymousSection* a_pMemberAnonymousSection )
+{
+    o_assert(a_pMemberAnonymousSection);
+    g_pMemberAnonymousSections->push(a_pMemberAnonymousSection);
+}
+
+o_export void popMemberAnonymousSection()
+{
+    g_pMemberAnonymousSections->pop();
+}
+
+o_export MemberAnonymousSection* currentMemberAnonymousSection()
+{
+    return g_pMemberAnonymousSections->top();
+}
+
+o_export void pushModifiers( modifiers_t a_Modifiers )
+{
+    return g_pModifiers->push(a_Modifiers);
+}
+
+o_export modifiers_t& currentModifiers()
+{
+    return g_pModifiers->top();
+}
+
+o_export void popModifiers()
+{
+    return g_pModifiers->pop();
+}
+
+}}
+
+o_export phantom::reflection::PackageFolder* rootPackageFolder()
+{
+    o_assert_no_implementation();
+    return nullptr;
+}
 
 o_namespace_end(phantom)
 

@@ -4,7 +4,7 @@
 #define BOOST_LIB_DIAGNOSTIC
 #include "ModuleExplorer.h"
 #include "ModuleExplorer.hxx"
-#include "phantom/ModuleLoader.h"
+#include "phantom/reflection/Application.h"
 #include "phantom/qt/LoadLibraryCommand.h"
 #include "phantom/qt/UnloadLibraryCommand.h"
 #include "phantom/serialization/Node.h"
@@ -15,7 +15,8 @@
 #include <QFileSystemWatcher>
 #include <windows.h>
 #include <boost/filesystem.hpp>
-#include <boost/property_tree_custom/info_parser.hpp>
+#include <boost/property_tree/info_parser.hpp>
+
 /* ** The Class Header must be the last #include * */
 /* *********************************************** */
 o_registerN((phantom, qt), ModuleExplorer);
@@ -42,7 +43,7 @@ namespace phantom { namespace qt {
         : m_LoadedIcon(":/../../bin/resources/icons/plugin.png")
         , m_UnloadedIcon(":/../../bin/resources/icons/plugin_disabled.png")
         , m_pRootMessage(nullptr)
-        , m_pModuleLoader(nullptr)
+        , m_pApplication(nullptr)
         , m_pUndoStack(nullptr)
         , m_LoadDelegate(this, &ModuleExplorer::defaultLoadLibrary)
         , m_UnloadDelegate(this, &ModuleExplorer::defaultUnloadLibrary)
@@ -98,12 +99,12 @@ namespace phantom { namespace qt {
 
     void ModuleExplorer::defaultUnloadLibrary(const string& a_strPath) const
     {
-        phantom::moduleLoader()->unloadLibrary(a_strPath, getMessage());
+        phantom::application()->unloadLibrary(a_strPath, getMessage());
     }
 
     void ModuleExplorer::defaultLoadLibrary( const string& a_strPath) const
     {
-        phantom::moduleLoader()->loadLibrary(a_strPath, getMessage());
+        phantom::application()->loadLibrary(a_strPath, getMessage());
     }
 
     void ModuleExplorer::undoableLoadLibrary( const phantom::string& a_strPath ) const
@@ -118,11 +119,11 @@ namespace phantom { namespace qt {
 
     void ModuleExplorer::slotItemDoubleClicked( QTreeWidgetItem* a_pItem, int )
     {
-        if(a_pItem == nullptr || m_pModuleLoader == nullptr) return;
+        if(a_pItem == nullptr || m_pApplication == nullptr) return;
 
         LibraryItem* pItem = ((LibraryItem*)a_pItem);
         string path = pItem->m_strAbsolutePath.toAscii().constData();
-        if(m_pModuleLoader->isLibraryLoaded(path))
+        if(m_pApplication->isLibraryLoaded(path))
         {
             unloadLibrary(path);
         }
@@ -132,25 +133,25 @@ namespace phantom { namespace qt {
         }
     }
 
-    void ModuleExplorer::setModuleLoader( ModuleLoader* a_pModuleLoader )
+    void ModuleExplorer::setApplication( reflection::Application* a_pApplication )
     {
-        if(m_pModuleLoader == a_pModuleLoader) return;
-        if(m_pModuleLoader)
+        if(m_pApplication == a_pApplication) return;
+        if(m_pApplication)
         {
             disconnect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(slotItemDoubleClicked(QTreeWidgetItem*,int)));
-            o_disconnect(m_pModuleLoader, libraryLoaded(const string&), this, libraryLoaded(const string&));
-            o_disconnect(m_pModuleLoader, libraryUnloaded(const string&), this, libraryUnloaded(const string&));
-            o_disconnect(m_pModuleLoader, moduleLoaded(Module*, size_t, size_t), this, moduleLoaded(Module*, size_t, size_t));
-            o_disconnect(m_pModuleLoader, moduleUnloaded(Module*, size_t, size_t), this, moduleUnloaded(Module*, size_t, size_t));
+            o_disconnect(m_pApplication, libraryLoaded(const string&), this, libraryLoaded(const string&));
+            o_disconnect(m_pApplication, libraryUnloaded(const string&), this, libraryUnloaded(const string&));
+            o_disconnect(m_pApplication, moduleLoaded(reflection::Module*, size_t, size_t), this, moduleLoaded(reflection::Module*, size_t, size_t));
+            o_disconnect(m_pApplication, moduleUnloaded(reflection::Module*, size_t, size_t), this, moduleUnloaded(reflection::Module*, size_t, size_t));
         }
-        m_pModuleLoader = a_pModuleLoader;
-        if(m_pModuleLoader)
+        m_pApplication = a_pApplication;
+        if(m_pApplication)
         {
             connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(slotItemDoubleClicked(QTreeWidgetItem*,int)));
-            o_connect(m_pModuleLoader, libraryLoaded(const string&), this, libraryLoaded(const string&));
-            o_connect(m_pModuleLoader, libraryUnloaded(const string&), this, libraryUnloaded(const string&));
-            o_connect(m_pModuleLoader, moduleLoaded(Module*, size_t, size_t), this, moduleLoaded(Module*, size_t, size_t));
-            o_connect(m_pModuleLoader, moduleUnloaded(Module*, size_t, size_t), this, moduleUnloaded(Module*, size_t, size_t));
+            o_connect(m_pApplication, libraryLoaded(const string&), this, libraryLoaded(const string&));
+            o_connect(m_pApplication, libraryUnloaded(const string&), this, libraryUnloaded(const string&));
+            o_connect(m_pApplication, moduleLoaded(reflection::Module*, size_t, size_t), this, moduleLoaded(reflection::Module*, size_t, size_t));
+            o_connect(m_pApplication, moduleUnloaded(reflection::Module*, size_t, size_t), this, moduleUnloaded(reflection::Module*, size_t, size_t));
             if(m_strMetaDataPath.size())
             {
                 loadMetaData();
@@ -193,12 +194,12 @@ namespace phantom { namespace qt {
         return nullptr;
     }
 
-    string ModuleExplorer::moduleMetaDataPath(Module* a_pModule)
+    string ModuleExplorer::moduleMetaDataPath(reflection::Module* a_pModule)
     {
         return m_strMetaDataPath+"/"+a_pModule->getName()+".cfg";
     }
 
-    void ModuleExplorer::moduleLoaded( Module* a_pModule, size_t, size_t a_uiLoadCount )
+    void ModuleExplorer::moduleLoaded( reflection::Module* a_pModule, size_t, size_t a_uiLoadCount )
     {
         if(a_uiLoadCount == 1)
         {
@@ -220,7 +221,7 @@ namespace phantom { namespace qt {
         }
     }
 
-    void ModuleExplorer::moduleUnloaded( Module* a_pModule, size_t, size_t a_uiLoadCount )
+    void ModuleExplorer::moduleUnloaded( reflection::Module* a_pModule, size_t, size_t a_uiLoadCount )
     {
         if(a_uiLoadCount == 0)
         {
@@ -283,7 +284,7 @@ namespace phantom { namespace qt {
             if(!m_PreUnloadLibraryDelegate(a_strPath))
                 return;
         }
-        if(m_pModuleLoader->libraryCanBeUnloaded(a_strPath, m_pRootMessage))
+        if(m_pApplication->libraryCanBeUnloaded(a_strPath, m_pRootMessage))
         {
             m_UnloadDelegate(a_strPath);
         }
@@ -298,25 +299,26 @@ namespace phantom { namespace qt {
     {
         if(m_strMetaDataPath == a_strPath) return;
         m_strMetaDataPath = a_strPath;
-        if(m_pModuleLoader)
+        if(m_pApplication)
         {
             loadMetaData();
         }
     }
 
-    void ModuleExplorer::loadMetaDataDefinition( const string& a_Key, const property_tree& a_PropertyTree, reflection::LanguageElement* a_pScope)
+    void ModuleExplorer::loadMetaDataDefinition( const string& a_Key, const property_tree& a_PropertyTree, reflection::NamedElement* a_pScope)
     {
         string value = a_PropertyTree.get_value<string>();
         if(a_PropertyTree.size())
         {
-            phantom::reflection::LanguageElement* pElement = a_Key.empty() ? rootNamespace() : phantom::elementByName(a_Key, a_pScope);
-            if(pElement == NULL/* OR ((pElement->asNamespace() == nullptr) AND (pElement->getModule() != a_pModule))*/) 
+            phantom::reflection::LanguageElement* pElement = a_Key.empty() ? globalNamespace() : phantom::elementByName(a_Key, a_pScope);
+            if(pElement == NULL
+                OR pElement->asNamedElement() == nullptr/* OR ((pElement->asNamespace() == nullptr) AND (pElement->getModule() != a_pModule))*/) 
                 return;
             property_tree::const_iterator it = a_PropertyTree.begin();
             property_tree::const_iterator end = a_PropertyTree.end();
             for(;it!=end;++it)
             {
-                loadMetaDataDefinition(it->first, it->second, pElement);
+                loadMetaDataDefinition(it->first, it->second, static_cast<reflection::NamedElement*>(pElement));
             }
         }
         else 
@@ -329,24 +331,24 @@ namespace phantom { namespace qt {
         }
     }
 
-    void ModuleExplorer::loadMetaData( Module* a_pModule )
+    void ModuleExplorer::loadMetaData( reflection::Module* a_pModule )
     {
     }
 
      void ModuleExplorer::loadMetaData( const string& metaDataFile )
      {
          property_tree   propertyTree;
-         boost::property_tree_custom::read_info(metaDataFile.c_str(), propertyTree);
+         boost::property_tree::read_info(metaDataFile.c_str(), propertyTree);
          boost::optional<property_tree&> root_opt = propertyTree.get_child_optional("metadata");
          if(root_opt.is_initialized())
          {
-             loadMetaDataDefinition("", *root_opt, rootNamespace());
+             loadMetaDataDefinition("", *root_opt, globalNamespace());
          }
      }
 
      void ModuleExplorer::loadMetaData()
      {
-         for(auto it = m_pModuleLoader->beginLoadedModules(); it != m_pModuleLoader->endLoadedModules(); ++it)
+         for(auto it = m_pApplication->beginLoadedModules(); it != m_pApplication->endLoadedModules(); ++it)
          {
              string metaDataFile = moduleMetaDataPath(*it);
              if(boost::filesystem::exists(metaDataFile.c_str()))
@@ -368,16 +370,16 @@ namespace phantom { namespace qt {
 
     void LibraryItem::updateLook()
     {
-        bool isLibraryLoaded = m_pModuleExplorer->m_pModuleLoader 
-                                ? m_pModuleExplorer->m_pModuleLoader->isLibraryLoaded(m_strAbsolutePath.toAscii().constData()) 
+        bool isLibraryLoaded = m_pModuleExplorer->m_pApplication 
+                                ? m_pModuleExplorer->m_pApplication->isLibraryLoaded(m_strAbsolutePath.toAscii().constData()) 
                                 : false;
         setIcon(0, isLibraryLoaded ? m_pModuleExplorer->m_LoadedIcon : m_pModuleExplorer->m_UnloadedIcon);
         QFileInfo fileInfo( m_strAbsolutePath );
         setText(0, fileInfo.baseName());
-        Module* pModule = phantom::moduleByFileName(m_strAbsolutePath.toAscii().constData());
-        if(pModule && m_pModuleExplorer->m_pModuleLoader)
+        reflection::Module* pModule = phantom::moduleByFileName(m_strAbsolutePath.toAscii().constData());
+        if(pModule && m_pModuleExplorer->m_pApplication)
         {
-            setText(1, QString::number(m_pModuleExplorer->m_pModuleLoader->getModuleLoadCount(pModule)));
+            setText(1, QString::number(m_pModuleExplorer->m_pApplication->getModuleLoadCount(pModule)));
         }
         else 
         {

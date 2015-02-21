@@ -4,7 +4,6 @@
 #include "VariableWidgetEditor.hxx"
 #include "VariableNode.h"
 #include "phantom/reflection/Expression.h"
-#include "phantom/std/string.h"
 #include <QWidget>
 /* *********************************************** */
 o_registerN((phantom, qt), VariableWidgetEditor);

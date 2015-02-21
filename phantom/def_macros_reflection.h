@@ -1,35 +1,4 @@
-/*
-    This file is part of PHANTOM
-         P reprocessed 
-         H igh-level 
-         A llocator 
-         N ested state-machines and 
-         T emplate 
-         O riented 
-         M eta-programming
-
-    For the latest infos and sources, see http://code.google.com/p/phantom-cpp
-
-    Copyright (C) 2008-2011 by Vivien MILLET
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE
-*/
+/* TODO LICENCE HERE */
 
 #ifndef o_def_macros_detail_h__
 #define o_def_macros_detail_h__
@@ -76,15 +45,10 @@ class phantom_proxy_____##_name_\
         {\
             initializer()\
             {\
-                phantom::reflection::Types::savedModifiers = phantom::reflection::Types::currentModifiers;\
-                phantom::reflection::Types::savedInstalledClass = phantom::reflection::Types::currentInstalledClass;\
-                phantom::reflection::Types::savedInstalledTemplateSpecialization = phantom::reflection::Types::currentInstalledTemplateSpecialization;\
                 typedef phantom::reflection::meta_class_type_of<_name_,##__VA_ARGS__>::type meta_type;\
                 meta_type* pMetaType = o_dynamic_proxy_new(meta_type)(#_name_);\
-                phantom::reflection::Types::currentInstalledClass = pMetaType;\
-                phantom::reflection::Types::currentModifiers = 0;\
-                phantom::reflection::Types::savedInstalledClass->addNestedType(phantom::reflection::Types::currentInstalledClass);\
-                phantom::reflection::Types::currentInstalledTemplateSpecialization = phantom::reflection::Types::currentInstalledClass ? phantom::reflection::Types::currentInstalledClass->getTemplateSpecialization() : nullptr;\
+                phantom::reflection::native::currentScope()->asScope()->addType(pMetaType);\
+                phantom::reflection::native::pushScope(pMetaType);\
             }\
         } o_nested_begin_;
 
@@ -93,9 +57,7 @@ class phantom_proxy_____##_name_\
         {\
             terminator()\
             {\
-            phantom::reflection::Types::currentInstalledClass = phantom::reflection::Types::savedInstalledClass;\
-            phantom::reflection::Types::currentModifiers = phantom::reflection::Types::savedModifiers;\
-                phantom::reflection::Types::currentInstalledTemplateSpecialization = phantom::reflection::Types::savedInstalledTemplateSpecialization;\
+            phantom::reflection::native::popScope();\
             };\
         } o_nested_end_;\
     };\
@@ -671,21 +633,21 @@ struct type_of<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)> \
     o_namespace_begin(phantom, reflection) \
     template<o_PP_MIX(_template_types_, _template_params_)>  \
 struct type_of< ::_name_< o_PP_IDENTITY _template_params_ > > \
-    : public detail::type_of_defined< ::_name_< o_PP_IDENTITY _template_params_ >> {};\
+    : public detail::type_of_template_defined< ::_name_< o_PP_IDENTITY _template_params_ >> {};\
     o_namespace_end(phantom, reflection)
 
 #define o_reflection_specialize_type_ofNT(_namespaces_, _template_types_, _template_params_, _name_) \
     o_namespace_begin(phantom, reflection) \
     template<o_PP_MIX(_template_types_, _template_params_)>  \
 struct type_of<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) < o_PP_IDENTITY _template_params_ > > \
-    : public detail::type_of_defined<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)< o_PP_IDENTITY _template_params_ > > {};\
+    : public detail::type_of_template_defined<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_)< o_PP_IDENTITY _template_params_ > > {};\
     o_namespace_end(phantom, reflection)
 
 #define o_reflection_specialize_type_ofNCT(_namespaces_, _classes_, _template_types_, _template_params_, _name_) \
     o_namespace_begin(phantom, reflection) \
     template<o_PP_MIX(_template_types_, _template_params_)>  \
 struct type_of<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_, _classes_,_name_) < o_PP_IDENTITY _template_params_ > > \
-    : public detail::type_of_defined<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_, _classes_,_name_)< o_PP_IDENTITY _template_params_ > > {};\
+    : public detail::type_of_template_defined<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_, _classes_,_name_)< o_PP_IDENTITY _template_params_ > > {};\
     o_namespace_end(phantom, reflection)
 
 #define o_reflection_specialize_type_ofNC(_namespaces_, _classes_, _name_) \
@@ -706,7 +668,7 @@ struct type_of<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)> \
     o_namespace_begin(phantom, reflection) \
     template<o_PP_MIX(_template_types_, _template_params_)>  \
 struct type_of<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)< o_PP_IDENTITY _template_params_ > > \
-    : public detail::type_of_defined<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)< o_PP_IDENTITY _template_params_ > {};\
+    : public detail::type_of_template_defined<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_)< o_PP_IDENTITY _template_params_ > {};\
     o_namespace_end(phantom, reflection)
 
 
@@ -731,10 +693,11 @@ struct template_specialization_adder< ::_name_ < o_PP_IDENTITY _template_params_
     {\
     static void apply(phantom::reflection::ClassType* a_pClassType)\
         {\
-        phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName(), o_PP_QUOTE _template_types_, o_PP_QUOTE _template_params_);\
+        phantom::reflection::Template* pTemplate = phantom::globalNamespace()->getTemplate(a_pClassType->getName());\
+        if(pTemplate == nullptr) o_exception(exception::reflection_runtime_exception, "missing template registration : %s", a_pClassType->getName().c_str());\
         vector<LanguageElement*> arguments;\
         o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
-        a_pClassType->setTemplateSpecialization(pTemplate->createSpecialization(arguments));\
+        o_new(TemplateSpecialization)(pTemplate, o_new(TemplateSignature), arguments, a_pClassType);\
         }\
     };\
     o_namespace_end(phantom, reflection)
@@ -745,12 +708,14 @@ struct template_specialization_adder< ::_name_ < o_PP_IDENTITY _template_params_
 struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME(_namespaces_,_name_) < o_PP_IDENTITY _template_params_ > >\
 {\
     static void apply(phantom::reflection::ClassType* a_pClassType)\
-{\
-    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName(), o_PP_QUOTE _template_types_, o_PP_QUOTE _template_params_);\
-    vector<LanguageElement*> arguments;\
-    o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
-    a_pClassType->setTemplateSpecialization(pTemplate->createSpecialization(arguments));\
-}\
+    {\
+        static Scope* pScope = phantom::globalNamespace()->findOrCreateNamespaceCascade(o_PP_QUOTE_SCOPE(_namespaces_));\
+        phantom::reflection::Template* pTemplate = pScope->getTemplate(a_pClassType->getName());\
+        if(pTemplate == nullptr) o_exception(exception::reflection_runtime_exception, "missing template registration : %s", a_pClassType->getName().c_str());\
+        vector<LanguageElement*> arguments;\
+        o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
+        o_new(TemplateSpecialization)(pTemplate, o_new(TemplateSignature), arguments, a_pClassType);\
+    }\
 };\
     o_namespace_end(phantom, reflection)
 
@@ -762,10 +727,13 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME(_classes_,_name_
 {\
     static void apply(phantom::reflection::ClassType* a_pClassType)\
 {\
-    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName(), o_PP_QUOTE _template_types_, o_PP_QUOTE _template_params_);\
+    static Scope* pScope = phantom::typeByName(o_PP_QUOTE_SCOPE(_classes_))->asScope();\
+    o_assert(pScope AND pScope->asNamedElement() AND pScope->asNamedElement()->isNative());\
+    phantom::reflection::Template* pTemplate = pScope->getTemplate(a_pClassType->getName());\
+    if(pTemplate == nullptr) o_exception(exception::reflection_runtime_exception, "missing template registration : %s", a_pClassType->getName().c_str());\
     vector<LanguageElement*> arguments;\
     o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
-    a_pClassType->setTemplateSpecialization(pTemplate->createSpecialization(arguments));\
+    o_new(TemplateSpecialization)(pTemplate, o_new(TemplateSignature), arguments, a_pClassType);\
 }\
 };\
     o_namespace_end(phantom, reflection)
@@ -777,10 +745,13 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
 {\
     static void apply(phantom::reflection::ClassType* a_pClassType)\
 {\
-    phantom::reflection::Template* pTemplate = a_pClassType->getNamespace()->findOrCreateTemplate(a_pClassType->getName(), o_PP_QUOTE _template_types_, o_PP_QUOTE _template_params_);\
+    static Scope* pScope = phantom::typeByName(o_PP_QUOTE_SCOPE(_namespaces_)"::"o_PP_QUOTE_SCOPE(_classes_))->asScope();\
+    o_assert(pScope AND pScope->asNamedElement() AND pScope->asNamedElement()->isNative());\
+    phantom::reflection::Template* pTemplate = pScope->getTemplate(a_pClassType->getName());\
+    if(pTemplate == nullptr) o_exception(exception::reflection_runtime_exception, "missing template registration : %s", a_pClassType->getName().c_str());\
     vector<LanguageElement*> arguments;\
     o_reflection_add_template_parameter_reflection(_template_types_,_template_params_) \
-    a_pClassType->setTemplateSpecialization(pTemplate->createSpecialization(arguments));\
+    o_new(TemplateSpecialization)(pTemplate, o_new(TemplateSignature), arguments, a_pClassType);\
 }\
 };\
     o_namespace_end(phantom, reflection)
@@ -937,26 +908,30 @@ struct template_specialization_adder<o_PP_CREATE_QUALIFIED_NAME_2(_namespaces_,_
 #define o_using(where, ...)\
     static phantom::reflection::using_registrer o_PP_CAT(g_using_registrer, __LINE__)(o_PP_QUOTE##where, o_PP_QUOTE##__VA_ARGS__);
 
-#define o_nested_using(...)\
+#define o_using_member(...)\
 class o_PP_CAT(nested_using, __LINE__)\
     {\
     friend class enclosed_reflection;\
     o_PP_CAT(nested_using,__LINE__)() \
         {\
-        phantom::reflection::Types::currentInstalledClass->addUsing(phantom::elementByName(#__VA_ARGS__, phantom::reflection::Types::currentInstalledClass));\
+        phantom::reflection::LanguageElement* pElement = phantom::elementByName(#__VA_ARGS__, phantom::reflection::native::currentClassType());\
+        if(pElement == nullptr) o_exception(phantom::exception::reflection_runtime_exception, "element specified for 'using' cannot be found");\
+        phantom::reflection::NamedElement* pNElement = pElement->asNamedElement();\
+        if(pNElement == nullptr) o_exception(phantom::exception::reflection_runtime_exception, "element specified for 'using' must be a named element");\
+        phantom::reflection::native::currentClassType()->addAlias(pNElement, pNElement->getName());\
         }\
     } o_PP_CAT(_nested_using,__LINE__);
 
-#define o_friend(_who_, _friend_)\
-    static phantom::reflection::friend_registrer o_PP_CAT(g_friend_registrer, __LINE__)(o_PP_QUOTE##_who_, o_PP_QUOTE##_friend_);
+// #define o_friend(_who_, _friend_)\
+//     static phantom::reflection::friend_registrer o_PP_CAT(g_friend_registrer, __LINE__)(o_PP_QUOTE##_who_, o_PP_QUOTE##_friend_);
 
-#define o_nested_friend(...)\
+#define o_friend(...)\
 class o_PP_CAT(nested_friend, __LINE__)\
     {\
     friend class enclosed_reflection;\
     o_PP_CAT(nested_friend,__LINE__)() \
         {\
-        phantom::reflection::Types::currentInstalledClass->addFriend(phantom::elementByName(#__VA_ARGS__, phantom::reflection::Types::currentInstalledClass));\
+        phantom::reflection::native::currentClassType()->addFriend(phantom::elementByName(#__VA_ARGS__, phantom::reflection::native::currentClassType()));\
         }\
     } o_PP_CAT(_nested_friend,__LINE__);
 
@@ -966,7 +941,7 @@ class o_PP_CAT(parameter,__LINE__) \
         friend class enclosed_reflection;\
         o_PP_CAT(parameter,__LINE__)() \
             {\
-            phantom::reflection::Types::currentInstalledTemplateSpecialization->setDefaultArgument(#parameter, o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<decltype(parameter)>)(parameter, o_native));\
+            phantom::reflection::native::currentClassType()->getTemplateSpecialization()->setDefaultArgument(#parameter, o_dynamic_proxy_new(phantom::reflection::native::TNumericConstant<decltype(parameter)>)(parameter, o_native));\
             }\
         } o_PP_CAT(parameter,__LINE__);
 
@@ -1099,44 +1074,6 @@ class o_PP_CAT(parameter,__LINE__) \
 #define o_enum_add_valuesN_39(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38) o_enum_add_valuesN_38(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37)  o_enum_add_valuesN_2(n, v38)
 #define o_enum_add_valuesN_40(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39) o_enum_add_valuesN_39(n, v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38)  o_enum_add_valuesN_2(n, v39)
 
-#define o_typedef(_name_) \
-    phantom::reflection::typedef_registrer<_name_>  o_PP_CAT(g_reflection_typedef_registration_##_name_, __COUNTER__) (#_name_);
-
-#if o_COMPILER == o_COMPILER_VISUAL_STUDIO
-
-#define o_typedefN(_namespaces_, _name_) \
-    phantom::reflection::typedef_registrer<o_PP_CREATE_QUALIFIED_NAME(_namespaces_, _name_)>  o_PP_CAT(g_reflection_typedef_registration_##_name_, __COUNTER__) ( o_PP_QUOTE o_PP_LEFT_PAREN o_PP_CREATE_SCOPE _namespaces_ o_PP_RIGHT_PAREN, #_name_);
-
-#else
-
-#define o_typedefN(_namespaces_, _name_) \
-    phantom::reflection::typedef_registrer<o_PP_CREATE_QUALIFIED_NAME(_namespaces_, _name_)>  o_PP_CAT(g_reflection_typedef_registration_##_name_, __COUNTER__) ( o_PP_QUOTE( o_PP_CREATE_SCOPE _namespaces_ ), #_name_);
-
-#endif
-
-//
-// #define o_typedefNC(_namespace_, _class_, _typedef_) \
-//     o_typedefNC_helper(_namespace_, _class_, o_PP_CAT(g_reflection_registration_typedef_friend_##_typedef_, o_PP_IDENTITY o_PP_LEFT_PAREN __COUNTER__ o_PP_RIGHT_PAREN ), _typedef_)
-//
-// #define o_typedefNC_helper(_namespace_, _class_, _friend_class_, _typedef_) \
-//     class _friend_class_ : public _namespace_::_class_\
-//     {\
-//     public:\
-//         typedef _typedef_ wrapped_typedef;\
-//     };\
-//     phantom::reflection::typedef_registrer<_friend_class_::wrapped_typedef>  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_namespace_"::"#_class_, #_typedef_);
-//
-// #define o_typedefC(_class_, _typedef_) \
-//     o_typedefC_helper(_class_, o_PP_CAT(g_reflection_registration_friend_##_typedef_, o_PP_IDENTITY o_PP_LEFT_PAREN __COUNTER__ o_PP_RIGHT_PAREN ), _typedef_)
-
-#define o_typedefC_helper(_class_, _friend_class_, _typedef_) \
-class _friend_class_ : public _class_\
-    {\
-    public:\
-    typedef _typedef_ wrapped_typedef;\
-    };\
-    phantom::reflection::typedef_registrer<_friend_class_::wrapped_typedef>  o_PP_CAT(g_reflection_registration_##_typedef_, __COUNTER__) (#_class_, #_typedef_);
-
 #define o_namespace_alias(_namespace_alias_, _namespace_aliased_) \
     phantom::reflection::namespace_alias_registrer  o_PP_CAT(g_reflection_registration_##_namespace_alias_, __COUNTER__) (#_namespace_alias_, #_namespace_aliased_);
 
@@ -1148,10 +1085,10 @@ class _friend_class_ : public _class_\
 #endif
 
 #define o_namespace_X(...) \
-    static phantom::reflection::namespace_registrer  o_PP_CAT(g_reflection_namespace_registration_, __COUNTER__) (o_PP_QUOTE_SCOPE((__VA_ARGS__)));
+    static phantom::reflection::namespace_registrer  o_PP_CAT(g_reflection_namespace_registration_, __COUNTER__) (o_PP_QUOTE_SCOPE((__VA_ARGS__)), __FILE__);
 
 #define o_namespace_1(_namespace_) \
-    static phantom::reflection::namespace_registrer  o_PP_CAT(g_reflection_namespace_registration_, __COUNTER__) (#_namespace_);
+    static phantom::reflection::namespace_registrer  o_PP_CAT(g_reflection_namespace_registration_, __COUNTER__) (#_namespace_, __FILE__);
 
 #define o_namespace_aliasN(_namespaces_, _namespace_alias_, _namespace_aliased_) \
     static phantom::reflection::namespace_alias_registrer  o_PP_CAT(g_reflection_registration_##_namespace_alias_, __COUNTER__) (o_PP_QUOTE o_PP_LEFT_PAREN o_PP_CREATE_SCOPE _namespaces_ o_PP_RIGHT_PAREN, #_namespace_alias_, #_namespace_aliased_);
@@ -1221,5 +1158,126 @@ public:\
     }\
 };
 
+#define o_typedef(_name_) \
+    o_typedef_counter_l1(_name_, __COUNTER__)
+
+#define o_typedef_counter_l1(_name_, counter) \
+    o_typedef_counter_l2(_name_, counter)
+
+#define o_typedef_counter_l2(_name_, counter) \
+struct o_PP_CAT(g_reflection_typedef_registration_##_name_, counter) : public ::phantom::dynamic_initializer_handle::deferred_registrer_base\
+    {\
+    o_PP_CAT(g_reflection_typedef_registration_##_name_, counter)() \
+        : phantom::dynamic_initializer_handle::deferred_registrer_base(__FILE__, 150) {}\
+    virtual void registerElement()\
+        {\
+        auto* pScope = ::phantom::reflection::native::currentScope()->asScope();\
+        auto* pTypedef = pScope->addAlias(::phantom::typeOf<_name_>(), #_name_, o_native);\
+        if(pTypedef->getOwner() == nullptr) phantom::nativeSource(__FILE__)->addAlias(pTypedef);\
+        }\
+    } o_PP_CAT(g_reflection_typedef_registration_##_name_, counter);\
+
+#define o_typedefN(_namespaces_, _name_) \
+    o_typedefN_counter_l1(_namespaces_, _name_, __COUNTER__)
+
+#define o_typedefN_counter_l1(_namespaces_, _name_, counter) \
+    o_typedefN_counter_l2(_namespaces_, _name_, counter)
+
+#define o_typedefN_counter_l2(_namespaces_, _name_, counter) \
+    o_namespace _namespaces_\
+    o_namespace_begin _namespaces_\
+    static struct o_PP_CAT(g_reflection_typedef_registration_##_name_, counter) : public ::phantom::dynamic_initializer_handle::deferred_registrer_base\
+    {\
+    o_PP_CAT(g_reflection_typedef_registration_##_name_, counter)() : ::phantom::dynamic_initializer_handle::deferred_registrer_base(__FILE__, 150) {}\
+        virtual void registerElement()\
+        {\
+        ::phantom::reflection::Namespace* pNamespace = ::phantom::namespaceByName(o_PP_QUOTE_SCOPE(_namespaces_));\
+        o_assert(pNamespace);\
+        auto* pTypedef = pNamespace->addAlias(::phantom::typeOf<_name_>(), #_name_, o_native);\
+        o_assert(pTypedef->getOwner() == nullptr); phantom::nativeSource(__FILE__)->addAlias(pTypedef);\
+        }\
+    } o_PP_CAT(g_reflection_typedef_registration_##_name_, counter);\
+    o_namespace_end _namespaces_\
+
+
+#define o_function( _returntype_, _name_, _parameters_, ...)\
+    o_function_L1(__COUNTER__, _returntype_, _name_, _parameters_,##__VA_ARGS__)
+
+#define o_function_L1(counter,  _returntype_, _name_, _parameters_, ...)\
+    o_function_L2(counter,  _returntype_, _name_, _parameters_,##__VA_ARGS__)
+
+#define o_function_L2(counter, _returntype_, _name_, _parameters_, ...) \
+    static struct o_PP_CAT(g_reflection_function_registration_##_name_, counter) : ::phantom::dynamic_initializer_handle::deferred_registrer_base\
+    {\
+    o_PP_CAT(g_reflection_function_registration_##_name_, counter)() :  ::phantom::dynamic_initializer_handle::deferred_registrer_base(__FILE__, 50) {}\
+    virtual void registerElement()\
+        {\
+        auto* pFunction = phantom::reflection::native::TNativeFunctionProvider<_returntype_ _parameters_>::CreateFunction(#_name_, o_PP_QUOTE(_returntype_)o_PP_QUOTE(_parameters_), _name_,##__VA_ARGS__);\
+        if(pFunction->getOwner() == nullptr) phantom::nativeSource(__FILE__)->addFunction(pFunction);\
+        }\
+    } o_PP_CAT(g_reflection_function_registration_reg_##_name_, counter);\
+
+
+#define o_functionN(_namespace_, _returntype_, _name_, _parameters_, ...)\
+    o_functionN_L1(__COUNTER__, _namespace_, _returntype_, _name_, _parameters_,##__VA_ARGS__)
+
+#define o_functionN_L1(counter, _namespace_, _returntype_, _name_, _parameters_, ...)\
+    o_functionN_L2(counter, _namespace_, _returntype_, _name_, _parameters_,##__VA_ARGS__)
+
+#define o_functionN_L2(counter, _namespace_, _returntype_, _name_, _parameters_, ...)\
+    o_namespace _namespace_\
+    static struct o_PP_CAT(g_reflection_function_registration_##_name_, counter) : public ::phantom::dynamic_initializer_handle::deferred_registrer_base\
+    {\
+        o_PP_CAT(g_reflection_function_registration_##_name_, counter)() :  ::phantom::dynamic_initializer_handle::deferred_registrer_base(__FILE__, 50) {}\
+    virtual void registerElement()\
+        {\
+        ::phantom::reflection::native::pushScope(phantom::namespaceByName(o_PP_QUOTE_SCOPE(_namespace_)));\
+        auto pFunction = phantom::reflection::native::TNativeFunctionProvider<_returntype_ _parameters_>::CreateFunction(#_name_, o_PP_QUOTE(_returntype_)o_PP_QUOTE(_parameters_), o_PP_CREATE_SCOPE _namespace_ :: _name_,##__VA_ARGS__);\
+        if(pFunction->getOwner() == nullptr) phantom::nativeSource(__FILE__)->addFunction(pFunction);\
+        ::phantom::reflection::native::popScope();\
+        }\
+    } o_PP_CAT(g_reflection_function_registration_reg_##_name_, counter);\
+
+#define o_variable(_type_, _name_, _range_, ...) \
+    o_variable_L1(__COUNTER__, _type_, _name_, _range_,##__VA_ARGS__) \
+
+#define o_variable_L1(counter, _type_, _name_, _range_, ...) \
+    o_variable_L2(counter, _type_, _name_, _range_,##__VA_ARGS__) \
+
+#define o_variable_L2(counter, _type_, _name_, _range_, ...) \
+    static struct o_PP_CAT(g_reflection_variable_registration_##_name_, counter) : public phantom::dynamic_initializer_handle::deferred_registrer_base\
+    {\
+    o_PP_CAT(g_reflection_variable_registration_##_name_, counter)() :  phantom::dynamic_initializer_handle::deferred_registrer_base(__FILE__, 100) {}\
+    virtual void registerElement()\
+        {\
+            phantom::reflection::Namespace* pNamespace = phantom::globalNamespace();\
+            auto pVariable = o_dynamic_proxy_new(phantom::reflection::native::TNativeVariable<_type_>)(phantom::typeOf<_type_>(), #_name_, &_name_, o_range _range_,##__VA_ARGS__);\
+            pNamespace->addVariable(pVariable);\
+            o_assert(pVariable->getOwner() == nullptr); phantom::nativeSource(__FILE__)->addVariable(pVariable);\
+            if(phantom::reflection::native::currentAnonymousSection())  phantom::reflection::native::currentAnonymousSection()->addVariable(pVariable);  \
+        }\
+    } o_PP_CAT(g_reflection_variable_registration_reg_##_name_, __LINE__);
+
+
+#define o_variableN(_namespace_, _type_, _name_, _range_, ...) \
+    o_variableN_L1(__COUNTER__, _namespace_, _type_, _name_, _range_,##__VA_ARGS__)
+
+#define o_variableN_L1(counter, _namespace_, _type_, _name_, _range_, ...) \
+    o_variableN_L2(counter, _namespace_, _type_, _name_, _range_,##__VA_ARGS__)
+
+#define o_variableN_L2(counter, _namespace_, _type_, _name_, _range_, ...) \
+    o_namespace _namespace_\
+    static struct o_PP_CAT(g_reflection_variable_registration_##_name_, counter) : public phantom::dynamic_initializer_handle::deferred_registrer_base\
+    {\
+    o_PP_CAT(g_reflection_variable_registration_##_name_, counter)() :  phantom::dynamic_initializer_handle::deferred_registrer_base(__FILE__, 100) {}\
+    virtual void registerElement()\
+        {\
+        phantom::reflection::Namespace* pNamespace = phantom::namespaceByName(o_PP_QUOTE_SCOPE(_namespace_));\
+        auto pVariable = o_dynamic_proxy_new(phantom::reflection::native::TNativeVariable<_type_>)(phantom::typeOf<_type_>(), #_name_, &o_PP_CREATE_SCOPE _namespace_ :: _name_, o_range _range_,##__VA_ARGS__);\
+        pNamespace->addVariable(pVariable);\
+        o_assert(pVariable->getOwner() == nullptr); phantom::nativeSource(__FILE__)->addVariable(pVariable);\
+        if(phantom::reflection::native::currentAnonymousSection())  phantom::reflection::native::currentAnonymousSection()->addVariable(pVariable);  \
+        }\
+    } o_PP_CAT(g_reflection_variable_registration_reg_##_name_, counter);
 
 #endif // o_phantom_custom_h__

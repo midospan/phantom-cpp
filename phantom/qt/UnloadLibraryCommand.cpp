@@ -2,7 +2,7 @@
 #include "phantom/qt/qt.h"
 #include "UnloadLibraryCommand.h"
 #include "UnloadLibraryCommand.hxx"
-#include <phantom/ModuleLoader.h>
+#include <phantom/reflection/Application.h>
 /* *********************************************** */
 o_registerN((phantom, qt), UnloadLibraryCommand);
 
@@ -32,7 +32,7 @@ UnloadLibraryCommand::~UnloadLibraryCommand()
 
 void UnloadLibraryCommand::undo()
 {
-    if(!phantom::moduleLoader()->loadLibrary(m_strPath, phantom::topMessage("")))
+    if(!phantom::application()->loadLibrary(m_strPath, phantom::topMessage("")))
     {
         abort();
     }
@@ -40,8 +40,8 @@ void UnloadLibraryCommand::undo()
 
 void UnloadLibraryCommand::redo()
 {
-    o_assert(phantom::moduleLoader()->libraryCanBeUnloaded(m_strPath), "Library cannot be unloaded");
-    if(!phantom::moduleLoader()->unloadLibrary(m_strPath, phantom::topMessage("")))
+    o_assert(phantom::application()->libraryCanBeUnloaded(m_strPath), "Library cannot be unloaded");
+    if(!phantom::application()->unloadLibrary(m_strPath, phantom::topMessage("")))
     {
         abort();
     }

@@ -81,8 +81,9 @@
       <PrecompiledHeaderOutputFile>..\..\..\build\pch\phantomD.pch</PrecompiledHeaderOutputFile>
       <MinimalRebuild>false</MinimalRebuild>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
-      <AdditionalOptions>-Zm500 /MP /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm500 /MP /bigobj /FC /vmg /vmv</AdditionalOptions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -106,7 +107,7 @@
       <AdditionalIncludeDirectories>../../..;$(BOOST_ROOT);</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <PreprocessorDefinitions>_WIN32;WIN32;PHANTOM_DLL;PHANTOM_MODULE;NDEBUG;_NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>-Zm500 /MP /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm500 /MP /bigobj /FC /vmg /vmv</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>phantom/phantom.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>..\..\..\build\pch\phantom.pch</PrecompiledHeaderOutputFile>
@@ -133,7 +134,7 @@
       <AdditionalIncludeDirectories>../../..;$(BOOST_INC_PATH);</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <PreprocessorDefinitions>DOXYGEN_SRC_PREPROCESSING;_WIN32;WIN32;PHANTOM_DLL;NDEBUG;_NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm500 /MP /bigobj /FC /vmg /vmv</AdditionalOptions>
       <PreprocessToFile>true</PreprocessToFile>
       <PreprocessKeepComments>true</PreprocessKeepComments>
     </ClCompile>
@@ -150,6 +151,7 @@
     </BuildLog>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\phantom\connection\connection.h" />
     <ClInclude Include="..\..\..\phantom\data.h" />
     <ClInclude Include="..\..\..\phantom\data.hxx" />
     <ClInclude Include="..\..\..\phantom\def_alias.h" />
@@ -157,7 +159,6 @@
     <ClInclude Include="..\..\..\phantom\def_allocator.h" />
     <ClInclude Include="..\..\..\phantom\def_cfunctions.h" />
     <ClInclude Include="..\..\..\phantom\def_config.h" />
-    <ClInclude Include="..\..\..\phantom\def_connection.h" />
     <ClInclude Include="..\..\..\phantom\def_console.h" />
     <ClInclude Include="..\..\..\phantom\def_constructor.h" />
     <ClInclude Include="..\..\..\phantom\def_container.h" />
@@ -172,17 +173,14 @@
     <ClInclude Include="..\..\..\phantom\def_initializer.h" />
     <ClInclude Include="..\..\..\phantom\def_installer.h" />
     <ClInclude Include="..\..\..\phantom\def_macros.h" />
-    <ClInclude Include="..\..\..\phantom\def_math.h" />
     <ClInclude Include="..\..\..\phantom\def_memory.h" />
     <ClInclude Include="..\..\..\phantom\def_modules.h" />
     <ClInclude Include="..\..\..\phantom\def_macros_reflection.h" />
     <ClInclude Include="..\..\..\phantom\def_phantom_0_0.inl" />
-    <ClInclude Include="..\..\..\phantom\def_reflection.h" />
     <ClInclude Include="..\..\..\phantom\def_macros_reflection_1.h" />
     <ClInclude Include="..\..\..\phantom\def_macros_reflection_3.h" />
     <ClInclude Include="..\..\..\phantom\def_macros_reflection_2.h" />
     <ClInclude Include="..\..\..\phantom\def_resetter.h" />
-    <ClInclude Include="..\..\..\phantom\def_serialization.h" />
     <ClInclude Include="..\..\..\phantom\def_serializer.h" />
     <ClInclude Include="..\..\..\phantom\def_statechart.h" />
     <ClInclude Include="..\..\..\phantom\def_string_convert.h" />
@@ -192,9 +190,15 @@
     <ClInclude Include="..\..\..\phantom\def_util.h" />
     <ClInclude Include="..\..\..\phantom\boost\boost.h" />
     <ClInclude Include="..\..\..\phantom\boost\boost_thread.h" />
+    <ClInclude Include="..\..\..\phantom\deque.h" />
+    <ClInclude Include="..\..\..\phantom\deque.hxx" />
     <ClInclude Include="..\..\..\phantom\flags.h" />
     <ClInclude Include="..\..\..\phantom\flags.hxx" />
+    <ClInclude Include="..\..\..\phantom\list.h" />
+    <ClInclude Include="..\..\..\phantom\list.hxx" />
     <ClInclude Include="..\..\..\phantom\macros\PP_ADD_PREFIX_EACH.h" />
+    <ClInclude Include="..\..\..\phantom\map.h" />
+    <ClInclude Include="..\..\..\phantom\map.hxx" />
     <ClInclude Include="..\..\..\phantom\math\aabb2.h" />
     <ClInclude Include="..\..\..\phantom\math\aabb2.hxx" />
     <ClInclude Include="..\..\..\phantom\math\aabb3.h" />
@@ -260,9 +264,47 @@
     <ClInclude Include="..\..\..\phantom\math\vectorX_base.h" />
     <ClInclude Include="..\..\..\phantom\math\vector_funcs.h" />
     <ClInclude Include="..\..\..\phantom\math\rect.hxx" />
-    <ClInclude Include="..\..\..\phantom\ModuleLoader.hxx" />
     <ClInclude Include="..\..\..\phantom\object.h" />
     <ClInclude Include="..\..\..\phantom\object.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\BuiltInOperatorExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\BuiltInOperatorExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\BuiltInOperators.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Callable.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Callable.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\ConstVolatileType.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\ConstVolatileType.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\DataMemberInitializationStatement.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\DataMemberInitializationStatement.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\DataMemberPointerAdjustmentExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\DataMemberPointerAdjustmentExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxPrecompiler.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\LanguageElementVisitor.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\LanguageElementVisitor.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\LoadExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\LoadExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\MemberFunctionPointerAdjustmentExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\MemberFunctionPointerAdjustmentExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\BuiltInOperator.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\BuiltInOperator.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\TBuiltInOperators.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\TEnum.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\PointerAdjustmentExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\PointerAdjustmentExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxPrecompiler.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Event.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Event.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\LocalVariableInitializationStatement.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\LocalVariableInitializationStatement.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\LValueExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\LValueExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\LValueInitializationStatement.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\LValueInitializationStatement.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\NamedElement.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\NamedElement.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\Import.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Import.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\Module.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Module.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\AggregationClass.h" />
     <ClInclude Include="..\..\..\phantom\reflection\AggregationClass.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\AnonymousSection.h" />
@@ -271,12 +313,8 @@
     <ClInclude Include="..\..\..\phantom\reflection\AnonymousStruct.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\AnonymousUnion.h" />
     <ClInclude Include="..\..\..\phantom\reflection\AnonymousUnion.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\AssignmentExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\AssignmentExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\BinaryLogicalExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\BinaryLogicalExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\BinaryOperationExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\BinaryOperationExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\TDBinaryOperationExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\TDBinaryOperationExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\BranchIfNotStatement.h" />
     <ClInclude Include="..\..\..\phantom\reflection\BranchIfNotStatement.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\BranchIfStatement.h" />
@@ -299,7 +337,7 @@
     <ClInclude Include="..\..\..\phantom\reflection\detail\CxxLexer.h" />
     <ClInclude Include="..\..\..\phantom\reflection\detail\CxxParser.h" />
     <ClInclude Include="..\..\..\phantom\reflection\detail\CxxParser.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxPrecompiler.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\detail\CxxTokenizer.h" />
     <ClInclude Include="..\..\..\phantom\reflection\detail\CxxSearchContext.h" />
     <ClInclude Include="..\..\..\phantom\reflection\detail\CxxToken.h" />
     <ClInclude Include="..\..\..\phantom\reflection\detail\FlexLexer.h" />
@@ -307,12 +345,22 @@
     <ClInclude Include="..\..\..\phantom\reflection\FunctionPointerType.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Interpreter.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Interpreter.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\MemberAnonymousSection.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\MemberAnonymousSection.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\MemberAnonymousStruct.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\MemberAnonymousStruct.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\MemberAnonymousUnion.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\MemberAnonymousUnion.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\MemberFunctionPointerCallExpression.h" />
     <ClInclude Include="..\..\..\phantom\reflection\MemberFunctionPointerCallExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\MemberFunctionPointerType.h" />
     <ClInclude Include="..\..\..\phantom\reflection\MemberFunctionPointerType.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\MemberPointerType.h" />
     <ClInclude Include="..\..\..\phantom\reflection\MemberPointerType.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\Application.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Application.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\NamespaceAlias.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\NamespaceAlias.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\native\NativeVTablePointerExtractor.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\NativeVTableSizeComputer.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TAggregationClass.h" />
@@ -326,7 +374,12 @@
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeMemberFunctionPointerType.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeMemberFunctionPointerTypeBase.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeMemberFunctionPointerTypeConst.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeState.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeStateMachine.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeTrack.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeVariable.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Package.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Package.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Parameter.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Parameter.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Placeholder.h" />
@@ -335,8 +388,25 @@
     <ClInclude Include="..\..\..\phantom\reflection\PlacementConstructionExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Precompiler.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Precompiler.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\TBinaryBooleanExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\TBinaryBooleanExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\Reaction.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Reaction.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\ReferenceType.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\ReferenceType.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\reflection.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\RValueReferenceType.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\RValueReferenceType.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\Scope.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Scope.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\Shaman.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Shaman.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\State.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\State.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\StateMachine.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\StateMachine.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\StateMachineElement.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\StateMachineElement.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\StateOrderingComparator.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\StateOrderingComparator.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\ConstructorCallExpression.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ConstructorCallExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\ConstType.h" />
@@ -358,35 +428,33 @@
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeConstructorBase.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeDestructor.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeFunction.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\PointerArithmeticExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\PointerArithmeticExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\PostUnaryOperationExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\PostUnaryOperationExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\PreUnaryOperationExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\PreUnaryOperationExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\ReferenceExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\ReferenceExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\TDUnaryPostOperationExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\TDUnaryPostOperationExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\TDUnaryPreOperationExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\TDUnaryPreOperationExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\ReturnStatement.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ReturnStatement.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\StaticVariableExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\StaticVariableExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\ArrayExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\ArrayExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\RValueExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\RValueExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\Track.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Track.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\Alias.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Alias.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\VariableExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\VariableExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Block.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\CallExpression.h" />
     <ClInclude Include="..\..\..\phantom\reflection\CallExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\CastExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\CastExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\BuiltInConversionExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\BuiltInConversionExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\ConstantExpression.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ConstantExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\ConstIterator.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ConstIterator.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\DereferenceExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\DereferenceExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Expression.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Expression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\InstanceDataMemberExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\InstanceDataMemberExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\DataMemberExpression.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\DataMemberExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Iterator.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Iterator.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\NumericConstant.h" />
@@ -403,38 +471,16 @@
     <ClInclude Include="..\..\..\phantom\reflection\native\TCompositionClass.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TCompositionClass.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeSequentialCollection.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\AddressExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\AddressExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\SingleParameterFunctionExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\SingleParameterFunctionExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Statement.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Statement.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\StringLiteralExpression.h" />
     <ClInclude Include="..\..\..\phantom\reflection\StringLiteralExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\TBinaryArithmeticExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\TBinaryArithmeticExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\TBinaryBitExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\TBinaryBitExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\TBinaryIntegralExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\TBinaryIntegralExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\TemplateParameter.h" />
     <ClInclude Include="..\..\..\phantom\reflection\TemplateParameter.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\TemplateSignature.h" />
     <ClInclude Include="..\..\..\phantom\reflection\TemplateSignature.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\TEqualityExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\TEqualityExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\TPostIncrementExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\TPostIncrementExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\TPreIncrementExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\TPreIncrementExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\TShiftExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\TShiftExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\TUnaryArithmeticExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\TUnaryArithmeticExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\TUnaryBitExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\TUnaryBitExpression.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\UnaryLogicalExpression.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\UnaryLogicalExpression.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\VolatileType.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\VolatileType.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\WStringLiteralExpression.h" />
     <ClInclude Include="..\..\..\phantom\reflection\WStringLiteralExpression.hxx" />
     <ClInclude Include="..\..\..\phantom\rtti_data.h" />
@@ -462,27 +508,9 @@
     <ClInclude Include="..\..\..\phantom\serialization\PackageDataStateBase.hxx" />
     <ClInclude Include="..\..\..\phantom\serialization\PackageNode.hxx" />
     <ClInclude Include="..\..\..\phantom\serialization\Record.hxx" />
+    <ClInclude Include="..\..\..\phantom\serialization\serialization.h" />
     <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeDataBase.hxx" />
     <ClInclude Include="..\..\..\phantom\serialization\XmlFileTreeNode.hxx" />
-    <ClInclude Include="..\..\..\phantom\std\deque.h" />
-    <ClInclude Include="..\..\..\phantom\std\deque.hxx" />
-    <ClInclude Include="..\..\..\phantom\std\iosfwd.h" />
-    <ClInclude Include="..\..\..\phantom\std\iosfwd.hxx" />
-    <ClInclude Include="..\..\..\phantom\std\list.h" />
-    <ClInclude Include="..\..\..\phantom\std\list.hxx" />
-    <ClInclude Include="..\..\..\phantom\std\map.h" />
-    <ClInclude Include="..\..\..\phantom\std\map.hxx" />
-    <ClInclude Include="..\..\..\phantom\std\set.h" />
-    <ClInclude Include="..\..\..\phantom\std\set.hxx" />
-    <ClInclude Include="..\..\..\phantom\std\string.h" />
-    <ClInclude Include="..\..\..\phantom\std\string.hxx" />
-    <ClInclude Include="..\..\..\phantom\std\unordered_map.hxx" />
-    <ClInclude Include="..\..\..\phantom\std\unordered_set.h" />
-    <ClInclude Include="..\..\..\phantom\std\utility.h" />
-    <ClInclude Include="..\..\..\phantom\std\platform.h" />
-    <ClInclude Include="..\..\..\phantom\Module.hxx" />
-    <ClInclude Include="..\..\..\phantom\Module.h" />
-    <ClInclude Include="..\..\..\phantom\ModuleLoader.h" />
     <ClInclude Include="..\..\..\phantom\reflection.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\ArrayType.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\ArrayType.h" />
@@ -492,7 +520,6 @@
     <ClInclude Include="..\..\..\phantom\reflection\native\DynamicNativeSignalProvider.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativePropertySignalProvider.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeSignatureProvider.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeStaticMemberFunction.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TRange.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Range.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Range.h" />
@@ -507,16 +534,16 @@
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeProperty.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Template.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Template.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\InstanceDataMemberBinding.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\InstanceDataMemberBinding.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\ReferenceType.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\ReferenceType.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\DataMemberBinding.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\DataMemberBinding.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\LValueReferenceType.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\LValueReferenceType.h" />
     <ClInclude Include="..\..\..\phantom\reflection\SetContainerClass.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\SetContainerClass.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\SourceFile.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\SourceFile.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\StaticVariable.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\StaticVariable.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Source.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\Source.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\Variable.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\Variable.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Member.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Member.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Variable.hxx" />
@@ -551,36 +578,26 @@
     <ClInclude Include="..\..\..\phantom\reflection\native\NativeVTableInspector.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNumericConstant.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeDataMemberProvider.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeInstanceDataMember.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeInstanceMemberFunctionBase.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeDataMember.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeMemberFunctionBase.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeSignal.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeSignalBase.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeStaticDataMember.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeStaticMemberFunctionBase.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TType.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\PODUnion.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\PODUnion.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\DataMember.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\DataMember.h" />
     <ClInclude Include="..\..\..\phantom\reflection\PrimitiveType.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\PrimitiveType.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Class.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Class.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\ClassExtension.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\ClassExtension.h" />
     <ClInclude Include="..\..\..\phantom\reflection\ClassType.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\ClassType.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Constructor.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Constructor.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\InstanceDataMember.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\InstanceDataMember.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\InstanceMemberFunction.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\InstanceMemberFunction.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\DataMember.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\DataMember.h" />
     <ClInclude Include="..\..\..\phantom\reflection\MemberFunction.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\MemberFunction.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeConstructor.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeInstanceMemberFunction.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeInstanceMemberFunctionConst.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeMemberFunction.h" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\TNativeMemberFunctionConst.h" />
     <ClInclude Include="..\..\..\phantom\reflection\native\TNativeMemberFunctionProvider.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Namespace.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Namespace.h" />
@@ -594,10 +611,6 @@
     <ClInclude Include="..\..\..\phantom\reflection\Signal.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Signature.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Signature.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\StaticDataMember.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\StaticDataMember.h" />
-    <ClInclude Include="..\..\..\phantom\reflection\StaticMemberFunction.hxx" />
-    <ClInclude Include="..\..\..\phantom\reflection\StaticMemberFunction.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Structure.hxx" />
     <ClInclude Include="..\..\..\phantom\reflection\Structure.h" />
     <ClInclude Include="..\..\..\phantom\reflection\Subroutine.hxx" />
@@ -612,33 +625,17 @@
     <ClInclude Include="..\..\..\phantom\reflection\VirtualMemberFunctionTable.h" />
     <ClInclude Include="..\..\..\phantom\serialization\DataBase.h" />
     <ClInclude Include="..\..\..\phantom\serialization\Node.h" />
+    <ClInclude Include="..\..\..\phantom\set.h" />
+    <ClInclude Include="..\..\..\phantom\set.hxx" />
     <ClInclude Include="..\..\..\phantom\state.hxx" />
-    <ClInclude Include="..\..\..\phantom\state\Event.hxx" />
-    <ClInclude Include="..\..\..\phantom\state\Event.h" />
-    <ClInclude Include="..\..\..\phantom\state\native\TNativeState.hxx" />
-    <ClInclude Include="..\..\..\phantom\state\native\TNativeState.h" />
-    <ClInclude Include="..\..\..\phantom\state\native\TNativeStateMachine.hxx" />
-    <ClInclude Include="..\..\..\phantom\state\native\TNativeStateMachine.h" />
-    <ClInclude Include="..\..\..\phantom\state\native\TNativeTrack.hxx" />
-    <ClInclude Include="..\..\..\phantom\state\native\TNativeTrack.h" />
-    <ClInclude Include="..\..\..\phantom\state\Reaction.hxx" />
-    <ClInclude Include="..\..\..\phantom\state\Reaction.h" />
-    <ClInclude Include="..\..\..\phantom\state\State.hxx" />
-    <ClInclude Include="..\..\..\phantom\state\State.h" />
-    <ClInclude Include="..\..\..\phantom\state\StateMachine.hxx" />
-    <ClInclude Include="..\..\..\phantom\state\StateMachine.h" />
-    <ClInclude Include="..\..\..\phantom\state\StateMachineElement.hxx" />
-    <ClInclude Include="..\..\..\phantom\state\StateMachineElement.h" />
-    <ClInclude Include="..\..\..\phantom\state\StateOrderingComparator.hxx" />
-    <ClInclude Include="..\..\..\phantom\state\StateOrderingComparator.h" />
-    <ClInclude Include="..\..\..\phantom\state\Track.hxx" />
-    <ClInclude Include="..\..\..\phantom\state\Track.h" />
-    <ClInclude Include="..\..\..\phantom\std\unordered_map.h" />
-    <ClInclude Include="..\..\..\phantom\std\utility.hxx" />
-    <ClInclude Include="..\..\..\phantom\std\vector.h" />
-    <ClInclude Include="..\..\..\phantom\std\vector.hxx" />
     <ClInclude Include="..\..\..\phantom\aggregation.h" />
     <ClInclude Include="..\..\..\phantom\aggregation.hxx" />
+    <ClInclude Include="..\..\..\phantom\string.h" />
+    <ClInclude Include="..\..\..\phantom\string.hxx" />
+    <ClInclude Include="..\..\..\phantom\unordered_map.h" />
+    <ClInclude Include="..\..\..\phantom\unordered_map.hxx" />
+    <ClInclude Include="..\..\..\phantom\unordered_set.h" />
+    <ClInclude Include="..\..\..\phantom\unordered_set.hxx" />
     <ClInclude Include="..\..\..\phantom\util\Comparator.hxx" />
     <ClInclude Include="..\..\..\phantom\util\Comparator.h" />
     <ClInclude Include="..\..\..\phantom\component.h" />
@@ -652,16 +649,56 @@
     <ClInclude Include="..\..\..\phantom\util\TVisitor.hxx" />
     <ClInclude Include="..\..\..\phantom\util\TVisitor.h" />
     <ClInclude Include="..\..\..\phantom\variant.h" />
+    <ClInclude Include="..\..\..\phantom\vector.h" />
+    <ClInclude Include="..\..\..\phantom\vector.hxx" />
+    <ClInclude Include="..\..\..\phantom\reflection\native\TFundamentals.h" />
+    <ClInclude Include="..\..\..\std\allocator.h" />
+    <ClInclude Include="..\..\..\std\deque.h" />
+    <ClInclude Include="..\..\..\std\deque.hxx" />
+    <ClInclude Include="..\..\..\std\iosfwd.h" />
+    <ClInclude Include="..\..\..\std\iosfwd.hxx" />
+    <ClInclude Include="..\..\..\std\list.h" />
+    <ClInclude Include="..\..\..\std\list.hxx" />
+    <ClInclude Include="..\..\..\std\map.h" />
+    <ClInclude Include="..\..\..\std\map.hxx" />
+    <ClInclude Include="..\..\..\std\platform.h" />
+    <ClInclude Include="..\..\..\std\platform.hxx" />
+    <ClInclude Include="..\..\..\std\set.h" />
+    <ClInclude Include="..\..\..\std\set.hxx" />
+    <ClInclude Include="..\..\..\std\string.h" />
+    <ClInclude Include="..\..\..\std\string.hxx" />
+    <ClInclude Include="..\..\..\std\unordered_map.h" />
+    <ClInclude Include="..\..\..\std\unordered_map.hxx" />
+    <ClInclude Include="..\..\..\std\unordered_set.h" />
+    <ClInclude Include="..\..\..\std\unordered_set.hxx" />
+    <ClInclude Include="..\..\..\std\utility.h" />
+    <ClInclude Include="..\..\..\std\utility.hxx" />
+    <ClInclude Include="..\..\..\std\vector.h" />
+    <ClInclude Include="..\..\..\std\vector.hxx" />
+    <ClInclude Include="..\..\..\std\xstddef.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\phantom\connection\connection.cpp" />
     <ClCompile Include="..\..\..\phantom\data.cpp" />
-    <ClCompile Include="..\..\..\phantom\def_connection.cpp" />
     <ClCompile Include="..\..\..\phantom\def_console.cpp" />
     <ClCompile Include="..\..\..\phantom\def_memory.cpp" />
-    <ClCompile Include="..\..\..\phantom\def_reflection.cpp" />
     <ClCompile Include="..\..\..\phantom\boost\boost.cpp" />
-    <ClCompile Include="..\..\..\phantom\def_serialization.cpp" />
+    <ClCompile Include="..\..\..\phantom\deque.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)stl_conflict/</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='DoxygenSrcPreprocessing|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\..\..\phantom\flags.cpp" />
+    <ClCompile Include="..\..\..\phantom\list.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)stl_conflict/</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='DoxygenSrcPreprocessing|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\map.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)stl_conflict/</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='DoxygenSrcPreprocessing|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\..\..\phantom\math\aabb2.cpp" />
     <ClCompile Include="..\..\..\phantom\math\aabb3.cpp" />
     <ClCompile Include="..\..\..\phantom\math\angle.cpp" />
@@ -686,13 +723,34 @@
     <ClCompile Include="..\..\..\phantom\math\vector3.cpp" />
     <ClCompile Include="..\..\..\phantom\math\vector4.cpp" />
     <ClCompile Include="..\..\..\phantom\object.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\BuiltInOperatorExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Callable.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\ConstVolatileType.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\DataMemberInitializationStatement.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\DataMemberPointerAdjustmentExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxPrecompiler.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\LanguageElementVisitor.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\LoadExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\MemberFunctionPointerAdjustmentExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\BuiltInOperator.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\PointerAdjustmentExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\detail\CxxPrecompiler.draft.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DoxygenSrcPreprocessing|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\reflection\Event.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\LocalVariableInitializationStatement.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\LValueExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\LValueInitializationStatement.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\NamedElement.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Import.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Module.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\AggregationClass.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\AnonymousSection.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\AnonymousStruct.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\AnonymousUnion.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\AssignmentExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\BinaryLogicalExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\BinaryOperationExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\TDBinaryOperationExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\BranchIfNotStatement.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\BranchIfStatement.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\BranchStatement.cpp" />
@@ -727,14 +785,29 @@
     </ClCompile>
     <ClCompile Include="..\..\..\phantom\reflection\FunctionPointerType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Interpreter.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\MemberAnonymousSection.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\MemberAnonymousStruct.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\MemberAnonymousUnion.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\MemberFunctionPointerCallExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\MemberFunctionPointerType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\MemberPointerType.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Application.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\NamespaceAlias.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Package.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Parameter.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Placeholder.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\PlacementConstructionExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Precompiler.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\TBinaryBooleanExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Reaction.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\ReferenceType.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\reflection.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\RValueReferenceType.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Scope.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Shaman.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\State.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\StateMachine.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\StateMachineElement.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\StateOrderingComparator.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ConstructorCallExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ConstType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\CPlusPlus.cpp" />
@@ -744,61 +817,37 @@
     <ClCompile Include="..\..\..\phantom\reflection\LabelStatement.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Language.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\LocalVariableExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\PointerArithmeticExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\PostUnaryOperationExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\PreUnaryOperationExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\ReferenceExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\TDUnaryPostOperationExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\TDUnaryPreOperationExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ReturnStatement.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\StaticVariableExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\ArrayExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\RValueExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Track.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Alias.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\VariableExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\CallExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\CastExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\BuiltInConversionExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ConstantExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ConstIterator.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\DereferenceExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Expression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\InstanceDataMemberExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\DataMemberExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Iterator.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\NumericConstant.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\PropertyExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\PropertyBinding.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\CompositionClass.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\AddressExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\SingleParameterFunctionExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Statement.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\StringLiteralExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\TBinaryArithmeticExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\TBinaryBitExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\TBinaryIntegralExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\TemplateParameter.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\TemplateSignature.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\TEqualityExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\TPostIncrementExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\TPreIncrementExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\TShiftExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\TUnaryArithmeticExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\TUnaryBitExpression.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\UnaryLogicalExpression.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\VolatileType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\WStringLiteralExpression.cpp" />
     <ClCompile Include="..\..\..\phantom\rtti_data.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\InfoFileTreeDataBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\InfoFileTreeNode.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\JsonFileTreeDataBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\JsonFileTreeNode.cpp" />
-    <ClCompile Include="..\..\..\phantom\std\deque.cpp" />
-    <ClCompile Include="..\..\..\phantom\std\iosfwd.cpp" />
-    <ClCompile Include="..\..\..\phantom\std\list.cpp" />
-    <ClCompile Include="..\..\..\phantom\std\map.cpp" />
-    <ClCompile Include="..\..\..\phantom\std\platform.cpp" />
-    <ClCompile Include="..\..\..\phantom\std\set.cpp" />
-    <ClCompile Include="..\..\..\phantom\std\string.cpp" />
-    <ClCompile Include="..\..\..\phantom\std\unordered_map.cpp" />
-    <ClCompile Include="..\..\..\phantom\std\unordered_set.cpp" />
-    <ClCompile Include="..\..\..\phantom\std\utility.cpp" />
-    <ClCompile Include="..\..\..\phantom\std\vector.cpp" />
+    <ClCompile Include="..\..\..\phantom\serialization\serialization.cpp" />
     <ClCompile Include="..\..\..\phantom\memory\nedmalloc.cpp" />
-    <ClCompile Include="..\..\..\phantom\Module.cpp" />
-    <ClCompile Include="..\..\..\phantom\ModuleLoader.cpp" />
     <ClCompile Include="..\..\..\phantom\phantom.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\native\TType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Property.cpp" />
@@ -814,23 +863,19 @@
     <ClCompile Include="..\..\..\phantom\reflection\MapContainerClass.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Range.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Template.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\InstanceDataMemberBinding.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\ReferenceType.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\DataMemberBinding.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\LValueReferenceType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\SequentialContainerClass.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\SetContainerClass.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\SourceFile.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\StaticVariable.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Source.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\Variable.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Member.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\native\NativeVTableInspector.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\PODUnion.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\DataMember.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\PrimitiveType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Class.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\ClassExtension.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\ClassType.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Constructor.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\InstanceDataMember.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\InstanceMemberFunction.cpp" />
+    <ClCompile Include="..\..\..\phantom\reflection\DataMember.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\MemberFunction.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Namespace.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\PointerType.cpp" />
@@ -838,14 +883,11 @@
     <ClCompile Include="..\..\..\phantom\reflection\LanguageElement.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Signal.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Signature.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\StaticDataMember.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\StaticMemberFunction.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Structure.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Subroutine.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\TemplateSpecialization.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Type.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\Union.cpp" />
-    <ClCompile Include="..\..\..\phantom\reflection\Variable.cpp" />
     <ClCompile Include="..\..\..\phantom\reflection\VirtualMemberFunctionTable.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\BinaryFileTreeDataBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\BinaryFileTreeDataStateBase.cpp" />
@@ -865,14 +907,27 @@
     <ClCompile Include="..\..\..\phantom\serialization\Record.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\XmlFileTreeDataBase.cpp" />
     <ClCompile Include="..\..\..\phantom\serialization\XmlFileTreeNode.cpp" />
-    <ClCompile Include="..\..\..\phantom\state\Event.cpp" />
-    <ClCompile Include="..\..\..\phantom\state\Reaction.cpp" />
-    <ClCompile Include="..\..\..\phantom\state\State.cpp" />
-    <ClCompile Include="..\..\..\phantom\state\StateMachine.cpp" />
-    <ClCompile Include="..\..\..\phantom\state\StateMachineElement.cpp" />
-    <ClCompile Include="..\..\..\phantom\state\StateOrderingComparator.cpp" />
-    <ClCompile Include="..\..\..\phantom\state\Track.cpp" />
     <ClCompile Include="..\..\..\phantom\aggregation.cpp" />
+    <ClCompile Include="..\..\..\phantom\set.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)stl_conflict/</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='DoxygenSrcPreprocessing|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\string.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)stl_conflict/</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='DoxygenSrcPreprocessing|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\unordered_map.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)stl_conflict/</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='DoxygenSrcPreprocessing|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\phantom\unordered_set.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)stl_conflict/</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='DoxygenSrcPreprocessing|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\..\..\phantom\util\Comparator.cpp" />
     <ClCompile Include="..\..\..\phantom\component.cpp" />
     <ClCompile Include="..\..\..\phantom\composition.cpp" />
@@ -887,6 +942,22 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\build\pch\phantomD.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\build\pch\phantom.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
+    <ClCompile Include="..\..\..\phantom\vector.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)stl_conflict/</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='DoxygenSrcPreprocessing|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)stl_conflict</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\std\deque.cpp" />
+    <ClCompile Include="..\..\..\std\iosfwd.cpp" />
+    <ClCompile Include="..\..\..\std\list.cpp" />
+    <ClCompile Include="..\..\..\std\map.cpp" />
+    <ClCompile Include="..\..\..\std\platform.cpp" />
+    <ClCompile Include="..\..\..\std\set.cpp" />
+    <ClCompile Include="..\..\..\std\string.cpp" />
+    <ClCompile Include="..\..\..\std\unordered_map.cpp" />
+    <ClCompile Include="..\..\..\std\unordered_set.cpp" />
+    <ClCompile Include="..\..\..\std\utility.cpp" />
+    <ClCompile Include="..\..\..\std\vector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\phantom\data.inl" />
@@ -933,9 +1004,7 @@
     <None Include="..\..\..\phantom\object.inl" />
     <None Include="..\..\..\phantom\reflection\detail\location.hh" />
     <None Include="..\..\..\phantom\reflection\detail\position.hh" />
-    <None Include="..\..\..\phantom\std\platform.hxx" />
     <None Include="..\..\..\phantom\phantom.hxx" />
-    <None Include="..\..\..\phantom\std\unordered_set.hxx" />
     <None Include="..\..\..\phantom\variant.inl" />
   </ItemGroup>
   <ItemGroup>
@@ -948,6 +1017,8 @@
     <Bison Include="..\..\..\phantom\reflection\detail\CxxParser.y">
       <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cxx</OutputFile>
       <DefinesFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).hxx</DefinesFile>
+      <Verbose Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</Verbose>
+      <NoLines Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</NoLines>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </Bison>
   </ItemGroup>
