@@ -128,7 +128,7 @@ struct map_value_type_without_const
 };
 
 template<typename t_KTy, typename t_Ty>
-struct map_value_type_without_const <std::pair<const t_KTy, t_Ty>>
+struct map_value_type_without_const <std::pair<const t_KTy, t_Ty> >
 {
     typedef std::pair<t_KTy, t_Ty> type;
 };
@@ -1548,7 +1548,7 @@ o_namespace_end(phantom)
 o_namespace_begin(phantom, reflection)
 
 template<typename t_Ty>
-struct type_of<native::TType<t_Ty, 0>>
+struct type_of<native::TType<t_Ty, 0> >
 {
     static native::TType<Class, 0>* object()
     {

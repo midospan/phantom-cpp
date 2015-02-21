@@ -26,7 +26,7 @@ using namespace sc2;
 using namespace unitest;
 namespace wakhan {}
 
-o_static_assert((phantom::setup_steps_mask_of<std::vector<char>>::value & o_global_value_SetupStepBit_TemplateSignature) != 0); 
+o_static_assert((phantom::setup_steps_mask_of<std::vector<char> >::value & o_global_value_SetupStepBit_TemplateSignature) != 0); 
 
 namespace test_struct
 {
@@ -208,7 +208,7 @@ TEST_F(ReflectionTest, phantom_reflection_type_conversion)
 TEST_F(ReflectionTest, phantom_reflection_operator)
 {
     using namespace phantom;
-    EXPECT_NE(NULL, (int)typeOf<math::vector2<float>>()->getMemberFunction("operator==(const math::vector2<float>&) const"));
+    EXPECT_NE(NULL, (int)typeOf<math::vector2<float> >()->getMemberFunction("operator==(const math::vector2<float>&) const"));
 
 }
 
@@ -418,13 +418,13 @@ struct generic_struct
 o_declare(struct, generic_struct);
 /*
 
-phantom::reflection::Type* type_without_hxx = phantom::typeOf<phantom::map<phantom::string, int>>();
+phantom::reflection::Type* type_without_hxx = phantom::typeOf<phantom::map<phantom::string, int> >();
 
-o_static_assert(!phantom::has_module<phantom::map<phantom::string, int>>::value);*/
+o_static_assert(!phantom::has_module<phantom::map<phantom::string, int> >::value);*/
 
 #include "phantom/map.hxx"
 
-o_static_assert(phantom::has_module<phantom::map<phantom::string, int>>::value);
+o_static_assert(phantom::has_module<phantom::map<phantom::string, int> >::value);
 
 //phantom::reflection::Type* type_with_hxx = phantom::typeOf<phantom::map<phantom::string, int>>();
 
@@ -610,7 +610,7 @@ int main(int argc, char **argv)
     AutoReflectedClass* pAutoReflectedClass = o_new(AutoReflectedClass);
     phantom::classOf(pAutoReflectedClass)->getMemberFunction("member_function()");
 
-    phantom::reflection::Type* pType_vector2_float = phantom::typeOf<phantom::math::vector2<float>>();
+    phantom::reflection::Type* pType_vector2_float = phantom::typeOf<phantom::math::vector2<float> >();
     phantom::reflection::Type* pType_vector3_double = phantom::typeByName("phantom::math::vector3d");
 
     phantom::reflection::ArrayType* pType_m4x4 = phantom::typeOf<float[4][4]>();
@@ -857,7 +857,7 @@ int main(int argc, char **argv)
         int map_count = 10;
         for(;map_index<map_count;++map_index)
         {
-            void* pMapUnk = phantom::typeOf<phantom::map<phantom::string,phantom::string>>()->newInstance();
+            void* pMapUnk = phantom::typeOf<phantom::map<phantom::string,phantom::string> >()->newInstance();
             phantom::map<phantom::string,phantom::string>* pMap = static_cast<phantom::map<phantom::string,phantom::string>*>(pMapUnk);
             (*pMap)["first name"] = "John";
             (*pMap)["last name"] = "Doe";

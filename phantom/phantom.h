@@ -564,8 +564,8 @@ protected:
 
 private:
     vector<dynamic_initializer_module_installation_func_vector>     m_DeferredSetupInfos;
-    vector<std::pair<reflection::Namespace*, const char*>>          m_DeferredNamespaces;
-    vector<std::pair<reflection::Template*, const char*>>           m_DeferredTemplates;
+    vector<std::pair<reflection::Namespace*, const char*> >          m_DeferredNamespaces;
+    vector<std::pair<reflection::Template*, const char*> >           m_DeferredTemplates;
     set<deferred_registrer_base*, deferred_registrer_base_sorter>   m_DeferredElements;
     int                                                             m_iCurrentInstallationStep;
     unordered_map<string, reflection::Type*>                        m_RegisteredTypes;

@@ -575,8 +575,8 @@ struct is_map<phantom::map<t_Key,t_Value,t_Pred> >
     enum { value = true };
 };
 
-template<typename t_Kty, typename t_Ty, typename t_Hash, typename t_Pr, typename t_Alloc>
-struct is_map<phantom::unordered_map<t_Kty, t_Ty, t_Hash, t_Pr, t_Alloc> >
+template<typename t_Kty, typename t_Ty, typename t_Hash, typename t_Pr>
+struct is_map<phantom::unordered_map<t_Kty, t_Ty, t_Hash, t_Pr> >
 {
     enum { value = true };
 };

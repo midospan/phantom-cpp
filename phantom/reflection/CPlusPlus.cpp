@@ -5319,7 +5319,7 @@ void CPlusPlus::visit( Template*                    a_pInput, visitor_data a_Dat
 
                 /// Find viable specializations
                 vector<TemplateSpecialization*> viableSpecializations;
-                vector<map<Placeholder*, LanguageElement*>> viableDeductions;
+                vector<map<Placeholder*, LanguageElement*> > viableDeductions;
                 for(auto it = a_pInput->beginTemplateSpecializations(); it != a_pInput->endTemplateSpecializations(); ++it)
                 {
                     TemplateSpecialization* pT0 = *it;

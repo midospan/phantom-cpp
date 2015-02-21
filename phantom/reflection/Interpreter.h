@@ -49,7 +49,7 @@ protected:
     byte*   m_pStackPointer;
     vector<Statement*> m_StatementStack;
     vector<void*> m_ReturnAddresses;
-    map<Expression*, vector<deferred_destruction>> m_DeferredDestructions;
+    map<Expression*, vector<deferred_destruction> > m_DeferredDestructions;
 };
 
 o_namespace_end(phantom, reflection)

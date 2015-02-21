@@ -95,7 +95,7 @@ public:
             eResultType_ContravariantMatch,
             eResultType_PerfectMatch,
         };
-        typedef phantom::map<EResultType, vector<Subroutine*>>    result_map;
+        typedef phantom::map<EResultType, vector<Subroutine*> >    result_map;
 
         member_function_search_data(void) : m_pMemberFunctionSignature(NULL)
         {

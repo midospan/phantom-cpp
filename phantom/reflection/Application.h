@@ -75,8 +75,8 @@ public:
     map<Module*, size_t>::const_iterator beginLoadedLibraryModules(const string& a_strPath) const;
     map<Module*, size_t>::const_iterator endLoadedLibraryModules(const string& a_strPath) const;
 
-    map<string, map<Module*, size_t>>::const_iterator beginLoadedLibraries() const { return m_LibraryModules.begin(); }
-    map<string, map<Module*, size_t>>::const_iterator endLoadedLibraries() const { return m_LibraryModules.end(); }
+    map<string, map<Module*, size_t> >::const_iterator beginLoadedLibraries() const { return m_LibraryModules.begin(); }
+    map<string, map<Module*, size_t> >::const_iterator endLoadedLibraries() const { return m_LibraryModules.end(); }
 
     bool                            libraryCanBeUnloaded(const string& a_strPath, phantom::Message* a_pMessage = nullptr, vector<LanguageElement*>* a_pBlockingElements = nullptr) const;
 
@@ -141,7 +141,7 @@ protected:
     Module*         m_pMainModule;
     Language*       m_pDefaultLanguage;
     map<Module*, size_t> m_LoadedModuleCounts;
-    map<string, map<Module*, size_t>> m_LibraryModules;
+    map<string, map<Module*, size_t> > m_LibraryModules;
     vector<Module*> m_CurrentlyLoadingModules;
     size_t m_OperationCounter;
     serialization::DataBase* m_pDataBase;

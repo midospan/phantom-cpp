@@ -109,7 +109,7 @@ public:
     CPlusPlus* getLanguage() const { return static_cast<CPlusPlus*>(m_pLanguage); }
 
 protected:
-    map<const vector<LanguageElement*>*, map<LanguageElement*, LanguageElement*>> m_Templated;
+    map<const vector<LanguageElement*>*, map<LanguageElement*, LanguageElement*> > m_Templated;
 
     vector<reflection::LanguageElement*> m_PrecompilationScopeStack;
     vector<reflection::LanguageElement*> m_Elements;
@@ -117,10 +117,10 @@ protected:
 
     vector<CxxToken*> m_Tokens;
     size_t m_uiErrorCount;
-    vector<vector<scope_declarations_data>> m_PassDeclarations;
+    vector<vector<scope_declarations_data> > m_PassDeclarations;
     std::stack<LabelStatement*> breakLabels;
     std::stack<LabelStatement*> continueLabels;
-    map<Subroutine*, map<string, LabelStatement*>> labelMap; 
+    map<Subroutine*, map<string, LabelStatement*> > labelMap; 
     vector<TemplateSpecialization*> m_TemplateSpecializationsToFinalize;
     EFlags m_Flags;
 
